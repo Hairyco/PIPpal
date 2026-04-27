@@ -140,11 +140,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Listen to Supabase auth state — this is what keeps users logged in on refresh
   useEffect(() => {
     // Get current session on load
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         setUser({ name, email: session.user.email || '', id: session.user.id });
         setCurrentScreen('home');
+        // Auto-load medical profile
+        try {
+          const { data } = await supabase
+            .from('medical_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          if (data) {
+            setMedProfileState({
+              conditions: data.conditions || [],
+              medications: data.medications || '',
+              notes: data.notes || '',
+            });
+          }
+        } catch { /* No profile yet */ }
       }
       setIsLoading(false);
     });
