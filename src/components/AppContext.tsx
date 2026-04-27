@@ -1,0 +1,315 @@
+import React, { useState, createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
+import { supabase } from '../supabaseClient';
+
+export type Screen =
+  | 'landing'
+  | 'login'
+  | 'home'
+  | 'eligibility'
+  | 'medical_profile'
+  | 'q1_intro'
+  | 'q1_chat'
+  | 'q1_result'
+  | 'question_index'
+  | 'assessment_prep'
+  | 'pip_diary'
+  | 'downloads'
+  | 'decision_received'
+  | 'mandatory_reconsideration'
+  | 'appeal'
+  | 'change_of_circumstances'
+  | 'pre_claim_checklist'
+  | 'claim_steps'
+  | 'about'
+  | 'privacy'
+  | 'accessibility'
+  | 'new_claim_intro'
+  | 'claim_process'
+  | 'descriptors_guide'
+  | 'scoring_criteria'
+  | 'upsell'
+  | 'post_payment_guide'
+  | 'timeline_calculator'
+  | 'payment_calculator'
+  | 'backpay_calculator';
+
+export interface User {
+  name: string;
+  email: string;
+  avatar?: string;
+  id?: string;
+}
+
+export interface Condition {
+  name: string;
+  durationNum: string;
+  durationUnit: 'months' | 'years';
+}
+
+export interface MedProfile {
+  conditions: Condition[];
+  medications: string;
+  notes: string;
+}
+
+export interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info';
+}
+
+interface AppContextType {
+  currentScreen: Screen;
+  navigationHistory: Screen[];
+  navigateTo: (screen: Screen) => void;
+  goBack: () => void;
+  user: User | null;
+  isLoggedIn: boolean;
+  login: (user: User) => void;
+  logout: () => void;
+  medProfile: MedProfile;
+  setMedProfile: (profile: MedProfile) => void;
+  badDayMode: boolean;
+  setBadDayMode: (active: boolean) => void;
+  q1Result: any;
+  setQ1Result: (result: any) => void;
+  savedAnswers: Record<string, string>;
+  saveAnswer: (questionId: string, answer: string) => void;
+  getSavedAnswer: (questionId: string) => string | undefined;
+  hasCompletedEligibility: boolean;
+  setHasCompletedEligibility: (completed: boolean) => void;
+  hasPaid: boolean;
+  setHasPaid: (paid: boolean) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  toasts: Toast[];
+  showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+  dismissToast: (id: string) => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+function loadFromStorage<T>(key: string, fallback: T): T {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveToStorage(key: string, value: any) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Storage unavailable — fail silently
+  }
+}
+
+export function AppProvider({ children }: { children: ReactNode }) {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
+  const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [hasPaid, setHasPaidState] = useState<boolean>(false);
+
+  const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
+    loadFromStorage('pippal_med_profile', {
+      conditions: [],
+      medications: '',
+      notes: '',
+    })
+  );
+
+  const [badDayMode, setBadDayMode] = useState(false);
+  const [q1Result, setQ1Result] = useState<any>(null);
+
+  const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
+    loadFromStorage('pippal_answers', {})
+  );
+
+  const [hasCompletedEligibility, setHasCompletedEligibilityState] =
+    useState<boolean>(() => loadFromStorage('pippal_eligibility', false));
+
+  // Persist to localStorage
+  useEffect(() => { saveToStorage('pippal_med_profile', medProfile); }, [medProfile]);
+  useEffect(() => { saveToStorage('pippal_answers', savedAnswers); }, [savedAnswers]);
+  useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
+
+  // Listen to Supabase auth state — this is what keeps users logged in on refresh
+  useEffect(() => {
+    // Get current session on load
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
+        setUser({ name, email: session.user.email || '', id: session.user.id });
+        setCurrentScreen('home');
+      }
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
+        setUser({ name, email: session.user.email || '', id: session.user.id });
+        if (currentScreen === 'login' || currentScreen === 'landing') {
+          setCurrentScreen('home');
+        }
+      } else {
+        setUser(null);
+        setHasPaidState(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const setHasPaid = (paid: boolean) => setHasPaidState(paid);
+  const setMedProfile = (profile: MedProfile) => setMedProfileState(profile);
+  const setHasCompletedEligibility = (completed: boolean) => setHasCompletedEligibilityState(completed);
+
+  const login = (newUser: User) => {
+    setUser(newUser);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setHasPaidState(false);
+    setSavedAnswers({});
+    setMedProfileState({ conditions: [], medications: '', notes: '' });
+    setHasCompletedEligibilityState(false);
+    localStorage.removeItem('pippal_med_profile');
+    localStorage.removeItem('pippal_answers');
+    localStorage.removeItem('pippal_eligibility');
+    setCurrentScreen('landing');
+    setNavigationHistory([]);
+  };
+
+  const navigateTo = (screen: Screen) => {
+    setNavigationHistory((prev) => [...prev, currentScreen]);
+    setCurrentScreen(screen);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goBack = () => {
+    setNavigationHistory((prev) => {
+      const newHistory = [...prev];
+      const previousScreen = newHistory.pop();
+      if (previousScreen) {
+        setCurrentScreen(previousScreen);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return newHistory;
+    });
+  };
+
+  const saveAnswer = (questionId: string, answer: string) => {
+    setSavedAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  };
+
+  const getSavedAnswer = (questionId: string) => savedAnswers[questionId];
+
+  const showToast = useCallback(
+    (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+      const id = Math.random().toString(36).slice(2);
+      setToasts((prev) => [...prev, { id, message, type }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 3500);
+    },
+    []
+  );
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  // Show loading spinner while checking session
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-stone-500 font-medium">Loading PIPpal…</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <AppContext.Provider
+      value={{
+        currentScreen,
+        navigationHistory,
+        navigateTo,
+        goBack,
+        user,
+        isLoggedIn: !!user,
+        login,
+        logout,
+        medProfile,
+        setMedProfile,
+        badDayMode,
+        setBadDayMode,
+        q1Result,
+        setQ1Result,
+        savedAnswers,
+        saveAnswer,
+        getSavedAnswer,
+        hasCompletedEligibility,
+        setHasCompletedEligibility,
+        hasPaid,
+        setHasPaid,
+        isLoading,
+        setIsLoading,
+        toasts,
+        showToast,
+        dismissToast,
+      }}
+    >
+      {children}
+      {/* Global Toast Notifications */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none">
+        {toasts.map((toast) => (
+          <div
+            key={toast.id}
+            onClick={() => dismissToast(toast.id)}
+            className={`pointer-events-auto flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-sm font-medium transition-all animate-fade-in cursor-pointer max-w-xs text-center
+              ${toast.type === 'success' ? 'bg-teal-700 text-white' : ''}
+              ${toast.type === 'error' ? 'bg-rose-600 text-white' : ''}
+              ${toast.type === 'info' ? 'bg-stone-800 text-white' : ''}
+            `}
+          >
+            {toast.type === 'success' && (
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+            {toast.type === 'error' && (
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            {toast.type === 'info' && (
+              <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+              </svg>
+            )}
+            {toast.message}
+          </div>
+        ))}
+      </div>
+    </AppContext.Provider>
+  );
+}
+
+export function useAppContext() {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+}
