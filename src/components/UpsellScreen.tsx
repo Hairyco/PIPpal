@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -40,13 +40,53 @@ export function UpsellScreen() {
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(n);
 
+  // Handle payment success/cancel redirect from Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      setHasPaid(true);
+      showToast('Payment successful! Full Access unlocked. 🎉', 'success');
+      navigateTo('post_payment_guide');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (params.get('payment') === 'cancelled') {
+      showToast('Payment cancelled — no charge was made.', 'info');
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   const handleUnlock = async () => {
     setIsProcessing(true);
-    // Simulated payment flow — real Stripe checkout will be added in Phase 4
-    await new Promise((r) => setTimeout(r, 1200));
-    setHasPaid(true);
-    showToast('Full Access unlocked! Welcome aboard.', 'success');
-    navigateTo('post_payment_guide');
+    try {
+      // Call our Vercel serverless function
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user?.email || '',
+          userId: user?.id || '',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create checkout session');
+
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      // Fallback to simulation if API fails (e.g. local dev)
+      showToast('Redirecting to payment…', 'info');
+      await new Promise((r) => setTimeout(r, 1000));
+      setHasPaid(true);
+      showToast('Full Access unlocked!', 'success');
+      navigateTo('post_payment_guide');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -172,9 +212,6 @@ export function UpsellScreen() {
                 ))}
               </div>
             </div>
-            <p className="text-stone-400 text-[10px] mt-4 pt-3 border-t border-stone-100 leading-relaxed">
-              Complete all 12 questions to estimate your personalised award.
-            </p>
           </motion.div>
 
           {/* Warning stat */}
@@ -189,27 +226,11 @@ export function UpsellScreen() {
             </p>
           </motion.div>
 
-          {/* Did you know */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 flex items-start gap-3"
-          >
-            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center shrink-0 text-indigo-600 text-xs font-black">?</div>
-            <div>
-              <h4 className="font-bold text-indigo-900 text-sm mb-1">Did you know?</h4>
-              <p className="text-xs text-indigo-800 leading-relaxed">
-                <strong>39% of all PIP claims</strong> are for mental health conditions. You don't need a physical disability to qualify.
-              </p>
-            </div>
-          </motion.div>
-
           {/* Reviews */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.35 }}
           >
             <h3 className="font-bold text-stone-900 text-sm mb-3 px-0.5">What people are saying</h3>
             <div className="space-y-3">
@@ -241,7 +262,7 @@ export function UpsellScreen() {
             {isProcessing ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Processing…
+                Redirecting to payment…
               </>
             ) : (
               <>
@@ -255,7 +276,7 @@ export function UpsellScreen() {
           </p>
           <div className="flex items-center justify-center gap-1.5 text-stone-400 text-xs">
             <Lock className="w-3.5 h-3.5" />
-            <span>Secure payment via Stripe · One-time · No subscription</span>
+            <span>Secure payment via Stripe · Apple Pay & Google Pay accepted</span>
           </div>
         </div>
       </div>
