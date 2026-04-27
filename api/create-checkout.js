@@ -1,7 +1,8 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+import Stripe from 'stripe';
 
-module.exports = async (req, res) => {
-  // Allow CORS
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -26,17 +27,12 @@ module.exports = async (req, res) => {
         },
       ],
       mode: 'payment',
-      customer_email: email,
+      customer_email: email || undefined,
       metadata: {
         userId: userId || '',
       },
       success_url: `${process.env.APP_URL}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.APP_URL}?payment=cancelled`,
-      payment_method_options: {
-        card: {
-          request_three_d_secure: 'automatic',
-        },
-      },
     });
 
     return res.status(200).json({ url: session.url });
@@ -44,4 +40,4 @@ module.exports = async (req, res) => {
     console.error('Stripe error:', error);
     return res.status(500).json({ error: error.message });
   }
-};
+}
