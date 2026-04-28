@@ -200,7 +200,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
-        setUser({ name, email: session.user.email || '', id: session.user.id });
+        const email = session.user.email || '';
+        setUser({ name, email, id: session.user.id });
+        // Restore has_paid from email-specific localStorage
+        const savedPaid = loadFromStorage(`pippal_paid_${email}`, false) || loadFromStorage('pippal_paid', false);
+        if (savedPaid) setHasPaidState(true);
         if (currentScreen === 'login' || currentScreen === 'landing') {
           setCurrentScreen('home');
         }
