@@ -82,6 +82,8 @@ interface AppContextType {
   setHasPaid: (paid: boolean) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
+  showPromoDisclaimer: boolean;
+  setShowPromoDisclaimer: (show: boolean) => void;
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   dismissToast: (id: string) => void;
@@ -107,6 +109,15 @@ function saveToStorage(key: string, value: any) {
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
+  // Check for promo code on initial load (even before login)
+  const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
+  const initialPromo = new URLSearchParams(window.location.search).get('promo')?.toUpperCase();
+  if (initialPromo && PROMO_CODES.includes(initialPromo)) {
+    // Don't save yet — show disclaimer first
+    saveToStorage('pippal_pending_promo', true);
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  const [showPromoDisclaimer, setShowPromoDisclaimer] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,9 +158,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser({ name, email: userEmail, id: session.user.id });
         // Load has_paid from email-specific localStorage key
         const savedPaid = loadFromStorage(`pippal_paid_${userEmail}`, false);
-        if (savedPaid) setHasPaidState(true);
-        // Check for payment success redirect
+        const promoUnlocked = loadFromStorage('pippal_promo_unlocked', false);
+        const pendingPromo = loadFromStorage('pippal_pending_promo', false);
+        if (savedPaid || promoUnlocked) setHasPaidState(true);
+        if (pendingPromo && !promoUnlocked) {
+          // Show disclaimer before unlocking
+          setShowPromoDisclaimer(true);
+        }
+        // Check for payment success redirect OR promo code
         const params = new URLSearchParams(window.location.search);
+        const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
+        const promoCode = params.get('promo')?.toUpperCase();
+        if (promoCode && PROMO_CODES.includes(promoCode)) {
+          setHasPaidState(true);
+          setCurrentScreen('post_payment_guide');
+          window.history.replaceState({}, '', window.location.pathname);
+          saveToStorage(`pippal_paid_${userEmail}`, true);
+          saveToStorage('pippal_paid', true);
+          try {
+            await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
+          } catch { /* Fail silently */ }
+        }
         if (params.get('payment') === 'success') {
           setHasPaidState(true);
           setCurrentScreen('post_payment_guide');
@@ -320,6 +349,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setHasPaid,
         isLoading,
         setIsLoading,
+        showPromoDisclaimer,
+        setShowPromoDisclaimer,
         toasts,
         showToast,
         dismissToast,

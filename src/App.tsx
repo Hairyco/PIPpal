@@ -38,6 +38,7 @@ import { HowItWorks } from './components/HowItWorks';
 import { WhyPIPpal } from './components/WhyPIPpal';
 import { FinalCTA } from './components/FinalCTA';
 import { AppProvider, useAppContext, Screen } from './components/AppContext';
+import { AnimatePresence, motion } from 'framer-motion';
 import { HomeScreen } from './components/HomeScreen';
 import { EligibilityChecker } from './components/EligibilityChecker';
 import { MedicalProfile } from './components/MedicalProfile';
@@ -96,6 +97,10 @@ function AppContent() {
     logout,
     hasPaid,
     isLoading,
+    showPromoDisclaimer,
+    setShowPromoDisclaimer,
+    setHasPaid,
+    showToast,
   } = useAppContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -204,6 +209,45 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       {isLoading && <LoadingOverlay />}
+
+      {/* Promo Disclaimer Popup */}
+      <AnimatePresence>
+        {showPromoDisclaimer && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-5 bg-stone-900/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl max-w-sm w-full overflow-hidden"
+            >
+              <div className="bg-teal-700 px-6 py-5 text-white">
+                <h2 className="font-bold text-lg mb-1">Important — Please Read</h2>
+                <p className="text-teal-100 text-sm">Before accessing your free account</p>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-stone-700 leading-relaxed mb-4">
+                  This link has been created <strong>specifically for you</strong>. Your name and email address will be permanently attached to this account.
+                </p>
+                <p className="text-sm text-stone-700 leading-relaxed mb-6">
+                  <strong>Please do not share this link with others.</strong> Anyone who uses it will be accessing PIPpal under your identity, and your personal information will be associated with their activity.
+                </p>
+                <button
+                  onClick={() => {
+                    setShowPromoDisclaimer(false);
+                    setHasPaid(true);
+                    localStorage.setItem('pippal_promo_unlocked', 'true');
+                    localStorage.removeItem('pippal_pending_promo');
+                    showToast('Full Access unlocked! Welcome to PIPpal.', 'success');
+                  }}
+                  className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold hover:bg-teal-800 transition-colors active:scale-[0.98]"
+                >
+                  I understand — take me in
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {isLanding ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">

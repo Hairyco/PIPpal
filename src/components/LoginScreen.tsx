@@ -349,7 +349,7 @@ export function LoginScreen() {
 
             {mode === 'signup' && (
               <p className="text-center text-xs text-stone-400 mt-4 leading-relaxed">
-                By creating an account you agree to our{' '}
+                By creating an account you agree tvercel git connect https://github.com/Hairyco/PIPpalo our{' '}
                 <button onClick={() => navigateTo('privacy')} className="underline hover:text-stone-600">
                   Privacy Policy
                 </button>
