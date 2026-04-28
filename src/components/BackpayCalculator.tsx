@@ -5,13 +5,13 @@ import { ShareButton } from './ShareButton';
 const rates = {
   daily: {
     none: 0,
-    standard: 77.65,
-    enhanced: 116.05
+    standard: 76.70,
+    enhanced: 114.60
   },
   mobility: {
     none: 0,
-    standard: 30.7,
-    enhanced: 81.0
+    standard: 30.30,
+    enhanced: 80.00
   }
 };
 export function BackpayCalculator() {

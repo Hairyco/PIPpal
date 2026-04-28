@@ -33,7 +33,7 @@ export function UpsellScreen() {
   const { goBack, navigateTo, setHasPaid, showToast, user } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const maxWeekly = 197.05;
+  const maxWeekly = 156.70; // £76.70 Daily Enhanced + £80.00 Mobility Enhanced
   const maxMonthly = maxWeekly * 52 / 12;
   const maxYearly = maxWeekly * 52;
 
