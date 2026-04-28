@@ -10,7 +10,7 @@ import {
   Loader2,
   Lock,
   ArrowRight,
-  Bot,
+  HeartHandshake,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 
@@ -29,7 +29,7 @@ interface Message {
 
 const INITIAL_MESSAGE: Message = {
   id: 'init',
-  text: "Hi! I'm your PIP Assistant powered by AI. Ask me anything about PIP — eligibility, rates, assessments, appeals, or what to do after a decision. I'll give you personalised guidance based on your conditions.",
+  text: "Hi! I'm your PIPpal Assistant. Ask me anything about PIP — eligibility, rates, assessments, appeals, or what to do after a decision. I'll give you personalised guidance based on your conditions.",
   sender: 'assistant',
 };
 
@@ -105,9 +105,11 @@ export function PIPAssistant({
         body: JSON.stringify({
           message: text.trim(),
           medProfile,
-          conversationHistory: conversationHistory.slice(-10), // Last 5 exchanges
+          conversationHistory: conversationHistory.slice(-10),
         }),
       });
+
+      if (!response.ok) throw new Error('API error');
 
       const data = await response.json();
       const reply = data.reply || 'Sorry, I could not generate a response. Please try again.';
@@ -127,13 +129,12 @@ export function PIPAssistant({
           })
       );
     } catch (err) {
-      // Fallback response if API fails
       setMessages((prev) =>
         prev
           .filter((m) => m.id !== 'loading')
           .concat({
             id: Date.now().toString(),
-            text: "I'm having trouble connecting right now. Please try again in a moment, or check our Help sections for PIP guidance.",
+            text: "I'm having trouble connecting right now. Please try again in a moment.",
             sender: 'assistant',
           })
       );
@@ -169,7 +170,7 @@ export function PIPAssistant({
             exit={{ scale: 0, opacity: 0 }}
             onClick={handleButtonClick}
             className="fixed bottom-6 right-5 z-40 w-14 h-14 bg-teal-700 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-teal-800 transition-colors active:scale-95"
-            aria-label="Open PIP Assistant"
+            aria-label="Open PIPpal Assistant"
           >
             <MessageCircle className="w-6 h-6" />
             {hasPaid && (
@@ -198,10 +199,10 @@ export function PIPAssistant({
             </button>
             <div className="flex items-center gap-2 mb-2">
               <Lock className="w-4 h-4 text-amber-500" />
-              <h3 className="font-bold text-stone-900 text-sm">AI Assistant — Full Access</h3>
+              <h3 className="font-bold text-stone-900 text-sm">PIPpal Assistant — Full Access</h3>
             </div>
             <p className="text-xs text-stone-600 mb-3 leading-relaxed">
-              Get personalised PIP guidance from our AI assistant — tailored to your conditions and situation.
+              Get personalised PIP guidance tailored to your conditions and situation.
             </p>
             <button
               onClick={() => { setShowUpsell(false); onUpgrade?.(); }}
@@ -228,11 +229,11 @@ export function PIPAssistant({
             {/* Header */}
             <div className="bg-teal-700 px-4 py-3 flex items-center gap-3 shrink-0">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
+                <HeartHandshake className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-white text-sm">PIPpal AI Assistant</h3>
-                <p className="text-teal-200 text-xs">Powered by Claude AI</p>
+                <h3 className="font-bold text-white text-sm">PIPpal Assistant</h3>
+                <p className="text-teal-200 text-xs">PIP guidance & support</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
@@ -281,10 +282,10 @@ export function PIPAssistant({
                 </div>
               ))}
 
-              {/* Suggested questions — show after init message only */}
+              {/* Suggested questions */}
               {messages.length === 1 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-stone-400 font-medium">Suggested questions:</p>
+                  <p className="text-xs text-stone-400 font-medium">Try asking:</p>
                   {SUGGESTED_QUESTIONS.map((q) => (
                     <button
                       key={q}
@@ -330,7 +331,7 @@ export function PIPAssistant({
                 </button>
               </div>
               <p className="text-center text-[10px] text-stone-400 mt-2">
-                AI guidance only — not legal advice
+                Guidance only — not legal or medical advice
               </p>
             </div>
           </motion.div>

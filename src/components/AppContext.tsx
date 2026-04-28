@@ -150,10 +150,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setHasPaidState(true);
           setCurrentScreen('post_payment_guide');
           window.history.replaceState({}, '', window.location.pathname);
+          // Save has_paid to Supabase
+          try {
+            await supabase
+              .from('profiles')
+              .update({ has_paid: true })
+              .eq('id', session.user.id);
+          } catch { /* Fail silently */ }
         } else {
           setCurrentScreen('home');
         }
-        // Auto-load medical profile
+        // Auto-load has_paid status and medical profile
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('has_paid')
+            .eq('id', session.user.id)
+            .single();
+          if (profile?.has_paid) {
+            setHasPaidState(true);
+          }
+        } catch { /* No profile yet */ }
         try {
           const { data } = await supabase
             .from('medical_profiles')
