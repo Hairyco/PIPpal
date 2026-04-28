@@ -63,6 +63,7 @@ import {
   AboutScreen,
   PrivacyScreen,
   AccessibilityScreen,
+  TermsScreen,
 } from './components/Placeholders';
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
@@ -194,6 +195,7 @@ function AppContent() {
       case 'about': return <AboutScreen />;
       case 'privacy': return <PrivacyScreen />;
       case 'accessibility': return <AccessibilityScreen />;
+      case 'terms' as any: return <TermsScreen />;
       case 'admin' as any: return <AdminDashboard />;
       default: return null;
     }

@@ -23,6 +23,7 @@ export type Screen =
   | 'about'
   | 'privacy'
   | 'accessibility'
+  | 'terms'
   | 'new_claim_intro'
   | 'claim_process'
   | 'descriptors_guide'
