@@ -75,14 +75,14 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers } = useAppContext();
-const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  const [showWelcomePopup, setShowWelcomePopup] = useState(!hasPaid);
   const [popupDismissed, setPopupDismissed] = useState(false);
 
   const hasConditions = medProfile.conditions.length > 0;
   const hasStartedApplication = hasPaid && Object.keys(savedAnswers).length > 0;
   const answersCount = Object.keys(savedAnswers).length;
   const firstName = user?.name ? user.name.split(' ')[0] : '';
-  const showPopup = showWelcomePopup && !hasPaid && !popupDismissed;
+  const showPopup = false;
 
   return (
     <div className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-24">
@@ -365,7 +365,7 @@ const [showWelcomePopup, setShowWelcomePopup] = useState(false);
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
-              onClick={() => { setShowWelcomePopup(false); setPopupDismissed(true); }}
+              onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -376,7 +376,7 @@ const [showWelcomePopup, setShowWelcomePopup] = useState(false);
               <div className="bg-teal-700 px-5 py-4 text-white flex items-center justify-between">
                 <h3 className="font-bold text-lg">Welcome to PIPpal! 👋</h3>
                 <button
-                  onClick={() => { setShowWelcomePopup(false); setPopupDismissed(true); }}
+                  onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
                   className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-teal-600 transition-colors"
                 >
                   <X className="w-4 h-4" />
@@ -392,13 +392,13 @@ const [showWelcomePopup, setShowWelcomePopup] = useState(false);
                 </p>
                 <div className="flex flex-col gap-2">
                   <button
-                    onClick={() => { setShowWelcomePopup(false); setPopupDismissed(true); navigateTo('upsell'); }}
+                    onClick={() => { setPopupDismissed(true); setPopupDismissed(true); navigateTo('upsell'); }}
                     className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all"
                   >
                     Learn more about Full Access
                   </button>
                   <button
-                    onClick={() => { setShowWelcomePopup(false); setPopupDismissed(true); }}
+                    onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
                     className="w-full bg-stone-100 text-stone-700 py-3 rounded-xl font-semibold text-sm hover:bg-stone-200 active:scale-[0.98] transition-all"
                   >
                     Got it, thanks
