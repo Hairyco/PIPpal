@@ -147,7 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const urlParams = new URLSearchParams(window.location.search);
     const initialPromo = urlParams.get('promo')?.toUpperCase();
     if (initialPromo && PROMO_CODES.includes(initialPromo)) {
-      saveToStorage('pippal_pending_promo', true);
+      sessionStorage.setItem('pippal_pending_promo', 'true');
       window.history.replaceState({}, '', window.location.pathname);
     }
 
@@ -159,7 +159,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Load has_paid from email-specific localStorage key
         const savedPaid = loadFromStorage(`pippal_paid_${userEmail}`, false);
         const promoUnlocked = loadFromStorage('pippal_promo_unlocked', false);
-        if (savedPaid || promoUnlocked) setHasPaidState(true);
+        const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
+        if (savedPaid || promoUnlocked || pendingPromo) {
+          setHasPaidState(true);
+          if (pendingPromo) {
+            // Convert pending promo to permanent unlock
+            saveToStorage('pippal_promo_unlocked', true);
+            saveToStorage(`pippal_paid_${userEmail}`, true);
+            saveToStorage('pippal_paid', true);
+            sessionStorage.removeItem('pippal_pending_promo');
+            try {
+              await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
+            } catch { /* Fail silently */ }
+          }
+        }
         // Check for payment success redirect OR promo code
         const params = new URLSearchParams(window.location.search);
         const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
