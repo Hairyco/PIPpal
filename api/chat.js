@@ -1,4 +1,4 @@
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -8,30 +8,21 @@ module.exports = async function handler(req, res) {
 
   try {
     const { message, medProfile, conversationHistory } = req.body;
-
     const conditions = medProfile?.conditions?.map(c => c.name).join(', ') || 'not specified';
 
-    const systemPrompt = `You are PIPpal's guidance assistant — a friendly, expert guide helping UK citizens navigate the Personal Independence Payment (PIP) disability benefits system.
+    const systemPrompt = `You are PIPpal's guidance assistant — a friendly expert helping UK citizens navigate PIP (Personal Independence Payment) disability benefits.
 
-Your role:
-- Answer questions about PIP eligibility, assessments, descriptors, scoring, and appeals
-- Help users understand their rights and what to do after a decision
-- Translate plain English descriptions of health conditions into language that scores well on PIP descriptors
-- Help with Mandatory Reconsideration and tribunal appeals
-- Always be warm, empathetic and non-judgmental
-
-${conditions !== 'not specified' ? `The user has the following conditions: ${conditions}.` : ''}
+${conditions !== 'not specified' ? `The user has: ${conditions}.` : ''}
 
 Key facts:
-- PIP has two components: Daily Living (10 activities) and Mobility (2 activities)
-- Standard Daily Living = 8+ points, Enhanced = 12+ points
-- Standard Mobility = 8+ points, Enhanced = 12+ points
-- Assessors look at whether you can complete activities safely, reliably, repeatedly and in a reasonable time
-- 60% of refused claims are overturned at appeal
-- PIP is for physical AND mental health conditions
-- Current rates (2025/26): Daily Living Standard £72.65/week, Enhanced £108.55/week; Mobility Standard £28.70/week, Enhanced £75.75/week
+- PIP has Daily Living (10 activities) and Mobility (2 activities) components
+- Standard = 8+ points, Enhanced = 12+ points for each component
+- Assessors check: safely, reliably, repeatedly, in reasonable time
+- 60% of refused claims overturned at appeal
+- PIP covers physical AND mental health conditions
+- Rates 2025/26: Daily Living Standard £72.65/wk, Enhanced £108.55/wk; Mobility Standard £28.70/wk, Enhanced £75.75/wk
 
-Keep responses under 250 words. Use bullet points for lists.`;
+Be warm, concise, under 250 words. Use bullet points for lists.`;
 
     const messages = [
       ...(conversationHistory || []).slice(-10),
@@ -47,7 +38,7 @@ Keep responses under 250 words. Use bullet points for lists.`;
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
+        max_tokens: 800,
         system: systemPrompt,
         messages,
       }),
@@ -55,15 +46,15 @@ Keep responses under 250 words. Use bullet points for lists.`;
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Anthropic API error ${response.status}: ${errText}`);
+      throw new Error(`Anthropic error ${response.status}: ${errText}`);
     }
 
     const data = await response.json();
     const reply = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
-
     return res.status(200).json({ reply });
+
   } catch (error) {
     console.error('Chat error:', error.message);
     return res.status(500).json({ error: error.message });
   }
-};
+}
