@@ -112,7 +112,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [hasPaid, setHasPaidState] = useState<boolean>(false);
+  const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid', false));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
     loadFromStorage('pippal_med_profile', {
@@ -206,7 +206,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const setHasPaid = (paid: boolean) => setHasPaidState(paid);
+  const setHasPaid = (paid: boolean) => {
+    setHasPaidState(paid);
+    if (paid) saveToStorage('pippal_paid', true);
+  };
   const setMedProfile = (profile: MedProfile) => setMedProfileState(profile);
   const setHasCompletedEligibility = (completed: boolean) => setHasCompletedEligibilityState(completed);
 
