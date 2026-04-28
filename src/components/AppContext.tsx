@@ -143,13 +143,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
-        setUser({ name, email: session.user.email || '', id: session.user.id });
+        const userEmail = session.user.email || '';
+        setUser({ name, email: userEmail, id: session.user.id });
+        // Load has_paid from email-specific localStorage key
+        const savedPaid = loadFromStorage(`pippal_paid_${userEmail}`, false);
+        if (savedPaid) setHasPaidState(true);
         // Check for payment success redirect
         const params = new URLSearchParams(window.location.search);
         if (params.get('payment') === 'success') {
           setHasPaidState(true);
           setCurrentScreen('post_payment_guide');
           window.history.replaceState({}, '', window.location.pathname);
+          // Save has_paid to localStorage with email key
+          saveToStorage(`pippal_paid_${userEmail}`, true);
+          saveToStorage('pippal_paid', true);
           // Save has_paid to Supabase
           try {
             await supabase
@@ -208,6 +215,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setHasPaid = (paid: boolean) => {
     setHasPaidState(paid);
+    if (paid && user?.email) saveToStorage(`pippal_paid_${user.email}`, true);
     if (paid) saveToStorage('pippal_paid', true);
   };
   const setMedProfile = (profile: MedProfile) => setMedProfileState(profile);
