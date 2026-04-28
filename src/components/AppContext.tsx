@@ -144,7 +144,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         setUser({ name, email: session.user.email || '', id: session.user.id });
-        setCurrentScreen('home');
+        // Check for payment success redirect
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('payment') === 'success') {
+          setHasPaidState(true);
+          setCurrentScreen('post_payment_guide');
+          window.history.replaceState({}, '', window.location.pathname);
+        } else {
+          setCurrentScreen('home');
+        }
         // Auto-load medical profile
         try {
           const { data } = await supabase
