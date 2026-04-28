@@ -83,7 +83,6 @@ interface AppContextType {
   setHasPaid: (paid: boolean) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-
   toasts: Toast[];
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   dismissToast: (id: string) => void;
@@ -115,7 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid', false));
+  const [hasPaid, setHasPaidState] = useState<boolean>(false);
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
     loadFromStorage('pippal_med_profile', {
@@ -140,10 +139,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_answers', savedAnswers); }, [savedAnswers]);
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
 
-  // Listen to Supabase auth state — this is what keeps users logged in on refresh
   useEffect(() => {
-    // Get current session on load
-    // Check for promo code immediately on load
+    // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
     const initialPromo = urlParams.get('promo')?.toUpperCase();
@@ -157,55 +154,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const userEmail = session.user.email || '';
         setUser({ name, email: userEmail, id: session.user.id });
-        // Load has_paid from email-specific localStorage key
-        const savedPaid = loadFromStorage(`pippal_paid_${userEmail}`, false);
-        const promoUnlocked = loadFromStorage('pippal_promo_unlocked', false);
-        const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
-        if (savedPaid || promoUnlocked || pendingPromo) {
-          setHasPaidState(true);
-          if (pendingPromo) {
-            // Convert pending promo to permanent unlock
-            saveToStorage('pippal_promo_unlocked', true);
-            saveToStorage(`pippal_paid_${userEmail}`, true);
-            saveToStorage('pippal_paid', true);
-            sessionStorage.removeItem('pippal_pending_promo');
-            try {
-              await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
-            } catch { /* Fail silently */ }
-          }
-        }
-        // Check for payment success redirect OR promo code
+
         const params = new URLSearchParams(window.location.search);
         const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
         const promoCode = params.get('promo')?.toUpperCase();
-        if (promoCode && PROMO_CODES.includes(promoCode)) {
-          setHasPaidState(true);
-          setCurrentScreen('post_payment_guide');
-          window.history.replaceState({}, '', window.location.pathname);
-          saveToStorage(`pippal_paid_${userEmail}`, true);
-          saveToStorage('pippal_paid', true);
-          try {
-            await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
-          } catch { /* Fail silently */ }
-        }
+        const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
+
+        // Handle payment success redirect
         if (params.get('payment') === 'success') {
           setHasPaidState(true);
           setCurrentScreen('post_payment_guide');
           window.history.replaceState({}, '', window.location.pathname);
-          // Save has_paid to localStorage with email key
-          saveToStorage(`pippal_paid_${userEmail}`, true);
-          saveToStorage('pippal_paid', true);
-          // Save has_paid to Supabase
           try {
-            await supabase
-              .from('profiles')
-              .update({ has_paid: true })
-              .eq('id', session.user.id);
+            await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
           } catch { /* Fail silently */ }
+        }
+        // Handle promo code in URL
+        else if (promoCode && PROMO_CODES.includes(promoCode)) {
+          setHasPaidState(true);
+          setCurrentScreen('post_payment_guide');
+          window.history.replaceState({}, '', window.location.pathname);
+          try {
+            await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
+          } catch { /* Fail silently */ }
+        }
+        // Handle pending promo from pre-login session
+        else if (pendingPromo) {
+          setHasPaidState(true);
+          sessionStorage.removeItem('pippal_pending_promo');
+          try {
+            await supabase.from('profiles').update({ has_paid: true }).eq('id', session.user.id);
+          } catch { /* Fail silently */ }
+          setCurrentScreen('home');
         } else {
           setCurrentScreen('home');
         }
-        // Auto-load has_paid status and medical profile
+
+        // Always load has_paid status from Supabase — this is the source of truth
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -216,6 +201,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setHasPaidState(true);
           }
         } catch { /* No profile yet */ }
+
+        // Load medical profile from Supabase
         try {
           const { data } = await supabase
             .from('medical_profiles')
@@ -235,14 +222,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const email = session.user.email || '';
         setUser({ name, email, id: session.user.id });
-        // Restore has_paid from email-specific localStorage
-        const savedPaid = loadFromStorage(`pippal_paid_${email}`, false) || loadFromStorage('pippal_paid', false);
-        if (savedPaid) setHasPaidState(true);
+
+        // Always check Supabase for paid status — never trust localStorage alone
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('has_paid')
+            .eq('id', session.user.id)
+            .single();
+          if (profile?.has_paid) {
+            setHasPaidState(true);
+          } else {
+            setHasPaidState(false);
+          }
+        } catch {
+          setHasPaidState(false);
+        }
+
         if (currentScreen === 'login' || currentScreen === 'landing') {
           setCurrentScreen('home');
         }
@@ -255,11 +256,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const setHasPaid = (paid: boolean) => {
+  const setHasPaid = async (paid: boolean) => {
     setHasPaidState(paid);
-    if (paid && user?.email) saveToStorage(`pippal_paid_${user.email}`, true);
-    if (paid) saveToStorage('pippal_paid', true);
+    // Write to Supabase immediately — Supabase is the source of truth
+    if (paid && user?.id) {
+      try {
+        await supabase.from('profiles').update({ has_paid: true }).eq('id', user.id);
+      } catch { /* Fail silently */ }
+    }
   };
+
   const setMedProfile = (profile: MedProfile) => setMedProfileState(profile);
   const setHasCompletedEligibility = (completed: boolean) => setHasCompletedEligibilityState(completed);
 
@@ -320,7 +326,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Show loading spinner while checking session
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-white flex items-center justify-center">

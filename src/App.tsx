@@ -23,6 +23,7 @@ import {
   Sparkles,
   Loader2,
   Settings,
+  Shield,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -195,7 +196,7 @@ function AppContent() {
       case 'about': return <AboutScreen />;
       case 'privacy': return <PrivacyScreen />;
       case 'accessibility': return <AccessibilityScreen />;
-      case 'terms' as any: return <TermsScreen />;
+      case 'terms': return <TermsScreen />;
       case 'admin' as any: return <AdminDashboard />;
       default: return null;
     }
@@ -372,6 +373,27 @@ function AppContent() {
                     >
                       <ChevronLeft className="w-4 h-4 text-stone-400" />
                       Back to Landing Page
+                    </button>
+                    <button
+                      onClick={() => drawerNav('about')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-500 rounded-lg hover:bg-stone-50 transition-colors"
+                    >
+                      <HeartHandshake className="w-4 h-4 text-stone-400" />
+                      About PIPpal
+                    </button>
+                    <button
+                      onClick={() => drawerNav('privacy')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-500 rounded-lg hover:bg-stone-50 transition-colors"
+                    >
+                      <Shield className="w-4 h-4 text-stone-400" />
+                      Privacy Policy
+                    </button>
+                    <button
+                      onClick={() => drawerNav('terms')}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-500 rounded-lg hover:bg-stone-50 transition-colors"
+                    >
+                      <FileText className="w-4 h-4 text-stone-400" />
+                      Terms of Service
                     </button>
                     {isAdmin && (
                       <button

@@ -33,7 +33,7 @@ export function UpsellScreen() {
   const { goBack, navigateTo, setHasPaid, showToast, user } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const maxWeekly = 156.70; // £76.70 Daily Enhanced + £80.00 Mobility Enhanced
+  const maxWeekly = 156.70;
   const maxMonthly = maxWeekly * 52 / 12;
   const maxYearly = maxWeekly * 52;
 
@@ -45,7 +45,7 @@ export function UpsellScreen() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       setHasPaid(true);
-      showToast('Payment successful! Full Access unlocked. 🎉', 'success');
+      showToast('Payment successful! Full Access unlocked.', 'success');
       navigateTo('post_payment_guide');
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -58,7 +58,6 @@ export function UpsellScreen() {
   const handleUnlock = async () => {
     setIsProcessing(true);
     try {
-      // Call our Vercel serverless function
       const response = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,12 +77,7 @@ export function UpsellScreen() {
       }
     } catch (err: any) {
       console.error('Payment error:', err);
-      // Fallback to simulation if API fails (e.g. local dev)
-      showToast('Redirecting to payment…', 'info');
-      await new Promise((r) => setTimeout(r, 1000));
-      setHasPaid(true);
-      showToast('Full Access unlocked!', 'success');
-      navigateTo('post_payment_guide');
+      showToast('Something went wrong. Please try again.', 'error');
     } finally {
       setIsProcessing(false);
     }
