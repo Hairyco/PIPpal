@@ -75,7 +75,7 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers } = useAppContext();
-  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [popupDismissed, setPopupDismissed] = useState(false);
 
   const hasConditions = medProfile.conditions.length > 0;
