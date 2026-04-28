@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   HeartHandshake,
   ArrowLeft,
@@ -15,6 +15,8 @@ import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 
 type Mode = 'login' | 'signup' | 'forgot';
+
+const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
 
 function InputField({
   label,
@@ -68,7 +70,7 @@ function InputField({
 }
 
 export function LoginScreen() {
-  const { login, navigateTo, goBack, showToast } = useAppContext();
+  const { login, navigateTo, goBack, showToast, setHasPaid } = useAppContext();
   const [mode, setMode] = useState<Mode>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -94,18 +96,32 @@ export function LoginScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // Apply promo code if pending — saves to Supabase immediately
+  const applyPromoIfPending = async (userId: string, userEmail: string) => {
+    const pendingPromo = sessionStorage.getItem('pippal_pending_promo');
+    const urlPromo = new URLSearchParams(window.location.search).get('promo')?.toUpperCase();
+    const hasPromo = pendingPromo === 'true' || (urlPromo != null && PROMO_CODES.includes(urlPromo));
+
+    if (hasPromo) {
+      setHasPaid(true);
+      sessionStorage.removeItem('pippal_pending_promo');
+      localStorage.setItem('pippal_paid', 'true');
+      localStorage.setItem('pippal_paid_' + userEmail, 'true');
+      try {
+        await supabase.from('profiles').update({ has_paid: true }).eq('id', userId);
+      } catch { /* Fail silently */ }
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
+        options: { redirectTo: window.location.origin },
       });
       if (error) throw error;
-      // Redirect happens automatically — Supabase handles it
-    } catch (err: any) {
+    } catch {
       showToast('Google sign in failed. Please try again.', 'error');
       setIsGoogleLoading(false);
     }
@@ -134,6 +150,7 @@ export function LoginScreen() {
         if (error) throw error;
         if (data.user) {
           login({ name, email, id: data.user.id });
+          await applyPromoIfPending(data.user.id, email);
           showToast('Account created! Welcome to PIPpal.', 'success');
           navigateTo('home');
         }
@@ -144,6 +161,7 @@ export function LoginScreen() {
         if (data.user) {
           const displayName = data.user.user_metadata?.name || email.split('@')[0];
           login({ name: displayName, email, id: data.user.id });
+          await applyPromoIfPending(data.user.id, email);
           showToast('Welcome back!', 'success');
           navigateTo('home');
         }
@@ -182,7 +200,6 @@ export function LoginScreen() {
       </div>
 
       <div className="flex-1 px-6 md:px-8 pb-12 flex flex-col justify-center max-w-md mx-auto w-full">
-        {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <div className="w-14 h-14 bg-teal-700 rounded-2xl flex items-center justify-center mb-4 shadow-lg">
             <HeartHandshake className="w-7 h-7 text-white" />
@@ -222,7 +239,6 @@ export function LoginScreen() {
               </div>
             )}
 
-            {/* Google Sign In */}
             {mode !== 'forgot' && (
               <>
                 <button
@@ -349,7 +365,7 @@ export function LoginScreen() {
 
             {mode === 'signup' && (
               <p className="text-center text-xs text-stone-400 mt-4 leading-relaxed">
-                By creating an account you agree tvercel git connect https://github.com/Hairyco/PIPpalo our{' '}
+                By creating an account you agree to our{' '}
                 <button onClick={() => navigateTo('privacy')} className="underline hover:text-stone-600">
                   Privacy Policy
                 </button>
