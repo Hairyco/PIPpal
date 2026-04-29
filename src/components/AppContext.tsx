@@ -109,12 +109,15 @@ function saveToStorage(key: string, value: any) {
 
 export function AppProvider({ children }: { children: ReactNode }) {
 
-  const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
+  const cachedUserData = localStorage.getItem('pippal_cached_user') ? JSON.parse(localStorage.getItem('pippal_cached_user')!) : null;
+  const [currentScreen, setCurrentScreen] = useState<Screen>(cachedUserData ? 'home' : 'landing');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // cached user handled above
+  // const cachedUser = localStorage.getItem('pippal_cached_user');
+  const [isLoading, setIsLoading] = useState(!cachedUserData);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(null);
-  const [hasPaid, setHasPaidState] = useState<boolean>(false);
+  const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
     loadFromStorage('pippal_med_profile', {
@@ -138,6 +141,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_med_profile', medProfile); }, [medProfile]);
   useEffect(() => { saveToStorage('pippal_answers', savedAnswers); }, [savedAnswers]);
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
+  useEffect(() => { saveToStorage('pippal_paid_cache', hasPaid); }, [hasPaid]);
 
   useEffect(() => {
     // Safety timeout — always clear loading after 5 seconds no matter what
@@ -159,6 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const userEmail = session.user.email || '';
         setUser({ name, email: userEmail, id: session.user.id });
+        localStorage.setItem('pippal_cached_user', JSON.stringify({ name, email: userEmail, id: session.user.id }));
 
         const params = new URLSearchParams(window.location.search);
         const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
@@ -283,7 +288,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    // Clear state immediately — do not wait for Supabase
     setUser(null);
     setHasPaidState(false);
     setSavedAnswers({});
@@ -294,6 +299,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('pippal_eligibility');
     setCurrentScreen('landing');
     setNavigationHistory([]);
+    // Sign out from Supabase in background
+    supabase.auth.signOut().catch(() => {});
   };
 
   const navigateTo = (screen: Screen) => {
