@@ -241,7 +241,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch { /* No profile yet */ }
+      } else {
+        setIsLoading(false);
       }
+      setIsLoading(false);
+    }).catch(() => {
+      setIsLoading(false);
     });
 
     // Listen for auth changes (login, logout, token refresh)
