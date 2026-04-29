@@ -241,10 +241,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch { /* No profile yet */ }
+      } else if (hasAuthCode) {
+        // Auth code present but no session yet — wait for onAuthStateChange to handle it
+        // Do not clear loading here
       } else {
         setIsLoading(false);
       }
-      setIsLoading(false);
+      if (!hasAuthCode) {
+        setIsLoading(false);
+      }
     }).catch(() => {
       setIsLoading(false);
     });
