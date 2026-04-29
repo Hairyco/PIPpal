@@ -169,6 +169,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const initialPromo = urlParams.get('promo')?.toUpperCase();
     if (initialPromo && PROMO_CODES.includes(initialPromo)) {
       sessionStorage.setItem('pippal_pending_promo', 'true');
+      sessionStorage.setItem('pippal_promo_source', initialPromo);
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (initialPromo) {
+      // Not a fixed promo code — treat as influencer code
+      sessionStorage.setItem('pippal_promo_source', initialPromo);
       window.history.replaceState({}, '', window.location.pathname);
     }
 

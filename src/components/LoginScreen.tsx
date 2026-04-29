@@ -154,8 +154,11 @@ export function LoginScreen() {
           // Save influencer source if present
           const urlPromo = new URLSearchParams(window.location.search).get('promo')?.toUpperCase();
           const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
-          const influencerSource = urlPromo || (pendingPromo ? sessionStorage.getItem('pippal_promo_code') : null);
+          const storedPromo = sessionStorage.getItem('pippal_promo_source');
+          const influencerSource = urlPromo || storedPromo || null;
           if (influencerSource) {
+            // Wait briefly for the profile row to be created by the trigger
+            await new Promise(resolve => setTimeout(resolve, 1000));
             try {
               await supabase.from('profiles').update({ influencer_source: influencerSource }).eq('id', data.user.id);
             } catch { /* Fail silently */ }
