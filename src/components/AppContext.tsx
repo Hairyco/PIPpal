@@ -140,6 +140,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
 
   useEffect(() => {
+    // Safety timeout — always clear loading after 5 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -149,34 +154,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.history.replaceState({}, '', window.location.pathname);
     }
 
-    const loadBackgroundData = async (userId: string) => {
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('has_paid')
-          .eq('id', userId)
-          .single();
-        if (profile?.has_paid) {
-          setHasPaidState(true);
-        }
-      } catch { /* No profile yet */ }
-
-      try {
-        const { data } = await supabase
-          .from('medical_profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single();
-        if (data) {
-          setMedProfileState({
-            conditions: data.conditions || [],
-            medications: data.medications || '',
-            notes: data.notes || '',
-          });
-        }
-      } catch { /* No profile yet */ }
-    };
-
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
@@ -184,6 +161,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser({ name, email: userEmail, id: session.user.id });
 
         const params = new URLSearchParams(window.location.search);
+        const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
         const promoCode = params.get('promo')?.toUpperCase();
         const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
 
@@ -217,16 +195,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setCurrentScreen('home');
         }
 
-        // Clear loading immediately — show app now, load profile data in background
-        setIsLoading(false);
-        loadBackgroundData(session.user.id);
+        // Always load has_paid status from Supabase — this is the source of truth
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('has_paid')
+            .eq('id', session.user.id)
+            .single();
+          if (profile?.has_paid) {
+            setHasPaidState(true);
+          }
+        } catch { /* No profile yet */ }
 
-      } else {
-        // No session — clear loading and stay on landing
-        setIsLoading(false);
+        // Load medical profile from Supabase
+        try {
+          const { data } = await supabase
+            .from('medical_profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+          if (data) {
+            setMedProfileState({
+              conditions: data.conditions || [],
+              medications: data.medications || '',
+              notes: data.notes || '',
+            });
+          }
+        } catch { /* No profile yet */ }
       }
-    }).catch(() => {
-      // Session check failed — clear loading and stay on landing
+      clearTimeout(safetyTimeout);
       setIsLoading(false);
     });
 
@@ -262,11 +259,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const setHasPaid = async (paid: boolean) => {
     setHasPaidState(paid);
+    // Write to Supabase immediately — Supabase is the source of truth
     if (paid && user?.id) {
       try {
         await supabase.from('profiles').update({ has_paid: true }).eq('id', user.id);
@@ -377,6 +378,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      {/* Global Toast Notifications */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none">
         {toasts.map((toast) => (
           <div
