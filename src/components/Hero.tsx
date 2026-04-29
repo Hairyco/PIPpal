@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onStart?: () => void;
@@ -29,23 +29,10 @@ export function Hero({ onStart }: HeroProps) {
   return (
     <section className="px-5 md:px-8 pt-10 md:pt-20 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
 
-      {/* Urgency banner */}
-      <div
-        className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
-        style={{ transitionDelay: '0ms' }}
-      >
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-5 flex items-start gap-2.5 text-left">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-800 leading-relaxed">
-            <strong>PIP rules are changing in late 2026.</strong> If you think you qualify, it is worth applying as soon as possible.
-          </p>
-        </div>
-      </div>
-
       {/* Badge */}
       <div
         className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
-        style={{ transitionDelay: '80ms' }}
+        style={{ transitionDelay: '0ms' }}
       >
         <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-6">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
