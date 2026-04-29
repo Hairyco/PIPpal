@@ -241,15 +241,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch { /* No profile yet */ }
-      } else if (hasAuthCode) {
-        // Auth code present but no session yet — wait for onAuthStateChange to handle it
-        // Do not clear loading here
       } else {
         setIsLoading(false);
       }
-      if (!hasAuthCode) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }).catch(() => {
       setIsLoading(false);
     });
@@ -264,6 +259,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const email = session.user.email || '';
         setUser({ name, email, id: session.user.id });
+        // Always navigate to home when a session is detected
+        setCurrentScreen('home');
 
         // Always check Supabase for paid status — never trust localStorage alone
         try {
@@ -281,7 +278,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setHasPaidState(false);
         }
 
-        setCurrentScreen('home');
       } else {
         setUser(null);
         setHasPaidState(false);
