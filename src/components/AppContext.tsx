@@ -253,6 +253,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       // Skip if we are in the middle of logging out
       if (localStorage.getItem('pippal_logging_out') === 'true') return;
+      // Always clear loading when auth state changes
+      setIsLoading(false);
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const email = session.user.email || '';
