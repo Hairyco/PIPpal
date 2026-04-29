@@ -151,6 +151,15 @@ export function LoginScreen() {
         if (data.user) {
           login({ name, email, id: data.user.id });
           await applyPromoIfPending(data.user.id, email);
+          // Save influencer source if present
+          const urlPromo = new URLSearchParams(window.location.search).get('promo')?.toUpperCase();
+          const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
+          const influencerSource = urlPromo || (pendingPromo ? sessionStorage.getItem('pippal_promo_code') : null);
+          if (influencerSource) {
+            try {
+              await supabase.from('profiles').update({ influencer_source: influencerSource }).eq('id', data.user.id);
+            } catch { /* Fail silently */ }
+          }
           showToast('Account created! Welcome to PIPpal.', 'success');
           navigateTo('home');
         }

@@ -26,7 +26,8 @@ interface Stats {
   weekSignups: number;
   monthSignups: number;
   totalDiaryEntries: number;
-  recentUsers: { name: string; email: string; has_paid: boolean; created_at: string }[];
+  recentUsers: { name: string; email: string; has_paid: boolean; created_at: string; influencer_source?: string }[];
+  influencerStats: { source: string; count: number; paid: number }[];
 }
 
 function StatCard({
@@ -108,9 +109,15 @@ export function AdminDashboard() {
       // Recent users
       const { data: recentUsers } = await supabase
         .from('profiles')
-        .select('name, email, has_paid, created_at')
+        .select('name, email, has_paid, created_at, influencer_source')
         .order('created_at', { ascending: false })
         .limit(10);
+
+      // Influencer breakdown
+      const { data: influencerData } = await supabase
+        .from('profiles')
+        .select('influencer_source, has_paid')
+        .not('influencer_source', 'is', null);
 
       const total = totalUsers || 0;
       const paid = paidUsers || 0;
@@ -125,6 +132,16 @@ export function AdminDashboard() {
         monthSignups: monthSignups || 0,
         totalDiaryEntries: totalDiaryEntries || 0,
         recentUsers: recentUsers || [],
+        influencerStats: (() => {
+          const map: Record<string, { count: number; paid: number }> = {};
+          (influencerData || []).forEach((u: any) => {
+            if (!u.influencer_source) return;
+            if (!map[u.influencer_source]) map[u.influencer_source] = { count: 0, paid: 0 };
+            map[u.influencer_source].count++;
+            if (u.has_paid) map[u.influencer_source].paid++;
+          });
+          return Object.entries(map).map(([source, data]) => ({ source, ...data })).sort((a, b) => b.count - a.count);
+        })(),
       });
       setLastRefresh(new Date());
     } catch (err) {
@@ -236,6 +253,31 @@ export function AdminDashboard() {
             </div>
           </section>
 
+          {/* Influencer breakdown */}
+          {stats.influencerStats.length > 0 && (
+          <section>
+            <h2 className="text-sm font-bold text-stone-900 mb-3">Influencer Signups</h2>
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+              <div className="divide-y divide-stone-100">
+                {stats.influencerStats.map((inf, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 text-sm shrink-0">
+                      {inf.source.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-stone-900 truncate">{inf.source}</p>
+                      <p className="text-xs text-stone-400">{inf.count} signup{inf.count !== 1 ? 's' : ''} · {inf.paid} paid</p>
+                    </div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                      £{(inf.paid * 12.99).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+          )}
+
           {/* Recent signups */}
           <section>
             <h2 className="text-sm font-bold text-stone-900 mb-3">Recent Signups</h2>
@@ -254,6 +296,11 @@ export function AdminDashboard() {
                         <p className="text-xs text-stone-400 truncate">{u.email}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {u.influencer_source && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                            {u.influencer_source}
+                          </span>
+                        )}
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${u.has_paid ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
                           {u.has_paid ? 'PAID' : 'FREE'}
                         </span>
