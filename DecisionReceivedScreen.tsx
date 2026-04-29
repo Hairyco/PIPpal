@@ -13,9 +13,7 @@ import {
   Car,
   FileSearch,
   ShieldAlert,
-  HeartHandshake,
-  Download,
-  ExternalLink } from
+  HeartHandshake } from
 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -98,24 +96,6 @@ export function DecisionReceivedScreen() {
                       Your payments will usually start within 2 weeks of the
                       decision. You'll be paid every 4 weeks in arrears.
                     </p>
-
-                    <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Download className="w-4 h-4 text-teal-600 shrink-0" />
-                        <p className="text-sm font-bold text-teal-900">Download proof of your benefits</p>
-                      </div>
-                      <p className="text-xs text-teal-700 leading-relaxed">
-                        You can download an official letter from GOV.UK confirming your PIP award. This is accepted as proof when applying for a Blue Badge, Motability scheme, Council Tax reduction, and a disabled person's railcard.
-                      </p>
-                      <a
-                        href="https://www.gov.uk/get-proof-benefits"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors mt-1">
-                        Get proof of benefits on GOV.UK
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
 
                     <div className="bg-white rounded-xl p-4 border border-stone-200 shadow-sm space-y-3">
                       <h4 className="font-bold text-stone-900 text-sm">
