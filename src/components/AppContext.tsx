@@ -109,14 +109,31 @@ function saveToStorage(key: string, value: any) {
 
 export function AppProvider({ children }: { children: ReactNode }) {
 
-  const cachedUserData = localStorage.getItem('pippal_cached_user') ? JSON.parse(localStorage.getItem('pippal_cached_user')!) : null;
-  const [currentScreen, setCurrentScreen] = useState<Screen>(cachedUserData ? 'home' : 'landing');
+  // Read Supabase session from localStorage instantly — no network call needed
+  const getInitialSession = () => {
+    try {
+      const raw = localStorage.getItem('pippal-auth');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Check session has not expired
+      const expiresAt = parsed?.expires_at;
+      if (expiresAt && expiresAt * 1000 < Date.now()) return null;
+      return parsed?.user || null;
+    } catch {
+      return null;
+    }
+  };
+  const initialSessionUser = getInitialSession();
+
+  const [currentScreen, setCurrentScreen] = useState<Screen>(initialSessionUser ? 'home' : 'landing');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
-  // cached user handled above
-  // const cachedUser = localStorage.getItem('pippal_cached_user');
-  const [isLoading, setIsLoading] = useState(!cachedUserData);
+  const [isLoading, setIsLoading] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(initialSessionUser ? {
+    name: initialSessionUser.user_metadata?.name || initialSessionUser.email?.split('@')[0] || '',
+    email: initialSessionUser.email || '',
+    id: initialSessionUser.id,
+  } : null);
   const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
@@ -144,11 +161,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_paid_cache', hasPaid); }, [hasPaid]);
 
   useEffect(() => {
-    // Safety timeout — always clear loading after 5 seconds no matter what
-    const safetyTimeout = setTimeout(() => {
-      setIsLoading(false);
-    }, 5000);
-
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -228,8 +240,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         } catch { /* No profile yet */ }
       }
-      clearTimeout(safetyTimeout);
-      setIsLoading(false);
     });
 
     // Listen for auth changes (login, logout, token refresh)
@@ -267,7 +277,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
