@@ -124,10 +124,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
   const initialSessionUser = getInitialSession();
+  // If URL has a code param, Supabase needs to process it — show loading
+  const hasAuthCode = window.location.search.includes('code=');
 
-  const [currentScreen, setCurrentScreen] = useState<Screen>(initialSessionUser ? 'home' : 'landing');
+  const [currentScreen, setCurrentScreen] = useState<Screen>(initialSessionUser && !hasAuthCode ? 'home' : 'landing');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(hasAuthCode);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(initialSessionUser ? {
     name: initialSessionUser.user_metadata?.name || initialSessionUser.email?.split('@')[0] || '',
