@@ -234,6 +234,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // Skip if we are in the middle of logging out
+      if (localStorage.getItem('pippal_logging_out') === 'true') return;
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const email = session.user.email || '';
@@ -288,7 +290,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    // Clear state immediately — do not wait for Supabase
+    // Set flag to prevent onAuthStateChange from overriding logout
+    localStorage.setItem('pippal_logging_out', 'true');
+    // Clear state immediately
     setUser(null);
     setHasPaidState(false);
     setSavedAnswers({});
@@ -299,8 +303,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('pippal_eligibility');
     setCurrentScreen('landing');
     setNavigationHistory([]);
-    // Sign out from Supabase in background
-    supabase.auth.signOut().catch(() => {});
+    // Sign out from Supabase then clear flag
+    supabase.auth.signOut().finally(() => {
+      localStorage.removeItem('pippal_logging_out');
+    });
   };
 
   const navigateTo = (screen: Screen) => {
