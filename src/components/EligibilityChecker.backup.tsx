@@ -13,9 +13,7 @@ import {
   ChevronDown,
   TrendingUp,
   Users,
-  BookOpen,
-  Download,
-  ExternalLink } from
+  BookOpen } from
 'lucide-react';
 import { useAppContext } from './AppContext';
 import { ShareButton } from './ShareButton';
@@ -654,25 +652,6 @@ export function EligibilityChecker() {
               claim is turned down, starting again means another long wait.
               Getting it right first time matters.
             </p>
-          </div>
-
-          {/* Proof of benefits */}
-          <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4 text-teal-600 shrink-0" />
-              <p className="text-sm font-bold text-teal-900">Already receiving benefits?</p>
-            </div>
-            <p className="text-xs text-teal-700 leading-relaxed">
-              If you are already on a benefit and waiting for a PIP decision, you can download an official proof of benefits letter from GOV.UK. This is useful for Blue Badge applications, Council Tax reductions, and other entitlements while you wait.
-            </p>
-            <a
-              href="https://www.gov.uk/get-proof-benefits"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors mt-1">
-              Get proof of benefits on GOV.UK
-              <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
         </div>
 
