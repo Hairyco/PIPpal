@@ -162,6 +162,15 @@ export function LoginScreen() {
           const displayName = data.user.user_metadata?.name || email.split('@')[0];
           login({ name: displayName, email, id: data.user.id });
           await applyPromoIfPending(data.user.id, email);
+          // Load Pro status immediately before navigating
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('has_paid')
+              .eq('id', data.user.id)
+              .single();
+            if (profile?.has_paid) setHasPaid(true);
+          } catch { /* Fail silently */ }
           showToast('Welcome back!', 'success');
           navigateTo('home');
         }
