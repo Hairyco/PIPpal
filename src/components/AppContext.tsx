@@ -140,6 +140,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
 
   useEffect(() => {
+    // Safety timeout — always clear loading after 5 seconds no matter what
+    const safetyTimeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000);
+
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -218,6 +223,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         } catch { /* No profile yet */ }
       }
+      clearTimeout(safetyTimeout);
       setIsLoading(false);
     });
 
@@ -253,7 +259,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const setHasPaid = async (paid: boolean) => {
