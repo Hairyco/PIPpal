@@ -276,9 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setHasPaidState(false);
         }
 
-        if (currentScreen === 'login' || currentScreen === 'landing') {
-          setCurrentScreen('home');
-        }
+        setCurrentScreen('home');
       } else {
         setUser(null);
         setHasPaidState(false);
