@@ -33,14 +33,17 @@ export function MedicalProfile() {
   const [medications, setMedications] = useState(medProfile.medications);
   const [notes, setNotes] = useState(medProfile.notes);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Only show spinner if no cached data
   const [saved, setSaved] = useState(false);
 
   // Load from Supabase on mount
   useEffect(() => {
     if (!user?.id) return;
     const loadProfile = async () => {
-      setIsLoading(true);
+      // Only show spinner if no conditions already loaded from cache
+      if (medProfile.conditions.length === 0 && !medProfile.medications && !medProfile.notes) {
+        setIsLoading(true);
+      }
       try {
         const { data, error } = await supabase
           .from('medical_profiles')
