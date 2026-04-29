@@ -116,7 +116,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // const cachedUser = localStorage.getItem('pippal_cached_user');
   const [isLoading, setIsLoading] = useState(!cachedUserData);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(cachedUserData);
   const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
