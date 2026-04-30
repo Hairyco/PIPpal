@@ -18,6 +18,7 @@ import {
   ExternalLink } from
 'lucide-react';
 import { useAppContext } from './AppContext';
+import { EmailGate } from './EmailGate';
 import { ShareButton } from './ShareButton';
 const CONDITIONS = [
 'Anxiety',
@@ -270,7 +271,7 @@ const questions = [
 }];
 
 export function EligibilityChecker() {
-  const { navigateTo, goBack, setHasCompletedEligibility } = useAppContext();
+  const { navigateTo, goBack, setHasCompletedEligibility, isLoggedIn } = useAppContext();
   const [phase, setPhase] = useState<
     'intro' | 'conditions' | 'questions' | 'result'>(
     'intro');
@@ -278,6 +279,7 @@ export function EligibilityChecker() {
   const [customCondition, setCustomCondition] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
+  const [showEmailGate, setShowEmailGate] = useState(false);
   const addCustomCondition = () => {
     const trimmed = customCondition.trim();
     if (
@@ -307,6 +309,9 @@ export function EligibilityChecker() {
       setCurrentIndex(currentIndex + 1);
     } else {
       setHasCompletedEligibility(true);
+      if (!isLoggedIn) {
+        setShowEmailGate(true);
+      }
       setPhase('result');
     }
   };
@@ -329,6 +334,16 @@ export function EligibilityChecker() {
   };
   // RESULT SCREEN
   if (phase === 'result') {
+    if (showEmailGate) {
+      return (
+        <EmailGate
+          title="Your eligibility result is ready"
+          subtitle="Enter your email to see your score and get helpful PIP tips"
+          onContinue={() => setShowEmailGate(false)}
+          onSkip={() => setShowEmailGate(false)}
+        />
+      );
+    }
     const totalScore = answers.reduce((a, b) => a + b, 0);
     const maxScore = questions.length * 4;
     const percentage = totalScore / maxScore * 100;
