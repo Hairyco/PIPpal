@@ -14,6 +14,8 @@ import {
   Plus,
   Trash2,
   Link,
+  AlertTriangle,
+  Filter,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
@@ -28,6 +30,14 @@ interface InfluencerCode {
   created_at: string;
 }
 
+interface UserRow {
+  name: string;
+  email: string;
+  has_paid: boolean;
+  created_at: string;
+  influencer_source?: string;
+}
+
 interface Stats {
   totalUsers: number;
   paidUsers: number;
@@ -37,9 +47,13 @@ interface Stats {
   weekSignups: number;
   monthSignups: number;
   totalDiaryEntries: number;
-  recentUsers: { name: string; email: string; has_paid: boolean; created_at: string; influencer_source?: string }[];
+  allUsers: UserRow[];
   influencerStats: { source: string; count: number; paid: number }[];
 }
+
+type PeriodFilter = 'all' | 'today' | 'week' | 'month' | 'year';
+type StatusFilter = 'all' | 'paid' | 'free';
+type SourceFilter = 'all' | 'organic' | 'influencer';
 
 function StatCard({
   icon: Icon,
@@ -78,8 +92,24 @@ export function AdminDashboard() {
   const [addingInfluencer, setAddingInfluencer] = useState(false);
   const [addError, setAddError] = useState('');
   const [activeTab, setActiveTab] = useState<'stats' | 'influencers'>('stats');
+  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const getDateFilter = (period: PeriodFilter): Date | null => {
+    const now = new Date();
+    switch (period) {
+      case 'today': { const d = new Date(); d.setHours(0,0,0,0); return d; }
+      case 'week': { const d = new Date(); d.setDate(d.getDate() - 7); return d; }
+      case 'month': { const d = new Date(); d.setDate(d.getDate() - 30); return d; }
+      case 'year': { const d = new Date(); d.setFullYear(d.getFullYear() - 1); return d; }
+      default: return null;
+    }
+  };
 
   const loadStats = async () => {
     setStatsLoading(true);
@@ -93,7 +123,7 @@ export function AdminDashboard() {
       const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
       const { count: monthSignups } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString());
       const { count: totalDiaryEntries } = await supabase.from('diary_entries').select('*', { count: 'exact', head: true });
-      const { data: recentUsers } = await supabase.from('profiles').select('name, email, has_paid, created_at, influencer_source').order('created_at', { ascending: false }).limit(10);
+      const { data: allUsers } = await supabase.from('profiles').select('name, email, has_paid, created_at, influencer_source').order('created_at', { ascending: false });
       const { data: influencerData } = await supabase.from('profiles').select('influencer_source, has_paid').not('influencer_source', 'is', null);
       const total = totalUsers || 0;
       const paid = paidUsers || 0;
@@ -106,7 +136,7 @@ export function AdminDashboard() {
         weekSignups: weekSignups || 0,
         monthSignups: monthSignups || 0,
         totalDiaryEntries: totalDiaryEntries || 0,
-        recentUsers: recentUsers || [],
+        allUsers: allUsers || [],
         influencerStats: (() => {
           const map: Record<string, { count: number; paid: number }> = {};
           (influencerData || []).forEach((u: any) => {
@@ -181,6 +211,33 @@ export function AdminDashboard() {
     } catch { /* Fail silently */ }
   };
 
+  const resetTestData = async () => {
+    setResetting(true);
+    try {
+      await supabase.from('profiles').delete().neq('email', ADMIN_EMAIL);
+      setShowResetConfirm(false);
+      await loadStats();
+    } catch (err) {
+      console.error('Reset failed:', err);
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const getFilteredUsers = (): UserRow[] => {
+    if (!stats) return [];
+    let users = stats.allUsers;
+    const dateFilter = getDateFilter(periodFilter);
+    if (dateFilter) {
+      users = users.filter(u => new Date(u.created_at) >= dateFilter);
+    }
+    if (statusFilter === 'paid') users = users.filter(u => u.has_paid);
+    if (statusFilter === 'free') users = users.filter(u => !u.has_paid);
+    if (sourceFilter === 'organic') users = users.filter(u => !u.influencer_source);
+    if (sourceFilter === 'influencer') users = users.filter(u => !!u.influencer_source);
+    return users;
+  };
+
   useEffect(() => {
     if (isAdmin) {
       loadStats();
@@ -210,6 +267,8 @@ export function AdminDashboard() {
       </div>
     );
   }
+
+  const filteredUsers = getFilteredUsers();
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -257,6 +316,7 @@ export function AdminDashboard() {
               Last updated: {lastRefresh.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
             </p>
 
+            {/* Overview */}
             <section>
               <h2 className="text-sm font-bold text-stone-900 mb-3">Overview</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -267,6 +327,7 @@ export function AdminDashboard() {
               </div>
             </section>
 
+            {/* New Signups */}
             <section>
               <h2 className="text-sm font-bold text-stone-900 mb-3">New Signups</h2>
               <div className="grid grid-cols-3 gap-3">
@@ -276,6 +337,7 @@ export function AdminDashboard() {
               </div>
             </section>
 
+            {/* Engagement */}
             <section>
               <h2 className="text-sm font-bold text-stone-900 mb-3">Engagement</h2>
               <div className="grid grid-cols-2 gap-3">
@@ -284,6 +346,7 @@ export function AdminDashboard() {
               </div>
             </section>
 
+            {/* Revenue Summary */}
             <section className="bg-teal-700 rounded-2xl p-5 text-white">
               <h2 className="text-sm font-bold mb-4">Revenue Summary</h2>
               <div className="grid grid-cols-3 gap-4 text-center">
@@ -302,6 +365,7 @@ export function AdminDashboard() {
               </div>
             </section>
 
+            {/* Influencer breakdown */}
             {stats.influencerStats.length > 0 && (
               <section>
                 <h2 className="text-sm font-bold text-stone-900 mb-3">Influencer Signups</h2>
@@ -326,14 +390,59 @@ export function AdminDashboard() {
               </section>
             )}
 
+            {/* Users list with filters */}
             <section>
-              <h2 className="text-sm font-bold text-stone-900 mb-3">Recent Signups</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-stone-900">Users</h2>
+                <span className="text-xs text-stone-400">{filteredUsers.length} shown</span>
+              </div>
+
+              {/* Filters */}
+              <div className="space-y-2 mb-4">
+                {/* Period filter */}
+                <div className="flex gap-1.5 flex-wrap">
+                  {(['all', 'today', 'week', 'month', 'year'] as PeriodFilter[]).map(p => (
+                    <button
+                      key={p}
+                      onClick={() => setPeriodFilter(p)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${periodFilter === p ? 'bg-teal-700 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                    >
+                      {p === 'all' ? 'All Time' : p === 'today' ? 'Today' : p === 'week' ? 'This Week' : p === 'month' ? 'This Month' : 'This Year'}
+                    </button>
+                  ))}
+                </div>
+                {/* Status filter */}
+                <div className="flex gap-1.5">
+                  {(['all', 'paid', 'free'] as StatusFilter[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setStatusFilter(s)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${statusFilter === s ? 'bg-emerald-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                    >
+                      {s === 'all' ? 'All Users' : s === 'paid' ? 'Paid Only' : 'Free Only'}
+                    </button>
+                  ))}
+                </div>
+                {/* Source filter */}
+                <div className="flex gap-1.5">
+                  {(['all', 'organic', 'influencer'] as SourceFilter[]).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setSourceFilter(s)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${sourceFilter === s ? 'bg-purple-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
+                    >
+                      {s === 'all' ? 'All Sources' : s === 'organic' ? 'Organic' : 'Influencer'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                {stats.recentUsers.length === 0 ? (
-                  <p className="text-sm text-stone-500 p-4 text-center">No users yet</p>
+                {filteredUsers.length === 0 ? (
+                  <p className="text-sm text-stone-500 p-4 text-center">No users match these filters</p>
                 ) : (
                   <div className="divide-y divide-stone-100">
-                    {stats.recentUsers.map((u, i) => (
+                    {filteredUsers.map((u, i) => (
                       <div key={i} className="flex items-center gap-3 px-4 py-3">
                         <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center font-bold text-teal-700 text-sm shrink-0">
                           {u.name?.charAt(0)?.toUpperCase() || '?'}
@@ -360,6 +469,45 @@ export function AdminDashboard() {
                   </div>
                 )}
               </div>
+            </section>
+
+            {/* Reset test data */}
+            <section>
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Danger Zone</h2>
+              {showResetConfirm ? (
+                <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <p className="text-sm text-rose-800 leading-relaxed">
+                      This will permanently delete all user accounts except yours. This cannot be undone. Are you sure?
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={resetTestData}
+                      disabled={resetting}
+                      className="flex-1 bg-rose-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-rose-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      Yes, delete all test data
+                    </button>
+                    <button
+                      onClick={() => setShowResetConfirm(false)}
+                      className="flex-1 bg-white border border-stone-200 text-stone-700 py-2.5 rounded-xl font-semibold text-sm hover:bg-stone-50 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setShowResetConfirm(true)}
+                  className="w-full bg-white border border-rose-200 text-rose-600 py-3 rounded-xl font-semibold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Reset test data
+                </button>
+              )}
             </section>
 
           </div>
