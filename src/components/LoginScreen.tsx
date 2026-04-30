@@ -151,16 +151,30 @@ export function LoginScreen() {
         if (data.user) {
           login({ name, email, id: data.user.id });
           await applyPromoIfPending(data.user.id, email);
-          // Save influencer source if present
-          const urlPromo = new URLSearchParams(window.location.search).get('promo')?.toUpperCase();
-          const pendingPromo = sessionStorage.getItem('pippal_pending_promo') === 'true';
+          // Check for influencer code and grant Pro if valid
           const storedPromo = sessionStorage.getItem('pippal_promo_source');
-          const influencerSource = urlPromo || storedPromo || null;
+          const checkInfluencer = sessionStorage.getItem('pippal_check_influencer');
+          const influencerSource = storedPromo || checkInfluencer || null;
           if (influencerSource) {
             // Wait briefly for the profile row to be created by the trigger
             await new Promise(resolve => setTimeout(resolve, 1000));
             try {
-              await supabase.from('profiles').update({ influencer_source: influencerSource }).eq('id', data.user.id);
+              // Check if this is a valid active influencer code
+              const { data: infCode } = await supabase
+                .from('influencer_codes')
+                .select('code, active')
+                .eq('code', influencerSource)
+                .eq('active', true)
+                .single();
+              if (infCode) {
+                // Valid influencer code — grant Pro access
+                setHasPaid(true);
+                await supabase.from('profiles').update({ has_paid: true, influencer_source: influencerSource }).eq('id', data.user.id);
+                sessionStorage.removeItem('pippal_check_influencer');
+              } else {
+                // Not a valid influencer code — just save the source
+                await supabase.from('profiles').update({ influencer_source: influencerSource }).eq('id', data.user.id);
+              }
             } catch { /* Fail silently */ }
           }
           showToast('Account created! Welcome to PIPpal.', 'success');
