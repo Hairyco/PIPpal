@@ -214,7 +214,7 @@ export function AdminDashboard() {
   const resetTestData = async () => {
     setResetting(true);
     try {
-      await supabase.from('profiles').delete().neq('email', ADMIN_EMAIL);
+      await supabase.rpc('delete_test_profiles');
       setShowResetConfirm(false);
       await loadStats();
     } catch (err) {
