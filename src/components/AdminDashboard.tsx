@@ -374,6 +374,17 @@ export function AdminDashboard() {
       {activeTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
+          {/* How it works reminder */}
+          <section>
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
+              <p className="text-xs font-bold text-teal-900">How influencer links work</p>
+              <p className="text-xs text-teal-700 leading-relaxed">1. Add an influencer below and give them their unique link.</p>
+              <p className="text-xs text-teal-700 leading-relaxed">2. Anyone who signs up via their link gets Pro access automatically and is tracked here.</p>
+              <p className="text-xs text-teal-700 leading-relaxed">3. The check only applies to new signups — existing free users will not get Pro via the link.</p>
+              <p className="text-xs text-teal-700 leading-relaxed">4. You can deactivate any code instantly — anyone using it after deactivation gets no Pro access.</p>
+            </div>
+          </section>
+
           {/* Add new influencer */}
           <section>
             <h2 className="text-sm font-bold text-stone-900 mb-3">Add Influencer</h2>
