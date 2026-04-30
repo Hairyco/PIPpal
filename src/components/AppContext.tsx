@@ -165,14 +165,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
+    // Add influencer codes here — each influencer gets their own unique code
+    const INFLUENCER_CODES: string[] = [
+      // 'SARAH2026',
+      // 'JAMES2026',
+      // Add new influencer codes here
+    ];
     const urlParams = new URLSearchParams(window.location.search);
     const initialPromo = urlParams.get('promo')?.toUpperCase();
-    if (initialPromo && PROMO_CODES.includes(initialPromo)) {
+    if (initialPromo && (PROMO_CODES.includes(initialPromo) || INFLUENCER_CODES.includes(initialPromo))) {
+      // Valid code — grant Pro access and track source
       sessionStorage.setItem('pippal_pending_promo', 'true');
       sessionStorage.setItem('pippal_promo_source', initialPromo);
       window.history.replaceState({}, '', window.location.pathname);
     } else if (initialPromo) {
-      // Not a fixed promo code — treat as influencer code
+      // Unknown code — track source only, no Pro access
       sessionStorage.setItem('pippal_promo_source', initialPromo);
       window.history.replaceState({}, '', window.location.pathname);
     }
