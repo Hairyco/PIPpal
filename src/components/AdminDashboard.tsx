@@ -272,7 +272,7 @@ export function AdminDashboard() {
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
         </div>
-      ) : activeTab === 'stats' && stats ? (
+      ) : activeTab === 'influencers' ? null : activeTab === 'stats' && stats ? (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
           {/* Last refresh */}
