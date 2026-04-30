@@ -15,10 +15,12 @@ import {
   Users,
   BookOpen,
   Download,
-  ExternalLink } from
+  ExternalLink,
+  Mail,
+  Loader2 } from
 'lucide-react';
 import { useAppContext } from './AppContext';
-import { EmailGate } from './EmailGate';
+import { supabase } from '../supabaseClient';
 import { ShareButton } from './ShareButton';
 const CONDITIONS = [
 'Anxiety',
@@ -270,6 +272,58 @@ const questions = [
 
 }];
 
+function InlineEmailCapture({ onContinue }: { onContinue: () => void }) {
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const validateEmail = (val: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateEmail(email)) { setError('Please enter a valid email address'); return; }
+    setError('');
+    setIsSubmitting(true);
+    try {
+      await supabase.from('email_leads').insert({
+        email: email.toLowerCase().trim(),
+        source: 'Eligibility Checker',
+        created_at: new Date().toISOString(),
+      });
+    } catch { /* Fail silently */ }
+    setIsSubmitting(false);
+    onContinue();
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-teal-200 shadow-sm p-5">
+      <p className="text-sm font-bold text-stone-900 mb-1 text-center">See your full results</p>
+      <p className="text-xs text-stone-500 mb-4 leading-relaxed text-center">Enter your email to unlock your detailed breakdown and get helpful PIP tips.</p>
+      <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(''); }}
+            placeholder="your@email.com"
+            className={`w-full pl-10 pr-4 py-3 rounded-xl border text-sm bg-white transition-all outline-none ${error ? 'border-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-100' : 'border-stone-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-100'}`}
+          />
+        </div>
+        {error && <p className="text-xs text-rose-600">{error}</p>}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+        >
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>See my full results <ArrowRight className="w-4 h-4" /></>}
+        </button>
+      </form>
+      <p className="text-center text-xs text-stone-400 mt-3">No spam. Unsubscribe any time.</p>
+    </div>
+  );
+}
+
 export function EligibilityChecker() {
   const { navigateTo, goBack, setHasCompletedEligibility, isLoggedIn } = useAppContext();
   const [phase, setPhase] = useState<
@@ -334,16 +388,6 @@ export function EligibilityChecker() {
   };
   // RESULT SCREEN
   if (phase === 'result') {
-    if (showEmailGate) {
-      return (
-        <EmailGate
-          title="Your eligibility result is ready"
-          subtitle="Enter your email to see your score and get helpful PIP tips"
-          onContinue={() => setShowEmailGate(false)}
-          onSkip={() => setShowEmailGate(false)}
-        />
-      );
-    }
     const totalScore = answers.reduce((a, b) => a + b, 0);
     const maxScore = questions.length * 4;
     const percentage = totalScore / maxScore * 100;
@@ -448,8 +492,15 @@ export function EligibilityChecker() {
             </p>
           </div>
 
+          {/* Blurred content for non-logged-in users */}
+          {showEmailGate && !isLoggedIn && (
+            <div className="w-full max-w-sm mx-auto mt-4 mb-2">
+              <InlineEmailCapture onContinue={() => setShowEmailGate(false)} />
+            </div>
+          )}
+
           {/* Stats Row */}
-          <div className="flex gap-2 mb-6">
+          <div className={`flex gap-2 mb-6 ${showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}`}>
             <div className="flex-1 bg-teal-50 rounded-xl p-3 border border-teal-100 flex flex-col items-center text-center justify-center gap-1">
               <Users className="w-4 h-4 text-teal-600" />
               <div className="text-[10px] text-teal-800 leading-tight">
@@ -465,7 +516,7 @@ export function EligibilityChecker() {
           </div>
 
           {/* Conditions reminder */}
-          <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm mb-6">
+          <div className={`bg-white rounded-2xl p-4 border border-stone-100 shadow-sm mb-6 ${showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}`}>
             <div className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">
               Your conditions
             </div>
@@ -481,6 +532,7 @@ export function EligibilityChecker() {
             </div>
           </div>
 
+          <div className={showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}>
           <button
             onClick={() => navigateTo('q1_intro')}
             className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm mb-2 flex items-center justify-center gap-2">
@@ -511,6 +563,7 @@ export function EligibilityChecker() {
             </button>
           </div>
 
+          </div>
           <button
             onClick={reset}
             className="w-full text-stone-500 font-medium text-sm hover:text-stone-800 py-2">
