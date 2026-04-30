@@ -150,32 +150,42 @@ export function LoginScreen() {
         if (error) throw error;
         if (data.user) {
           login({ name, email, id: data.user.id });
-          await applyPromoIfPending(data.user.id, email);
-          // Check for influencer code and grant Pro if valid
+          // Check for influencer code FIRST before any other Supabase calls
           const storedPromo = sessionStorage.getItem('pippal_promo_source');
           const checkInfluencer = sessionStorage.getItem('pippal_check_influencer');
           const influencerSource = storedPromo || checkInfluencer || null;
+          let isInfluencer = false;
           if (influencerSource) {
-            // Wait briefly for the profile row to be created by the trigger
-            await new Promise(resolve => setTimeout(resolve, 1000));
             try {
-              // Check if this is a valid active influencer code
               const { data: infCode } = await supabase
                 .from('influencer_codes')
-                .select('code, active')
+                .select('code')
                 .eq('code', influencerSource)
                 .eq('active', true)
-                .single();
+                .maybeSingle();
               if (infCode) {
-                // Valid influencer code — grant Pro access
-                setHasPaid(true);
-                await supabase.from('profiles').update({ has_paid: true, influencer_source: influencerSource }).eq('id', data.user.id);
+                isInfluencer = true;
                 sessionStorage.removeItem('pippal_check_influencer');
-              } else {
-                // Not a valid influencer code — just save the source
-                await supabase.from('profiles').update({ influencer_source: influencerSource }).eq('id', data.user.id);
+                // Set Pro in state immediately
+                setHasPaid(true);
               }
-            } catch { /* Fail silently */ }
+            } catch { /* Not a valid influencer code */ }
+          }
+          // Now handle promo codes
+          await applyPromoIfPending(data.user.id, email);
+          // Save profile updates after a delay to allow trigger to complete
+          const userId = data.user?.id;
+          if (userId) {
+            setTimeout(async () => {
+              try {
+                const updates: any = {};
+                if (influencerSource) updates.influencer_source = influencerSource;
+                if (isInfluencer) updates.has_paid = true;
+                if (Object.keys(updates).length > 0) {
+                  await supabase.from('profiles').update(updates).eq('id', userId);
+                }
+              } catch { /* Fail silently */ }
+            }, 2000);
           }
           showToast('Account created! Welcome to PIPpal.', 'success');
           navigateTo('home');
