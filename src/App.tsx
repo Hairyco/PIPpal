@@ -74,6 +74,7 @@ import { MandatoryReconsiderationScreen } from './components/MandatoryReconsider
 import { AppealScreen } from './components/AppealScreen';
 import { PIPAssistant } from './components/PIPAssistant';
 import { AdminDashboard } from './components/AdminDashboard';
+import { PromoDisclaimer } from './components/PromoDisclaimer';
 
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
 
@@ -103,6 +104,13 @@ function AppContent() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [animKey, setAnimKey] = useState(0);
   const isAdmin = user?.email === ADMIN_EMAIL;
+  const [showDisclaimer, setShowDisclaimer] = useState(() => {
+    const code = new URLSearchParams(window.location.search).get('promo');
+    return !!code && !sessionStorage.getItem('pippal_disclaimer_shown');
+  });
+  const [disclaimerCode] = useState(() => {
+    return new URLSearchParams(window.location.search).get('promo')?.toUpperCase() || '';
+  });
 
   useEffect(() => {
     setAnimKey((k) => k + 1);
@@ -127,6 +135,18 @@ function AppContent() {
 
   const isLanding = currentScreen === ('landing' as any);
   const showAssistant = currentScreen !== 'q1_chat';
+
+  if (showDisclaimer && disclaimerCode) {
+    return (
+      <PromoDisclaimer
+        promoCode={disclaimerCode}
+        onContinue={() => {
+          sessionStorage.setItem('pippal_disclaimer_shown', 'true');
+          setShowDisclaimer(false);
+        }}
+      />
+    );
+  }
 
   const drawerNav = (screen: any) => {
     navigateTo(screen);
