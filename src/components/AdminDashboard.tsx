@@ -11,11 +11,24 @@ import {
   UserCheck,
   UserX,
   Activity,
+  Plus,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Link,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 
 const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
+
+interface InfluencerCode {
+  id: string;
+  name: string;
+  code: string;
+  active: boolean;
+  created_at: string;
+}
 
 interface Stats {
   totalUsers: number;
@@ -60,6 +73,11 @@ export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>([]);
+  const [newInfluencerName, setNewInfluencerName] = useState('');
+  const [newInfluencerCode, setNewInfluencerCode] = useState('');
+  const [addingInfluencer, setAddingInfluencer] = useState(false);
+  const [activeTab, setActiveTab] = useState<'stats' | 'influencers'>('stats');
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
@@ -151,9 +169,53 @@ export function AdminDashboard() {
     }
   };
 
+  const loadInfluencerCodes = async () => {
+    try {
+      const { data } = await supabase
+        .from('influencer_codes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      setInfluencerCodes(data || []);
+    } catch { /* Fail silently */ }
+  };
+
+  const addInfluencerCode = async () => {
+    if (!newInfluencerName.trim() || !newInfluencerCode.trim()) return;
+    setAddingInfluencer(true);
+    try {
+      await supabase.from('influencer_codes').insert({
+        name: newInfluencerName.trim(),
+        code: newInfluencerCode.trim().toUpperCase(),
+        active: true,
+      });
+      setNewInfluencerName('');
+      setNewInfluencerCode('');
+      await loadInfluencerCodes();
+    } catch { /* Fail silently */ }
+    setAddingInfluencer(false);
+  };
+
+  const toggleInfluencerCode = async (id: string, active: boolean) => {
+    try {
+      await supabase.from('influencer_codes').update({ active: !active }).eq('id', id);
+      await loadInfluencerCodes();
+    } catch { /* Fail silently */ }
+  };
+
+  const deleteInfluencerCode = async (id: string) => {
+    try {
+      await supabase.from('influencer_codes').delete().eq('id', id);
+      await loadInfluencerCodes();
+    } catch { /* Fail silently */ }
+  };
+
   useEffect(() => {
-    if (isAdmin) loadStats();
-    else setIsLoading(false);
+    if (isAdmin) {
+      loadStats();
+      loadInfluencerCodes();
+    } else {
+      setIsLoading(false);
+    }
   }, [isAdmin]);
 
   if (!isAdmin) {
@@ -184,19 +246,33 @@ export function AdminDashboard() {
         </button>
         <h1 className="font-bold text-stone-900 text-lg">Admin Dashboard</h1>
         <button
-          onClick={loadStats}
+          onClick={() => { loadStats(); loadInfluencerCodes(); }}
           disabled={isLoading}
           className="ml-auto w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
       </div>
+      <div className="flex bg-white border-b border-stone-100">
+        <button
+          onClick={() => setActiveTab('stats')}
+          className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'stats' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
+        >
+          Stats
+        </button>
+        <button
+          onClick={() => setActiveTab('influencers')}
+          className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'influencers' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
+        >
+          Influencers
+        </button>
+      </div>
 
-      {isLoading ? (
+      {activeTab === 'stats' && isLoading ? (
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
         </div>
-      ) : stats ? (
+      ) : activeTab === 'stats' && stats ? (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
           {/* Last refresh */}
@@ -316,9 +392,101 @@ export function AdminDashboard() {
           </section>
 
         </div>
-      ) : (
+      ) : activeTab === 'stats' ? (
         <div className="flex-1 flex items-center justify-center">
           <p className="text-stone-500 text-sm">Failed to load stats. Try refreshing.</p>
+        </div>
+      ) : null}
+
+      {/* Influencer Management Tab */}
+      {activeTab === 'influencers' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
+
+          {/* Add new influencer */}
+          <section>
+            <h2 className="text-sm font-bold text-stone-900 mb-3">Add Influencer</h2>
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1 block">Influencer name</label>
+                <input
+                  type="text"
+                  value={newInfluencerName}
+                  onChange={(e) => setNewInfluencerName(e.target.value)}
+                  placeholder="e.g. Sarah Jones"
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1 block">Their unique code</label>
+                <input
+                  type="text"
+                  value={newInfluencerCode}
+                  onChange={(e) => setNewInfluencerCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. SARAH2026"
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono"
+                />
+              </div>
+              {newInfluencerCode && (
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                  <p className="text-xs text-teal-700 font-medium mb-1">Their link will be:</p>
+                  <p className="text-xs text-teal-900 font-mono break-all">https://pippal-alpha.vercel.app?promo={newInfluencerCode}</p>
+                </div>
+              )}
+              <button
+                onClick={addInfluencerCode}
+                disabled={addingInfluencer || !newInfluencerName.trim() || !newInfluencerCode.trim()}
+                className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {addingInfluencer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                Add Influencer
+              </button>
+            </div>
+          </section>
+
+          {/* Influencer list */}
+          <section>
+            <h2 className="text-sm font-bold text-stone-900 mb-3">Active Influencers</h2>
+            {influencerCodes.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-6 text-center">
+                <p className="text-sm text-stone-500">No influencers added yet</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <div className="divide-y divide-stone-100">
+                  {influencerCodes.map((inf) => (
+                    <div key={inf.id} className="px-4 py-3 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-700 text-sm shrink-0">
+                          {inf.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-stone-900">{inf.name}</p>
+                          <p className="text-xs font-mono text-stone-400">{inf.code}</p>
+                        </div>
+                        <button
+                          onClick={() => toggleInfluencerCode(inf.id, inf.active)}
+                          className={`text-xs font-bold px-2 py-1 rounded-full transition-colors ${inf.active ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}
+                        >
+                          {inf.active ? 'ACTIVE' : 'OFF'}
+                        </button>
+                        <button
+                          onClick={() => deleteInfluencerCode(inf.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-rose-50 text-stone-400 hover:text-rose-500 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div className="bg-stone-50 rounded-lg px-3 py-2 flex items-center gap-2">
+                        <Link className="w-3 h-3 text-stone-400 shrink-0" />
+                        <p className="text-[10px] font-mono text-stone-500 truncate">https://pippal-alpha.vercel.app?promo={inf.code}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+
         </div>
       )}
     </div>

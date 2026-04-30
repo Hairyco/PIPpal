@@ -165,22 +165,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
-    // Add influencer codes here — each influencer gets their own unique code
-    const INFLUENCER_CODES: string[] = [
-      // 'SARAH2026',
-      // 'JAMES2026',
-      // Add new influencer codes here
-    ];
     const urlParams = new URLSearchParams(window.location.search);
     const initialPromo = urlParams.get('promo')?.toUpperCase();
-    if (initialPromo && (PROMO_CODES.includes(initialPromo) || INFLUENCER_CODES.includes(initialPromo))) {
-      // Valid code — grant Pro access and track source
-      sessionStorage.setItem('pippal_pending_promo', 'true');
-      sessionStorage.setItem('pippal_promo_source', initialPromo);
-      window.history.replaceState({}, '', window.location.pathname);
-    } else if (initialPromo) {
-      // Unknown code — track source only, no Pro access
-      sessionStorage.setItem('pippal_promo_source', initialPromo);
+    if (initialPromo) {
+      if (PROMO_CODES.includes(initialPromo)) {
+        // Fixed promo code — grant Pro access
+        sessionStorage.setItem('pippal_pending_promo', 'true');
+        sessionStorage.setItem('pippal_promo_source', initialPromo);
+      } else {
+        // Could be an influencer code — store it and check against Supabase after session loads
+        sessionStorage.setItem('pippal_promo_source', initialPromo);
+        sessionStorage.setItem('pippal_check_influencer', initialPromo);
+      }
       window.history.replaceState({}, '', window.location.pathname);
     }
 
@@ -223,6 +219,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
           } catch { /* Fail silently */ }
           setCurrentScreen('home');
         } else {
+          // Check if there is a pending influencer code to verify against Supabase
+          const pendingInfluencer = sessionStorage.getItem('pippal_check_influencer');
+          if (pendingInfluencer) {
+            sessionStorage.removeItem('pippal_check_influencer');
+            try {
+              const { data: infCode } = await supabase
+                .from('influencer_codes')
+                .select('code, active')
+                .eq('code', pendingInfluencer)
+                .eq('active', true)
+                .single();
+              if (infCode) {
+                setHasPaidState(true);
+                try {
+                  await supabase.from('profiles').update({ has_paid: true, influencer_source: pendingInfluencer }).eq('id', session.user.id);
+                } catch { /* Fail silently */ }
+              }
+            } catch { /* Not a valid influencer code */ }
+          }
           setCurrentScreen('home');
         }
 
