@@ -51,6 +51,8 @@ export function QuestionChat() {
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
   const [showFreeText, setShowFreeText] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = React.useRef<any>(null);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -454,7 +456,45 @@ export function QuestionChat() {
         if (currentStep.startsWith('detail_')) {
           return (
             <div className="flex items-end gap-2 bg-white p-2 rounded-2xl border border-stone-200 shadow-sm">
-              <button className="p-3 bg-stone-100 text-stone-500 rounded-xl hover:bg-stone-200 transition-colors">
+              <button
+                onMouseDown={() => {
+                  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                  if (!SpeechRecognition) { alert('Voice input is not supported in this browser. Please type your answer.'); return; }
+                  const recognition = new SpeechRecognition();
+                  recognition.lang = 'en-GB';
+                  recognition.continuous = false;
+                  recognition.interimResults = false;
+                  recognition.onresult = (e: any) => {
+                    const transcript = e.results[0][0].transcript;
+                    setInputText(prev => prev ? prev + ' ' + transcript : transcript);
+                  };
+                  recognition.onend = () => setIsRecording(false);
+                  recognition.onerror = () => setIsRecording(false);
+                  recognitionRef.current = recognition;
+                  recognition.start();
+                  setIsRecording(true);
+                }}
+                onMouseUp={() => { recognitionRef.current?.stop(); }}
+                onTouchStart={(e) => { e.preventDefault();
+                  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                  if (!SpeechRecognition) { alert('Voice input is not supported in this browser.'); return; }
+                  const recognition = new SpeechRecognition();
+                  recognition.lang = 'en-GB';
+                  recognition.continuous = false;
+                  recognition.interimResults = false;
+                  recognition.onresult = (e: any) => {
+                    const transcript = e.results[0][0].transcript;
+                    setInputText(prev => prev ? prev + ' ' + transcript : transcript);
+                  };
+                  recognition.onend = () => setIsRecording(false);
+                  recognition.onerror = () => setIsRecording(false);
+                  recognitionRef.current = recognition;
+                  recognition.start();
+                  setIsRecording(true);
+                }}
+                onTouchEnd={() => { recognitionRef.current?.stop(); }}
+                className={`p-3 rounded-xl transition-colors ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
+              >
                 <Mic className="w-5 h-5" />
               </button>
               <textarea
