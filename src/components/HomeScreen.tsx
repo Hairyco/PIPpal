@@ -189,6 +189,7 @@ export function HomeScreen() {
               color="text-purple-600"
               bg="bg-purple-50"
               target="change_of_circumstances"
+              locked={!hasPaid}
             />
             <NavCard
               title={'Mandatory\nReconsideration'}
@@ -197,6 +198,7 @@ export function HomeScreen() {
               color="text-amber-600"
               bg="bg-amber-50"
               target="mandatory_reconsideration"
+              locked={!hasPaid}
             />
             <NavCard
               title="Appeal"
@@ -205,6 +207,7 @@ export function HomeScreen() {
               color="text-rose-600"
               bg="bg-rose-50"
               target="appeal"
+              locked={!hasPaid}
             />
           </div>
         </section>
@@ -290,6 +293,7 @@ export function HomeScreen() {
               color="text-stone-600"
               bg="bg-stone-100"
               target="decision_received"
+              locked={!hasPaid}
             />
             <NavCard
               title="Downloads"

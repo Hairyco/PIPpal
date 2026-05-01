@@ -375,7 +375,7 @@ function AppContent() {
 
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">After Your Decision</p>
-                      <NavItem icon={FileText} label="Decision Received" screen="decision_received" />
+                      <NavItem icon={FileText} label="Decision Received" screen="decision_received" badge={!hasPaid ? "PRO" : undefined} />
                       <NavItem icon={AlertTriangle} label="Mandatory Reconsideration" screen="mandatory_reconsideration" />
                       <NavItem icon={Scale} label="Appeal" screen="appeal" />
                       <NavItem icon={RefreshCw} label="Change of Circumstances" screen="change_of_circumstances" />
