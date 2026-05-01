@@ -153,43 +153,7 @@ export function QuestionIntro() {
           </AnimatePresence>
         </div>
 
-        {/* All 12 questions preview */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-          <div className="p-4 bg-stone-50 border-b border-stone-100">
-            <h3 className="font-bold text-stone-900 text-sm">All 12 PIP Questions</h3>
-            <p className="text-xs text-stone-500 mt-0.5">Complete them all to maximise your score</p>
-          </div>
-          <div className="divide-y divide-stone-100">
-            {PIP_QUESTIONS.map((q) => {
-              const isAnswered = !!savedAnswers[q.id];
-              const isCurrent = q.id === questionId;
-              const isLocked = !q.free && !hasPaid;
-              return (
-                <div
-                  key={q.id}
-                  className={`flex items-center gap-3 px-4 py-3 ${isCurrent ? 'bg-teal-50' : ''}`}
-                >
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                    ${isAnswered ? 'bg-teal-600 text-white' : isCurrent ? 'bg-teal-100 text-teal-700' : 'bg-stone-100 text-stone-500'}`}
-                  >
-                    {isAnswered ? '✓' : q.num}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${isCurrent ? 'text-teal-900' : 'text-stone-700'}`}>
-                      {q.shortTitle}
-                    </p>
-                    <p className="text-[10px] text-stone-400">{q.category}</p>
-                  </div>
-                  {isLocked ? (
-                    <Lock className="w-4 h-4 text-stone-300 shrink-0" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+
 
         {/* PIP Diary tip */}
         <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 flex flex-col gap-3">

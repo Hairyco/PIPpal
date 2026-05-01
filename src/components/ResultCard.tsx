@@ -754,6 +754,17 @@ export function ResultCard() {
         </button>
       </div>
 
+      {hasPaid && (
+        <div className="px-5 pb-2 text-center">
+          <button
+            onClick={() => navigateTo('question_index')}
+            className="text-xs text-stone-400 hover:text-teal-700 transition-colors underline underline-offset-2"
+          >
+            View all questions
+          </button>
+        </div>
+      )}
+
       {/* Saved Toast */}
       <AnimatePresence>
         {savedToast &&
