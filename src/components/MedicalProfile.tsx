@@ -44,8 +44,6 @@ export function MedicalProfile() {
       if (medProfile.conditions.length === 0 && !medProfile.medications && !medProfile.notes) {
         setIsLoading(true);
       }
-      // Safety timeout — never spin for more than 3 seconds
-      const timeout = setTimeout(() => setIsLoading(false), 3000);
       try {
         const { data, error } = await supabase
           .from('medical_profiles')
@@ -66,7 +64,6 @@ export function MedicalProfile() {
       } catch {
         // No profile yet — use defaults
       } finally {
-        clearTimeout(timeout);
         setIsLoading(false);
       }
     };
@@ -96,34 +93,22 @@ export function MedicalProfile() {
     setIsSaving(true);
     const profile = { conditions, medications, notes };
     setMedProfile(profile);
-
-    // Save to Supabase if logged in
+    showToast('Medical profile saved!', 'success');
+    // Navigate immediately — save to Supabase in background
+    setTimeout(() => navigateTo('q1_intro'), 300);
     if (user?.id) {
-      try {
-        const { error } = await supabase
-          .from('medical_profiles')
-          .upsert({
-            user_id: user.id,
-            conditions,
-            medications,
-            notes,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id' });
-
-        if (error) throw error;
-        setSaved(true);
-        showToast('Medical profile saved!', 'success');
-        setTimeout(() => {
-          navigateTo('q1_intro');
-        }, 800);
-      } catch (err) {
-        showToast('Saved locally — will sync when connection is restored.', 'info');
-        navigateTo('q1_intro');
-      }
-    } else {
-      navigateTo('q1_intro');
+      supabase
+        .from('medical_profiles')
+        .upsert({
+          user_id: user.id,
+          conditions,
+          medications,
+          notes,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+        .then(() => {})
+        .catch(() => {});
     }
-
     setIsSaving(false);
   };
 
