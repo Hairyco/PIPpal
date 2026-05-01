@@ -142,12 +142,7 @@ export function AssessmentPrepScreen() {
       <html>
       <head>
         <title>PIP Assessment Preparation</title>
-        <style>{`;
-    $;
-    {
-      css;
-    }
-    ;`}</style>
+        <style>${css}</style>
       </head>
       <body>
         <h1>PIP Assessment Preparation</h1>
@@ -224,6 +219,45 @@ export function AssessmentPrepScreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+        {/* SAFE tips banner */}
+        <div className="bg-teal-700 rounded-2xl p-5 text-white shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wider text-teal-200 mb-3">The SAFE rule — remember this</p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { letter: 'S', word: 'Safely', desc: 'Can you do it without risk of injury?' },
+              { letter: 'A', word: 'Adequately', desc: 'Can you do it to an acceptable standard?' },
+              { letter: 'F', word: 'For long enough', desc: 'Can you repeat it as many times as needed?' },
+              { letter: 'E', word: 'Every time', desc: 'Can you do it reliably, on more than half of days?' },
+            ].map(({ letter, word, desc }) => (
+              <div key={letter} className="bg-white/10 rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="w-6 h-6 bg-white text-teal-700 rounded-full flex items-center justify-center text-xs font-black shrink-0">{letter}</span>
+                  <span className="text-sm font-bold">{word}</span>
+                </div>
+                <p className="text-[11px] text-teal-100 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-teal-200 mt-3 leading-relaxed">If the answer to any of these is no — you may score points for that activity.</p>
+        </div>
+
+        {/* Link to their questions */}
+        <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-start gap-3">
+          <div className="w-9 h-9 bg-amber-50 rounded-full flex items-center justify-center shrink-0">
+            <FileText className="w-4 h-4 text-amber-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-stone-900 mb-1">Review your PIP answers</p>
+            <p className="text-xs text-stone-500 leading-relaxed mb-3">The assessor will not always follow the 12 questions in order — they may ask things in a different way. Use your saved answers as a guide, not a script.</p>
+            <button
+              onClick={() => navigateTo('question_index')}
+              className="text-xs font-bold text-teal-700 hover:text-teal-800 transition-colors"
+            >
+              View my answers →
+            </button>
+          </div>
+        </div>
+
         {/* Hero */}
         <div className="bg-blue-700 rounded-2xl p-6 text-white shadow-sm">
           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
