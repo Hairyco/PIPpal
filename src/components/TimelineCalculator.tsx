@@ -133,6 +133,17 @@ export function TimelineCalculator() {
               </button>
             )}
           </div>
+          {currentStage === 'applied' && date && (
+            <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 flex items-start gap-2.5">
+              <span className="text-base shrink-0">📞</span>
+              <div>
+                <p className="text-xs font-bold text-teal-900">Claim start date</p>
+                <p className="text-xs text-teal-700 leading-relaxed mt-0.5">
+                  You called DWP on <strong>{new Date(date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>. Your claim is backdated to this date — keep a record of it.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mb-5">
