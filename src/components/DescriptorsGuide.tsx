@@ -442,6 +442,7 @@ export function DescriptorsGuide() {
   const { navigateTo, goBack } = useAppContext();
   const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
   const [showDailyLiving, setShowDailyLiving] = useState(false);
+  const [showMobility, setShowMobility] = useState(false);
   const [showScoring, setShowScoring] = useState(false);
   const toggleActivity = (num: number) => {
     setExpandedActivity(expandedActivity === num ? null : num);
@@ -556,12 +557,18 @@ export function DescriptorsGuide() {
 
         {/* Mobility Activities */}
         <div>
-          <h3 className="font-bold text-stone-500 uppercase tracking-wider text-xs mb-3 ml-1">
-            Mobility Activities (11-12)
-          </h3>
-          <div className="space-y-3">
+          <button
+            onClick={() => setShowMobility(!showMobility)}
+            className="w-full flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 transition-colors"
+          >
+            <h3 className="font-bold text-stone-900 text-sm">Mobility Activities (11–12)</h3>
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showMobility ? 'rotate-180' : ''}`} />
+          </button>
+          {showMobility && (
+          <div className="space-y-3 mt-3">
             {mobilityActivities.map(renderActivityCard)}
           </div>
+          )}
         </div>
 
         {/* How scoring works */}
