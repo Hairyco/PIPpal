@@ -29,9 +29,15 @@ interface Message {
 
 const INITIAL_MESSAGE: Message = {
   id: 'init',
-  text: "Hi! I'm your PIPpal Assistant. Ask me anything about PIP — eligibility, rates, assessments, appeals, or what to do after a decision. I'll give you personalised guidance based on your conditions.",
+  text: "I can give you much more useful guidance if I know your conditions. If you have not added them yet, it is worth doing that first — tap the menu and go to Medical History. Once done, come back and ask me anything about your PIP claim.",
   sender: 'assistant',
 };
+
+const makeInitialMessage = (conditions: string): Message => ({
+  id: 'init',
+  text: `Hi, I can see you have ${conditions}. I will use that to give you specific guidance. Ask me anything about your PIP claim, assessment or appeal.`,
+  sender: 'assistant',
+});
 
 const SUGGESTED_QUESTIONS = [
   'Am I likely to qualify for PIP?',
@@ -46,9 +52,17 @@ export function PIPAssistant({
   onUpgrade,
 }: PIPAssistantProps) {
   const { medProfile } = useAppContext();
+  const hasConditions = medProfile.conditions.length > 0;
+  const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
   const [isOpen, setIsOpen] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState<Message[]>([
+    hasConditions ? makeInitialMessage(conditionNames) : INITIAL_MESSAGE
+  ]);
+
+  useEffect(() => {
+    setMessages([hasConditions ? makeInitialMessage(conditionNames) : INITIAL_MESSAGE]);
+  }, [conditionNames]);
   const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
