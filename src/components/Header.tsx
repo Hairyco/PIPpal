@@ -3,9 +3,11 @@ import { HeartHandshake, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
   onGetStarted?: () => void;
+  isLoggedIn?: boolean;
+  onDashboard?: () => void;
 }
 
-export function Header({ onGetStarted }: HeaderProps) {
+export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -24,6 +26,7 @@ export function Header({ onGetStarted }: HeaderProps) {
     { label: 'How it works', id: 'how-it-works' },
     { label: 'Free tools', id: 'free-tools' },
     { label: 'Eligibility', id: 'eligibility-banner' },
+    { label: 'Blog', id: 'blog' },
   ];
 
   return (
@@ -56,18 +59,29 @@ export function Header({ onGetStarted }: HeaderProps) {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <button
-            onClick={onGetStarted}
-            className="text-sm font-medium text-stone-600 hover:text-teal-700 transition-colors"
-          >
-            Sign in
-          </button>
-          <button
-            onClick={onGetStarted}
-            className="bg-teal-700 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-teal-800 transition-colors active:scale-95 shadow-sm"
-          >
-            Get Started
-          </button>
+          {isLoggedIn ? (
+            <button
+              onClick={onDashboard}
+              className="bg-teal-700 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-teal-800 transition-colors active:scale-95 shadow-sm"
+            >
+              Go to Dashboard
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={onGetStarted}
+                className="text-sm font-medium text-stone-600 hover:text-teal-700 transition-colors"
+              >
+                Sign in
+              </button>
+              <button
+                onClick={onGetStarted}
+                className="bg-teal-700 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-teal-800 transition-colors active:scale-95 shadow-sm"
+              >
+                Get Started
+              </button>
+            </>
+          )}
         </div>
 
         {/* Mobile: Get Started + hamburger */}
@@ -101,10 +115,10 @@ export function Header({ onGetStarted }: HeaderProps) {
             </button>
           ))}
           <button
-            onClick={() => { onGetStarted?.(); setMobileMenuOpen(false); }}
+            onClick={() => { isLoggedIn ? onDashboard?.() : onGetStarted?.(); setMobileMenuOpen(false); }}
             className="w-full text-left px-3 py-2.5 text-sm font-medium text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
           >
-            Sign in
+            {isLoggedIn ? 'Go to Dashboard' : 'Sign in'}
           </button>
         </div>
       )}

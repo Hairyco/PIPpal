@@ -244,7 +244,7 @@ function AppContent() {
       {isLanding ? (
         <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
           <div className="max-w-6xl mx-auto">
-            <Header onGetStarted={() => handleNavigate('home')} />
+            <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} />
               <WhatIsPIP />
