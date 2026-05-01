@@ -20,10 +20,10 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   const checks = [
-    { rest: 'Complete in ', bold: '15–30 minutes' },
-    { rest: 'Answers unique to ', bold: 'your specific conditions' },
-    { rest: 'Guides you through all ', bold: '12 PIP questions' },
-    { rest: 'Includes full telephone ', bold: 'Assessment prep' },
+    { pre: 'Complete in ', bold: '15–30 minutes', post: '' },
+    { pre: 'Answers ', bold: 'unique', post: ' to your specific conditions' },
+    { pre: 'Guides you through all ', bold: '12 PIP questions', post: '' },
+    { pre: 'Full telephone ', bold: 'Assessment prep', post: ' included' },
   ];
 
   return (
@@ -73,7 +73,7 @@ export function Hero({ onStart }: HeroProps) {
             {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                <span className="text-sm text-stone-700"><strong>{check.bold}</strong>{check.rest}</span>
+                <span className="text-sm text-stone-700">{(check as any).pre}<strong>{(check as any).bold}</strong>{(check as any).post}</span>
               </div>
             ))}
           </div>
