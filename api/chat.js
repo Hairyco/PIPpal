@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { message, medProfile, conversationHistory } = req.body;
+    const { message, medProfile, conversationHistory, questionSystemPrompt } = req.body;
     const conditions = medProfile?.conditions?.map(c => c.name).join(', ') || 'not specified';
     const systemPrompt = `You are the PIPpal Assistant — a calm, knowledgeable guide helping UK citizens get the PIP award they are entitled to.
 
@@ -33,6 +33,7 @@ Tone and format:
 - Be warm, calm and direct. You are on their side.
 - For complex situations, suggest Citizens Advice or a welfare rights adviser.`
 
+    const activeSystemPrompt = questionSystemPrompt || systemPrompt;
     const messages = [
       ...(conversationHistory || []).slice(-10),
       { role: 'user', content: message }
@@ -47,7 +48,7 @@ Tone and format:
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 800,
-        system: systemPrompt,
+        system: activeSystemPrompt,
         messages,
       }),
     });

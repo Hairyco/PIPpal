@@ -166,9 +166,10 @@ Keep responses under 80 words. Plain English. No ** or !!.`;
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: updatedConv,
-          systemPrompt,
+          message: userMsg,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
+          conversationHistory: updatedConv.slice(0, -1),
+          questionSystemPrompt: systemPrompt,
         }),
       });
       const data = await response.json();
