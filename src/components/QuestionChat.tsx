@@ -50,6 +50,7 @@ export function QuestionChat() {
   const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
+  const [showFreeText, setShowFreeText] = useState(false);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -188,7 +189,30 @@ export function QuestionChat() {
     setMessages(prev => [...prev, newMsg]);
     const updatedConv = [...aiConversation, { role: 'user', content: option }];
     setAiConversation(updatedConv);
+    // If user wants to add more details, prompt them with a text box instead
+    if (option === 'I have more details to add') {
+      setCurrentOptions([]);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        sender: 'bot',
+        text: 'Please go ahead and share any extra details. Describe what happens on your worst days.',
+      }]);
+      setShowFreeText(true);
+      return;
+    }
     await callAI(option, updatedConv);
+  };
+
+  const handleFreeTextSubmit = async () => {
+    if (!inputText.trim() || aiLoading) return;
+    const userMsg = inputText.trim();
+    setInputText('');
+    setShowFreeText(false);
+    const newMsg: Message = { id: Date.now().toString(), sender: 'user', text: userMsg };
+    setMessages(prev => [...prev, newMsg]);
+    const updatedConv = [...aiConversation, { role: 'user', content: userMsg }];
+    setAiConversation(updatedConv);
+    await callAI(userMsg, updatedConv);
   };
 
   // Initialise AI chat for Q2-Q12 on mount
@@ -536,6 +560,27 @@ export function QuestionChat() {
             >
               I have more details to add
             </button>
+          </div>
+        )}
+        {showFreeText && !aiLoading && (
+          <div className="p-4 bg-white border-t border-stone-100 space-y-2">
+            <div className="flex items-end gap-2 bg-stone-50 rounded-2xl border border-stone-200 p-2">
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+                placeholder="Add any extra details here..."
+                className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+                rows={2}
+                autoFocus
+              />
+              <button
+                onClick={handleFreeTextSubmit}
+                disabled={!inputText.trim()}
+                className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
+                <Send className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         )}
         {aiLoading && (
