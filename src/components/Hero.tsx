@@ -20,10 +20,10 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   const checks = [
-    { bold: '15–30 minutes', rest: ' to complete' },
-    { bold: 'Unique answers', rest: ' to your specific conditions' },
-    { bold: 'All 12 PIP questions', rest: ' guided step by step' },
-    { bold: 'Full telephone Assessment prep', rest: ' included' },
+    { rest: 'Complete in ', bold: '15–30 minutes' },
+    { rest: 'Answers unique to ', bold: 'your specific conditions' },
+    { rest: 'Guides you through all ', bold: '12 PIP questions' },
+    { rest: 'Includes full telephone ', bold: 'Assessment prep' },
   ];
 
   return (
