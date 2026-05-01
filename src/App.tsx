@@ -207,11 +207,11 @@ function AppContent() {
       case 'q1_intro': return hasPaid ? <QuestionIntro /> : <UpsellScreen />;
       case 'q1_chat': return hasPaid ? <QuestionChat /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
-      case 'question_index': return <QuestionIndex />;
-      case 'new_claim_intro': return <NewClaimIntro />;
-      case 'claim_process': return <ClaimProcess />;
-      case 'descriptors_guide': return <DescriptorsGuide />;
-      case 'scoring_criteria': return <DescriptorsGuide />;
+      case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
+      case 'new_claim_intro': return hasPaid ? <NewClaimIntro /> : <UpsellScreen />;
+      case 'claim_process': return hasPaid ? <ClaimProcess /> : <UpsellScreen />;
+      case 'descriptors_guide': return hasPaid ? <DescriptorsGuide /> : <UpsellScreen />;
+      case 'scoring_criteria': return hasPaid ? <DescriptorsGuide /> : <UpsellScreen />;
       case 'upsell': return <UpsellScreen />;
       case 'post_payment_guide': return hasPaid ? <PostPaymentGuide /> : <UpsellScreen />;
       case 'timeline_calculator': return <TimelineCalculatorScreen />;
@@ -219,13 +219,13 @@ function AppContent() {
       case 'backpay_calculator': return <BackpayCalculatorScreen />;
       case 'assessment_prep': return hasPaid ? <AssessmentPrep /> : <UpsellScreen />;
       case 'pip_diary': return <PIPDiaryScreen />;
-      case 'downloads': return <Downloads />;
-      case 'decision_received': return <DecisionReceivedScreen />;
+      case 'downloads': return hasPaid ? <Downloads /> : <UpsellScreen />;
+      case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;
       case 'change_of_circumstances': return hasPaid ? <ChangeOfCircumstancesScreen /> : <UpsellScreen />;
-      case 'pre_claim_checklist': return <PreClaimChecklist />;
-      case 'claim_steps': return <ClaimSteps />;
+      case 'pre_claim_checklist': return hasPaid ? <PreClaimChecklist /> : <UpsellScreen />;
+      case 'claim_steps': return hasPaid ? <ClaimSteps /> : <UpsellScreen />;
       case 'about': return <AboutScreen />;
       case 'privacy': return <PrivacyScreen />;
       case 'accessibility': return <AccessibilityScreen />;
@@ -348,12 +348,12 @@ function AppContent() {
 
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
-                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" />
+                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} />
                       {hasPaid && (
                         <>
-                          <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" />
-                          <NavItem icon={Download} label="Downloads" screen="downloads" />
-                          <NavItem icon={CheckSquare} label="Pre-Claim Checklist" screen="pre_claim_checklist" />
+                          <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />
+                          <NavItem icon={Download} label="Downloads" screen="downloads" badge={!hasPaid ? "PRO" : undefined} />
+                          <NavItem icon={CheckSquare} label="Pre-Claim Checklist" screen="pre_claim_checklist" badge={!hasPaid ? "PRO" : undefined} />
                         </>
                       )}
                     </div>
@@ -362,8 +362,8 @@ function AppContent() {
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Tools & Prep</p>
                       <NavItem icon={ClipboardCheck} label="Am I Eligible?" screen="eligibility" />
                       <NavItem icon={Stethoscope} label="Medical Profile" screen="medical_profile" />
-                      <NavItem icon={BookOpen} label="How It Works" screen="claim_process" />
-                      <NavItem icon={Scale} label="What Assessors Look For" screen="descriptors_guide" />
+                      <NavItem icon={BookOpen} label="How It Works" screen="claim_process" badge={!hasPaid ? "PRO" : undefined} />
+                      <NavItem icon={Scale} label="What Assessors Look For" screen="descriptors_guide" badge={!hasPaid ? "PRO" : undefined} />
                     </div>
 
                     <div>
