@@ -16,6 +16,7 @@ import {
   Loader2,
   Save,
   BookOpen,
+  Download,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -233,6 +234,50 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     navigator.clipboard.writeText(text).then(() => { setCopiedId(id); setTimeout(() => setCopiedId(null), 2000); });
   };
 
+  const downloadTemplate = () => {
+    const entriesHtml = savedEntries.map(entry => {
+      const dateStr = entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'No date';
+      const sections = [];
+      if (entry.tasks.length > 0) sections.push(`<div class="section"><strong>Struggled with:</strong> ${entry.tasks.join(', ')}${entry.tasksNotes ? '<br/>' + entry.tasksNotes : ''}</div>`);
+      if (entry.help.length > 0) sections.push(`<div class="section"><strong>Needed help with:</strong> ${entry.help.join(', ')}${entry.helpNotes ? '<br/>' + entry.helpNotes : ''}</div>`);
+      if (entry.aids.length > 0) sections.push(`<div class="section"><strong>Aids used:</strong> ${entry.aids.join(', ')}${entry.aidsNotes ? '<br/>' + entry.aidsNotes : ''}</div>`);
+      if (entry.mood) sections.push(`<div class="section"><strong>Mood:</strong> ${entry.mood}</div>`);
+      if (entry.energy) sections.push(`<div class="section"><strong>Energy:</strong> ${entry.energy}</div>`);
+      if (entry.other) sections.push(`<div class="section"><strong>Other notes:</strong> ${entry.other}</div>`);
+      return `<div class="entry"><h3>${dateStr}</h3>${sections.join('')}</div>`;
+    }).join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PIP Diary</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1c1917; }
+  h1 { font-size: 22px; border-bottom: 2px solid #0f766e; padding-bottom: 10px; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #78716c; margin-bottom: 30px; }
+  .entry { border: 1px solid #e7e5e4; border-radius: 8px; padding: 16px; margin-bottom: 20px; page-break-inside: avoid; }
+  .entry h3 { font-size: 15px; color: #0f766e; margin: 0 0 12px 0; }
+  .section { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
+  @media print { body { margin: 20px; } }
+</style>
+</head>
+<body>
+<h1>PIP Diary</h1>
+<p class="subtitle">This diary records how my health condition affects my daily life. It is provided as supporting evidence for my PIP claim.</p>
+${entriesHtml || '<p>No entries recorded yet.</p>'}
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pip-diary-${new Date().toISOString().split('T')[0]}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (!hasPaid) {
     return (
       <div className="flex flex-col h-full bg-stone-50">
@@ -386,10 +431,18 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
       {view === 'entries' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-3 pb-10">
 
-          <button onClick={() => { setCurrentEntry(emptyEntry()); setView('new'); }} className="w-full bg-white border-2 border-dashed border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mb-4">
-            <Plus className="w-4 h-4" />
-            Add New Entry
-          </button>
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => { setCurrentEntry(emptyEntry()); setView('new'); }} className="flex-1 bg-white border-2 border-dashed border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              <Plus className="w-4 h-4" />
+              Add New Entry
+            </button>
+            {savedEntries.length > 0 && (
+              <button onClick={downloadTemplate} className="bg-white border border-stone-200 text-stone-600 py-3 px-4 rounded-xl text-sm hover:bg-stone-50 active:scale-[0.98] transition-all flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+            )}
+          </div>
 
           {savedEntries.length === 0 ? (
             <div className="text-center py-12">
