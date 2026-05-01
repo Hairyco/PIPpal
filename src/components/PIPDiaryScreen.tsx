@@ -237,14 +237,17 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const downloadTemplate = () => {
     const entriesHtml = savedEntries.map(entry => {
       const dateStr = entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'No date';
+      const summary = improvedSummaries[entry.id] || generateSummary(entry);
+      const hasSummary = hasSummaryContent(entry);
       const sections = [];
-      if (entry.tasks.length > 0) sections.push(`<div class="section"><strong>Struggled with:</strong> ${entry.tasks.join(', ')}${entry.tasksNotes ? '<br/>' + entry.tasksNotes : ''}</div>`);
-      if (entry.help.length > 0) sections.push(`<div class="section"><strong>Needed help with:</strong> ${entry.help.join(', ')}${entry.helpNotes ? '<br/>' + entry.helpNotes : ''}</div>`);
-      if (entry.aids.length > 0) sections.push(`<div class="section"><strong>Aids used:</strong> ${entry.aids.join(', ')}${entry.aidsNotes ? '<br/>' + entry.aidsNotes : ''}</div>`);
+      if (entry.tasks.length > 0) sections.push(`<div class="section"><strong>Struggled with:</strong> ${entry.tasks.join(', ')}${entry.tasksNotes ? '<br/><em>' + entry.tasksNotes + '</em>' : ''}</div>`);
+      if (entry.help.length > 0) sections.push(`<div class="section"><strong>Needed help with:</strong> ${entry.help.join(', ')}${entry.helpNotes ? '<br/><em>' + entry.helpNotes + '</em>' : ''}</div>`);
+      if (entry.aids.length > 0) sections.push(`<div class="section"><strong>Aids used:</strong> ${entry.aids.join(', ')}${entry.aidsNotes ? '<br/><em>' + entry.aidsNotes + '</em>' : ''}</div>`);
       if (entry.mood) sections.push(`<div class="section"><strong>Mood:</strong> ${entry.mood}</div>`);
       if (entry.energy) sections.push(`<div class="section"><strong>Energy:</strong> ${entry.energy}</div>`);
       if (entry.other) sections.push(`<div class="section"><strong>Other notes:</strong> ${entry.other}</div>`);
-      return `<div class="entry"><h3>${dateStr}</h3>${sections.join('')}</div>`;
+      const summaryHtml = hasSummary ? `<div class="summary"><strong>Diary summary:</strong><br/>${summary}</div>` : '';
+      return `<div class="entry"><h3>${dateStr}</h3>${sections.join('')}${summaryHtml}</div>`;
     }).join('');
 
     const html = `<!DOCTYPE html>
@@ -257,8 +260,9 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   h1 { font-size: 22px; border-bottom: 2px solid #0f766e; padding-bottom: 10px; margin-bottom: 6px; }
   .subtitle { font-size: 13px; color: #78716c; margin-bottom: 30px; }
   .entry { border: 1px solid #e7e5e4; border-radius: 8px; padding: 16px; margin-bottom: 20px; page-break-inside: avoid; }
-  .entry h3 { font-size: 15px; color: #0f766e; margin: 0 0 12px 0; }
+  .entry h3 { font-size: 15px; color: #0f766e; margin: 0 0 12px 0; border-bottom: 1px solid #e7e5e4; padding-bottom: 8px; }
   .section { font-size: 13px; line-height: 1.6; margin-bottom: 8px; }
+  .summary { font-size: 13px; line-height: 1.7; margin-top: 12px; padding: 12px; background: #f0fdf4; border-left: 3px solid #0f766e; border-radius: 4px; }
   @media print { body { margin: 20px; } }
 </style>
 </head>
@@ -269,13 +273,12 @@ ${entriesHtml || '<p>No entries recorded yet.</p>'}
 </body>
 </html>`;
 
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pip-diary-${new Date().toISOString().split('T')[0]}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+    // Open in new tab — works on both desktop and mobile including iOS
+    const newTab = window.open('', '_blank');
+    if (newTab) {
+      newTab.document.write(html);
+      newTab.document.close();
+    }
   };
 
   if (!hasPaid) {
