@@ -20,9 +20,9 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   const checks = [
+    { text: 'Complete in 15–30 minutes' },
+    { text: 'Unique answers to your specific conditions' },
     { text: 'Guides you through all 12 PIP questions' },
-    { text: 'Tailored to your specific conditions' },
-    { text: 'Built-in PIP Diary to log daily challenges' },
     { text: 'Assessment prep & appeal letter generator' },
   ];
 
