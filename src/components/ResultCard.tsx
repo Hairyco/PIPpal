@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   RefreshCw,
@@ -170,7 +170,18 @@ export function ResultCard() {
   const descriptor = q1Result?.descriptor || 'A';
   const data = descriptorData[descriptor];
   // Load saved answer on mount
-  const savedAnswer = getSavedAnswer('q1');
+  const savedAnswer = getSavedAnswer(selectedQuestionId || 'q1');
+
+  // Auto-save answer when result screen loads
+  useEffect(() => {
+    if (q1Result?.descriptor) {
+      const qId = selectedQuestionId || 'q1';
+      const existing = getSavedAnswer(qId);
+      if (!existing) {
+        saveAnswer(qId, `Descriptor ${q1Result.descriptor}`);
+      }
+    }
+  }, []);
   const currentDisplayText =
   editedText !== null ?
   editedText :
@@ -192,7 +203,7 @@ export function ResultCard() {
   };
   const handleSave = () => {
     if (editedText !== null) {
-      saveAnswer('q1', editedText);
+      saveAnswer(selectedQuestionId || 'q1', editedText);
     }
     setIsEditing(false);
     setEditedText(null);
@@ -239,7 +250,7 @@ export function ResultCard() {
   const handleSaveImproved = () => {
     if (improvedText !== null) {
       setEditedText(improvedText);
-      saveAnswer('q1', improvedText);
+      saveAnswer(selectedQuestionId || 'q1', improvedText);
       setShowImprovePreview(false);
       setImprovedText(null);
       setIsImprovedVersion(true);
