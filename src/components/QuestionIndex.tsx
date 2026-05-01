@@ -132,6 +132,29 @@ export function QuestionIndex() {
 
         <div className="px-5 md:px-8 py-6 space-y-6">
 
+          {/* All done — survey banner */}
+          {answeredCount === 12 && (
+            <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl shrink-0">🎉</span>
+                <div className="flex-1">
+                  <p className="font-bold text-base mb-1">You have completed all 12 questions!</p>
+                  <p className="text-emerald-100 text-xs leading-relaxed mb-4">Well done. Your answers are saved and ready to use. We would love to know what you think — it takes 2 minutes and really helps us improve.</p>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href="https://uk.trustpilot.com/review/pippal.uk"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-white text-emerald-700 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-50 transition-colors active:scale-[0.98]"
+                    >
+                      ⭐ Leave a review on Trustpilot
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Upgrade banner for free users */}
           {!hasPaid && (
             <button
