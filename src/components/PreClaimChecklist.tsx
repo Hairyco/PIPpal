@@ -84,7 +84,12 @@ const initialChecklist: ChecklistCategory[] = [
   },
   {
     id: 's4',
-    text: 'Photocopy or photograph your completed form before posting',
+    text: 'Take a photo of your completed form before posting',
+    checked: false
+  },
+  {
+    id: 's5',
+    text: 'Consider keeping a PIP diary to log how your condition affects you daily — this can be submitted as supporting evidence (optional)',
     checked: false
   }]
 

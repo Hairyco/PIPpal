@@ -50,36 +50,7 @@ export function ClaimProcess() {
           </p>
         </div>
 
-        {/* Free Calculators Quick Links */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigateTo('timeline_calculator')}
-            className="flex-1 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 hover:bg-blue-100 active:scale-95 transition-all">
-            
-            <Clock className="w-4 h-4 text-blue-600 shrink-0" />
-            <span className="text-xs font-semibold text-blue-800">
-              Timeline
-            </span>
-          </button>
-          <button
-            onClick={() => navigateTo('payment_calculator')}
-            className="flex-1 flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 hover:bg-amber-100 active:scale-95 transition-all">
-            
-            <Coins className="w-4 h-4 text-amber-600 shrink-0" />
-            <span className="text-xs font-semibold text-amber-800">
-              Payments
-            </span>
-          </button>
-          <button
-            onClick={() => navigateTo('backpay_calculator')}
-            className="flex-1 flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5 hover:bg-emerald-100 active:scale-95 transition-all">
-            
-            <Calculator className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="text-xs font-semibold text-emerald-800">
-              Backpay
-            </span>
-          </button>
-        </div>
+
 
         {/* Stats Banner */}
         <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100 flex flex-col gap-3">
@@ -106,7 +77,7 @@ export function ClaimProcess() {
             <div className="flex items-start gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-1.5 shrink-0" />
               <p className="text-xs text-indigo-800 leading-relaxed">
-                Claims are <strong>backdated</strong> to your call date
+                Claims are <strong>backdated</strong> to your call date — some people receive £3,000–£10,000+ in one go
               </p>
             </div>
           </div>
@@ -484,7 +455,7 @@ export function ClaimProcess() {
                 <Shield className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-stone-700 leading-relaxed">
                   <strong>Keep copies of everything</strong> you send.
-                  Photograph or photocopy your completed form before posting it.
+                  Take a photo of your completed form before posting it.
                 </p>
               </div>
               <div className="flex gap-3 items-start">

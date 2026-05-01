@@ -44,12 +44,19 @@ export function WhatIsPIP() {
           </div>
 
           <p className="text-sm text-stone-600 leading-relaxed mb-3">
-            PIP is a tax-free benefit for people aged 16–66 with a long-term
-            health condition or disability that affects daily life. It's{' '}
-            <strong className="text-stone-800">not means-tested</strong> — you
-            can claim whether you're employed, self-employed, or not working.
-            Your income and savings don't affect it.
+            PIP is a tax-free benefit for people aged 16 to State Pension age who have a health condition or disability that affects their day-to-day life. It is{' '}
+            <strong className="text-stone-800">not means-tested</strong> — <strong className="text-stone-800">whether you're working, self-employed, or not working — your income and savings do not matter.</strong>
           </p>
+          <p className="text-sm text-stone-600 leading-relaxed mb-3">
+            Many people do not realise they could be eligible. Even if your condition feels manageable or you have just learned to cope with it, you might still qualify depending on how it affects everyday tasks like cooking, washing, or getting around.
+          </p>
+
+          {/* Condition pills */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {['Anxiety', 'Depression', 'ADHD', 'Chronic pain', 'Autism', 'Fibromyalgia', 'MS', 'Arthritis', 'PTSD', '+ more'].map((c) => (
+              <span key={c} className="text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-1 rounded-full">{c}</span>
+            ))}
+          </div>
 
           <div className="bg-amber-50 rounded-xl p-3 mb-4 border border-amber-100 flex items-start gap-2.5">
             <span className="text-base mt-0.5">⏳</span>
@@ -140,11 +147,11 @@ export function WhatIsPIP() {
                       </span>
                     </div>
                     <div className="flex gap-4 text-sm">
-                      <span className="text-stone-600 w-16 text-right">
-                        £336
+                      <span className="text-stone-600 w-20 text-right">
+                        £336<span className="text-[10px] text-stone-400">/pw</span>
                       </span>
-                      <span className="font-semibold text-teal-700 w-16 text-right">
-                        £503
+                      <span className="font-semibold text-teal-700 w-20 text-right">
+                        £503<span className="text-[10px] text-teal-500">/pw</span>
                       </span>
                     </div>
                   </div>
