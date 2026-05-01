@@ -208,33 +208,38 @@ export function QuestionChat() {
   const handleMicClick = () => {
     if (isRecording) {
       recognitionRef.current?.stop();
+      setIsRecording(false);
       return;
     }
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Voice input is not supported in this browser. Please type your answer.');
+      alert('Voice not supported in this browser. Please type your answer.');
       return;
     }
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-GB';
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = false;
+    recognition.onstart = () => setIsRecording(true);
     recognition.onresult = (e: any) => {
-      let transcript = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          transcript += e.results[i][0].transcript + ' ';
-        }
-      }
-      if (transcript.trim()) {
-        setInputText((prev: string) => (prev ? prev + ' ' : '') + transcript.trim());
+      const transcript = Array.from(e.results)
+        .map((r: any) => r[0].transcript)
+        .join(' ')
+        .trim();
+      if (transcript) {
+        setInputText((prev: string) => prev ? prev + ' ' + transcript : transcript);
       }
     };
     recognition.onend = () => setIsRecording(false);
-    recognition.onerror = () => setIsRecording(false);
+    recognition.onerror = (e: any) => {
+      setIsRecording(false);
+      if (e.error !== 'aborted') {
+        alert('Could not hear you. Please try again or type your answer.');
+      }
+    };
     recognitionRef.current = recognition;
-    recognition.start();
     setIsRecording(true);
+    recognition.start();
   };
 
   const handleFreeTextSubmit = async () => {
