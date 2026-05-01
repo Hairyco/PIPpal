@@ -21,9 +21,9 @@ export function Hero({ onStart }: HeroProps) {
 
   const checks = [
     { pre: 'Complete in ', bold: '15–30 minutes', post: '' },
+    { pre: '', bold: '94%', post: ' success rate' },
     { pre: 'Answers ', bold: 'unique', post: ' to your specific conditions' },
-    { pre: 'Guides you through all ', bold: '12 PIP questions', post: '' },
-    { pre: 'Full telephone ', bold: 'Assessment prep', post: ' included' },
+    { pre: 'Get your decision ', bold: '3–6 weeks earlier', post: '' },
   ];
 
   return (
