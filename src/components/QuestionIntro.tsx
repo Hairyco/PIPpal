@@ -99,14 +99,7 @@ export function QuestionIntro() {
           </div>
         )}
 
-        {/* Stat callout */}
-        <div className="bg-indigo-50 rounded-xl px-4 py-3 border border-indigo-100 flex items-start gap-2.5">
-          <TrendingUp className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-indigo-800 leading-relaxed">
-            <strong>Well-prepared claims are significantly more likely to succeed.</strong>{' '}
-            Take your time with each answer — describing your worst days clearly is what makes the difference.
-          </p>
-        </div>
+
 
         {/* Condition-specific explainer */}
         <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">

@@ -465,7 +465,34 @@ export function QuestionChat() {
             <h1 className="font-bold text-stone-900 text-sm">Question {question?.num} of 12</h1>
             <p className="text-xs text-stone-500">{question?.shortTitle}</p>
           </div>
+          <button
+            onClick={() => setShowDescriptors(!showDescriptors)}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${showDescriptors ? 'bg-teal-100 text-teal-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
+          >
+            <List className="w-3.5 h-3.5" />
+            {showDescriptors ? 'Close' : 'Scores'}
+          </button>
         </div>
+
+        {/* Progress bar */}
+        <div className="w-full bg-stone-100 h-1">
+          <div
+            className="bg-teal-500 h-1 transition-all duration-300"
+            style={{ width: `${((question?.num || 1) / 12) * 100}%` }}
+          />
+        </div>
+
+        {showDescriptors && question?.descriptors && (
+          <div className="bg-white border-b border-stone-100 px-4 py-3 space-y-1.5">
+            {question.descriptors.map((d: any) => (
+              <div key={d.code} className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold flex items-center justify-center shrink-0">{d.code}</span>
+                <span className="text-xs text-stone-600 flex-1">{d.label}</span>
+                <span className="text-[10px] font-bold text-teal-700">{d.points}pt{d.points !== 1 ? 's' : ''}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
           {messages.map((msg) => (
@@ -503,6 +530,12 @@ export function QuestionChat() {
                 {opt}
               </button>
             ))}
+            <button
+              onClick={() => handleOptionClick('I have more details to add')}
+              className="w-full text-left px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors text-center"
+            >
+              I have more details to add
+            </button>
           </div>
         )}
         {aiLoading && (
@@ -541,6 +574,11 @@ export function QuestionChat() {
           }
           {showDescriptors ? 'Close' : 'Scores'}
         </button>
+      </div>
+
+      {/* Progress bar Q1 */}
+      <div className="w-full bg-stone-100 h-1">
+        <div className="bg-teal-500 h-1" style={{ width: '8.33%' }} />
       </div>
 
       <AnimatePresence>
