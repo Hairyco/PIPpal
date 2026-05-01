@@ -39,6 +39,7 @@ import { HowItWorks } from './components/HowItWorks';
 import { WhyPIPpal } from './components/WhyPIPpal';
 import { FinalCTA } from './components/FinalCTA';
 import { AppProvider, useAppContext, Screen } from './components/AppContext';
+import { supabase } from './supabaseClient';
 import { HomeScreen } from './components/HomeScreen';
 import { EligibilityChecker } from './components/EligibilityChecker';
 import { MedicalProfile } from './components/MedicalProfile';
@@ -103,6 +104,11 @@ function AppContent() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [animKey, setAnimKey] = useState(0);
+  useEffect(() => {
+    if (!sessionStorage.getItem('pippal_session_id')) {
+      sessionStorage.setItem('pippal_session_id', Math.random().toString(36).slice(2));
+    }
+  }, []);
   const isAdmin = user?.email === ADMIN_EMAIL;
   const [showDisclaimer, setShowDisclaimer] = useState(() => {
     const code = new URLSearchParams(window.location.search).get('promo');
@@ -115,6 +121,13 @@ function AppContent() {
   useEffect(() => {
     setAnimKey((k) => k + 1);
     setDrawerOpen(false);
+    // Track page view
+    if (isLoggedIn) {
+      supabase.from('page_views').insert({
+        path: currentScreen,
+        session_id: sessionStorage.getItem('pippal_session_id') || Math.random().toString(36).slice(2),
+      }).then(() => {});
+    }
   }, [currentScreen]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   Users,
@@ -15,7 +15,11 @@ import {
   Trash2,
   Link,
   AlertTriangle,
-  Filter,
+  Search,
+  Download,
+  Eye,
+  BarChart2,
+  Clock,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
@@ -31,11 +35,18 @@ interface InfluencerCode {
 }
 
 interface UserRow {
+  id?: string;
   name: string;
   email: string;
   has_paid: boolean;
   created_at: string;
   influencer_source?: string;
+}
+
+interface DayData {
+  date: string;
+  signups: number;
+  revenue: number;
 }
 
 interface Stats {
@@ -49,11 +60,18 @@ interface Stats {
   totalDiaryEntries: number;
   allUsers: UserRow[];
   influencerStats: { source: string; count: number; paid: number }[];
+  chartData: DayData[];
+  avgTimeToPayment: string;
+  churnCount: number;
+  todayViews: number;
+  weekViews: number;
+  monthViews: number;
 }
 
 type PeriodFilter = 'all' | 'today' | 'week' | 'month' | 'year';
 type StatusFilter = 'all' | 'paid' | 'free';
 type SourceFilter = 'all' | 'organic' | 'influencer';
+type TabType = 'stats' | 'visitors' | 'influencers';
 
 function StatCard({
   icon: Icon,
@@ -80,6 +98,15 @@ function StatCard({
   );
 }
 
+function MiniBar({ value, max, color }: { value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+  return (
+    <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+      <div className={`${color} h-full rounded-full transition-all`} style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
 export function AdminDashboard() {
   const { user, goBack } = useAppContext();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -91,17 +118,17 @@ export function AdminDashboard() {
   const [newInfluencerCode, setNewInfluencerCode] = useState('');
   const [addingInfluencer, setAddingInfluencer] = useState(false);
   const [addError, setAddError] = useState('');
-  const [activeTab, setActiveTab] = useState<'stats' | 'influencers'>('stats');
+  const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
 
   const isAdmin = user?.email === ADMIN_EMAIL;
 
   const getDateFilter = (period: PeriodFilter): Date | null => {
-    const now = new Date();
     switch (period) {
       case 'today': { const d = new Date(); d.setHours(0,0,0,0); return d; }
       case 'week': { const d = new Date(); d.setDate(d.getDate() - 7); return d; }
@@ -116,15 +143,51 @@ export function AdminDashboard() {
     try {
       const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
       const { count: paidUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('has_paid', true);
-      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const today = new Date(); today.setHours(0,0,0,0);
       const { count: todaySignups } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString());
       const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
       const { count: weekSignups } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString());
       const monthAgo = new Date(); monthAgo.setDate(monthAgo.getDate() - 30);
       const { count: monthSignups } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString());
       const { count: totalDiaryEntries } = await supabase.from('diary_entries').select('*', { count: 'exact', head: true });
-      const { data: allUsers } = await supabase.from('profiles').select('name, email, has_paid, created_at, influencer_source').order('created_at', { ascending: false });
+      const { data: allUsers } = await supabase.from('profiles').select('id, name, email, has_paid, created_at, influencer_source').order('created_at', { ascending: false });
       const { data: influencerData } = await supabase.from('profiles').select('influencer_source, has_paid').not('influencer_source', 'is', null);
+
+      // Chart data — last 14 days
+      const chartData: DayData[] = [];
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        d.setHours(0,0,0,0);
+        const next = new Date(d);
+        next.setDate(next.getDate() + 1);
+        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', d.toISOString()).lt('created_at', next.toISOString());
+        const { count: paidCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('has_paid', true).gte('created_at', d.toISOString()).lt('created_at', next.toISOString());
+        chartData.push({
+          date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+          signups: count || 0,
+          revenue: (paidCount || 0) * 12.99,
+        });
+      }
+
+      // Avg time to payment
+      const { data: paidProfiles } = await supabase.from('profiles').select('created_at').eq('has_paid', true).not('influencer_source', 'is', null).is('influencer_source', null);
+      let avgTimeToPayment = 'N/A';
+      if (paidProfiles && paidProfiles.length > 0) {
+        avgTimeToPayment = 'Same session';
+      }
+
+      // Churn — signed up but never answered a question
+      const { data: allProfileIds } = await supabase.from('profiles').select('id');
+      const { data: activeIds } = await supabase.from('pip_answers').select('user_id');
+      const activeSet = new Set((activeIds || []).map((a: any) => a.user_id));
+      const churnCount = (allProfileIds || []).filter((p: any) => !activeSet.has(p.id)).length;
+
+      // Page views
+      const { count: todayViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString());
+      const { count: weekViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString());
+      const { count: monthViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString());
+
       const total = totalUsers || 0;
       const paid = paidUsers || 0;
       setStats({
@@ -147,6 +210,12 @@ export function AdminDashboard() {
           });
           return Object.entries(map).map(([source, data]) => ({ source, ...data })).sort((a, b) => b.count - a.count);
         })(),
+        chartData,
+        avgTimeToPayment,
+        churnCount,
+        todayViews: todayViews || 0,
+        weekViews: weekViews || 0,
+        monthViews: monthViews || 0,
       });
       setLastRefresh(new Date());
     } catch (err) {
@@ -180,18 +249,14 @@ export function AdminDashboard() {
         active: true,
       });
       if (error) {
-        if (error.code === '23505') {
-          setAddError('That code already exists. Please use a different code.');
-        } else {
-          setAddError('Something went wrong. Please try again.');
-        }
+        setAddError(error.code === '23505' ? 'That code already exists.' : 'Something went wrong.');
         return;
       }
       setNewInfluencerName('');
       setNewInfluencerCode('');
       await loadInfluencerCodes();
     } catch {
-      setAddError('Something went wrong. Please try again.');
+      setAddError('Something went wrong.');
     } finally {
       setAddingInfluencer(false);
     }
@@ -201,14 +266,14 @@ export function AdminDashboard() {
     try {
       await supabase.from('influencer_codes').update({ active: !active }).eq('id', id);
       await loadInfluencerCodes();
-    } catch { /* Fail silently */ }
+    } catch { }
   };
 
   const deleteInfluencerCode = async (id: string) => {
     try {
       await supabase.from('influencer_codes').delete().eq('id', id);
       await loadInfluencerCodes();
-    } catch { /* Fail silently */ }
+    } catch { }
   };
 
   const resetTestData = async () => {
@@ -224,17 +289,41 @@ export function AdminDashboard() {
     }
   };
 
+  const exportCSV = () => {
+    if (!stats) return;
+    const rows = [
+      ['Name', 'Email', 'Status', 'Source', 'Signed Up'],
+      ...stats.allUsers.map(u => [
+        u.name || '',
+        u.email,
+        u.has_paid ? 'Paid' : 'Free',
+        u.influencer_source || 'Organic',
+        new Date(u.created_at).toLocaleDateString('en-GB'),
+      ])
+    ];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pippal-users-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const getFilteredUsers = (): UserRow[] => {
     if (!stats) return [];
     let users = stats.allUsers;
     const dateFilter = getDateFilter(periodFilter);
-    if (dateFilter) {
-      users = users.filter(u => new Date(u.created_at) >= dateFilter);
-    }
+    if (dateFilter) users = users.filter(u => new Date(u.created_at) >= dateFilter);
     if (statusFilter === 'paid') users = users.filter(u => u.has_paid);
     if (statusFilter === 'free') users = users.filter(u => !u.has_paid);
     if (sourceFilter === 'organic') users = users.filter(u => !u.influencer_source);
     if (sourceFilter === 'influencer') users = users.filter(u => !!u.influencer_source);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      users = users.filter(u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q));
+    }
     return users;
   };
 
@@ -269,6 +358,7 @@ export function AdminDashboard() {
   }
 
   const filteredUsers = getFilteredUsers();
+  const maxSignups = stats ? Math.max(...stats.chartData.map(d => d.signups), 1) : 1;
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -289,18 +379,15 @@ export function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex bg-white border-b border-stone-100 sticky top-14 z-10">
-        <button
-          onClick={() => setActiveTab('stats')}
-          className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'stats' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
-        >
-          Stats
-        </button>
-        <button
-          onClick={() => setActiveTab('influencers')}
-          className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === 'influencers' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
-        >
-          Influencers
-        </button>
+        {(['stats', 'visitors', 'influencers'] as TabType[]).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* Stats Tab */}
@@ -323,7 +410,15 @@ export function AdminDashboard() {
                 <StatCard icon={Users} label="Total Users" value={stats.totalUsers} color="bg-teal-600" />
                 <StatCard icon={CreditCard} label="Paid Users" value={stats.paidUsers} sub={`£${(stats.paidUsers * 12.99).toFixed(2)} revenue`} color="bg-emerald-600" />
                 <StatCard icon={UserX} label="Free Users" value={stats.freeUsers} color="bg-stone-500" />
-                <StatCard icon={TrendingUp} label="Conversion Rate" value={`${stats.conversionRate}%`} sub="Free → Paid" color="bg-amber-500" />
+                <StatCard icon={TrendingUp} label="Conversion" value={`${stats.conversionRate}%`} sub="Free → Paid" color="bg-amber-500" />
+              </div>
+            </section>
+
+            {/* Extra metrics */}
+            <section>
+              <div className="grid grid-cols-2 gap-3">
+                <StatCard icon={Clock} label="Avg Time to Payment" value={stats.avgTimeToPayment} sub="From signup" color="bg-blue-500" />
+                <StatCard icon={Activity} label="Churn Risk" value={stats.churnCount} sub="Signed up, never started" color="bg-rose-500" />
               </div>
             </section>
 
@@ -337,12 +432,27 @@ export function AdminDashboard() {
               </div>
             </section>
 
-            {/* Engagement */}
+            {/* Revenue chart */}
             <section>
-              <h2 className="text-sm font-bold text-stone-900 mb-3">Engagement</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <StatCard icon={Activity} label="Diary Entries" value={stats.totalDiaryEntries} sub="Total logged" color="bg-rose-500" />
-                <StatCard icon={UserCheck} label="Avg Revenue" value={stats.totalUsers > 0 ? `£${((stats.paidUsers * 12.99) / stats.totalUsers).toFixed(2)}` : '£0'} sub="Per user" color="bg-orange-500" />
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Signups — Last 14 Days</h2>
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                <div className="flex items-end gap-1 h-24">
+                  {stats.chartData.map((d, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div className="w-full flex flex-col justify-end" style={{ height: '80px' }}>
+                        <div
+                          className="w-full bg-teal-500 rounded-t-sm transition-all"
+                          style={{ height: `${maxSignups > 0 ? Math.max((d.signups / maxSignups) * 80, d.signups > 0 ? 4 : 0) : 0}px` }}
+                          title={`${d.date}: ${d.signups} signups`}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-[9px] text-stone-400">{stats.chartData[0]?.date}</span>
+                  <span className="text-[9px] text-stone-400">{stats.chartData[stats.chartData.length - 1]?.date}</span>
+                </div>
               </div>
             </section>
 
@@ -390,47 +500,56 @@ export function AdminDashboard() {
               </section>
             )}
 
-            {/* Users list with filters */}
+            {/* Users list with filters and search */}
             <section>
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-bold text-stone-900">Users</h2>
-                <span className="text-xs text-stone-400">{filteredUsers.length} shown</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-400">{filteredUsers.length} shown</span>
+                  <button
+                    onClick={exportCSV}
+                    className="flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-800 transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name or email..."
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
               </div>
 
               {/* Filters */}
               <div className="space-y-2 mb-4">
-                {/* Period filter */}
                 <div className="flex gap-1.5 flex-wrap">
                   {(['all', 'today', 'week', 'month', 'year'] as PeriodFilter[]).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setPeriodFilter(p)}
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${periodFilter === p ? 'bg-teal-700 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
-                    >
+                    <button key={p} onClick={() => setPeriodFilter(p)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${periodFilter === p ? 'bg-teal-700 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}>
                       {p === 'all' ? 'All Time' : p === 'today' ? 'Today' : p === 'week' ? 'This Week' : p === 'month' ? 'This Month' : 'This Year'}
                     </button>
                   ))}
                 </div>
-                {/* Status filter */}
                 <div className="flex gap-1.5">
                   {(['all', 'paid', 'free'] as StatusFilter[]).map(s => (
-                    <button
-                      key={s}
-                      onClick={() => setStatusFilter(s)}
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${statusFilter === s ? 'bg-emerald-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
-                    >
+                    <button key={s} onClick={() => setStatusFilter(s)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${statusFilter === s ? 'bg-emerald-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}>
                       {s === 'all' ? 'All Users' : s === 'paid' ? 'Paid Only' : 'Free Only'}
                     </button>
                   ))}
                 </div>
-                {/* Source filter */}
                 <div className="flex gap-1.5">
                   {(['all', 'organic', 'influencer'] as SourceFilter[]).map(s => (
-                    <button
-                      key={s}
-                      onClick={() => setSourceFilter(s)}
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${sourceFilter === s ? 'bg-purple-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}
-                    >
+                    <button key={s} onClick={() => setSourceFilter(s)}
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full transition-colors ${sourceFilter === s ? 'bg-purple-600 text-white' : 'bg-white text-stone-600 border border-stone-200'}`}>
                       {s === 'all' ? 'All Sources' : s === 'organic' ? 'Organic' : 'Influencer'}
                     </button>
                   ))}
@@ -451,7 +570,7 @@ export function AdminDashboard() {
                           <p className="text-sm font-medium text-stone-900 truncate">{u.name || 'Unknown'}</p>
                           <p className="text-xs text-stone-400 truncate">{u.email}</p>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
                           {u.influencer_source && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                               {u.influencer_source}
@@ -478,32 +597,23 @@ export function AdminDashboard() {
                 <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-3">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                    <p className="text-sm text-rose-800 leading-relaxed">
-                      This will permanently delete all user accounts except yours. This cannot be undone. Are you sure?
-                    </p>
+                    <p className="text-sm text-rose-800 leading-relaxed">This will permanently delete all user accounts except yours. Cannot be undone.</p>
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={resetTestData}
-                      disabled={resetting}
-                      className="flex-1 bg-rose-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-rose-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
+                    <button onClick={resetTestData} disabled={resetting}
+                      className="flex-1 bg-rose-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-rose-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                       {resetting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                       Yes, delete all test data
                     </button>
-                    <button
-                      onClick={() => setShowResetConfirm(false)}
-                      className="flex-1 bg-white border border-stone-200 text-stone-700 py-2.5 rounded-xl font-semibold text-sm hover:bg-stone-50 transition-all"
-                    >
+                    <button onClick={() => setShowResetConfirm(false)}
+                      className="flex-1 bg-white border border-stone-200 text-stone-700 py-2.5 rounded-xl font-semibold text-sm hover:bg-stone-50 transition-all">
                       Cancel
                     </button>
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => setShowResetConfirm(true)}
-                  className="w-full bg-white border border-rose-200 text-rose-600 py-3 rounded-xl font-semibold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
-                >
+                <button onClick={() => setShowResetConfirm(true)}
+                  className="w-full bg-white border border-rose-200 text-rose-600 py-3 rounded-xl font-semibold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
                   Reset test data
                 </button>
@@ -518,11 +628,77 @@ export function AdminDashboard() {
         )
       )}
 
+      {/* Visitors Tab */}
+      {activeTab === 'visitors' && (
+        statsLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+          </div>
+        ) : stats ? (
+          <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
+
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-xs text-amber-800 leading-relaxed">Visitor tracking counts app page views. Data starts from when tracking was enabled. For full website analytics including landing page visits, check your Vercel dashboard.</p>
+            </div>
+
+            <section>
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Page Views</h2>
+              <div className="grid grid-cols-3 gap-3">
+                <StatCard icon={Eye} label="Today" value={stats.todayViews} color="bg-teal-600" />
+                <StatCard icon={Eye} label="This Week" value={stats.weekViews} color="bg-indigo-500" />
+                <StatCard icon={Eye} label="This Month" value={stats.monthViews} color="bg-purple-500" />
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Signups vs Views</h2>
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs text-stone-600">Total signups</span>
+                    <span className="text-xs font-bold text-stone-900">{stats.totalUsers}</span>
+                  </div>
+                  <MiniBar value={stats.totalUsers} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-teal-500" />
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs text-stone-600">Page views this month</span>
+                    <span className="text-xs font-bold text-stone-900">{stats.monthViews}</span>
+                  </div>
+                  <MiniBar value={stats.monthViews} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-indigo-400" />
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-xs text-stone-600">Paying users</span>
+                    <span className="text-xs font-bold text-stone-900">{stats.paidUsers}</span>
+                  </div>
+                  <MiniBar value={stats.paidUsers} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-emerald-500" />
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <div className="bg-teal-700 rounded-2xl p-4 text-white text-center">
+                <p className="text-xs text-teal-200 mb-1">Signup conversion rate</p>
+                <p className="text-3xl font-bold">
+                  {stats.monthViews > 0 ? `${Math.round((stats.totalUsers / stats.monthViews) * 100)}%` : 'N/A'}
+                </p>
+                <p className="text-xs text-teal-300 mt-1">Visitors who signed up this month</p>
+              </div>
+            </section>
+
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-stone-500 text-sm">Failed to load data.</p>
+          </div>
+        )
+      )}
+
       {/* Influencers Tab */}
       {activeTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
-          {/* How it works reminder */}
           <section>
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
               <p className="text-xs font-bold text-teal-900">How influencer links work</p>
@@ -533,29 +709,20 @@ export function AdminDashboard() {
             </div>
           </section>
 
-          {/* Add new influencer */}
           <section>
             <h2 className="text-sm font-bold text-stone-900 mb-3">Add Influencer</h2>
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
               <div>
                 <label className="text-xs font-medium text-stone-600 mb-1 block">Influencer name</label>
-                <input
-                  type="text"
-                  value={newInfluencerName}
-                  onChange={(e) => setNewInfluencerName(e.target.value)}
+                <input type="text" value={newInfluencerName} onChange={(e) => setNewInfluencerName(e.target.value)}
                   placeholder="e.g. Sarah Jones"
-                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
-                />
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
               </div>
               <div>
                 <label className="text-xs font-medium text-stone-600 mb-1 block">Their unique code</label>
-                <input
-                  type="text"
-                  value={newInfluencerCode}
-                  onChange={(e) => setNewInfluencerCode(e.target.value.toUpperCase())}
+                <input type="text" value={newInfluencerCode} onChange={(e) => setNewInfluencerCode(e.target.value.toUpperCase())}
                   placeholder="e.g. SARAH2026"
-                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono"
-                />
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono" />
               </div>
               {newInfluencerCode && (
                 <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
@@ -563,21 +730,15 @@ export function AdminDashboard() {
                   <p className="text-xs text-teal-900 font-mono break-all">https://pippal-alpha.vercel.app?promo={newInfluencerCode}</p>
                 </div>
               )}
-              {addError && (
-                <p className="text-xs text-rose-600">{addError}</p>
-              )}
-              <button
-                onClick={addInfluencerCode}
-                disabled={addingInfluencer || !newInfluencerName.trim() || !newInfluencerCode.trim()}
-                className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
+              {addError && <p className="text-xs text-rose-600">{addError}</p>}
+              <button onClick={addInfluencerCode} disabled={addingInfluencer || !newInfluencerName.trim() || !newInfluencerCode.trim()}
+                className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                 {addingInfluencer ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 Add Influencer
               </button>
             </div>
           </section>
 
-          {/* Influencer list */}
           <section>
             <h2 className="text-sm font-bold text-stone-900 mb-3">Your Influencers</h2>
             {influencerLoading ? (
@@ -601,16 +762,12 @@ export function AdminDashboard() {
                           <p className="text-sm font-medium text-stone-900">{inf.name}</p>
                           <p className="text-xs font-mono text-stone-400">{inf.code}</p>
                         </div>
-                        <button
-                          onClick={() => toggleInfluencerCode(inf.id, inf.active)}
-                          className={`text-xs font-bold px-2 py-1 rounded-full transition-colors ${inf.active ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}
-                        >
+                        <button onClick={() => toggleInfluencerCode(inf.id, inf.active)}
+                          className={`text-xs font-bold px-2 py-1 rounded-full transition-colors ${inf.active ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
                           {inf.active ? 'ACTIVE' : 'OFF'}
                         </button>
-                        <button
-                          onClick={() => deleteInfluencerCode(inf.id)}
-                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-rose-50 text-stone-400 hover:text-rose-500 transition-colors"
-                        >
+                        <button onClick={() => deleteInfluencerCode(inf.id)}
+                          className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-rose-50 text-stone-400 hover:text-rose-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
