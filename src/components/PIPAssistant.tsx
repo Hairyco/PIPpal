@@ -27,15 +27,15 @@ interface Message {
   isLoading?: boolean;
 }
 
-const makeNoConditionsMessage = (name: string): Message => ({
+const INITIAL_MESSAGE: Message = {
   id: 'init',
-  text: `${name ? `Hi ${name}. ` : 'Hi. '}I can give you much more useful guidance if I know your conditions. If you have not added them yet, it is worth doing that first — tap the menu icon at the top right and go to Medical history. Once done, come back and ask me anything about your PIP claim.`,
+  text: "I can give you much more useful guidance if I know your conditions. If you have not added them yet, it is worth doing that first — tap the menu and go to Medical Profile. Once done, come back and ask me anything about your PIP claim.",
   sender: 'assistant',
-});
+};
 
-const makeInitialMessage = (name: string, conditions: string): Message => ({
+const makeInitialMessage = (conditions: string): Message => ({
   id: 'init',
-  text: `${name ? `Hi ${name}. ` : 'Hi. '}I can see you have ${conditions}. I will use that to give you specific guidance. Ask me anything about your PIP claim, assessment or appeal.`,
+  text: `Hi, I can see you have ${conditions}. I will use that to give you specific guidance. Ask me anything about your PIP claim, assessment or appeal.`,
   sender: 'assistant',
 });
 
@@ -51,19 +51,18 @@ export function PIPAssistant({
   hasPaid = true,
   onUpgrade,
 }: PIPAssistantProps) {
-  const { medProfile, user } = useAppContext();
-  const firstName = user?.name ? user.name.split(' ')[0] : '';
+  const { medProfile } = useAppContext();
   const hasConditions = medProfile.conditions.length > 0;
   const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
   const [isOpen, setIsOpen] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    hasConditions ? makeInitialMessage(firstName, conditionNames) : makeNoConditionsMessage(firstName)
+    hasConditions ? makeInitialMessage(conditionNames) : INITIAL_MESSAGE
   ]);
 
   useEffect(() => {
-    setMessages([hasConditions ? makeInitialMessage(firstName, conditionNames) : makeNoConditionsMessage(firstName)]);
-  }, [conditionNames, firstName]);
+    setMessages([hasConditions ? makeInitialMessage(conditionNames) : INITIAL_MESSAGE]);
+  }, [conditionNames]);
   const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [copiedMsgId, setCopiedMsgId] = useState<string | null>(null);
