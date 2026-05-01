@@ -275,6 +275,17 @@ function AppContent() {
                 onUpgrade={() => handleNavigate('upsell')}
               />
             </main>
+            {/* Landing page footer */}
+            <footer className="px-5 py-6 border-t border-stone-200 text-center space-y-2">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                <button onClick={() => navigateTo('privacy')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Privacy Policy</button>
+                <span className="text-stone-300 text-xs">·</span>
+                <button onClick={() => navigateTo('terms')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Terms of Service</button>
+                <span className="text-stone-300 text-xs">·</span>
+                <button onClick={() => navigateTo('accessibility')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Accessibility</button>
+              </div>
+              <p className="text-[10px] text-stone-400">PIPpal is an independent guidance tool. Not affiliated with the DWP or any government body.</p>
+            </footer>
           </div>
         </div>
       ) : (
@@ -375,7 +386,7 @@ function AppContent() {
 
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">After Your Decision</p>
-                      <NavItem icon={FileText} label="Decision Received" screen="decision_received" badge={!hasPaid ? "PRO" : undefined} />
+                      <NavItem icon={FileText} label="Decision Received" screen="decision_received" />
                       <NavItem icon={AlertTriangle} label="Mandatory Reconsideration" screen="mandatory_reconsideration" />
                       <NavItem icon={Scale} label="Appeal" screen="appeal" />
                       <NavItem icon={RefreshCw} label="Change of Circumstances" screen="change_of_circumstances" />
