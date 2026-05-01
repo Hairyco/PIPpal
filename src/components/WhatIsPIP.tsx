@@ -132,42 +132,29 @@ export function WhatIsPIP() {
               className="overflow-hidden">
               
                 <div className="pt-4 space-y-3">
-                  <div className="flex items-center justify-between py-2 border-b border-stone-100">
-                    <span className="text-xs text-stone-500">Component</span>
-                    <div className="flex gap-8 text-xs text-stone-500">
-                      <span>Standard</span>
-                      <span>Enhanced</span>
-                    </div>
+                  {/* Header row */}
+                  <div className="grid grid-cols-3 gap-2 pb-2 border-b border-stone-100">
+                    <span className="text-xs text-stone-400">Component</span>
+                    <span className="text-xs text-stone-400 text-right">Standard/pw</span>
+                    <span className="text-xs text-stone-400 text-right">Enhanced/pw</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2">
-                      <Heart className="w-3.5 h-3.5 text-rose-400" />
-                      <span className="text-sm text-stone-700">
-                        Daily Living
-                      </span>
+                  {/* Daily Living row */}
+                  <div className="grid grid-cols-3 gap-2 items-center py-1.5 border-b border-stone-50">
+                    <div className="flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                      <span className="text-xs text-stone-700">Daily Living</span>
                     </div>
-                    <div className="flex gap-4 text-sm">
-                      <span className="text-stone-600 w-20 text-right">
-                        £336<span className="text-[10px] text-stone-400">/pw</span>
-                      </span>
-                      <span className="font-semibold text-teal-700 w-20 text-right">
-                        £503<span className="text-[10px] text-teal-500">/pw</span>
-                      </span>
-                    </div>
+                    <span className="text-sm text-stone-600 text-right font-medium">£336</span>
+                    <span className="text-sm font-bold text-teal-700 text-right">£503</span>
                   </div>
-                  <div className="flex items-center justify-between py-1.5">
-                    <div className="flex items-center gap-2">
-                      <Footprints className="w-3.5 h-3.5 text-blue-400" />
-                      <span className="text-sm text-stone-700">Mobility</span>
+                  {/* Mobility row */}
+                  <div className="grid grid-cols-3 gap-2 items-center py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Footprints className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span className="text-xs text-stone-700">Mobility</span>
                     </div>
-                    <div className="flex gap-4 text-sm">
-                      <span className="text-stone-600 w-16 text-right">
-                        £133
-                      </span>
-                      <span className="font-semibold text-teal-700 w-16 text-right">
-                        £351
-                      </span>
-                    </div>
+                    <span className="text-sm text-stone-600 text-right font-medium">£133</span>
+                    <span className="text-sm font-bold text-teal-700 text-right">£351</span>
                   </div>
                   <div className="bg-teal-50 rounded-xl p-3 mt-2 border border-teal-100">
                     <div className="flex items-center gap-2 mb-1">
