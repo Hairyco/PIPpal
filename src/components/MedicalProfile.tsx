@@ -97,17 +97,20 @@ export function MedicalProfile() {
     // Navigate immediately — save to Supabase in background
     setTimeout(() => navigateTo('q1_intro'), 300);
     if (user?.id) {
-      supabase
-        .from('medical_profiles')
-        .upsert({
-          user_id: user.id,
-          conditions,
-          medications,
-          notes,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
-        .then(() => {})
-        .catch(() => {});
+      const saveAsync = async () => {
+        try {
+          await supabase
+            .from('medical_profiles')
+            .upsert({
+              user_id: user.id,
+              conditions,
+              medications,
+              notes,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'user_id' });
+        } catch { /* Fail silently */ }
+      };
+      saveAsync();
     }
     setIsSaving(false);
   };
