@@ -23,10 +23,11 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
   };
 
   const navLinks = [
+    { label: 'News', id: 'news' },
+    { label: 'Blog', id: 'blog' },
     { label: 'How it works', id: 'how-it-works' },
     { label: 'Free tools', id: 'free-tools' },
     { label: 'Eligibility', id: 'eligibility-banner' },
-    { label: 'Blog', id: 'blog' },
   ];
 
   return (
