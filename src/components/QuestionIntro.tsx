@@ -17,7 +17,7 @@ import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
 export function QuestionIntro() {
   const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers } = useAppContext();
   const [showDescriptors, setShowDescriptors] = useState(false);
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   // Determine which question we're on based on saved state
   // Default to q1 for the intro screen
@@ -212,33 +212,42 @@ export function QuestionIntro() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-5 md:px-8 bg-white border-t border-stone-100 space-y-4 z-20">
-        {/* Disclaimer */}
-        <div className="bg-stone-50 rounded-xl p-4 border border-stone-200">
-          <div className="flex items-start gap-3 mb-3">
-            <Shield className="w-4 h-4 text-stone-500 shrink-0 mt-0.5" />
-            <p className="text-xs text-stone-600 leading-relaxed">
-              PIPpal helps you <strong>describe your worst days accurately</strong> — we do not encourage exaggeration or dishonesty. All suggested answers are drafts.{' '}
-              <strong>You are responsible for reviewing and ensuring your final answers are truthful</strong> before submitting.
-            </p>
-          </div>
-          <label className="flex items-start gap-2.5 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={disclaimerAccepted}
-              onChange={(e) => setDisclaimerAccepted(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-stone-300 text-teal-600 focus:ring-teal-500/20 cursor-pointer"
-            />
-            <span className="text-xs text-stone-700 leading-relaxed group-hover:text-stone-900 transition-colors">
+      {/* Disclaimer modal */}
+      {showDisclaimer && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-5">
+          <div className="bg-white rounded-2xl p-5 w-full max-w-md space-y-4 shadow-xl">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-bold text-stone-900 mb-1">Before you start</p>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  PIPpal helps you <strong>describe your worst days accurately</strong> — we do not encourage exaggeration or dishonesty. All suggested answers are drafts. <strong>You are responsible for reviewing and ensuring your final answers are truthful</strong> before submitting.
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-stone-600 leading-relaxed bg-stone-50 rounded-xl p-3">
               I understand that PIPpal assists me in describing my difficulties. All answers are my own.
-            </span>
-          </label>
+            </p>
+            <button
+              onClick={() => { setShowDisclaimer(false); navigateTo('q1_chat'); }}
+              className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
+            >
+              I understand — Start Question {question.num}
+            </button>
+            <button
+              onClick={() => setShowDisclaimer(false)}
+              className="w-full text-stone-500 text-sm py-1"
+            >
+              Go back
+            </button>
+          </div>
         </div>
+      )}
 
+      <div className="fixed bottom-0 left-0 right-0 p-5 md:px-8 bg-white border-t border-stone-100 z-20">
         <button
-          onClick={() => navigateTo('q1_chat')}
-          disabled={!disclaimerAccepted}
-          className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => setShowDisclaimer(true)}
+          className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
         >
           Start Question {question.num}
         </button>
