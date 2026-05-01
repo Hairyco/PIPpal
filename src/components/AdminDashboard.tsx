@@ -727,7 +727,7 @@ export function AdminDashboard() {
               {newInfluencerCode && (
                 <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
                   <p className="text-xs text-teal-700 font-medium mb-1">Their link will be:</p>
-                  <p className="text-xs text-teal-900 font-mono break-all">https://pippal-alpha.vercel.app?promo={newInfluencerCode}</p>
+                  <p className="text-xs text-teal-900 font-mono break-all">https://www.pippal.uk?promo={newInfluencerCode}</p>
                 </div>
               )}
               {addError && <p className="text-xs text-rose-600">{addError}</p>}
@@ -773,7 +773,7 @@ export function AdminDashboard() {
                       </div>
                       <div className="bg-stone-50 rounded-lg px-3 py-2 flex items-center gap-2">
                         <Link className="w-3 h-3 text-stone-400 shrink-0" />
-                        <p className="text-[10px] font-mono text-stone-500 truncate">https://pippal-alpha.vercel.app?promo={inf.code}</p>
+                        <p className="text-[10px] font-mono text-stone-500 truncate">https://www.pippal.uk?promo={inf.code}</p>
                       </div>
                     </div>
                   ))}

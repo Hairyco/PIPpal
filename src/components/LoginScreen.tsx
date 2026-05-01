@@ -118,7 +118,7 @@ export function LoginScreen() {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: 'https://pippal-alpha.vercel.app' },
+        options: { redirectTo: 'https://www.pippal.uk' },
       });
       if (error) throw error;
     } catch {
