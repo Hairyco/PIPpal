@@ -11,7 +11,7 @@ import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
 
 export function QuestionIndex() {
-  const { navigateTo, goBack, hasPaid, savedAnswers } = useAppContext();
+  const { navigateTo, goBack, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
 
   const totalPoints = getTotalPoints(savedAnswers);
   const answeredCount = Object.keys(savedAnswers).length;
@@ -38,6 +38,7 @@ export function QuestionIndex() {
           if (isLocked) {
             navigateTo('upsell');
           } else {
+            setSelectedQuestionId(q.id);
             navigateTo('q1_intro');
           }
         }}

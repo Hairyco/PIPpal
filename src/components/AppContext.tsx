@@ -74,6 +74,8 @@ interface AppContextType {
   setBadDayMode: (active: boolean) => void;
   q1Result: any;
   setQ1Result: (result: any) => void;
+  selectedQuestionId: string;
+  setSelectedQuestionId: (id: string) => void;
   savedAnswers: Record<string, string>;
   saveAnswer: (questionId: string, answer: string) => void;
   getSavedAnswer: (questionId: string) => string | undefined;
@@ -148,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [badDayMode, setBadDayMode] = useState(false);
   const [q1Result, setQ1Result] = useState<any>(null);
+  const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
     loadFromStorage('pippal_answers', {})
@@ -420,6 +423,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setBadDayMode,
         q1Result,
         setQ1Result,
+        selectedQuestionId,
+        setSelectedQuestionId,
         savedAnswers,
         saveAnswer,
         getSavedAnswer,

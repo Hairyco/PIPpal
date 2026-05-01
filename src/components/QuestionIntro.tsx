@@ -15,13 +15,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
 
 export function QuestionIntro() {
-  const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers } = useAppContext();
+  const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers, selectedQuestionId } = useAppContext();
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
-  // Determine which question we're on based on saved state
-  // Default to q1 for the intro screen
-  const questionId = 'q1';
+  const questionId = selectedQuestionId || 'q1';
   const question = getQuestion(questionId)!;
 
   const conditions = medProfile.conditions.map((c) => c.name.toLowerCase());

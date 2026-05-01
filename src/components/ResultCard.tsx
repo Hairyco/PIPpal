@@ -142,6 +142,8 @@ export function ResultCard() {
   const {
     q1Result,
     setQ1Result,
+    selectedQuestionId,
+    setSelectedQuestionId,
     medProfile,
     navigateTo,
     goBack,
@@ -732,10 +734,23 @@ export function ResultCard() {
           }
         </button>
         <button
-          onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
+          onClick={() => {
+            if (!hasPaid) { navigateTo('upsell'); return; }
+            // Find next question
+            import('../pipQuestions').then(({ PIP_QUESTIONS }) => {
+              const currentIndex = PIP_QUESTIONS.findIndex((q: any) => q.id === selectedQuestionId);
+              const nextQ = PIP_QUESTIONS[currentIndex + 1];
+              if (nextQ) {
+                setSelectedQuestionId(nextQ.id);
+                navigateTo('q1_intro');
+              } else {
+                navigateTo('question_index');
+              }
+            });
+          }}
           className="flex-[1.5] bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 active:scale-95 transition-all shadow-sm">
           
-          <Sparkles className="w-4 h-4" /> Continue
+          <Sparkles className="w-4 h-4" /> Next Question
         </button>
       </div>
 
