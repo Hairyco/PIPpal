@@ -441,6 +441,8 @@ const mobilityActivities = [
 export function DescriptorsGuide() {
   const { navigateTo, goBack } = useAppContext();
   const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
+  const [showDailyLiving, setShowDailyLiving] = useState(false);
+  const [showScoring, setShowScoring] = useState(false);
   const toggleActivity = (num: number) => {
     setExpandedActivity(expandedActivity === num ? null : num);
   };
@@ -528,21 +530,28 @@ export function DescriptorsGuide() {
             Understanding descriptors
           </h2>
           <p className="text-sm text-stone-600 leading-relaxed">
-            PIP isn't about what what illness you have -{' '}
-            <strong>its about what you struggle to do</strong>. They give you
-            points <strong>for the help you need with everyday tasks</strong>,
-            and your total points decide whether you get PIP and how much.
+            PIP isn't about what illness you have. It all comes down to{' '}
+            <strong>how your condition affects daily activities like cooking, washing, or going out</strong>.
+            You score points for the help you need with each task, and your total decides whether you get PIP and how much.
           </p>
         </div>
 
         {/* Daily Living Activities */}
         <div>
-          <h3 className="font-bold text-stone-500 uppercase tracking-wider text-xs mb-3 ml-1">
-            Daily Living Activities (1-10)
-          </h3>
-          <div className="space-y-3">
+          <button
+            onClick={() => setShowDailyLiving(!showDailyLiving)}
+            className="w-full flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-stone-900 text-sm">Daily Living Activities (1–10)</h3>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showDailyLiving ? 'rotate-180' : ''}`} />
+          </button>
+          {showDailyLiving && (
+          <div className="space-y-3 mt-3">
             {dailyLivingActivities.map(renderActivityCard)}
           </div>
+          )}
         </div>
 
         {/* Mobility Activities */}
@@ -556,10 +565,16 @@ export function DescriptorsGuide() {
         </div>
 
         {/* How scoring works */}
-        <div className="bg-teal-50 rounded-2xl p-5 border border-teal-100">
-          <h3 className="font-bold text-teal-900 text-sm mb-3">
-            How scoring works
-          </h3>
+        <div>
+          <button
+            onClick={() => setShowScoring(!showScoring)}
+            className="w-full flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 transition-colors mb-0"
+          >
+            <h3 className="font-bold text-stone-900 text-sm">How scoring works</h3>
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showScoring ? 'rotate-180' : ''}`} />
+          </button>
+          {showScoring && (
+          <div className="bg-teal-50 rounded-2xl p-5 border border-teal-100 mt-3">
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div className="bg-white rounded-xl p-3">
               <div className="text-[10px] text-stone-500 uppercase tracking-wider font-medium mb-1">
@@ -617,6 +632,8 @@ export function DescriptorsGuide() {
             activity counts. You don't need to score on every activity — just
             enough to reach the threshold.
           </p>
+          </div>
+          )}
         </div>
 
         {/* Key thing assessors look for */}
