@@ -225,10 +225,13 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
       }).join('');
       return `
         <div class="week">
-          <p class="week-title">Weekly diary &nbsp;&nbsp; Week of: ${formatWeekLabel(week.weekStart)}</p>
+          <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:8px;">
+            <span style="font-size:13px;font-weight:bold;">Weekly diary</span>
+            <span style="font-size:11px;">Week of: ${formatWeekLabel(week.weekStart)}</span>
+          </div>
           <table>
             <thead><tr>
-              <th style="width:60px">Day</th>
+              <th style="width:55px;">Day</th>
               ${ACTIVITIES.map(a => `<th>${a.label}</th>`).join('')}
             </tr></thead>
             <tbody>${rowsHtml}</tbody>
@@ -240,24 +243,42 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Weekly Diary</title>
+<title>PIP Weekly Diary</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 20px; color: #000; font-size: 11px; }
-  h1 { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
-  .subtitle { font-size: 11px; margin-bottom: 20px; }
-  .week { margin-bottom: 30px; page-break-before: always; }
+  body { font-family: Arial, sans-serif; margin: 15mm; color: #000; font-size: 10px; }
+  .doc-header { margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+  .doc-header h1 { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; }
+  .field-row { display: flex; gap: 30px; margin-bottom: 8px; }
+  .field { display: flex; align-items: center; gap: 6px; }
+  .field label { font-weight: bold; font-size: 10px; white-space: nowrap; }
+  .field .line { border-bottom: 1px solid #000; min-width: 160px; height: 16px; }
+  .instructions { font-size: 10px; margin-bottom: 14px; line-height: 1.5; }
+  .week { margin-bottom: 20px; page-break-before: always; }
   .week:first-child { page-break-before: avoid; }
-  .week-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
-  table { width: 100%; border-collapse: collapse; }
-  th { border: 1px solid #000; padding: 5px 4px; text-align: left; font-size: 10px; font-weight: bold; background: #fff; vertical-align: top; min-width: 70px; }
-  td { border: 1px solid #000; padding: 4px; vertical-align: top; height: 80px; min-width: 70px; font-size: 10px; }
-  td.day-cell { font-weight: bold; background: #fff; width: 60px; height: 80px; }
-  @media print { body { margin: 10px; } .week { page-break-before: always; } .week:first-child { page-break-before: avoid; } }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th { border: 1px solid #000; padding: 4px 3px; text-align: left; font-size: 9px; font-weight: bold; vertical-align: top; word-wrap: break-word; }
+  td { border: 1px solid #000; padding: 3px; vertical-align: top; height: 72px; font-size: 9px; word-wrap: break-word; }
+  td.day-cell { font-weight: bold; width: 55px; }
+  @media print {
+    body { margin: 10mm; }
+    .week { page-break-before: always; }
+    .week:first-child { page-break-before: avoid; }
+  }
 </style>
 </head>
 <body>
-<h1>Weekly diary</h1>
-<p class="subtitle">Please use this diary to record how your condition affects you each day. Describe what you struggled with, any help you needed, and any aids or adaptations you used.</p>
+<div class="doc-header">
+  <h1>PIP Weekly Diary</h1>
+  <div class="field-row">
+    <div class="field"><label>Full name:</label><div class="line"></div></div>
+    <div class="field"><label>National Insurance number:</label><div class="line" style="min-width:130px"></div></div>
+  </div>
+  <div class="field-row">
+    <div class="field"><label>Date of birth:</label><div class="line" style="min-width:100px"></div></div>
+    <div class="field"><label>PIP reference (if known):</label><div class="line" style="min-width:130px"></div></div>
+  </div>
+</div>
+<p class="instructions">Use this diary to record how your condition affects you each day. For each activity describe what happened — whether you could do it safely, if you needed help, or if you used any aids. Focus on your worst days. This diary can be submitted as supporting evidence with your PIP claim.</p>
 ${weeksHtml}
 </body>
 </html>`;

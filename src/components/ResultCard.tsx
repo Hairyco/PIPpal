@@ -644,31 +644,7 @@ export function ResultCard() {
             <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
           </div>
 
-          {/* PIP Diary CTA */}
-          <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 shadow-sm">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center shrink-0">
-                <BookOpen className="w-4 h-4 text-emerald-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-emerald-900 text-sm mb-1">
-                  Strengthen this answer with your PIP Diary
-                </h3>
-                <p className="text-xs text-emerald-800 leading-relaxed">
-                  Log specific days when preparing food was difficult — dates,
-                  symptoms, and what happened. Real diary entries are powerful
-                  evidence for assessors.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigateTo('pip_diary')}
-              className="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-              
-              <BookOpen className="w-4 h-4" />
-              Open PIP Diary
-            </button>
-          </div>
+
 
           {/* Medical Panel */}
           {medProfile.conditions.length > 0 &&
