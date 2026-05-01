@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown } from 'lucide-react';
+import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown, AlertTriangle } from 'lucide-react';
 
 interface HeroProps {
   onStart?: () => void;
@@ -28,6 +28,15 @@ export function Hero({ onStart }: HeroProps) {
 
   return (
     <section className="px-5 md:px-8 pt-10 md:pt-20 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
+
+      {/* Urgency banner */}
+      <div className="w-full md:max-w-2xl bg-amber-500 rounded-2xl px-5 py-4 mb-7 flex items-start gap-3 text-left shadow-md">
+        <AlertTriangle className="w-5 h-5 text-white shrink-0 mt-0.5" />
+        <div>
+          <p className="text-white font-bold text-sm leading-snug">PIP rules are changing in late 2026</p>
+          <p className="text-amber-100 text-xs leading-relaxed mt-0.5">The government is tightening eligibility thresholds. If you think you qualify, applying now could protect your entitlement. Do not wait.</p>
+        </div>
+      </div>
 
       {/* Badge */}
       <div

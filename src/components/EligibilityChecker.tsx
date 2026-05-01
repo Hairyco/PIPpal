@@ -714,6 +714,15 @@ export function EligibilityChecker() {
             </div>
           </div>
 
+          {/* Urgency banner */}
+          <div className="bg-amber-500 rounded-2xl px-4 py-4 flex items-start gap-3 shadow-sm">
+            <span className="text-white text-base mt-0.5">⚠️</span>
+            <div>
+              <p className="text-white font-bold text-sm leading-snug">PIP rules are changing in late 2026</p>
+              <p className="text-amber-100 text-xs leading-relaxed mt-1">The government is tightening eligibility thresholds. If you think you qualify, applying now could protect your entitlement. Do not wait.</p>
+            </div>
+          </div>
+
           {/* Time warning */}
           <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-2.5">
             <span className="text-base mt-0.5">⏳</span>

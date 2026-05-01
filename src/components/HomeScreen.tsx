@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
+  AlertTriangle,
   PlusCircle,
   RefreshCw,
   Scale,
@@ -100,6 +101,17 @@ export function HomeScreen() {
             {firstName.charAt(0).toUpperCase()}
           </div>
         )}
+      </div>
+
+      {/* Urgency banner */}
+      <div className="mx-5 md:mx-8 -mt-3 mb-2">
+        <div className="bg-amber-500 rounded-2xl px-4 py-3 flex items-start gap-2.5 shadow-sm">
+          <AlertTriangle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+          <div>
+            <p className="text-white font-bold text-xs leading-snug">PIP rules are changing in late 2026</p>
+            <p className="text-amber-100 text-[11px] leading-relaxed mt-0.5">Eligibility thresholds are tightening. Applying now could protect your entitlement. Do not wait.</p>
+          </div>
+        </div>
       </div>
 
       <div className="px-5 md:px-8 space-y-8">
