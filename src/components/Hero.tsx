@@ -20,10 +20,10 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   const checks = [
-    { text: 'Complete in 15–30 minutes' },
-    { text: 'Unique answers to your specific conditions' },
-    { text: 'Guides you through all 12 PIP questions' },
-    { text: 'Assessment prep & appeal letter generator' },
+    { bold: '15–30 minutes', rest: ' to complete' },
+    { bold: 'Unique answers', rest: ' to your specific conditions' },
+    { bold: 'All 12 PIP questions', rest: ' guided step by step' },
+    { bold: 'Full telephone Assessment prep', rest: ' included' },
   ];
 
   return (
@@ -73,7 +73,7 @@ export function Hero({ onStart }: HeroProps) {
             {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                <span className="text-sm text-stone-700">{check.text}</span>
+                <span className="text-sm text-stone-700"><strong>{check.bold}</strong>{check.rest}</span>
               </div>
             ))}
           </div>
