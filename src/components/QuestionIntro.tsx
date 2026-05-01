@@ -208,7 +208,7 @@ export function QuestionIntro() {
 
       <div className="fixed bottom-0 left-0 right-0 p-5 md:px-8 bg-white border-t border-stone-100 z-20">
         <button
-          onClick={() => setShowDisclaimer(true)}
+          onClick={() => questionId === 'q1' ? setShowDisclaimer(true) : navigateTo('q1_chat')}
           className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
         >
           Start Question {question.num}

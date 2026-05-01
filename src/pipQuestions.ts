@@ -14,6 +14,7 @@ export interface PIPQuestion {
   headline: string;
   subtext: string;
   defaultExplainer: string;
+  chatOpener?: string;
   conditionExplainers: {
     conditions: string[];
     text: string;
@@ -65,6 +66,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q2',
+    chatOpener: 'Can you eat and drink without help, or does your condition make this difficult?',
     num: 2,
     title: 'Taking nutrition',
     shortTitle: 'Eating & drinking',
@@ -104,6 +106,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q3',
+    chatOpener: 'Do you need to follow a treatment plan or take medication regularly? Can you manage this yourself?',
     num: 3,
     title: 'Managing therapy',
     shortTitle: 'Managing therapy',
@@ -143,6 +146,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q4',
+    chatOpener: 'Can you wash and bathe yourself without help or supervision?',
     num: 4,
     title: 'Washing and bathing',
     shortTitle: 'Washing & bathing',
@@ -183,6 +187,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q5',
+    chatOpener: 'Can you manage your toilet needs including getting there in time and cleaning yourself afterwards?',
     num: 5,
     title: 'Managing toilet needs',
     shortTitle: 'Toilet needs',
@@ -222,6 +227,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q6',
+    chatOpener: 'Can you dress and undress yourself, including putting on and taking off shoes and socks?',
     num: 6,
     title: 'Dressing and undressing',
     shortTitle: 'Dressing',
@@ -261,6 +267,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q7',
+    chatOpener: 'Can you communicate with others — reading, understanding and being understood verbally?',
     num: 7,
     title: 'Communicating verbally',
     shortTitle: 'Communication',
@@ -299,6 +306,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q8',
+    chatOpener: 'Can you read and understand written information like letters, signs or instructions?',
     num: 8,
     title: 'Reading and understanding',
     shortTitle: 'Reading',
@@ -338,6 +346,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q9',
+    chatOpener: 'Can you engage socially with other people without significant difficulty?',
     num: 9,
     title: 'Engaging with others',
     shortTitle: 'Social engagement',
@@ -375,6 +384,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q10',
+    chatOpener: 'Can you make decisions about spending money and managing finances?',
     num: 10,
     title: 'Making decisions',
     shortTitle: 'Making decisions',
@@ -412,6 +422,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q11',
+    chatOpener: 'Can you plan and follow a journey to an unfamiliar place on your own?',
     num: 11,
     title: 'Planning a journey',
     shortTitle: 'Planning a journey',
@@ -451,6 +462,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
   },
   {
     id: 'q12',
+    chatOpener: 'Can you walk safely and reliably, or does your condition limit how far or how you move?',
     num: 12,
     title: 'Moving around',
     shortTitle: 'Moving around',

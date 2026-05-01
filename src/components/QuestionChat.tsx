@@ -10,6 +10,7 @@ import {
   ChevronUp } from
 'lucide-react';
 import { useAppContext } from './AppContext';
+import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
 import { motion, AnimatePresence } from 'framer-motion';
 type Message = {
   id: string;
@@ -32,15 +33,23 @@ type HistoryEntry = {
   messages: Message[];
 };
 export function QuestionChat() {
-  const { badDayMode, setQ1Result, navigateTo, goBack } = useAppContext();
+  const { badDayMode, setQ1Result, navigateTo, goBack, selectedQuestionId, medProfile } = useAppContext();
+  const isQ1 = !selectedQuestionId || selectedQuestionId === 'q1';
+  const question = getQuestion(selectedQuestionId || 'q1');
+  const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+
   const [messages, setMessages] = useState<Message[]>([
   {
     id: '1',
     sender: 'bot',
-    text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?"
+    text: isQ1
+      ? "Let's talk about preparing food. Can you plan and cook a simple meal on your own?"
+      : `Let's talk about ${question?.shortTitle?.toLowerCase() || 'this activity'}. ${question?.chatOpener || 'How does your condition affect this activity?'}`
   }]
   );
   const [currentStep, setCurrentStep] = useState<Step>('q1');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -129,9 +138,60 @@ export function QuestionChat() {
   const finishChat = (descriptor: string) => {
     setQ1Result({
       descriptor,
-      messages
+      messages,
+      questionId: selectedQuestionId || 'q1',
     });
     navigateTo('q1_result');
+  };
+
+  const handleAiSend = async () => {
+    if (!inputText.trim() || aiLoading) return;
+    const userMsg = inputText.trim();
+    setInputText('');
+    const newMsg: Message = { id: Date.now().toString(), sender: 'user', text: userMsg };
+    setMessages(prev => [...prev, newMsg]);
+    setAiLoading(true);
+
+    const updatedConv = [...aiConversation, { role: 'user', content: userMsg }];
+    setAiConversation(updatedConv);
+
+    try {
+      const systemPrompt = `You are guiding a PIP claimant through the "${question?.title}" activity question.
+Conditions: ${conditions}.
+Descriptors for this question: ${question?.descriptors?.map((d: any) => `${d.code}: ${d.label} (${d.points} points)`).join(', ')}.
+Your job: Ask focused follow-up questions to understand how their condition affects this specific activity. Focus on their worst days, whether they can do it safely, reliably, repeatedly and in reasonable time. After 2-3 exchanges, suggest which descriptor fits best and end with: RESULT:[descriptor_code] on its own line.
+Keep responses under 80 words. Plain English. No ** or !!.`;
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: updatedConv,
+          systemPrompt,
+          medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
+        }),
+      });
+      const data = await response.json();
+      const reply = data.reply || '';
+
+      // Check if AI has suggested a result
+      const resultMatch = reply.match(/RESULT:([A-F])/);
+      if (resultMatch) {
+        const descriptor = resultMatch[1];
+        const cleanReply = reply.replace(/RESULT:[A-F]/, '').trim();
+        if (cleanReply) {
+          setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: cleanReply }]);
+        }
+        setTimeout(() => finishChat(descriptor), 1500);
+      } else {
+        setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: reply }]);
+        setAiConversation(prev => [...prev, { role: 'assistant', content: reply }]);
+      }
+    } catch {
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: 'Sorry, something went wrong. Please try again.' }]);
+    } finally {
+      setAiLoading(false);
+    }
   };
   const getScoreInfo = (): {
     descriptor: string;
@@ -387,6 +447,68 @@ export function QuestionChat() {
         return null;
     }
   };
+  // For Q2-Q12 render AI chat
+  if (!isQ1) {
+    return (
+      <div className="flex flex-col h-full bg-stone-50">
+        <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
+          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-bold text-stone-900 text-sm">Question {question?.num} of 12</h1>
+            <p className="text-xs text-stone-500">{question?.shortTitle}</p>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                msg.sender === 'user'
+                  ? 'bg-teal-600 text-white rounded-br-sm'
+                  : 'bg-white border border-stone-200 text-stone-800 rounded-bl-sm'
+              }`}>
+                {msg.text}
+              </div>
+            </div>
+          ))}
+          {aiLoading && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-stone-200 rounded-2xl rounded-bl-sm px-4 py-3">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
+                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
+                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 bg-white border-t border-stone-100">
+          <div className="flex items-end gap-2 bg-stone-50 rounded-2xl border border-stone-200 p-2">
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAiSend(); } }}
+              placeholder="Type your answer here..."
+              className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+              rows={1}
+            />
+            <button
+              onClick={handleAiSend}
+              disabled={!inputText.trim() || aiLoading}
+              className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-[10px] text-stone-400 text-center mt-2">Describe your worst days. Focus on what you cannot do safely or reliably.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-stone-50">
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
