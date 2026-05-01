@@ -278,11 +278,11 @@ function AppContent() {
             {/* Landing page footer */}
             <footer className="px-5 py-6 border-t border-stone-200 text-center space-y-2">
               <div className="flex items-center justify-center gap-4 flex-wrap">
-                <button onClick={() => handleNavigate('privacy')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Privacy Policy</button>
+                <button onClick={() => { navigateTo('privacy'); }} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Privacy Policy</button>
                 <span className="text-stone-300 text-xs">·</span>
-                <button onClick={() => handleNavigate('terms')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Terms of Service</button>
+                <button onClick={() => { navigateTo('terms'); }} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Terms of Service</button>
                 <span className="text-stone-300 text-xs">·</span>
-                <button onClick={() => handleNavigate('accessibility')} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Accessibility</button>
+                <button onClick={() => { navigateTo('accessibility'); }} className="text-xs text-stone-500 hover:text-stone-800 transition-colors">Accessibility</button>
               </div>
               <p className="text-[10px] text-stone-400">PIPpal is an independent guidance tool. Not affiliated with the DWP or any government body.</p>
             </footer>
