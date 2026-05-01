@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Lock,
   Calendar,
-  Download,
   CheckCircle2,
   Plus,
   Trash2,
@@ -16,6 +15,7 @@ import {
   RefreshCw,
   Loader2,
   Save,
+  BookOpen,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,6 @@ import { supabase } from '../supabaseClient';
 interface DiaryEntry {
   id: string;
   date: string;
-  feelingScore: number | null;
   tasks: string[];
   tasksNotes: string;
   help: string[];
@@ -61,7 +60,6 @@ const ENERGY_OPTIONS = ['⚡ Exhausted', '🔋 Very tired', '🔋 Low energy', '
 const emptyEntry = (): DiaryEntry => ({
   id: Date.now().toString(),
   date: new Date().toISOString().split('T')[0],
-  feelingScore: null,
   tasks: [],
   tasksNotes: '',
   help: [],
@@ -75,8 +73,9 @@ const emptyEntry = (): DiaryEntry => ({
 
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const { goBack, user, showToast, navigateTo } = useAppContext();
-  const [entries, setEntries] = useState<DiaryEntry[]>([emptyEntry()]);
-  const [showInstructions, setShowInstructions] = useState(false);
+  const [savedEntries, setSavedEntries] = useState<DiaryEntry[]>([]);
+  const [currentEntry, setCurrentEntry] = useState<DiaryEntry>(emptyEntry());
+  const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null);
   const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [improvingId, setImprovingId] = useState<string | null>(null);
@@ -84,8 +83,8 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [view, setView] = useState<'new' | 'entries'>('new');
 
-  // Load diary entries from Supabase
   useEffect(() => {
     if (!user?.id) return;
     const loadEntries = async () => {
@@ -101,7 +100,6 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
           const loaded: DiaryEntry[] = data.map((row: any) => ({
             id: row.id,
             date: row.date,
-            feelingScore: row.content?.feelingScore ?? null,
             tasks: row.content?.tasks ?? [],
             tasksNotes: row.content?.tasksNotes ?? '',
             help: row.content?.help ?? [],
@@ -112,62 +110,46 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
             energy: row.content?.energy ?? '',
             other: row.content?.other ?? '',
           }));
-          setEntries(loaded);
+          setSavedEntries(loaded);
+          if (loaded.length > 0) setView('entries');
         }
-      } catch {
-        // No entries yet
-      } finally {
+      } catch { } finally {
         setIsLoading(false);
       }
     };
     loadEntries();
   }, [user?.id]);
 
-  const saveToDB = async (entriesToSave: DiaryEntry[]) => {
+  const saveEntry = async () => {
     if (!user?.id) return;
     setIsSaving(true);
     try {
-      for (const entry of entriesToSave) {
-        const { content, ...rest } = {
-          user_id: user.id,
-          date: entry.date || new Date().toISOString().split('T')[0],
-          content: {
-            feelingScore: entry.feelingScore,
-            tasks: entry.tasks,
-            tasksNotes: entry.tasksNotes,
-            help: entry.help,
-            helpNotes: entry.helpNotes,
-            aids: entry.aids,
-            aidsNotes: entry.aidsNotes,
-            mood: entry.mood,
-            energy: entry.energy,
-            other: entry.other,
-          },
-          mood: entry.mood,
-        };
-
-        // Only upsert if it's a UUID (existing DB record), else insert
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(entry.id);
-        if (isUUID) {
-          await supabase
-            .from('diary_entries')
-            .update({ date: entry.date, content: { feelingScore: entry.feelingScore, tasks: entry.tasks, tasksNotes: entry.tasksNotes, help: entry.help, helpNotes: entry.helpNotes, aids: entry.aids, aidsNotes: entry.aidsNotes, mood: entry.mood, energy: entry.energy, other: entry.other }, mood: entry.mood })
-            .eq('id', entry.id)
-            .eq('user_id', user.id);
-        } else {
-          const { data } = await supabase
-            .from('diary_entries')
-            .insert({ user_id: user.id, date: entry.date || new Date().toISOString().split('T')[0], content: { feelingScore: entry.feelingScore, tasks: entry.tasks, tasksNotes: entry.tasksNotes, help: entry.help, helpNotes: entry.helpNotes, aids: entry.aids, aidsNotes: entry.aidsNotes, mood: entry.mood, energy: entry.energy, other: entry.other }, mood: entry.mood })
-            .select()
-            .single();
-          // Update the local entry id to the DB uuid
-          if (data) {
-            setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, id: data.id } : e));
-          }
+      const content = {
+        tasks: currentEntry.tasks,
+        tasksNotes: currentEntry.tasksNotes,
+        help: currentEntry.help,
+        helpNotes: currentEntry.helpNotes,
+        aids: currentEntry.aids,
+        aidsNotes: currentEntry.aidsNotes,
+        mood: currentEntry.mood,
+        energy: currentEntry.energy,
+        other: currentEntry.other,
+      };
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(currentEntry.id);
+      if (isUUID) {
+        await supabase.from('diary_entries').update({ date: currentEntry.date, content, mood: currentEntry.mood }).eq('id', currentEntry.id).eq('user_id', user.id);
+        setSavedEntries(prev => prev.map(e => e.id === currentEntry.id ? currentEntry : e));
+      } else {
+        const { data } = await supabase.from('diary_entries').insert({ user_id: user.id, date: currentEntry.date, content, mood: currentEntry.mood }).select().single();
+        if (data) {
+          const saved = { ...currentEntry, id: data.id };
+          setSavedEntries(prev => [saved, ...prev]);
+          setCurrentEntry(emptyEntry());
+          setView('entries');
         }
       }
       setLastSaved(new Date());
-      showToast('Diary saved!', 'success');
+      showToast('Diary entry saved!', 'success');
     } catch {
       showToast('Saved locally — will sync when connection is restored.', 'info');
     } finally {
@@ -175,42 +157,28 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     }
   };
 
-  const addDay = () => {
-    setEntries([...entries, emptyEntry()]);
-  };
-
-  const removeDay = async (id: string) => {
-    if (entries.length <= 1) return;
+  const deleteEntry = async (id: string) => {
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(id);
     if (isUUID && user?.id) {
       await supabase.from('diary_entries').delete().eq('id', id).eq('user_id', user.id);
     }
-    setEntries(entries.filter((e) => e.id !== id));
+    setSavedEntries(prev => prev.filter(e => e.id !== id));
     showToast('Entry deleted.', 'info');
   };
 
-  const updateEntry = (id: string, field: keyof DiaryEntry, value: any) => {
-    setEntries(entries.map((e) => e.id === id ? { ...e, [field]: value } : e));
+  const updateCurrent = (field: keyof DiaryEntry, value: any) => {
+    setCurrentEntry(prev => ({ ...prev, [field]: value }));
   };
 
-  const toggleArrayItem = (id: string, field: 'tasks' | 'help' | 'aids', item: string) => {
-    setEntries(entries.map((e) => {
-      if (e.id !== id) return e;
-      const arr = e[field];
-      return { ...e, [field]: arr.includes(item) ? arr.filter((x) => x !== item) : [...arr, item] };
-    }));
+  const toggleArrayItem = (field: 'tasks' | 'help' | 'aids', item: string) => {
+    setCurrentEntry(prev => {
+      const arr = prev[field];
+      return { ...prev, [field]: arr.includes(item) ? arr.filter(x => x !== item) : [...arr, item] };
+    });
   };
 
-  const toggleNote = (id: string, field: string) => {
-    const key = `${id}-${field}`;
-    setExpandedNotes((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const getScoreColor = (score: number, isSelected: boolean) => {
-    if (score <= 3) return isSelected ? 'bg-rose-500 text-white border-rose-500 scale-110 shadow-md' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100';
-    if (score <= 5) return isSelected ? 'bg-amber-500 text-white border-amber-500 scale-110 shadow-md' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100';
-    if (score <= 7) return isSelected ? 'bg-lime-500 text-white border-lime-500 scale-110 shadow-md' : 'bg-lime-50 text-lime-700 border-lime-200 hover:bg-lime-100';
-    return isSelected ? 'bg-emerald-500 text-white border-emerald-500 scale-110 shadow-md' : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100';
+  const toggleNote = (field: string) => {
+    setExpandedNotes(prev => ({ ...prev, [field]: !prev[field] }));
   };
 
   const formatList = (items: string[]): string => {
@@ -223,15 +191,12 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const generateSummary = (entry: DiaryEntry): string => {
     const parts: string[] = [];
     const dateStr = entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'today';
-    if (entry.feelingScore !== null) {
-      const feelingDesc = entry.feelingScore <= 2 ? 'very poorly' : entry.feelingScore <= 4 ? 'quite unwell' : entry.feelingScore <= 6 ? 'not great' : entry.feelingScore <= 8 ? 'okay' : 'fairly well';
-      parts.push(`On ${dateStr}, I was feeling ${entry.feelingScore}/10 (${feelingDesc}).`);
-    } else { parts.push(`On ${dateStr}:`); }
+    parts.push(`On ${dateStr}:`);
     if (entry.tasks.length > 0) { parts.push(`I struggled with ${formatList(entry.tasks)}.`); if (entry.tasksNotes) parts.push(entry.tasksNotes.trim()); }
-    if (entry.help.length > 0) { parts.push(`I needed help with ${formatList(entry.help.map((h) => h.toLowerCase()))}.`); if (entry.helpNotes) parts.push(entry.helpNotes.trim()); }
+    if (entry.help.length > 0) { parts.push(`I needed help with ${formatList(entry.help.map(h => h.toLowerCase()))}.`); if (entry.helpNotes) parts.push(entry.helpNotes.trim()); }
     if (entry.aids.length > 0) {
-      if (entry.aids.includes('None today') && entry.aids.length === 1) { parts.push('I did not use any aids or adaptations today.'); }
-      else { parts.push(`I used ${formatList(entry.aids.filter((a) => a !== 'None today').map((a) => a.toLowerCase()))}.`); }
+      if (entry.aids.includes('None today') && entry.aids.length === 1) parts.push('I did not use any aids today.');
+      else parts.push(`I used ${formatList(entry.aids.filter(a => a !== 'None today').map(a => a.toLowerCase()))}.`);
       if (entry.aidsNotes) parts.push(entry.aidsNotes.trim());
     }
     if (entry.mood) parts.push(`My mood was ${entry.mood.replace(/^[^\s]+\s/, '').toLowerCase()}.`);
@@ -245,31 +210,25 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     setTimeout(() => {
       const parts: string[] = [];
       const dateStr = entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'today';
-      if (entry.feelingScore !== null) {
-        if (entry.feelingScore <= 3) parts.push(`On ${dateStr}, I was feeling ${entry.feelingScore}/10. This was a particularly bad day — my symptoms were severe and I was unable to carry out most daily tasks safely or reliably.`);
-        else if (entry.feelingScore <= 5) parts.push(`On ${dateStr}, I was feeling ${entry.feelingScore}/10. My condition was affecting me significantly and I struggled to complete basic daily activities.`);
-        else parts.push(`On ${dateStr}, I was feeling ${entry.feelingScore}/10. While not my worst day, I still experienced noticeable difficulties.`);
-      }
+      parts.push(`On ${dateStr}, my condition was significantly affecting my ability to carry out daily activities.`);
       if (entry.tasks.length > 0) { parts.push(`I struggled with ${formatList(entry.tasks)}. These difficulties meant I could not complete these tasks safely, reliably, repeatedly, or in a reasonable time without assistance.`); if (entry.tasksNotes) parts.push(entry.tasksNotes.trim()); }
-      if (entry.help.length > 0) { parts.push(`I required help with ${formatList(entry.help.map((h) => h.toLowerCase()))}. Without this support, I would have been unable to manage these activities safely.`); if (entry.helpNotes) parts.push(entry.helpNotes.trim()); }
+      if (entry.help.length > 0) { parts.push(`I required help with ${formatList(entry.help.map(h => h.toLowerCase()))}. Without this support, I would have been unable to manage safely.`); if (entry.helpNotes) parts.push(entry.helpNotes.trim()); }
       if (entry.aids.length > 0) {
-        if (entry.aids.includes('None today') && entry.aids.length === 1) parts.push('I did not use any aids or adaptations today, though I typically rely on them on most days.');
-        else parts.push(`I relied on ${formatList(entry.aids.filter((a) => a !== 'None today').map((a) => a.toLowerCase()))} to manage daily tasks.`);
+        if (entry.aids.includes('None today') && entry.aids.length === 1) parts.push('I did not use any aids today, though I typically rely on them on most days.');
+        else parts.push(`I relied on ${formatList(entry.aids.filter(a => a !== 'None today').map(a => a.toLowerCase()))} to manage daily tasks.`);
         if (entry.aidsNotes) parts.push(entry.aidsNotes.trim());
       }
-      if (entry.mood) { const moodText = entry.mood.replace(/^[^\s]+\s/, ''); if (moodText.toLowerCase().includes('low')) parts.push(`My mood was ${moodText.toLowerCase()}, which significantly affected my ability to motivate myself to carry out basic tasks.`); else parts.push(`My mood was ${moodText.toLowerCase()}.`); }
-      if (entry.energy) { const energyText = entry.energy.replace(/^[^\s]+\s/, ''); if (energyText.toLowerCase().includes('exhausted') || energyText.toLowerCase().includes('very tired')) parts.push(`My energy level was ${energyText.toLowerCase()}. The fatigue was debilitating and I needed to rest frequently.`); else parts.push(`My energy level was ${energyText.toLowerCase()}.`); }
+      if (entry.mood) { const m = entry.mood.replace(/^[^\s]+\s/, ''); if (m.toLowerCase().includes('low')) parts.push(`My mood was ${m.toLowerCase()}, which significantly affected my motivation to carry out basic tasks.`); else parts.push(`My mood was ${m.toLowerCase()}.`); }
+      if (entry.energy) { const e = entry.energy.replace(/^[^\s]+\s/, ''); if (e.toLowerCase().includes('exhausted') || e.toLowerCase().includes('tired')) parts.push(`My energy level was ${e.toLowerCase()}. The fatigue was debilitating and I needed to rest frequently.`); else parts.push(`My energy level was ${e.toLowerCase()}.`); }
       if (entry.other) parts.push(entry.other.trim());
-      parts.push('These difficulties are typical of how my condition affects me and demonstrate the ongoing impact on my daily living and mobility.');
-      setImprovedSummaries((prev) => ({ ...prev, [entry.id]: parts.join(' ') }));
+      parts.push('These difficulties are typical of how my condition affects me on a day-to-day basis.');
+      setImprovedSummaries(prev => ({ ...prev, [entry.id]: parts.join(' ') }));
       setImprovingId(null);
     }, 1500);
   };
 
   const getSummaryText = (entry: DiaryEntry): string => improvedSummaries[entry.id] || generateSummary(entry);
-
-  const hasSummaryContent = (entry: DiaryEntry): boolean => entry.feelingScore !== null || entry.tasks.length > 0 || entry.help.length > 0 || entry.aids.length > 0 || entry.mood !== '' || entry.energy !== '' || entry.other !== '';
-
+  const hasSummaryContent = (entry: DiaryEntry): boolean => entry.tasks.length > 0 || entry.help.length > 0 || entry.aids.length > 0 || entry.mood !== '' || entry.energy !== '' || entry.other !== '';
   const handleCopy = (id: string, text: string) => {
     navigator.clipboard.writeText(text).then(() => { setCopiedId(id); setTimeout(() => setCopiedId(null), 2000); });
   };
@@ -291,9 +250,7 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
             <h2 className="font-bold text-stone-900 text-lg mb-2">Full Access required</h2>
             <p className="text-sm text-stone-500 leading-relaxed">The PIP Diary is available to Full Access users. Unlock it along with all PIPpal features for a one-time payment of £12.99.</p>
           </div>
-          <button
-            onClick={() => navigateTo('upsell')}
-            className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">
+          <button onClick={() => navigateTo('upsell')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">
             Unlock Full Access — £12.99
           </button>
         </div>
@@ -312,222 +269,237 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
+
+      {/* Header */}
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
         <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="font-bold text-stone-900 text-lg">PIP Diary</h1>
-        <div className="ml-auto flex items-center gap-2">
-          {lastSaved && <span className="text-[10px] text-stone-400">Saved {lastSaved.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>}
-          <button
-            onClick={() => saveToDB(entries)}
-            disabled={isSaving}
-            className="flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-60"
-          >
-            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            {isSaving ? 'Saving…' : 'Save'}
-          </button>
-        </div>
+        {lastSaved && <span className="text-[10px] text-stone-400 ml-auto">Saved {lastSaved.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</span>}
       </div>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
-        <div className="bg-emerald-700 rounded-2xl p-6 text-white shadow-sm">
-          <div className="w-12 h-12 bg-emerald-600 rounded-full flex items-center justify-center mb-4">
-            <Calendar className="w-6 h-6 text-white" />
+      {/* Tabs */}
+      <div className="flex bg-white border-b border-stone-100">
+        <button onClick={() => setView('new')} className={`flex-1 py-3 text-sm font-semibold transition-colors ${view === 'new' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}>
+          New Entry
+        </button>
+        <button onClick={() => setView('entries')} className={`flex-1 py-3 text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${view === 'entries' ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}>
+          My Entries
+          {savedEntries.length > 0 && <span className="text-[10px] font-bold bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">{savedEntries.length}</span>}
+        </button>
+      </div>
+
+      {/* New Entry Tab */}
+      {view === 'new' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
+
+          {/* Date */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-1.5">Date</label>
+            <input type="date" value={currentEntry.date} onChange={(e) => updateCurrent('date', e.target.value)} className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
           </div>
-          <h2 className="text-xl font-bold mb-2">Track your daily challenges</h2>
-          <p className="text-emerald-50 text-sm leading-relaxed">A PIP diary records how your condition affects you daily. Your entries are saved to your account and can be downloaded as evidence.</p>
-        </div>
 
-        <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
-          <h3 className="font-bold text-stone-900 text-sm mb-4">Why keep a diary?</h3>
-          <div className="space-y-3">
-            {['Shows assessors your condition varies day to day', 'Provides real examples for your form answers', 'Helps you remember details for your assessment', 'Can be submitted as supporting evidence'].map((reason, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <span className="text-sm text-stone-700 leading-relaxed">{reason}</span>
-              </div>
-            ))}
+          {/* Tasks */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-2">Tasks you struggled with today</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {TASK_OPTIONS.map(task => {
+                const isSelected = currentEntry.tasks.includes(task);
+                return <button key={task} onClick={() => toggleArrayItem('tasks', task)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{task}</button>;
+              })}
+            </div>
+            {!expandedNotes['tasks'] ? (
+              <button onClick={() => toggleNote('tasks')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
+            ) : (
+              <textarea placeholder="Add details about your struggles..." value={currentEntry.tasksNotes} onChange={(e) => updateCurrent('tasksNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
+            )}
           </div>
-        </div>
 
-        <div className="space-y-6">
-          {entries.map((entry, index) => (
-            <div key={entry.id} className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              <div className="bg-stone-50 px-5 py-4 border-b border-stone-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{index + 1}</div>
-                  <h3 className="font-bold text-stone-900 text-sm">Day {index + 1}</h3>
-                </div>
-                {entries.length > 1 && (
-                  <button onClick={() => removeDay(entry.id)} className="text-stone-400 hover:text-rose-500 transition-colors p-1">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+          {/* Help */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-2">Help you needed</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {HELP_OPTIONS.map(help => {
+                const isSelected = currentEntry.help.includes(help);
+                return <button key={help} onClick={() => toggleArrayItem('help', help)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{help}</button>;
+              })}
+            </div>
+            {!expandedNotes['help'] ? (
+              <button onClick={() => toggleNote('help')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
+            ) : (
+              <textarea placeholder="Add details about the help you needed..." value={currentEntry.helpNotes} onChange={(e) => updateCurrent('helpNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
+            )}
+          </div>
 
-              <div className="p-5 space-y-6">
-                {/* Date */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-1.5">Date</label>
-                  <input type="date" value={entry.date} onChange={(e) => updateEntry(entry.id, 'date', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500" />
-                </div>
+          {/* Aids */}
+          <div>
+            <label className="block text-xs font-bold text-stone-700 mb-2">Aids or adaptations used</label>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {AIDS_OPTIONS.map(aid => {
+                const isSelected = currentEntry.aids.includes(aid);
+                return <button key={aid} onClick={() => toggleArrayItem('aids', aid)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{aid}</button>;
+              })}
+            </div>
+            {!expandedNotes['aids'] ? (
+              <button onClick={() => toggleNote('aids')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
+            ) : (
+              <textarea placeholder="Add details about the aids you used..." value={currentEntry.aidsNotes} onChange={(e) => updateCurrent('aidsNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
+            )}
+          </div>
 
-                {/* Feeling Score */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-2">How are you feeling today? (1-10)</label>
-                  <div className="flex justify-between items-center gap-1">
-                    {[1,2,3,4,5,6,7,8,9,10].map((score) => (
-                      <button key={score} onClick={() => updateEntry(entry.id, 'feelingScore', score)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all ${getScoreColor(score, entry.feelingScore === score)}`}>{score}</button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Tasks */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-2">Tasks you struggled with</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {TASK_OPTIONS.map((task) => {
-                      const isSelected = entry.tasks.includes(task);
-                      return <button key={task} onClick={() => toggleArrayItem(entry.id, 'tasks', task)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-stone-100 text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{task}</button>;
-                    })}
-                  </div>
-                  {!expandedNotes[`${entry.id}-tasks`] ? (
-                    <button onClick={() => toggleNote(entry.id, 'tasks')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
-                  ) : (
-                    <textarea placeholder="Add details about your struggles..." value={entry.tasksNotes} onChange={(e) => updateEntry(entry.id, 'tasksNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
-                  )}
-                </div>
-
-                {/* Help */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-2">Help you needed</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {HELP_OPTIONS.map((help) => {
-                      const isSelected = entry.help.includes(help);
-                      return <button key={help} onClick={() => toggleArrayItem(entry.id, 'help', help)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-stone-100 text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{help}</button>;
-                    })}
-                  </div>
-                  {!expandedNotes[`${entry.id}-help`] ? (
-                    <button onClick={() => toggleNote(entry.id, 'help')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
-                  ) : (
-                    <textarea placeholder="Add details about the help you needed..." value={entry.helpNotes} onChange={(e) => updateEntry(entry.id, 'helpNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
-                  )}
-                </div>
-
-                {/* Aids */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-700 mb-2">Aids or adaptations used</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {AIDS_OPTIONS.map((aid) => {
-                      const isSelected = entry.aids.includes(aid);
-                      return <button key={aid} onClick={() => toggleArrayItem(entry.id, 'aids', aid)} className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${isSelected ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-stone-100 text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{aid}</button>;
-                    })}
-                  </div>
-                  {!expandedNotes[`${entry.id}-aids`] ? (
-                    <button onClick={() => toggleNote(entry.id, 'aids')} className="text-xs text-emerald-600 font-medium hover:text-emerald-700">+ Add details</button>
-                  ) : (
-                    <textarea placeholder="Add details about the aids you used..." value={entry.aidsNotes} onChange={(e) => updateEntry(entry.id, 'aidsNotes', e.target.value)} rows={2} className="w-full mt-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none" />
-                  )}
-                </div>
-
-                {/* Mood & Energy */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-2">Mood</label>
-                    <div className="flex flex-wrap gap-2">
-                      {MOOD_OPTIONS.map((mood) => (
-                        <button key={mood} onClick={() => updateEntry(entry.id, 'mood', mood)} className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${entry.mood === mood ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-stone-100 text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{mood}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-2">Energy</label>
-                    <div className="flex flex-wrap gap-2">
-                      {ENERGY_OPTIONS.map((energy) => (
-                        <button key={energy} onClick={() => updateEntry(entry.id, 'energy', energy)} className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${entry.energy === energy ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-stone-100 text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{energy}</button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Other */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-500 mb-1.5">Anything else? (optional)</label>
-                  <textarea placeholder="Any other details about today..." value={entry.other} onChange={(e) => updateEntry(entry.id, 'other', e.target.value)} rows={2} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none placeholder:text-stone-400" />
-                </div>
-
-                {/* Summary */}
-                {hasSummaryContent(entry) && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`rounded-xl p-4 border ${improvedSummaries[entry.id] ? 'bg-purple-50 border-purple-200' : 'bg-emerald-50 border-emerald-200'}`}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">📝</span>
-                        <h4 className={`text-xs font-bold uppercase tracking-wider ${improvedSummaries[entry.id] ? 'text-purple-800' : 'text-emerald-800'}`}>Your diary entry</h4>
-                        {improvedSummaries[entry.id] && <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><Sparkles className="w-3 h-3" />Improved</span>}
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => improveSummary(entry)} disabled={improvingId === entry.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95 ${improvingId === entry.id ? 'bg-stone-100 text-stone-400 cursor-not-allowed' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
-                          {improvingId === entry.id ? <><RefreshCw className="w-3 h-3 animate-spin" />Improving...</> : <><Sparkles className="w-3 h-3" />Improve</>}
-                        </button>
-                        <button onClick={() => handleCopy(entry.id, getSummaryText(entry))} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all active:scale-95 ${copiedId === entry.id ? 'bg-emerald-200 text-emerald-800' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
-                          {copiedId === entry.id ? <><Check className="w-3 h-3" />Copied!</> : <><Copy className="w-3 h-3" />Copy</>}
-                        </button>
-                      </div>
-                    </div>
-                    <p className={`text-sm leading-relaxed ${improvedSummaries[entry.id] ? 'text-purple-900' : 'text-emerald-900'}`}>{getSummaryText(entry)}</p>
-                  </motion.div>
-                )}
+          {/* Mood & Energy */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-2">Mood</label>
+              <div className="flex flex-wrap gap-2">
+                {MOOD_OPTIONS.map(mood => (
+                  <button key={mood} onClick={() => updateCurrent('mood', mood)} className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${currentEntry.mood === mood ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{mood}</button>
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+            <div>
+              <label className="block text-xs font-bold text-stone-700 mb-2">Energy</label>
+              <div className="flex flex-wrap gap-2">
+                {ENERGY_OPTIONS.map(energy => (
+                  <button key={energy} onClick={() => updateCurrent('energy', energy)} className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${currentEntry.energy === energy ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-white text-stone-600 border-stone-200 hover:border-emerald-200'}`}>{energy}</button>
+                ))}
+              </div>
+            </div>
+          </div>
 
-        <button onClick={addDay} className="w-full bg-white border-2 border-dashed border-emerald-200 text-emerald-700 py-3.5 rounded-xl font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Another Day
-        </button>
+          {/* Other */}
+          <div>
+            <label className="block text-xs font-bold text-stone-500 mb-1.5">Anything else? (optional)</label>
+            <textarea placeholder="Any other details about today..." value={currentEntry.other} onChange={(e) => updateCurrent('other', e.target.value)} rows={2} className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none placeholder:text-stone-400" />
+          </div>
 
-        <div className="pt-4 border-t border-stone-200">
-          <button onClick={() => saveToDB(entries)} disabled={isSaving} className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-base hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 mb-4 disabled:opacity-60">
-            {isSaving ? <><Loader2 className="w-5 h-5 animate-spin" />Saving…</> : <><Save className="w-5 h-5" />Save Diary</>}
+          {/* Save button */}
+          <button onClick={saveEntry} disabled={isSaving} className="w-full bg-emerald-600 text-white py-4 rounded-xl font-bold text-base hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-60">
+            {isSaving ? <><Loader2 className="w-5 h-5 animate-spin" />Saving…</> : <><Save className="w-5 h-5" />Save Entry</>}
           </button>
 
-          <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-            <button onClick={() => setShowInstructions(!showInstructions)} className="w-full p-4 flex items-center justify-between bg-stone-50 hover:bg-stone-100 transition-colors">
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-stone-500" />
-                <span className="font-bold text-stone-900 text-sm">How to print or save to your phone</span>
-              </div>
-              {showInstructions ? <ChevronUp className="w-5 h-5 text-stone-500" /> : <ChevronDown className="w-5 h-5 text-stone-500" />}
-            </button>
-            <AnimatePresence>
-              {showInstructions && (
-                <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
-                  <div className="p-4 space-y-4 border-t border-stone-100 bg-white">
-                    <div>
-                      <h4 className="font-bold text-stone-900 text-sm mb-2">🍎 iPhone / iPad</h4>
-                      <ol className="text-xs text-stone-600 space-y-1.5 list-decimal list-inside pl-1">
-                        <li>Tap <strong>Save Diary</strong> above</li>
-                        <li>Take a screenshot or share the page via the Share icon</li>
-                        <li>Email it to yourself for safekeeping</li>
-                      </ol>
+        </div>
+      )}
+
+      {/* My Entries Tab */}
+      {view === 'entries' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-3 pb-10">
+
+          <button onClick={() => { setCurrentEntry(emptyEntry()); setView('new'); }} className="w-full bg-white border-2 border-dashed border-emerald-200 text-emerald-700 py-3 rounded-xl font-semibold text-sm hover:bg-emerald-50 hover:border-emerald-300 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mb-4">
+            <Plus className="w-4 h-4" />
+            Add New Entry
+          </button>
+
+          {savedEntries.length === 0 ? (
+            <div className="text-center py-12">
+              <BookOpen className="w-10 h-10 text-stone-300 mx-auto mb-3" />
+              <p className="text-sm text-stone-400">No entries yet. Start by adding your first day.</p>
+            </div>
+          ) : (
+            savedEntries.map(entry => (
+              <div key={entry.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setExpandedEntryId(expandedEntryId === entry.id ? null : entry.id)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 bg-emerald-50 rounded-full flex items-center justify-center shrink-0">
+                      <Calendar className="w-4 h-4 text-emerald-600" />
                     </div>
-                    <div className="pt-3 border-t border-stone-100">
-                      <h4 className="font-bold text-stone-900 text-sm mb-2">🤖 Android</h4>
-                      <ol className="text-xs text-stone-600 space-y-1.5 list-decimal list-inside pl-1">
-                        <li>Tap <strong>Save Diary</strong> above</li>
-                        <li>Take a screenshot or use the share menu</li>
-                        <li>Email it to yourself for safekeeping</li>
-                      </ol>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-stone-900">
+                        {entry.date ? new Date(entry.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : 'No date'}
+                      </p>
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {[entry.tasks.length > 0 && `${entry.tasks.length} struggle${entry.tasks.length !== 1 ? 's' : ''}`, entry.mood && entry.mood.replace(/^[^\s]+\s/, '')].filter(Boolean).join(' · ') || 'No details added'}
+                      </p>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform shrink-0 ${expandedEntryId === entry.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                <AnimatePresence>
+                  {expandedEntryId === entry.id && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                      <div className="border-t border-stone-100 p-4 space-y-4">
+
+                        {entry.tasks.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Struggled with</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {entry.tasks.map(t => <span key={t} className="text-xs bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-1 rounded-full">{t}</span>)}
+                            </div>
+                            {entry.tasksNotes && <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">{entry.tasksNotes}</p>}
+                          </div>
+                        )}
+
+                        {entry.help.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Needed help with</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {entry.help.map(h => <span key={h} className="text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-1 rounded-full">{h}</span>)}
+                            </div>
+                            {entry.helpNotes && <p className="text-xs text-stone-500 mt-1.5 leading-relaxed">{entry.helpNotes}</p>}
+                          </div>
+                        )}
+
+                        {entry.aids.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1.5">Aids used</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {entry.aids.map(a => <span key={a} className="text-xs bg-amber-50 text-amber-700 border border-amber-100 px-2 py-1 rounded-full">{a}</span>)}
+                            </div>
+                          </div>
+                        )}
+
+                        {(entry.mood || entry.energy) && (
+                          <div className="flex gap-4">
+                            {entry.mood && <div><p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Mood</p><p className="text-xs text-stone-700">{entry.mood}</p></div>}
+                            {entry.energy && <div><p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Energy</p><p className="text-xs text-stone-700">{entry.energy}</p></div>}
+                          </div>
+                        )}
+
+                        {entry.other && (
+                          <div>
+                            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Other notes</p>
+                            <p className="text-xs text-stone-600 leading-relaxed">{entry.other}</p>
+                          </div>
+                        )}
+
+                        {hasSummaryContent(entry) && (
+                          <div className={`rounded-xl p-4 border ${improvedSummaries[entry.id] ? 'bg-purple-50 border-purple-200' : 'bg-emerald-50 border-emerald-200'}`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <h4 className={`text-xs font-bold uppercase tracking-wider ${improvedSummaries[entry.id] ? 'text-purple-800' : 'text-emerald-800'}`}>Diary summary</h4>
+                                {improvedSummaries[entry.id] && <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full"><Sparkles className="w-3 h-3" />Improved</span>}
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <button onClick={() => improveSummary(entry)} disabled={improvingId === entry.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${improvingId === entry.id ? 'bg-stone-100 text-stone-400' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
+                                  {improvingId === entry.id ? <><RefreshCw className="w-3 h-3 animate-spin" />Improving...</> : <><Sparkles className="w-3 h-3" />Improve</>}
+                                </button>
+                                <button onClick={() => handleCopy(entry.id, getSummaryText(entry))} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${copiedId === entry.id ? 'bg-emerald-200 text-emerald-800' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>
+                                  {copiedId === entry.id ? <><Check className="w-3 h-3" />Copied!</> : <><Copy className="w-3 h-3" />Copy</>}
+                                </button>
+                              </div>
+                            </div>
+                            <p className={`text-xs leading-relaxed ${improvedSummaries[entry.id] ? 'text-purple-900' : 'text-emerald-900'}`}>{getSummaryText(entry)}</p>
+                          </div>
+                        )}
+
+                        <button onClick={() => deleteEntry(entry.id)} className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-rose-500 transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete entry
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }
