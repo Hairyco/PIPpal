@@ -44,6 +44,8 @@ export function MedicalProfile() {
       if (medProfile.conditions.length === 0 && !medProfile.medications && !medProfile.notes) {
         setIsLoading(true);
       }
+      // Safety timeout — never spin for more than 3 seconds
+      const timeout = setTimeout(() => setIsLoading(false), 3000);
       try {
         const { data, error } = await supabase
           .from('medical_profiles')
@@ -64,6 +66,7 @@ export function MedicalProfile() {
       } catch {
         // No profile yet — use defaults
       } finally {
+        clearTimeout(timeout);
         setIsLoading(false);
       }
     };
