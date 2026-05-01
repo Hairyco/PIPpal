@@ -218,7 +218,7 @@ function AppContent() {
       case 'payment_calculator': return <PaymentCalculatorScreen />;
       case 'backpay_calculator': return <BackpayCalculatorScreen />;
       case 'assessment_prep': return hasPaid ? <AssessmentPrep /> : <UpsellScreen />;
-      case 'pip_diary': return <PIPDiaryScreen />;
+      case 'pip_diary': return <PIPDiaryScreen hasPaid={hasPaid} />;
       case 'downloads': return hasPaid ? <Downloads /> : <UpsellScreen />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
