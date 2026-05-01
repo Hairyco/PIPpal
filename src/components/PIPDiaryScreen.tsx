@@ -59,12 +59,35 @@ const formatWeekLabel = (weekStart: string) => {
 };
 
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
-  const { goBack, user, showToast, navigateTo } = useAppContext();
+  const { goBack, user, showToast, navigateTo, savedAnswers, medProfile } = useAppContext();
+
+  // Map question answers to activity pre-fills
+  const Q_TO_ACTIVITY: Record<string, string> = {
+    q1: 'food', q2: 'eating', q3: 'therapy', q4: 'washing',
+    q5: 'toilet', q6: 'dressing', q7: 'talking', q8: 'reading',
+    q9: 'mixing', q10: 'money', q11: 'out', q12: 'moving',
+  };
+
+  const ACTIVITY_LABELS: Record<string, string> = {
+    food: 'preparing food', eating: 'eating and drinking', therapy: 'managing treatments',
+    washing: 'washing and bathing', toilet: 'toilet needs', dressing: 'dressing and undressing',
+    talking: 'talking and understanding', reading: 'reading', mixing: 'mixing with other people',
+    money: 'managing money', out: 'going out', moving: 'moving around',
+  };
+
+  const getAutoNote = (activityId: string): string => {
+    const qId = Object.entries(Q_TO_ACTIVITY).find(([, aid]) => aid === activityId)?.[0];
+    if (!qId || !savedAnswers[qId]) return '';
+    const answer = savedAnswers[qId].replace(/<[^>]*>/g, '').trim();
+    if (!answer || answer.startsWith('Descriptor')) return '';
+    return answer;
+  };
   const [weeks, setWeeks] = useState<WeekEntry[]>([emptyWeek()]);
   const [currentWeekId, setCurrentWeekId] = useState<string>('');
   const [expandedCell, setExpandedCell] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [improvingCell, setImprovingCell] = useState<string | null>(null);
   const [view, setView] = useState<'diary' | 'entries'>('diary');
 
   useEffect(() => {
@@ -96,6 +119,17 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
 
   const currentWeek = weeks.find(w => w.id === currentWeekId) || weeks[0];
 
+  // Auto-populate cells from saved answers if empty
+  const getNoteOrAuto = (day: string, activityId: string): string => {
+    return currentWeek?.notes[day]?.[activityId] ?? '';
+  };
+
+  const getDisplayNote = (day: string, activityId: string): string => {
+    const saved = currentWeek?.notes[day]?.[activityId];
+    if (saved !== undefined) return saved;
+    return getAutoNote(activityId);
+  };
+
   const updateNote = (day: string, activityId: string, value: string) => {
     setWeeks(prev => prev.map(w => {
       if (w.id !== currentWeek.id) return w;
@@ -107,6 +141,36 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
         },
       };
     }));
+  };
+
+  const improveNote = async (day: string, activityId: string) => {
+    const note = currentWeek?.notes[day]?.[activityId] || getAutoNote(activityId);
+    if (!note) return;
+    const cellKey = `${day}-${activityId}`;
+    setImprovingCell(cellKey);
+    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Rewrite this PIP diary note to be more effective for a DWP assessor. Make it specific, focus on inability to do the task safely, reliably and repeatedly. Reference the activity: ${ACTIVITY_LABELS[activityId]}. The person has: ${conditions}. Current note: "${note}". Return only the improved note text, no preamble.`,
+          medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
+          conversationHistory: [],
+        }),
+      });
+      const data = await response.json();
+      if (data.reply) {
+        updateNote(day, activityId, data.reply.trim());
+      }
+    } catch { } finally {
+      setImprovingCell(null);
+    }
+  };
+
+  const redoNote = (day: string, activityId: string) => {
+    const auto = getAutoNote(activityId);
+    updateNote(day, activityId, auto);
   };
 
   const saveWeek = async () => {
@@ -155,22 +219,20 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
       const rowsHtml = DAYS.map(day => {
         const cells = ACTIVITIES.map(act => {
           const note = week.notes[day]?.[act.id] || '';
-          return `<td>${note}</td>`;
+          return `<td>${note.replace(/\n/g, '<br/>')}</td>`;
         }).join('');
-        return `<tr><td class="day">${day}</td>${cells}</tr>`;
+        return `<tr><td class="day-cell">${day}</td>${cells}</tr>`;
       }).join('');
       return `
         <div class="week">
-          <h2>Week of ${formatWeekLabel(week.weekStart)}</h2>
-          <div class="table-wrap">
-            <table>
-              <thead><tr>
-                <th>Day</th>
-                ${ACTIVITIES.map(a => `<th>${a.label}</th>`).join('')}
-              </tr></thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </div>
+          <p class="week-title">Weekly diary &nbsp;&nbsp; Week of: ${formatWeekLabel(week.weekStart)}</p>
+          <table>
+            <thead><tr>
+              <th style="width:60px">Day</th>
+              ${ACTIVITIES.map(a => `<th>${a.label}</th>`).join('')}
+            </tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
         </div>`;
     }).join('');
 
@@ -178,24 +240,24 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PIP Diary</title>
+<title>Weekly Diary</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 30px; color: #1c1917; }
-  h1 { font-size: 20px; margin-bottom: 4px; }
-  .subtitle { font-size: 12px; color: #78716c; margin-bottom: 30px; }
-  .week { margin-bottom: 40px; page-break-inside: avoid; }
-  .week h2 { font-size: 15px; color: #0f766e; margin-bottom: 10px; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  th { background: #f0fdf4; border: 1px solid #d1fae5; padding: 6px 4px; text-align: left; font-size: 10px; min-width: 80px; }
-  td { border: 1px solid #e7e5e4; padding: 6px 4px; vertical-align: top; min-height: 50px; min-width: 80px; }
-  td.day { background: #f5f5f4; font-weight: bold; font-size: 11px; min-width: 70px; }
-  @media print { body { margin: 15px; } .week { page-break-inside: avoid; } }
+  body { font-family: Arial, sans-serif; margin: 20px; color: #000; font-size: 11px; }
+  h1 { font-size: 16px; font-weight: bold; margin-bottom: 4px; }
+  .subtitle { font-size: 11px; margin-bottom: 20px; }
+  .week { margin-bottom: 30px; page-break-before: always; }
+  .week:first-child { page-break-before: avoid; }
+  .week-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { border: 1px solid #000; padding: 5px 4px; text-align: left; font-size: 10px; font-weight: bold; background: #fff; vertical-align: top; min-width: 70px; }
+  td { border: 1px solid #000; padding: 4px; vertical-align: top; height: 80px; min-width: 70px; font-size: 10px; }
+  td.day-cell { font-weight: bold; background: #fff; width: 60px; height: 80px; }
+  @media print { body { margin: 10px; } .week { page-break-before: always; } .week:first-child { page-break-before: avoid; } }
 </style>
 </head>
 <body>
-<h1>PIP Diary</h1>
-<p class="subtitle">This diary records how my health condition affects my daily life and is provided as supporting evidence for my PIP claim.</p>
+<h1>Weekly diary</h1>
+<p class="subtitle">Please use this diary to record how your condition affects you each day. Describe what you struggled with, any help you needed, and any aids or adaptations you used.</p>
 ${weeksHtml}
 </body>
 </html>`;
@@ -311,27 +373,44 @@ ${weeksHtml}
                 return (
                   <div key={act.id} className="border-l border-stone-200 relative">
                     {isExpanded ? (
-                      <div className="absolute z-20 top-0 left-0 w-64 bg-white shadow-xl border border-teal-200 rounded-xl overflow-hidden">
+                      <div className="absolute z-20 top-0 left-0 w-72 bg-white shadow-xl border border-teal-200 rounded-xl overflow-hidden">
                         <div className="flex items-center justify-between px-3 py-2 bg-teal-50 border-b border-teal-100">
                           <p className="text-[10px] font-bold text-teal-800">{day} — {act.label}</p>
                           <button onClick={() => setExpandedCell(null)} className="text-[10px] text-teal-600 font-medium">Done</button>
                         </div>
                         <textarea
                           autoFocus
-                          value={note}
+                          value={getDisplayNote(day, act.id)}
                           onChange={e => updateNote(day, act.id, e.target.value)}
-                          placeholder="What happened? Describe difficulties, help needed, aids used..."
+                          placeholder="Describe what happened today. Include whether you could do this safely, if you needed help, or used any aids."
                           className="w-full p-3 text-xs text-stone-700 resize-none focus:outline-none min-h-[100px]"
                           rows={4}
                         />
+                        <div className="flex gap-1.5 px-3 py-2 border-t border-stone-100">
+                          <button
+                            onClick={() => improveNote(day, act.id)}
+                            disabled={improvingCell === cellKey}
+                            className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-700 py-1.5 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50"
+                          >
+                            {improvingCell === cellKey ? '✨ Improving...' : '✨ Improve'}
+                          </button>
+                          <button
+                            onClick={() => redoNote(day, act.id)}
+                            className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold bg-stone-50 text-stone-600 py-1.5 rounded-lg hover:bg-stone-100 transition-colors"
+                          >
+                            ↩ Reset
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <button
                         onClick={() => setExpandedCell(isExpanded ? null : cellKey)}
                         className="w-full h-full min-h-[52px] px-1.5 py-1.5 text-left hover:bg-teal-50 transition-colors"
                       >
-                        {note ? (
-                          <p className="text-[10px] text-stone-700 leading-relaxed line-clamp-3">{note}</p>
+                        {getDisplayNote(day, act.id) ? (
+                          <p className={`text-[10px] leading-relaxed line-clamp-3 ${currentWeek?.notes[day]?.[act.id] ? 'text-stone-700' : 'text-stone-400 italic'}`}>
+                            {getDisplayNote(day, act.id)}
+                          </p>
                         ) : (
                           <p className="text-[10px] text-stone-300">Tap to add</p>
                         )}
