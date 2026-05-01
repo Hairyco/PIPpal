@@ -38,18 +38,18 @@ export function QuestionChat() {
   const question = getQuestion(selectedQuestionId || 'q1');
   const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
-  const [messages, setMessages] = useState<Message[]>([
-  {
-    id: '1',
-    sender: 'bot',
-    text: isQ1
-      ? "Let's talk about preparing food. Can you plan and cook a simple meal on your own?"
-      : `Let's talk about ${question?.shortTitle?.toLowerCase() || 'this activity'}. ${question?.chatOpener || 'How does your condition affect this activity?'}`
-  }]
+  const [messages, setMessages] = useState<Message[]>(
+    isQ1 ? [{
+      id: '1',
+      sender: 'bot',
+      text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?"
+    }] : []
   );
   const [currentStep, setCurrentStep] = useState<Step>('q1');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
+  const [currentOptions, setCurrentOptions] = useState<string[]>([]);
+  const [aiInitialised, setAiInitialised] = useState(false);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -144,49 +144,37 @@ export function QuestionChat() {
     navigateTo('q1_result');
   };
 
-  const handleAiSend = async () => {
-    if (!inputText.trim() || aiLoading) return;
-    const userMsg = inputText.trim();
-    setInputText('');
-    const newMsg: Message = { id: Date.now().toString(), sender: 'user', text: userMsg };
-    setMessages(prev => [...prev, newMsg]);
+  const callAI = async (userMsg: string, conv: {role: string; content: string}[]) => {
     setAiLoading(true);
-
-    const updatedConv = [...aiConversation, { role: 'user', content: userMsg }];
-    setAiConversation(updatedConv);
-
+    setCurrentOptions([]);
     try {
-      const systemPrompt = `You are guiding a PIP claimant through the "${question?.title}" activity question.
-Conditions: ${conditions}.
-Descriptors for this question: ${question?.descriptors?.map((d: any) => `${d.code}: ${d.label} (${d.points} points)`).join(', ')}.
-Your job: Ask focused follow-up questions to understand how their condition affects this specific activity. Focus on their worst days, whether they can do it safely, reliably, repeatedly and in reasonable time. After 2-3 exchanges, suggest which descriptor fits best and end with: RESULT:[descriptor_code] on its own line.
-Keep responses under 80 words. Plain English. No ** or !!.`;
-
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: userMsg,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
-          conversationHistory: updatedConv.slice(0, -1),
-          questionSystemPrompt: systemPrompt,
+          conversationHistory: conv,
+          buttonMode: true,
+          questionData: {
+            title: question?.title,
+            descriptors: question?.descriptors,
+          },
         }),
       });
       const data = await response.json();
-      const reply = data.reply || '';
+      const structured = data.structured || {};
+      const botMsg = structured.message || 'Could not generate response.';
+      const options = structured.options || [];
+      const result = structured.result || null;
 
-      // Check if AI has suggested a result
-      const resultMatch = reply.match(/RESULT:([A-F])/);
-      if (resultMatch) {
-        const descriptor = resultMatch[1];
-        const cleanReply = reply.replace(/RESULT:[A-F]/, '').trim();
-        if (cleanReply) {
-          setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: cleanReply }]);
-        }
-        setTimeout(() => finishChat(descriptor), 1500);
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: botMsg }]);
+      setAiConversation(prev => [...prev, { role: 'assistant', content: botMsg }]);
+
+      if (result) {
+        setTimeout(() => finishChat(result), 1200);
       } else {
-        setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: reply }]);
-        setAiConversation(prev => [...prev, { role: 'assistant', content: reply }]);
+        setCurrentOptions(options);
       }
     } catch {
       setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: 'Sorry, something went wrong. Please try again.' }]);
@@ -194,6 +182,23 @@ Keep responses under 80 words. Plain English. No ** or !!.`;
       setAiLoading(false);
     }
   };
+
+  const handleOptionClick = async (option: string) => {
+    const newMsg: Message = { id: Date.now().toString(), sender: 'user', text: option };
+    setMessages(prev => [...prev, newMsg]);
+    const updatedConv = [...aiConversation, { role: 'user', content: option }];
+    setAiConversation(updatedConv);
+    await callAI(option, updatedConv);
+  };
+
+  // Initialise AI chat for Q2-Q12 on mount
+  useEffect(() => {
+    if (!isQ1 && !aiInitialised) {
+      setAiInitialised(true);
+      const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
+      callAI(`START: ${opener}`, []);
+    }
+  }, [isQ1, aiInitialised]);
   const getScoreInfo = (): {
     descriptor: string;
     points: number;
@@ -487,25 +492,24 @@ Keep responses under 80 words. Plain English. No ** or !!.`;
           )}
         </div>
 
-        <div className="p-4 bg-white border-t border-stone-100">
-          <div className="flex items-end gap-2 bg-stone-50 rounded-2xl border border-stone-200 p-2">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAiSend(); } }}
-              placeholder="Type your answer here..."
-              className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
-              rows={1}
-            />
-            <button
-              onClick={handleAiSend}
-              disabled={!inputText.trim() || aiLoading}
-              className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
-              <Send className="w-5 h-5" />
-            </button>
+        {currentOptions.length > 0 && !aiLoading && (
+          <div className="p-4 bg-white border-t border-stone-100 space-y-2">
+            {currentOptions.map((opt, i) => (
+              <button
+                key={i}
+                onClick={() => handleOptionClick(opt)}
+                className="w-full text-left px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm text-stone-800 font-medium hover:border-teal-400 hover:bg-teal-50 active:scale-[0.98] transition-all shadow-sm"
+              >
+                {opt}
+              </button>
+            ))}
           </div>
-          <p className="text-[10px] text-stone-400 text-center mt-2">Describe your worst days. Focus on what you cannot do safely or reliably.</p>
-        </div>
+        )}
+        {aiLoading && (
+          <div className="p-4 bg-white border-t border-stone-100 text-center">
+            <p className="text-xs text-stone-400">Thinking...</p>
+          </div>
+        )}
       </div>
     );
   }
