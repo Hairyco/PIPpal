@@ -616,7 +616,7 @@ export function EligibilityChecker() {
 
             <p className="text-sm text-stone-600 leading-relaxed">
               PIP is a tax-free benefit for people aged 16–66 with a long-term
-              health condition or disability that affects daily life. Over 3.5
+              health condition or disability that affects daily life. Over 3.9
               million people in the UK currently claim it. It's not means-tested
               — you can claim whether you're employed, self-employed, or not
               working. Your income and savings do not affect it.
@@ -711,15 +711,6 @@ export function EligibilityChecker() {
               <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-1 rounded-full font-medium">
                 + many more
               </span>
-            </div>
-          </div>
-
-          {/* Urgency banner */}
-          <div className="bg-amber-500 rounded-2xl px-4 py-4 flex items-start gap-3 shadow-sm">
-            <span className="text-white text-base mt-0.5">⚠️</span>
-            <div>
-              <p className="text-white font-bold text-sm leading-snug">PIP rules are changing in late 2026</p>
-              <p className="text-amber-100 text-xs leading-relaxed mt-1">The government is tightening eligibility thresholds. If you think you qualify, applying now could protect your entitlement. Do not wait.</p>
             </div>
           </div>
 
