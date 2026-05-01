@@ -205,6 +205,38 @@ export function QuestionChat() {
     await callAI(option, updatedConv);
   };
 
+  const handleMicClick = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in this browser. Please type your answer.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-GB';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.onresult = (e: any) => {
+      let transcript = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          transcript += e.results[i][0].transcript + ' ';
+        }
+      }
+      if (transcript.trim()) {
+        setInputText((prev: string) => (prev ? prev + ' ' : '') + transcript.trim());
+      }
+    };
+    recognition.onend = () => setIsRecording(false);
+    recognition.onerror = () => setIsRecording(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  };
+
   const handleFreeTextSubmit = async () => {
     if (!inputText.trim() || aiLoading) return;
     const userMsg = inputText.trim();
