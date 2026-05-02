@@ -2,55 +2,55 @@ import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Lock,
-  Calendar,
-  CheckCircle2,
-  ChevronDown,
   Loader2,
   Save,
   Download,
   Plus,
-  Trash2,
-  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { PIP_QUESTIONS } from '../pipQuestions';
-import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
+import { PIP_QUESTIONS } from '../pipQuestions';
 
 const ACTIVITIES = [
-  { id: 'food', label: 'Preparing food' },
-  { id: 'eating', label: 'Eating & drinking' },
-  { id: 'therapy', label: 'Managing treatments' },
-  { id: 'washing', label: 'Washing & bathing' },
-  { id: 'toilet', label: 'Toilet needs' },
-  { id: 'dressing', label: 'Dressing & undressing' },
-  { id: 'talking', label: 'Talking & understanding' },
-  { id: 'reading', label: 'Reading' },
-  { id: 'mixing', label: 'Mixing with people' },
-  { id: 'money', label: 'Managing money' },
-  { id: 'out', label: 'Going out' },
-  { id: 'moving', label: 'Moving around' },
+  { id: 'food', label: 'Preparing food', qId: 'q1' },
+  { id: 'eating', label: 'Eating and drinking', qId: 'q2' },
+  { id: 'therapy', label: 'Managing treatments', qId: 'q3' },
+  { id: 'washing', label: 'Washing and bathing', qId: 'q4' },
+  { id: 'toilet', label: 'Managing toilet needs', qId: 'q5' },
+  { id: 'dressing', label: 'Dressing and undressing', qId: 'q6' },
+  { id: 'talking', label: 'Talking, listening and understanding', qId: 'q7' },
+  { id: 'reading', label: 'Reading', qId: 'q8' },
+  { id: 'mixing', label: 'Mixing with other people', qId: 'q9' },
+  { id: 'money', label: 'Making decisions about money', qId: 'q10' },
+  { id: 'out', label: 'Going out', qId: 'q11' },
+  { id: 'moving', label: 'Moving around', qId: 'q12' },
 ];
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 interface WeekEntry {
   id: string;
-  weekStart: string; // ISO date of Monday
-  notes: Record<string, Record<string, string>>; // notes[day][activityId]
+  weekStart: string;
+  notes: Record<string, Record<string, string>>;
 }
 
-const emptyWeek = (): WeekEntry => {
+const getMonday = () => {
   const now = new Date();
   const day = now.getDay();
   const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
-  return {
-    id: Date.now().toString(),
-    weekStart: monday.toISOString().split('T')[0],
-    notes: {},
-  };
+  const monday = new Date(now);
+  monday.setDate(diff);
+  return monday.toISOString().split('T')[0];
 };
+
+const emptyWeek = (): WeekEntry => ({
+  id: Date.now().toString(),
+  weekStart: getMonday(),
+  notes: {},
+});
 
 const formatWeekLabel = (weekStart: string) => {
   const start = new Date(weekStart + 'T00:00:00');
@@ -59,45 +59,23 @@ const formatWeekLabel = (weekStart: string) => {
   return `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 };
 
+const getDayDate = (weekStart: string, dayIndex: number) => {
+  const d = new Date(weekStart + 'T00:00:00');
+  d.setDate(d.getDate() + dayIndex);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const { goBack, user, showToast, navigateTo, savedAnswers, medProfile } = useAppContext();
-
-  // Map question answers to activity pre-fills
-  const Q_TO_ACTIVITY: Record<string, string> = {
-    q1: 'food', q2: 'eating', q3: 'therapy', q4: 'washing',
-    q5: 'toilet', q6: 'dressing', q7: 'talking', q8: 'reading',
-    q9: 'mixing', q10: 'money', q11: 'out', q12: 'moving',
-  };
-
-  const ACTIVITY_LABELS: Record<string, string> = {
-    food: 'preparing food', eating: 'eating and drinking', therapy: 'managing treatments',
-    washing: 'washing and bathing', toilet: 'toilet needs', dressing: 'dressing and undressing',
-    talking: 'talking and understanding', reading: 'reading', mixing: 'mixing with other people',
-    money: 'managing money', out: 'going out', moving: 'moving around',
-  };
-
-  const getDescriptors = (activityId: string) => {
-    const qId = Object.entries(Q_TO_ACTIVITY).find(([, aid]) => aid === activityId)?.[0];
-    if (!qId) return [];
-    const q = PIP_QUESTIONS.find(q => q.id === qId);
-    return q?.descriptors || [];
-  };
-
-  const getAutoNote = (activityId: string): string => {
-    const qId = Object.entries(Q_TO_ACTIVITY).find(([, aid]) => aid === activityId)?.[0];
-    if (!qId || !savedAnswers[qId]) return '';
-    const answer = savedAnswers[qId].replace(/<[^>]*>/g, '').trim();
-    if (!answer || answer.startsWith('Descriptor')) return '';
-    return answer;
-  };
   const [weeks, setWeeks] = useState<WeekEntry[]>([emptyWeek()]);
   const [currentWeekId, setCurrentWeekId] = useState<string>('');
-  const [expandedCell, setExpandedCell] = useState<string | null>(null);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+  const [expandedActivity, setExpandedActivity] = useState<string | null>(null);
+  const [showDescPanel, setShowDescPanel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [improvingCell, setImprovingCell] = useState<string | null>(null);
-  const [showDescPanel, setShowDescPanel] = useState(false);
-  const [view, setView] = useState<'diary' | 'entries'>('diary');
+  const [showWeekPicker, setShowWeekPicker] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -113,7 +91,6 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
           }));
           setWeeks(loaded);
           setCurrentWeekId(loaded[0].id);
-          setView('diary');
         } else {
           const w = emptyWeek();
           setWeeks([w]);
@@ -127,59 +104,62 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   }, [user?.id]);
 
   const currentWeek = weeks.find(w => w.id === currentWeekId) || weeks[0];
+  const currentDay = DAYS[currentDayIndex];
 
-  // Auto-populate cells from saved answers if empty
-  const getNoteOrAuto = (day: string, activityId: string): string => {
-    return currentWeek?.notes[day]?.[activityId] ?? '';
+  const getNote = (activityId: string) =>
+    currentWeek?.notes[currentDay]?.[activityId] ?? '';
+
+  const getAutoNote = (qId: string) => {
+    if (!qId || !savedAnswers[qId]) return '';
+    const answer = savedAnswers[qId].replace(/<[^>]*>/g, '').trim();
+    if (!answer || answer.startsWith('Descriptor')) return '';
+    return answer;
   };
 
-  const getDisplayNote = (day: string, activityId: string): string => {
-    const saved = currentWeek?.notes[day]?.[activityId];
+  const getDisplayNote = (activityId: string, qId: string) => {
+    const saved = currentWeek?.notes[currentDay]?.[activityId];
     if (saved !== undefined) return saved;
-    return getAutoNote(activityId);
+    return getAutoNote(qId);
   };
 
-  const updateNote = (day: string, activityId: string, value: string) => {
+  const updateNote = (activityId: string, value: string) => {
     setWeeks(prev => prev.map(w => {
-      if (w.id !== currentWeek.id) return w;
+      if (w.id !== currentWeek?.id) return w;
       return {
         ...w,
         notes: {
           ...w.notes,
-          [day]: { ...(w.notes[day] || {}), [activityId]: value },
+          [currentDay]: { ...(w.notes[currentDay] || {}), [activityId]: value },
         },
       };
     }));
   };
 
-  const improveNote = async (day: string, activityId: string) => {
-    const note = currentWeek?.notes[day]?.[activityId] || getAutoNote(activityId);
+  const getDescriptors = (qId: string) => {
+    const q = PIP_QUESTIONS.find(q => q.id === qId);
+    return q?.descriptors?.filter((d: any) => d.points > 0) || [];
+  };
+
+  const improveNote = async (activityId: string, qId: string) => {
+    const note = getDisplayNote(activityId, qId);
     if (!note) return;
-    const cellKey = `${day}-${activityId}`;
-    setImprovingCell(cellKey);
+    setImprovingCell(activityId);
     const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Rewrite this PIP diary note to be more effective for a DWP assessor. Make it specific, focus on inability to do the task safely, reliably and repeatedly. Reference the activity: ${ACTIVITY_LABELS[activityId]}. The person has: ${conditions}. Current note: "${note}". Return only the improved note text, no preamble.`,
+          message: `Rewrite this PIP diary note to be more effective for a DWP assessor. Make it specific, focus on inability to do the task safely, reliably and repeatedly. The activity is: ${ACTIVITIES.find(a => a.id === activityId)?.label}. The person has: ${conditions}. Current note: "${note}". Return only the improved note, no preamble.`,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
           conversationHistory: [],
         }),
       });
       const data = await response.json();
-      if (data.reply) {
-        updateNote(day, activityId, data.reply.trim());
-      }
+      if (data.reply) updateNote(activityId, data.reply.trim());
     } catch { } finally {
       setImprovingCell(null);
     }
-  };
-
-  const redoNote = (day: string, activityId: string) => {
-    const auto = getAutoNote(activityId);
-    updateNote(day, activityId, auto);
   };
 
   const saveWeek = async () => {
@@ -194,58 +174,43 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
         if (data) setWeeks(prev => prev.map(w => w.id === currentWeek.id ? { ...w, id: data.id } : w));
       }
       showToast('Diary saved!', 'success');
-    } catch {
-      showToast('Saved locally.', 'info');
-    } finally {
-      setIsSaving(false);
-    }
+    } catch { showToast('Saved locally.', 'info'); } finally { setIsSaving(false); }
   };
 
   const addNewWeek = () => {
     const w = emptyWeek();
     setWeeks(prev => [w, ...prev]);
     setCurrentWeekId(w.id);
-    setView('diary');
-  };
-
-  const deleteWeek = async (id: string) => {
-    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(id);
-    if (isUUID && user?.id) await supabase.from('diary_entries').delete().eq('id', id).eq('user_id', user.id);
-    const remaining = weeks.filter(w => w.id !== id);
-    if (remaining.length === 0) {
-      const w = emptyWeek();
-      setWeeks([w]);
-      setCurrentWeekId(w.id);
-    } else {
-      setWeeks(remaining);
-      setCurrentWeekId(remaining[0].id);
-    }
-    showToast('Week deleted.', 'info');
+    setCurrentDayIndex(0);
+    setShowWeekPicker(false);
   };
 
   const exportDiary = () => {
     const weeksHtml = weeks.map(week => {
-      const rowsHtml = DAYS.map(day => {
-        const cells = ACTIVITIES.map(act => {
+      const daysHtml = DAYS.map((day, di) => {
+        const date = getDayDate(week.weekStart, di);
+        const rowsHtml = ACTIVITIES.map(act => {
           const note = week.notes[day]?.[act.id] || '';
-          return `<td>${note.replace(/\n/g, '<br/>')}</td>`;
+          return `<tr>
+            <td class="act-cell"><strong>${act.label}</strong></td>
+            <td class="note-cell">${note.replace(/\n/g, '<br/>')}</td>
+          </tr>`;
         }).join('');
-        return `<tr><td class="day-cell">${day}</td>${cells}</tr>`;
-      }).join('');
-      return `
-        <div class="week">
-          <div style="display:flex;justify-content:space-between;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:8px;">
-            <span style="font-size:13px;font-weight:bold;">Weekly diary</span>
-            <span style="font-size:11px;">Week of: ${formatWeekLabel(week.weekStart)}</span>
+        return `<div class="day-section">
+          <div class="day-header">
+            <span class="day-name">${day}</span>
+            <span class="day-date">${date}</span>
           </div>
           <table>
-            <thead><tr>
-              <th style="width:55px;">Day</th>
-              ${ACTIVITIES.map(a => `<th>${a.label}</th>`).join('')}
-            </tr></thead>
+            <thead><tr><th class="act-header">Activity</th><th>What happened</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>`;
+      }).join('');
+      return `<div class="week-section">
+        <div class="week-label">Week of ${formatWeekLabel(week.weekStart)}</div>
+        ${daysHtml}
+      </div>`;
     }).join('');
 
     const html = `<!DOCTYPE html>
@@ -261,17 +226,21 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   .field { display: flex; align-items: center; gap: 6px; }
   .field label { font-weight: bold; font-size: 10px; white-space: nowrap; }
   .field .line { border-bottom: 1px solid #000; min-width: 160px; height: 16px; }
-  .instructions { font-size: 10px; margin-bottom: 14px; line-height: 1.5; }
-  .week { margin-bottom: 20px; page-break-before: always; }
-  .week:first-child { page-break-before: avoid; }
-  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-  th { border: 1px solid #000; padding: 4px 3px; text-align: left; font-size: 9px; font-weight: bold; vertical-align: top; word-wrap: break-word; }
-  td { border: 1px solid #000; padding: 3px; vertical-align: top; height: 72px; font-size: 9px; word-wrap: break-word; }
-  td.day-cell { font-weight: bold; width: 55px; }
+  .instructions { font-size: 10px; margin-bottom: 14px; line-height: 1.5; border-bottom: 1px solid #000; padding-bottom: 8px; }
+  .week-section { margin-bottom: 20px; }
+  .week-label { font-size: 12px; font-weight: bold; margin-bottom: 10px; background: #f5f5f5; padding: 4px 8px; border: 1px solid #000; }
+  .day-section { margin-bottom: 16px; page-break-inside: avoid; }
+  .day-header { display: flex; justify-content: space-between; border: 1px solid #000; background: #fff; padding: 5px 8px; font-weight: bold; font-size: 11px; }
+  .day-date { font-weight: normal; font-size: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 0; }
+  th { border: 1px solid #000; border-top: none; padding: 4px 6px; text-align: left; font-size: 10px; font-weight: bold; background: #fff; }
+  th.act-header { width: 35%; }
+  td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; font-size: 10px; }
+  td.act-cell { width: 35%; font-weight: bold; background: #fff; }
+  td.note-cell { min-height: 30px; height: 40px; }
   @media print {
     body { margin: 10mm; }
-    .week { page-break-before: always; }
-    .week:first-child { page-break-before: avoid; }
+    .day-section { page-break-inside: avoid; }
   }
 </style>
 </head>
@@ -300,22 +269,16 @@ ${weeksHtml}
     return (
       <div className="flex flex-col h-full bg-stone-50">
         <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all"><ArrowLeft className="w-5 h-5" /></button>
           <h1 className="font-bold text-stone-900 text-lg">PIP Diary</h1>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-5">
-          <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center">
-            <Lock className="w-8 h-8 text-teal-600" />
-          </div>
+          <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center"><Lock className="w-8 h-8 text-teal-600" /></div>
           <div>
             <h2 className="font-bold text-stone-900 text-lg mb-2">Full Access required</h2>
-            <p className="text-sm text-stone-500 leading-relaxed">The PIP Diary is available to Full Access users. Unlock it for a one-time payment of £12.99.</p>
+            <p className="text-sm text-stone-500 leading-relaxed">The PIP Diary is available to Full Access users. Unlock for £12.99 one-time.</p>
           </div>
-          <button onClick={() => navigateTo('upsell')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">
-            Unlock Full Access — £12.99
-          </button>
+          <button onClick={() => navigateTo('upsell')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">Unlock Full Access — £12.99</button>
         </div>
       </div>
     );
@@ -335,168 +298,168 @@ ${weeksHtml}
 
       {/* Header */}
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <h1 className="font-bold text-stone-900 text-lg">PIP Diary</h1>
-        <div className="ml-auto flex items-center gap-2">
-          <button onClick={exportDiary} className="flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-teal-700 transition-colors">
-            <Download className="w-4 h-4" />
-            Export
-          </button>
-          <button onClick={saveWeek} disabled={isSaving} className="flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-60">
-            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            {isSaving ? 'Saving…' : 'Save'}
+        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95"><ArrowLeft className="w-5 h-5" /></button>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-bold text-stone-900 text-base">PIP Diary</h1>
+          <button onClick={() => setShowWeekPicker(!showWeekPicker)} className="text-xs text-teal-600 font-medium hover:text-teal-800 transition-colors">
+            {currentWeek ? formatWeekLabel(currentWeek.weekStart) : 'Select week'} ▾
           </button>
         </div>
-      </div>
-
-      {/* Week selector */}
-      <div className="bg-white border-b border-stone-100 px-5 py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
-        {weeks.map(w => (
-          <button
-            key={w.id}
-            onClick={() => { setCurrentWeekId(w.id); setView('diary'); }}
-            className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${currentWeekId === w.id ? 'bg-teal-700 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}
-          >
-            {formatWeekLabel(w.weekStart)}
-          </button>
-        ))}
-        <button onClick={addNewWeek} className="shrink-0 flex items-center gap-1 text-xs font-medium text-teal-700 hover:text-teal-800 transition-colors px-2">
-          <Plus className="w-3.5 h-3.5" />
-          New week
+        <button onClick={exportDiary} className="text-xs font-semibold text-stone-500 hover:text-teal-700 transition-colors flex items-center gap-1"><Download className="w-3.5 h-3.5" />Export</button>
+        <button onClick={saveWeek} disabled={isSaving} className="flex items-center gap-1.5 bg-teal-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-60">
+          {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+          {isSaving ? 'Saving…' : 'Save'}
         </button>
       </div>
 
-      {/* Info banner */}
+      {/* Week picker dropdown */}
+      {showWeekPicker && (
+        <div className="bg-white border-b border-stone-200 px-5 py-3 space-y-1 shadow-sm">
+          {weeks.map(w => (
+            <button key={w.id} onClick={() => { setCurrentWeekId(w.id); setCurrentDayIndex(0); setShowWeekPicker(false); }}
+              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-colors ${currentWeekId === w.id ? 'bg-teal-50 text-teal-700' : 'text-stone-600 hover:bg-stone-50'}`}>
+              {formatWeekLabel(w.weekStart)}
+            </button>
+          ))}
+          <button onClick={addNewWeek} className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-teal-700 hover:bg-teal-50 transition-colors flex items-center gap-1.5">
+            <Plus className="w-3.5 h-3.5" />New week
+          </button>
+        </div>
+      )}
+
+      {/* What is the PIP Diary banner */}
       <div className="px-5 py-3 bg-teal-50 border-b border-teal-100">
-        <p className="text-xs text-teal-700 leading-relaxed">
-          Tap any cell to add notes for that day and activity. Focus on your <strong>worst days</strong> — describe what you could not do safely or reliably.
+        <p className="text-xs text-teal-800 leading-relaxed">
+          <strong>What is the PIP Diary?</strong> Record how your condition affects you each day. These daily entries are powerful evidence for your assessment — they show the DWP what your life is really like. Fill it in regularly, focusing on your worst days.
         </p>
       </div>
 
-      {/* Diary grid */}
-      <div className="flex-1 overflow-auto pb-10">
-        <div className="min-w-[700px]">
-          {/* Header row */}
-          <div className="grid sticky top-0 z-10 bg-stone-100 border-b border-stone-200" style={{ gridTemplateColumns: '80px repeat(12, 1fr)' }}>
-            <div className="px-2 py-2 text-[10px] font-bold text-stone-500 uppercase">Day</div>
-            {ACTIVITIES.map(act => (
-              <div key={act.id} className="px-1.5 py-2 text-[10px] font-bold text-stone-700 leading-tight border-l border-stone-200">
-                {act.label}
-              </div>
-            ))}
-          </div>
+      {/* Day navigation */}
+      <div className="bg-white border-b border-stone-100 px-5 py-3 flex items-center justify-between">
+        <button onClick={() => setCurrentDayIndex(i => Math.max(0, i - 1))} disabled={currentDayIndex === 0}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 disabled:opacity-30 transition-all">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <div className="text-center">
+          <p className="font-bold text-stone-900 text-sm">{currentDay}</p>
+          <p className="text-xs text-stone-400">{currentWeek ? getDayDate(currentWeek.weekStart, currentDayIndex) : ''}</p>
+        </div>
+        <button onClick={() => setCurrentDayIndex(i => Math.min(6, i + 1))} disabled={currentDayIndex === 6}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 disabled:opacity-30 transition-all">
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
 
-          {/* Day rows */}
-          {DAYS.map((day, di) => (
-            <div
-              key={day}
-              className={`grid border-b border-stone-200 ${di % 2 === 0 ? 'bg-white' : 'bg-stone-50'}`}
-              style={{ gridTemplateColumns: '80px repeat(12, 1fr)' }}
-            >
-              <div className="px-2 py-3 text-xs font-bold text-stone-700 flex items-start pt-3">{day}</div>
-              {ACTIVITIES.map(act => {
-                const cellKey = `${day}-${act.id}`;
-                const note = currentWeek?.notes[day]?.[act.id] || '';
-                const isExpanded = expandedCell === cellKey;
-                return (
-                  <div key={act.id} className="border-l border-stone-200 relative">
-                    {isExpanded ? (
-                      <div className="absolute z-20 top-0 left-0 w-80 bg-white shadow-xl border border-teal-200 rounded-xl overflow-hidden">
-                        {/* Header */}
-                        <div className="flex items-center justify-between px-3 py-2 bg-teal-700">
-                          <p className="text-[10px] font-bold text-white">{day} — {act.label}</p>
-                          <button onClick={() => { setExpandedCell(null); setShowDescPanel(false); }} className="text-[10px] text-teal-200 font-medium hover:text-white">Done</button>
-                        </div>
+      {/* Day dots */}
+      <div className="flex justify-center gap-1.5 py-2 bg-white border-b border-stone-100">
+        {DAYS.map((day, i) => {
+          const hasContent = currentWeek && Object.keys(currentWeek.notes[day] || {}).some(k => currentWeek.notes[day][k]);
+          return (
+            <button key={day} onClick={() => setCurrentDayIndex(i)}
+              className={`w-6 h-6 rounded-full text-[9px] font-bold transition-colors ${i === currentDayIndex ? 'bg-teal-700 text-white' : hasContent ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
+              {day.charAt(0)}
+            </button>
+          );
+        })}
+      </div>
 
-                        {/* Descriptor toggle */}
-                        <button
-                          onClick={() => setShowDescPanel(!showDescPanel)}
-                          className="w-full flex items-center justify-between px-3 py-2 bg-amber-50 border-b border-amber-100 hover:bg-amber-100 transition-colors"
-                        >
-                          <p className="text-[10px] font-bold text-amber-800">📋 What scores points for this activity</p>
-                          <span className="text-[10px] text-amber-600">{showDescPanel ? '▲ Hide' : '▼ Show'}</span>
-                        </button>
+      {/* Activities list — vertical */}
+      <div className="flex-1 overflow-y-auto pb-10">
+        <div className="px-5 py-4 space-y-3">
+          {ACTIVITIES.map(act => {
+            const note = getDisplayNote(act.id, act.qId);
+            const isAuto = !currentWeek?.notes[currentDay]?.[act.id] && !!getAutoNote(act.qId);
+            const isExpanded = expandedActivity === act.id;
+            const descriptors = getDescriptors(act.qId);
+            const showDesc = showDescPanel === act.id;
 
-                        {/* Descriptor panel */}
-                        {showDescPanel && (
-                          <div className="px-3 py-2 bg-amber-50 border-b border-amber-100 space-y-1.5">
-                            {getDescriptors(act.id).filter((d: any) => d.points > 0).map((d: any) => (
-                              <div key={d.code} className="flex items-start gap-2">
-                                <span className="text-[10px] font-black text-amber-700 w-4 shrink-0">{d.points}pt</span>
-                                <p className="text-[10px] text-amber-900 leading-relaxed">{d.text}</p>
-                              </div>
-                            ))}
-                            <p className="text-[9px] text-amber-600 pt-1 leading-relaxed">Write about which of the above applies to you. Describe real examples from your worst days.</p>
+            // Check if note matches any descriptor
+            const matchedDesc = note.length > 15 ? descriptors.find(d => {
+              const keywords = d.text.toLowerCase().split(' ').filter((w: string) => w.length > 4);
+              return keywords.some((k: string) => note.toLowerCase().includes(k));
+            }) : null;
+
+            return (
+              <div key={act.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                {/* Activity header */}
+                <button onClick={() => { setExpandedActivity(isExpanded ? null : act.id); setShowDescPanel(null); }}
+                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-stone-50 transition-colors">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-2 h-2 rounded-full shrink-0 ${note ? 'bg-emerald-500' : 'bg-stone-200'}`} />
+                    <p className="text-sm font-semibold text-stone-900 text-left">{act.label}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    {note && !isExpanded && <p className="text-[10px] text-stone-400 max-w-[100px] truncate">{note}</p>}
+                    <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                  </div>
+                </button>
+
+                {/* Expanded */}
+                {isExpanded && (
+                  <div className="border-t border-stone-100">
+                    {/* Descriptor toggle */}
+                    <button onClick={() => setShowDescPanel(showDesc ? null : act.id)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 bg-amber-50 hover:bg-amber-100 transition-colors">
+                      <p className="text-[11px] font-bold text-amber-800">📋 What scores points for this activity</p>
+                      <span className="text-[10px] text-amber-600">{showDesc ? '▲ Hide' : '▼ Show'}</span>
+                    </button>
+
+                    {showDesc && (
+                      <div className="px-4 py-3 bg-amber-50 border-b border-amber-100 space-y-2">
+                        {descriptors.map((d: any) => (
+                          <div key={d.code} className="flex items-start gap-2">
+                            <span className="text-[10px] font-black text-amber-700 w-5 shrink-0 pt-0.5">{d.points}pt</span>
+                            <p className="text-[11px] text-amber-900 leading-relaxed">{d.text}</p>
                           </div>
-                        )}
-
-                        {/* Text area */}
-                        <textarea
-                          autoFocus
-                          value={getDisplayNote(day, act.id)}
-                          onChange={e => updateNote(day, act.id, e.target.value)}
-                          placeholder="Describe what happened. Could you do this safely? Did you need help or use any aids? What happens on your worst days?"
-                          className="w-full p-3 text-xs text-stone-700 resize-none focus:outline-none min-h-[90px]"
-                          rows={4}
-                        />
-
-                        {/* Qualify check */}
-                        {getDisplayNote(day, act.id).length > 20 && (
-                          <div className="px-3 py-2 bg-emerald-50 border-t border-emerald-100">
-                            <p className="text-[10px] font-bold text-emerald-800 mb-1">Why this could qualify</p>
-                            {(() => {
-                              const note = getDisplayNote(day, act.id).toLowerCase();
-                              const descs = getDescriptors(act.id).filter((d: any) => d.points > 0);
-                              const matched = descs.find((d: any) => {
-                                const keywords = d.text.toLowerCase().split(' ').filter((w: string) => w.length > 4);
-                                return keywords.some((k: string) => note.includes(k));
-                              });
-                              if (matched) {
-                                return <p className="text-[10px] text-emerald-700 leading-relaxed">This may match: <strong>{matched.text}</strong> ({matched.points} points)</p>;
-                              }
-                              return <p className="text-[10px] text-emerald-600 leading-relaxed">Keep describing the difficulty — include whether you needed help, used aids, or could not do it safely.</p>;
-                            })()}
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        <div className="flex gap-1.5 px-3 py-2 border-t border-stone-100">
-                          <button
-                            onClick={() => improveNote(day, act.id)}
-                            disabled={improvingCell === cellKey}
-                            className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold bg-purple-50 text-purple-700 py-1.5 rounded-lg hover:bg-purple-100 transition-colors disabled:opacity-50"
-                          >
-                            {improvingCell === cellKey ? '✨ Improving...' : '✨ Improve'}
-                          </button>
-                          <button
-                            onClick={() => redoNote(day, act.id)}
-                            className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold bg-stone-50 text-stone-600 py-1.5 rounded-lg hover:bg-stone-100 transition-colors"
-                          >
-                            ↩ Reset
-                          </button>
-                        </div>
+                        ))}
+                        <p className="text-[10px] text-amber-600 pt-1 leading-relaxed border-t border-amber-200 mt-2">Write about which of the above applies to you. Describe real examples from your worst days.</p>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setExpandedCell(isExpanded ? null : cellKey)}
-                        className="w-full h-full min-h-[52px] px-1.5 py-1.5 text-left hover:bg-teal-50 transition-colors"
-                      >
-                        {getDisplayNote(day, act.id) ? (
-                          <p className={`text-[10px] leading-relaxed line-clamp-3 ${currentWeek?.notes[day]?.[act.id] ? 'text-stone-700' : 'text-stone-400 italic'}`}>
-                            {getDisplayNote(day, act.id)}
+                    )}
+
+                    {/* Text area */}
+                    <div className="px-4 pt-3 pb-2">
+                      {isAuto && (
+                        <p className="text-[10px] text-stone-400 mb-1.5 italic">Pre-filled from your answers — tap to edit</p>
+                      )}
+                      <textarea
+                        value={note}
+                        onChange={e => updateNote(act.id, e.target.value)}
+                        placeholder="What happened today? Could you do this safely? Did you need help or use any aids? Focus on your worst days."
+                        className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm text-stone-700 resize-none focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 min-h-[90px]"
+                        rows={4}
+                      />
+                    </div>
+
+                    {/* Why it qualifies */}
+                    {note.length > 20 && (
+                      <div className="mx-4 mb-3 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-emerald-800 mb-1">Why this could support your claim</p>
+                        {matchedDesc ? (
+                          <p className="text-[11px] text-emerald-700 leading-relaxed">
+                            This suggests you may meet: <strong>{matchedDesc.text}</strong> — worth <strong>{matchedDesc.points} points</strong>.
                           </p>
                         ) : (
-                          <p className="text-[10px] text-stone-300">Tap to add</p>
+                          <p className="text-[11px] text-emerald-600 leading-relaxed">Keep adding detail — mention whether you needed help, used aids, or could not do this safely or reliably.</p>
                         )}
-                      </button>
+                      </div>
                     )}
+
+                    {/* Actions */}
+                    <div className="flex gap-2 px-4 pb-3">
+                      <button onClick={() => improveNote(act.id, act.qId)} disabled={improvingCell === act.id || !note}
+                        className="flex-1 text-[11px] font-bold bg-purple-50 text-purple-700 py-2 rounded-xl hover:bg-purple-100 transition-colors disabled:opacity-40">
+                        {improvingCell === act.id ? '✨ Improving...' : '✨ Improve with AI'}
+                      </button>
+                      <button onClick={() => updateNote(act.id, getAutoNote(act.qId))}
+                        className="flex-1 text-[11px] font-bold bg-stone-50 text-stone-600 py-2 rounded-xl hover:bg-stone-100 transition-colors">
+                        ↩ Reset
+                      </button>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
