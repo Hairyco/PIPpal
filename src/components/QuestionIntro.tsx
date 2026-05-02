@@ -26,9 +26,11 @@ export function QuestionIntro() {
 
   // Find matching condition explainer
   let explainerText = question.defaultExplainer;
+  let explainerExample: string | undefined;
   for (const ce of question.conditionExplainers) {
     if (ce.conditions.some((c) => conditions.some((uc) => uc.includes(c)))) {
       explainerText = ce.text;
+      explainerExample = (ce as any).example;
       break;
     }
   }
@@ -108,6 +110,12 @@ export function QuestionIntro() {
             <h3 className="font-bold text-amber-900">What this question means for you</h3>
           </div>
           <p className="text-sm text-amber-800 leading-relaxed">{explainerText}</p>
+          {explainerExample && (
+            <div className="mt-3 bg-white rounded-xl p-3 border border-amber-200">
+              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1.5">Example answer</p>
+              <p className="text-xs text-amber-900 leading-relaxed italic">"{explainerExample}"</p>
+            </div>
+          )}
         </div>
 
         {/* Descriptors */}
