@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ArrowLeft,
   FileText,
@@ -14,9 +14,126 @@ import {
   MailWarning,
   Download,
   MessageSquare,
-  ExternalLink } from
+  ExternalLink,
+  Upload,
+  ImagePlus,
+  X,
+  Sparkles } from
 'lucide-react';
 import { useAppContext } from './AppContext';
+export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: any) => void; context: string }) {
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [isAnalysing, setIsAnalysing] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    const newImages = Array.from(files).slice(0, 5 - images.length).map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages(prev => [...prev, ...newImages].slice(0, 5));
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setFeedback(null);
+  };
+
+  const analyseScreenshots = async () => {
+    if (images.length === 0) return;
+    setIsAnalysing(true);
+    setFeedback(null);
+    try {
+      // Convert images to base64
+      const toBase64 = (file: File): Promise<string> =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve((reader.result as string).split(',')[1]);
+          reader.readAsDataURL(file);
+        });
+      const base64Images = await Promise.all(images.map(img => toBase64(img.file)));
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `The user has uploaded screenshots of their PIP decision letter for ${context}. Please analyse the content carefully and provide specific, actionable feedback on: 1) The reasons given for the decision, 2) Which descriptors were scored and whether they seem correct, 3) What the user should challenge and why, 4) What evidence or arguments would strengthen their case. Be direct and practical. Plain English only, no ** or !!`,
+          medProfile: { conditions: [], medications: '', notes: '' },
+          conversationHistory: [],
+          imageData: base64Images,
+        }),
+      });
+      const data = await response.json();
+      setFeedback(data.reply || 'Could not analyse the screenshots. Please try again.');
+    } catch {
+      setFeedback('Something went wrong. Please try again.');
+    } finally {
+      setIsAnalysing(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 bg-teal-700 flex items-center gap-2">
+        <ImagePlus className="w-4 h-4 text-white shrink-0" />
+        <p className="text-sm font-bold text-white">Upload your decision letter</p>
+      </div>
+      <div className="p-4 space-y-3">
+        <p className="text-xs text-stone-500 leading-relaxed">Upload a photo or screenshot of your PIP decision letter. We will analyse it and tell you exactly what to challenge and how.</p>
+
+        {/* Upload area */}
+        {images.length < 5 && (
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full border-2 border-dashed border-stone-200 rounded-xl py-4 flex flex-col items-center gap-2 hover:border-teal-400 hover:bg-teal-50 transition-colors"
+          >
+            <Upload className="w-5 h-5 text-stone-400" />
+            <p className="text-xs font-medium text-stone-500">Tap to upload photos ({images.length}/5)</p>
+            <p className="text-[10px] text-stone-400">JPG, PNG or PDF</p>
+          </button>
+        )}
+        <input ref={fileRef} type="file" accept="image/*,.pdf" multiple className="hidden"
+          onChange={e => handleFiles(e.target.files)} />
+
+        {/* Preview thumbnails */}
+        {images.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {images.map((img, i) => (
+              <div key={i} className="relative">
+                <img src={img.preview} alt="" className="w-16 h-16 object-cover rounded-lg border border-stone-200" />
+                <button onClick={() => removeImage(i)}
+                  className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center">
+                  <X className="w-2.5 h-2.5 text-white" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Analyse button */}
+        {images.length > 0 && !feedback && (
+          <button onClick={analyseScreenshots} disabled={isAnalysing}
+            className="w-full bg-teal-700 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+            {isAnalysing ? <><span className="animate-spin">✨</span> Analysing...</> : <><Sparkles className="w-4 h-4" /> Analyse my letter</>}
+          </button>
+        )}
+
+        {/* Feedback */}
+        {feedback && (
+          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4">
+            <p className="text-xs font-bold text-stone-700 mb-2">Feedback on your letter</p>
+            <p className="text-xs text-stone-700 leading-relaxed whitespace-pre-line">{feedback}</p>
+            <button onClick={() => { setFeedback(null); setImages([]); }}
+              className="mt-3 text-xs text-teal-600 font-medium hover:text-teal-800">Upload different screenshots →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MandatoryReconsiderationScreen() {
   const { goBack, navigateTo } = useAppContext();
   return (
@@ -34,6 +151,10 @@ export function MandatoryReconsiderationScreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
+
+        {/* Screenshot upload section */}
+        <ScreenshotFeedback navigateTo={navigateTo} context="mandatory reconsideration" />
+
         <div className="bg-amber-600 rounded-2xl p-6 text-white shadow-sm">
           <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-6 h-6 text-white" />
