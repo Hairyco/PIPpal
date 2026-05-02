@@ -13,6 +13,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { PIP_QUESTIONS } from '../pipQuestions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../supabaseClient';
 
@@ -75,6 +76,13 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     money: 'managing money', out: 'going out', moving: 'moving around',
   };
 
+  const getDescriptors = (activityId: string) => {
+    const qId = Object.entries(Q_TO_ACTIVITY).find(([, aid]) => aid === activityId)?.[0];
+    if (!qId) return [];
+    const q = PIP_QUESTIONS.find(q => q.id === qId);
+    return q?.descriptors || [];
+  };
+
   const getAutoNote = (activityId: string): string => {
     const qId = Object.entries(Q_TO_ACTIVITY).find(([, aid]) => aid === activityId)?.[0];
     if (!qId || !savedAnswers[qId]) return '';
@@ -88,6 +96,7 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [improvingCell, setImprovingCell] = useState<string | null>(null);
+  const [showDescPanel, setShowDescPanel] = useState(false);
   const [view, setView] = useState<'diary' | 'entries'>('diary');
 
   useEffect(() => {
@@ -394,19 +403,65 @@ ${weeksHtml}
                 return (
                   <div key={act.id} className="border-l border-stone-200 relative">
                     {isExpanded ? (
-                      <div className="absolute z-20 top-0 left-0 w-72 bg-white shadow-xl border border-teal-200 rounded-xl overflow-hidden">
-                        <div className="flex items-center justify-between px-3 py-2 bg-teal-50 border-b border-teal-100">
-                          <p className="text-[10px] font-bold text-teal-800">{day} — {act.label}</p>
-                          <button onClick={() => setExpandedCell(null)} className="text-[10px] text-teal-600 font-medium">Done</button>
+                      <div className="absolute z-20 top-0 left-0 w-80 bg-white shadow-xl border border-teal-200 rounded-xl overflow-hidden">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-3 py-2 bg-teal-700">
+                          <p className="text-[10px] font-bold text-white">{day} — {act.label}</p>
+                          <button onClick={() => { setExpandedCell(null); setShowDescPanel(false); }} className="text-[10px] text-teal-200 font-medium hover:text-white">Done</button>
                         </div>
+
+                        {/* Descriptor toggle */}
+                        <button
+                          onClick={() => setShowDescPanel(!showDescPanel)}
+                          className="w-full flex items-center justify-between px-3 py-2 bg-amber-50 border-b border-amber-100 hover:bg-amber-100 transition-colors"
+                        >
+                          <p className="text-[10px] font-bold text-amber-800">📋 What scores points for this activity</p>
+                          <span className="text-[10px] text-amber-600">{showDescPanel ? '▲ Hide' : '▼ Show'}</span>
+                        </button>
+
+                        {/* Descriptor panel */}
+                        {showDescPanel && (
+                          <div className="px-3 py-2 bg-amber-50 border-b border-amber-100 space-y-1.5">
+                            {getDescriptors(act.id).filter((d: any) => d.points > 0).map((d: any) => (
+                              <div key={d.code} className="flex items-start gap-2">
+                                <span className="text-[10px] font-black text-amber-700 w-4 shrink-0">{d.points}pt</span>
+                                <p className="text-[10px] text-amber-900 leading-relaxed">{d.text}</p>
+                              </div>
+                            ))}
+                            <p className="text-[9px] text-amber-600 pt-1 leading-relaxed">Write about which of the above applies to you. Describe real examples from your worst days.</p>
+                          </div>
+                        )}
+
+                        {/* Text area */}
                         <textarea
                           autoFocus
                           value={getDisplayNote(day, act.id)}
                           onChange={e => updateNote(day, act.id, e.target.value)}
-                          placeholder="Describe what happened today. Include whether you could do this safely, if you needed help, or used any aids."
-                          className="w-full p-3 text-xs text-stone-700 resize-none focus:outline-none min-h-[100px]"
+                          placeholder="Describe what happened. Could you do this safely? Did you need help or use any aids? What happens on your worst days?"
+                          className="w-full p-3 text-xs text-stone-700 resize-none focus:outline-none min-h-[90px]"
                           rows={4}
                         />
+
+                        {/* Qualify check */}
+                        {getDisplayNote(day, act.id).length > 20 && (
+                          <div className="px-3 py-2 bg-emerald-50 border-t border-emerald-100">
+                            <p className="text-[10px] font-bold text-emerald-800 mb-1">Why this could qualify</p>
+                            {(() => {
+                              const note = getDisplayNote(day, act.id).toLowerCase();
+                              const descs = getDescriptors(act.id).filter((d: any) => d.points > 0);
+                              const matched = descs.find((d: any) => {
+                                const keywords = d.text.toLowerCase().split(' ').filter((w: string) => w.length > 4);
+                                return keywords.some((k: string) => note.includes(k));
+                              });
+                              if (matched) {
+                                return <p className="text-[10px] text-emerald-700 leading-relaxed">This may match: <strong>{matched.text}</strong> ({matched.points} points)</p>;
+                              }
+                              return <p className="text-[10px] text-emerald-600 leading-relaxed">Keep describing the difficulty — include whether you needed help, used aids, or could not do it safely.</p>;
+                            })()}
+                          </div>
+                        )}
+
+                        {/* Actions */}
                         <div className="flex gap-1.5 px-3 py-2 border-t border-stone-100">
                           <button
                             onClick={() => improveNote(day, act.id)}
