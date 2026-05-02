@@ -24,6 +24,8 @@ import {
 import { useAppContext } from './AppContext';
 export function ClaimProcess() {
   const { navigateTo, goBack, savedAnswers, hasPaid } = useAppContext();
+  const [showProcess, setShowProcess] = React.useState(false);
+  const [showContacts, setShowContacts] = React.useState(false);
   const [showTips, setShowTips] = useState(false);
   const hasAnswers = Object.keys(savedAnswers).length > 0;
   const hasCompletedClaim = hasPaid && hasAnswers;
@@ -85,10 +87,11 @@ export function ClaimProcess() {
 
         {/* The Process - Step by Step */}
         <div>
-          <h3 className="font-bold text-stone-900 text-base mb-4">
-            How the process works
-          </h3>
-
+          <button onClick={() => setShowProcess(!showProcess)} className="w-full flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 transition-colors mb-3">
+            <h3 className="font-bold text-stone-900 text-sm">How the process works</h3>
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showProcess ? 'rotate-180' : ''}`} />
+          </button>
+          {showProcess && (
           <div className="space-y-0 relative">
             <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-teal-100" />
 
@@ -490,14 +493,17 @@ export function ClaimProcess() {
               </div>
             </div>
           }
+          )}
         </div>
 
         {/* Useful contacts */}
-        <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-          <h3 className="font-bold text-stone-900 text-sm mb-3">
-            Useful contacts
-          </h3>
-          <div className="space-y-2">
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+          <button onClick={() => setShowContacts(!showContacts)} className="w-full flex items-center justify-between py-3 px-4 hover:bg-stone-50 transition-colors">
+            <h3 className="font-bold text-stone-900 text-sm">Useful contacts</h3>
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showContacts ? 'rotate-180' : ''}`} />
+          </button>
+          {showContacts && (
+          <div className="px-4 pb-4 space-y-2">
             <a
               href="tel:08009172222"
               className="flex justify-between items-center bg-stone-50 rounded-lg px-3 py-2.5 hover:bg-stone-100 transition-colors">
@@ -545,6 +551,7 @@ export function ClaimProcess() {
               </span>
             </a>
           </div>
+          )}
         </div>
       </div>
 
