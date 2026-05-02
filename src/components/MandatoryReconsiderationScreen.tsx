@@ -152,9 +152,6 @@ export function MandatoryReconsiderationScreen() {
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
 
-        {/* Screenshot upload section */}
-        <ScreenshotFeedback navigateTo={navigateTo} context="mandatory reconsideration" />
-
         <div className="bg-amber-600 rounded-2xl p-6 text-white shadow-sm">
           <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center mb-4">
             <FileText className="w-6 h-6 text-white" />
@@ -165,6 +162,9 @@ export function MandatoryReconsiderationScreen() {
             (MR) is the first step to challenging it.
           </p>
         </div>
+
+        {/* Screenshot upload section */}
+        <ScreenshotFeedback navigateTo={navigateTo} context="mandatory reconsideration" />
 
         <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm flex items-start gap-3">
           <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />

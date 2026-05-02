@@ -26,7 +26,7 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
     { label: 'News', id: 'news' },
     { label: 'Blog', id: 'blog' },
     { label: 'How it works', id: 'how-it-works' },
-    { label: 'Free tools', id: 'free-tools' },
+    { label: 'Calculators', id: 'free-tools' },
     { label: 'Eligibility', id: 'eligibility-banner' },
   ];
 

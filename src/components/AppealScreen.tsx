@@ -17,6 +17,7 @@ import {
   ExternalLink } from
 'lucide-react';
 import { useAppContext } from './AppContext';
+import { ScreenshotFeedback } from './MandatoryReconsiderationScreen';
 export function AppealScreen() {
   const { goBack, navigateTo } = useAppContext();
   return (
@@ -42,6 +43,9 @@ export function AppealScreen() {
             to an independent tribunal.
           </p>
         </div>
+
+        {/* Screenshot upload section */}
+        <ScreenshotFeedback navigateTo={navigateTo} context="appeal" />
 
         <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm text-center">
           <div className="text-4xl font-black text-rose-600 mb-1">60%</div>
