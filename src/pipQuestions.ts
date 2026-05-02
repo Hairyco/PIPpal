@@ -18,6 +18,7 @@ export interface PIPQuestion {
   conditionExplainers: {
     conditions: string[];
     text: string;
+    example?: string;
   }[];
   descriptors: Descriptor[];
   tip: string;
@@ -39,18 +40,22 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['anxiety', 'panic', 'ptsd', 'agoraphobia'],
         text: 'For conditions like anxiety or PTSD, this question covers whether you can concentrate enough to safely prepare food, whether you forget meals, or whether the process causes overwhelming distress. If you need someone to prompt you to eat or help you cook safely, that counts.',
+        example: 'On my worst days, my anxiety is so severe I cannot focus on cooking safely. I have left the hob on by accident and burned food. I need someone to remind me to eat and sometimes to help me prepare meals.',
       },
       {
         conditions: ['autism', 'adhd'],
         text: 'For neurodivergent conditions, this covers difficulties with planning meals, executive function challenges in following recipes, sensory issues with food preparation, and safety risks from distraction or overwhelm while cooking.',
+        example: 'I struggle to plan and follow the steps to prepare a meal. I get distracted and forget what I am doing, which has caused safety incidents. Certain food textures and smells make cooking overwhelming for me.',
       },
       {
         conditions: ['pain', 'fibromyalgia', 'arthritis'],
         text: 'For chronic pain conditions, this covers whether you can safely stand long enough to cook, grip utensils, lift pans, and whether pain makes cooking unreliable or dangerous. If you can only manage a microwave, that is relevant.',
+        example: 'My pain means I cannot stand at the cooker for more than a few minutes. I cannot grip or lift a saucepan safely. On most days I rely on a microwave or need someone to cook for me.',
       },
       {
         conditions: ['depression'],
         text: 'For depression, this covers the severe lack of motivation to prepare food, forgetting to eat, or being unable to plan and execute even a simple meal on most days.',
+        example: 'On my worst days I have no motivation to prepare food at all. I often forget to eat entirely or rely on ready meals. The effort of planning and cooking even something simple feels impossible.',
       },
     ],
     descriptors: [
