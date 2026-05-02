@@ -123,6 +123,30 @@ export function Downloads() {
           )}
         </section>
         <section>
+          <h2 className="text-sm font-bold text-stone-900 mb-3">PIP Diary template</h2>
+          <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-center gap-4">
+            <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center shrink-0"><BookOpen className="w-5 h-5 text-emerald-600" /></div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-stone-900 text-sm">Blank weekly diary template</h3>
+              <p className="text-xs text-stone-500 mt-0.5">Print and fill in by hand — matches the official DWP format</p>
+            </div>
+            <button
+              onClick={() => {
+                const ACTIVITIES = ['Preparing food','Eating and drinking','Managing treatments','Washing and bathing','Managing toilet needs','Dressing and undressing','Talking, listening and understanding','Reading','Mixing with other people','Making decisions about money','Going out','Moving around'];
+                const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+                const rowsHtml = DAYS.map(day => `<tr><td class="day-cell">${day}</td>${ACTIVITIES.map(() => '<td class="note-cell"></td>').join('')}</tr>`).join('');
+                const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>PIP Weekly Diary</title><style>body{font-family:Arial,sans-serif;margin:15mm;color:#000;font-size:10px}.doc-header{margin-bottom:14px;border-bottom:2px solid #000;padding-bottom:10px}.doc-header h1{font-size:18px;font-weight:bold;margin:0 0 10px 0}.field-row{display:flex;gap:30px;margin-bottom:8px}.field{display:flex;align-items:center;gap:6px}.field label{font-weight:bold;font-size:10px;white-space:nowrap}.field .line{border-bottom:1px solid #000;min-width:160px;height:16px}.instructions{font-size:10px;margin-bottom:14px;line-height:1.5;border-bottom:1px solid #000;padding-bottom:8px}.week-label{font-size:12px;font-weight:bold;margin-bottom:10px;background:#f5f5f5;padding:4px 8px;border:1px solid #000}table{width:100%;border-collapse:collapse;table-layout:fixed}th{border:1px solid #000;padding:4px 3px;text-align:left;font-size:9px;font-weight:bold}th.day-header{width:55px}td{border:1px solid #000;padding:3px;vertical-align:top;height:70px;font-size:9px}td.day-cell{font-weight:bold;width:55px}@media print{body{margin:10mm}}</style></head><body><div class="doc-header"><h1>PIP Weekly Diary</h1><div class="field-row"><div class="field"><label>Full name:</label><div class="line"></div></div><div class="field"><label>National Insurance number:</label><div class="line" style="min-width:130px"></div></div></div><div class="field-row"><div class="field"><label>Date of birth:</label><div class="line" style="min-width:100px"></div></div><div class="field"><label>Week beginning:</label><div class="line" style="min-width:130px"></div></div></div></div><p class="instructions">Use this diary to record how your condition affects you each day. For each activity describe what happened — whether you could do it safely, if you needed help, or if you used any aids. Focus on your worst days. This diary can be submitted as supporting evidence with your PIP claim.</p><div class="week-label">Weekly diary</div><table><thead><tr><th class="day-header">Day</th>${ACTIVITIES.map(a => `<th>${a}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table></body></html>`;
+                const newTab = window.open('', '_blank');
+                if (newTab) { newTab.document.write(html); newTab.document.close(); }
+              }}
+              className="bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
+            >
+              <Download className="w-3.5 h-3.5" />Download
+            </button>
+          </div>
+        </section>
+
+        <section>
           <h2 className="text-sm font-bold text-stone-900 mb-3">Official DWP forms</h2>
           <div className="space-y-3">
             {govLinks.map((link, i) => (
