@@ -84,6 +84,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['ms', 'stroke', 'brain injury', 'parkinson'],
         text: 'For neurological conditions, this covers tremors that affect using cutlery, difficulty swallowing (dysphagia), spilling drinks, or needing adapted equipment or assistance to eat safely.',
+        example: 'My condition affects my grip and coordination. I struggle to use cutlery, drop cups, and sometimes choke. I need help or adapted equipment to eat safely.',
       },
       {
         conditions: ['autism', 'adhd'],
@@ -92,10 +93,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['depression', 'anxiety'],
         text: 'For mental health conditions, this covers needing prompting to eat, forgetting to eat, or being too distressed to manage meals independently.',
+        example: 'My mental health means I often forget to eat or cannot motivate myself. On my worst days I go without meals entirely or need someone to encourage me.',
       },
       {
         conditions: ['pain', 'arthritis', 'fibromyalgia'],
         text: 'For pain conditions, this covers difficulty gripping cutlery, inability to cut food, or pain making the act of eating slow, unreliable, or requiring assistance.',
+        example: 'My pain and stiffness make it very hard to grip cutlery or a cup. On bad days I cannot cut up food without help and struggle to eat a full meal.',
       },
     ],
     descriptors: [
@@ -128,6 +131,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['depression', 'anxiety', 'bipolar', 'schizophrenia'],
         text: 'For mental health conditions, this covers forgetting to take medication, needing prompting to manage your medication regime, or needing supervision to ensure you take medication safely.',
+        example: 'I struggle to remember to take my medication. I need reminders and have missed doses which have affected my health. Managing my medication independently is not reliable.',
       },
       {
         conditions: ['epilepsy'],
@@ -136,6 +140,7 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['pain', 'arthritis', 'fibromyalgia', 'ms'],
         text: 'For physical conditions, this covers difficulty opening medication packaging, administering patches or injections, or managing complex medication schedules independently.',
+        example: 'Managing my treatment takes significant time and causes additional pain. I need help preparing equipment and cannot always complete my therapy without assistance.',
       },
     ],
     descriptors: [
@@ -164,10 +169,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['pain', 'arthritis', 'fibromyalgia', 'ms'],
         text: 'For pain and physical conditions, this covers difficulty getting in and out of the bath or shower, reaching to wash all parts of the body, gripping taps or shower controls, and the risk of falling.',
+        example: 'My pain and fatigue mean I cannot stand in the shower safely. I use a shower seat and grab rails. On my worst days I need someone to assist me or I go without washing.',
       },
       {
         conditions: ['anxiety', 'depression', 'ptsd'],
         text: 'For mental health conditions, this covers the inability to motivate yourself to wash, needing prompting from another person, or distress and anxiety around the process of washing.',
+        example: 'On my worst days my depression means I cannot bring myself to wash. I go for days without bathing and need prompting or physical help from someone else.',
       },
       {
         conditions: ['autism', 'adhd'],
@@ -205,10 +212,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['pain', 'arthritis', 'ms', 'stroke'],
         text: 'For physical conditions, this covers difficulty getting on and off the toilet, managing clothing, reaching to clean yourself, and urgency that means you cannot always get there in time.',
+        example: 'My condition causes urgency and I sometimes do not make it to the toilet in time. I need to be close to a toilet at all times and have had accidents without adequate support.',
       },
       {
         conditions: ['crohn', 'ibs', 'bowel'],
         text: 'For bowel conditions, this covers urgency, accidents, managing stoma equipment, and the frequency and unpredictability of toilet needs throughout the day.',
+        example: 'My condition causes urgent and unpredictable toilet needs. I cannot always get to the toilet in time without help and need to be near a toilet at all times.',
       },
       {
         conditions: ['anxiety', 'depression'],
@@ -245,14 +254,17 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['pain', 'arthritis', 'fibromyalgia', 'ms'],
         text: 'For pain and physical conditions, this covers difficulty with fine motor skills like buttons and zips, reaching to put on socks or shoes, bending, and the energy and pain involved in dressing on bad days.',
+        example: 'My pain and stiffness mean I struggle to dress myself independently. I cannot fasten buttons, put on socks or shoes, or raise my arms to dress without help.',
       },
       {
         conditions: ['depression', 'anxiety'],
         text: 'For mental health conditions, this covers needing prompting to get dressed, inability to select appropriate clothing, or days where you cannot manage to dress at all.',
+        example: 'On my worst days I cannot motivate myself to get dressed. I need prompting and sometimes physical help to get dressed each day.',
       },
       {
         conditions: ['autism', 'adhd'],
         text: 'For neurodivergent conditions, this covers sensory sensitivities to clothing, difficulty with the sequence of dressing, and needing prompting or supervision to dress appropriately.',
+        example: 'Certain fabrics and clothing cause me significant sensory distress. I need help selecting appropriate clothing and getting dressed can take much longer than normal.',
       },
       {
         conditions: ['dementia', 'memory'],
@@ -285,10 +297,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['autism', 'adhd'],
         text: 'For neurodivergent conditions, this covers difficulties with processing verbal information, selective mutism, difficulty understanding implied meaning, and the energy required for verbal communication.',
+        example: 'I find verbal communication very difficult, especially with strangers. I sometimes cannot speak at all and need someone to communicate on my behalf.',
       },
       {
         conditions: ['anxiety', 'ptsd'],
         text: 'For anxiety conditions, this covers panic attacks that affect speech, difficulty speaking to strangers, selective mutism triggered by anxiety, and situations where verbal communication breaks down.',
+        example: 'Communicating when anxious is extremely difficult. I cannot process what people say or respond clearly and often need someone to help me in conversations.',
       },
       {
         conditions: ['stroke', 'brain injury', 'ms'],
@@ -328,10 +342,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['dyslexia', 'adhd', 'autism'],
         text: 'For neurodivergent conditions, this covers difficulties processing written text, needing information in alternative formats, and the significant extra time required to read and understand information.',
+        example: 'I struggle to interpret written information correctly, especially complex or formal language. I need help understanding letters and official documents.',
       },
       {
         conditions: ['depression', 'anxiety'],
         text: 'For mental health conditions, this covers cognitive fog making it impossible to concentrate on written information, needing someone to read things to you, or being unable to process written information on bad days.',
+        example: 'My depression and poor concentration mean I cannot read and absorb written information reliably. I need things read to me or explained verbally.',
       },
       {
         conditions: ['stroke', 'brain injury', 'dementia', 'memory'],
@@ -364,14 +380,17 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['anxiety', 'ptsd', 'agoraphobia'],
         text: 'For anxiety conditions, this covers panic attacks triggered by social interaction, inability to engage with strangers, avoidance of social situations, and needing someone with you to manage social interactions.',
+        example: 'Social situations cause me severe anxiety. I avoid them where possible and need support to manage any interaction with unfamiliar people.',
       },
       {
         conditions: ['autism', 'adhd'],
         text: 'For neurodivergent conditions, this covers difficulty reading social cues, inappropriate responses in social situations, overwhelm in social settings, and needing support to engage appropriately with others.',
+        example: 'Social interaction is extremely difficult for me. I struggle to read social cues and find group situations overwhelming. I need support in most social environments.',
       },
       {
         conditions: ['depression', 'bipolar', 'schizophrenia'],
         text: 'For mental health conditions, this covers withdrawal from social interaction, paranoia affecting social engagement, or behavioural difficulties that make social interaction unsafe or distressing.',
+        example: 'My depression means I withdraw from social contact completely on my worst days. I find interacting with others exhausting and distressing.',
       },
       {
         conditions: ['dementia', 'memory', 'brain injury'],
@@ -402,10 +421,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['depression', 'anxiety', 'bipolar'],
         text: 'For mental health conditions, this covers inability to manage money during episodes, making impulsive financial decisions, needing someone else to manage your finances, or being unable to budget reliably.',
+        example: 'My depression makes managing money very difficult. I forget to pay bills and cannot engage with financial tasks on my worst days. I need help managing my finances.',
       },
       {
         conditions: ['autism', 'adhd', 'learning disability'],
         text: 'For neurodivergent conditions, this covers difficulty understanding the value of money, needing support to budget, and being vulnerable to financial exploitation.',
+        example: 'My condition makes it very difficult to manage money reliably. I forget bills, make impulsive decisions, and need help to stay on top of my finances.',
       },
       {
         conditions: ['dementia', 'memory', 'brain injury'],
@@ -440,10 +461,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['anxiety', 'ptsd', 'agoraphobia'],
         text: 'For anxiety conditions, this covers being unable to use public transport, needing someone with you to travel, being unable to travel to unfamiliar places, and panic attacks triggered by travel.',
+        example: 'I cannot travel to unfamiliar places alone. The anxiety is overwhelming and I have had panic attacks on journeys. I need someone with me at all times when going out.',
       },
       {
         conditions: ['autism', 'adhd'],
         text: 'For neurodivergent conditions, this covers difficulty with route changes, needing a familiar companion to travel, overwhelming sensory experiences on public transport, and anxiety around unexpected changes.',
+        example: 'I struggle with changes to routine and unfamiliar routes. I need detailed planning and often someone with me to travel anywhere I have not been before.',
       },
       {
         conditions: ['visual impairment'],
@@ -480,10 +503,12 @@ export const PIP_QUESTIONS: PIPQuestion[] = [
       {
         conditions: ['pain', 'arthritis', 'fibromyalgia', 'ms'],
         text: 'For pain and physical conditions, this covers how far you can walk before pain, fatigue, or stiffness stops you. Think about your worst days — and whether you can walk the same distance repeatedly throughout the day.',
+        example: 'My pain severely limits how far I can walk. I can only manage a very short distance before it becomes overwhelming. I use a walking aid and need to rest frequently.',
       },
       {
         conditions: ['anxiety', 'agoraphobia', 'ptsd'],
         text: 'For anxiety conditions, this covers psychological barriers to leaving the home, inability to walk in public places, and panic attacks triggered by being outside.',
+        example: 'Going out and walking in public spaces causes me severe anxiety. I avoid crowded areas and can only walk short distances in unfamiliar places before needing to return home.',
       },
       {
         conditions: ['epilepsy'],
