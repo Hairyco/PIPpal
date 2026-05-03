@@ -949,13 +949,22 @@ export function AdminDashboard() {
                       </div>
                     </button>
                     {expandedCategory === insight.category && insight.top_questions?.length > 0 && (
-                      <div className="px-3 pb-3 space-y-1.5 border-t border-stone-700 pt-2">
+                      <div className="px-3 pb-3 space-y-2 border-t border-stone-700 pt-2">
+                        <p className="text-[10px] text-stone-500">
+                          Last scanned: {insight.scanned_at ? new Date(insight.scanned_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'unknown'}
+                        </p>
                         {insight.top_questions.map((q: any, i: number) => (
-                          <div key={i} className="flex items-start gap-2">
-                            <span className="text-[10px] text-stone-500 shrink-0 mt-0.5">r/{q.subreddit}</span>
+                          <div key={i} className="bg-stone-700 rounded-lg p-2.5">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-bold text-teal-400">r/{q.subreddit}</span>
+                              <span className="text-[10px] text-stone-400">↑{q.score} upvotes</span>
+                              {q.created && <span className="text-[10px] text-stone-500">{new Date(q.created * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
+                            </div>
+                            <p className="text-[11px] text-stone-200 leading-snug mb-1.5">{q.title}</p>
                             <a href={q.url} target="_blank" rel="noopener noreferrer"
-                              className="text-[11px] text-stone-300 hover:text-white leading-snug flex-1">{q.title}</a>
-                            <span className="text-[10px] text-stone-500 shrink-0">↑{q.score}</span>
+                              className="text-[10px] text-purple-400 hover:text-purple-300 font-medium">
+                              View on Reddit →
+                            </a>
                           </div>
                         ))}
                       </div>

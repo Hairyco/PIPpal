@@ -4,7 +4,7 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SUBREDDITS = ['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK', 'disability'];
+const SUBREDDITS = ['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK', 'UKBenefits', 'disability'];
 
 const CATEGORIES = {
   'Assessment': ['assessment', 'assessor', 'face-to-face', 'telephone', 'video call', 'capita', 'atos', 'maximus', 'pip assessment', 'medical'],
