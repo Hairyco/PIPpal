@@ -497,6 +497,8 @@ function AppContent() {
                 isVisible={showAssistant}
                 hasPaid={hasPaid}
                 onUpgrade={() => navigateTo('upsell')}
+                autoOpenQuestion={assistantQuestion}
+                onAutoOpenHandled={() => setAssistantQuestion(null)}
               />
             </div>
           </div>

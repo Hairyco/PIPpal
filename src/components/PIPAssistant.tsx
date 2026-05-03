@@ -62,11 +62,11 @@ export function PIPAssistant({
     if (autoOpenQuestion && isVisible) {
       setIsOpen(true);
       setTimeout(() => {
-        setInputText(autoOpenQuestion);
+        setInputValue(autoOpenQuestion);
         onAutoOpenHandled?.();
-      }, 300);
+      }, 400);
     }
-  }, [autoOpenQuestion, isVisible]);
+  }, [autoOpenQuestion]);
   const firstName = user?.name ? user.name.split(' ')[0] : '';
   const hasConditions = medProfile.conditions.length > 0;
   const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
