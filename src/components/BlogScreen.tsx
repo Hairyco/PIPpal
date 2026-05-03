@@ -32,6 +32,7 @@ export function BlogScreen() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTag, setActiveTag] = useState('All');
+  const [dateRange, setDateRange] = useState('all');
 
   useEffect(() => {
     fetchPosts();
@@ -57,8 +58,14 @@ export function BlogScreen() {
   const categories = ['All', ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))];
   const allTags = Array.from(new Set(posts.flatMap(p => p.tags || []))).sort();
   const allFilters = [...categories, ...allTags.filter(t => !categories.includes(t))];
-  const filtered = activeTag === 'All' ? posts
-    : posts.filter(p => p.category === activeTag || (p.tags || []).includes(activeTag));
+  const dateFiltered = dateRange === 'all' ? posts : posts.filter(p => {
+    const days = parseInt(dateRange);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+    return new Date(p.created_at) >= cutoff;
+  });
+  const filtered = activeTag === 'All' ? dateFiltered
+    : dateFiltered.filter(p => p.category === activeTag || (p.tags || []).includes(activeTag));
 
   const openPost = (slug: string) => {
     setSelectedBlogSlug(slug);
@@ -79,6 +86,16 @@ export function BlogScreen() {
         <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center">
           <BookOpen className="w-4 h-4 text-teal-600" />
         </div>
+      </div>
+
+      {/* Date range filter */}
+      <div className="bg-white border-b border-stone-100 px-5 py-2 flex gap-2 overflow-x-auto scrollbar-hide">
+        {[['all', 'All time'], ['1', 'Today'], ['3', '3 days'], ['7', '7 days'], ['30', '30 days']].map(([val, label]) => (
+          <button key={val} onClick={() => setDateRange(val)}
+            className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${dateRange === val ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-stone-500 border-stone-200'}`}>
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Category pills */}

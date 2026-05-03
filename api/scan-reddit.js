@@ -71,7 +71,8 @@ export default async function handler(req, res) {
     }
 
     // Save to Supabase — delete old and insert new
-    await fetch(`${SUPABASE_URL}/rest/v1/reddit_insights`, {
+    // Delete all existing records
+    await fetch(`${SUPABASE_URL}/rest/v1/reddit_insights?id=not.is.null`, {
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` },
     });

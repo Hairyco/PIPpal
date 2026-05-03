@@ -221,6 +221,15 @@ export function AdminDashboard() {
     setBlogClicks(clicks);
   };
 
+  const loadStoredInsights = async () => {
+    const { data } = await supabase.from('reddit_insights').select('*').order('question_count', { ascending: false });
+    if (data && data.length > 0) {
+      setRedditInsights(data);
+      setInsightTotal(data.reduce((sum: number, d: any) => sum + d.question_count, 0));
+      setInsightScannedAt(new Date(data[0].scanned_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+    }
+  };
+
   const fetchBlogPosts = async () => {
     setBlogLoading(true);
     // Fetch all posts including drafts for admin
@@ -579,7 +588,7 @@ export function AdminDashboard() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); } }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
