@@ -276,25 +276,31 @@ export default async function handler(req, res) {
         const unsubscribeUrl = `https://www.pippal.uk/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
         const html = buildEmailHtml(articles, unsubscribeUrl, testOnly ? approvalToken : null);
 
+        console.log(`Attempting to send to: ${subscriber.email}`);
+        const emailPayload = {
+          from: 'PIPpal News <news@pippal.uk>',
+          to: subscriber.email,
+          subject: `Your weekly PIP update — ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`,
+          html,
+        };
+        console.log('Resend payload to:', emailPayload.to, 'from:', emailPayload.from);
+
         const emailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${RESEND_API_KEY}`,
           },
-          body: JSON.stringify({
-            from: 'PIPpal News <news@pippal.uk>',
-            to: subscriber.email,
-            subject: `Your weekly PIP update — ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`,
-            html,
-          }),
+          body: JSON.stringify(emailPayload),
         });
+
+        const emailData = await emailRes.json();
+        console.log(`Resend response for ${subscriber.email}:`, emailRes.status, JSON.stringify(emailData));
 
         if (emailRes.ok) {
           sent++;
         } else {
           failed++;
-          console.log(`Failed to send to ${subscriber.email}: ${emailRes.status}`);
         }
       } catch {
         failed++;
