@@ -1,10 +1,16 @@
 const SOURCES = [
   { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment', name: 'GOV.UK', showSource: true, format: 'atom' },
+  { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=disability+benefit+dwp', name: 'GOV.UK DWP', showSource: true, format: 'atom' },
   { url: 'https://www.mirror.co.uk/money/benefits/rss.xml', name: 'Mirror', showSource: false, format: 'rss' },
+  { url: 'https://www.mirror.co.uk/money/rss.xml', name: 'Mirror Money', showSource: false, format: 'rss' },
   { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
   { url: 'https://www.birminghammail.co.uk/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
   { url: 'https://www.liverpoolecho.co.uk/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
+  { url: 'https://www.leeds-live.co.uk/rss.xml', name: 'Leeds Live', showSource: false, format: 'rss' },
+  { url: 'https://www.chroniclelive.co.uk/rss.xml', name: 'Chronicle Live', showSource: false, format: 'rss' },
+  { url: 'https://www.walesonline.co.uk/rss.xml', name: 'Wales Online', showSource: false, format: 'rss' },
   { url: 'https://feeds.bbci.co.uk/news/uk/rss.xml', name: 'BBC', showSource: false, format: 'rss' },
+  { url: 'https://www.disabilityrightsuk.org/feed', name: 'Disability Rights UK', showSource: false, format: 'rss' },
 ];
 
 // Broad first-pass filter — catch anything that MIGHT be PIP related
@@ -180,11 +186,16 @@ export default async function handler(req, res) {
     const candidates = allItems.slice(0, 25);
 
     // Process new articles with Claude
+    console.log(`Total candidates from RSS: ${candidates.length}`);
+    candidates.slice(0, 5).forEach(c => console.log(`  - [${c.sourceName}] ${c.title}`));
     const freshArticles = [];
     if (candidates.length > 0) {
       const processed = await Promise.all(candidates.map(async item => {
         const { body, relevant } = await rewriteWithClaude(item.title, item.summary, item.sourceName);
-        if (!relevant) return null;
+        if (!relevant) {
+          console.log(`NOT_RELEVANT: ${item.title}`);
+          return null;
+        }
         const tags = autoTag(item.title, item.summary);
         const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
         return {
