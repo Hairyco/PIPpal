@@ -31,10 +31,16 @@ export function BlogScreen() {
   const { goBack, navigateTo, setSelectedBlogSlug } = useAppContext();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [activeTag, setActiveTag] = useState('All');
 
   useEffect(() => {
     fetchPosts();
+    // Pick up tag filter from blog post screen
+    const tagFilter = sessionStorage.getItem('blog_tag_filter');
+    if (tagFilter) {
+      setActiveTag(tagFilter);
+      sessionStorage.removeItem('blog_tag_filter');
+    }
   }, []);
 
   const fetchPosts = async () => {
@@ -49,7 +55,11 @@ export function BlogScreen() {
   };
 
   const categories = ['All', ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))];
-  const filtered = activeCategory === 'All' ? posts : posts.filter(p => p.category === activeCategory);
+  const allTags = Array.from(new Set(posts.flatMap(p => p.tags || []))).sort();
+  const allFilters = [...categories, ...allTags.filter(t => !categories.includes(t))];
+  const filtered = activeTag === 'All' ? posts
+    : posts.filter(p => p.category === activeTag || (p.tags || []).includes(activeTag));
+  const filtered = filteredByTag || posts;
 
   const openPost = (slug: string) => {
     setSelectedBlogSlug(slug);
@@ -73,13 +83,13 @@ export function BlogScreen() {
       </div>
 
       {/* Category pills */}
-      {categories.length > 1 && (
+      {allFilters.length > 1 && (
         <div className="bg-white border-b border-stone-100 px-5 py-3">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {categories.map(cat => (
-              <button key={cat} onClick={() => setActiveCategory(cat)}
+            {allFilters.map(cat => (
+              <button key={cat} onClick={() => setActiveTag(cat)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  activeCategory === cat ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-stone-600 border-stone-200 hover:border-teal-300'
+                  activeTag === cat ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-stone-600 border-stone-200 hover:border-teal-300'
                 }`}>
                 {cat}
               </button>

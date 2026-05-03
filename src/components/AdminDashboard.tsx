@@ -155,6 +155,20 @@ export function AdminDashboard() {
     }
   };
 
+  const [blogClicks, setBlogClicks] = useState<Record<string, {views: number, ctas: number}>>({});
+
+  const fetchBlogClicks = async () => {
+    const { data } = await supabase.from('blog_clicks').select('slug, type');
+    if (!data) return;
+    const clicks: Record<string, {views: number, ctas: number}> = {};
+    data.forEach((c: any) => {
+      if (!clicks[c.slug]) clicks[c.slug] = { views: 0, ctas: 0 };
+      if (c.type === 'view') clicks[c.slug].views++;
+      if (c.type === 'cta_click') clicks[c.slug].ctas++;
+    });
+    setBlogClicks(clicks);
+  };
+
   const fetchBlogPosts = async () => {
     setBlogLoading(true);
     // Fetch all posts including drafts for admin
@@ -513,7 +527,7 @@ export function AdminDashboard() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') fetchBlogPosts(); }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); } }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -966,12 +980,19 @@ export function AdminDashboard() {
                       </div>
                       <p className="font-bold text-stone-900 text-sm truncate">{post.title}</p>
                       <p className="text-[10px] text-stone-400 font-mono">{post.slug}</p>
+                      {blogClicks[post.slug] && (
+                        <div className="flex gap-2 mt-1">
+                          <span className="text-[10px] text-stone-400">👁 {blogClicks[post.slug].views} views</span>
+                          <span className="text-[10px] text-orange-500">→ {blogClicks[post.slug].ctas} CTA clicks</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1 shrink-0 flex-wrap justify-end">
                       <button onClick={() => togglePublished(post.id, post.published)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200">
                         {post.published ? 'Unpublish' : 'Publish'}
                       </button>
                       <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
+                      <button onClick={async () => { try { await navigator.share({ title: post.title, text: post.excerpt, url: `https://www.pippal.uk` }); } catch { navigator.clipboard?.writeText(`https://www.pippal.uk`); } }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">Share</button>
                       <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
                     </div>
                   </div>

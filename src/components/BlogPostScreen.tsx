@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Tag, Share2, ChevronRight } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient';
 
 interface BlogPost {
   id: string;
@@ -15,7 +16,20 @@ interface BlogPost {
 }
 
 export function BlogPostScreen() {
-  const { goBack, navigateTo, selectedBlogSlug, hasPaid } = useAppContext();
+  const { goBack, navigateTo, selectedBlogSlug, setSelectedBlogSlug, hasPaid } = useAppContext();
+
+  // Track blog view
+  React.useEffect(() => {
+    if (selectedBlogSlug) {
+      supabase.from('blog_clicks').insert({ slug: selectedBlogSlug, type: 'view' }).then(() => {});
+    }
+  }, [selectedBlogSlug]);
+
+  const openTagFilter = (tag: string) => {
+    navigateTo('blog');
+    // Store tag filter in sessionStorage for BlogScreen to pick up
+    sessionStorage.setItem('blog_tag_filter', tag);
+  };
   const [post, setPost] = useState<BlogPost | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [shared, setShared] = useState(false);
@@ -50,15 +64,67 @@ export function BlogPostScreen() {
     }
   };
 
-  // Render body — support simple markdown-like formatting
+  // Render inline bold — convert **text** to <strong>
+  const renderInline = (text: string, key: number) => {
+    const parts = text.split(/\*\*(.*?)\*\*/g);
+    return (
+      <span key={key}>
+        {parts.map((part, i) => i % 2 === 1 ? <strong key={i} className="font-bold text-stone-900">{part}</strong> : part)}
+      </span>
+    );
+  };
+
+  // Render body — support markdown-like formatting
   const renderBody = (body: string) => {
-    return body.split('\n').map((line, i) => {
-      if (line.startsWith('## ')) return <h2 key={i} className="font-bold text-stone-900 text-base mt-6 mb-2">{line.slice(3)}</h2>;
-      if (line.startsWith('# ')) return <h1 key={i} className="font-bold text-stone-900 text-lg mt-4 mb-2">{line.slice(2)}</h1>;
-      if (line.startsWith('- ')) return <li key={i} className="text-sm text-stone-600 leading-relaxed ml-4 list-disc">{line.slice(2)}</li>;
-      if (line.trim() === '') return <div key={i} className="h-3" />;
-      return <p key={i} className="text-sm text-stone-600 leading-relaxed">{line}</p>;
+    const lines = body.split('\n');
+    const elements: React.ReactNode[] = [];
+    let inList = false;
+    let listItems: React.ReactNode[] = [];
+
+    const flushList = (i: number) => {
+      if (listItems.length > 0) {
+        elements.push(<ul key={`ul-${i}`} className="ml-4 mb-3 space-y-1">{listItems}</ul>);
+        listItems = [];
+        inList = false;
+      }
+    };
+
+    lines.forEach((line, i) => {
+      if (line.startsWith('## ')) {
+        flushList(i);
+        elements.push(<h2 key={i} className="font-bold text-stone-900 text-base mt-6 mb-2">{renderInline(line.slice(3), i)}</h2>);
+      } else if (line.startsWith('# ')) {
+        flushList(i);
+        elements.push(<h1 key={i} className="font-bold text-stone-900 text-lg mt-4 mb-2">{renderInline(line.slice(2), i)}</h1>);
+      } else if (line.startsWith('- ')) {
+        inList = true;
+        listItems.push(<li key={i} className="text-sm text-stone-600 leading-relaxed list-disc">{renderInline(line.slice(2), i)}</li>);
+      } else if (line.trim() === '') {
+        flushList(i);
+        elements.push(<div key={i} className="h-2" />);
+      } else {
+        flushList(i);
+        // Check if line is a PIPpal CTA
+        const isPIPpalCTA = line.toLowerCase().includes('pippal') && (line.toLowerCase().includes('try') || line.toLowerCase().includes('start') || line.toLowerCase().includes('get') || line.toLowerCase().includes('help'));
+        if (isPIPpalCTA) {
+          elements.push(
+            <div key={i} className="my-4">
+              <p className="text-sm text-stone-600 leading-relaxed mb-3">{renderInline(line, i)}</p>
+              <button
+                onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
+                className="bg-orange-500 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
+              >
+                {hasPaid ? '→ Continue my PIP claim' : '→ Try PIPpal — £12.99 one-time'}
+              </button>
+            </div>
+          );
+        } else {
+          elements.push(<p key={i} className="text-sm text-stone-600 leading-relaxed">{renderInline(line, i)}</p>);
+        }
+      }
     });
+    flushList(lines.length);
+    return elements;
   };
 
   return (
@@ -122,20 +188,26 @@ export function BlogPostScreen() {
               <div className="px-5 pb-4 flex items-center gap-2 flex-wrap">
                 <Tag className="w-3.5 h-3.5 text-stone-400" />
                 {post.tags.map(tag => (
-                  <span key={tag} className="text-[11px] text-stone-500 bg-stone-100 px-2 py-0.5 rounded-full">{tag}</span>
+                  <button key={tag} onClick={() => openTagFilter(tag)}
+                    className="text-[11px] text-teal-700 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full hover:bg-teal-100 transition-colors font-medium">
+                    #{tag}
+                  </button>
                 ))}
               </div>
             )}
 
             {/* CTA */}
-            <div className="mx-5 mb-8 bg-teal-50 rounded-2xl p-4 border border-teal-100">
-              <p className="font-bold text-teal-900 text-sm mb-1">Need help with your PIP claim?</p>
-              <p className="text-xs text-teal-700 leading-relaxed mb-3">PIPpal guides you through all 12 PIP questions and helps you write your claim in DWP-appropriate language.</p>
+            <div className="mx-5 mb-8 bg-stone-900 rounded-2xl p-5">
+              <p className="font-bold text-white text-base mb-1">Ready to claim PIP?</p>
+              <p className="text-xs text-stone-300 leading-relaxed mb-4">94% success rate. Complete your form in 15–30 minutes. Get your decision 3–6 weeks earlier. Just £12.99 one-time.</p>
               <button
-                onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
-                className="flex items-center gap-2 bg-teal-700 text-white text-sm font-bold px-4 py-2.5 rounded-xl hover:bg-teal-800 transition-colors"
+                onClick={() => {
+                  supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => {});
+                  navigateTo(hasPaid ? 'question_index' : 'upsell');
+                }}
+                className="w-full bg-orange-500 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
               >
-                {hasPaid ? 'Continue my claim' : 'Get Full Access'} <ChevronRight className="w-4 h-4" />
+                {hasPaid ? '→ Continue my PIP claim' : '→ Start my PIP claim — £12.99'}
               </button>
             </div>
           </div>
