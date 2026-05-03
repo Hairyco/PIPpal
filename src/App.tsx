@@ -26,6 +26,7 @@ import {
   Shield,
   Newspaper,
   Rss,
+  BookOpen,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -72,6 +73,8 @@ import {
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
 import { NewsScreen } from './components/NewsScreen';
+import { BlogScreen } from './components/BlogScreen';
+import { BlogPostScreen } from './components/BlogPostScreen';
 import { ChangeOfCircumstancesScreen } from './components/ChangeOfCircumstancesScreen';
 import { DecisionReceivedScreen } from './components/DecisionReceivedScreen';
 import { MandatoryReconsiderationScreen } from './components/MandatoryReconsiderationScreen';
@@ -230,6 +233,8 @@ function AppContent() {
       case 'pip_diary': return <PIPDiaryScreen hasPaid={hasPaid} />;
       case 'downloads': return hasPaid ? <Downloads /> : <UpsellScreen />;
       case 'news': return <NewsScreen />;
+      case 'blog': return <BlogScreen />;
+      case 'blog_post': return <BlogPostScreen />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;
@@ -369,6 +374,7 @@ function AppContent() {
                     <div>
                       <NavItem icon={Home} label="Home" screen="home" />
                       <NavItem icon={Newspaper} label="PIP News" screen="news" />
+                      <NavItem icon={BookOpen} label="Blog" screen="blog" />
                     </div>
 
                     <div>

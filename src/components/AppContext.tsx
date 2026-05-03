@@ -33,7 +33,9 @@ export type Screen =
   | 'timeline_calculator'
   | 'payment_calculator'
   | 'backpay_calculator'
-  | 'news';
+  | 'news'
+  | 'blog'
+  | 'blog_post';
 
 export interface User {
   name: string;
@@ -81,6 +83,8 @@ interface AppContextType {
   setAssistantQuestion: (q: string | null) => void;
   assistantContext: string | null;
   setAssistantContext: (c: string | null) => void;
+  selectedBlogSlug: string | null;
+  setSelectedBlogSlug: (slug: string | null) => void;
   emailNotifications: boolean;
   setEmailNotifications: (val: boolean) => void;
   savedAnswers: Record<string, string>;
@@ -160,6 +164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
   const [assistantQuestion, setAssistantQuestion] = useState<string | null>(null);
   const [assistantContext, setAssistantContext] = useState<string | null>(null);
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
   const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
@@ -439,6 +444,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setAssistantQuestion,
         assistantContext,
         setAssistantContext,
+        selectedBlogSlug,
+        setSelectedBlogSlug,
         emailNotifications,
         setEmailNotifications: async (val: boolean) => {
           setEmailNotificationsState(val);

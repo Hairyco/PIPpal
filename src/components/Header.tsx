@@ -25,6 +25,11 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
       setMobileMenuOpen(false);
       return;
     }
+    if (id === 'blog') {
+      navigateTo('blog');
+      setMobileMenuOpen(false);
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
   };

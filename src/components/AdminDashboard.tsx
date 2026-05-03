@@ -71,7 +71,7 @@ interface Stats {
 type PeriodFilter = 'all' | 'today' | 'week' | 'month' | 'year';
 type StatusFilter = 'all' | 'paid' | 'free';
 type SourceFilter = 'all' | 'organic' | 'influencer';
-type TabType = 'stats' | 'visitors' | 'influencers';
+type TabType = 'stats' | 'visitors' | 'influencers' | 'blog';
 
 function StatCard({
   icon: Icon,
@@ -120,6 +120,46 @@ export function AdminDashboard() {
   const [addError, setAddError] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
+  const [blogPosts, setBlogPosts] = useState<any[]>([]);
+  const [editingPost, setEditingPost] = useState<any | null>(null);
+  const [blogLoading, setBlogLoading] = useState(false);
+  const [blogSaving, setBlogSaving] = useState(false);
+  const [blogMsg, setBlogMsg] = useState('');
+
+  const fetchBlogPosts = async () => {
+    setBlogLoading(true);
+    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+    setBlogPosts(data || []);
+    setBlogLoading(false);
+  };
+
+  const savePost = async () => {
+    if (!editingPost?.title || !editingPost?.slug) { setBlogMsg('Title and slug are required'); return; }
+    setBlogSaving(true);
+    const { id, ...rest } = editingPost;
+    const payload = { ...rest, updated_at: new Date().toISOString(), tags: editingPost.tags || [] };
+    if (id) {
+      await supabase.from('blog_posts').update(payload).eq('id', id);
+    } else {
+      await supabase.from('blog_posts').insert({ ...payload, created_at: new Date().toISOString() });
+    }
+    setBlogMsg('Saved!');
+    setEditingPost(null);
+    fetchBlogPosts();
+    setBlogSaving(false);
+    setTimeout(() => setBlogMsg(''), 3000);
+  };
+
+  const deletePost = async (id: string) => {
+    if (!confirm('Delete this post?')) return;
+    await supabase.from('blog_posts').delete().eq('id', id);
+    fetchBlogPosts();
+  };
+
+  const togglePublished = async (id: string, published: boolean) => {
+    await supabase.from('blog_posts').update({ published: !published }).eq('id', id);
+    fetchBlogPosts();
+  };
   const [digestResult, setDigestResult] = useState<string | null>(null);
 
   const sendDigest = async (testOnly = false) => {
@@ -417,10 +457,11 @@ export function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex bg-white border-b border-stone-100 sticky top-14 z-10">
-        {(['stats', 'visitors', 'influencers'] as TabType[]).map(tab => (
+        {(['stats', 'visitors', 'influencers', 'blog'] as TabType[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') fetchBlogPosts(); }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -761,6 +802,87 @@ export function AdminDashboard() {
       )}
 
       {/* Influencers Tab */}
+      {activeTab === 'blog' && (
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-stone-900 text-sm">Blog Posts</h2>
+            <button
+              onClick={() => { setEditingPost({ title: '', slug: '', excerpt: '', body: '', category: 'Tips', tags: [], published: false }); fetchBlogPosts(); }}
+              className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-teal-800"
+            >+ New Post</button>
+          </div>
+
+          {blogMsg && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mb-3">{blogMsg}</p>}
+
+          {/* Editor */}
+          {editingPost && (
+            <div className="bg-white rounded-2xl border border-stone-100 p-4 mb-4 space-y-3">
+              <h3 className="font-bold text-stone-900 text-sm">{editingPost.id ? 'Edit Post' : 'New Post'}</h3>
+              <input value={editingPost.title} onChange={e => setEditingPost({...editingPost, title: e.target.value, slug: editingPost.id ? editingPost.slug : e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')})}
+                placeholder="Title" className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              <input value={editingPost.slug} onChange={e => setEditingPost({...editingPost, slug: e.target.value})}
+                placeholder="slug-for-url" className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400 font-mono" />
+              <select value={editingPost.category} onChange={e => setEditingPost({...editingPost, category: e.target.value})}
+                className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400">
+                {['Tips', 'News', 'Legislation', 'Success Stories', 'How To', 'Appeals'].map(c => <option key={c}>{c}</option>)}
+              </select>
+              <textarea value={editingPost.excerpt} onChange={e => setEditingPost({...editingPost, excerpt: e.target.value})}
+                placeholder="Short excerpt (shown on listing page)" rows={2}
+                className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none" />
+              <textarea value={editingPost.body} onChange={e => setEditingPost({...editingPost, body: e.target.value})}
+                placeholder="Full post content. Use # for headings, ## for subheadings, - for bullet points" rows={10}
+                className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none font-mono" />
+              <input value={editingPost.tags?.join(', ')} onChange={e => setEditingPost({...editingPost, tags: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean)})}
+                placeholder="Tags (comma separated)" className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
+                  <input type="checkbox" checked={editingPost.published} onChange={e => setEditingPost({...editingPost, published: e.target.checked})} className="w-4 h-4 accent-teal-600" />
+                  Published
+                </label>
+                <div className="flex gap-2 ml-auto">
+                  <button onClick={() => setEditingPost(null)} className="text-xs text-stone-500 px-3 py-2 rounded-lg hover:bg-stone-100">Cancel</button>
+                  <button onClick={savePost} disabled={blogSaving} className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 disabled:opacity-50">
+                    {blogSaving ? 'Saving...' : 'Save Post'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Post list */}
+          {blogLoading ? (
+            <div className="text-center py-8 text-stone-400 text-sm">Loading...</div>
+          ) : (
+            <div className="space-y-3">
+              {blogPosts.length === 0 && !editingPost && <p className="text-center text-stone-400 text-sm py-8">No posts yet. Create your first post!</p>}
+              {blogPosts.map(post => (
+                <div key={post.id} className="bg-white rounded-2xl border border-stone-100 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${post.published ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
+                          {post.published ? 'Live' : 'Draft'}
+                        </span>
+                        <span className="text-[10px] text-stone-400">{post.category}</span>
+                      </div>
+                      <p className="font-bold text-stone-900 text-sm truncate">{post.title}</p>
+                      <p className="text-[10px] text-stone-400 font-mono">{post.slug}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => togglePublished(post.id, post.published)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200">
+                        {post.published ? 'Unpublish' : 'Publish'}
+                      </button>
+                      <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
+                      <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
