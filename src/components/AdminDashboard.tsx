@@ -108,7 +108,7 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
 }
 
 export function AdminDashboard() {
-  const { user, goBack } = useAppContext();
+  const { user, goBack, navigateTo, setSelectedBlogSlug } = useAppContext();
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>([]);
@@ -992,6 +992,7 @@ export function AdminDashboard() {
                         {post.published ? 'Unpublish' : 'Publish'}
                       </button>
                       <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
+                      <button onClick={() => { setSelectedBlogSlug(post.slug); navigateTo('blog_post'); }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-stone-50 text-stone-600 hover:bg-stone-100">View</button>
                       <button onClick={async () => { try { await navigator.share({ title: post.title, text: post.excerpt, url: `https://www.pippal.uk` }); } catch { navigator.clipboard?.writeText(`https://www.pippal.uk`); } }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">Share</button>
                       <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
                     </div>
