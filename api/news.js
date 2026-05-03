@@ -2,14 +2,18 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
 const SOURCES = [
-  // Tier 1 — show source and link
   {
     url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment',
     name: 'GOV.UK',
     showSource: true,
     format: 'atom',
   },
-  // Tier 2/3 — rewrite as PIPpal News, no outbound link
+  {
+    url: 'https://feeds.bbci.co.uk/news/uk/rss.xml',
+    name: 'BBC',
+    showSource: false,
+    format: 'rss',
+  },
   {
     url: 'https://www.mirror.co.uk/money/benefits/rss.xml',
     name: 'Mirror',
@@ -22,35 +26,17 @@ const SOURCES = [
     showSource: false,
     format: 'rss',
   },
-  {
-    url: 'https://www.birminghammail.co.uk/rss.xml',
-    name: 'Birmingham Live',
-    showSource: false,
-    format: 'rss',
-  },
-  {
-    url: 'https://www.liverpoolecho.co.uk/rss.xml',
-    name: 'Liverpool Echo',
-    showSource: false,
-    format: 'rss',
-  },
-  {
-    url: 'https://www.disabilityrightsuk.org/feed',
-    name: 'Disability Rights UK',
-    showSource: false,
-    format: 'rss',
-  },
 ];
 
-const PIP_KEYWORDS = ['pip', 'personal independence payment', 'disability benefit', 'dwp', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'disability payment', 'pip rate', 'pip change', 'pip news', 'benefit', 'disabled'];
+const PIP_KEYWORDS = ['pip', 'personal independence payment', 'disability benefit', 'dwp', 'pip claim', 'pip assessment', 'pip award', 'benefit', 'disabled', 'disability payment'];
 
 const TAG_RULES = [
-  { tag: 'Legislation', keywords: ['law', 'legislation', 'parliament', 'bill', 'act', 'reform', 'policy', 'government', 'chancellor', 'budget', 'autumn statement', 'spring statement'] },
-  { tag: 'Assessment', keywords: ['assessment', 'assessor', 'medical', 'health professional', 'face-to-face', 'telephone', 'video', 'wca', 'atos', 'capita', 'maximus'] },
-  { tag: 'Appeals', keywords: ['appeal', 'tribunal', 'mandatory reconsideration', 'mr', 'challenge', 'overturn', 'success rate', 'won', 'lost'] },
-  { tag: 'Rates & Payments', keywords: ['rate', 'payment', 'increase', 'rise', 'amount', 'weekly', 'uprated', 'uprating', 'inflation', '£'] },
-  { tag: 'Tips', keywords: ['how to', 'tip', 'advice', 'guide', 'help', 'apply', 'applying', 'application', 'claim', 'claimant', 'eligible', 'eligibility', 'qualify'] },
-  { tag: 'Official', keywords: ['gov.uk', 'dwp', 'department', 'minister', 'secretary of state', 'official'] },
+  { tag: 'Legislation', keywords: ['law', 'legislation', 'parliament', 'bill', 'act', 'reform', 'policy', 'government', 'budget'] },
+  { tag: 'Assessment', keywords: ['assessment', 'assessor', 'medical', 'face-to-face', 'telephone', 'video'] },
+  { tag: 'Appeals', keywords: ['appeal', 'tribunal', 'mandatory reconsideration', 'challenge', 'overturn', 'won', 'lost'] },
+  { tag: 'Rates & Payments', keywords: ['rate', 'payment', 'increase', 'rise', 'amount', 'weekly', 'uprated', '£'] },
+  { tag: 'Tips', keywords: ['how to', 'tip', 'advice', 'guide', 'help', 'apply', 'applying', 'eligible', 'eligibility', 'qualify'] },
+  { tag: 'Official', keywords: ['gov.uk', 'dwp', 'department', 'minister', 'official'] },
 ];
 
 function autoTag(title, summary) {
@@ -71,8 +57,9 @@ function isPIPRelated(title, summary) {
 
 function parseAtom(xml) {
   const items = [];
-  const entryMatches = xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g);
-  for (const match of entryMatches) {
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  let match;
+  while ((match = entryRegex.exec(xml)) !== null) {
     const entry = match[1];
     const title = (entry.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
     const summary = (entry.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '';
@@ -80,7 +67,7 @@ function parseAtom(xml) {
     const published = (entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
     const cleanSummary = summary.replace(/<[^>]*>/g, '').trim();
     if (title && isPIPRelated(title, cleanSummary)) {
-      items.push({ title: title.trim(), summary: cleanSummary, link, date: published });
+      items.push({ title: title.trim(), summary: cleanSummary.slice(0, 300), link, date: published });
     }
   }
   return items;
@@ -88,8 +75,9 @@ function parseAtom(xml) {
 
 function parseRSS(xml) {
   const items = [];
-  const itemMatches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
-  for (const match of itemMatches) {
+  const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = itemRegex.exec(xml)) !== null) {
     const item = match[1];
     const title = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
     const description = (item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '';
@@ -105,28 +93,39 @@ function parseRSS(xml) {
 
 async function fetchFeed(source) {
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
     const res = await fetch(source.url, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)' },
-      signal: AbortSignal.timeout(5000),
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; RSS Reader/1.0)',
+        'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
+      },
+      signal: controller.signal,
     });
-    if (!res.ok) return [];
+    clearTimeout(timeout);
+    if (!res.ok) {
+      console.log(`Feed ${source.name} returned ${res.status}`);
+      return [];
+    }
     const xml = await res.text();
     const items = source.format === 'atom' ? parseAtom(xml) : parseRSS(xml);
-    return items.slice(0, 5).map(item => ({ ...item, sourceName: source.name, showSource: source.showSource }));
-  } catch {
+    console.log(`Feed ${source.name}: ${items.length} PIP articles found`);
+    return items.slice(0, 6).map(item => ({ ...item, sourceName: source.name, showSource: source.showSource }));
+  } catch (err) {
+    console.log(`Feed ${source.name} failed: ${err.message}`);
     return [];
   }
 }
 
-async function rewriteSummary(client, title, summary, showSource) {
+async function rewriteSummary(client, title, summary) {
   if (!summary || summary.length < 20) return summary;
   try {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 120,
+      max_tokens: 100,
       messages: [{
         role: 'user',
-        content: `Rewrite this news summary in plain English for a PIP claimant. 2-3 sentences max. Focus on what it means for them practically. No ** or !!. No jargon.\n\nTitle: ${title}\nSummary: ${summary}`,
+        content: `Rewrite in plain English for a PIP claimant. 2 sentences max. What does this mean for them? No ** or !!.\n\nTitle: ${title}\nSummary: ${summary}`,
       }],
     });
     return response.content[0].text.trim();
@@ -137,24 +136,27 @@ async function rewriteSummary(client, title, summary, showSource) {
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 's-maxage=3600'); // cache for 1 hour
-
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  res.setHeader('Cache-Control', 's-maxage=3600');
 
   try {
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
     // Fetch all feeds in parallel
     const feedResults = await Promise.all(SOURCES.map(s => fetchFeed(s)));
     const allItems = feedResults.flat();
+    console.log(`Total PIP articles found: ${allItems.length}`);
 
-    // Sort by date, most recent first
+    if (allItems.length === 0) {
+      return res.status(200).json({ articles: [], message: 'No articles found' });
+    }
+
+    // Sort by date
     allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const topItems = allItems.slice(0, 15);
 
-    // Take top 20
-    const topItems = allItems.slice(0, 20);
-
-    // Rewrite summaries for non-GOV.UK items (in parallel, max 5 at a time)
+    // Rewrite summaries
     const rewritten = await Promise.all(topItems.map(async item => {
-      const rewrittenSummary = await rewriteSummary(client, item.title, item.summary, item.showSource);
+      const rewrittenSummary = await rewriteSummary(client, item.title, item.summary);
       const tags = autoTag(item.title, item.summary);
       const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
       return {
@@ -169,6 +171,7 @@ module.exports = async (req, res) => {
 
     res.status(200).json({ articles: rewritten });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch news', articles: [] });
+    console.error('News API error:', err.message);
+    res.status(500).json({ error: err.message, articles: [] });
   }
 };
