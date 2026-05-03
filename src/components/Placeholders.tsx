@@ -247,7 +247,7 @@ export function AboutScreen() {
           <button onClick={() => navigateTo('terms' as any)} className="w-full bg-white border border-stone-200 rounded-xl py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
             <FileText className="w-4 h-4 text-stone-400" />Terms of Service
           </button>
-          <a href="mailto:hello@pippal.co.uk" className="w-full bg-white border border-stone-200 rounded-xl py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
+          <a href="mailto:support@pippal.uk" className="w-full bg-white border border-stone-200 rounded-xl py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 transition-colors flex items-center justify-center gap-2">
             <Mail className="w-4 h-4 text-stone-400" />Contact us
           </a>
         </div>
@@ -259,7 +259,7 @@ export function AboutScreen() {
 // ─── PRIVACY ───────────────────────────────────────────────────────────────────
 export function PrivacyScreen() {
   const sections = [
-    { icon: FileText, title: '1. Who we are', body: 'PIPpal is operated as a sole trader business in the United Kingdom. Our contact email is hello@pippal.co.uk. We are the data controller for any personal data you provide when using our service.' },
+    { icon: FileText, title: '1. Who we are', body: 'PIPpal is operated as a sole trader business in the United Kingdom. Our contact email is support@pippal.uk. We are the data controller for any personal data you provide when using our service.' },
     { icon: FileText, title: '2. What data we collect', body: 'We collect: your name and email address when you create an account; your PIP question answers, medical profile information, and PIP diary entries that you choose to enter; payment information processed securely by Stripe (we never see or store your card details); and technical data such as your IP address and browser type for security purposes.' },
     { icon: Lock, title: '3. How we use your data', body: 'We use your data solely to provide the PIPpal service — to save your progress, personalise your guidance, and process your payment. We never sell your data to third parties, use it for advertising, or share it with anyone outside of the services required to run PIPpal (Supabase for data storage, Stripe for payments).' },
     { icon: Shield, title: '4. Legal basis for processing', body: 'We process your data under the following legal bases: Contract — to fulfil our service agreement with you; Legitimate interests — to improve our service and prevent fraud; Consent — where you have explicitly agreed, for example to receive email updates.' },
@@ -268,7 +268,7 @@ export function PrivacyScreen() {
     { icon: Eye, title: '7. Your rights under UK GDPR', body: 'You have the right to: access your personal data; correct inaccurate data; delete your data ("right to be forgotten"); restrict or object to processing; data portability; and lodge a complaint with the ICO (Information Commissioner\'s Office) at ico.org.uk.' },
     { icon: Mail, title: '8. Cookies', body: 'We use only essential cookies required for authentication and security. We do not use tracking cookies or advertising cookies. You can disable cookies in your browser settings, but this may affect the functionality of PIPpal.' },
     { icon: FileText, title: '9. Third party services', body: 'We use Supabase (data storage, EU servers), Stripe (payment processing), and Vercel (hosting). Each of these providers has their own privacy policy and is GDPR compliant.' },
-    { icon: Mail, title: '10. Contact & complaints', body: 'For any privacy-related queries, data access requests, or deletion requests, contact us at hello@pippal.co.uk. You also have the right to complain to the ICO at ico.org.uk/make-a-complaint.' },
+    { icon: Mail, title: '10. Contact & complaints', body: 'For any privacy-related queries, data access requests, or deletion requests, contact us at support@pippal.uk. You also have the right to complain to the ICO at ico.org.uk/make-a-complaint.' },
   ];
 
   return (
@@ -288,7 +288,7 @@ export function PrivacyScreen() {
           </div>
         ))}
         <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200">
-          <p className="text-xs text-stone-500 leading-relaxed">For any privacy-related queries contact us at <a href="mailto:hello@pippal.co.uk" className="text-teal-700 font-medium underline">hello@pippal.co.uk</a></p>
+          <p className="text-xs text-stone-500 leading-relaxed">For any privacy-related queries contact us at <a href="mailto:support@pippal.uk" className="text-teal-700 font-medium underline">support@pippal.uk</a></p>
         </div>
       </div>
     </div>
@@ -306,9 +306,9 @@ export function TermsScreen() {
     { title: '6. Intellectual property', body: 'All content, design, software, and materials on PIPpal are owned by PIPpal or its licensors. You may not copy, reproduce, or distribute any part of PIPpal without our written permission. Your personal data and answers remain your own.' },
     { title: '7. Disclaimer of warranties', body: 'PIPpal is provided "as is" without any warranties, express or implied. We do not warrant that our service will be uninterrupted, error-free, or that any information will be complete, accurate, or up to date. PIP rules and rates change — always check gov.uk for the latest information.' },
     { title: '8. Limitation of liability', body: 'To the maximum extent permitted by UK law, PIPpal shall not be liable for any indirect, incidental, or consequential damages arising from your use of our service. Our total liability to you shall not exceed the amount you paid for Full Access.' },
-    { title: '9. Termination', body: 'We reserve the right to suspend or terminate your account if you breach these terms. You may delete your account at any time by contacting hello@pippal.co.uk.' },
+    { title: '9. Termination', body: 'We reserve the right to suspend or terminate your account if you breach these terms. You may delete your account at any time by contacting support@pippal.uk.' },
     { title: '10. Governing law', body: 'These terms are governed by the laws of England and Wales. Any disputes shall be subject to the exclusive jurisdiction of the courts of England and Wales.' },
-    { title: '11. Contact', body: 'For any questions about these terms, contact us at hello@pippal.co.uk.' },
+    { title: '11. Contact', body: 'For any questions about these terms, contact us at support@pippal.uk.' },
   ];
 
   return (
@@ -325,7 +325,7 @@ export function TermsScreen() {
           </div>
         ))}
         <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200">
-          <p className="text-xs text-stone-500 leading-relaxed">Questions about these terms? Contact us at <a href="mailto:hello@pippal.co.uk" className="text-teal-700 font-medium underline">hello@pippal.co.uk</a></p>
+          <p className="text-xs text-stone-500 leading-relaxed">Questions about these terms? Contact us at <a href="mailto:support@pippal.uk" className="text-teal-700 font-medium underline">support@pippal.uk</a></p>
         </div>
       </div>
     </div>
@@ -339,7 +339,7 @@ export function AccessibilityScreen() {
     { icon: Settings, title: 'High contrast', body: 'PIPpal uses a high-contrast teal and stone colour scheme designed to be readable for people with visual impairments.' },
     { icon: Smartphone, title: 'Screen reader support', body: 'All interactive elements have accessible labels for use with VoiceOver (iOS) and TalkBack (Android).' },
     { icon: Volume2, title: 'Assessment recording', body: 'You can request an audio recording of your PIP assessment. See the Assessment Prep guide for how to do this.' },
-    { icon: HelpCircle, title: 'Need more help?', body: 'If you need the content in a different format or require assistance using PIPpal, contact us at hello@pippal.co.uk and we will help.' },
+    { icon: HelpCircle, title: 'Need more help?', body: 'If you need the content in a different format or require assistance using PIPpal, contact us at support@pippal.uk and we will help.' },
   ];
 
   return (
@@ -357,7 +357,7 @@ export function AccessibilityScreen() {
           </div>
         ))}
         <div className="bg-teal-50 rounded-2xl p-4 border border-teal-100">
-          <p className="text-xs text-teal-800 leading-relaxed">We are committed to continuously improving accessibility. If you encounter any barriers, please email us at <a href="mailto:hello@pippal.co.uk" className="font-medium underline">hello@pippal.co.uk</a></p>
+          <p className="text-xs text-teal-800 leading-relaxed">We are committed to continuously improving accessibility. If you encounter any barriers, please email us at <a href="mailto:support@pippal.uk" className="font-medium underline">support@pippal.uk</a></p>
         </div>
       </div>
     </div>

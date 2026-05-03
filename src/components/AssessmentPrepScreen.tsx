@@ -524,7 +524,7 @@ export function AssessmentPrepScreen() {
           </a>
 
           <a
-            href="mailto:support@pippal.co.uk"
+            href="mailto:support@pippal.uk"
             className="block bg-white rounded-2xl p-4 border border-stone-200 shadow-sm hover:border-stone-300 transition-all active:scale-[0.98]">
             
             <div className="flex items-center gap-3">
@@ -534,7 +534,7 @@ export function AssessmentPrepScreen() {
               <div>
                 <h4 className="font-bold text-stone-900 text-sm">Need help?</h4>
                 <p className="text-xs text-stone-500">
-                  Contact us at support@pippal.co.uk
+                  Contact us at support@pippal.uk
                 </p>
               </div>
             </div>

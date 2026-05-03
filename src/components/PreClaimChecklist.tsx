@@ -222,7 +222,7 @@ export function PreClaimChecklist() {
             </div>
           </a>
           <a
-            href="mailto:support@pippal.co.uk"
+            href="mailto:support@pippal.uk"
             className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-stone-100 hover:border-stone-200 transition-all active:scale-[0.98]">
             
             <div className="w-9 h-9 bg-stone-100 rounded-full flex items-center justify-center shrink-0">
@@ -230,7 +230,7 @@ export function PreClaimChecklist() {
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-stone-900 text-xs">Need help?</h3>
-              <p className="text-[11px] text-stone-500">support@pippal.co.uk</p>
+              <p className="text-[11px] text-stone-500">support@pippal.uk</p>
             </div>
           </a>
         </div>

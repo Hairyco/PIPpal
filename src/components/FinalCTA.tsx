@@ -64,7 +64,7 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
           <span className="text-stone-300">·</span>
           <button className="hover:text-stone-600 transition-colors">Terms of Service</button>
           <span className="text-stone-300">·</span>
-          <a href="mailto:hello@pippal.co.uk" className="hover:text-stone-600 transition-colors flex items-center gap-1">
+          <a href="mailto:support@pippal.uk" className="hover:text-stone-600 transition-colors flex items-center gap-1">
             <Mail className="w-3 h-3" />
             Contact
           </a>
