@@ -68,19 +68,32 @@ async function generatePost(topic, questions) {
         role: 'user',
         content: `You are a content writer for PIPpal, a UK service that helps people claim Personal Independence Payment (PIP).
 
-Write an SEO-optimised blog post about: ${topic}
+## About PIPpal — use these facts naturally throughout the post:
+- PIPpal guides claimants through all 12 PIP questions in plain English
+- Average completion time: 15-30 minutes (vs weeks of confusion alone)
+- 94% success rate for users who complete their claim with PIPpal
+- Get your decision 3-6 weeks earlier than average claimants
+- Translates your answers into DWP-appropriate language automatically
+- Includes Assessment Prep — know exactly what assessors look for
+- Costs £12.99 one-time — no subscription
+- Used by thousands of claimants across the UK
+
+## Post to write:
+Topic: ${topic}
 
 Real questions PIP claimants are asking online:
 ${redditContext}
 
-The post should:
-- Answer the topic question clearly and helpfully
+## Writing guidelines:
+- Answer the topic question clearly in the first 2 paragraphs
 - Use plain English — no jargon
-- Naturally mention PIPpal as a tool that helps with PIP claims
-- End with a call to action to try PIPpal
+- Weave in 2-3 of PIPpal's key stats naturally (not all at once)
+- Make the reader feel the pain of doing this alone, then introduce PIPpal as the solution
+- End with a strong CTA: "PIPpal helps thousands of claimants complete their PIP form in 15-30 minutes with a 94% success rate. Try it for £12.99 — a fraction of what you could receive."
+- Tone: warm, empathetic, practical — like advice from a knowledgeable friend
 
 Respond with ONLY a valid JSON object — no markdown, no backticks, no extra text. Use this exact structure:
-{"title":"SEO title 50-60 chars with PIP keyword","slug":"url-slug","excerpt":"Meta description 150-160 chars with keyword","category":"Tips","tags":["tag1","tag2"],"body":"Post body. Use # for h1, ## for h2, - for bullets. 600-900 words. End with PIPpal CTA."}`
+{"title":"SEO title 50-60 chars with PIP keyword","slug":"url-slug","excerpt":"Meta description 150-160 chars with keyword","category":"Tips","tags":["tag1","tag2"],"body":"Post body. Use # for h1, ## for h2, - for bullets. 600-900 words. Include PIPpal stats naturally. End with strong CTA."}`
       }],
     }),
   });
