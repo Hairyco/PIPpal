@@ -125,10 +125,55 @@ export function AdminDashboard() {
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogSaving, setBlogSaving] = useState(false);
   const [blogMsg, setBlogMsg] = useState('');
+  const [redditInsights, setRedditInsights] = useState<any[]>([]);
+  const [insightLoading, setInsightLoading] = useState(false);
+  const [insightTotal, setInsightTotal] = useState(0);
+  const [insightScannedAt, setInsightScannedAt] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateTopic, setGenerateTopic] = useState('');
   const [redditSources, setRedditSources] = useState<any[]>([]);
   const [showGenerator, setShowGenerator] = useState(false);
+
+  const scanReddit = async () => {
+    setInsightLoading(true);
+    try {
+      const res = await fetch('/api/scan-reddit');
+      const data = await res.json();
+      setRedditInsights(data.categories || []);
+      setInsightTotal(data.total_pip_posts || 0);
+      setInsightScannedAt(data.scanned_at ? new Date(data.scanned_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+    } catch {
+      console.log('Scan failed');
+    } finally {
+      setInsightLoading(false);
+    }
+  };
+
+  const generatePostWithTopic = async (topic: string) => {
+    setGenerating(true);
+    setBlogMsg('');
+    try {
+      const res = await fetch('/api/generate-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic }),
+      });
+      const data = await res.json();
+      if (data.post) {
+        setEditingPost({ ...data.post, published: false });
+        setRedditSources(data.reddit_sources || []);
+        setShowGenerator(false);
+        setBlogMsg(`✨ Post generated from: "${data.generated_from}"`);
+      } else {
+        setBlogMsg('Generation failed. Try again.');
+      }
+    } catch {
+      setBlogMsg('Error generating post.');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const generatePost = async () => {
     setGenerating(true);
@@ -857,6 +902,55 @@ export function AdminDashboard() {
                 + New Post
               </button>
             </div>
+          </div>
+
+          {/* Reddit Intelligence */}
+          <div className="bg-stone-900 rounded-2xl p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-bold text-white text-sm">🔍 PIP Question Intelligence</p>
+                <p className="text-[10px] text-stone-400">{insightTotal > 0 ? `${insightTotal} PIP questions found across Reddit` : 'Scan Reddit for what claimants are asking'}{insightScannedAt ? ` · ${insightScannedAt}` : ''}</p>
+              </div>
+              <button onClick={scanReddit} disabled={insightLoading}
+                className="bg-stone-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-stone-600 disabled:opacity-50 shrink-0">
+                {insightLoading ? '⏳ Scanning...' : '🔄 Scan now'}
+              </button>
+            </div>
+            {redditInsights.length > 0 && (
+              <div className="space-y-2">
+                {redditInsights.map((insight: any) => (
+                  <div key={insight.category} className="bg-stone-800 rounded-xl overflow-hidden">
+                    <button onClick={() => setExpandedCategory(expandedCategory === insight.category ? null : insight.category)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 text-left">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-xs font-bold text-white truncate">{insight.category}</span>
+                        <span className="text-[10px] bg-teal-600 text-white px-2 py-0.5 rounded-full font-bold shrink-0">{insight.question_count}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <button onClick={e => { e.stopPropagation(); const t = `${insight.category}: ${insight.top_questions?.[0]?.title || ''}`; setGenerateTopic(t); setShowGenerator(false); generatePostWithTopic(t); }}
+                          className="text-[10px] font-bold bg-purple-600 text-white px-2 py-1 rounded-lg hover:bg-purple-500">✨ Generate</button>
+                        <span className="text-stone-400 text-xs">{expandedCategory === insight.category ? '▲' : '▼'}</span>
+                      </div>
+                    </button>
+                    {expandedCategory === insight.category && insight.top_questions?.length > 0 && (
+                      <div className="px-3 pb-3 space-y-1.5 border-t border-stone-700 pt-2">
+                        {insight.top_questions.map((q: any, i: number) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-[10px] text-stone-500 shrink-0 mt-0.5">r/{q.subreddit}</span>
+                            <a href={q.url} target="_blank" rel="noopener noreferrer"
+                              className="text-[11px] text-stone-300 hover:text-white leading-snug flex-1">{q.title}</a>
+                            <span className="text-[10px] text-stone-500 shrink-0">↑{q.score}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {redditInsights.length === 0 && !insightLoading && (
+              <p className="text-xs text-stone-500 text-center py-2">Tap "Scan now" to see what PIP claimants are asking</p>
+            )}
           </div>
 
           {/* Generator panel */}
