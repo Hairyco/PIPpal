@@ -197,17 +197,8 @@ function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null) {
           <tr>
             <td style="background:#ffffff; padding:0 28px 28px 28px; text-align:center;">
               ${approvalToken ? `
-              <p style="font-size:13px;color:#78716c;margin:0 0 16px 0;font-weight:600;">⚠️ This is a preview — approve before it sends to subscribers</p>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
-                <tr>
-                  <td style="padding-right:8px;">
-                    <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;">✅ Approve &amp; Send to all</a>
-                  </td>
-                  <td>
-                    <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}&cancel=1" style="display:inline-block;background:#f5f5f4;color:#57534e;text-decoration:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;">❌ Cancel this send</a>
-                  </td>
-                </tr>
-              </table>
+              <p style="font-size:13px;color:#78716c;margin:0 0 16px 0;font-weight:600;">⚠️ This is a preview — review and approve before it sends</p>
+              <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:14px;font-weight:700;">📋 Review &amp; Approve Digest</a>
               ` : `<a href="https://www.pippal.uk/#news" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Read more PIP news →</a>`}
             </td>
           </tr>
@@ -275,8 +266,25 @@ export default async function handler(req, res) {
     let sent = 0;
     let failed = 0;
 
-    // Generate approval token for test sends
+    // Store articles in Supabase for approval flow
     const approvalToken = testOnly ? Math.random().toString(36).slice(2) + Date.now().toString(36) : null;
+
+    if (testOnly && approvalToken) {
+      // Save pending digest to Supabase
+      await fetch(
+        `${process.env.VITE_SUPABASE_URL}/rest/v1/digest_pending`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({ token: approvalToken, articles, status: 'pending' }),
+        }
+      );
+    }
 
     for (const subscriber of recipients) {
       try {
