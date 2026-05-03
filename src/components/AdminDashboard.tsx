@@ -165,18 +165,36 @@ export function AdminDashboard() {
   const savePost = async () => {
     if (!editingPost?.title || !editingPost?.slug) { setBlogMsg('Title and slug are required'); return; }
     setBlogSaving(true);
-    const { id, ...rest } = editingPost;
-    const payload = { ...rest, updated_at: new Date().toISOString(), tags: editingPost.tags || [] };
+    // Remove seo field — not in DB schema
+    const { id, seo, ...rest } = editingPost;
+    const payload = {
+      title: rest.title,
+      slug: rest.slug,
+      excerpt: rest.excerpt || '',
+      body: rest.body || '',
+      category: rest.category || 'Tips',
+      tags: Array.isArray(rest.tags) ? rest.tags : [],
+      published: rest.published || false,
+      updated_at: new Date().toISOString(),
+    };
+    let error;
     if (id) {
-      await supabase.from('blog_posts').update(payload).eq('id', id);
+      const result = await supabase.from('blog_posts').update(payload).eq('id', id);
+      error = result.error;
     } else {
-      await supabase.from('blog_posts').insert({ ...payload, created_at: new Date().toISOString() });
+      const result = await supabase.from('blog_posts').insert({ ...payload, created_at: new Date().toISOString() });
+      error = result.error;
     }
-    setBlogMsg('Saved!');
-    setEditingPost(null);
-    fetchBlogPosts();
+    if (error) {
+      console.log('Supabase error:', error);
+      setBlogMsg(`Error: ${error.message}`);
+    } else {
+      setBlogMsg('✅ Saved!');
+      setEditingPost(null);
+      fetchBlogPosts();
+    }
     setBlogSaving(false);
-    setTimeout(() => setBlogMsg(''), 3000);
+    setTimeout(() => setBlogMsg(''), 5000);
   };
 
   const deletePost = async (id: string) => {
