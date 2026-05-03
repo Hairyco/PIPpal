@@ -125,6 +125,35 @@ export function AdminDashboard() {
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogSaving, setBlogSaving] = useState(false);
   const [blogMsg, setBlogMsg] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [generateTopic, setGenerateTopic] = useState('');
+  const [redditSources, setRedditSources] = useState<any[]>([]);
+  const [showGenerator, setShowGenerator] = useState(false);
+
+  const generatePost = async () => {
+    setGenerating(true);
+    setBlogMsg('');
+    try {
+      const res = await fetch('/api/generate-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: generateTopic || undefined }),
+      });
+      const data = await res.json();
+      if (data.post) {
+        setEditingPost({ ...data.post, published: false });
+        setRedditSources(data.reddit_sources || []);
+        setShowGenerator(false);
+        setBlogMsg(`Post generated from: "${data.generated_from}"`);
+      } else {
+        setBlogMsg('Generation failed. Try again.');
+      }
+    } catch {
+      setBlogMsg('Error generating post.');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const fetchBlogPosts = async () => {
     setBlogLoading(true);
@@ -804,13 +833,38 @@ export function AdminDashboard() {
       {/* Influencers Tab */}
       {activeTab === 'blog' && (
         <div className="px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-stone-900 text-sm">Blog Posts</h2>
-            <button
-              onClick={() => { setEditingPost({ title: '', slug: '', excerpt: '', body: '', category: 'Tips', tags: [], published: false }); fetchBlogPosts(); }}
-              className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-teal-800"
-            >+ New Post</button>
+            <div className="flex gap-2">
+              <button onClick={() => setShowGenerator(!showGenerator)}
+                className="bg-purple-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-purple-700">
+                ✨ Generate
+              </button>
+              <button onClick={() => { setEditingPost({ title: '', slug: '', excerpt: '', body: '', category: 'Tips', tags: [], published: false }); fetchBlogPosts(); }}
+                className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-teal-800">
+                + New Post
+              </button>
+            </div>
           </div>
+
+          {/* Generator panel */}
+          {showGenerator && (
+            <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4 mb-4">
+              <p className="font-bold text-purple-900 text-sm mb-1">✨ AI Blog Generator</p>
+              <p className="text-xs text-purple-700 mb-3">Searches Reddit for real PIP questions, then writes an SEO-optimised post that funnels readers to PIPpal.</p>
+              <input
+                value={generateTopic}
+                onChange={e => setGenerateTopic(e.target.value)}
+                placeholder="Topic (optional — leave blank to auto-pick from Reddit)"
+                className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white mb-3"
+              />
+              <button onClick={generatePost} disabled={generating}
+                className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50">
+                {generating ? '⏳ Generating post...' : '✨ Generate post from Reddit questions'}
+              </button>
+              {generating && <p className="text-xs text-purple-600 text-center mt-2">This takes 15-20 seconds...</p>}
+            </div>
+          )}
 
           {blogMsg && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mb-3">{blogMsg}</p>}
 
@@ -834,6 +888,53 @@ export function AdminDashboard() {
                 className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400 resize-none font-mono" />
               <input value={editingPost.tags?.join(', ')} onChange={e => setEditingPost({...editingPost, tags: e.target.value.split(',').map((t: string) => t.trim()).filter(Boolean)})}
                 placeholder="Tags (comma separated)" className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400" />
+
+              {/* SEO Panel */}
+              {editingPost.seo && (
+                <div className="bg-stone-50 rounded-xl border border-stone-200 p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-bold text-stone-700 text-xs">SEO Score</p>
+                    <span className={`text-sm font-black px-2 py-0.5 rounded-lg ${editingPost.seo.score >= 70 ? 'bg-emerald-100 text-emerald-700' : editingPost.seo.score >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {editingPost.seo.score}/100
+                    </span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px]">
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Title length</span>
+                      <span className={editingPost.seo.title_length >= 50 && editingPost.seo.title_length <= 60 ? 'text-emerald-600 font-bold' : 'text-amber-600'}>{editingPost.seo.title_length} chars {editingPost.seo.title_length >= 50 && editingPost.seo.title_length <= 60 ? '✓' : '(aim 50-60)'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Meta description</span>
+                      <span className={editingPost.seo.excerpt_length >= 150 && editingPost.seo.excerpt_length <= 160 ? 'text-emerald-600 font-bold' : 'text-amber-600'}>{editingPost.seo.excerpt_length} chars {editingPost.seo.excerpt_length >= 150 && editingPost.seo.excerpt_length <= 160 ? '✓' : '(aim 150-160)'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Keyword in title</span>
+                      <span className={editingPost.seo.keyword_in_title ? 'text-emerald-600 font-bold' : 'text-rose-500'}>{editingPost.seo.keyword_in_title ? '✓ Yes' : '✗ No'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Keyword in meta</span>
+                      <span className={editingPost.seo.keyword_in_excerpt ? 'text-emerald-600 font-bold' : 'text-rose-500'}>{editingPost.seo.keyword_in_excerpt ? '✓ Yes' : '✗ No'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Word count</span>
+                      <span className={editingPost.seo.word_count >= 600 ? 'text-emerald-600 font-bold' : 'text-amber-600'}>{editingPost.seo.word_count} words {editingPost.seo.word_count >= 600 ? '✓' : '(aim 600+)'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Target keyword</span>
+                      <span className="text-stone-700 font-medium">"{editingPost.seo.keyword}"</span>
+                    </div>
+                  </div>
+                  {redditSources.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-stone-200">
+                      <p className="text-[10px] font-bold text-stone-500 mb-1">Generated from Reddit questions:</p>
+                      {redditSources.map((s: any, i: number) => (
+                        <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
+                          className="block text-[10px] text-purple-600 hover:text-purple-800 truncate">↗ {s.title}</a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer">
                   <input type="checkbox" checked={editingPost.published} onChange={e => setEditingPost({...editingPost, published: e.target.checked})} className="w-4 h-4 accent-teal-600" />
