@@ -105,7 +105,7 @@ function buildEmailHtml(articles, unsubscribeUrl) {
           <!-- CTA -->
           <tr>
             <td style="background:#ffffff; padding:0 28px 28px 28px; text-align:center;">
-              <a href="https://www.pippal.uk" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Visit PIPpal →</a>
+              <a href="https://www.pippal.uk/#news" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Read more PIP news →</a>
             </td>
           </tr>
 
