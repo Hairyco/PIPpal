@@ -213,19 +213,22 @@ export function NewsScreen() {
                         <div className="px-4 pb-4 border-t border-stone-50">
                           <p className="text-sm text-stone-600 leading-relaxed pt-3">{article.body}</p>
                           <div className="mt-3 bg-teal-50 rounded-xl p-3 border border-teal-100">
-                            <p className="text-[10px] font-bold text-teal-800 uppercase tracking-wider mb-2">Ask PIPpal Assistant</p>
+                            <div className="flex items-center justify-between mb-2">
+                              <p className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">Dig deeper</p>
+                              <span className="text-[9px] text-teal-500 font-medium">Full Access</span>
+                            </div>
                             <div className="flex flex-wrap gap-2">
                               {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
                                 <button
                                   key={q}
-                                  onClick={() => navigateTo('pip_assistant' as any)}
+                                  onClick={() => navigateTo('home')}
                                   className="text-[11px] font-semibold bg-white text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors active:scale-95"
                                 >
                                   {q}
                                 </button>
                               ))}
                             </div>
-                            <p className="text-[10px] text-teal-600 mt-2">Full Access required</p>
+                            <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">Opens PIPpal Assistant — tap the chat icon on the home screen</p>
                           </div>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-[11px] text-stone-400 font-medium">{article.source}</span>
