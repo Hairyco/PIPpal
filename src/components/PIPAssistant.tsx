@@ -18,6 +18,8 @@ interface PIPAssistantProps {
   isVisible: boolean;
   hasPaid?: boolean;
   onUpgrade?: () => void;
+  autoOpenQuestion?: string | null;
+  onAutoOpenHandled?: () => void;
 }
 
 interface Message {
@@ -50,8 +52,21 @@ export function PIPAssistant({
   isVisible,
   hasPaid = true,
   onUpgrade,
+  autoOpenQuestion,
+  onAutoOpenHandled,
 }: PIPAssistantProps) {
   const { medProfile, user } = useAppContext();
+
+  // Auto-open when a question is passed from news screen
+  React.useEffect(() => {
+    if (autoOpenQuestion && isVisible) {
+      setIsOpen(true);
+      setTimeout(() => {
+        setInputText(autoOpenQuestion);
+        onAutoOpenHandled?.();
+      }, 300);
+    }
+  }, [autoOpenQuestion, isVisible]);
   const firstName = user?.name ? user.name.split(' ')[0] : '';
   const hasConditions = medProfile.conditions.length > 0;
   const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');

@@ -28,7 +28,7 @@ function getStyle(tag: string) {
 }
 
 export function NewsScreen() {
-  const { goBack, navigateTo } = useAppContext();
+  const { goBack, navigateTo, setAssistantQuestion } = useAppContext();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -154,7 +154,7 @@ export function NewsScreen() {
                   </div>
                   <div className="px-4 pb-4">
                     <h2 className="font-bold text-white text-base leading-snug mb-2">{featured.title}</h2>
-                    <p className="text-sm text-teal-100 leading-relaxed mb-3">{featured.body}</p>
+                    <p className="text-base text-teal-100 leading-relaxed mb-3">{featured.body}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-teal-300 font-medium">{featured.source}</span>
                       {featured.link && (
@@ -201,7 +201,7 @@ export function NewsScreen() {
                             </div>
                             <h3 className="font-bold text-stone-900 text-sm leading-snug">{article.title}</h3>
                             {!isExpanded && (
-                              <p className="text-xs text-stone-500 mt-1 line-clamp-2 leading-relaxed">{article.body}</p>
+                              <p className="text-sm text-stone-500 mt-1 line-clamp-3 leading-relaxed">{article.body}</p>
                             )}
                           </div>
                           <ChevronRight className={`w-4 h-4 text-stone-300 shrink-0 mt-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
@@ -211,7 +211,7 @@ export function NewsScreen() {
                       {/* Expanded */}
                       {isExpanded && (
                         <div className="px-4 pb-4 border-t border-stone-50">
-                          <p className="text-sm text-stone-600 leading-relaxed pt-3">{article.body}</p>
+                          <p className="text-base text-stone-600 leading-relaxed pt-3">{article.body}</p>
                           <div className="mt-3 bg-teal-50 rounded-xl p-3 border border-teal-100">
                             <div className="flex items-center justify-between mb-2">
                               <p className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">Dig deeper</p>
@@ -221,7 +221,10 @@ export function NewsScreen() {
                               {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
                                 <button
                                   key={q}
-                                  onClick={() => navigateTo('home')}
+                                  onClick={() => {
+                                    setAssistantQuestion(q);
+                                    navigateTo('home');
+                                  }}
                                   className="text-[11px] font-semibold bg-white text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors active:scale-95"
                                 >
                                   {q}

@@ -104,6 +104,8 @@ function AppContent() {
     hasPaid,
     emailNotifications,
     setEmailNotifications,
+    assistantQuestion,
+    setAssistantQuestion,
     isLoading,
   } = useAppContext();
 
@@ -277,6 +279,8 @@ function AppContent() {
               <FinalCTA onStart={() => handleNavigate('home')} />
               <PIPAssistant
                 isVisible={showAssistant}
+                autoOpenQuestion={assistantQuestion}
+                onAutoOpenHandled={() => setAssistantQuestion(null)}
                 hasPaid={hasPaid}
                 onUpgrade={() => handleNavigate('upsell')}
               />
