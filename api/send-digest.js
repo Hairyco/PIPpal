@@ -33,7 +33,7 @@ const DIGEST_SOURCES = [
 ];
 
 // Strict PIP-only keywords — must include at least one
-const PIP_KEYWORDS_REQUIRED = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'pip payment', 'pip rate', 'pip claimant', 'pip benefit', 'pip change', 'pip cut', 'pip reform', 'pip increase', 'pip tribunal', 'pip appeal'];
+const PIP_KEYWORDS_REQUIRED = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'pip payment', 'pip rate', 'pip claimant', 'pip benefit', 'pip change', 'pip cut', 'pip reform', 'pip increase', 'pip tribunal', 'pip appeal', 'disability benefit', 'disabled people', 'dwp benefit'];
 // Secondary keywords — only valid alongside a required keyword
 const PIP_KEYWORDS_SECONDARY = ['dwp', 'disability benefit', 'disability payment', 'disabled'];
 
@@ -82,18 +82,21 @@ async function fetchDigestFeed(source) {
   try {
     const res = await fetch(source.url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)', 'Accept': '*/*' },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(8000),
     });
+    console.log(`Feed ${source.name}: status ${res.status}`);
     if (!res.ok) return [];
     const xml = await res.text();
-    const items = source.format === 'atom' ? parseDigestAtom(xml) : parseDigestRSS(xml);
-    return items.slice(0, 4).map(item => ({
+    const allItems = source.format === 'atom' ? parseDigestAtom(xml) : parseDigestRSS(xml);
+    console.log(`Feed ${source.name}: ${allItems.length} PIP articles`);
+    return allItems.slice(0, 4).map(item => ({
       ...item,
       source: source.showSource ? source.name : 'PIPpal News',
       link: source.showSource ? item.link : null,
       date: item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
     }));
-  } catch {
+  } catch (err) {
+    console.log(`Feed ${source.name} error: ${err.message}`);
     return [];
   }
 }
