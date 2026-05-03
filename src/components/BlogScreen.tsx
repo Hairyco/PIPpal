@@ -59,7 +59,6 @@ export function BlogScreen() {
   const allFilters = [...categories, ...allTags.filter(t => !categories.includes(t))];
   const filtered = activeTag === 'All' ? posts
     : posts.filter(p => p.category === activeTag || (p.tags || []).includes(activeTag));
-  const filtered = filteredByTag || posts;
 
   const openPost = (slug: string) => {
     setSelectedBlogSlug(slug);
