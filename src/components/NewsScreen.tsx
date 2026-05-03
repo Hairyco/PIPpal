@@ -146,24 +146,20 @@ export function NewsScreen() {
                 className="mx-5 mt-5"
               >
                 <div className="bg-teal-700 rounded-2xl overflow-hidden shadow-sm">
-                  {/* Category bar */}
-                  <div className="flex items-center gap-2 px-4 pt-4 pb-2">
-                    <span className="text-base">{getStyle(featured.tags[0])?.icon || '📰'}</span>
-                    <span className="text-xs font-bold text-teal-200 uppercase tracking-wider">{featured.tags[0]}</span>
-                    <span className="text-[10px] text-teal-300 ml-auto">{featured.date}</span>
+                  <div className="flex items-center gap-2 px-4 py-2 border-b border-teal-600">
+                    <span className="text-sm">{getStyle(featured.tags[0])?.icon || '📰'}</span>
+                    <span className="text-[10px] font-bold text-teal-200 uppercase tracking-wider flex-1">{featured.tags[0]}</span>
+                    <span className="text-[10px] text-teal-300">{featured.date}</span>
+                    {featured.link && (
+                      <a href={featured.link} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-[10px] font-bold text-white bg-white/20 px-2 py-1 rounded-md hover:bg-white/30 transition-colors">
+                        Source <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
                   </div>
-                  <div className="px-4 pb-4">
-                    <h2 className="font-bold text-white text-base leading-snug mb-2">{featured.title}</h2>
-                    <p className="text-base text-teal-100 leading-relaxed mb-3">{featured.body}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[11px] text-teal-300 font-medium">{featured.source}</span>
-                      {featured.link && (
-                        <a href={featured.link} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[11px] font-bold text-white bg-white/20 px-3 py-1.5 rounded-lg hover:bg-white/30 transition-colors">
-                          Source <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
+                  <div className="px-4 py-3">
+                    <h2 className="font-bold text-white text-sm leading-snug mb-1.5">{featured.title}</h2>
+                    <p className="text-xs text-teal-100 leading-relaxed line-clamp-2">{featured.body}</p>
                   </div>
                 </div>
               </motion.div>
