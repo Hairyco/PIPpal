@@ -41,7 +41,7 @@ function parseAtom(xml) {
     const published = (entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
     const cleanSummary = summary.replace(/<[^>]*>/g, '').trim();
     if (title && isPIPRelated(title, cleanSummary)) {
-      items.push({ title: title.trim(), summary: cleanSummary.slice(0, 300), link, date: published });
+      items.push({ title: title.trim(), summary: cleanSummary.slice(0, 500), link, date: published });
     }
   }
   return items;
@@ -57,7 +57,7 @@ function parseRSS(xml) {
     const description = (item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '';
     const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
     const pubDate = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
-    const cleanDesc = description.replace(/<[^>]*>/g, '').trim().slice(0, 300);
+    const cleanDesc = description.replace(/<[^>]*>/g, '').trim().slice(0, 500);
     if (title && isPIPRelated(title, cleanDesc)) {
       items.push({ title: title.trim(), summary: cleanDesc, link, date: pubDate });
     }
@@ -83,9 +83,10 @@ async function fetchFeed(source) {
   }
 }
 
-async function rewriteSummary(title, summary) {
-  if (!summary || summary.length < 20) return summary;
+async function rewriteArticle(title, summary, tags) {
+  if (!summary || summary.length < 20) return { headline: title, body: summary };
   try {
+    const tagContext = tags.join(', ');
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -95,14 +96,32 @@ async function rewriteSummary(title, summary) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 100,
-        messages: [{ role: 'user', content: `Rewrite in plain English for a PIP claimant. 2 sentences max. What does this mean for them? No ** or !!.\n\nTitle: ${title}\nSummary: ${summary}` }],
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: `You are a writer for PIPpal, a UK service that helps people claim Personal Independence Payment.
+
+Rewrite this news item in PIPpal's voice. Warm, plain English, claimant-focused. Write 3-4 sentences. 
+- Start with what happened
+- Explain what it means for PIP claimants specifically  
+- End with what they should do or be aware of
+- No ** or !! or jargon
+- Category: ${tagContext}
+
+Title: ${title}
+Summary: ${summary}
+
+Return only the rewritten body text. No headline.`
+        }],
       }),
     });
     const data = await response.json();
-    return data.content?.[0]?.text?.trim() || summary;
+    return {
+      headline: title,
+      body: data.content?.[0]?.text?.trim() || summary,
+    };
   } catch {
-    return summary;
+    return { headline: title, body: summary };
   }
 }
 
@@ -119,15 +138,15 @@ export default async function handler(req, res) {
     }
 
     allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const topItems = allItems.slice(0, 15);
+    const topItems = allItems.slice(0, 12);
 
     const rewritten = await Promise.all(topItems.map(async item => {
-      const rewrittenSummary = await rewriteSummary(item.title, item.summary);
       const tags = autoTag(item.title, item.summary);
+      const { headline, body } = await rewriteArticle(item.title, item.summary, tags);
       const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
       return {
-        title: item.title,
-        summary: rewrittenSummary,
+        title: headline,
+        body,
         link: item.showSource ? item.link : null,
         source: item.showSource ? item.sourceName : 'PIPpal News',
         date: dateStr,
