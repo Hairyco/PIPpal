@@ -77,6 +77,8 @@ interface AppContextType {
   setQ1Result: (result: any) => void;
   selectedQuestionId: string;
   setSelectedQuestionId: (id: string) => void;
+  emailNotifications: boolean;
+  setEmailNotifications: (val: boolean) => void;
   savedAnswers: Record<string, string>;
   saveAnswer: (questionId: string, answer: string) => void;
   getSavedAnswer: (questionId: string) => string | undefined;
@@ -152,6 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [badDayMode, setBadDayMode] = useState(false);
   const [q1Result, setQ1Result] = useState<any>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
+  const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
     loadFromStorage('pippal_answers', {})
@@ -426,6 +429,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setQ1Result,
         selectedQuestionId,
         setSelectedQuestionId,
+        emailNotifications,
+        setEmailNotifications: async (val: boolean) => {
+          setEmailNotificationsState(val);
+          if (user?.id) {
+            await supabase.from('profiles').update({ email_notifications: val }).eq('id', user.id);
+          }
+        },
         savedAnswers,
         saveAnswer,
         getSavedAnswer,

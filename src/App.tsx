@@ -102,6 +102,8 @@ function AppContent() {
     user,
     logout,
     hasPaid,
+    emailNotifications,
+    setEmailNotifications,
     isLoading,
   } = useAppContext();
 
@@ -452,6 +454,22 @@ function AppContent() {
                         <Settings className="w-4 h-4 text-stone-400" />
                         Admin Dashboard
                       </button>
+                    )}
+                    {isLoggedIn && (
+                      <div className="px-4 py-3 border-t border-stone-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-stone-700">Weekly news email</p>
+                            <p className="text-xs text-stone-400">PIP updates every Monday</p>
+                          </div>
+                          <button
+                            onClick={() => setEmailNotifications(!emailNotifications)}
+                            className={`relative w-11 h-6 rounded-full transition-colors ${emailNotifications ? 'bg-teal-600' : 'bg-stone-200'}`}
+                          >
+                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${emailNotifications ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+                      </div>
                     )}
                     {isLoggedIn && (
                       <button

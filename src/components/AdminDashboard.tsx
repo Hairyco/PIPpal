@@ -119,6 +119,22 @@ export function AdminDashboard() {
   const [addingInfluencer, setAddingInfluencer] = useState(false);
   const [addError, setAddError] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('stats');
+  const [sendingDigest, setSendingDigest] = useState(false);
+  const [digestResult, setDigestResult] = useState<string | null>(null);
+
+  const sendDigest = async () => {
+    setSendingDigest(true);
+    setDigestResult(null);
+    try {
+      const res = await fetch('/api/send-digest', { method: 'POST' });
+      const data = await res.json();
+      setDigestResult(`Sent to ${data.sent} subscribers. Failed: ${data.failed || 0}.`);
+    } catch {
+      setDigestResult('Failed to send. Check Vercel logs.');
+    } finally {
+      setSendingDigest(false);
+    }
+  };
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
@@ -391,6 +407,24 @@ export function AdminDashboard() {
       </div>
 
       {/* Stats Tab */}
+      {/* Email digest section - always visible */}
+      <div className="mx-4 mt-4 bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="font-bold text-stone-900 text-sm">Weekly news digest</p>
+            <p className="text-xs text-stone-500">Sends to all subscribers with email notifications on</p>
+          </div>
+          <button
+            onClick={sendDigest}
+            disabled={sendingDigest}
+            className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            {sendingDigest ? '⏳ Sending...' : '📧 Send now'}
+          </button>
+        </div>
+        {digestResult && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{digestResult}</p>}
+      </div>
+
       {activeTab === 'stats' && (
         statsLoading ? (
           <div className="flex-1 flex items-center justify-center">
