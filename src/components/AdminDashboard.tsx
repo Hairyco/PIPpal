@@ -126,14 +126,28 @@ export function AdminDashboard() {
     setSendingDigest(true);
     setDigestResult(null);
     try {
+      // Fetch articles client-side first (Vercel blocks server-side RSS fetches)
+      setDigestResult('Fetching latest PIP news...');
+      const newsRes = await fetch('/api/news');
+      const newsData = await newsRes.json();
+      const articles = newsData.articles || [];
+
+      if (articles.length === 0) {
+        setDigestResult('No PIP articles found. Try again later.');
+        setSendingDigest(false);
+        return;
+      }
+
+      setDigestResult(`Found ${articles.length} articles. Sending...`);
+
       const res = await fetch('/api/send-digest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testOnly }),
+        body: JSON.stringify({ testOnly, articles }),
       });
       const data = await res.json();
       if (testOnly) {
-        setDigestResult(`Test email sent to ${data.testEmail}. Check your inbox.`);
+        setDigestResult(`Test email sent to your admin inbox. Check for email from news@pippal.uk.`);
       } else {
         setDigestResult(`Sent to ${data.sent} subscribers. Failed: ${data.failed || 0}.`);
       }

@@ -248,7 +248,11 @@ export default async function handler(req, res) {
     const isCronTest = req.query?.cron === 'test';
     const testOnly = body.testOnly === true || isCronTest;
 
-    const [subscribers, articles] = await Promise.all([getSubscribers(), getNewsArticles()]);
+    // Accept pre-fetched articles from client (since Vercel blocks outbound RSS fetches)
+    const clientArticles = body.articles || null;
+
+    const [subscribers, serverArticles] = await Promise.all([getSubscribers(), clientArticles ? Promise.resolve([]) : getNewsArticles()]);
+    const articles = clientArticles || serverArticles;
 
     console.log('Subscribers found:', subscribers.length);
     console.log('Articles found:', articles.length);
