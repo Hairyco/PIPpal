@@ -78,6 +78,7 @@ export function PIPAssistant({
   const hasConditions = medProfile.conditions.length > 0;
   const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
   const [isOpen, setIsOpen] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     hasConditions ? makeInitialMessage(firstName, conditionNames) : makeNoConditionsMessage(firstName)
@@ -260,8 +261,12 @@ export function PIPAssistant({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-5 z-50 w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden"
-            style={{ height: '520px', maxHeight: 'calc(100vh - 6rem)' }}
+            className={`fixed z-50 bg-white shadow-2xl border border-stone-200 flex flex-col overflow-hidden transition-all duration-300 ${
+              isFullScreen
+                ? 'inset-0 rounded-none'
+                : 'bottom-6 right-5 w-[340px] max-w-[calc(100vw-2.5rem)] rounded-2xl'
+            }`}
+            style={isFullScreen ? {} : { height: '520px', maxHeight: 'calc(100vh - 6rem)' }}
           >
             {/* Header */}
             <div className="bg-teal-700 px-4 py-3 flex items-center gap-3 shrink-0">
@@ -273,7 +278,18 @@ export function PIPAssistant({
                 <p className="text-teal-200 text-xs">PIP guidance & support</p>
               </div>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => setIsFullScreen(!isFullScreen)}
+                className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-teal-600 transition-colors text-white mr-1"
+                title={isFullScreen ? 'Minimise' : 'Full screen'}
+              >
+                {isFullScreen ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                )}
+              </button>
+              <button
+                onClick={() => { setIsOpen(false); setIsFullScreen(false); }}
                 className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-teal-600 transition-colors text-white"
               >
                 <X className="w-4 h-4" />
