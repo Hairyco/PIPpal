@@ -20,6 +20,11 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
   }, []);
 
   const scrollTo = (id: string) => {
+    if (id === 'news') {
+      navigateTo('news');
+      setMobileMenuOpen(false);
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
   };
