@@ -33,9 +33,9 @@ const DIGEST_SOURCES = [
 ];
 
 // Strict PIP-only keywords — must include at least one
-const PIP_KEYWORDS_REQUIRED = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'pip payment', 'pip rate', 'pip claimant', 'pip benefit', 'pip change', 'pip cut', 'pip reform', 'pip increase', 'pip tribunal', 'pip appeal', 'disability benefit', 'disabled people', 'dwp benefit'];
+const PIP_KEYWORDS_REQUIRED = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'pip payment', 'pip rate', 'pip claimant', 'pip benefit', 'pip change', 'pip cut', 'pip reform', 'pip increase', 'pip tribunal', 'pip appeal', 'pip disability'];
 // Secondary keywords — only valid alongside a required keyword
-const PIP_KEYWORDS_SECONDARY = ['dwp', 'disability benefit', 'disability payment', 'disabled'];
+const PIP_KEYWORDS_SECONDARY = ['disability benefit', 'disability payment'];
 
 function isPIPRelated(title, summary) {
   const text = (title + ' ' + (summary || '')).toLowerCase();

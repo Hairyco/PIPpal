@@ -5,7 +5,7 @@ const SOURCES = [
   { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
 ];
 
-const PIP_KEYWORDS = ['pip', 'personal independence payment', 'disability benefit', 'dwp', 'pip claim', 'pip assessment', 'benefit', 'disabled'];
+const PIP_KEYWORDS = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip payment', 'pip benefit', 'pip claimant', 'pip review', 'pip reform', 'pip cut', 'pip increase', 'pip appeal', 'pip tribunal', 'pip rate', 'disability benefit', 'pip change'];
 const TAG_RULES = [
   { tag: 'Legislation', keywords: ['law', 'legislation', 'parliament', 'bill', 'reform', 'policy', 'budget'] },
   { tag: 'Assessment', keywords: ['assessment', 'assessor', 'medical', 'face-to-face', 'telephone'] },
