@@ -246,6 +246,7 @@ export function ClaimProcess() {
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Telephone Assessment Note */}
@@ -493,7 +494,6 @@ export function ClaimProcess() {
               </div>
             </div>
           }
-          )}
         </div>
 
         {/* Useful contacts */}
