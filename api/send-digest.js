@@ -23,28 +23,107 @@ async function getSubscribers() {
   return (profiles || []).filter(p => p.email_notifications !== false && p.email);
 }
 
-async function getNewsArticles() {
-  // Fetch directly from GOV.UK RSS — don't call /api/news internally
+const DIGEST_SOURCES = [
+  { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment', name: 'GOV.UK', showSource: true, format: 'atom' },
+  { url: 'https://feeds.bbci.co.uk/news/uk/rss.xml', name: 'BBC', showSource: false, format: 'rss' },
+  { url: 'https://www.mirror.co.uk/money/benefits/rss.xml', name: 'Mirror', showSource: false, format: 'rss' },
+  { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
+  { url: 'https://www.birminghammail.co.uk/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
+  { url: 'https://www.liverpoolecho.co.uk/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
+];
+
+const PIP_KEYWORDS = ['pip', 'personal independence payment', 'disability benefit', 'dwp', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'disability payment', 'pip rate'];
+
+function isPIPRelated(title, summary) {
+  const text = (title + ' ' + (summary || '')).toLowerCase();
+  return PIP_KEYWORDS.some(k => text.includes(k));
+}
+
+function parseDigestAtom(xml) {
+  const items = [];
+  const regex = /<entry>([\s\S]*?)<\/entry>/g;
+  let match;
+  while ((match = regex.exec(xml)) !== null) {
+    const e = match[1];
+    const title = (e.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
+    const summary = ((e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim().slice(0, 400);
+    const link = (e.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
+    const date = (e.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
+    if (title && isPIPRelated(title, summary)) items.push({ title: title.trim(), body: summary, link, date });
+  }
+  return items;
+}
+
+function parseDigestRSS(xml) {
+  const items = [];
+  const regex = /<item>([\s\S]*?)<\/item>/g;
+  let match;
+  while ((match = regex.exec(xml)) !== null) {
+    const item = match[1];
+    const title = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
+    const desc = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim().slice(0, 400);
+    const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
+    const date = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
+    if (title && isPIPRelated(title, desc)) items.push({ title: title.trim(), body: desc, link, date });
+  }
+  return items;
+}
+
+async function fetchDigestFeed(source) {
   try {
-    const res = await fetch(
-      'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment',
-      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)', 'Accept': '*/*' }, signal: AbortSignal.timeout(8000) }
-    );
+    const res = await fetch(source.url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)', 'Accept': '*/*' },
+      signal: AbortSignal.timeout(6000),
+    });
     if (!res.ok) return [];
     const xml = await res.text();
-    const entries = [];
-    const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
-    let match;
-    while ((match = entryRegex.exec(xml)) !== null && entries.length < 5) {
-      const entry = match[1];
-      const title = (entry.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
-      const summary = ((entry.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim().slice(0, 300);
-      const link = (entry.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
-      const published = (entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
-      if (title) entries.push({ title, body: summary, link, source: 'GOV.UK', date: published ? new Date(published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '', tags: ['Official'] });
-    }
-    console.log('GOV.UK articles fetched:', entries.length);
-    return entries;
+    const items = source.format === 'atom' ? parseDigestAtom(xml) : parseDigestRSS(xml);
+    return items.slice(0, 4).map(item => ({
+      ...item,
+      source: source.showSource ? source.name : 'PIPpal News',
+      link: source.showSource ? item.link : null,
+      date: item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '',
+    }));
+  } catch {
+    return [];
+  }
+}
+
+async function rewriteForEmail(title, body) {
+  if (!body || body.length < 20) return body;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 150,
+        messages: [{ role: 'user', content: `Rewrite in PIPpal's voice for a weekly email to PIP claimants. Warm, plain English. 3 sentences. What happened, what it means for claimants, what they should know. No ** or !!.
+
+Title: ${title}
+Summary: ${body}` }],
+      }),
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text?.trim() || body;
+  } catch {
+    return body;
+  }
+}
+
+async function getNewsArticles() {
+  try {
+    const results = await Promise.all(DIGEST_SOURCES.map(s => fetchDigestFeed(s)));
+    const all = results.flat();
+    all.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const top = all.slice(0, 5);
+    console.log('PIP articles found across all sources:', top.length);
+    // Rewrite each article
+    const rewritten = await Promise.all(top.map(async item => {
+      const rewrittenBody = await rewriteForEmail(item.title, item.body);
+      return { ...item, body: rewrittenBody };
+    }));
+    return rewritten;
   } catch (err) {
     console.log('News fetch error:', err.message);
     return [];
@@ -141,24 +220,32 @@ export default async function handler(req, res) {
   }
 
   try {
+    const body = req.method === 'POST' ? (req.body || {}) : {};
+    const testOnly = body.testOnly === true;
+
     const [subscribers, articles] = await Promise.all([getSubscribers(), getNewsArticles()]);
 
     console.log('Subscribers found:', subscribers.length);
     console.log('Articles found:', articles.length);
-
-    if (!subscribers || subscribers.length === 0) {
-      return res.status(200).json({ sent: 0, message: 'No subscribers' });
-    }
+    console.log('Test only:', testOnly);
 
     if (articles.length === 0) {
-      // Send with placeholder if no articles
-      console.log('No articles — sending anyway with placeholder');
+      return res.status(200).json({ sent: 0, message: 'No PIP articles found across all sources' });
+    }
+
+    // Test mode — send only to admin
+    const recipients = testOnly
+      ? subscribers.filter(s => s.email === 'daley_cutler@hotmail.co.uk' || s.email === 'hairyco2@gmail.com')
+      : subscribers;
+
+    if (recipients.length === 0) {
+      return res.status(200).json({ sent: 0, message: testOnly ? 'Admin email not found in subscribers' : 'No subscribers' });
     }
 
     let sent = 0;
     let failed = 0;
 
-    for (const subscriber of subscribers) {
+    for (const subscriber of recipients) {
       try {
         const unsubscribeUrl = `https://www.pippal.uk/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
         const html = buildEmailHtml(articles, unsubscribeUrl);
@@ -188,7 +275,7 @@ export default async function handler(req, res) {
       }
     }
 
-    res.status(200).json({ sent, failed, total: subscribers.length });
+    res.status(200).json({ sent, failed, total: recipients.length, testEmail: testOnly ? recipients[0]?.email : null });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

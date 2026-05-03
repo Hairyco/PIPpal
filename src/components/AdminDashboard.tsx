@@ -122,13 +122,21 @@ export function AdminDashboard() {
   const [sendingDigest, setSendingDigest] = useState(false);
   const [digestResult, setDigestResult] = useState<string | null>(null);
 
-  const sendDigest = async () => {
+  const sendDigest = async (testOnly = false) => {
     setSendingDigest(true);
     setDigestResult(null);
     try {
-      const res = await fetch('/api/send-digest', { method: 'POST' });
+      const res = await fetch('/api/send-digest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ testOnly }),
+      });
       const data = await res.json();
-      setDigestResult(`Sent to ${data.sent} subscribers. Failed: ${data.failed || 0}.`);
+      if (testOnly) {
+        setDigestResult(`Test email sent to ${data.testEmail}. Check your inbox.`);
+      } else {
+        setDigestResult(`Sent to ${data.sent} subscribers. Failed: ${data.failed || 0}.`);
+      }
     } catch {
       setDigestResult('Failed to send. Check Vercel logs.');
     } finally {
@@ -414,13 +422,22 @@ export function AdminDashboard() {
             <p className="font-bold text-stone-900 text-sm">Weekly news digest</p>
             <p className="text-xs text-stone-500">Sends to all subscribers with email notifications on</p>
           </div>
-          <button
-            onClick={sendDigest}
-            disabled={sendingDigest}
-            className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50 flex items-center gap-2"
-          >
-            {sendingDigest ? '⏳ Sending...' : '📧 Send now'}
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => sendDigest(true)}
+              disabled={sendingDigest}
+              className="bg-stone-100 text-stone-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-stone-200 transition-colors disabled:opacity-50"
+            >
+              {sendingDigest ? '⏳ Sending...' : '🔍 Test (me only)'}
+            </button>
+            <button
+              onClick={() => sendDigest(false)}
+              disabled={sendingDigest}
+              className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50"
+            >
+              {sendingDigest ? '⏳ Sending...' : '📧 Send to all'}
+            </button>
+          </div>
         </div>
         {digestResult && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{digestResult}</p>}
       </div>
