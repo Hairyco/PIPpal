@@ -5,7 +5,7 @@ const SOURCES = [
   { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
 ];
 
-const PIP_KEYWORDS = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip payment', 'pip benefit', 'pip claimant', 'pip review', 'pip reform', 'pip cut', 'pip increase', 'pip appeal', 'pip tribunal', 'pip rate', 'disability benefit', 'pip change'];
+const PIP_KEYWORDS = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip payment', 'pip benefit', 'pip claimant', 'pip review', 'pip reform', 'pip cut', 'pip increase', 'pip appeal', 'pip tribunal', 'pip rate', 'disability benefit', 'pip change', 'welfare reform', 'benefit cut', 'dwp reform', 'disability payment', 'pip claimants', 'incapacity benefit'];
 const TAG_RULES = [
   { tag: 'Legislation', keywords: ['law', 'legislation', 'parliament', 'bill', 'reform', 'policy', 'budget'] },
   { tag: 'Assessment', keywords: ['assessment', 'assessor', 'medical', 'face-to-face', 'telephone'] },
@@ -133,7 +133,7 @@ Return only the rewritten body text. No headline.`
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Cache-Control', 's-maxage=3600');
+  res.setHeader('Cache-Control', 's-maxage=1800');
 
   try {
     const feedResults = await Promise.all(SOURCES.map(s => fetchFeed(s)));
