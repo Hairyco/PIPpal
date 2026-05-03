@@ -126,12 +126,16 @@ export default async function handler(req, res) {
   try {
     const [subscribers, articles] = await Promise.all([getSubscribers(), getNewsArticles()]);
 
+    console.log('Subscribers found:', subscribers.length);
+    console.log('Articles found:', articles.length);
+
     if (!subscribers || subscribers.length === 0) {
       return res.status(200).json({ sent: 0, message: 'No subscribers' });
     }
 
     if (articles.length === 0) {
-      return res.status(200).json({ sent: 0, message: 'No articles' });
+      // Send with placeholder if no articles
+      console.log('No articles — sending anyway with placeholder');
     }
 
     let sent = 0;
