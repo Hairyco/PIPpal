@@ -71,7 +71,7 @@ interface Stats {
 type PeriodFilter = 'all' | 'today' | 'week' | 'month' | 'year';
 type StatusFilter = 'all' | 'paid' | 'free';
 type SourceFilter = 'all' | 'organic' | 'influencer';
-type TabType = 'stats' | 'visitors' | 'influencers' | 'blog';
+type TabType = 'stats' | 'visitors' | 'influencers' | 'blog' | 'email';
 
 function StatCard({
   icon: Icon,
@@ -157,7 +157,12 @@ export function AdminDashboard() {
 
   const fetchBlogPosts = async () => {
     setBlogLoading(true);
-    const { data } = await supabase.from('blog_posts').select('*').order('created_at', { ascending: false });
+    // Fetch all posts including drafts for admin
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    console.log('Blog posts fetched:', data?.length, error?.message);
     setBlogPosts(data || []);
     setBlogLoading(false);
   };
@@ -504,7 +509,7 @@ export function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex bg-white border-b border-stone-100 sticky top-14 z-10">
-        {(['stats', 'visitors', 'influencers', 'blog'] as TabType[]).map(tab => (
+        {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -517,32 +522,7 @@ export function AdminDashboard() {
       </div>
 
       {/* Stats Tab */}
-      {/* Email digest section - always visible */}
-      <div className="mx-4 mt-4 bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div>
-            <p className="font-bold text-stone-900 text-sm">Weekly news digest</p>
-            <p className="text-xs text-stone-500">Sends to all subscribers with email notifications on</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => sendDigest(true)}
-              disabled={sendingDigest}
-              className="bg-stone-100 text-stone-700 text-xs font-bold px-3 py-2 rounded-lg hover:bg-stone-200 transition-colors disabled:opacity-50"
-            >
-              {sendingDigest ? '⏳ Sending...' : '🔍 Test (me only)'}
-            </button>
-            <button
-              onClick={() => sendDigest(false)}
-              disabled={sendingDigest}
-              className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50"
-            >
-              {sendingDigest ? '⏳ Sending...' : '📧 Send to all'}
-            </button>
-          </div>
-        </div>
-        {digestResult && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">{digestResult}</p>}
-      </div>
+
 
       {activeTab === 'stats' && (
         statsLoading ? (
@@ -999,6 +979,26 @@ export function AdminDashboard() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === 'email' && (
+        <div className="px-4 py-4 space-y-4">
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="font-bold text-stone-900 text-sm mb-1">Weekly news digest</p>
+            <p className="text-xs text-stone-500 mb-3">Sends to all subscribers with email notifications on. Test first before sending to all.</p>
+            <div className="flex gap-2">
+              <button onClick={() => sendDigest(true)} disabled={sendingDigest}
+                className="flex-1 bg-stone-100 text-stone-700 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-stone-200 transition-colors disabled:opacity-50">
+                {sendingDigest ? '⏳ Sending...' : '🔍 Test (me only)'}
+              </button>
+              <button onClick={() => sendDigest(false)} disabled={sendingDigest}
+                className="flex-1 bg-teal-700 text-white text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-50">
+                {sendingDigest ? '⏳ Sending...' : '📧 Send to all'}
+              </button>
+            </div>
+            {digestResult && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mt-3">{digestResult}</p>}
+          </div>
         </div>
       )}
 
