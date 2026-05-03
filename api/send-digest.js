@@ -40,17 +40,14 @@ const PIP_KEYWORDS_SECONDARY = ['disability benefit', 'disability payment'];
 function isPIPRelated(title, summary) {
   const titleLower = title.toLowerCase();
   const bodyLower = (summary || '').toLowerCase();
-  // STRICT: title must contain a primary PIP keyword
-  const titleHasPrimary = PIP_KEYWORDS_REQUIRED.some(k => titleLower.includes(k));
-  if (titleHasPrimary) return true;
-  // Secondary: body must contain 'pip' AND a secondary keyword AND title must not be clearly unrelated
-  const bodyHasPIP = bodyLower.includes('pip') || bodyLower.includes('personal independence payment');
-  const bodyHasSecondary = PIP_KEYWORDS_SECONDARY.some(k => bodyLower.includes(k));
-  // Reject if title contains sports/event terms
-  const sportsTerms = ['marathon', 'race', 'sport', 'football', 'rugby', 'cricket', 'cycling', 'run', 'swim', 'athlete', 'championship', 'tournament', 'game', 'match', 'league'];
-  const titleHasSports = sportsTerms.some(t => titleLower.includes(t));
-  if (titleHasSports) return false;
-  return bodyHasPIP && bodyHasSecondary;
+  const fullText = titleLower + ' ' + bodyLower;
+  // Reject obvious non-PIP content by title
+  const rejectTerms = ['marathon', 'fun run', 'charity run', 'triathlon', 'athletics event'];
+  if (rejectTerms.some(t => titleLower.includes(t))) return false;
+  // Accept if any PIP keyword appears in full text
+  const hasPrimary = PIP_KEYWORDS_REQUIRED.some(k => fullText.includes(k));
+  const hasSecondary = PIP_KEYWORDS_SECONDARY.some(k => fullText.includes(k));
+  return hasPrimary || hasSecondary;
 }
 
 function parseDigestAtom(xml) {

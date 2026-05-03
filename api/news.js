@@ -27,11 +27,12 @@ function autoTag(title, summary) {
 function isPIPRelated(title, summary) {
   const titleLower = title.toLowerCase();
   const bodyLower = (summary || '').toLowerCase();
-  // Title must contain a PIP keyword OR body must contain 'pip' alongside another keyword
-  const titleHasPIP = PIP_KEYWORDS.some(k => titleLower.includes(k));
-  const bodyHasPIP = titleLower.includes('pip') || bodyLower.includes('personal independence payment') || bodyLower.includes('pip');
-  const bodyHasKeyword = PIP_KEYWORDS.some(k => bodyLower.includes(k));
-  return titleHasPIP || (bodyHasPIP && bodyHasKeyword);
+  const fullText = titleLower + ' ' + bodyLower;
+  // Reject obvious non-PIP content
+  const rejectTerms = ['marathon', 'fun run', 'charity run', 'triathlon', 'athletics event', 'sport event'];
+  if (rejectTerms.some(t => titleLower.includes(t))) return false;
+  // Accept if PIP keyword appears anywhere in title or body
+  return PIP_KEYWORDS.some(k => fullText.includes(k));
 }
 
 function parseAtom(xml) {
