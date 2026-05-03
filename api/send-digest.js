@@ -32,11 +32,20 @@ const DIGEST_SOURCES = [
   { url: 'https://www.liverpoolecho.co.uk/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
 ];
 
-const PIP_KEYWORDS = ['pip', 'personal independence payment', 'disability benefit', 'dwp', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'disability payment', 'pip rate'];
+// Strict PIP-only keywords — must include at least one
+const PIP_KEYWORDS_REQUIRED = ['pip', 'personal independence payment', 'pip claim', 'pip assessment', 'pip award', 'pip review', 'pip payment', 'pip rate', 'pip claimant', 'pip benefit', 'pip change', 'pip cut', 'pip reform', 'pip increase', 'pip tribunal', 'pip appeal'];
+// Secondary keywords — only valid alongside a required keyword
+const PIP_KEYWORDS_SECONDARY = ['dwp', 'disability benefit', 'disability payment', 'disabled'];
 
 function isPIPRelated(title, summary) {
   const text = (title + ' ' + (summary || '')).toLowerCase();
-  return PIP_KEYWORDS.some(k => text.includes(k));
+  // Must contain a primary PIP keyword
+  const hasPrimary = PIP_KEYWORDS_REQUIRED.some(k => text.includes(k));
+  if (hasPrimary) return true;
+  // Secondary only valid if BOTH a secondary keyword AND context suggest PIP
+  const hasSecondary = PIP_KEYWORDS_SECONDARY.some(k => text.includes(k));
+  const hasPIPContext = text.includes('pip') || text.includes('personal independence');
+  return hasSecondary && hasPIPContext;
 }
 
 function parseDigestAtom(xml) {
@@ -98,7 +107,7 @@ async function rewriteForEmail(title, body) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 150,
-        messages: [{ role: 'user', content: `Rewrite in PIPpal's voice for a weekly email to PIP claimants. Warm, plain English. 3 sentences. What happened, what it means for claimants, what they should know. No ** or !!.
+        messages: [{ role: 'user', content: `Write a 3-sentence news summary for PIP claimants. Start directly with what happened. Then explain what it means for PIP claimants. Then state what they should know or do. No greetings. No sign-off. Plain English. No ** or !!.
 
 Title: ${title}
 Summary: ${body}` }],
@@ -130,7 +139,7 @@ async function getNewsArticles() {
   }
 }
 
-function buildEmailHtml(articles, unsubscribeUrl) {
+function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null) {
   const articlesHtml = articles.map(article => `
     <tr>
       <td style="padding: 0 0 20px 0;">
@@ -184,7 +193,19 @@ function buildEmailHtml(articles, unsubscribeUrl) {
           <!-- CTA -->
           <tr>
             <td style="background:#ffffff; padding:0 28px 28px 28px; text-align:center;">
-              <a href="https://www.pippal.uk/#news" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Read more PIP news →</a>
+              ${approvalToken ? `
+              <p style="font-size:13px;color:#78716c;margin:0 0 16px 0;font-weight:600;">⚠️ This is a preview — approve before it sends to subscribers</p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                <tr>
+                  <td style="padding-right:8px;">
+                    <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;">✅ Approve &amp; Send to all</a>
+                  </td>
+                  <td>
+                    <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}&cancel=1" style="display:inline-block;background:#f5f5f4;color:#57534e;text-decoration:none;padding:12px 24px;border-radius:10px;font-size:13px;font-weight:700;">❌ Cancel this send</a>
+                  </td>
+                </tr>
+              </table>
+              ` : `<a href="https://www.pippal.uk/#news" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Read more PIP news →</a>`}
             </td>
           </tr>
 
@@ -221,7 +242,8 @@ export default async function handler(req, res) {
 
   try {
     const body = req.method === 'POST' ? (req.body || {}) : {};
-    const testOnly = body.testOnly === true;
+    const isCronTest = req.query?.cron === 'test';
+    const testOnly = body.testOnly === true || isCronTest;
 
     const [subscribers, articles] = await Promise.all([getSubscribers(), getNewsArticles()]);
 
@@ -245,10 +267,13 @@ export default async function handler(req, res) {
     let sent = 0;
     let failed = 0;
 
+    // Generate approval token for test sends
+    const approvalToken = testOnly ? Math.random().toString(36).slice(2) + Date.now().toString(36) : null;
+
     for (const subscriber of recipients) {
       try {
         const unsubscribeUrl = `https://www.pippal.uk/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
-        const html = buildEmailHtml(articles, unsubscribeUrl);
+        const html = buildEmailHtml(articles, unsubscribeUrl, testOnly ? approvalToken : null);
 
         const emailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
