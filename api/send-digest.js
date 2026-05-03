@@ -24,12 +24,29 @@ async function getSubscribers() {
 }
 
 async function getNewsArticles() {
+  // Fetch directly from GOV.UK RSS — don't call /api/news internally
   try {
-    const baseUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://www.pippal.uk';
-    const res = await fetch(`${baseUrl}/api/news`);
-    const data = await res.json();
-    return data.articles?.slice(0, 5) || [];
-  } catch {
+    const res = await fetch(
+      'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment',
+      { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)', 'Accept': '*/*' }, signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const entries = [];
+    const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+    let match;
+    while ((match = entryRegex.exec(xml)) !== null && entries.length < 5) {
+      const entry = match[1];
+      const title = (entry.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
+      const summary = ((entry.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim().slice(0, 300);
+      const link = (entry.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
+      const published = (entry.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
+      if (title) entries.push({ title, body: summary, link, source: 'GOV.UK', date: published ? new Date(published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '', tags: ['Official'] });
+    }
+    console.log('GOV.UK articles fetched:', entries.length);
+    return entries;
+  } catch (err) {
+    console.log('News fetch error:', err.message);
     return [];
   }
 }
@@ -153,7 +170,7 @@ export default async function handler(req, res) {
             'Authorization': `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: 'PIPpal News <news@pippal.uk>',
+            from: 'PIPpal News <onboarding@resend.dev>',
             to: subscriber.email,
             subject: `Your weekly PIP update — ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`,
             html,
