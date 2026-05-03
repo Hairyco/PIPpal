@@ -25,8 +25,13 @@ function autoTag(title, summary) {
 }
 
 function isPIPRelated(title, summary) {
-  const text = (title + ' ' + (summary || '')).toLowerCase();
-  return PIP_KEYWORDS.some(k => text.includes(k));
+  const titleLower = title.toLowerCase();
+  const bodyLower = (summary || '').toLowerCase();
+  // Title must contain a PIP keyword OR body must contain 'pip' alongside another keyword
+  const titleHasPIP = PIP_KEYWORDS.some(k => titleLower.includes(k));
+  const bodyHasPIP = titleLower.includes('pip') || bodyLower.includes('personal independence payment') || bodyLower.includes('pip');
+  const bodyHasKeyword = PIP_KEYWORDS.some(k => bodyLower.includes(k));
+  return titleHasPIP || (bodyHasPIP && bodyHasKeyword);
 }
 
 function parseAtom(xml) {
