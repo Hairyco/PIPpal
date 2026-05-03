@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -22,6 +22,7 @@ import {
   TrendingUp,
   BookOpen as BookOpenIcon,
   Settings,
+  Newspaper,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 
@@ -76,6 +77,28 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
+  const [newsHeadlines, setNewsHeadlines] = useState<string[]>([]);
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetch('/api/news')
+      .then(r => r.json())
+      .then(d => {
+        if (d.articles?.length > 0) {
+          setNewsHeadlines(d.articles.slice(0, 8).map((a: any) => a.title));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (newsHeadlines.length === 0) return;
+    tickerRef.current = setInterval(() => {
+      setTickerIndex(i => (i + 1) % newsHeadlines.length);
+    }, 4000);
+    return () => { if (tickerRef.current) clearInterval(tickerRef.current); };
+  }, [newsHeadlines]);
   const [showWelcomePopup, setShowWelcomePopup] = useState(!hasPaid);
   const [popupDismissed, setPopupDismissed] = useState(false);
 
@@ -87,6 +110,25 @@ export function HomeScreen() {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-24">
+
+      {/* News ticker */}
+      {newsHeadlines.length > 0 && (
+        <button
+          onClick={() => navigateTo('news')}
+          className="bg-teal-700 px-4 py-2.5 flex items-center gap-3 hover:bg-teal-800 transition-colors shrink-0 w-full text-left"
+        >
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Newspaper className="w-3.5 h-3.5 text-teal-200" />
+            <span className="text-[10px] font-black text-teal-200 uppercase tracking-widest">News</span>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <p className="text-xs text-white font-medium truncate">
+              {newsHeadlines[tickerIndex]}
+            </p>
+          </div>
+          <ChevronRight className="w-3.5 h-3.5 text-teal-300 shrink-0" />
+        </button>
+      )}
 
       {/* Hero header */}
       <div className="px-5 md:px-8 py-6 bg-teal-700 text-white rounded-b-3xl shadow-sm mb-6 flex justify-between items-start">
@@ -255,6 +297,26 @@ export function HomeScreen() {
               target="backpay_calculator"
             />
           </div>
+        </section>
+
+        {/* PIP News */}
+        <section>
+          <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Latest News</h2>
+          <button
+            onClick={() => navigateTo('news')}
+            className="w-full bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-center gap-3 hover:border-teal-200 active:scale-[0.98] transition-all text-left"
+          >
+            <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
+              <Newspaper className="w-5 h-5 text-teal-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-stone-900 text-sm">PIP News</p>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {newsHeadlines.length > 0 ? newsHeadlines[0] : 'Latest PIP updates, legislation changes and tips'}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
+          </button>
         </section>
 
         {/* Resources & Prep */}

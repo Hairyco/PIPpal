@@ -24,6 +24,8 @@ import {
   Loader2,
   Settings,
   Shield,
+  Newspaper,
+  Rss,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -357,6 +359,7 @@ function AppContent() {
                   <div className="flex-1 px-3 py-4 space-y-5">
                     <div>
                       <NavItem icon={Home} label="Home" screen="home" />
+                      <NavItem icon={Newspaper} label="PIP News" screen="news" />
                     </div>
 
                     <div>
