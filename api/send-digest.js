@@ -163,6 +163,14 @@ export default async function handler(req, res) {
         const unsubscribeUrl = `https://www.pippal.uk/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
         const html = buildEmailHtml(articles, unsubscribeUrl);
 
+        // With onboarding@resend.dev, Resend only allows sending to verified emails
+        // Skip non-admin emails until domain is verified
+        const isAdminEmail = subscriber.email === 'daley_cutler@hotmail.co.uk';
+        if (!isAdminEmail) {
+          console.log(`Skipping ${subscriber.email} — domain not verified yet`);
+          continue;
+        }
+
         const emailRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
