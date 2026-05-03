@@ -12,7 +12,7 @@ interface Article {
   tags: string[];
 }
 
-const ALL_TAGS = ['All', 'Official', 'Legislation', 'Rates & Payments', 'Assessment', 'Appeals', 'Tips', 'News'];
+const ALL_TAGS = ['All', 'Official', 'Legislation', 'Rates & Payments', 'Assessment', 'Appeals', 'News'];
 
 const TAG_STYLES: Record<string, { pill: string; accent: string; icon: string }> = {
   'Official':        { pill: 'bg-blue-100 text-blue-700 border-blue-200',    accent: 'bg-blue-500',    icon: '🏛️' },
@@ -20,7 +20,6 @@ const TAG_STYLES: Record<string, { pill: string; accent: string; icon: string }>
   'Rates & Payments':{ pill: 'bg-emerald-100 text-emerald-700 border-emerald-200', accent: 'bg-emerald-500', icon: '💷' },
   'Assessment':      { pill: 'bg-amber-100 text-amber-700 border-amber-200',  accent: 'bg-amber-500',   icon: '📋' },
   'Appeals':         { pill: 'bg-rose-100 text-rose-700 border-rose-200',     accent: 'bg-rose-500',    icon: '⚡' },
-  'Tips':            { pill: 'bg-teal-100 text-teal-700 border-teal-200',     accent: 'bg-teal-500',    icon: '💡' },
   'News':            { pill: 'bg-stone-100 text-stone-600 border-stone-200',  accent: 'bg-stone-400',   icon: '📰' },
 };
 
@@ -29,7 +28,7 @@ function getStyle(tag: string) {
 }
 
 export function NewsScreen() {
-  const { goBack } = useAppContext();
+  const { goBack, navigateTo } = useAppContext();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -213,6 +212,21 @@ export function NewsScreen() {
                       {isExpanded && (
                         <div className="px-4 pb-4 border-t border-stone-50">
                           <p className="text-sm text-stone-600 leading-relaxed pt-3">{article.body}</p>
+                          <div className="mt-3 bg-teal-50 rounded-xl p-3 border border-teal-100">
+                            <p className="text-[10px] font-bold text-teal-800 uppercase tracking-wider mb-2">Ask PIPpal Assistant</p>
+                            <div className="flex flex-wrap gap-2">
+                              {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
+                                <button
+                                  key={q}
+                                  onClick={() => navigateTo('pip_assistant' as any)}
+                                  className="text-[11px] font-semibold bg-white text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors active:scale-95"
+                                >
+                                  {q}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-teal-600 mt-2">Full Access required</p>
+                          </div>
                           <div className="flex items-center justify-between mt-3">
                             <span className="text-[11px] text-stone-400 font-medium">{article.source}</span>
                             {article.link && (

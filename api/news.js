@@ -27,7 +27,7 @@ const TAG_RULES = [
   { tag: 'Assessment', keywords: ['assessment', 'assessor', 'medical', 'face-to-face', 'telephone', 'capita', 'atos', 'maximus'] },
   { tag: 'Appeals', keywords: ['appeal', 'tribunal', 'mandatory reconsideration', 'challenge', 'overturn', 'won', 'lost'] },
   { tag: 'Rates & Payments', keywords: ['rate', 'payment', 'increase', 'rise', 'amount', 'weekly', '£', 'uprat'] },
-  { tag: 'Tips', keywords: ['how to', 'tip', 'advice', 'guide', 'help', 'apply', 'eligible', 'qualify', 'claim'] },
+
   { tag: 'Official', keywords: ['gov.uk', 'dwp', 'department for work', 'official'] },
 ];
 
@@ -108,11 +108,11 @@ async function rewriteWithClaude(title, summary, sourceName) {
           role: 'user',
           content: `You write news for PIPpal, a UK service helping people claim PIP disability benefit.
 
-First decide: is this article relevant to PIP claimants? It is relevant if it covers PIP, DWP benefits, disability payments, welfare reform, or benefit assessments. It is NOT relevant if it is about sports events, entertainment, general disability charity events, or unrelated topics.
+First decide: is this article relevant to PIP claimants? Relevant = covers PIP, DWP benefits, disability payments, welfare reform, or benefit assessments. NOT relevant = sports events, entertainment, charity fun runs, or unrelated topics.
 
 If NOT relevant, respond with exactly: NOT_RELEVANT
 
-If relevant, write 3 sentences in plain English: what happened, what it means for PIP claimants, what they should know. No greetings. No sign-off. No ** or !!.
+If relevant, write 3 sentences starting directly with what happened. Second sentence: what it means for PIP claimants. Third: what they should know or do. No opening phrase like "This article". No greetings. No sign-off. No ** or !!.
 
 Title: ${title}
 Summary: ${summary}`
