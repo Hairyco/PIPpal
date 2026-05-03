@@ -79,6 +79,8 @@ interface AppContextType {
   setSelectedQuestionId: (id: string) => void;
   assistantQuestion: string | null;
   setAssistantQuestion: (q: string | null) => void;
+  assistantContext: string | null;
+  setAssistantContext: (c: string | null) => void;
   emailNotifications: boolean;
   setEmailNotifications: (val: boolean) => void;
   savedAnswers: Record<string, string>;
@@ -157,6 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [q1Result, setQ1Result] = useState<any>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
   const [assistantQuestion, setAssistantQuestion] = useState<string | null>(null);
+  const [assistantContext, setAssistantContext] = useState<string | null>(null);
   const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
@@ -434,6 +437,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSelectedQuestionId,
         assistantQuestion,
         setAssistantQuestion,
+        assistantContext,
+        setAssistantContext,
         emailNotifications,
         setEmailNotifications: async (val: boolean) => {
           setEmailNotificationsState(val);

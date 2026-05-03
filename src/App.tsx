@@ -106,6 +106,8 @@ function AppContent() {
     setEmailNotifications,
     assistantQuestion,
     setAssistantQuestion,
+    assistantContext,
+    setAssistantContext,
     isLoading,
   } = useAppContext();
 
@@ -280,7 +282,8 @@ function AppContent() {
               <PIPAssistant
                 isVisible={showAssistant}
                 autoOpenQuestion={assistantQuestion}
-                onAutoOpenHandled={() => setAssistantQuestion(null)}
+                autoOpenContext={assistantContext}
+                onAutoOpenHandled={() => { setAssistantQuestion(null); setAssistantContext(null); }}
                 hasPaid={hasPaid}
                 onUpgrade={() => handleNavigate('upsell')}
               />
@@ -498,7 +501,8 @@ function AppContent() {
                 hasPaid={hasPaid}
                 onUpgrade={() => navigateTo('upsell')}
                 autoOpenQuestion={assistantQuestion}
-                onAutoOpenHandled={() => setAssistantQuestion(null)}
+                autoOpenContext={assistantContext}
+                onAutoOpenHandled={() => { setAssistantQuestion(null); setAssistantContext(null); }}
               />
             </div>
           </div>

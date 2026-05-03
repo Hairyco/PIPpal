@@ -28,13 +28,33 @@ function getStyle(tag: string) {
 }
 
 export function NewsScreen() {
-  const { goBack, navigateTo, setAssistantQuestion } = useAppContext();
+  const { goBack, navigateTo, setAssistantQuestion, setAssistantContext, hasPaid } = useAppContext();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeTag, setActiveTag] = useState('All');
   const [lastUpdated, setLastUpdated] = useState('');
   const [expanded, setExpanded] = useState<number | null>(null);
+
+  // Generate contextual questions from article title/body
+  const getContextualQuestions = (article: Article): string[] => {
+    const text = (article.title + ' ' + article.body).toLowerCase();
+    const questions: string[] = [];
+    if (text.includes('benefit cap') || text.includes('cap')) questions.push('What is a benefit cap?');
+    if (text.includes('assessment')) questions.push('How does the assessment affect me?');
+    if (text.includes('appeal') || text.includes('tribunal')) questions.push('Can I appeal this decision?');
+    if (text.includes('rate') || text.includes('payment') || text.includes('£') || text.includes('increase')) questions.push('How does this affect my payments?');
+    if (text.includes('reform') || text.includes('change') || text.includes('new rule') || text.includes('legislation')) questions.push('How does this change affect my claim?');
+    if (text.includes('cut') || text.includes('reduce') || text.includes('loss')) questions.push('Could I lose my PIP?');
+    if (text.includes('dwp') || text.includes('government')) questions.push('What is the DWP doing?');
+    if (text.includes('work') || text.includes('employment') || text.includes('job')) questions.push('How does this affect working claimants?');
+    // Always include these as fallback
+    if (questions.length < 2) {
+      questions.push('What does this mean for my claim?');
+      questions.push('What should I do next?');
+    }
+    return questions.slice(0, 3);
+  };
 
   const fetchNews = async () => {
     setIsLoading(true);
@@ -181,12 +201,16 @@ export function NewsScreen() {
                         <div className={`mt-3 rounded-xl p-3 border ${isFeatured ? 'bg-white/10 border-teal-500' : 'bg-teal-50 border-teal-100'}`}>
                           <div className="flex items-center justify-between mb-2">
                             <p className={`text-[10px] font-bold uppercase tracking-wider ${isFeatured ? 'text-teal-200' : 'text-teal-800'}`}>Dig deeper</p>
-                            <span className={`text-[9px] font-medium ${isFeatured ? 'text-teal-300' : 'text-teal-500'}`}>Full Access</span>
+                            {!hasPaid && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFeatured ? 'bg-white/20 text-teal-200' : 'bg-amber-100 text-amber-700'}`}>Pro only</span>}
                           </div>
                           <div className="flex flex-wrap gap-2">
-                            {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
+                            {getContextualQuestions(article).map(q => (
                               <button key={q}
-                                onClick={() => { setAssistantQuestion(q); navigateTo('home'); }}
+                                onClick={() => {
+                                  if (!hasPaid) { navigateTo('upsell'); return; }
+                                  setAssistantQuestion(q);
+                                  setAssistantContext(article.title);
+                                }}
                                 className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors active:scale-95 ${isFeatured ? 'bg-white/20 text-white border-teal-400 hover:bg-white/30' : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-100'}`}
                               >{q}</button>
                             ))}

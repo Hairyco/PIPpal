@@ -19,6 +19,7 @@ interface PIPAssistantProps {
   hasPaid?: boolean;
   onUpgrade?: () => void;
   autoOpenQuestion?: string | null;
+  autoOpenContext?: string | null;
   onAutoOpenHandled?: () => void;
 }
 
@@ -53,6 +54,7 @@ export function PIPAssistant({
   hasPaid = true,
   onUpgrade,
   autoOpenQuestion,
+  autoOpenContext,
   onAutoOpenHandled,
 }: PIPAssistantProps) {
   const { medProfile, user } = useAppContext();
@@ -60,12 +62,15 @@ export function PIPAssistant({
   // Auto-open when a question is passed from news screen
   React.useEffect(() => {
     if (autoOpenQuestion) {
-      // Small delay to allow navigation to complete
       const timer = setTimeout(() => {
         setIsOpen(true);
-        setInputValue(autoOpenQuestion);
+        // If there's article context, pre-fill with context + question
+        const fullQuestion = autoOpenContext
+          ? `Re: "${autoOpenContext.slice(0, 100)}..." — ${autoOpenQuestion}`
+          : autoOpenQuestion;
+        setInputValue(fullQuestion);
         onAutoOpenHandled?.();
-      }, 600);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [autoOpenQuestion]);
