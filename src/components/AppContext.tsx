@@ -32,7 +32,8 @@ export type Screen =
   | 'post_payment_guide'
   | 'timeline_calculator'
   | 'payment_calculator'
-  | 'backpay_calculator';
+  | 'backpay_calculator'
+  | 'news';
 
 export interface User {
   name: string;

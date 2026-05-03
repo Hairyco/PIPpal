@@ -69,6 +69,7 @@ import {
 } from './components/Placeholders';
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
+import { NewsScreen } from './components/NewsScreen';
 import { ChangeOfCircumstancesScreen } from './components/ChangeOfCircumstancesScreen';
 import { DecisionReceivedScreen } from './components/DecisionReceivedScreen';
 import { MandatoryReconsiderationScreen } from './components/MandatoryReconsiderationScreen';
@@ -220,6 +221,7 @@ function AppContent() {
       case 'assessment_prep': return hasPaid ? <AssessmentPrep /> : <UpsellScreen />;
       case 'pip_diary': return <PIPDiaryScreen hasPaid={hasPaid} />;
       case 'downloads': return hasPaid ? <Downloads /> : <UpsellScreen />;
+      case 'news': return <NewsScreen />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;

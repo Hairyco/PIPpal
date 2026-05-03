@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAppContext } from './AppContext';
 import { HeartHandshake, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
@@ -8,6 +9,7 @@ interface HeaderProps {
 }
 
 export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
+  const { navigateTo } = useAppContext();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
