@@ -59,12 +59,14 @@ export function PIPAssistant({
 
   // Auto-open when a question is passed from news screen
   React.useEffect(() => {
-    if (autoOpenQuestion && isVisible) {
-      setIsOpen(true);
-      setTimeout(() => {
+    if (autoOpenQuestion) {
+      // Small delay to allow navigation to complete
+      const timer = setTimeout(() => {
+        setIsOpen(true);
         setInputValue(autoOpenQuestion);
         onAutoOpenHandled?.();
-      }, 400);
+      }, 600);
+      return () => clearTimeout(timer);
     }
   }, [autoOpenQuestion]);
   const firstName = user?.name ? user.name.split(' ')[0] : '';
