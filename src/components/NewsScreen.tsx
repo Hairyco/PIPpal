@@ -137,114 +137,76 @@ export function NewsScreen() {
         )}
 
         {!isLoading && !error && filteredArticles.length > 0 && (
-          <div>
-            {/* Featured article */}
-            {featured && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mx-5 mt-5"
-              >
-                <div className="bg-teal-700 rounded-2xl overflow-hidden shadow-sm">
-                  <div className="flex items-center gap-2 px-4 py-2 border-b border-teal-600">
-                    <span className="text-sm">{getStyle(featured.tags[0])?.icon || '📰'}</span>
-                    <span className="text-[10px] font-bold text-teal-200 uppercase tracking-wider flex-1">{featured.tags[0]}</span>
-                    <span className="text-[10px] text-teal-300">{featured.date}</span>
-                    {featured.link && (
-                      <a href={featured.link} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-[10px] font-bold text-white bg-white/20 px-2 py-1 rounded-md hover:bg-white/30 transition-colors">
-                        Source <ExternalLink className="w-2.5 h-2.5" />
-                      </a>
-                    )}
-                  </div>
-                  <div className="px-4 py-3">
-                    <h2 className="font-bold text-white text-sm leading-snug mb-1.5">{featured.title}</h2>
-                    <p className="text-xs text-teal-100 leading-relaxed line-clamp-2">{featured.body}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+          <div className="px-5 mt-4 space-y-3 pb-6">
+            <AnimatePresence>
+              {filteredArticles.map((article, i) => {
+                const style = getStyle(article.tags[0]);
+                const isExpanded = expanded === i;
+                const isFeatured = i === 0;
+                return (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    className={`rounded-2xl border shadow-sm overflow-hidden ${isFeatured ? 'bg-teal-700 border-teal-600' : 'bg-white border-stone-100'}`}
+                  >
+                    {!isFeatured && <div className={`h-0.5 ${style.accent}`} />}
 
-            {/* Rest of articles */}
-            <div className="px-5 mt-4 space-y-3">
-              <AnimatePresence>
-                {rest.map((article, i) => {
-                  const style = getStyle(article.tags[0]);
-                  const isExpanded = expanded === i;
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden"
+                    <button
+                      onClick={() => setExpanded(isExpanded ? null : i)}
+                      className="w-full text-left px-4 py-3"
                     >
-                      {/* Accent bar */}
-                      <div className={`h-0.5 ${style.accent}`} />
-
-                      <button
-                        onClick={() => setExpanded(isExpanded ? null : i)}
-                        className="w-full text-left px-4 py-3"
-                      >
-                        <div className="flex items-start gap-3">
-                          <span className="text-lg shrink-0 mt-0.5">{style.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${style.pill}`}>
-                                {article.tags[0]}
-                              </span>
-                              <span className="text-[10px] text-stone-400">{article.date}</span>
-                            </div>
-                            <h3 className="font-bold text-stone-900 text-sm leading-snug">{article.title}</h3>
-                            {!isExpanded && (
-                              <p className="text-sm text-stone-500 mt-1 line-clamp-3 leading-relaxed">{article.body}</p>
-                            )}
+                      <div className="flex items-start gap-3">
+                        <span className="text-lg shrink-0 mt-0.5">{style.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isFeatured ? 'bg-white/20 text-teal-100 border-teal-500' : style.pill}`}>
+                              {article.tags[0]}
+                            </span>
+                            <span className={`text-[10px] ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>{article.date}</span>
                           </div>
-                          <ChevronRight className={`w-4 h-4 text-stone-300 shrink-0 mt-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                          <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title}</h3>
+                          {!isExpanded && (
+                            <p className={`text-xs mt-1 line-clamp-2 leading-relaxed ${isFeatured ? 'text-teal-100' : 'text-stone-500'}`}>{article.body}</p>
+                          )}
                         </div>
-                      </button>
+                        <ChevronRight className={`w-4 h-4 shrink-0 mt-1 transition-transform ${isExpanded ? 'rotate-90' : ''} ${isFeatured ? 'text-teal-300' : 'text-stone-300'}`} />
+                      </div>
+                    </button>
 
-                      {/* Expanded */}
-                      {isExpanded && (
-                        <div className="px-4 pb-4 border-t border-stone-50">
-                          <p className="text-base text-stone-600 leading-relaxed pt-3">{article.body}</p>
-                          <div className="mt-3 bg-teal-50 rounded-xl p-3 border border-teal-100">
-                            <div className="flex items-center justify-between mb-2">
-                              <p className="text-[10px] font-bold text-teal-800 uppercase tracking-wider">Dig deeper</p>
-                              <span className="text-[9px] text-teal-500 font-medium">Full Access</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
-                                <button
-                                  key={q}
-                                  onClick={() => {
-                                    setAssistantQuestion(q);
-                                    navigateTo('home');
-                                  }}
-                                  className="text-[11px] font-semibold bg-white text-teal-700 border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 transition-colors active:scale-95"
-                                >
-                                  {q}
-                                </button>
-                              ))}
-                            </div>
-                            <p className="text-[10px] text-stone-400 mt-1.5 leading-relaxed">Opens PIPpal Assistant — tap the chat icon on the home screen</p>
+                    {isExpanded && (
+                      <div className={`px-4 pb-4 border-t ${isFeatured ? 'border-teal-600' : 'border-stone-50'}`}>
+                        <p className={`text-sm leading-relaxed pt-3 ${isFeatured ? 'text-teal-100' : 'text-stone-600'}`}>{article.body}</p>
+                        <div className={`mt-3 rounded-xl p-3 border ${isFeatured ? 'bg-white/10 border-teal-500' : 'bg-teal-50 border-teal-100'}`}>
+                          <div className="flex items-center justify-between mb-2">
+                            <p className={`text-[10px] font-bold uppercase tracking-wider ${isFeatured ? 'text-teal-200' : 'text-teal-800'}`}>Dig deeper</p>
+                            <span className={`text-[9px] font-medium ${isFeatured ? 'text-teal-300' : 'text-teal-500'}`}>Full Access</span>
                           </div>
-                          <div className="flex items-center justify-between mt-3">
-                            <span className="text-[11px] text-stone-400 font-medium">{article.source}</span>
-                            {article.link && (
-                              <a href={article.link} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:text-teal-800 transition-colors">
-                                Read original <ExternalLink className="w-3 h-3" />
-                              </a>
-                            )}
+                          <div className="flex flex-wrap gap-2">
+                            {['What does this mean for me?', 'How does this affect my claim?', 'What should I do next?'].map(q => (
+                              <button key={q}
+                                onClick={() => { setAssistantQuestion(q); navigateTo('home'); }}
+                                className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors active:scale-95 ${isFeatured ? 'bg-white/20 text-white border-teal-400 hover:bg-white/30' : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-100'}`}
+                              >{q}</button>
+                            ))}
                           </div>
                         </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
+                        <div className="flex items-center justify-between mt-3">
+                          <span className={`text-[11px] font-medium ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>{article.source}</span>
+                          {article.link && (
+                            <a href={article.link} target="_blank" rel="noopener noreferrer"
+                              className={`flex items-center gap-1 text-[11px] font-bold transition-colors ${isFeatured ? 'text-teal-200 hover:text-white' : 'text-teal-700 hover:text-teal-800'}`}>
+                              Read original <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         )}
       </div>
