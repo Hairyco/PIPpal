@@ -89,7 +89,7 @@ export function ClaimProcess() {
         <div>
           <button onClick={() => setShowProcess(!showProcess)} className="w-full flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 transition-colors mb-3">
             <h3 className="font-bold text-stone-900 text-sm">How the process works</h3>
-            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showProcess ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showProcess ? "rotate-180" : ""}`} />
           </button>
           {showProcess && (
           <div className="space-y-0 relative">
@@ -500,7 +500,7 @@ export function ClaimProcess() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
           <button onClick={() => setShowContacts(!showContacts)} className="w-full flex items-center justify-between py-3 px-4 hover:bg-stone-50 transition-colors">
             <h3 className="font-bold text-stone-900 text-sm">Useful contacts</h3>
-            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showContacts ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform ${showContacts ? "rotate-180" : ""}`} />
           </button>
           {showContacts && (
           <div className="px-4 pb-4 space-y-2">
