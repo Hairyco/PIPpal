@@ -255,13 +255,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ sent: 0, message: 'No PIP articles found across all sources' });
     }
 
-    // Test mode — send only to admin
+    // Test mode — always send to admin emails regardless of Supabase
+    const ADMIN_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
     const recipients = testOnly
-      ? subscribers.filter(s => s.email === 'daley_cutler@hotmail.co.uk' || s.email === 'hairyco2@gmail.com')
+      ? ADMIN_EMAILS.map(email => ({ email, name: 'Daley' }))
       : subscribers;
 
     if (recipients.length === 0) {
-      return res.status(200).json({ sent: 0, message: testOnly ? 'Admin email not found in subscribers' : 'No subscribers' });
+      return res.status(200).json({ sent: 0, message: 'No subscribers found' });
     }
 
     let sent = 0;
