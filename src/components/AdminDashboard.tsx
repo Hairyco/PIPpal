@@ -139,12 +139,19 @@ export function AdminDashboard() {
     setInsightLoading(true);
     try {
       const res = await fetch('/api/scan-reddit');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setRedditInsights(data.categories || []);
-      setInsightTotal(data.total_pip_posts || 0);
-      setInsightScannedAt(data.scanned_at ? new Date(data.scanned_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
-    } catch {
-      console.log('Scan failed');
+      console.log('Scan result:', data);
+      if (data.categories?.length > 0) {
+        setRedditInsights(data.categories);
+        setInsightTotal(data.total_pip_posts || 0);
+        setInsightScannedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+      } else {
+        setBlogMsg('Scan returned no results — try again');
+      }
+    } catch (err) {
+      console.log('Scan error:', err);
+      setBlogMsg('Scan failed — check Vercel logs');
     } finally {
       setInsightLoading(false);
     }
