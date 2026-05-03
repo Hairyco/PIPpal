@@ -1,14 +1,18 @@
 const SOURCES = [
+  // GOV.UK — official PIP and DWP news
   { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment', name: 'GOV.UK', showSource: true, format: 'atom' },
   { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=disability+benefit+dwp', name: 'GOV.UK DWP', showSource: true, format: 'atom' },
+  // Mirror — benefits-specific section
   { url: 'https://www.mirror.co.uk/money/benefits/rss.xml', name: 'Mirror', showSource: false, format: 'rss' },
   { url: 'https://www.mirror.co.uk/money/rss.xml', name: 'Mirror Money', showSource: false, format: 'rss' },
-  { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
-  { url: 'https://www.birminghammail.co.uk/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
-  { url: 'https://www.liverpoolecho.co.uk/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
-  { url: 'https://www.leeds-live.co.uk/rss.xml', name: 'Leeds Live', showSource: false, format: 'rss' },
-  { url: 'https://www.chroniclelive.co.uk/rss.xml', name: 'Chronicle Live', showSource: false, format: 'rss' },
-  { url: 'https://www.walesonline.co.uk/rss.xml', name: 'Wales Online', showSource: false, format: 'rss' },
+  // Regional Reach PLC — money/benefits sections
+  { url: 'https://www.manchestereveningnews.co.uk/money/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
+  { url: 'https://www.birminghammail.co.uk/money/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
+  { url: 'https://www.liverpoolecho.co.uk/money/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
+  { url: 'https://www.leeds-live.co.uk/money/rss.xml', name: 'Leeds Live', showSource: false, format: 'rss' },
+  { url: 'https://www.chroniclelive.co.uk/money/rss.xml', name: 'Chronicle Live', showSource: false, format: 'rss' },
+  { url: 'https://www.walesonline.co.uk/money/rss.xml', name: 'Wales Online', showSource: false, format: 'rss' },
+  // National
   { url: 'https://feeds.bbci.co.uk/news/uk/rss.xml', name: 'BBC', showSource: false, format: 'rss' },
   { url: 'https://www.disabilityrightsuk.org/feed', name: 'Disability Rights UK', showSource: false, format: 'rss' },
 ];
