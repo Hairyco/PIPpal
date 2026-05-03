@@ -165,7 +165,7 @@ export default async function handler(req, res) {
 
         // With onboarding@resend.dev, Resend only allows sending to verified emails
         // Skip non-admin emails until domain is verified
-        const isAdminEmail = subscriber.email === 'daley_cutler@hotmail.co.uk';
+        const isAdminEmail = subscriber.email === 'hairyco2@gmail.com' || subscriber.email === 'daley_cutler@hotmail.co.uk';
         if (!isAdminEmail) {
           console.log(`Skipping ${subscriber.email} — domain not verified yet`);
           continue;
