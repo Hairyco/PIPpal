@@ -300,7 +300,8 @@ export default async function handler(req, res) {
       }
     }
 
-    res.status(200).json({ sent, failed, total: recipients.length, testEmail: testOnly ? recipients[0]?.email : null });
+    const testEmail = testOnly ? (recipients.find(r => r.email) || {}).email || 'admin' : null;
+    res.status(200).json({ sent, failed, total: recipients.length, testEmail });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
