@@ -6,16 +6,21 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 async function getSubscribers() {
+  // Get all profiles with email notifications enabled
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?email_notifications=eq.true&email=not.is.null&select=email,name`,
+    `${SUPABASE_URL}/rest/v1/profiles?select=id,name,email,email_notifications`,
     {
       headers: {
         'apikey': SUPABASE_SERVICE_KEY,
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Prefer': 'return=representation',
       },
     }
   );
-  return await res.json();
+  const profiles = await res.json();
+  console.log('All profiles:', JSON.stringify(profiles?.slice(0, 2)));
+  // Filter to those with notifications on (true or null treated as opted in)
+  return (profiles || []).filter(p => p.email_notifications !== false && p.email);
 }
 
 async function getNewsArticles() {
