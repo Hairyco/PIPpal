@@ -123,6 +123,15 @@ function AppContent() {
     }
   }, []);
   const isAdmin = user?.email === ADMIN_EMAIL;
+
+  // Hidden partner portal — ?partner=true
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('partner') === 'true') {
+      navigateTo('influencer_portal');
+    }
+  }, []);
+
   const [showDisclaimer, setShowDisclaimer] = useState(() => {
     const code = new URLSearchParams(window.location.search).get('promo');
     return !!code && !sessionStorage.getItem('pippal_disclaimer_shown');
