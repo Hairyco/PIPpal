@@ -378,10 +378,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    // Also scroll any overflow containers
+    document.querySelectorAll('.overflow-y-auto').forEach(el => { el.scrollTop = 0; });
+  };
+
   const navigateTo = (screen: Screen) => {
     setNavigationHistory((prev) => [...prev, currentScreen]);
     setCurrentScreen(screen);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollToTop();
   };
 
   const goBack = () => {
@@ -390,7 +396,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const previousScreen = newHistory.pop();
       if (previousScreen) {
         setCurrentScreen(previousScreen);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop();
       }
       return newHistory;
     });
