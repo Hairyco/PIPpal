@@ -1475,6 +1475,21 @@ export function AdminDashboard() {
       {activeTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
+          {/* Partner Portal Info */}
+          <section>
+            <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4">
+              <p className="font-bold text-purple-900 text-sm mb-2">🔗 Influencer Stats Portal</p>
+              <div className="space-y-1.5 text-xs text-purple-800">
+                <p>Send each influencer these two links:</p>
+                <div className="bg-white rounded-xl p-3 space-y-2 font-mono text-[11px]">
+                  <p><span className="text-purple-500 font-sans font-bold">Their referral link:</span><br/>pippal.uk?promo=<span className="text-purple-700">THEIRCODE</span></p>
+                  <p><span className="text-purple-500 font-sans font-bold">Their stats portal:</span><br/>pippal.uk?partner=true</p>
+                </div>
+                <p className="text-[10px] text-purple-600">They enter their code on the stats page to see signups and commission earned.</p>
+              </div>
+            </div>
+          </section>
+
           {/* Commission Payout Report */}
           <section>
             <div className="flex items-center justify-between mb-3">
