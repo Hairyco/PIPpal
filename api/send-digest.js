@@ -353,6 +353,19 @@ export default async function handler(req, res) {
     }
 
     const testEmail = testOnly ? (recipients.find(r => r.email) || {}).email || 'admin' : null;
+    // Log the send
+    if (!testOnly && sent > 0) {
+      await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/email_sends`, {
+        method: 'POST',
+        headers: {
+          'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ type: 'digest', subject: `Weekly PIP digest — ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`, recipient_count: sent }),
+      });
+    }
     res.status(200).json({ sent, failed, total: recipients.length, testEmail });
   } catch (err) {
     res.status(500).json({ error: err.message });

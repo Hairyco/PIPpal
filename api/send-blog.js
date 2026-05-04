@@ -76,6 +76,19 @@ export default async function handler(req, res) {
       } catch { failed++; }
     }
 
+    // Log the send
+    if (!testOnly && sent > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/email_sends`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({ type: 'blog', subject: `New PIPpal Guide: ${post.title}`, recipient_count: sent }),
+      });
+    }
     res.status(200).json({ sent, failed, testOnly });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -120,6 +120,16 @@ export function AdminDashboard() {
   const [addError, setAddError] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
+  const [emailHistory, setEmailHistory] = useState<any[]>([]);
+
+  const fetchEmailHistory = async () => {
+    const { data } = await supabase
+      .from('email_sends')
+      .select('*')
+      .order('sent_at', { ascending: false })
+      .limit(20);
+    setEmailHistory(data || []);
+  };
   const [blogPosts, setBlogPosts] = useState<any[]>([]);
   const [editingPost, setEditingPost] = useState<any | null>(null);
   const [blogLoading, setBlogLoading] = useState(false);
@@ -611,7 +621,7 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') fetchEmailHistory(); }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -1176,6 +1186,34 @@ export function AdminDashboard() {
               </button>
             </div>
             {digestResult && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mt-3">{digestResult}</p>}
+          </div>
+
+          {/* Send history */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-bold text-stone-900 text-sm">Send history</p>
+              <button onClick={fetchEmailHistory} className="text-xs text-teal-700 font-bold hover:text-teal-800">Refresh</button>
+            </div>
+            {emailHistory.length === 0 ? (
+              <p className="text-xs text-stone-400 text-center py-4">No sends yet — history will appear here</p>
+            ) : (
+              <div className="space-y-2">
+                {emailHistory.map((send: any) => (
+                  <div key={send.id} className="flex items-center gap-3 py-2 border-b border-stone-50 last:border-0">
+                    <span className="text-lg">{send.type === 'digest' ? '📰' : '📖'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-stone-700 truncate">{send.subject}</p>
+                      <p className="text-[10px] text-stone-400">
+                        {new Date(send.sent_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full shrink-0">
+                      {send.recipient_count} sent
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
