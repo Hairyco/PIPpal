@@ -963,7 +963,7 @@ export function AdminDashboard() {
                             {q.url && (
                               <a href={q.url} target="_blank" rel="noopener noreferrer"
                                 className="text-[10px] text-purple-400 hover:text-purple-300 font-medium">
-                                Search Reddit for this →
+                                Search Google for this →
                               </a>
                             )}
                           </div>
