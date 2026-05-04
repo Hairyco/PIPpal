@@ -705,8 +705,8 @@ export function AdminDashboard() {
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
                 </div>
                 <div className="bg-rose-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-black text-rose-600">${aiCosts.thisMonth.toFixed(4)}</p>
-                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (USD)</p>
+                  <p className="text-lg font-black text-rose-600">£{(aiCosts.thisMonth * 0.79).toFixed(4)}</p>
+                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (GBP)</p>
                 </div>
                 <div className="bg-emerald-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-emerald-700">
@@ -723,7 +723,7 @@ export function AdminDashboard() {
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-[10px] text-stone-400 w-4">{i + 1}.</span>
                         <span className="text-[10px] text-stone-600 flex-1 truncate font-mono">{u.uid === 'anonymous' ? 'Anonymous' : u.uid.slice(0, 8) + '...'}</span>
-                        <span className="text-[10px] font-bold text-rose-600">${u.cost.toFixed(5)}</span>
+                        <span className="text-[10px] font-bold text-rose-600">£{(u.cost * 0.79).toFixed(5)}</span>
                       </div>
                     ))}
                   </div>
@@ -983,8 +983,8 @@ export function AdminDashboard() {
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
                 </div>
                 <div className="bg-rose-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-black text-rose-600">${aiCosts.thisMonth.toFixed(4)}</p>
-                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (USD)</p>
+                  <p className="text-lg font-black text-rose-600">£{(aiCosts.thisMonth * 0.79).toFixed(4)}</p>
+                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (GBP)</p>
                 </div>
                 <div className="bg-emerald-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-emerald-700">
@@ -1001,7 +1001,7 @@ export function AdminDashboard() {
                       <div key={i} className="flex items-center gap-2">
                         <span className="text-[10px] text-stone-400 w-4">{i + 1}.</span>
                         <span className="text-[10px] text-stone-600 flex-1 truncate font-mono">{u.uid === 'anonymous' ? 'Anonymous' : u.uid.slice(0, 8) + '...'}</span>
-                        <span className="text-[10px] font-bold text-rose-600">${u.cost.toFixed(5)}</span>
+                        <span className="text-[10px] font-bold text-rose-600">£{(u.cost * 0.79).toFixed(5)}</span>
                       </div>
                     ))}
                   </div>
