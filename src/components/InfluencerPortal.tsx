@@ -82,6 +82,17 @@ export function InfluencerPortal() {
       </div>
 
       <div className="flex-1 px-5 py-6 max-w-md mx-auto w-full">
+        {/* Admin instructions */}
+        <div className="bg-teal-50 rounded-2xl border border-teal-100 p-4 mb-4">
+          <p className="font-bold text-teal-900 text-sm mb-2">📋 How to share with influencers</p>
+          <div className="space-y-1.5 text-xs text-teal-800">
+            <p>1. Create their code in <span className="font-bold">Admin → Influencers tab</span></p>
+            <p>2. Send them this URL: <span className="font-mono bg-white px-2 py-0.5 rounded font-bold">pippal.uk?partner=true</span></p>
+            <p>3. They enter their unique code to see their stats</p>
+            <p>4. Their referral link is: <span className="font-mono bg-white px-2 py-0.5 rounded font-bold">pippal.uk?promo=THEIRCODE</span></p>
+          </div>
+        </div>
+
         {/* Code input */}
         {!data && (
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
