@@ -144,7 +144,7 @@ async function getNewsArticles() {
   }
 }
 
-function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null) {
+function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null, blogPosts = []) {
   const articlesHtml = articles.map(article => `
     <tr>
       <td style="padding: 0 0 20px 0;">
@@ -205,6 +205,27 @@ function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null) {
             </td>
           </tr>
 
+          <!-- Blog posts section -->
+          ${blogPosts.length > 0 ? `
+          <tr>
+            <td style="background:#ffffff; padding:0 28px 24px 28px;">
+              <h3 style="margin:0 0 12px 0; font-size:14px; font-weight:700; color:#1c1917; border-top:1px solid #e7e5e4; padding-top:20px;">Latest from the PIPpal Blog</h3>
+              ${blogPosts.map(post => `
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4; border-radius:10px; margin-bottom:10px;">
+                  <tr>
+                    <td style="padding:14px;">
+                      ${post.category ? `<p style="margin:0 0 4px 0; font-size:10px; font-weight:700; color:#0f766e; text-transform:uppercase; letter-spacing:0.05em;">${post.category}</p>` : ''}
+                      <p style="margin:0 0 6px 0; font-size:14px; font-weight:700; color:#1c1917;">${post.title}</p>
+                      ${post.excerpt ? `<p style="margin:0 0 8px 0; font-size:12px; color:#57534e; line-height:1.5;">${post.excerpt.slice(0, 120)}...</p>` : ''}
+                      <a href="https://www.pippal.uk" style="font-size:12px; color:#0f766e; font-weight:700; text-decoration:none;">Read on PIPpal →</a>
+                    </td>
+                  </tr>
+                </table>
+              `).join('')}
+            </td>
+          </tr>
+          ` : ''}
+
           <!-- Footer -->
           <tr>
             <td style="background:#f5f5f4; border-radius:0 0 16px 16px; padding:16px 28px; text-align:center;">
@@ -240,6 +261,7 @@ export default async function handler(req, res) {
     const body = req.method === 'POST' ? (req.body || {}) : {};
     const isCronTest = req.query?.cron === 'test';
     const testOnly = body.testOnly === true || isCronTest;
+    const blogPosts = body.blogPosts || [];
 
     // Accept pre-fetched articles from client (since Vercel blocks outbound RSS fetches)
     const clientArticles = body.articles || null;
@@ -291,7 +313,7 @@ export default async function handler(req, res) {
     for (const subscriber of recipients) {
       try {
         const unsubscribeUrl = `https://www.pippal.uk/api/unsubscribe?email=${encodeURIComponent(subscriber.email)}`;
-        const html = buildEmailHtml(articles, unsubscribeUrl, testOnly ? approvalToken : null);
+        const html = buildEmailHtml(articles, unsubscribeUrl, testOnly ? approvalToken : null, blogPosts);
 
         console.log(`Attempting to send to: ${subscriber.email}`);
         const emailPayload = {

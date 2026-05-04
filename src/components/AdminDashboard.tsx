@@ -286,24 +286,33 @@ export function AdminDashboard() {
     setSendingDigest(true);
     setDigestResult(null);
     try {
-      // Fetch articles client-side first (Vercel blocks server-side RSS fetches)
+      // Fetch news articles client-side
       setDigestResult('Fetching latest PIP news...');
       const newsRes = await fetch('/api/news');
       const newsData = await newsRes.json();
       const articles = newsData.articles || [];
 
-      if (articles.length === 0) {
-        setDigestResult('No PIP articles found. Try again later.');
+      // Fetch latest 2 published blog posts
+      const { data: blogData } = await supabase
+        .from('blog_posts')
+        .select('title, slug, excerpt, category')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(2);
+      const blogPosts = blogData || [];
+
+      if (articles.length === 0 && blogPosts.length === 0) {
+        setDigestResult('No content found. Try again later.');
         setSendingDigest(false);
         return;
       }
 
-      setDigestResult(`Found ${articles.length} articles. Sending...`);
+      setDigestResult(`Found ${articles.length} news articles + ${blogPosts.length} blog posts. Sending...`);
 
       const res = await fetch('/api/send-digest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ testOnly, articles }),
+        body: JSON.stringify({ testOnly, articles, blogPosts }),
       });
       const data = await res.json();
       if (testOnly) {
