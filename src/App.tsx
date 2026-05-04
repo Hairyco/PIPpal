@@ -275,17 +275,18 @@ function AppContent() {
           <div className="max-w-6xl mx-auto">
             <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
-              <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
-              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <Hero onStart={() => handleNavigate('home')} />
+              <WhatIsPIP />
+              <WhyPIPpal />
               <HowItWorks />
-              <ChatPreview onStart={() => handleNavigate('home')} />
+              <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <section
                 id="free-tools"
                 className="px-5 md:px-8 py-8 bg-stone-100/50 border-y border-stone-200/50 my-4"
               >
                 <div className="mb-6 text-center">
-                  <h2 className="text-xl font-bold text-stone-900 mb-1">Free tools — no sign-up needed</h2>
-                  <p className="text-stone-500 text-sm">See what you could be owed before you start</p>
+                  <h2 className="text-xl font-bold text-stone-900 mb-1">Try our free tools</h2>
+                  <p className="text-stone-500 text-sm">Get instant estimates — no sign-up required</p>
                 </div>
                 <div className="md:grid md:grid-cols-3 md:gap-6 space-y-4 md:space-y-0">
                   <TimelineCalculator />
@@ -293,6 +294,8 @@ function AppContent() {
                   <BackpayCalculator />
                 </div>
               </section>
+              <ChatPreview onStart={() => handleNavigate('home')} />
+              <ValueProp />
               <ClaimSelector onSelect={handleNavigate} />
               <FinalCTA onStart={() => handleNavigate('home')} />
               <PIPAssistant

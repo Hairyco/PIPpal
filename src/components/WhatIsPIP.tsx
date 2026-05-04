@@ -1,187 +1,249 @@
-import React from 'react';
-import { PoundSterling, ShieldCheck, HelpCircle, Clock, CheckCircle2, XCircle, Search } from 'lucide-react';
-
-interface WhatIsPIPProps {
-  onEligibility?: () => void;
-}
-
-const conditions = [
-  { emoji: '😰', label: 'Anxiety' },
-  { emoji: '🧠', label: 'ADHD' },
-  { emoji: '💙', label: 'Depression' },
-  { emoji: '🦴', label: 'Chronic pain' },
-  { emoji: '🧩', label: 'Autism' },
-  { emoji: '💊', label: 'Epilepsy' },
-  { emoji: '🫀', label: 'Fibromyalgia' },
-  { emoji: '🔇', label: 'PTSD' },
-];
-
-const myths = [
-  { myth: 'I work full time', truth: 'PIP is not means-tested — your income and employment don\'t affect eligibility.' },
-  { myth: 'I look fine', truth: 'PIP is about how your condition affects daily life — not how you look.' },
-  { myth: 'I\'m already on Universal Credit', truth: 'PIP and UC are separate. You can receive both at the same time.' },
-  { myth: 'I\'ve had it for years so I already missed out', truth: 'You can claim PIP at any time — there\'s no cut-off based on how long you\'ve had a condition.' },
-];
-
-const points = [
+import React, { useState, Component } from 'react';
+import {
+  HelpCircle,
+  Heart,
+  Footprints,
+  ChevronDown,
+  PoundSterling,
+  Users } from
+'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+const CASE_STUDIES = [
   {
-    icon: HelpCircle,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
-    title: "Don't know what to write?",
-    body: "We ask simple questions and translate your answers into what DWP assessors are trained to look for. No guesswork.",
+    name: 'John',
+    condition: 'Anxiety',
+    emoji: '😰',
+    story: 'John feels anxious in public. He avoids busy places, finds social situations overwhelming, and sometimes struggles to leave the house.',
+    qualifies: ['Daily Living – Finds it hard to deal with people and everyday situations', 'Mobility – Struggles with going out and travelling'],
   },
   {
-    icon: ShieldCheck,
-    color: 'text-teal-600',
-    bg: 'bg-teal-50',
-    title: 'Worried about being rejected?',
-    body: "Most rejections happen because of how a condition is described — not whether it qualifies. We structure every answer to maximise your score.",
+    name: 'Aisha',
+    condition: 'ADHD',
+    emoji: '🧠',
+    story: 'Aisha struggles to stay focused and organised. She forgets things, gets overwhelmed easily, and finds it hard to keep on top of daily tasks.',
+    qualifies: ['Daily Living – Difficulty managing routines and staying organised', 'Mobility – Can struggle planning and following journeys'],
   },
   {
-    icon: Clock,
-    color: 'text-orange-600',
-    bg: 'bg-orange-50',
-    title: 'Want to do it quickly?',
-    body: 'Most people finish in 15–30 minutes. Answer in your own words, we do the rest.',
+    name: 'Sarah',
+    condition: 'Depression',
+    emoji: '💙',
+    story: 'Sarah often feels low and unmotivated. Some days she struggles to get out of bed, look after herself, or face going outside.',
+    qualifies: ['Daily Living – Struggles with basic tasks and daily routines', 'Mobility – Finds it hard to leave the house'],
   },
 ];
 
-export function WhatIsPIP({ onEligibility }: WhatIsPIPProps) {
+export function WhatIsPIP() {
+  const [expanded, setExpanded] = useState(false);
+  const [showCaseStudies, setShowCaseStudies] = useState(false);
   return (
-    <section className="px-5 md:px-8 py-6 space-y-4">
-
-      {/* What is PIP + qualifying rules */}
-      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center">
-            <PoundSterling className="w-4 h-4 text-teal-700" />
-          </div>
-          <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
-        </div>
-        <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          Personal Independence Payment (PIP) is a tax-free benefit that can help with extra living costs if you have a long-term physical or mental health condition or disability — or difficulty doing certain everyday tasks or getting around because of your condition.
-        </p>
-        <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          You can get PIP even if you're working, have savings or are receiving most other benefits. <strong>You don't need a formal diagnosis</strong> — just that you expect your condition to last for at least 9 months. It's worth up to <strong className="text-stone-900">£10,246 a year</strong>.
-        </p>
-
-        {/* Qualifying rules — prominent */}
-        <div className="bg-teal-50 rounded-xl p-4 mb-4 border border-teal-100">
-          <p className="text-xs font-bold text-teal-900 mb-2">Basic qualifying rules</p>
-          <div className="space-y-2">
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-teal-800">Your condition has <strong>affected you for at least 3 months</strong> and is expected to continue for at least <strong>9 more months</strong></p>
+    <section className="px-5 md:px-8 py-6">
+      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+        <div className="p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="bg-teal-50 p-2 rounded-xl shrink-0">
+              <HelpCircle className="w-5 h-5 text-teal-700" />
             </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-teal-800">You are aged <strong>16 to 64</strong> (State Pension age for new claims)</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-teal-800">You normally live in England, Wales or Scotland</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-teal-800"><strong>Income and savings don't matter</strong> — PIP is not means-tested</p>
+            <div>
+              <h2 className="font-bold text-stone-900 text-lg leading-tight">
+                What is PIP?
+              </h2>
+              <p className="text-xs text-stone-400 mt-0.5">
+                Personal Independence Payment
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* Conditions */}
-        <div className="bg-stone-50 rounded-xl px-4 py-3">
-          <p className="text-xs font-semibold text-stone-500 mb-2">Conditions that often qualify</p>
-          <div className="flex flex-wrap gap-2">
-            {conditions.map(c => (
-              <span key={c.label} className="text-xs bg-white border border-stone-200 px-2.5 py-1 rounded-full text-stone-700">
-                {c.emoji} {c.label}
-              </span>
+          <div className="bg-teal-50 rounded-xl p-4 mb-4 border border-teal-100 flex items-center gap-3">
+            <div className="shrink-0 w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
+              <Users className="w-6 h-6 text-teal-700" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-teal-800 leading-tight">
+                3.9 million
+              </div>
+              <p className="text-xs text-teal-700 leading-relaxed">
+                people in the UK currently claim PIP. You're not alone — and
+                you're not unusual for considering it.
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm text-stone-600 leading-relaxed mb-3">
+            Personal Independence Payment (PIP) is a movement benefit that can help with extra living costs if you have a long-term physical or mental health condition or disability or difficulty doing certain everyday tasks or getting around because of your condition. You can get PIP even if you're working, have savings or are getting most other benefits and you don't need a formal diagnosis. Just that you expect your condition to last for up to 9 months.
+          </p>
+          <p className="text-sm text-stone-600 leading-relaxed mb-3">
+            It is <strong className="text-stone-800">not means-tested</strong> — <strong className="text-stone-800">whether you're working, self-employed, or not working — your income and savings do not matter.</strong>
+          </p>
+          <p className="text-sm text-stone-600 leading-relaxed mb-3">
+            Many people do not realise they could be eligible. Even if your condition feels manageable or you have just learned to cope with it, you might still qualify depending on how it affects your everyday life.
+          </p>
+
+          {/* Condition pills */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {['Anxiety', 'Depression', 'ADHD', 'Chronic pain', 'Autism', 'Fibromyalgia', 'MS', 'Arthritis', 'PTSD', '+ more'].map((c) => (
+              <span key={c} className="text-xs font-medium bg-teal-50 text-teal-700 border border-teal-100 px-2.5 py-1 rounded-full">{c}</span>
             ))}
-            <span className="text-xs bg-white border border-stone-200 px-2.5 py-1 rounded-full text-stone-500">+ many more</span>
           </div>
-        </div>
-      </div>
+          <button
+            onClick={() => setShowCaseStudies(true)}
+            className="text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2 mb-4 block"
+          >
+            See example cases →
+          </button>
 
-      {/* Free eligibility check CTA */}
-      <button
-        onClick={onEligibility}
-        className="w-full bg-stone-900 text-white rounded-2xl p-4 flex items-center gap-3 hover:bg-stone-800 active:scale-[0.98] transition-all text-left shadow-sm"
-      >
-        <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center shrink-0">
-          <Search className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex-1">
-          <p className="font-bold text-white text-sm">Not sure if you qualify?</p>
-          <p className="text-stone-400 text-xs mt-0.5">Check your eligibility in 2 minutes — completely free, no sign-up</p>
-        </div>
-        <div className="text-xs font-bold text-teal-400 shrink-0">Free →</div>
-      </button>
-
-      {/* Myths busted */}
-      <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-        <h2 className="font-bold text-stone-900 text-base mb-3">Common reasons people don't apply</h2>
-        <div className="space-y-3">
-          {myths.map((m, i) => (
-            <div key={i} className="flex gap-3 items-start">
-              <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
-                <XCircle className="w-4 h-4 text-rose-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-stone-700 line-through decoration-rose-300">"{m.myth}"</p>
-                <p className="text-xs text-stone-500 leading-relaxed mt-0.5">{m.truth}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Problem */}
-      <div className="bg-rose-50 border border-rose-100 rounded-2xl p-5">
-        <h2 className="font-bold text-stone-900 text-lg mb-2">Sound familiar?</h2>
-        <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          The PIP application is notoriously difficult — 40+ pages long, emotionally draining, and full of technical language. Many deserving people are rejected simply because they don't know how to translate their daily struggles into the specific points-based language DWP requires.
-        </p>
-        <div className="space-y-2">
-          {points.map((p, i) => (
-            <div key={i} className="bg-white rounded-xl p-3.5 flex gap-3 border border-rose-100">
-              <div className={`w-8 h-8 ${p.bg} rounded-lg flex items-center justify-center shrink-0`}>
-                <p.icon className={`w-4 h-4 ${p.color}`} />
-              </div>
-              <div>
-                <p className="font-semibold text-stone-900 text-sm mb-0.5">{p.title}</p>
-                <p className="text-stone-500 text-xs leading-relaxed">{p.body}</p>
+          {/* Case studies modal */}
+          {showCaseStudies && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-end md:items-center justify-center p-4" onClick={() => setShowCaseStudies(false)}>
+              <div className="bg-white rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 sticky top-0 bg-white">
+                  <h3 className="font-bold text-stone-900 text-base">Who can claim PIP?</h3>
+                  <button onClick={() => setShowCaseStudies(false)} className="text-stone-400 hover:text-stone-700 text-sm font-medium">Close</button>
+                </div>
+                <div className="p-5 space-y-5">
+                  {CASE_STUDIES.map(cs => (
+                    <div key={cs.name} className="bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">{cs.emoji}</span>
+                        <div>
+                          <p className="font-bold text-stone-900 text-sm">{cs.name} — {cs.condition}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-stone-600 leading-relaxed mb-3">{cs.story}</p>
+                      <div className="space-y-1.5">
+                        {cs.qualifies.map((q, i) => (
+                          <div key={i} className="flex items-start gap-2">
+                            <span className="text-emerald-600 text-xs shrink-0">✔</span>
+                            <p className="text-xs text-stone-700 leading-relaxed">{q}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-stone-400 text-center leading-relaxed">These are illustrative examples. PIP is assessed individually — everyone's situation is different.</p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          )}
 
-      {/* Solution */}
-      <div className="bg-teal-700 rounded-2xl p-5 text-white">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl">✨</span>
-          <h2 className="font-bold text-xl">The solution</h2>
-        </div>
-        <p className="text-teal-100 text-sm leading-relaxed mb-4">
-          PIPpal takes your plain English descriptions and creates professionally structured, evidence-aligned answers for your claim form — in the exact language DWP assessors are trained to look for.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            ['⚡', 'Under 15 minutes', 'Most people complete their full claim in one session'],
-            ['🎯', 'Points optimised', 'Answers built around the DWP scoring criteria'],
-            ['🔒', 'Private & secure', 'Zero data sharing. Encrypted end to end'],
-            ['👤', 'Unique to you', 'Tailored to your specific conditions and circumstances'],
-          ].map(([emoji, title, desc]) => (
-            <div key={title} className="bg-white/10 rounded-xl p-3">
-              <p className="text-lg mb-1">{emoji}</p>
-              <p className="font-bold text-white text-xs mb-0.5">{title}</p>
-              <p className="text-teal-200 text-[10px] leading-snug">{desc}</p>
+          <div className="bg-amber-50 rounded-xl p-3 mb-4 border border-amber-100 flex items-start gap-2.5">
+            <span className="text-base mt-0.5">⏳</span>
+            <p className="text-xs text-amber-800 leading-relaxed">
+              Decisions can take <strong>up to 6 months</strong> — and if your
+              claim is turned down, starting again means another long wait.
+              Getting it right first time matters.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="bg-stone-50 rounded-xl p-3.5 border border-stone-100">
+              <div className="flex items-center gap-2 mb-2">
+                <Heart className="w-4 h-4 text-rose-500" />
+                <span className="text-xs font-semibold text-stone-800">
+                  Daily Living
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-500 leading-relaxed">
+                Help with everyday tasks like cooking, washing, dressing &
+                managing medication
+              </p>
             </div>
-          ))}
+            <div className="bg-stone-50 rounded-xl p-3.5 border border-stone-100">
+              <div className="flex items-center gap-2 mb-2">
+                <Footprints className="w-4 h-4 text-blue-500" />
+                <span className="text-xs font-semibold text-stone-800">
+                  Mobility
+                </span>
+              </div>
+              <p className="text-[11px] text-stone-500 leading-relaxed">
+                Help with getting around, planning journeys & moving safely
+                outdoors
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="w-full flex items-center justify-between py-2.5 px-3 bg-stone-50 rounded-xl text-sm font-medium text-stone-600 hover:bg-stone-100 transition-colors">
+            
+            <span>{expanded ? 'Show less' : 'How much could I get?'}</span>
+            <motion.div
+              animate={{
+                rotate: expanded ? 180 : 0
+              }}
+              transition={{
+                duration: 0.2
+              }}>
+              
+              <ChevronDown className="w-4 h-4 text-stone-400" />
+            </motion.div>
+          </button>
+
+          <AnimatePresence>
+            {expanded &&
+            <motion.div
+              initial={{
+                height: 0,
+                opacity: 0
+              }}
+              animate={{
+                height: 'auto',
+                opacity: 1
+              }}
+              exit={{
+                height: 0,
+                opacity: 0
+              }}
+              transition={{
+                duration: 0.25
+              }}
+              className="overflow-hidden">
+              
+                <div className="pt-4 space-y-3">
+                  {/* Header row */}
+                  <div className="grid grid-cols-3 gap-2 pb-2 border-b border-stone-100">
+                    <span className="text-xs text-stone-400">Component</span>
+                    <span className="text-xs text-stone-400 text-right">Standard/pw</span>
+                    <span className="text-xs text-stone-400 text-right">Enhanced/pw</span>
+                  </div>
+                  {/* Daily Living row */}
+                  <div className="grid grid-cols-3 gap-2 items-center py-1.5 border-b border-stone-50">
+                    <div className="flex items-center gap-1.5">
+                      <Heart className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                      <span className="text-xs text-stone-700">Daily Living</span>
+                    </div>
+                    <span className="text-sm text-stone-600 text-right font-medium">£336</span>
+                    <span className="text-sm font-bold text-teal-700 text-right">£503</span>
+                  </div>
+                  {/* Mobility row */}
+                  <div className="grid grid-cols-3 gap-2 items-center py-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <Footprints className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                      <span className="text-xs text-stone-700">Mobility</span>
+                    </div>
+                    <span className="text-sm text-stone-600 text-right font-medium">£133</span>
+                    <span className="text-sm font-bold text-teal-700 text-right">£351</span>
+                  </div>
+                  <div className="bg-teal-50 rounded-xl p-3 mt-2 border border-teal-100">
+                    <div className="flex items-center gap-2 mb-1">
+                      <PoundSterling className="w-4 h-4 text-teal-600" />
+                      <span className="text-sm font-semibold text-teal-800">
+                        Up to £854/month
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-teal-600 leading-relaxed">
+                      That's up to £10,247/year if you qualify for both enhanced
+                      rates. Paid every 4 weeks directly into your bank account.
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-stone-400 text-center">
+                    Rates shown are for 2025/26 tax year
+                  </p>
+                </div>
+              </motion.div>
+            }
+          </AnimatePresence>
         </div>
       </div>
+    </section>);
 
-    </section>
-  );
 }
