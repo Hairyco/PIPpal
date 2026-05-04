@@ -212,6 +212,26 @@ export function AdminDashboard() {
 
   const [blogClicks, setBlogClicks] = useState<Record<string, {views: number, ctas: number}>>({});
   const [sendingBlog, setSendingBlog] = useState<string | null>(null);
+  const [tiktokScript, setTiktokScript] = useState<{postId: string, script: string} | null>(null);
+  const [generatingTiktok, setGeneratingTiktok] = useState<string | null>(null);
+
+  const generateTiktok = async (post: any) => {
+    setGeneratingTiktok(post.id);
+    setTiktokScript(null);
+    try {
+      const res = await fetch('/api/generate-tiktok', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: post.title, excerpt: post.excerpt, body: post.body, category: post.category }),
+      });
+      const data = await res.json();
+      if (data.script) setTiktokScript({ postId: post.id, script: data.script });
+    } catch {
+      setBlogMsg('TikTok script generation failed');
+    } finally {
+      setGeneratingTiktok(null);
+    }
+  };
   const [blogSendResult, setBlogSendResult] = useState<string | null>(null);
 
   const sendBlogPost = async (post: any, testOnly = false) => {
@@ -1122,6 +1142,30 @@ export function AdminDashboard() {
             </div>
           )}
 
+          {/* TikTok script viewer */}
+          {tiktokScript && (
+            <div className="bg-gradient-to-br from-pink-900 to-purple-900 rounded-2xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🎬</span>
+                  <p className="font-bold text-white text-sm">TikTok Script</p>
+                  <span className="text-[10px] text-pink-300 bg-white/10 px-2 py-0.5 rounded-full">~60 seconds</span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { navigator.clipboard?.writeText(tiktokScript.script); setBlogMsg('Script copied to clipboard!'); }}
+                    className="text-[10px] font-bold bg-white/20 text-white px-3 py-1.5 rounded-lg hover:bg-white/30"
+                  >📋 Copy</button>
+                  <button onClick={() => setTiktokScript(null)} className="text-[10px] text-pink-300 hover:text-white">✕</button>
+                </div>
+              </div>
+              <div className="bg-black/30 rounded-xl p-3 max-h-64 overflow-y-auto">
+                <pre className="text-xs text-pink-100 leading-relaxed whitespace-pre-wrap font-sans">{tiktokScript.script}</pre>
+              </div>
+              <p className="text-[10px] text-pink-300 mt-2">Tip: Record on your phone speaking directly to camera. Keep energy high and pace fast.</p>
+            </div>
+          )}
+
           {/* Post list */}
           {blogLoading ? (
             <div className="text-center py-8 text-stone-400 text-sm">Loading...</div>
@@ -1154,6 +1198,9 @@ export function AdminDashboard() {
                       <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
                       <button onClick={() => { setSelectedBlogSlug(post.slug); navigateTo('blog_post'); }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-stone-50 text-stone-600 hover:bg-stone-100">View</button>
                       <button onClick={async () => { try { await navigator.share({ title: post.title, text: post.excerpt, url: `https://www.pippal.uk` }); } catch { navigator.clipboard?.writeText(`https://www.pippal.uk`); } }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">Share</button>
+                      <button onClick={() => generateTiktok(post)} disabled={generatingTiktok === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-pink-50 text-pink-600 hover:bg-pink-100 disabled:opacity-50">
+                        {generatingTiktok === post.id ? '⏳' : '🎬 TikTok'}
+                      </button>
                       <button onClick={() => sendBlogPost(post, true)} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 disabled:opacity-50">
                         {sendingBlog === post.id ? '⏳' : '📧 Test'}
                       </button>
