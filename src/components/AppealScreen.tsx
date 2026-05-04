@@ -48,7 +48,7 @@ export function AppealScreen() {
         {/* Always Choose an Oral Hearing */}
         <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
-            <Mic className="w-5 h-5 text-indigo-600" />
+            <MessageSquare className="w-5 h-5 text-indigo-600" />
             <h3 className="font-bold text-indigo-900 text-sm">
               Always Choose an Oral Hearing
             </h3>
