@@ -121,6 +121,15 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
+  const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
+
+  const fetchSubscriberCount = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact' })
+      .neq('email_notifications', false);
+    setSubscriberCount(data?.length || 0);
+  };
 
   const fetchEmailHistory = async () => {
     const { data } = await supabase
@@ -641,7 +650,7 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') fetchEmailHistory(); }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -1204,8 +1213,8 @@ export function AdminDashboard() {
                       <button onClick={() => sendBlogPost(post, true)} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 disabled:opacity-50">
                         {sendingBlog === post.id ? '⏳' : '📧 Test'}
                       </button>
-                      <button onClick={() => { if(confirm(`Send "${post.title}" to all subscribers?`)) sendBlogPost(post, false); }} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50">
-                        {sendingBlog === post.id ? '⏳' : '📨 Send all'}
+                      <button onClick={() => { if(confirm(`Send "${post.title}" to ${subscriberCount ?? 'all'} subscribers?`)) sendBlogPost(post, false); }} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50">
+                        {sendingBlog === post.id ? '⏳' : `📨 Send all${subscriberCount ? ` (${subscriberCount})` : ''}`}
                       </button>
                       <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
                     </div>
@@ -1220,7 +1229,14 @@ export function AdminDashboard() {
       {activeTab === 'email' && (
         <div className="px-4 py-4 space-y-4">
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-            <p className="font-bold text-stone-900 text-sm mb-1">Weekly news digest</p>
+            <div className="flex items-center justify-between mb-1">
+              <p className="font-bold text-stone-900 text-sm">Weekly news digest</p>
+              {subscriberCount !== null && (
+                <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full">
+                  {subscriberCount} subscribers
+                </span>
+              )}
+            </div>
             <p className="text-xs text-stone-500 mb-3">Sends to all subscribers with email notifications on. Test first before sending to all.</p>
             <div className="flex gap-2">
               <button onClick={() => sendDigest(true)} disabled={sendingDigest}
