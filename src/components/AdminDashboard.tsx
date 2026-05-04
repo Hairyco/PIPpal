@@ -137,21 +137,93 @@ export function AdminDashboard() {
 
   const scanReddit = async () => {
     setInsightLoading(true);
+    setBlogMsg('');
     try {
-      const res = await fetch('/api/scan-reddit');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      console.log('Scan result:', data);
-      if (data.categories?.length > 0) {
-        setRedditInsights(data.categories);
+      // Fetch directly from Reddit in browser (bypasses Vercel network restrictions)
+      const subreddits = ['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK', 'UKBenefits'];
+      const pipKeywords = ['pip', 'personal independence', 'disability benefit', 'dwp', 'pip claim', 'pip assessment'];
+      const categoryKeywords: Record<string, string[]> = {
+        'Assessment': ['assessment', 'assessor', 'face-to-face', 'telephone', 'medical'],
+        'Appeals': ['appeal', 'tribunal', 'mandatory reconsideration', 'overturn', 'refused'],
+        'Forms & Applications': ['form', 'apply', 'application', 'filling in', 'pip form'],
+        'Payments & Rates': ['payment', 'how much', 'rate', 'money', 'weekly', 'backpay'],
+        'Mental Health': ['anxiety', 'depression', 'ptsd', 'adhd', 'autism', 'bipolar', 'ocd'],
+        'Physical Conditions': ['fibromyalgia', 'multiple sclerosis', 'arthritis', 'chronic pain', 'fatigue'],
+        'Renewals & Reviews': ['renewal', 'review', 'reassessment', 'change of circumstances'],
+        'Tips & Advice': ['tips', 'advice', 'help', 'what to say', 'how do i', 'worried'],
+      };
+
+      const allPosts: any[] = [];
+      for (const sub of subreddits) {
+        try {
+          const r = await fetch(`https://www.reddit.com/r/${sub}/new.json?limit=25&t=month`, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (compatible; PIPpal/1.0)' }
+          });
+          if (!r.ok) continue;
+          const d = await r.json();
+          const posts = (d?.data?.children || []).map((p: any) => ({
+            title: p.data.title,
+            body: p.data.selftext?.slice(0, 200) || '',
+            score: p.data.score,
+            url: `https://reddit.com${p.data.permalink}`,
+            subreddit: p.data.subreddit,
+            created: p.data.created_utc,
+          }));
+          allPosts.push(...posts);
+        } catch { continue; }
+      }
+
+      // Filter PIP related
+      const pipPosts = allPosts.filter(p => {
+        const text = (p.title + ' ' + p.body).toLowerCase();
+        return pipKeywords.some(k => text.includes(k));
+      });
+
+      // Group by category
+      const grouped: Record<string, any[]> = {};
+      for (const post of pipPosts) {
+        const text = (post.title + ' ' + post.body).toLowerCase();
+        let assigned = false;
+        for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+          if (keywords.some(k => text.includes(k))) {
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(post);
+            assigned = true;
+            break;
+          }
+        }
+        if (!assigned) {
+          if (!grouped['General']) grouped['General'] = [];
+          grouped['General'].push(post);
+        }
+      }
+
+      if (Object.keys(grouped).length > 0) {
+        const insights = Object.entries(grouped)
+          .map(([category, questions]) => ({
+            category,
+            question_count: questions.length,
+            top_questions: questions.sort((a: any, b: any) => b.created - a.created).slice(0, 5),
+            scanned_at: new Date().toISOString(),
+          }))
+          .sort((a, b) => b.question_count - a.question_count);
+
+        setRedditInsights(insights);
+        setInsightTotal(pipPosts.length);
+        setInsightScannedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+        setBlogMsg(`Found ${pipPosts.length} fresh PIP posts from the last month`);
+      } else {
+        // Fallback to curated data via API
+        const res = await fetch('/api/scan-reddit');
+        const data = await res.json();
+        setRedditInsights(data.categories || []);
         setInsightTotal(data.total_pip_posts || 0);
         setInsightScannedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-      } else {
-        setBlogMsg('Scan returned no results — try again');
+        setBlogMsg('Showing curated topics — Reddit fetch returned no results');
       }
     } catch (err) {
       console.log('Scan error:', err);
-      setBlogMsg('Scan failed — check Vercel logs');
+      setBlogMsg('Scan failed');
     } finally {
       setInsightLoading(false);
     }
@@ -954,17 +1026,23 @@ export function AdminDashboard() {
                         </p>
                         {insight.top_questions.map((q: any, i: number) => (
                           <div key={i} className="bg-stone-700 rounded-lg p-2.5">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="text-[10px] font-bold text-teal-400">r/{q.subreddit}</span>
-                              <span className="text-[10px] text-stone-400">↑{q.score} upvotes</span>
-                              {q.created && <span className="text-[10px] text-stone-500">{new Date(q.created * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
+                              {q.score > 0 && <span className="text-[10px] text-stone-400">↑{q.score}</span>}
+                              {q.created && <span className="text-[10px] text-stone-400">{new Date(q.created * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>}
                             </div>
-                            <p className="text-[11px] text-stone-200 leading-snug mb-1.5">{q.title}</p>
+                            <p className="text-[11px] text-stone-200 leading-snug mb-2">{q.title}</p>
                             {q.url && (
-                              <a href={q.url} target="_blank" rel="noopener noreferrer"
-                                className="text-[10px] text-purple-400 hover:text-purple-300 font-medium">
-                                Search Google for this →
-                              </a>
+                              <div className="flex gap-2 flex-wrap">
+                                <a href={q.url} target="_blank" rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-stone-600 px-2 py-1 rounded-md">
+                                  View post →
+                                </a>
+                                <a href={q.url} target="_blank" rel="noopener noreferrer"
+                                  className="text-[10px] font-bold text-teal-400 hover:text-teal-300 bg-stone-600 px-2 py-1 rounded-md">
+                                  Reply on Reddit →
+                                </a>
+                              </div>
                             )}
                           </div>
                         ))}
