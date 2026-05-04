@@ -54,8 +54,10 @@ export default async function handler(req, res) {
 
   try {
     const allSubscribers = await getSubscribers();
+    // Test mode always sends to admin emails directly
+    const ADMIN_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
     const recipients = testOnly
-      ? allSubscribers.filter(s => s.email === 'daley_cutler@hotmail.co.uk' || s.email === 'hairyco2@gmail.com')
+      ? ADMIN_EMAILS.map(email => ({ email, name: 'Daley' }))
       : allSubscribers;
 
     let sent = 0, failed = 0;
