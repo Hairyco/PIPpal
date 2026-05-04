@@ -7,7 +7,6 @@ import {
   Phone,
   CheckCircle2,
   Clock,
-  Mic,
   Briefcase,
   Lightbulb,
   HeartHandshake,

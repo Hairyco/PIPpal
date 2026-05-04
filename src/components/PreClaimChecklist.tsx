@@ -204,24 +204,6 @@ export function PreClaimChecklist() {
         {/* Community & Contact */}
         <div className="space-y-3">
           <a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 bg-teal-50 rounded-2xl p-4 border border-teal-100 hover:border-teal-200 transition-all active:scale-[0.98]">
-            
-            <div className="w-9 h-9 bg-teal-100 rounded-full flex items-center justify-center shrink-0">
-              <Users className="w-4 h-4 text-teal-700" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-stone-900 text-xs">
-                Join our community
-              </h3>
-              <p className="text-[11px] text-stone-500">
-                Get tips and support from others going through PIP
-              </p>
-            </div>
-          </a>
-          <a
             href="mailto:support@pippal.uk"
             className="flex items-center gap-3 bg-white rounded-2xl p-4 border border-stone-100 hover:border-stone-200 transition-all active:scale-[0.98]">
             

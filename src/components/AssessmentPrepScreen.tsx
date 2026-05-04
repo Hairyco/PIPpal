@@ -258,18 +258,7 @@ export function AssessmentPrepScreen() {
           </div>
         </div>
 
-        {/* Hero */}
-        <div className="bg-blue-700 rounded-2xl p-6 text-white shadow-sm">
-          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <ShieldAlert className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Your Assessment Guide</h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
-            Review your answers before your assessment. Download this document
-            to have it in front of you during a telephone assessment, or take it
-            with you in person.
-          </p>
-        </div>
+        <p className="text-sm text-stone-600 leading-relaxed px-1">Download your prep document to review before your assessment — or take it with you on the day.</p>
 
         <button
           onClick={handleDownload}
@@ -477,65 +466,18 @@ export function AssessmentPrepScreen() {
           </AnimatePresence>
         </div>
 
-        {/* Post-Completion Actions */}
-        <div className="space-y-4 pt-2">
-          <a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-white rounded-2xl p-4 border border-stone-200 shadow-sm hover:border-teal-300 transition-all active:scale-[0.98]">
-            
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center shrink-0">
-                <Star className="w-5 h-5 text-green-600 fill-green-600" />
-              </div>
-              <div>
-                <h4 className="font-bold text-stone-900 text-sm mb-1">
-                  Help others find PIPpal
-                </h4>
-                <p className="text-xs text-stone-600 leading-relaxed">
-                  Leave a Trustpilot review. Your experience could encourage
-                  someone else to claim what they deserve.
-                </p>
-              </div>
-            </div>
-          </a>
-
-          <a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-teal-50 rounded-2xl p-4 border border-teal-100 shadow-sm hover:border-teal-200 transition-all active:scale-[0.98]">
-            
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center shrink-0">
-                <Users className="w-5 h-5 text-teal-700" />
-              </div>
-              <div>
-                <h4 className="font-bold text-teal-900 text-sm mb-1">
-                  Join our community
-                </h4>
-                <p className="text-xs text-teal-800 leading-relaxed">
-                  Connect with others going through the PIP process. Share tips
-                  & find support.
-                </p>
-              </div>
-            </div>
-          </a>
-
+        {/* Contact */}
+        <div className="pt-2">
           <a
             href="mailto:support@pippal.uk"
-            className="block bg-white rounded-2xl p-4 border border-stone-200 shadow-sm hover:border-stone-300 transition-all active:scale-[0.98]">
-            
+            className="block bg-white rounded-2xl p-4 border border-stone-100 shadow-sm hover:border-stone-200 transition-all active:scale-[0.98]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-stone-100 rounded-full flex items-center justify-center shrink-0">
-                <Mail className="w-5 h-5 text-stone-600" />
+              <div className="w-9 h-9 bg-stone-100 rounded-full flex items-center justify-center shrink-0">
+                <Mail className="w-4 h-4 text-stone-600" />
               </div>
               <div>
-                <h4 className="font-bold text-stone-900 text-sm">Need help?</h4>
-                <p className="text-xs text-stone-500">
-                  Contact us at support@pippal.uk
-                </p>
+                <p className="font-bold text-stone-900 text-sm">Need help?</p>
+                <p className="text-xs text-stone-500">support@pippal.uk</p>
               </div>
             </div>
           </a>
