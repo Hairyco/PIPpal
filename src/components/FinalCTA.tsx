@@ -32,9 +32,7 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
           <ArrowRight className="w-5 h-5" />
         </button>
 
-        <NewsletterSignup />
-
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-stone-500">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-stone-500 mb-2">
           <div className="flex items-center gap-1.5">
             <Lock className="w-3.5 h-3.5" />
             <span>No subscription</span>
@@ -43,11 +41,9 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
             <Shield className="w-3.5 h-3.5" />
             <span>Secure payment</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Full Access — <strong className="text-white">£12.99</strong> one-time</span>
-          </div>
         </div>
+
+        <NewsletterSignup />
       </div>
 
       {/* Footer */}
