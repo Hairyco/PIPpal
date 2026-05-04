@@ -83,20 +83,14 @@ export function ChangeOfCircumstancesScreen() {
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
           <p className="font-bold text-stone-900 text-sm mb-1">Step 1 — Get your previous records</p>
           <p className="text-xs text-stone-500 leading-relaxed mb-3">Before filling in a new form, request your original PIP2 and assessor report from DWP. This lets you show exactly what has changed since your last assessment.</p>
-          <div className="bg-stone-50 rounded-xl p-3 text-xs text-stone-600 leading-relaxed">
-            <p className="font-semibold text-stone-700 mb-1">Make a Subject Access Request (SAR)</p>
-            <p>Email <strong>dwp.sar@dwp.gov.uk</strong> with your full name, National Insurance number and date of birth. Ask for your PIP2 form and assessor report. They must respond within 1 month.</p>
-          </div>
+          <SAREmailGenerator context="pip2" />
         </div>
 
         {/* Step 2 — call DWP */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
           <p className="font-bold text-stone-900 text-sm mb-1">Step 2 — Call DWP to report the change</p>
-          <p className="text-xs text-stone-500 leading-relaxed mb-3">Call the PIP enquiry line for existing claims. They'll tell you what happens next — you may receive a new PIP2 form or be booked for a new assessment.</p>
-          <a href="tel:08001214433" className="flex items-center justify-center gap-2 w-full bg-purple-50 text-purple-800 py-3 rounded-xl font-bold text-sm hover:bg-purple-100 transition-colors border border-purple-100">
-            <Phone className="w-4 h-4" />
-            0800 121 4433 — PIP Enquiry Line
-          </a>
+          <p className="text-xs text-stone-500 leading-relaxed mb-3">Call the PIP enquiry line for existing claims. They'll tell you what happens next.</p>
+          <DWPCallScript type="update" />
         </div>
 
         {/* Step 3 — PIPpal generates updated answers */}
@@ -161,6 +155,12 @@ export function ChangeOfCircumstancesScreen() {
             )}
           </div>
         </div>
+
+        <ContextualAssistantBar
+          label="Questions about reporting a change?"
+          sublabel="PIPpal can help you prepare"
+          prompt="I want to report a change of circumstances for my PIP claim as my condition has worsened. What should I know?"
+        />
 
         {/* Estimate new award */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-center gap-3">

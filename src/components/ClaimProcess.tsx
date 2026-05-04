@@ -5,6 +5,9 @@ import {
   MessageSquare, BookOpen, Info,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { SAREmailGenerator } from './SAREmailGenerator';
+import { DWPCallScript } from './DWPCallScript';
+import { ContextualAssistantBar } from './ContextualAssistantBar';
 
 export function ClaimProcess() {
   const { navigateTo, goBack, savedAnswers, hasPaid } = useAppContext();
@@ -63,10 +66,7 @@ export function ClaimProcess() {
                 <p className="text-xs text-stone-500 leading-relaxed mb-3">
                   This is the most important step — your claim is backdated to today's call. Don't wait until you have everything ready.
                 </p>
-                <a href="tel:08009172222" className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-teal-100 transition-colors">
-                  <Phone className="w-3.5 h-3.5" />
-                  0800 917 2222 — Tap to call
-                </a>
+                <DWPCallScript type="new_claim" />
               </div>
             </div>
           </div>
@@ -167,18 +167,11 @@ export function ClaimProcess() {
         {hasCompletedClaim && (
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
             <p className="font-bold text-stone-900 text-sm">While you wait for your decision</p>
-            <div className="flex gap-3 items-start">
-              <FileSearch className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-stone-600 leading-relaxed">
-                <strong>Request your assessor's report</strong> — call DWP and make a Subject Access Request. They must provide it within 1 month. This shows what points the contractor's assessor recommended before the DWP case worker made their final decision.
-              </p>
+            <div className="space-y-2">
+              <p className="text-xs text-stone-600 leading-relaxed"><strong>Request your PA4 assessor's report</strong> — this shows exactly what points the contractor recommended before the DWP case worker made their final decision.</p>
+              <SAREmailGenerator context="pa4" />
             </div>
-            <div className="flex gap-3 items-start">
-              <MessageSquare className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-              <p className="text-xs text-stone-600 leading-relaxed">
-                <strong>Want an update?</strong> Call 0800 121 4433 and ask for your assessor reference number. You can also ask to speak to a case manager — they can send an email directly to the DWP case worker handling your claim.
-              </p>
-            </div>
+            <DWPCallScript type="chasing" />
           </div>
         )}
 
@@ -238,6 +231,12 @@ export function ClaimProcess() {
         </div>
 
       </div>
+
+      <ContextualAssistantBar
+        label="Have a question about your claim?"
+        sublabel="PIPpal can help you at any stage"
+        prompt="I'm starting a new PIP claim and have questions about the process. What should I do?"
+      />
 
       {/* Footer CTA */}
       <div className="p-5 md:px-8 bg-white border-t border-stone-100">

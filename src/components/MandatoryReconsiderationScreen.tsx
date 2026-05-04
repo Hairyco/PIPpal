@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { useEffect } from 'react';
+import { SAREmailGenerator } from './SAREmailGenerator';
+import { DWPCallScript } from './DWPCallScript';
+import { ContextualAssistantBar } from './ContextualAssistantBar';
 
 // Screenshot analysis component — shared with AppealScreen
 export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: any) => void; context: string }) {
@@ -168,10 +171,10 @@ export function MandatoryReconsiderationScreen() {
             <div>
               <p className="font-bold text-stone-900 text-sm mb-1">Get your PA4 report first</p>
               <p className="text-xs text-stone-500 leading-relaxed mb-2">Your assessment was carried out by a private contractor (such as Capita or Maximus) — not DWP. The contractor's health professional wrote the PA4 report, then a <strong>DWP case worker made the final decision</strong> based on it. Request the PA4 under a Subject Access Request — you must challenge what the contractor wrote, not just the decision letter.</p>
-              <a href="tel:08001214433" className="inline-flex items-center gap-1.5 bg-stone-100 text-stone-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-stone-200 transition-colors">
-                <Phone className="w-3.5 h-3.5" />
-                0800 121 4433 — DWP
-              </a>
+              <div className="space-y-2">
+                <DWPCallScript type="chasing" />
+                <SAREmailGenerator context="pa4" />
+              </div>
             </div>
           </div>
         </div>
@@ -365,6 +368,12 @@ export function MandatoryReconsiderationScreen() {
             ))}
           </div>
         </div>
+
+        <ContextualAssistantBar
+          label="Need help writing your MR letter?"
+          sublabel="PIPpal can draft it based on your answers"
+          prompt="I need help writing a Mandatory Reconsideration letter to challenge my PIP decision. What information do you need from me?"
+        />
 
         {/* Appeal link */}
         <button onClick={() => navigateTo('appeal')}

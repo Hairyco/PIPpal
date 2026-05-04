@@ -276,8 +276,8 @@ function AppContent() {
           <div className="max-w-6xl mx-auto">
             <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
-              <Hero onStart={() => handleNavigate('home')} />
-              <WhatIsPIP />
+              <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
+              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />
               <section
