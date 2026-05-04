@@ -4,6 +4,9 @@ import {
   MessageSquare, Calculator, Sparkles,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { SAREmailGenerator } from './SAREmailGenerator';
+import { DWPCallScript } from './DWPCallScript';
+import { ContextualAssistantBar } from './ContextualAssistantBar';
 
 export function ChangeOfCircumstancesScreen() {
   const { goBack, navigateTo, hasPaid, savedAnswers, medProfile } = useAppContext();
@@ -103,7 +106,7 @@ export function ChangeOfCircumstancesScreen() {
               <div>
                 <p className="font-bold text-white text-base">Step 3 — PIPpal updates your answers</p>
                 <p className="text-purple-100 text-xs leading-relaxed mt-0.5">
-                  {!hasPaid ? 'Unlock Full Access to use this feature.' : hasAnswers ? 'Tell us what has changed and we'll rewrite your answers to show the worsening — ready to copy onto your new PIP2.' : 'Complete your original PIP answers first so we can show what has changed.'}
+                  {!hasPaid ? 'Unlock Full Access to use this feature.' : hasAnswers ? 'Tell us what has changed and we&apos;ll rewrite your answers to show the worsening — ready to copy onto your new PIP2.' : 'Complete your original PIP answers first so we can show what has changed.'}
                 </p>
               </div>
             </div>

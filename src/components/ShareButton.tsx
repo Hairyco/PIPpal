@@ -64,7 +64,7 @@ export function ShareButton({
       // clipboard failed silently
     }};
   const menuItems = [
-  ...(navigator.share ?
+  ...('share' in navigator ?
   [
   {
     label: 'Share',

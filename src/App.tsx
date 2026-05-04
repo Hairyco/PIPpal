@@ -26,7 +26,6 @@ import {
   Shield,
   Newspaper,
   Rss,
-  BookOpen,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';

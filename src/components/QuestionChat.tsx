@@ -155,7 +155,7 @@ export function QuestionChat() {
           message: userMsg,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
           conversationHistory: conv,
-          userId: user?.id || null,
+          userId: null,
           buttonMode: true,
           questionData: {
             title: question?.title,

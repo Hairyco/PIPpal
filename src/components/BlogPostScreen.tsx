@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Clock, Tag, Share2, ChevronRight } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
-import { supabase } from '../supabaseClient';
 
 interface BlogPost {
   id: string;

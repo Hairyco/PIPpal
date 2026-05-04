@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ArrowLeft, ArrowRight, FileText,
+  ArrowLeft, ArrowRight, Phone, FileText, Info,
   AlertTriangle, Download, ChevronDown, Shield, FileSearch,
   MessageSquare, BookOpen,
 } from 'lucide-react';
