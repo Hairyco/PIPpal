@@ -60,7 +60,10 @@ export function WhatIsPIP({ onEligibility }: WhatIsPIPProps) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          Personal Independence Payment is a <strong>tax-free</strong> government benefit for anyone whose physical or mental health condition affects their daily life. It's worth up to <strong className="text-stone-900">£10,246 a year</strong> and you can claim whether you work or not.
+          Personal Independence Payment (PIP) is a tax-free benefit that can help with extra living costs if you have a long-term physical or mental health condition or disability — or difficulty doing certain everyday tasks or getting around because of your condition.
+        </p>
+        <p className="text-sm text-stone-600 leading-relaxed mb-4">
+          You can get PIP even if you're working, have savings or are receiving most other benefits. <strong>You don't need a formal diagnosis</strong> — just that you expect your condition to last for at least 9 months. It's worth up to <strong className="text-stone-900">£10,246 a year</strong>.
         </p>
 
         {/* Qualifying rules — prominent */}
@@ -133,21 +136,50 @@ export function WhatIsPIP({ onEligibility }: WhatIsPIPProps) {
         </div>
       </div>
 
-      {/* Sound familiar */}
-      <h2 className="font-bold text-stone-900 text-lg mb-1 pt-2">Why people struggle with PIP</h2>
-      <p className="text-stone-500 text-sm mb-3">PIPpal is built around the things people find hardest.</p>
-      <div className="space-y-3">
-        {points.map((p, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
-            <div className={`w-9 h-9 ${p.bg} rounded-xl flex items-center justify-center shrink-0 mt-0.5`}>
-              <p.icon className={`w-4.5 h-4.5 ${p.color}`} />
+      {/* Problem */}
+      <div className="bg-rose-50 border border-rose-100 rounded-2xl p-5">
+        <h2 className="font-bold text-stone-900 text-lg mb-2">Sound familiar?</h2>
+        <p className="text-sm text-stone-600 leading-relaxed mb-4">
+          The PIP application is notoriously difficult — 40+ pages long, emotionally draining, and full of technical language. Many deserving people are rejected simply because they don't know how to translate their daily struggles into the specific points-based language DWP requires.
+        </p>
+        <div className="space-y-2">
+          {points.map((p, i) => (
+            <div key={i} className="bg-white rounded-xl p-3.5 flex gap-3 border border-rose-100">
+              <div className={`w-8 h-8 ${p.bg} rounded-lg flex items-center justify-center shrink-0`}>
+                <p.icon className={`w-4 h-4 ${p.color}`} />
+              </div>
+              <div>
+                <p className="font-semibold text-stone-900 text-sm mb-0.5">{p.title}</p>
+                <p className="text-stone-500 text-xs leading-relaxed">{p.body}</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-stone-900 text-sm mb-0.5">{p.title}</p>
-              <p className="text-stone-500 text-xs leading-relaxed">{p.body}</p>
+          ))}
+        </div>
+      </div>
+
+      {/* Solution */}
+      <div className="bg-teal-700 rounded-2xl p-5 text-white">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-2xl">✨</span>
+          <h2 className="font-bold text-xl">The solution</h2>
+        </div>
+        <p className="text-teal-100 text-sm leading-relaxed mb-4">
+          PIPpal takes your plain English descriptions and creates professionally structured, evidence-aligned answers for your claim form — in the exact language DWP assessors are trained to look for.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            ['⚡', 'Under 15 minutes', 'Most people complete their full claim in one session'],
+            ['🎯', 'Points optimised', 'Answers built around the DWP scoring criteria'],
+            ['🔒', 'Private & secure', 'Zero data sharing. Encrypted end to end'],
+            ['👤', 'Unique to you', 'Tailored to your specific conditions and circumstances'],
+          ].map(([emoji, title, desc]) => (
+            <div key={title} className="bg-white/10 rounded-xl p-3">
+              <p className="text-lg mb-1">{emoji}</p>
+              <p className="font-bold text-white text-xs mb-0.5">{title}</p>
+              <p className="text-teal-200 text-[10px] leading-snug">{desc}</p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
     </section>

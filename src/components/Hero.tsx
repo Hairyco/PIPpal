@@ -29,7 +29,7 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
           <span className="text-teal-700">first time</span>
         </h1>
         <p className="text-stone-500 text-base md:text-lg leading-relaxed mb-6 max-w-xl mx-auto">
-          Answer in plain English. We turn your answers into what DWP need to see. No jargon, no stress. Complete with confidence.
+          The easiest way to get your first PIP application right. We create the answers the DWP needs to see. No jargon, no stress. In under 15 minutes.
         </p>
       </div>
 
@@ -39,9 +39,9 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
           <div className="space-y-2.5 mb-5 text-left">
             {[
               ['94%', ' success rate'],
-              ['15–30 mins', ' to complete'],
               ['Up to £10,246', ' a year, tax-free'],
-              ['Backdated', ' to the date you call DWP'],
+              ['Unique answers', ' tailored to your condition'],
+              ['Zero data sharing', ' — encrypted & private'],
             ].map(([bold, rest], i) => (
               <div key={i} className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
