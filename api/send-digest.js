@@ -160,22 +160,23 @@ function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null, blogPost
       </tr>
     </table>
   `).join('');
-  const articlesHtml = articles.slice(0, 3).map(article => `
-    <tr>
-      <td style="padding: 0 0 20px 0;">
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:12px; border:1px solid #e7e5e4; overflow:hidden;">
-          <tr>
-            <td style="padding:16px;">
-              <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; color:#0f766e; text-transform:uppercase; letter-spacing:0.05em;">${article.tags?.[0] || 'News'}</p>
-              <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:700; color:#1c1917; line-height:1.4;">${article.title}</h3>
-              <p style="margin:0 0 8px 0; font-size:13px; color:#57534e; line-height:1.6;">${article.body}</p>
-              <p style="margin:0; font-size:11px; color:#a8a29e;">${article.date} · ${article.source}</p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  `).join('');
+  const articlesHtml = articles.slice(0, 3).map(article => {
+    const body = article.body || '';
+    const sentences = body.split(/(?<=[.!?])\s+/);
+    const teaser = sentences.slice(0, 2).join(' ').trim() || body.slice(0, 140);
+    return `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:12px; border:1px solid #e7e5e4; overflow:hidden; margin-bottom:14px;">
+      <tr><td style="height:3px; background:#0f766e;"></td></tr>
+      <tr>
+        <td style="padding:16px;">
+          <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; color:#0f766e; text-transform:uppercase; letter-spacing:0.05em;">${article.tags?.[0] || 'News'} · ${article.date}</p>
+          <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:700; color:#1c1917; line-height:1.4;">${article.title}</h3>
+          <p style="margin:0 0 12px 0; font-size:13px; color:#57534e; line-height:1.6;">${teaser}</p>
+          <a href="https://www.pippal.uk" style="font-size:12px; font-weight:700; color:#0f766e; text-decoration:none;">Read more on PIPpal →</a>
+        </td>
+      </tr>
+    </table>
+  `; }).join('');
 
   return `<!DOCTYPE html>
 <html>

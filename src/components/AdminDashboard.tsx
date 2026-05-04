@@ -201,6 +201,27 @@ export function AdminDashboard() {
   };
 
   const [blogClicks, setBlogClicks] = useState<Record<string, {views: number, ctas: number}>>({});
+  const [sendingBlog, setSendingBlog] = useState<string | null>(null);
+  const [blogSendResult, setBlogSendResult] = useState<string | null>(null);
+
+  const sendBlogPost = async (post: any, testOnly = false) => {
+    setSendingBlog(post.id);
+    setBlogSendResult(null);
+    try {
+      const res = await fetch('/api/send-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post, testOnly }),
+      });
+      const data = await res.json();
+      setBlogSendResult(testOnly ? `Test sent to admin inbox` : `Sent to ${data.sent} subscribers`);
+    } catch {
+      setBlogSendResult('Send failed');
+    } finally {
+      setSendingBlog(null);
+      setTimeout(() => setBlogSendResult(null), 5000);
+    }
+  };
 
   const fetchBlogClicks = async () => {
     const { data } = await supabase.from('blog_clicks').select('slug, type');
@@ -1007,6 +1028,7 @@ export function AdminDashboard() {
           )}
 
           {blogMsg && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mb-3">{blogMsg}</p>}
+          {blogSendResult && <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-2 mb-3">📧 {blogSendResult}</p>}
 
           {/* Editor */}
           {editingPost && (
@@ -1122,6 +1144,12 @@ export function AdminDashboard() {
                       <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
                       <button onClick={() => { setSelectedBlogSlug(post.slug); navigateTo('blog_post'); }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-stone-50 text-stone-600 hover:bg-stone-100">View</button>
                       <button onClick={async () => { try { await navigator.share({ title: post.title, text: post.excerpt, url: `https://www.pippal.uk` }); } catch { navigator.clipboard?.writeText(`https://www.pippal.uk`); } }} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">Share</button>
+                      <button onClick={() => sendBlogPost(post, true)} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 disabled:opacity-50">
+                        {sendingBlog === post.id ? '⏳' : '📧 Test'}
+                      </button>
+                      <button onClick={() => { if(confirm(`Send "${post.title}" to all subscribers?`)) sendBlogPost(post, false); }} disabled={sendingBlog === post.id} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50">
+                        {sendingBlog === post.id ? '⏳' : '📨 Send all'}
+                      </button>
                       <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
                     </div>
                   </div>
