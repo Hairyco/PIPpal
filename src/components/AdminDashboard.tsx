@@ -961,10 +961,14 @@ export function AdminDashboard() {
                               {q.created && <span className="text-[10px] text-stone-500">{new Date(q.created * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
                             </div>
                             <p className="text-[11px] text-stone-200 leading-snug mb-1.5">{q.title}</p>
-                            <a href={q.url} target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] text-purple-400 hover:text-purple-300 font-medium">
-                              View on Reddit →
-                            </a>
+                            {q.url ? (
+                              <a href={q.url} target="_blank" rel="noopener noreferrer"
+                                className="text-[10px] text-purple-400 hover:text-purple-300 font-medium">
+                                View post on Reddit →
+                              </a>
+                            ) : (
+                              <span className="text-[10px] text-stone-500 italic">Example topic — scan when Reddit available for live links</span>
+                            )}
                           </div>
                         ))}
                       </div>
