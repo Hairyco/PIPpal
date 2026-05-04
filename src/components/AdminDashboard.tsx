@@ -726,7 +726,7 @@ export function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex bg-white border-b border-stone-100 sticky top-14 z-10">
-        {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
+        {(['stats', 'visitors', 'blog', 'email', 'influencers'] as TabType[]).map(tab => (
           <button
             key={tab}
             onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } if (tab === 'stats') fetchAiCosts(); }}
