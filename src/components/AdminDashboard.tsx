@@ -946,7 +946,7 @@ export function AdminDashboard() {
                         <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Browse live posts</p>
                         <div className="flex gap-2 flex-wrap">
                           {['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK'].map((sub: string) => (
-                            <a key={sub} href={`https://www.reddit.com/r/${sub}/new/`} target="_blank" rel="noopener noreferrer"
+                            <a key={sub} href={`https://www.reddit.com/r/${sub}/search/?q=PIP&sort=new&t=month`} target="_blank" rel="noopener noreferrer"
                               className="text-[10px] font-bold bg-orange-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-orange-500">
                               r/{sub} (new) →
                             </a>
@@ -959,7 +959,7 @@ export function AdminDashboard() {
                           <div key={i} className="bg-stone-700 rounded-lg p-2.5">
                             <p className="text-[11px] text-stone-200 leading-snug mb-2">{q.title}</p>
                             <a
-                              href={`https://www.reddit.com/r/PIP_UK+DWPhelp+BenefitsAdviceUK/search/?q=${encodeURIComponent(q.title)}&sort=new&t=month`}
+                              href={`https://www.reddit.com/r/PIP_UK+DWPhelp+BenefitsAdviceUK/search/?q=${encodeURIComponent(q.title)}&sort=new&t=month&type=link`}
                               target="_blank" rel="noopener noreferrer"
                               className="text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-stone-600 px-2 py-1 rounded-md">
                               Search Reddit (last month) →
