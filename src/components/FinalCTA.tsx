@@ -17,11 +17,10 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
         </div>
 
         <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-          Ready to get started?
+          Your PIP claim starts here
         </h2>
         <p className="text-stone-400 text-sm mb-6 leading-relaxed max-w-md mx-auto">
-          Try the eligibility checker and Q1 walkthrough completely free.
-          Finish your claim in 15–30 minutes.
+          Free to start. No sign-up needed. Most people finish in 15–30 minutes.
         </p>
 
         <button
