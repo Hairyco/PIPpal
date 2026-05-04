@@ -14,7 +14,6 @@ import {
   Shield,
   ChevronRight,
   Calculator,
-  Users,
   Clock,
   Coins,
   X,
@@ -79,6 +78,9 @@ export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
   const [newsHeadlines, setNewsHeadlines] = useState<string[]>([]);
   const [tickerIndex, setTickerIndex] = useState(0);
+  const [urgencyDismissed, setUrgencyDismissed] = useState(
+    () => sessionStorage.getItem('urgency_dismissed') === 'true'
+  );
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -99,14 +101,16 @@ export function HomeScreen() {
     }, 4000);
     return () => { if (tickerRef.current) clearInterval(tickerRef.current); };
   }, [newsHeadlines]);
-  const [showWelcomePopup, setShowWelcomePopup] = useState(!hasPaid);
-  const [popupDismissed, setPopupDismissed] = useState(false);
 
   const hasConditions = medProfile.conditions.length > 0;
   const hasStartedApplication = hasPaid && Object.keys(savedAnswers).length > 0;
   const answersCount = Object.keys(savedAnswers).length;
   const firstName = user?.name ? user.name.split(' ')[0] : '';
-  const showPopup = false;
+
+  const dismissUrgency = () => {
+    sessionStorage.setItem('urgency_dismissed', 'true');
+    setUrgencyDismissed(true);
+  };
 
   return (
     <div className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-24">
@@ -130,8 +134,8 @@ export function HomeScreen() {
         </button>
       )}
 
-      {/* Hero header */}
-      <div className="px-5 md:px-8 py-6 bg-teal-700 text-white rounded-b-3xl shadow-sm mb-6 flex justify-between items-start">
+      {/* Header */}
+      <div className="px-5 md:px-8 py-6 bg-teal-700 text-white rounded-b-3xl shadow-sm mb-5 flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold mb-1">
             {firstName ? `Welcome back, ${firstName}` : 'Welcome to PIPpal'}
@@ -145,20 +149,23 @@ export function HomeScreen() {
         )}
       </div>
 
-      {/* Urgency banner */}
-      <div className="mx-5 md:mx-8 -mt-3 mb-2">
-        <div className="bg-amber-500 rounded-2xl px-4 py-3 flex items-start gap-2.5 shadow-sm">
-          <AlertTriangle className="w-4 h-4 text-white shrink-0 mt-0.5" />
-          <div>
-            <p className="text-white font-bold text-xs leading-snug">PIP rules are changing in late 2026</p>
-            <p className="text-amber-100 text-[11px] leading-relaxed mt-0.5">Eligibility thresholds are tightening. Applying now could protect your entitlement. Do not wait.</p>
+      <div className="px-5 md:px-8 space-y-6">
+
+        {/* Urgency banner — dismissible */}
+        {!urgencyDismissed && (
+          <div className="bg-amber-500 rounded-2xl px-4 py-3 flex items-start gap-2.5 shadow-sm">
+            <AlertTriangle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-white font-bold text-xs leading-snug">PIP rules are changing in late 2026</p>
+              <p className="text-amber-100 text-[11px] leading-relaxed mt-0.5">Eligibility thresholds are tightening. Applying now could protect your entitlement.</p>
+            </div>
+            <button onClick={dismissUrgency} className="shrink-0 text-amber-200 hover:text-white">
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-      </div>
+        )}
 
-      <div className="px-5 md:px-8 space-y-8">
-
-        {/* Progress banner — only when they've started */}
+        {/* Progress banner — only when started */}
         {hasStartedApplication && (
           <section className="bg-teal-700 text-white rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
@@ -171,7 +178,6 @@ export function HomeScreen() {
             <ProgressBar value={answersCount} max={12} />
             <button
               onClick={() => {
-                // Find next unanswered question
                 const allIds = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12'];
                 const nextId = allIds.find(id => !savedAnswers[id]);
                 if (nextId) {
@@ -190,7 +196,7 @@ export function HomeScreen() {
           </section>
         )}
 
-        {/* Medical history card */}
+        {/* Medical profile */}
         <section>
           <button
             onClick={() => navigateTo('medical_profile')}
@@ -198,8 +204,8 @@ export function HomeScreen() {
           >
             <div className="text-left flex-1 min-w-0">
               <h2 className="font-bold text-stone-900 text-sm mb-1">
-                Medical history
-                {hasConditions ? ` · ${medProfile.conditions.length} condition${medProfile.conditions.length > 1 ? 's' : ''}` : ''}
+                My conditions
+                {hasConditions ? ` · ${medProfile.conditions.length} added` : ''}
               </h2>
               {hasConditions ? (
                 <div className="flex flex-wrap gap-1.5 mt-2">
@@ -215,16 +221,16 @@ export function HomeScreen() {
                   )}
                 </div>
               ) : (
-                <p className="text-xs text-stone-500">Tap to add your conditions and medications</p>
+                <p className="text-xs text-stone-500">Add your conditions so PIPpal can tailor your answers</p>
               )}
             </div>
             <ChevronRight className="w-5 h-5 text-stone-400 shrink-0 ml-3" />
           </button>
         </section>
 
-        {/* Manage Claim */}
+        {/* Claim actions */}
         <section>
-          <h2 className="text-sm font-bold text-stone-900 mb-3 px-0.5">Manage Claim</h2>
+          <h2 className="text-sm font-bold text-stone-900 mb-3">Your claim</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <NavCard
               title="New Claim"
@@ -264,16 +270,20 @@ export function HomeScreen() {
           </div>
         </section>
 
-        {/* Free Calculators */}
+        {/* Tools & Resources */}
         <section>
-          <div className="flex items-center justify-between mb-1 px-0.5">
-            <h2 className="text-sm font-bold text-stone-900">Free Calculators</h2>
-            <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">No sign-up needed</span>
-          </div>
-          <p className="text-xs text-stone-500 mb-4 px-0.5">Estimate your timeline, payments & backpay</p>
+          <h2 className="text-sm font-bold text-stone-900 mb-3">Tools & resources</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <NavCard
-              title="Timeline Tracker"
+              title="Am I Eligible?"
+              desc="Check if you should apply"
+              icon={HelpCircle}
+              color="text-indigo-600"
+              bg="bg-indigo-50"
+              target="eligibility"
+            />
+            <NavCard
+              title="Timeline"
               desc="How long will your claim take?"
               icon={Clock}
               color="text-blue-600"
@@ -282,7 +292,7 @@ export function HomeScreen() {
             />
             <NavCard
               title="PIP Award"
-              desc="Calculate your weekly & annual payments"
+              desc="Calculate your weekly payments"
               icon={Coins}
               color="text-amber-600"
               bg="bg-amber-50"
@@ -295,41 +305,6 @@ export function HomeScreen() {
               color="text-emerald-600"
               bg="bg-emerald-50"
               target="backpay_calculator"
-            />
-          </div>
-        </section>
-
-        {/* PIP News */}
-        <section>
-          <h2 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Latest News</h2>
-          <button
-            onClick={() => navigateTo('news')}
-            className="w-full bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-center gap-3 hover:border-teal-200 active:scale-[0.98] transition-all text-left"
-          >
-            <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
-              <Newspaper className="w-5 h-5 text-teal-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-stone-900 text-sm">PIP News</p>
-              <p className="text-xs text-stone-500 mt-0.5">
-                {newsHeadlines.length > 0 ? newsHeadlines[0] : 'Latest PIP updates, legislation changes and tips'}
-              </p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
-          </button>
-        </section>
-
-        {/* Resources & Prep */}
-        <section>
-          <h2 className="text-sm font-bold text-stone-900 mb-3 px-0.5">Resources & Prep</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <NavCard
-              title="Am I Eligible?"
-              desc="Check if you should apply"
-              icon={HelpCircle}
-              color="text-indigo-600"
-              bg="bg-indigo-50"
-              target="eligibility"
             />
             <NavCard
               title="Assessment Prep"
@@ -360,7 +335,7 @@ export function HomeScreen() {
             />
             <NavCard
               title="Decision Received"
-              desc="What to do next"
+              desc="What to do after your decision"
               icon={HelpCircle}
               color="text-stone-600"
               bg="bg-stone-100"
@@ -368,8 +343,8 @@ export function HomeScreen() {
               locked={!hasPaid}
             />
             <NavCard
-              title="Downloads"
-              desc="Forms and exported data"
+              title="Export Answers"
+              desc="Download your completed form"
               icon={Download}
               color="text-teal-600"
               bg="bg-teal-50"
@@ -379,7 +354,27 @@ export function HomeScreen() {
           </div>
         </section>
 
-        {/* Upgrade banner — only for free users */}
+        {/* PIP News */}
+        <section>
+          <h2 className="text-sm font-bold text-stone-900 mb-3">Latest PIP news</h2>
+          <button
+            onClick={() => navigateTo('news')}
+            className="w-full bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-center gap-3 hover:border-teal-200 active:scale-[0.98] transition-all text-left"
+          >
+            <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
+              <Newspaper className="w-5 h-5 text-teal-600" />
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-stone-900 text-sm">PIP News</p>
+              <p className="text-xs text-stone-500 mt-0.5">
+                {newsHeadlines.length > 0 ? newsHeadlines[0] : 'Latest PIP updates, rule changes and tips'}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
+          </button>
+        </section>
+
+        {/* Upgrade banner — free users only */}
         {!hasPaid && (
           <section>
             <button
@@ -391,7 +386,7 @@ export function HomeScreen() {
                 <span className="text-sm font-bold">Unlock Full Access — £12.99</span>
               </div>
               <p className="text-teal-100 text-xs leading-relaxed">
-                All 12 PIP questions, PIP Diary, Assessment Prep, Downloads & more — one-time payment, no subscription.
+                All 12 PIP questions, PIP Diary, Assessment Prep, Export & more — one-time payment, no subscription.
               </p>
               <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-amber-300">
                 See what's included <ChevronRight className="w-3.5 h-3.5" />
@@ -400,103 +395,27 @@ export function HomeScreen() {
           </section>
         )}
 
-        {/* Community */}
-        <section>
-          <a
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block bg-teal-50 rounded-2xl p-4 border border-teal-100 hover:border-teal-200 transition-all active:scale-[0.98]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center shrink-0">
-                <Users className="w-5 h-5 text-teal-700" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-stone-900 text-sm">Join our community</h3>
-                <p className="text-xs text-stone-500 leading-relaxed">
-                  Connect with others going through the PIP process.
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-teal-600 shrink-0" />
-            </div>
-          </a>
-        </section>
-
-        {/* Footer links */}
-        <section className="pt-4 border-t border-stone-200 pb-6">
+        {/* Footer */}
+        <section className="pt-2 border-t border-stone-200 pb-6">
           <div className="flex justify-center gap-6">
             <button
               onClick={() => navigateTo('accessibility')}
-              className="flex flex-col items-center gap-1.5 text-stone-500 hover:text-stone-900 transition-colors"
+              className="flex flex-col items-center gap-1.5 text-stone-400 hover:text-stone-700 transition-colors"
             >
               <Settings className="w-5 h-5" />
               <span className="text-[10px] font-medium uppercase tracking-wider">Accessibility</span>
             </button>
             <button
               onClick={() => navigateTo('privacy')}
-              className="flex flex-col items-center gap-1.5 text-stone-500 hover:text-stone-900 transition-colors"
+              className="flex flex-col items-center gap-1.5 text-stone-400 hover:text-stone-700 transition-colors"
             >
               <Shield className="w-5 h-5" />
               <span className="text-[10px] font-medium uppercase tracking-wider">Privacy</span>
             </button>
           </div>
         </section>
-      </div>
 
-      {/* Welcome popup — shown once to free users */}
-      <AnimatePresence>
-        {showPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-5">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm"
-              onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative z-10 overflow-hidden"
-            >
-              <div className="bg-teal-700 px-5 py-4 text-white flex items-center justify-between">
-                <h3 className="font-bold text-lg">Welcome to PIPpal! 👋</h3>
-                <button
-                  onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
-                  className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-teal-600 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="p-5">
-                <p className="text-sm text-stone-600 leading-relaxed mb-4">
-                  You can explore freely and use our free tools like the eligibility checker and calculators.
-                </p>
-                <p className="text-sm text-stone-600 leading-relaxed mb-6">
-                  The full 12-question walkthrough, PIP Diary, and Assessment Prep are available with{' '}
-                  <strong className="text-stone-900">Full Access (£12.99)</strong>.
-                </p>
-                <div className="flex flex-col gap-2">
-                  <button
-                    onClick={() => { setPopupDismissed(true); setPopupDismissed(true); navigateTo('upsell'); }}
-                    className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all"
-                  >
-                    Learn more about Full Access
-                  </button>
-                  <button
-                    onClick={() => { setPopupDismissed(true); setPopupDismissed(true); }}
-                    className="w-full bg-stone-100 text-stone-700 py-3 rounded-xl font-semibold text-sm hover:bg-stone-200 active:scale-[0.98] transition-all"
-                  >
-                    Got it, thanks
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }
