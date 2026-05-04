@@ -41,7 +41,6 @@ import { BackpayCalculator } from './components/BackpayCalculator';
 import { HowItWorks } from './components/HowItWorks';
 import { WhyPIPpal } from './components/WhyPIPpal';
 import { FinalCTA } from './components/FinalCTA';
-import { NewsletterSignup } from './components/NewsletterSignup';
 import { AppProvider, useAppContext, Screen } from './components/AppContext';
 import { supabase } from './supabaseClient';
 import { HomeScreen } from './components/HomeScreen';
@@ -295,7 +294,6 @@ function AppContent() {
               <ChatPreview onStart={() => handleNavigate('home')} />
               <ValueProp />
               <ClaimSelector onSelect={handleNavigate} />
-              <NewsletterSignup />
               <FinalCTA onStart={() => handleNavigate('home')} />
               <PIPAssistant
                 isVisible={showAssistant}

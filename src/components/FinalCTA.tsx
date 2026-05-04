@@ -1,4 +1,5 @@
 import React from 'react';
+import { NewsletterSignup } from './NewsletterSignup';
 import { ArrowRight, Lock, Sparkles, Users, Shield, Mail } from 'lucide-react';
 
 interface FinalCTAProps {
@@ -30,6 +31,8 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
           Start For Free
           <ArrowRight className="w-5 h-5" />
         </button>
+
+        <NewsletterSignup />
 
         <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-stone-500">
           <div className="flex items-center gap-1.5">
