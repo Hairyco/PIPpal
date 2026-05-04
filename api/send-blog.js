@@ -60,6 +60,8 @@ export default async function handler(req, res) {
       ? ADMIN_EMAILS.map(email => ({ email, name: 'Daley' }))
       : allSubscribers;
 
+    console.log('Recipients:', recipients.map(r => r.email));
+    console.log('RESEND_API_KEY present:', !!RESEND_API_KEY);
     let sent = 0, failed = 0;
     for (const sub of recipients) {
       try {
@@ -74,8 +76,13 @@ export default async function handler(req, res) {
             html: buildBlogEmailHtml(post, unsubUrl),
           }),
         });
+        const resData = await res2.json();
+        console.log(`Send to ${sub.email}: ${res2.status}`, JSON.stringify(resData).slice(0, 100));
         if (res2.ok) sent++; else failed++;
-      } catch { failed++; }
+      } catch (err) {
+        console.log(`Send error for ${sub.email}:`, err.message);
+        failed++;
+      }
     }
 
     // Log the send
