@@ -253,6 +253,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 setHasPaidState(true);
                 try {
                   await supabase.from('profiles').update({ has_paid: true, influencer_source: pendingInfluencer }).eq('id', session.user.id);
+                  // Send congrats email to influencer
+                  fetch('/api/notify-influencer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ influencerCode: pendingInfluencer }),
+                  }).catch(() => {});
                 } catch { /* Fail silently */ }
               }
             } catch { /* Not a valid influencer code */ }

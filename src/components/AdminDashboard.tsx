@@ -1483,9 +1483,9 @@ export function AdminDashboard() {
                 <p>Send each influencer these two links:</p>
                 <div className="bg-white rounded-xl p-3 space-y-2 font-mono text-[11px]">
                   <p><span className="text-purple-500 font-sans font-bold">Their referral link:</span><br/>pippal.uk?promo=<span className="text-purple-700">THEIRCODE</span></p>
-                  <p><span className="text-purple-500 font-sans font-bold">Their stats portal:</span><br/>pippal.uk?partner=true</p>
+                  <p><span className="text-purple-500 font-sans font-bold">Their unique stats portal:</span><br/>pippal.uk?partner=true&code=<span className="text-purple-700">THEIRCODE</span></p>
                 </div>
-                <p className="text-[10px] text-purple-600">They enter their code on the stats page to see signups and commission earned.</p>
+                <p className="text-[10px] text-purple-600">Replace THEIRCODE with their actual code. The stats link takes them straight to their dashboard — no typing needed.</p>
               </div>
             </div>
           </section>

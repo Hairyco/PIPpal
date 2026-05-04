@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { Bell, BellOff } from 'lucide-react';
 import { HeartHandshake, Copy, Check, TrendingUp, Users, PoundSterling } from 'lucide-react';
 
 export function InfluencerPortal() {
@@ -9,8 +10,17 @@ export function InfluencerPortal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [savingNotif, setSavingNotif] = useState(false);
 
-  // Auto-load from URL param
+  const toggleNotifications = async (val: boolean) => {
+    setSavingNotif(true);
+    await supabase.from('influencer_codes').update({ notify_on_signup: val }).eq('code', code);
+    setNotifications(val);
+    setSavingNotif(false);
+  };
+
+  // Auto-load from URL param - supports ?code=THEIRCODE
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlCode = params.get('code')?.toUpperCase();
@@ -19,6 +29,9 @@ export function InfluencerPortal() {
       loadData(urlCode);
     }
   }, []);
+
+  // Show unique URL for this influencer
+  const getUniquePortalUrl = (c: string) => `https://www.pippal.uk?partner=true&code=${c}`;
 
   const loadData = async (c: string) => {
     setLoading(true);
@@ -52,6 +65,7 @@ export function InfluencerPortal() {
     const commission = revenue * (rate / 100);
 
     setCode(c.toUpperCase());
+    setNotifications(codeData.notify_on_signup !== false);
     setData({
       name: codeData.name,
       code: c.toUpperCase(),
@@ -171,6 +185,23 @@ export function InfluencerPortal() {
                 </div>
               </div>
             )}
+
+            {/* Notification settings */}
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-stone-900 text-sm">Email notifications</p>
+                  <p className="text-xs text-stone-400 mt-0.5">Get an email every time someone signs up via your link</p>
+                </div>
+                <button
+                  onClick={() => toggleNotifications(!notifications)}
+                  disabled={savingNotif}
+                  className={`relative w-11 h-6 rounded-full transition-colors ${notifications ? 'bg-teal-600' : 'bg-stone-200'}`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${notifications ? 'translate-x-5' : 'translate-x-0'}`} />
+                </button>
+              </div>
+            </div>
 
             <button onClick={() => { setData(null); setCode(''); setInputCode(''); }}
               className="w-full text-xs text-stone-400 py-2">
