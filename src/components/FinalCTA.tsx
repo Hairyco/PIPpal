@@ -21,7 +21,7 @@ export function FinalCTA({ onStart }: FinalCTAProps) {
         </h2>
         <p className="text-stone-400 text-sm mb-6 leading-relaxed max-w-md mx-auto">
           Try the eligibility checker and Q1 walkthrough completely free.
-          Upgrade for the full 12-question claim experience.
+          Finish your claim in 15–30 minutes.
         </p>
 
         <button
