@@ -587,7 +587,6 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
             onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
