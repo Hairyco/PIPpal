@@ -122,6 +122,14 @@ export function AdminDashboard() {
   const [sendingDigest, setSendingDigest] = useState(false);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
   const [aiCosts, setAiCosts] = useState<{total: number, byUser: any[], thisMonth: number}>({ total: 0, byUser: [], thisMonth: 0 });
+  const [anthropicBalance, setAnthropicBalance] = useState<string>(() => localStorage.getItem('anthropic_balance') || '');
+  const [editingBalance, setEditingBalance] = useState(false);
+
+  const saveBalance = (val: string) => {
+    localStorage.setItem('anthropic_balance', val);
+    setAnthropicBalance(val);
+    setEditingBalance(false);
+  };
 
   const fetchAiCosts = async () => {
     const now = new Date();
@@ -699,10 +707,26 @@ export function AdminDashboard() {
                 <h2 className="font-bold text-stone-900 text-sm">AI Cost vs Revenue — This Month</h2>
                 <button onClick={fetchAiCosts} className="text-xs text-teal-700 font-bold">Refresh</button>
               </div>
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="bg-teal-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 12.99).toFixed(2)}</p>
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-3 text-center cursor-pointer" onClick={() => setEditingBalance(true)}>
+                  {editingBalance ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      defaultValue={anthropicBalance}
+                      autoFocus
+                      onBlur={e => saveBalance(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && saveBalance((e.target as HTMLInputElement).value)}
+                      className="w-full text-center text-sm font-black text-purple-700 bg-transparent border-b border-purple-300 outline-none"
+                    />
+                  ) : (
+                    <p className="text-lg font-black text-purple-700">{anthropicBalance ? `$${parseFloat(anthropicBalance).toFixed(2)}` : '—'}</p>
+                  )}
+                  <p className="text-[10px] text-purple-500 font-medium">API Credits</p>
                 </div>
                 <div className="bg-rose-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-rose-600">£{(aiCosts.thisMonth * 0.79).toFixed(4)}</p>
@@ -977,10 +1001,26 @@ export function AdminDashboard() {
                 <h2 className="font-bold text-stone-900 text-sm">AI Cost vs Revenue — This Month</h2>
                 <button onClick={fetchAiCosts} className="text-xs text-teal-700 font-bold">Refresh</button>
               </div>
-              <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="bg-teal-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 12.99).toFixed(2)}</p>
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-3 text-center cursor-pointer" onClick={() => setEditingBalance(true)}>
+                  {editingBalance ? (
+                    <input
+                      type="number"
+                      step="0.01"
+                      defaultValue={anthropicBalance}
+                      autoFocus
+                      onBlur={e => saveBalance(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && saveBalance((e.target as HTMLInputElement).value)}
+                      className="w-full text-center text-sm font-black text-purple-700 bg-transparent border-b border-purple-300 outline-none"
+                    />
+                  ) : (
+                    <p className="text-lg font-black text-purple-700">{anthropicBalance ? `$${parseFloat(anthropicBalance).toFixed(2)}` : '—'}</p>
+                  )}
+                  <p className="text-[10px] text-purple-500 font-medium">API Credits</p>
                 </div>
                 <div className="bg-rose-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-rose-600">£{(aiCosts.thisMonth * 0.79).toFixed(4)}</p>
