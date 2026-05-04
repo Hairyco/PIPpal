@@ -106,11 +106,14 @@ export default async function handler(req, res) {
     const insights = Object.entries(grouped).map(([category, questions]) => ({
       category,
       question_count: questions.length,
-      top_questions: questions.sort((a, b) => b.score - a.score).slice(0, 5),
+      top_questions: questions.slice(0, 5),
       scanned_at: new Date().toISOString(),
     })).sort((a, b) => b.question_count - a.question_count);
+    console.log('Insights built:', insights.map(i => `${i.category}:${i.question_count}`).join(', '));
 
-    // If no results (Reddit blocked or no PIP posts) use hardcoded fallback
+    console.log('Groups found:', Object.keys(grouped));
+    console.log('Insights count:', insights.length);
+    // If no results use hardcoded fallback
     const finalInsights = insights.length > 0 ? insights : getHardcodedFallback();
 
     if (insights.length > 0) {
