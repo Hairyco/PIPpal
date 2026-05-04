@@ -32,6 +32,8 @@ interface InfluencerCode {
   code: string;
   active: boolean;
   created_at: string;
+  commission_rate: number;
+  email: string;
 }
 
 interface UserRow {
@@ -112,10 +114,51 @@ export function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>([]);
+  const [influencerPayouts, setInfluencerPayouts] = useState<any[]>([]);
+
+  const fetchInfluencerPayouts = async () => {
+    // Get all paid profiles with influencer source
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('influencer_source, created_at')
+      .eq('has_paid', true)
+      .not('influencer_source', 'is', null);
+
+    if (!profiles || profiles.length === 0) { setInfluencerPayouts([]); return; }
+
+    // Group by influencer code
+    const grouped: Record<string, number> = {};
+    profiles.forEach((p: any) => {
+      if (p.influencer_source) {
+        grouped[p.influencer_source] = (grouped[p.influencer_source] || 0) + 1;
+      }
+    });
+
+    // Match with influencer codes to get commission rate
+    const payouts = Object.entries(grouped).map(([code, count]) => {
+      const influencer = influencerCodes.find(ic => ic.code === code);
+      const rate = influencer?.commission_rate || 20;
+      const gross = count * 12.99;
+      const commission = gross * (rate / 100);
+      return {
+        code,
+        name: influencer?.name || code,
+        email: influencer?.email || '—',
+        signups: count,
+        gross: gross.toFixed(2),
+        rate,
+        commission: commission.toFixed(2),
+      };
+    });
+
+    setInfluencerPayouts(payouts.sort((a, b) => b.signups - a.signups));
+  };
   const [influencerLoading, setInfluencerLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [newInfluencerName, setNewInfluencerName] = useState('');
   const [newInfluencerCode, setNewInfluencerCode] = useState('');
+  const [newInfluencerEmail, setNewInfluencerEmail] = useState('');
+  const [newCommissionRate, setNewCommissionRate] = useState('20');
   const [addingInfluencer, setAddingInfluencer] = useState(false);
   const [addError, setAddError] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('stats');
@@ -546,6 +589,8 @@ export function AdminDashboard() {
       const { error } = await supabase.from('influencer_codes').insert({
         name: newInfluencerName.trim(),
         code: newInfluencerCode.trim().toUpperCase(),
+        email: newInfluencerEmail.trim(),
+        commission_rate: parseFloat(newCommissionRate) || 20,
         active: true,
       });
       if (error) {
@@ -554,6 +599,8 @@ export function AdminDashboard() {
       }
       setNewInfluencerName('');
       setNewInfluencerCode('');
+      setNewInfluencerEmail('');
+      setNewCommissionRate('20');
       await loadInfluencerCodes();
     } catch {
       setAddError('Something went wrong.');
@@ -1428,6 +1475,45 @@ export function AdminDashboard() {
       {activeTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
+          {/* Commission Payout Report */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bold text-stone-900 text-base">Commission Report</h2>
+              <button onClick={fetchInfluencerPayouts} className="text-xs text-teal-700 font-bold hover:text-teal-800">Refresh</button>
+            </div>
+            {influencerPayouts.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-stone-100 p-4 text-center">
+                <p className="text-sm text-stone-400">No paid referrals yet — commission will appear here when influencers drive signups</p>
+                <button onClick={fetchInfluencerPayouts} className="mt-3 text-xs text-teal-700 font-bold">Load report</button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {influencerPayouts.map((p: any) => (
+                  <div key={p.code} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-bold text-stone-900 text-sm">{p.name}</p>
+                        <p className="text-[10px] text-stone-400 font-mono">{p.code} · {p.email}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-black text-emerald-600 text-lg">£{p.commission}</p>
+                        <p className="text-[10px] text-stone-400">owed ({p.rate}% of £{p.gross})</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 pt-2 border-t border-stone-50">
+                      <span className="text-xs text-stone-600"><span className="font-bold text-stone-900">{p.signups}</span> paid signups</span>
+                      <span className="text-xs text-stone-600">Revenue: <span className="font-bold text-stone-900">£{p.gross}</span></span>
+                      <span className="text-xs text-stone-600">Rate: <span className="font-bold text-stone-900">{p.rate}%</span></span>
+                    </div>
+                  </div>
+                ))}
+                <div className="bg-stone-900 rounded-2xl p-4 text-center">
+                  <p className="text-white font-bold">Total commission owed: £{influencerPayouts.reduce((s: number, p: any) => s + parseFloat(p.commission), 0).toFixed(2)}</p>
+                </div>
+              </div>
+            )}
+          </section>
+
           <section>
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
               <p className="text-xs font-bold text-teal-900">How influencer links work</p>
@@ -1452,6 +1538,21 @@ export function AdminDashboard() {
                 <input type="text" value={newInfluencerCode} onChange={(e) => setNewInfluencerCode(e.target.value.toUpperCase())}
                   placeholder="e.g. SARAH2026"
                   className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1 block">Their email (for payout)</label>
+                <input type="email" value={newInfluencerEmail} onChange={(e) => setNewInfluencerEmail(e.target.value)}
+                  placeholder="e.g. sarah@example.com"
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-stone-600 mb-1 block">Commission rate (%)</label>
+                <div className="flex items-center gap-2">
+                  <input type="number" value={newCommissionRate} onChange={(e) => setNewCommissionRate(e.target.value)}
+                    min="1" max="50" step="1"
+                    className="w-24 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
+                  <span className="text-xs text-stone-500">% of £12.99 = <span className="font-bold text-emerald-600">£{((parseFloat(newCommissionRate || '0') / 100) * 12.99).toFixed(2)}</span> per signup</span>
+                </div>
               </div>
               {newInfluencerCode && (
                 <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
