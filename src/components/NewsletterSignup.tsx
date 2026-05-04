@@ -29,13 +29,13 @@ export function NewsletterSignup() {
   };
 
   return (
-    <div className="border-t border-white/10 mt-6 pt-6">
+    <div className="border-t border-white/10 mt-6 pt-6 text-center">
       {status === 'success' ? (
-        <div className="flex items-center gap-3 bg-white/10 rounded-2xl px-4 py-3">
-          <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center shrink-0">
-            <Check className="w-4 h-4 text-white" />
+        <div className="flex items-center justify-center gap-3 bg-white/10 rounded-2xl px-4 py-3 max-w-xs mx-auto">
+          <div className="w-7 h-7 bg-teal-500 rounded-full flex items-center justify-center shrink-0">
+            <Check className="w-3.5 h-3.5 text-white" />
           </div>
-          <div>
+          <div className="text-left">
             <p className="text-white font-semibold text-sm">You're on the list</p>
             <p className="text-stone-400 text-xs">Weekly PIP updates every Monday</p>
           </div>
@@ -43,8 +43,8 @@ export function NewsletterSignup() {
       ) : (
         <>
           <p className="text-stone-300 text-sm font-semibold mb-1">Get weekly PIP updates</p>
-          <p className="text-stone-500 text-xs mb-3">News, rule changes and tips — free, no spam</p>
-          <div className="flex gap-2">
+          <p className="text-stone-500 text-xs mb-4">News, rule changes and tips — free, no spam</p>
+          <div className="flex gap-2 max-w-xs mx-auto">
             <input
               type="email"
               value={email}
