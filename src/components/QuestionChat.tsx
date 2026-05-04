@@ -219,22 +219,31 @@ export function QuestionChat() {
     }
     const recognition = new SpeechRecognition();
     recognition.lang = 'en-GB';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
     recognition.onstart = () => setIsRecording(true);
     recognition.onresult = (e: any) => {
-      const transcript = Array.from(e.results)
-        .map((r: any) => r[0].transcript)
-        .join(' ')
-        .trim();
-      if (transcript) {
-        setInputText((prev: string) => prev ? prev + ' ' + transcript : transcript);
+      // Get all final results
+      let finalTranscript = '';
+      for (let i = 0; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          finalTranscript += e.results[i][0].transcript + ' ';
+        }
+      }
+      if (finalTranscript.trim()) {
+        setInputText((prev: string) => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
       }
     };
     recognition.onend = () => setIsRecording(false);
     recognition.onerror = (e: any) => {
       setIsRecording(false);
-      if (e.error !== 'aborted') {
+      console.log('Speech recognition error:', e.error);
+      if (e.error === 'not-allowed') {
+        alert('Microphone access denied. Please allow microphone access in your browser settings.');
+      } else if (e.error === 'network') {
+        alert('Network error with speech recognition. Please type your answer.');
+      } else if (e.error !== 'aborted' && e.error !== 'no-speech') {
         alert('Could not hear you. Please try again or type your answer.');
       }
     };
@@ -500,14 +509,20 @@ export function QuestionChat() {
                   if (!SpeechRecognition) { alert('Voice input is not supported in this browser. Please type your answer.'); return; }
                   const recognition = new SpeechRecognition();
                   recognition.lang = 'en-GB';
-                  recognition.continuous = false;
-                  recognition.interimResults = false;
+                  recognition.continuous = true;
+                  recognition.interimResults = true;
                   recognition.onresult = (e: any) => {
-                    const transcript = e.results[0][0].transcript;
-                    setInputText(prev => prev ? prev + ' ' + transcript : transcript);
+                    let finalTranscript = '';
+                    for (let i = 0; i < e.results.length; i++) {
+                      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+                    }
+                    if (finalTranscript.trim()) setInputText(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
                   };
                   recognition.onend = () => setIsRecording(false);
-                  recognition.onerror = () => setIsRecording(false);
+                  recognition.onerror = (e: any) => {
+                    setIsRecording(false);
+                    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone in browser settings.');
+                  };
                   recognitionRef.current = recognition;
                   recognition.start();
                   setIsRecording(true);
@@ -518,14 +533,20 @@ export function QuestionChat() {
                   if (!SpeechRecognition) { alert('Voice input is not supported in this browser.'); return; }
                   const recognition = new SpeechRecognition();
                   recognition.lang = 'en-GB';
-                  recognition.continuous = false;
-                  recognition.interimResults = false;
+                  recognition.continuous = true;
+                  recognition.interimResults = true;
                   recognition.onresult = (e: any) => {
-                    const transcript = e.results[0][0].transcript;
-                    setInputText(prev => prev ? prev + ' ' + transcript : transcript);
+                    let finalTranscript = '';
+                    for (let i = 0; i < e.results.length; i++) {
+                      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
+                    }
+                    if (finalTranscript.trim()) setInputText(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
                   };
                   recognition.onend = () => setIsRecording(false);
-                  recognition.onerror = () => setIsRecording(false);
+                  recognition.onerror = (e: any) => {
+                    setIsRecording(false);
+                    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone in browser settings.');
+                  };
                   recognitionRef.current = recognition;
                   recognition.start();
                   setIsRecording(true);
