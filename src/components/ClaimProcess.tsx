@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
-  ArrowLeft, ArrowRight, Phone, FileText, Clock, Calendar,
+  ArrowLeft, ArrowRight, FileText,
   AlertTriangle, Download, ChevronDown, Shield, FileSearch,
-  MessageSquare, BookOpen, Info,
+  MessageSquare, BookOpen,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { SAREmailGenerator } from './SAREmailGenerator';

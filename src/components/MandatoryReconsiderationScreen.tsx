@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react';
 import {
-  ArrowLeft, FileText, Clock, Phone, ArrowRight, CheckCircle2,
-  AlertTriangle, FileSearch, Download, MessageSquare, ExternalLink,
+  ArrowLeft, FileText, Phone, ArrowRight, CheckCircle2,
+  AlertTriangle, Download, MessageSquare, ExternalLink,
   ImagePlus, Upload, X, Sparkles, ChevronDown,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { useEffect } from 'react';
 import { SAREmailGenerator } from './SAREmailGenerator';
 import { DWPCallScript } from './DWPCallScript';
 import { ContextualAssistantBar } from './ContextualAssistantBar';

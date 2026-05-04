@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
-  ArrowLeft, RefreshCw, AlertTriangle, Phone, ChevronRight,
-  MessageSquare, FileSearch, Info, Calculator, Sparkles, RotateCcw,
+  ArrowLeft, AlertTriangle, Phone, ChevronRight,
+  MessageSquare, Calculator, Sparkles,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 
 export function ChangeOfCircumstancesScreen() {
-  const { goBack, navigateTo, hasPaid, savedAnswers } = useAppContext();
+  const { goBack, navigateTo, hasPaid, savedAnswers, medProfile } = useAppContext();
   const hasAnswers = Object.keys(savedAnswers).length > 0;
   const [whatChanged, setWhatChanged] = useState('');
   const [generatingCoC, setGeneratingCoC] = useState(false);
