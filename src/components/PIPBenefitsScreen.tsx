@@ -174,7 +174,7 @@ export function PIPBenefitsScreen() {
                 )}
 
                 <a href={b.link} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-800">
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-800 transition-all">
                   {b.linkText} <ExternalLink className="w-3 h-3" />
                 </a>
               </div>

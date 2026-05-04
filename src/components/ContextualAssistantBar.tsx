@@ -33,7 +33,7 @@ export function ContextualAssistantBar({ prompt, label, sublabel }: ContextualAs
           {sublabel && <p className="text-xs text-stone-400 mt-0.5">{sublabel}</p>}
         </button>
         <button onClick={openAssistant}
-          className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-800 transition-colors flex items-center gap-1 shrink-0">
+          className="bg-teal-700 text-white text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center gap-1 shrink-0">
           Ask PIPpal <ChevronRight className="w-3.5 h-3.5" />
         </button>
         <button onClick={() => setDismissed(true)} className="text-stone-300 hover:text-stone-500 shrink-0">

@@ -20,7 +20,7 @@ export function ClaimProcess() {
     <div className="flex flex-col h-full bg-stone-50">
       {/* Header */}
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200">
+        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="font-bold text-stone-900 text-lg">New Claim</h1>

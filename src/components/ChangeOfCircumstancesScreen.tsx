@@ -174,7 +174,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="font-bold text-stone-900 text-sm">Estimate your new award</p>
             <p className="text-xs text-stone-500">See what your updated payments could look like</p>
           </div>
-          <button onClick={() => navigateTo('payment_calculator')} className="text-xs font-bold text-purple-700 hover:text-purple-800">
+          <button onClick={() => navigateTo('payment_calculator')} className="text-xs font-bold text-purple-700 hover:text-purple-800 transition-all">
             Open →
           </button>
         </div>

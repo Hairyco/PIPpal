@@ -200,7 +200,7 @@ Keep feedback warm, encouraging and specific. After about 8-10 exchanges, give a
       ) : (
         <div className="px-4 py-4 bg-white border-t border-stone-100">
           <button onClick={goBack}
-            className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-bold text-base hover:bg-teal-800 transition-all flex items-center justify-center gap-2">
+            className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
             Back to Assessment Prep
             <ChevronRight className="w-5 h-5" />
           </button>

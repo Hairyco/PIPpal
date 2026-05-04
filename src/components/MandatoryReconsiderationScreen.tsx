@@ -101,7 +101,7 @@ export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: an
             <p className="text-xs font-bold text-stone-700 mb-2">Analysis of your letter</p>
             <p className="text-xs text-stone-700 leading-relaxed whitespace-pre-line">{feedback}</p>
             <button onClick={() => { setFeedback(null); setImages([]); }}
-              className="mt-3 text-xs text-teal-600 font-medium hover:text-teal-800">Upload different screenshots →</button>
+              className="mt-3 text-xs text-teal-600 font-medium hover:text-teal-800 transition-all">Upload different screenshots →</button>
           </div>
         )}
       </div>

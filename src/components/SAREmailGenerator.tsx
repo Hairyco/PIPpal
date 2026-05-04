@@ -102,12 +102,12 @@ ${name}`;
 
           <div className="flex gap-2">
             <button onClick={openInMail}
-              className="flex-1 bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-teal-800 transition-colors flex items-center justify-center gap-1.5">
+              className="flex-1 bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
               <Mail className="w-4 h-4" />
               Open in email app
             </button>
             <button onClick={copyEmail}
-              className="flex-1 bg-stone-100 text-stone-700 py-2.5 rounded-xl font-bold text-sm hover:bg-stone-200 transition-colors flex items-center justify-center gap-1.5">
+              className="flex-1 bg-stone-100 text-stone-700 py-2.5 rounded-xl font-bold text-sm hover:bg-stone-200 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5">
               {copied ? <><Check className="w-4 h-4 text-emerald-600" /> Copied!</> : <><Copy className="w-4 h-4" /> Copy email</>}
             </button>
           </div>
