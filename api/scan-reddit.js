@@ -4,7 +4,8 @@
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SUBREDDITS = ['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK', 'UKBenefits', 'disability'];
+const GOOGLE_API_KEY = process.env.GOOGLE_SEARCH_API_KEY;
+const GOOGLE_CX = process.env.GOOGLE_SEARCH_CX;
 
 const CATEGORIES = {
   'Assessment': ['assessment', 'assessor', 'face-to-face', 'telephone', 'video call', 'capita', 'atos', 'maximus', 'pip assessment', 'medical'],
@@ -26,23 +27,32 @@ function categorise(title, body) {
   return 'General';
 }
 
-async function fetchSubreddit(sub) {
+async function searchGoogle(query) {
   try {
-    const res = await fetch(
-      `https://www.reddit.com/r/${sub}/new.json?limit=25`,
-      { headers: { 'User-Agent': 'PIPpal/1.0 insight-scanner' }, signal: AbortSignal.timeout(5000) }
-    );
-    if (!res.ok) return [];
+    const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${encodeURIComponent(query)}&num=10&sort=date`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) {
+      console.log(`Google search failed: ${res.status}`);
+      return [];
+    }
     const data = await res.json();
-    return (data?.data?.children || []).map(p => ({
-      title: p.data.title,
-      body: p.data.selftext?.slice(0, 200) || '',
-      score: p.data.score,
-      url: `https://reddit.com${p.data.permalink}`,
-      subreddit: p.data.subreddit,
-      created: p.data.created_utc,
-    }));
-  } catch { return []; }
+    return (data.items || []).map(item => {
+      // Extract subreddit from URL
+      const subMatch = item.link.match(/reddit\.com\/r\/([^\/]+)/);
+      const subreddit = subMatch ? subMatch[1] : 'reddit';
+      return {
+        title: item.title.replace(/ : .*$/, '').replace(/ - Reddit$/, '').trim(),
+        body: item.snippet || '',
+        score: 0,
+        url: item.link,
+        subreddit,
+        created: null,
+      };
+    });
+  } catch (err) {
+    console.log('Google search error:', err.message);
+    return [];
+  }
 }
 
 function getHardcodedFallback() {
@@ -63,18 +73,20 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   try {
-    // Fetch from all subreddits
-    const results = await Promise.all(SUBREDDITS.map(fetchSubreddit));
+    // Search Google Custom Search for PIP questions across Reddit
+    const queries = [
+      'PIP assessment tips site:reddit.com',
+      'PIP appeal DWP site:reddit.com',
+      'personal independence payment claim site:reddit.com',
+      'PIP form anxiety depression site:reddit.com',
+      'PIP review renewal site:reddit.com',
+    ];
+
+    const results = await Promise.all(queries.map(q => searchGoogle(q)));
     const allPosts = results.flat();
+    const pipPosts = allPosts; // Already PIP-filtered by search query
 
-    // Filter PIP-related
-    const pipKeywords = ['pip', 'personal independence', 'disability benefit', 'dwp', 'pip claim', 'pip assessment'];
-    const pipPosts = allPosts.filter(p => {
-      const text = (p.title + ' ' + p.body).toLowerCase();
-      return pipKeywords.some(k => text.includes(k));
-    });
-
-    console.log(`Found ${pipPosts.length} PIP-related posts from ${allPosts.length} total`);
+    console.log(`Found ${pipPosts.length} PIP posts via Google Search`);
 
     // Group by category
     const grouped = {};
