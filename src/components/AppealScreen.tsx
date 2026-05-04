@@ -5,9 +5,40 @@ import {
   MessageSquare, ExternalLink,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { useState } from 'react';
 
 export function AppealScreen() {
-  const { goBack, navigateTo } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
+  const [mrOutcome, setMrOutcome] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [appealReasons, setAppealReasons] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const hasAnswers = Object.keys(savedAnswers || {}).length > 0;
+
+  const generateReasons = async () => {
+    setGenerating(true);
+    setAppealReasons(null);
+    try {
+      const res = await fetch('/api/generate-sscs1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ savedAnswers, medProfile, mrOutcome }),
+      });
+      const data = await res.json();
+      setAppealReasons(data.reasons || 'Could not generate. Please try again.');
+    } catch {
+      setAppealReasons('Something went wrong. Please try again.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const copyReasons = () => {
+    if (!appealReasons) return;
+    navigator.clipboard?.writeText(appealReasons);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -76,6 +107,67 @@ export function AppealScreen() {
                 </a>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* SSCS1 Reasons Generator */}
+        <div className="bg-rose-700 rounded-2xl overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-white text-base">PIPpal writes your appeal reasons</p>
+                <p className="text-rose-100 text-xs leading-relaxed mt-0.5">
+                  {hasAnswers
+                    ? 'We use your saved PIP answers to write structured SSCS1 appeal reasons — activity by activity, using the SAFES rule.'
+                    : 'Complete your PIP questions first so we can write personalised appeal reasons.'}
+                </p>
+              </div>
+            </div>
+
+            {!hasAnswers ? (
+              <button onClick={() => navigateTo('question_index')}
+                className="w-full bg-white text-rose-700 py-3 rounded-xl font-bold text-sm hover:bg-rose-50 transition-all">
+                Complete my PIP answers first →
+              </button>
+            ) : !appealReasons ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-rose-100 mb-1.5 block">What was the MR outcome? (paste key lines from your MR letter)</label>
+                  <textarea
+                    value={mrOutcome}
+                    onChange={e => setMrOutcome(e.target.value)}
+                    placeholder="e.g. 'DWP maintained their decision. They scored me 4 points for preparing food but I believe I need supervision to cook safely due to seizures...'"
+                    rows={3}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-rose-300 focus:outline-none focus:border-white/40 resize-none"
+                  />
+                </div>
+                <button onClick={generateReasons} disabled={generating}
+                  className="w-full bg-white text-rose-700 py-3.5 rounded-xl font-bold text-base hover:bg-rose-50 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                  {generating ? <><span className="animate-spin">✨</span> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
+                </button>
+                <p className="text-rose-200 text-[10px] text-center">Takes about 10 seconds · Uses your saved answers</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-white/10 rounded-xl p-4 max-h-72 overflow-y-auto">
+                  <pre className="text-xs text-rose-50 leading-relaxed whitespace-pre-wrap font-sans">{appealReasons}</pre>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={copyReasons}
+                    className="flex-1 bg-white text-rose-700 py-3 rounded-xl font-bold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
+                    {copied ? '✓ Copied!' : '📋 Copy reasons'}
+                  </button>
+                  <button onClick={() => setAppealReasons(null)}
+                    className="px-4 py-3 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all">
+                    Regenerate
+                  </button>
+                </div>
+                <p className="text-rose-200 text-[10px] text-center">Paste these into Section 5 of your SSCS1 form. Review before submitting.</p>
+              </div>
+            )}
           </div>
         </div>
 

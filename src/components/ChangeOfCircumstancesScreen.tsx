@@ -8,6 +8,32 @@ import { useAppContext } from './AppContext';
 export function ChangeOfCircumstancesScreen() {
   const { goBack, navigateTo, hasPaid, savedAnswers } = useAppContext();
   const hasAnswers = Object.keys(savedAnswers).length > 0;
+  const [whatChanged, setWhatChanged] = useState('');
+  const [generatingCoC, setGeneratingCoC] = useState(false);
+  const [cocResult, setCocResult] = useState<string | null>(null);
+  const [cocCopied, setCocCopied] = useState(false);
+
+  const generateCoCAnswers = async () => {
+    setGeneratingCoC(true);
+    setCocResult(null);
+    try {
+      const res = await fetch('/api/generate-coc-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          savedAnswers,
+          medProfile,
+          changes: [{ activity: 'All affected activities', whatChanged }],
+        }),
+      });
+      const data = await res.json();
+      setCocResult(data.updatedAnswers || 'Could not generate. Please try again.');
+    } catch {
+      setCocResult('Something went wrong. Please try again.');
+    } finally {
+      setGeneratingCoC(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -73,31 +99,67 @@ export function ChangeOfCircumstancesScreen() {
           </a>
         </div>
 
-        {/* Step 3 — update answers */}
-        <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4">
-          <p className="font-bold text-purple-900 text-sm mb-1">Step 3 — Update your answers with PIPpal</p>
-          <p className="text-xs text-purple-700 leading-relaxed mb-4">Go through all 12 questions again focused on how things have changed. PIPpal will help you describe the worsening in the language DWP scores against.</p>
-
-          {!hasPaid ? (
-            <button onClick={() => navigateTo('upsell')} className="w-full bg-purple-700 text-white py-3 rounded-xl font-bold text-sm hover:bg-purple-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-              <Sparkles className="w-4 h-4" />
-              Unlock Full Access to start
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="space-y-2">
-              {hasAnswers && (
-                <button onClick={() => navigateTo('question_index')} className="w-full bg-purple-700 text-white py-3 rounded-xl font-bold text-sm hover:bg-purple-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Review & update my answers
-                </button>
-              )}
-              <button onClick={() => navigateTo('question_index')} className={`w-full py-3 rounded-xl font-bold text-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2 ${hasAnswers ? 'bg-white text-purple-700 border border-purple-200 hover:bg-purple-50' : 'bg-purple-700 text-white hover:bg-purple-800'}`}>
-                <RotateCcw className="w-4 h-4" />
-                Start fresh
-              </button>
+        {/* Step 3 — PIPpal generates updated answers */}
+        <div className="bg-purple-700 rounded-2xl overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <MessageSquare className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-white text-base">Step 3 — PIPpal updates your answers</p>
+                <p className="text-purple-100 text-xs leading-relaxed mt-0.5">
+                  {!hasPaid ? 'Unlock Full Access to use this feature.' : hasAnswers ? 'Tell us what has changed and we'll rewrite your answers to show the worsening — ready to copy onto your new PIP2.' : 'Complete your original PIP answers first so we can show what has changed.'}
+                </p>
+              </div>
             </div>
-          )}
+
+            {!hasPaid ? (
+              <button onClick={() => navigateTo('upsell')} className="w-full bg-white text-purple-700 py-3 rounded-xl font-bold text-sm hover:bg-purple-50 transition-all flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Unlock Full Access →
+              </button>
+            ) : !hasAnswers ? (
+              <button onClick={() => navigateTo('question_index')} className="w-full bg-white text-purple-700 py-3 rounded-xl font-bold text-sm hover:bg-purple-50 transition-all">
+                Complete my PIP answers first →
+              </button>
+            ) : !cocResult ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-purple-100 mb-1.5 block">What has got worse since your last assessment?</label>
+                  <textarea
+                    value={whatChanged}
+                    onChange={e => setWhatChanged(e.target.value)}
+                    placeholder="e.g. 'My anxiety has got much worse. I can no longer go to shops alone. My chronic pain has spread to my legs and I now need a walking stick. I have been diagnosed with fibromyalgia since my last assessment...'"
+                    rows={4}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-purple-300 focus:outline-none focus:border-white/40 resize-none"
+                  />
+                </div>
+                <button onClick={generateCoCAnswers} disabled={generatingCoC || !whatChanged.trim()}
+                  className="w-full bg-white text-purple-700 py-3.5 rounded-xl font-bold text-base hover:bg-purple-50 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                  {generatingCoC ? <><span className="animate-spin">✨</span> Rewriting your answers...</> : <>✨ Update my answers for this review</>}
+                </button>
+                <p className="text-purple-200 text-[10px] text-center">Takes about 10 seconds · Builds on your existing answers</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-white/10 rounded-xl p-4 max-h-72 overflow-y-auto">
+                  <pre className="text-xs text-purple-50 leading-relaxed whitespace-pre-wrap font-sans">{cocResult}</pre>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => { navigator.clipboard?.writeText(cocResult || ''); setCocCopied(true); setTimeout(() => setCocCopied(false), 2000); }}
+                    className="flex-1 bg-white text-purple-700 py-3 rounded-xl font-bold text-sm hover:bg-purple-50 transition-all flex items-center justify-center gap-2">
+                    {cocCopied ? '✓ Copied!' : '📋 Copy updated answers'}
+                  </button>
+                  <button onClick={() => setCocResult(null)}
+                    className="px-4 py-3 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all">
+                    Redo
+                  </button>
+                </div>
+                <p className="text-purple-200 text-[10px] text-center">Copy these onto your new PIP2 form. Review for accuracy before sending.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Estimate new award */}
