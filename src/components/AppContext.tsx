@@ -35,7 +35,8 @@ export type Screen =
   | 'backpay_calculator'
   | 'news'
   | 'blog'
-  | 'blog_post';
+  | 'blog_post'
+  | 'influencer_portal';
 
 export interface User {
   name: string;

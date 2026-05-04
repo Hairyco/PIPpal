@@ -74,6 +74,7 @@ import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
 import { NewsScreen } from './components/NewsScreen';
 import { BlogScreen } from './components/BlogScreen';
+import { InfluencerPortal } from './components/InfluencerPortal';
 import { BlogPostScreen } from './components/BlogPostScreen';
 import { ChangeOfCircumstancesScreen } from './components/ChangeOfCircumstancesScreen';
 import { DecisionReceivedScreen } from './components/DecisionReceivedScreen';
@@ -235,6 +236,7 @@ function AppContent() {
       case 'news': return <NewsScreen />;
       case 'blog': return <BlogScreen />;
       case 'blog_post': return <BlogPostScreen />;
+      case 'influencer_portal': return <InfluencerPortal />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;
