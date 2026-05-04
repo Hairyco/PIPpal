@@ -34,7 +34,7 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
       </div>
 
       {/* CTA card */}
-      <div className={`w-full max-w-sm transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '100ms' }}>
+      <div className={`w-full max-w-md transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '100ms' }}>
         <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100 mb-4">
           <div className="space-y-2.5 mb-5 text-left">
             {[
