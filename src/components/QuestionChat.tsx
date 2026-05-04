@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   ArrowLeft,
   AlertTriangle,
-  Mic,
   Send,
   TrendingUp,
   Undo2,
@@ -51,8 +50,6 @@ export function QuestionChat() {
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
   const [showFreeText, setShowFreeText] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const recognitionRef = React.useRef<any>(null);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -93,7 +90,7 @@ export function QuestionChat() {
     } else if (nextStep.startsWith('detail_')) {
       setTimeout(() => {
         addMessage(
-          'Can you tell me a bit more about why you struggle with this? <b>You can check scores in the top right of the page if any apply to you.</b> (You can type or use voice recording)',
+          'Can you tell me a bit more about why you struggle with this? <b>You can check scores in the top right of the page if any apply to you.</b>',
           'bot'
         );
       }, 600);
@@ -206,51 +203,7 @@ export function QuestionChat() {
     await callAI(option, updatedConv);
   };
 
-  const handleMicClick = () => {
-    if (isRecording) {
-      recognitionRef.current?.stop();
-      setIsRecording(false);
-      return;
-    }
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Voice not supported in this browser. Please type your answer.');
-      return;
-    }
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-GB';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.onstart = () => setIsRecording(true);
-    recognition.onresult = (e: any) => {
-      // Get all final results
-      let finalTranscript = '';
-      for (let i = 0; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          finalTranscript += e.results[i][0].transcript + ' ';
-        }
-      }
-      if (finalTranscript.trim()) {
-        setInputText((prev: string) => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
-      }
-    };
-    recognition.onend = () => setIsRecording(false);
-    recognition.onerror = (e: any) => {
-      setIsRecording(false);
-      console.log('Speech recognition error:', e.error);
-      if (e.error === 'not-allowed') {
-        alert('Microphone access denied. Please allow microphone access in your browser settings.');
-      } else if (e.error === 'network') {
-        alert('Network error with speech recognition. Please type your answer.');
-      } else if (e.error !== 'aborted' && e.error !== 'no-speech') {
-        alert('Could not hear you. Please try again or type your answer.');
-      }
-    };
-    recognitionRef.current = recognition;
-    setIsRecording(true);
-    recognition.start();
-  };
+
 
   const handleFreeTextSubmit = async () => {
     if (!inputText.trim() || aiLoading) return;
@@ -503,59 +456,6 @@ export function QuestionChat() {
         if (currentStep.startsWith('detail_')) {
           return (
             <div className="flex items-end gap-2 bg-white p-2 rounded-2xl border border-stone-200 shadow-sm">
-              <button
-                onMouseDown={() => {
-                  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                  if (!SpeechRecognition) { alert('Voice input is not supported in this browser. Please type your answer.'); return; }
-                  const recognition = new SpeechRecognition();
-                  recognition.lang = 'en-GB';
-                  recognition.continuous = true;
-                  recognition.interimResults = true;
-                  recognition.onresult = (e: any) => {
-                    let finalTranscript = '';
-                    for (let i = 0; i < e.results.length; i++) {
-                      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
-                    }
-                    if (finalTranscript.trim()) setInputText(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
-                  };
-                  recognition.onend = () => setIsRecording(false);
-                  recognition.onerror = (e: any) => {
-                    setIsRecording(false);
-                    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone in browser settings.');
-                  };
-                  recognitionRef.current = recognition;
-                  recognition.start();
-                  setIsRecording(true);
-                }}
-                onMouseUp={() => { recognitionRef.current?.stop(); }}
-                onTouchStart={(e) => { e.preventDefault();
-                  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                  if (!SpeechRecognition) { alert('Voice input is not supported in this browser.'); return; }
-                  const recognition = new SpeechRecognition();
-                  recognition.lang = 'en-GB';
-                  recognition.continuous = true;
-                  recognition.interimResults = true;
-                  recognition.onresult = (e: any) => {
-                    let finalTranscript = '';
-                    for (let i = 0; i < e.results.length; i++) {
-                      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript + ' ';
-                    }
-                    if (finalTranscript.trim()) setInputText(prev => prev ? prev + ' ' + finalTranscript.trim() : finalTranscript.trim());
-                  };
-                  recognition.onend = () => setIsRecording(false);
-                  recognition.onerror = (e: any) => {
-                    setIsRecording(false);
-                    if (e.error === 'not-allowed') alert('Microphone access denied. Please allow microphone in browser settings.');
-                  };
-                  recognitionRef.current = recognition;
-                  recognition.start();
-                  setIsRecording(true);
-                }}
-                onTouchEnd={() => { recognitionRef.current?.stop(); }}
-                className={`p-3 rounded-xl transition-colors ${isRecording ? 'bg-rose-500 text-white animate-pulse' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
-              >
-                <Mic className="w-5 h-5" />
-              </button>
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
