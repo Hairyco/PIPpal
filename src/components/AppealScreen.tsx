@@ -32,28 +32,17 @@ export function AppealScreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
-        <div className="bg-rose-700 rounded-2xl p-6 text-white shadow-sm">
-          <div className="w-12 h-12 bg-rose-600 rounded-full flex items-center justify-center mb-4">
-            <Scale className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Take your case to tribunal</h2>
-          <p className="text-rose-50 text-sm leading-relaxed">
-            If your Mandatory Reconsideration was unsuccessful, you can appeal
-            to an independent tribunal.
-          </p>
+        <div className="bg-rose-700 rounded-2xl p-5 text-white">
+          <h2 className="text-xl font-bold mb-1">Take your case to tribunal</h2>
+          <p className="text-rose-100 text-sm leading-relaxed">If your Mandatory Reconsideration was unsuccessful, you can appeal to an independent tribunal. <strong className="text-white">60% of appeals succeed.</strong></p>
         </div>
 
         {/* Screenshot upload section */}
         <ScreenshotFeedback navigateTo={navigateTo} context="appeal" />
 
-        <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm text-center">
-          <div className="text-4xl font-black text-rose-600 mb-1">60%</div>
-          <p className="text-sm font-bold text-stone-900 mb-1">
-            of PIP appeals are successful
-          </p>
-          <p className="text-xs text-stone-500">
-            The tribunal is independent of the DWP.
-          </p>
+        <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-center gap-4">
+          <div className="text-3xl font-black text-rose-600 shrink-0">60%</div>
+          <p className="text-sm text-stone-600 leading-relaxed">of PIP appeals succeed at tribunal. The tribunal is completely independent of the DWP.</p>
         </div>
 
         {/* Always Choose an Oral Hearing */}

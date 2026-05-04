@@ -152,32 +152,15 @@ export function MandatoryReconsiderationScreen() {
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
 
-        <div className="bg-amber-600 rounded-2xl p-6 text-white shadow-sm">
-          <div className="w-12 h-12 bg-amber-500 rounded-full flex items-center justify-center mb-4">
-            <FileText className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Challenge your decision</h2>
-          <p className="text-amber-50 text-sm leading-relaxed">
-            If you disagree with your PIP decision, a Mandatory Reconsideration
-            (MR) is the first step to challenging it.
-          </p>
+        <div className="bg-amber-600 rounded-2xl p-5 text-white">
+          <h2 className="text-xl font-bold mb-1">Challenge your decision</h2>
+          <p className="text-amber-100 text-sm leading-relaxed">If you disagree with your PIP decision, a Mandatory Reconsideration (MR) is the first step. You have <strong>1 month</strong> from the date on your decision letter.</p>
         </div>
 
         {/* Screenshot upload section */}
         <ScreenshotFeedback navigateTo={navigateTo} context="mandatory reconsideration" />
 
-        <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm flex items-start gap-3">
-          <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <h3 className="font-bold text-stone-900 text-sm mb-1">
-              Strict Deadline
-            </h3>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              You have exactly <strong>1 month</strong> from the date on your
-              decision letter to request an MR. Don't delay.
-            </p>
-          </div>
-        </div>
+
 
         {/* Get the PA4 Report First */}
         <div className="bg-rose-50 rounded-2xl p-5 border border-rose-100 shadow-sm">
@@ -510,9 +493,8 @@ export function MandatoryReconsiderationScreen() {
           <button
             onClick={() => navigateTo('home')}
             className="w-full bg-white text-indigo-700 py-3 rounded-xl font-bold text-sm hover:bg-indigo-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            
             <MessageSquare className="w-4 h-4" />
-            Open PIP Assistant
+            Open PIPpal Assistant
           </button>
         </div>
 

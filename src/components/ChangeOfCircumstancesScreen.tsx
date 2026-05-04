@@ -96,16 +96,9 @@ export function ChangeOfCircumstancesScreen() {
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
         {/* 1. Hero */}
-        <div className="bg-purple-700 rounded-2xl p-6 text-white shadow-sm">
-          <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mb-4">
-            <RefreshCw className="w-6 h-6 text-white" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">Update your existing award</h2>
-          <p className="text-purple-50 text-sm leading-relaxed">
-            If your condition has got worse or you have a new condition, you can
-            ask DWP to review your award. We'll help you describe the changes
-            clearly so your new form reflects your current needs.
-          </p>
+        <div className="bg-purple-700 rounded-2xl p-5 text-white">
+          <h2 className="text-xl font-bold mb-1">Update your existing award</h2>
+          <p className="text-purple-100 text-sm leading-relaxed">If your condition has worsened or you have a new condition, you can ask DWP to review your award. We'll help you describe what's changed.</p>
         </div>
 
         {/* 2. Important Warning */}

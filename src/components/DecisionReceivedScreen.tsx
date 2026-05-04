@@ -38,14 +38,9 @@ export function DecisionReceivedScreen() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
-        <div>
-          <h2 className="text-xl font-bold text-stone-900 mb-2">
-            What was your outcome?
-          </h2>
-          <p className="text-sm text-stone-500 leading-relaxed">
-            Select the outcome of your PIP decision letter to see your next
-            steps.
-          </p>
+        <div className="bg-teal-700 rounded-2xl p-5 text-white">
+          <h2 className="text-xl font-bold mb-1">What was your outcome?</h2>
+          <p className="text-teal-100 text-sm leading-relaxed">Select the outcome of your decision letter. We'll show you exactly what to do next.</p>
         </div>
 
         <div className="space-y-4">
