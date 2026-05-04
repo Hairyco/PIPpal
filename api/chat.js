@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   try {
-    const { message, medProfile, conversationHistory, questionSystemPrompt, buttonMode, questionData } = req.body;
+    const { message, medProfile, conversationHistory, questionSystemPrompt, buttonMode, questionData, systemOverride } = req.body;
     const conditions = medProfile?.conditions?.map(c => c.name).join(', ') || 'not specified';
     const systemPrompt = `You are the PIPpal Assistant — a calm, knowledgeable guide helping UK citizens get the PIP award they are entitled to.
 
@@ -80,7 +80,7 @@ Rules:
       }
     }
 
-    const activeSystemPrompt = questionSystemPrompt || systemPrompt;
+    const activeSystemPrompt = systemOverride || questionSystemPrompt || systemPrompt;
     const messages = [
       ...(conversationHistory || []).slice(-10),
       { role: 'user', content: message }

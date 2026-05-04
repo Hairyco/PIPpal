@@ -20,10 +20,16 @@ import {
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 export function DecisionReceivedScreen() {
-  const { goBack, navigateTo } = useAppContext();
+  const { goBack, navigateTo, setAssistantQuestion, setAssistantContext } = useAppContext();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
+  };
+
+  const openAssistantWithContext = (outcome: string, context: string) => {
+    setAssistantContext(context);
+    setAssistantQuestion(`My PIP decision outcome: ${outcome}. ${context}`);
+    navigateTo('home');
   };
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -146,13 +152,17 @@ export function DecisionReceivedScreen() {
                       </div>
                     </div>
 
-                    <button
-                    onClick={() => navigateTo('payment_calculator')}
-                    className="w-full bg-white border border-stone-200 text-stone-700 py-3 rounded-xl font-semibold text-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-2 mt-2">
-                    
-                      <Calculator className="w-4 h-4" />
-                      Calculate your payments
-                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => navigateTo('payment_calculator')}
+                        className="flex-1 bg-white border border-stone-200 text-stone-700 py-3 rounded-xl font-semibold text-sm hover:bg-stone-50 transition-all flex items-center justify-center gap-2">
+                        <Calculator className="w-4 h-4" />
+                        Calculate payments
+                      </button>
+                      <button onClick={() => navigateTo('pip_benefits')}
+                        className="flex-1 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-2">
+                        What else do I get? →
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               }
@@ -244,13 +254,16 @@ export function DecisionReceivedScreen() {
                       stay the same, or go down.
                     </p>
 
-                    <button
-                    onClick={() => navigateTo('mandatory_reconsideration')}
-                    className="w-full bg-amber-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-amber-700 transition-all flex items-center justify-center gap-2 mt-2">
-                    
-                      Learn about Mandatory Reconsideration
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => navigateTo('mandatory_reconsideration')}
+                        className="flex-1 bg-amber-600 text-white py-3 rounded-xl font-semibold text-sm hover:bg-amber-700 transition-all flex items-center justify-center gap-2">
+                        Challenge this →
+                      </button>
+                      <button onClick={() => openAssistantWithContext('Partially awarded', 'I received a partial PIP award but believe I should score higher. Help me understand what to do and how to challenge specific activities.')}
+                        className="flex-1 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-2">
+                        Ask PIPpal →
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               }
@@ -356,13 +369,16 @@ export function DecisionReceivedScreen() {
                       </div>
                     </div>
 
-                    <button
-                    onClick={() => navigateTo('mandatory_reconsideration')}
-                    className="w-full bg-stone-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all flex items-center justify-center gap-2 mt-2">
-                    
-                      Start your challenge
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-2 mt-2">
+                      <button onClick={() => navigateTo('mandatory_reconsideration')}
+                        className="flex-1 bg-stone-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all flex items-center justify-center gap-2">
+                        Start challenge →
+                      </button>
+                      <button onClick={() => openAssistantWithContext('Refused', 'I was refused PIP. I want to challenge this decision with a Mandatory Reconsideration. Help me understand what went wrong and what to do next.')}
+                        className="flex-1 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 transition-all flex items-center justify-center gap-2">
+                        Ask PIPpal →
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               }

@@ -76,6 +76,7 @@ import { NewsScreen } from './components/NewsScreen';
 import { BlogScreen } from './components/BlogScreen';
 import { InfluencerPortal } from './components/InfluencerPortal';
 import { PIPBenefitsScreen } from './components/PIPBenefitsScreen';
+import { AssessmentMockTest } from './components/AssessmentMockTest';
 import { BlogPostScreen } from './components/BlogPostScreen';
 import { ChangeOfCircumstancesScreen } from './components/ChangeOfCircumstancesScreen';
 import { DecisionReceivedScreen } from './components/DecisionReceivedScreen';
@@ -248,6 +249,7 @@ function AppContent() {
       case 'blog_post': return <BlogPostScreen />;
       case 'influencer_portal': return <InfluencerPortal />;
       case 'pip_benefits': return <PIPBenefitsScreen />;
+      case 'assessment_mock': return <AssessmentMockTest />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;

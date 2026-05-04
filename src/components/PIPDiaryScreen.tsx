@@ -448,7 +448,7 @@ ${weeksHtml}
                     <div className="flex gap-2 px-4 pb-3">
                       <button onClick={() => improveNote(act.id, act.qId)} disabled={improvingCell === act.id || !note}
                         className="flex-1 text-[11px] font-bold bg-purple-50 text-purple-700 py-2 rounded-xl hover:bg-purple-100 transition-colors disabled:opacity-40">
-                        {improvingCell === act.id ? '✨ Improving...' : '✨ Improve with AI'}
+                        {improvingCell === act.id ? '✨ Improving...' : '✨ Improve with PIPpal'}
                       </button>
                       <button onClick={() => updateNote(act.id, getAutoNote(act.qId))}
                         className="flex-1 text-[11px] font-bold bg-stone-50 text-stone-600 py-2 rounded-xl hover:bg-stone-100 transition-colors">

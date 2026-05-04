@@ -258,7 +258,16 @@ export function AssessmentPrepScreen() {
           </div>
         </div>
 
-        <p className="text-sm text-stone-600 leading-relaxed px-1">Download your prep document to review before your assessment — or take it with you on the day.</p>
+        <div className="bg-blue-700 rounded-2xl p-5 text-white">
+          <p className="font-bold text-lg mb-1">Practice with a mock assessment</p>
+          <p className="text-blue-100 text-sm leading-relaxed mb-4">Answer questions the way a real assessor would ask them. PIPpal gives you coaching feedback after each answer — helping you describe your experiences more clearly and score more points.</p>
+          <button onClick={() => navigateTo('assessment_mock')}
+            className="w-full bg-white text-blue-700 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            Start mock assessment →
+          </button>
+        </div>
+
+        <p className="text-sm text-stone-600 leading-relaxed px-1">Or download your prep document to review before your assessment — or take it with you on the day.</p>
 
         <button
           onClick={handleDownload}

@@ -5,6 +5,7 @@ import {
   ImagePlus, Upload, X, Sparkles, ChevronDown,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { useEffect } from 'react';
 
 // Screenshot analysis component — shared with AppealScreen
 export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: any) => void; context: string }) {
@@ -62,7 +63,7 @@ export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: an
     <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
       <div className="px-4 py-3 bg-teal-700 flex items-center gap-2">
         <ImagePlus className="w-4 h-4 text-white shrink-0" />
-        <p className="text-sm font-bold text-white">Upload your decision letter for AI analysis</p>
+        <p className="text-sm font-bold text-white">Upload your decision letter</p>
       </div>
       <div className="p-4 space-y-3">
         <p className="text-xs text-stone-500 leading-relaxed">Upload a photo or screenshot of your PIP decision letter. We'll analyse it and tell you exactly what to challenge and how.</p>
@@ -107,7 +108,38 @@ export function ScreenshotFeedback({ navigateTo, context }: { navigateTo: (s: an
 }
 
 export function MandatoryReconsiderationScreen() {
-  const { goBack, navigateTo } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
+  const [generatingLetter, setGeneratingLetter] = useState(false);
+  const [mrLetter, setMrLetter] = useState<string | null>(null);
+  const [letterCopied, setLetterCopied] = useState(false);
+  const [disputedActivities, setDisputedActivities] = useState<{activity: string, dwpScore: string, expectedScore: string, reason: string}[]>([]);
+  const [decisionDetails, setDecisionDetails] = useState('');
+  const hasAnswers = Object.keys(savedAnswers || {}).length > 0;
+
+  const generateLetter = async () => {
+    setGeneratingLetter(true);
+    setMrLetter(null);
+    try {
+      const res = await fetch('/api/generate-mr-letter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ savedAnswers, medProfile, decisionDetails, disputedActivities }),
+      });
+      const data = await res.json();
+      setMrLetter(data.letter || 'Could not generate letter. Please try again.');
+    } catch {
+      setMrLetter('Something went wrong. Please try again.');
+    } finally {
+      setGeneratingLetter(false);
+    }
+  };
+
+  const copyLetter = () => {
+    if (!mrLetter) return;
+    navigator.clipboard?.writeText(mrLetter);
+    setLetterCopied(true);
+    setTimeout(() => setLetterCopied(false), 2000);
+  };
   const [showStructure, setShowStructure] = useState(false);
 
   return (
@@ -144,7 +176,7 @@ export function MandatoryReconsiderationScreen() {
           </div>
         </div>
 
-        {/* Upload letter for AI analysis */}
+        {/* Upload letter for PIPpal analysis */}
         <ScreenshotFeedback navigateTo={navigateTo} context="mandatory reconsideration" />
 
         {/* Step 2 — Write your MR */}
@@ -187,6 +219,71 @@ export function MandatoryReconsiderationScreen() {
                 <strong>The SAFES rule:</strong> DWP can only say you can do a task if you can do it Safely, to an Acceptable standard, Frequently, in Enough time, and Sustainably. If you fail any one of these — you cannot do it reliably.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* MR Letter Generator */}
+        <div className="bg-teal-700 rounded-2xl overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <FileText className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-white text-base">PIPpal writes your MR letter</p>
+                <p className="text-teal-100 text-xs leading-relaxed mt-0.5">
+                  {hasAnswers
+                    ? 'We use your saved PIP answers to write a complete, personalised MR letter. Just tell us what DWP got wrong.'
+                    : 'Complete your PIP questions first — we use your answers to write a personalised letter.'}
+                </p>
+              </div>
+            </div>
+
+            {!hasAnswers ? (
+              <button onClick={() => navigateTo('question_index')}
+                className="w-full bg-white text-teal-700 py-3 rounded-xl font-bold text-sm hover:bg-teal-50 transition-all flex items-center justify-center gap-2">
+                Complete my PIP answers first →
+              </button>
+            ) : !mrLetter ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-teal-100 mb-1.5 block">What did DWP say? (optional — paste key lines from your decision letter)</label>
+                  <textarea
+                    value={decisionDetails}
+                    onChange={e => setDecisionDetails(e.target.value)}
+                    placeholder="e.g. 'DWP scored me 4 points for preparing food but I believe I should score 8 as I cannot cook safely without supervision...'"
+                    rows={3}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-teal-300 focus:outline-none focus:border-white/40 resize-none"
+                  />
+                </div>
+                <button onClick={generateLetter} disabled={generatingLetter}
+                  className="w-full bg-white text-teal-700 py-3.5 rounded-xl font-bold text-base hover:bg-teal-50 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+                  {generatingLetter ? (
+                    <><span className="animate-spin">✨</span> Writing your letter...</>
+                  ) : (
+                    <>✨ Write my MR letter</>
+                  )}
+                </button>
+                <p className="text-teal-200 text-[10px] text-center">Takes about 10 seconds · Uses your saved answers</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="bg-white/10 rounded-xl p-4 max-h-72 overflow-y-auto">
+                  <pre className="text-xs text-teal-50 leading-relaxed whitespace-pre-wrap font-sans">{mrLetter}</pre>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={copyLetter}
+                    className="flex-1 bg-white text-teal-700 py-3 rounded-xl font-bold text-sm hover:bg-teal-50 transition-all flex items-center justify-center gap-2">
+                    {letterCopied ? '✓ Copied!' : '📋 Copy letter'}
+                  </button>
+                  <button onClick={() => setMrLetter(null)}
+                    className="px-4 py-3 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all">
+                    Regenerate
+                  </button>
+                </div>
+                <p className="text-teal-200 text-[10px] text-center">Review carefully before sending. Add your personal details where shown in brackets.</p>
+              </div>
+            )}
           </div>
         </div>
 
