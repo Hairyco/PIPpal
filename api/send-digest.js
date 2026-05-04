@@ -145,7 +145,22 @@ async function getNewsArticles() {
 }
 
 function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null, blogPosts = []) {
-  const articlesHtml = articles.map(article => `
+  const top3Blogs = blogPosts.slice(0, 3);
+
+  const blogsHtml = top3Blogs.map(post => `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:12px; border:1px solid #e7e5e4; overflow:hidden; margin-bottom:16px;">
+      <tr><td style="height:3px; background:#f97316;"></td></tr>
+      <tr>
+        <td style="padding:16px;">
+          ${post.category ? `<p style="margin:0 0 4px 0; font-size:11px; font-weight:700; color:#f97316; text-transform:uppercase; letter-spacing:0.05em;">${post.category}</p>` : ''}
+          <h3 style="margin:0 0 8px 0; font-size:15px; font-weight:700; color:#1c1917; line-height:1.4;">${post.title}</h3>
+          ${post.excerpt ? `<p style="margin:0 0 10px 0; font-size:13px; color:#57534e; line-height:1.6;">${post.excerpt.slice(0, 150)}...</p>` : ''}
+          <a href="https://www.pippal.uk" style="display:inline-block; background:#f97316; color:#ffffff; text-decoration:none; padding:8px 18px; border-radius:8px; font-size:12px; font-weight:700;">Read this guide →</a>
+        </td>
+      </tr>
+    </table>
+  `).join('');
+  const articlesHtml = articles.slice(0, 3).map(article => `
     <tr>
       <td style="padding: 0 0 20px 0;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border-radius:12px; border:1px solid #e7e5e4; overflow:hidden;">
@@ -195,36 +210,26 @@ function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null, blogPost
             </td>
           </tr>
 
+          <!-- Blog section -->
+          ${top3Blogs.length > 0 ? `
+          <tr>
+            <td style="background:#fff7ed; padding:20px 28px 8px 28px;">
+              <h2 style="margin:0 0 4px 0; font-size:16px; font-weight:800; color:#1c1917;">📖 From the PIPpal Blog</h2>
+              <p style="margin:0 0 16px 0; font-size:12px; color:#78716c;">Guides and tips to help with your PIP claim</p>
+              ${blogsHtml}
+            </td>
+          </tr>
+          ` : ''}
+
           <!-- CTA -->
           <tr>
-            <td style="background:#ffffff; padding:0 28px 28px 28px; text-align:center;">
+            <td style="background:#ffffff; padding:20px 28px 28px 28px; text-align:center;">
               ${approvalToken ? `
               <p style="font-size:13px;color:#78716c;margin:0 0 16px 0;font-weight:600;">⚠️ This is a preview — review and approve before it sends</p>
               <a href="https://www.pippal.uk/api/approve-digest?token=${approvalToken}" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:14px;font-weight:700;">📋 Review &amp; Approve Digest</a>
               ` : `<a href="https://www.pippal.uk/#news" style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:700;">Read more PIP news →</a>`}
             </td>
           </tr>
-
-          <!-- Blog posts section -->
-          ${blogPosts.length > 0 ? `
-          <tr>
-            <td style="background:#ffffff; padding:0 28px 24px 28px;">
-              <h3 style="margin:0 0 12px 0; font-size:14px; font-weight:700; color:#1c1917; border-top:1px solid #e7e5e4; padding-top:20px;">Latest from the PIPpal Blog</h3>
-              ${blogPosts.map(post => `
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f5f5f4; border-radius:10px; margin-bottom:10px;">
-                  <tr>
-                    <td style="padding:14px;">
-                      ${post.category ? `<p style="margin:0 0 4px 0; font-size:10px; font-weight:700; color:#0f766e; text-transform:uppercase; letter-spacing:0.05em;">${post.category}</p>` : ''}
-                      <p style="margin:0 0 6px 0; font-size:14px; font-weight:700; color:#1c1917;">${post.title}</p>
-                      ${post.excerpt ? `<p style="margin:0 0 8px 0; font-size:12px; color:#57534e; line-height:1.5;">${post.excerpt.slice(0, 120)}...</p>` : ''}
-                      <a href="https://www.pippal.uk" style="font-size:12px; color:#0f766e; font-weight:700; text-decoration:none;">Read on PIPpal →</a>
-                    </td>
-                  </tr>
-                </table>
-              `).join('')}
-            </td>
-          </tr>
-          ` : ''}
 
           <!-- Footer -->
           <tr>

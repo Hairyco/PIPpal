@@ -292,14 +292,15 @@ export function AdminDashboard() {
       const newsData = await newsRes.json();
       const articles = newsData.articles || [];
 
-      // Fetch latest 2 published blog posts
-      const { data: blogData } = await supabase
+      // Fetch 3 published blog posts - rotate by picking different ones each send
+      const { data: allBlogs } = await supabase
         .from('blog_posts')
         .select('title, slug, excerpt, category')
         .eq('published', true)
-        .order('created_at', { ascending: false })
-        .limit(2);
-      const blogPosts = blogData || [];
+        .order('created_at', { ascending: false });
+      // Shuffle and pick 3 so different posts feature each time
+      const shuffled = (allBlogs || []).sort(() => Math.random() - 0.5);
+      const blogPosts = shuffled.slice(0, 3);
 
       if (articles.length === 0 && blogPosts.length === 0) {
         setDigestResult('No content found. Try again later.');
