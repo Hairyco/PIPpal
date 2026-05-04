@@ -121,6 +121,30 @@ export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
+  const [aiCosts, setAiCosts] = useState<{total: number, byUser: any[], thisMonth: number}>({ total: 0, byUser: [], thisMonth: 0 });
+
+  const fetchAiCosts = async () => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const { data } = await supabase
+      .from('ai_usage')
+      .select('user_id, cost_usd, created_at, model, input_tokens, output_tokens')
+      .gte('created_at', monthStart)
+      .order('created_at', { ascending: false });
+    if (!data) return;
+    const total = data.reduce((sum: number, r: any) => sum + (r.cost_usd || 0), 0);
+    // Group by user
+    const byUser: Record<string, number> = {};
+    data.forEach((r: any) => {
+      const uid = r.user_id || 'anonymous';
+      byUser[uid] = (byUser[uid] || 0) + (r.cost_usd || 0);
+    });
+    const byUserArr = Object.entries(byUser)
+      .map(([uid, cost]) => ({ uid, cost }))
+      .sort((a, b) => b.cost - a.cost)
+      .slice(0, 10);
+    setAiCosts({ total, byUser: byUserArr, thisMonth: total });
+  };
   const [subscriberCount, setSubscriberCount] = useState<number | null>(null);
 
   const fetchSubscriberCount = async () => {
@@ -650,7 +674,7 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } if (tab === 'stats') fetchAiCosts(); }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -668,6 +692,46 @@ export function AdminDashboard() {
           </div>
         ) : stats ? (
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
+
+            {/* AI Cost vs Revenue */}
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold text-stone-900 text-sm">AI Cost vs Revenue — This Month</h2>
+                <button onClick={fetchAiCosts} className="text-xs text-teal-700 font-bold">Refresh</button>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-teal-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 12.99).toFixed(2)}</p>
+                  <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
+                </div>
+                <div className="bg-rose-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-rose-600">${aiCosts.thisMonth.toFixed(4)}</p>
+                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (USD)</p>
+                </div>
+                <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-emerald-700">
+                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * 12.99) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
+                  </p>
+                  <p className="text-[10px] text-emerald-600 font-medium">Margin</p>
+                </div>
+              </div>
+              {aiCosts.byUser.length > 0 ? (
+                <div>
+                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-2">Top AI users this month</p>
+                  <div className="space-y-1.5">
+                    {aiCosts.byUser.map((u: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[10px] text-stone-400 w-4">{i + 1}.</span>
+                        <span className="text-[10px] text-stone-600 flex-1 truncate font-mono">{u.uid === 'anonymous' ? 'Anonymous' : u.uid.slice(0, 8) + '...'}</span>
+                        <span className="text-[10px] font-bold text-rose-600">${u.cost.toFixed(5)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-stone-400 text-center py-2">No AI usage tracked yet — data appears as users chat</p>
+              )}
+            </div>
 
             <p className="text-xs text-stone-400 text-right">
               Last updated: {lastRefresh.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
@@ -906,6 +970,46 @@ export function AdminDashboard() {
           </div>
         ) : stats ? (
           <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
+
+            {/* AI Cost vs Revenue */}
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold text-stone-900 text-sm">AI Cost vs Revenue — This Month</h2>
+                <button onClick={fetchAiCosts} className="text-xs text-teal-700 font-bold">Refresh</button>
+              </div>
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div className="bg-teal-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 12.99).toFixed(2)}</p>
+                  <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
+                </div>
+                <div className="bg-rose-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-rose-600">${aiCosts.thisMonth.toFixed(4)}</p>
+                  <p className="text-[10px] text-rose-500 font-medium">AI Cost (USD)</p>
+                </div>
+                <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                  <p className="text-lg font-black text-emerald-700">
+                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * 12.99) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
+                  </p>
+                  <p className="text-[10px] text-emerald-600 font-medium">Margin</p>
+                </div>
+              </div>
+              {aiCosts.byUser.length > 0 ? (
+                <div>
+                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-2">Top AI users this month</p>
+                  <div className="space-y-1.5">
+                    {aiCosts.byUser.map((u: any, i: number) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-[10px] text-stone-400 w-4">{i + 1}.</span>
+                        <span className="text-[10px] text-stone-600 flex-1 truncate font-mono">{u.uid === 'anonymous' ? 'Anonymous' : u.uid.slice(0, 8) + '...'}</span>
+                        <span className="text-[10px] font-bold text-rose-600">${u.cost.toFixed(5)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-stone-400 text-center py-2">No AI usage tracked yet — data appears as users chat</p>
+              )}
+            </div>
 
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
               <p className="text-xs text-amber-800 leading-relaxed">Visitor tracking counts app page views. Data starts from when tracking was enabled. For full website analytics including landing page visits, check your Vercel dashboard.</p>

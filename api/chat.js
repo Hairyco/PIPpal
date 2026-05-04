@@ -105,6 +105,34 @@ Rules:
     }
     const data = await response.json();
     const reply = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
+
+    // Log token usage to Supabase
+    try {
+      const usage = data.usage || {};
+      const inputTokens = usage.input_tokens || 0;
+      const outputTokens = usage.output_tokens || 0;
+      // claude-sonnet-4-6: $3/$15 per million tokens
+      const costUsd = (inputTokens * 0.000003) + (outputTokens * 0.000015);
+      const userId = req.body.userId || null;
+      await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/ai_usage`, {
+        method: 'POST',
+        headers: {
+          'apikey': process.env.SUPABASE_SERVICE_ROLE_KEY,
+          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          model: 'claude-sonnet-4-6',
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          cost_usd: costUsd,
+          endpoint: 'chat',
+        }),
+      });
+    } catch { /* silent fail — don't break chat */ }
+
     return res.status(200).json({ reply });
   } catch (error) {
     console.error('Chat error:', error.message);

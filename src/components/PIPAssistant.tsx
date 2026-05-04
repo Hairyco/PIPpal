@@ -79,6 +79,8 @@ export function PIPAssistant({
   const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
   const [isOpen, setIsOpen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [freeMessageCount, setFreeMessageCount] = useState(0);
+  const FREE_LIMIT = 3;
   const [showUpsell, setShowUpsell] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     hasConditions ? makeInitialMessage(firstName, conditionNames) : makeNoConditionsMessage(firstName)
@@ -143,6 +145,7 @@ export function PIPAssistant({
         body: JSON.stringify({
           message: text.trim(),
           medProfile,
+          userId: user?.id || null,
           conversationHistory: conversationHistory.slice(-10),
         }),
       });
@@ -166,6 +169,11 @@ export function PIPAssistant({
             sender: 'assistant',
           })
       );
+
+      // Track free usage
+      if (!hasPaid) {
+        setFreeMessageCount(prev => prev + 1);
+      }
     } catch (err) {
       setMessages((prev) =>
         prev
@@ -255,6 +263,16 @@ export function PIPAssistant({
 
       {/* Chat window */}
       <AnimatePresence>
+        {isOpen && !hasPaid && freeMessageCount >= FREE_LIMIT && (
+          <div className="fixed bottom-6 right-5 z-[60] w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl border border-orange-200 p-4">
+            <p className="font-bold text-stone-900 text-sm mb-1">You've used your free messages</p>
+            <p className="text-xs text-stone-500 leading-relaxed mb-3">Upgrade to Full Access to continue chatting with PIPpal Assistant — plus all 12 PIP questions, Assessment Prep and more.</p>
+            <div className="flex gap-2">
+              <button onClick={() => { if (onUpgrade) onUpgrade(); }} className="flex-1 bg-orange-500 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors">Upgrade — £12.99</button>
+              <button onClick={() => setFreeMessageCount(0)} className="px-3 py-2.5 bg-stone-100 text-stone-600 text-xs font-bold rounded-xl hover:bg-stone-200">Later</button>
+            </div>
+          </div>
+        )}
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
