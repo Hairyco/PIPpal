@@ -135,7 +135,7 @@ export function MandatoryReconsiderationScreen() {
             </div>
             <div>
               <p className="font-bold text-stone-900 text-sm mb-1">Get your PA4 report first</p>
-              <p className="text-xs text-stone-500 leading-relaxed mb-2">Call DWP and request your Assessment Report (PA4) under a Subject Access Request. This is what the health professional wrote — it shows exactly which descriptors they scored and why. You must challenge the PA4, not just the decision letter.</p>
+              <p className="text-xs text-stone-500 leading-relaxed mb-2">Your assessment was carried out by a private contractor (such as Capita or Maximus) — not DWP. The contractor's health professional wrote the PA4 report, then a <strong>DWP case worker made the final decision</strong> based on it. Request the PA4 under a Subject Access Request — you must challenge what the contractor wrote, not just the decision letter.</p>
               <a href="tel:08001214433" className="inline-flex items-center gap-1.5 bg-stone-100 text-stone-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-stone-200 transition-colors">
                 <Phone className="w-3.5 h-3.5" />
                 0800 121 4433 — DWP

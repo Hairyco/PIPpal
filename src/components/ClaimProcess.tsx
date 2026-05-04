@@ -108,9 +108,21 @@ export function ClaimProcess() {
               </div>
               <div className="flex-1">
                 <p className="font-bold text-stone-900 text-sm mb-1">Assessment — roughly 3 months later</p>
-                <p className="text-xs text-stone-500 leading-relaxed">
+                <p className="text-xs text-stone-500 leading-relaxed mb-3">
                   A health professional asks about your daily life. Can be in person or by phone. Request a telephone assessment if attending would cause distress.
                 </p>
+                <div className="bg-stone-50 rounded-xl p-3 border border-stone-200 space-y-2">
+                  <p className="text-xs text-stone-600 leading-relaxed">
+                    <strong>Important:</strong> Your assessment is carried out by a private contractor (such as Capita or Maximus) — not DWP directly. The assessor writes a report, but a <strong>DWP case worker makes the final decision</strong>.
+                  </p>
+                  <p className="text-xs text-stone-600 leading-relaxed">
+                    After your assessment, call DWP and ask for your <strong>assessor reference number</strong> — this helps you track progress. You can also ask to speak to a <strong>case manager</strong>, who can send an email directly to the case worker handling your claim for an update.
+                  </p>
+                  <a href="tel:08001214433" className="inline-flex items-center gap-1.5 bg-white text-stone-700 border border-stone-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-stone-100 transition-colors">
+                    <Phone className="w-3 h-3" />
+                    0800 121 4433 — DWP enquiry line
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -152,13 +164,13 @@ export function ClaimProcess() {
             <div className="flex gap-3 items-start">
               <FileSearch className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
               <p className="text-xs text-stone-600 leading-relaxed">
-                <strong>Request your assessor's report</strong> — call DWP and make a Subject Access Request. They must provide it within 1 month. This shows what points the assessor recommended so you can prepare.
+                <strong>Request your assessor's report</strong> — call DWP and make a Subject Access Request. They must provide it within 1 month. This shows what points the contractor's assessor recommended before the DWP case worker made their final decision.
               </p>
             </div>
             <div className="flex gap-3 items-start">
               <MessageSquare className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
               <p className="text-xs text-stone-600 leading-relaxed">
-                <strong>Want your decision sooner?</strong> Call 0800 121 4433 and ask to be transferred to a case manager who can chase your caseworker directly.
+                <strong>Want an update?</strong> Call 0800 121 4433 and ask for your assessor reference number. You can also ask to speak to a case manager — they can send an email directly to the DWP case worker handling your claim.
               </p>
             </div>
           </div>
