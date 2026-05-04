@@ -111,12 +111,18 @@ export function ClaimProcess() {
                 <p className="text-xs text-stone-500 leading-relaxed mb-3">
                   A health professional asks about your daily life. Can be in person or by phone. Request a telephone assessment if attending would cause distress.
                 </p>
-                <div className="bg-stone-50 rounded-xl p-3 border border-stone-200 space-y-2">
+                <div className="bg-stone-50 rounded-xl p-3 border border-stone-200 space-y-2.5">
                   <p className="text-xs text-stone-600 leading-relaxed">
-                    <strong>Important:</strong> Your assessment is carried out by a private contractor (such as Capita or Maximus) — not DWP directly. The assessor writes a report, but a <strong>DWP case worker makes the final decision</strong>.
+                    <strong>Who carries out your assessment?</strong> A private contractor (such as Capita or Maximus) — not DWP. They write a report, but a <strong>DWP case worker makes the final decision</strong>.
                   </p>
                   <p className="text-xs text-stone-600 leading-relaxed">
-                    After your assessment, call DWP and ask for your <strong>assessor reference number</strong> — this helps you track progress. You can also ask to speak to a <strong>case manager</strong>, who can send an email directly to the case worker handling your claim for an update.
+                    <strong>You can record it.</strong> Both phone and face-to-face assessments can be audio recorded. Call your assessment provider in advance to arrange this.
+                  </p>
+                  <p className="text-xs text-stone-600 leading-relaxed">
+                    <strong>Watch what you say about your journey.</strong> If you say "I came by bus alone", they'll note you can travel independently. Always explain the effort it took and whether you could do it every day.
+                  </p>
+                  <p className="text-xs text-stone-600 leading-relaxed">
+                    <strong>Getting updates:</strong> After your assessment, call DWP and ask for your assessor reference number. You can also ask to speak to a case manager who can contact the case worker directly.
                   </p>
                   <a href="tel:08001214433" className="inline-flex items-center gap-1.5 bg-white text-stone-700 border border-stone-200 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-stone-100 transition-colors">
                     <Phone className="w-3 h-3" />

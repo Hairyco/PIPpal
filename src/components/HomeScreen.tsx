@@ -343,6 +343,14 @@ export function HomeScreen() {
               locked={!hasPaid}
             />
             <NavCard
+              title="PIP Benefits"
+              desc="Motability, Blue Badge, Railcard & more"
+              icon={Sparkles}
+              color="text-amber-600"
+              bg="bg-amber-50"
+              target="pip_benefits"
+            />
+            <NavCard
               title="Export Answers"
               desc="Download your completed form"
               icon={Download}

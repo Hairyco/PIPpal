@@ -36,7 +36,8 @@ export type Screen =
   | 'news'
   | 'blog'
   | 'blog_post'
-  | 'influencer_portal';
+  | 'influencer_portal'
+  | 'pip_benefits';
 
 export interface User {
   name: string;

@@ -378,6 +378,75 @@ export function AssessmentPrepScreen() {
           </div>
         </div>
 
+        {/* Assessment tips from real experience */}
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
+          <h3 className="font-bold text-stone-900 text-sm">Things most people don't know</h3>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🎙️</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can record your assessment</p>
+              <p className="text-xs text-stone-500 leading-relaxed">Both phone and face-to-face assessments can be audio recorded. Call your assessment provider in advance to arrange it — you can't make a video recording, and you must leave a copy with the assessor. If they refuse, you can complain to the provider.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🧑‍🤝‍🧑</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">Don't attend alone if you can help it</p>
+              <p className="text-xs text-stone-500 leading-relaxed">Attending alone may be noted and used to suggest you can manage independently. Bring a friend, family member, or carer. They can add information and take notes for you.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-rose-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🚌</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">Be careful what you say about your journey there</p>
+              <p className="text-xs text-stone-500 leading-relaxed">The assessor may ask how you got to the assessment. If you say "I came by bus alone" they'll record that you can travel independently. Always explain what the journey cost you — how long it took to recover, whether you could do it every day, and any help you needed.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🙅</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">Don't do physical tasks you can't normally do</p>
+              <p className="text-xs text-stone-500 leading-relaxed">You may be asked to do physical tasks during the assessment. If you do something you wouldn't normally manage, the assessor may assume you can always do it. If you're uncomfortable — say so.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🏠</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can request a home visit</p>
+              <p className="text-xs text-stone-500 leading-relaxed">If you're housebound due to a mental or physical health condition, you can request a home assessment. If the assessment centre is more than 90 minutes away and you struggle to travel, you can also request a closer location.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">⚧️</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can request a same-gender assessor</p>
+              <p className="text-xs text-stone-500 leading-relaxed">Call your assessment provider in advance using the number on your appointment letter and ask for this adjustment. Other reasonable adjustments — like a specific room layout — can also be requested.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🚫</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">Never say "sometimes" or "a lot of the time"</p>
+              <p className="text-xs text-stone-500 leading-relaxed">Vague words like "sometimes" or "often" are ignored or scored at zero. Be specific — say "4 out of 7 days" or "every morning for around 20 minutes." The more specific you are, the harder it is to dismiss.</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🤝</span></div>
+            <div>
+              <p className="text-sm font-semibold text-stone-900 mb-0.5">The assessor is a contractor — not DWP</p>
+              <p className="text-xs text-stone-500 leading-relaxed">Your assessment is carried out by a private company (such as Capita or Maximus). They write a report, but a DWP case worker makes the final decision. The assessor's job is to gather information — not to decide your award.</p>
+            </div>
+          </div>
+        </div>
+
         {/* Printing Instructions */}
         <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-6">
           <button
