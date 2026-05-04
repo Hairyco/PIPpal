@@ -30,9 +30,12 @@ function categorise(title, body) {
 async function searchGoogle(query) {
   try {
     const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${encodeURIComponent(query)}&num=10&sort=date`;
+    console.log('Calling Google:', url.slice(0, 80));
+    console.log('API Key present:', !!GOOGLE_API_KEY, 'CX present:', !!GOOGLE_CX);
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) {
-      console.log(`Google search failed: ${res.status}`);
+      const errText = await res.text();
+      console.log(`Google search failed: ${res.status}`, errText.slice(0, 200));
       return [];
     }
     const data = await res.json();
