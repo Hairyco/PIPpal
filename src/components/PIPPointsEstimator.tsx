@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, TrendingUp, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { ChevronRight, TrendingUp, Info } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 
@@ -43,7 +43,6 @@ const RATES = {
 
 export function PIPPointsEstimator() {
   const { savedAnswers, navigateTo, hasPaid } = useAppContext();
-  const [expanded, setExpanded] = useState(false);
 
   const answeredIds = Object.keys(savedAnswers);
   const answeredDailyCount = answeredIds.filter(id => DAILY_LIVING_QUESTIONS.includes(id)).length;
@@ -101,7 +100,7 @@ export function PIPPointsEstimator() {
   return (
     <section>
       <button
-        onClick={() => setExpanded(e => !e)}
+        onClick={() => navigateTo('question_index')}
         className="w-full bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 hover:shadow-md transition-all active:scale-[0.98] overflow-hidden text-left"
       >
         {/* Header row */}
@@ -134,16 +133,12 @@ export function PIPPointsEstimator() {
                 £{weeklyEstimate.toFixed(2)}<span className="text-xs font-medium text-stone-400">/wk</span>
               </span>
             )}
-            {expanded
-              ? <ChevronUp className="w-4 h-4 text-stone-400" />
-              : <ChevronDown className="w-4 h-4 text-stone-400" />
-            }
+<ChevronRight className="w-4 h-4 text-stone-400" />
           </div>
         </div>
 
-        {/* Collapsed summary bar */}
-        {!expanded && (
-          <div className="px-4 pb-4 flex gap-3">
+        {/* Summary bar */}
+        <div className="px-4 pb-4 flex gap-3">
             <div className={`flex-1 rounded-xl px-3 py-2 border ${dailyAward.bg} ${dailyAward.border}`}>
               <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wide mb-0.5">Daily Living</p>
               <p className={`text-xs font-bold ${dailyAward.color}`}>{dailyPoints} pts</p>
@@ -155,107 +150,8 @@ export function PIPPointsEstimator() {
               <p className={`text-[10px] ${mobilityAward.color} opacity-80 leading-tight mt-0.5`}>{answeredMobilityCount}/2 answered</p>
             </div>
           </div>
-        )}
-      </button>
+        </button>
 
-      {/* Expanded detail */}
-      {expanded && (
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm mt-0 -mt-2 pt-2 pb-4 px-4 rounded-t-none border-t-0">
-
-          {/* Score breakdown */}
-          <div className="grid grid-cols-2 gap-3 mb-4 pt-2">
-            {/* Daily Living */}
-            <div className={`rounded-xl p-3 border ${dailyAward.bg} ${dailyAward.border}`}>
-              <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wide mb-2">Daily Living</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className={`text-2xl font-black ${dailyAward.color}`}>{dailyPoints}</span>
-                <span className="text-xs text-stone-400 mb-1 font-medium">/ need 8+</span>
-              </div>
-              <p className={`text-[11px] font-semibold ${dailyAward.color} leading-tight`}>{dailyAward.label}</p>
-              <p className="text-[10px] text-stone-400 mt-1">{answeredDailyCount} of 10 questions answered</p>
-              {/* Mini progress bar */}
-              <div className="mt-2 bg-white/60 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-teal-500 h-full rounded-full transition-all" style={{ width: `${Math.min((dailyPoints / 20) * 100, 100)}%` }} />
-              </div>
-            </div>
-
-            {/* Mobility */}
-            <div className={`rounded-xl p-3 border ${mobilityAward.bg} ${mobilityAward.border}`}>
-              <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wide mb-2">Mobility</p>
-              <div className="flex items-end gap-1 mb-1">
-                <span className={`text-2xl font-black ${mobilityAward.color}`}>{mobilityPoints}</span>
-                <span className="text-xs text-stone-400 mb-1 font-medium">/ need 8+</span>
-              </div>
-              <p className={`text-[11px] font-semibold ${mobilityAward.color} leading-tight`}>{mobilityAward.label}</p>
-              <p className="text-[10px] text-stone-400 mt-1">{answeredMobilityCount} of 2 questions answered</p>
-              <div className="mt-2 bg-white/60 rounded-full h-1.5 overflow-hidden">
-                <div className="bg-teal-500 h-full rounded-full transition-all" style={{ width: `${Math.min((mobilityPoints / 12) * 100, 100)}%` }} />
-              </div>
-            </div>
-          </div>
-
-          {/* Payment estimate */}
-          {hasAnyAward && (
-            <div className="bg-teal-700 rounded-xl p-4 mb-3 text-white">
-              <p className="text-xs text-teal-200 font-semibold uppercase tracking-wide mb-2">Estimated payment (2025/26 rates)</p>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-3xl font-black">£{weeklyEstimate.toFixed(2)}</span>
-                <span className="text-teal-300 text-sm">per week</span>
-              </div>
-              <p className="text-teal-200 text-sm font-semibold">
-                ~£{annualEstimate.toLocaleString('en-GB', { maximumFractionDigits: 0 })} per year · tax-free
-              </p>
-              <div className="mt-3 pt-3 border-t border-teal-600 space-y-1">
-                {dailyPoints >= 8 && (
-                  <p className="text-xs text-teal-200">
-                    Daily Living ({dailyPoints >= 12 ? 'Enhanced' : 'Standard'}): £{dailyPoints >= 12 ? RATES.dailyEnhanced.toFixed(2) : RATES.dailyStandard.toFixed(2)}/wk
-                  </p>
-                )}
-                {mobilityPoints >= 8 && (
-                  <p className="text-xs text-teal-200">
-                    Mobility ({mobilityPoints >= 12 ? 'Enhanced' : 'Standard'}): £{mobilityPoints >= 12 ? RATES.mobilityEnhanced.toFixed(2) : RATES.mobilityStandard.toFixed(2)}/wk
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Threshold guide */}
-          <div className="bg-stone-50 rounded-xl p-3 mb-3 border border-stone-100">
-            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wide mb-2">Scoring thresholds</p>
-            <div className="space-y-1.5 text-xs text-stone-600">
-              <div className="flex justify-between"><span>8–11 points</span><span className="font-semibold text-blue-700">Standard rate</span></div>
-              <div className="flex justify-between"><span>12+ points</span><span className="font-semibold text-teal-700">Enhanced rate</span></div>
-              <div className="flex justify-between"><span>Below 8</span><span className="font-semibold text-stone-400">No award</span></div>
-            </div>
-          </div>
-
-          {/* Disclaimer */}
-          <div className="flex items-start gap-2 mb-3">
-            <Info className="w-3.5 h-3.5 text-stone-400 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-stone-400 leading-relaxed">
-              This is an estimate only. Your actual award depends on your full assessment. {isPartial && `You have ${12 - totalAnswered} questions still to answer.`}
-            </p>
-          </div>
-
-          {/* CTA */}
-          {isPartial && (
-            <button
-              onClick={() => navigateTo('question_index')}
-              className="w-full bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
-              Complete all 12 questions for full estimate
-            </button>
-          )}
-
-          <button
-            onClick={() => setExpanded(false)}
-            className="w-full mt-2 bg-stone-100 text-stone-600 py-2.5 rounded-xl font-medium text-sm hover:bg-stone-200 active:scale-[0.98] transition-all"
-          >
-            Close
-          </button>
-        </div>
-      )}
     </section>
   );
 }
