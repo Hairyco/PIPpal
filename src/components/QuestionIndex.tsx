@@ -183,7 +183,7 @@ export function QuestionIndex() {
                 <span className="text-sm font-bold text-orange-900">Unlock questions 2–12</span>
               </div>
               <p className="text-xs text-orange-700 leading-relaxed">
-                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — £12.99 one-time.
+                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — £8.99 one-time.
               </p>
             </button>
           )}

@@ -540,7 +540,7 @@ export function EligibilityChecker() {
             Apply Now
           </button>
           <p className="text-[11px] text-stone-400 text-center mb-4">
-            Free: Q1 walkthrough · Full Access: £12.99
+            Free: Q1 walkthrough · Full Access: £8.99
           </p>
 
           {/* PIP Diary Teaser */}

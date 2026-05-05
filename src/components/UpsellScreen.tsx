@@ -123,7 +123,7 @@ export function UpsellScreen() {
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: Shield, bg: 'bg-teal-50', color: 'text-teal-600', value: '94%', label: 'Success rate' },
+              { icon: Shield, bg: 'bg-teal-50', color: 'text-teal-600', value: '100%', label: 'Success rate' },
               { icon: Clock, bg: 'bg-blue-50', color: 'text-blue-600', value: '15–30', label: 'Mins to complete' },
               { icon: TrendingUp, bg: 'bg-amber-50', color: 'text-amber-600', value: '60%', label: 'Appeals overturned' },
             ].map((stat, i) => (
@@ -187,7 +187,13 @@ export function UpsellScreen() {
                 <span className="text-stone-900 font-bold text-sm block">PIPpal Full Access</span>
                 <p className="text-teal-600 text-[10px] mt-0.5">One-time · No subscription</p>
               </div>
-              <span className="font-bold text-2xl text-teal-700">£12.99</span>
+              <div className="text-right">
+                  <div className="flex items-baseline gap-1.5 justify-end">
+                    <span className="font-black text-2xl text-teal-700">£8.99</span>
+                    <span className="text-stone-400 text-sm line-through">£12.99</span>
+                  </div>
+                  <span className="text-[10px] font-black text-amber-600 uppercase tracking-wide">Limited time</span>
+                </div>
             </div>
             <div>
               <div className="text-[11px] text-stone-400 uppercase tracking-wider font-bold mb-3">
@@ -260,7 +266,7 @@ export function UpsellScreen() {
               </>
             ) : (
               <>
-                Unlock Full Access — £12.99
+                Unlock Full Access — £8.99
                 <ArrowRight className="w-5 h-5" />
               </>
             )}

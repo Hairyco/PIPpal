@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { PIPPointsEstimator } from './PIPPointsEstimator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -196,6 +197,9 @@ export function HomeScreen() {
           </section>
         )}
 
+        {/* Points Estimator — shows when any answers saved */}
+        <PIPPointsEstimator />
+
         {/* Medical profile */}
         <section>
           <button
@@ -389,12 +393,20 @@ export function HomeScreen() {
               onClick={() => navigateTo('upsell')}
               className="w-full bg-gradient-to-r from-teal-700 to-teal-600 text-white rounded-2xl p-5 text-left hover:from-teal-800 hover:to-teal-700 transition-all active:scale-[0.98] shadow-md"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span className="text-sm font-bold">Unlock Full Access — £12.99</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span className="text-sm font-bold">Unlock Full Access</span>
+                </div>
+                <span className="text-[10px] font-black text-amber-300 bg-amber-300/20 border border-amber-300/30 px-2 py-0.5 rounded-full uppercase tracking-wide">Limited time</span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-1.5">
+                <span className="text-2xl font-black text-white">£8.99</span>
+                <span className="text-teal-300 text-xs line-through">£12.99</span>
+                <span className="text-teal-200 text-xs">one-time</span>
               </div>
               <p className="text-teal-100 text-xs leading-relaxed">
-                All 12 PIP questions, PIP Diary, Assessment Prep, Export & more — one-time payment, no subscription.
+                All 12 PIP questions, PIP Diary, Assessment Prep, Export & more. No subscription.
               </p>
               <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-amber-300">
                 See what's included <ChevronRight className="w-3.5 h-3.5" />

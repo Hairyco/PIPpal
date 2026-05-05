@@ -276,9 +276,9 @@ ${weeksHtml}
           <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center"><Lock className="w-8 h-8 text-teal-600" /></div>
           <div>
             <h2 className="font-bold text-stone-900 text-lg mb-2">Full Access required</h2>
-            <p className="text-sm text-stone-500 leading-relaxed">The PIP Diary is available to Full Access users. Unlock for £12.99 one-time.</p>
+            <p className="text-sm text-stone-500 leading-relaxed">The PIP Diary is available to Full Access users. Unlock for £8.99 one-time.</p>
           </div>
-          <button onClick={() => navigateTo('upsell')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">Unlock Full Access — £12.99</button>
+          <button onClick={() => navigateTo('upsell')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">Unlock Full Access — £8.99</button>
         </div>
       </div>
     );
