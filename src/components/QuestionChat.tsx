@@ -32,7 +32,7 @@ type HistoryEntry = {
   messages: Message[];
 };
 export function QuestionChat() {
-  const { badDayMode, setQ1Result, navigateTo, goBack, selectedQuestionId, medProfile } = useAppContext();
+  const { badDayMode, setQ1Result, navigateTo, goBack, selectedQuestionId, medProfile, descriptorHint, setDescriptorHint } = useAppContext();
   const isQ1 = !selectedQuestionId || selectedQuestionId === 'q1';
   const question = getQuestion(selectedQuestionId || 'q1');
   const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
@@ -221,8 +221,15 @@ export function QuestionChat() {
   useEffect(() => {
     if (!isQ1 && !aiInitialised) {
       setAiInitialised(true);
-      const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
-      callAI(`START: ${opener}`, []);
+      if (descriptorHint) {
+        // User tapped a descriptor — start chat focused on that descriptor
+        const hintOpener = `START: The user wants to explore whether they qualify for descriptor ${descriptorHint} for this activity. Ask them specific questions about their experience that would help confirm or refine which descriptor applies to them. Focus on real-world examples, frequency, safety, and whether they can do it reliably and in a timely manner.`;
+        callAI(hintOpener, []);
+        setDescriptorHint(null);
+      } else {
+        const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
+        callAI(`START: ${opener}`, []);
+      }
     }
   }, [isQ1, aiInitialised]);
   const getScoreInfo = (): {

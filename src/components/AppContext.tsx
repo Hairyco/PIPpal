@@ -78,6 +78,8 @@ interface AppContextType {
   setMedProfile: (profile: MedProfile) => void;
   badDayMode: boolean;
   setBadDayMode: (active: boolean) => void;
+  descriptorHint: string | null;
+  setDescriptorHint: (hint: string | null) => void;
   q1Result: any;
   setQ1Result: (result: any) => void;
   selectedQuestionId: string;
@@ -163,6 +165,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const [badDayMode, setBadDayMode] = useState(false);
+  const [descriptorHint, setDescriptorHint] = useState<string | null>(null);
   const [q1Result, setQ1Result] = useState<any>(null);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
   const [assistantQuestion, setAssistantQuestion] = useState<string | null>(null);
@@ -451,6 +454,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setMedProfile,
         badDayMode,
         setBadDayMode,
+        descriptorHint,
+        setDescriptorHint,
         q1Result,
         setQ1Result,
         selectedQuestionId,

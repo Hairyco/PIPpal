@@ -149,7 +149,8 @@ export function ResultCard() {
     goBack,
     saveAnswer,
     getSavedAnswer,
-    hasPaid
+    hasPaid,
+    setDescriptorHint,
   } = useAppContext();
   const [showChat, setShowChat] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -323,10 +324,11 @@ export function ResultCard() {
           className="overflow-hidden bg-white border-b border-stone-100 z-10 relative">
           
             <div className="px-5 md:px-8 py-3">
-              <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+              <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-1">
                 All Descriptors — Q3: Preparing Food
               </div>
-              <div className="space-y-2">
+              <p className="text-[10px] text-teal-600 font-semibold mb-3">Tap a descriptor to explore it with PIPpal</p>
+              <div className="space-y-1.5">
                 {(
               [
               {
@@ -367,20 +369,31 @@ export function ResultCard() {
               }] as
               const).
               map((d) =>
-              <div
+              <button
                 key={d.letter}
-                className={`flex gap-2 text-xs ${descriptor === d.letter ? 'bg-teal-50 -mx-2 px-2 py-1.5 rounded-lg border border-teal-100' : ''}`}>
-                
-                    <span className="font-bold w-4 text-stone-400 shrink-0">
+                onClick={() => {
+                  setDescriptorHint(d.letter);
+                  setQ1Result(null);
+                  navigateTo('q1_chat');
+                }}
+                className={`w-full flex gap-2 text-xs text-left rounded-xl px-2 py-2.5 transition-all active:scale-[0.98] border group
+                  ${descriptor === d.letter
+                    ? 'bg-teal-50 border-teal-200 shadow-sm'
+                    : 'border-transparent hover:bg-stone-50 hover:border-stone-200'
+                  }`}>
+                    <span className="font-bold w-4 text-stone-400 shrink-0 mt-0.5">
                       {d.letter}
                     </span>
                     <span className="flex-1 text-stone-600 leading-relaxed">
                       {d.text}
                     </span>
-                    <span className={`font-bold shrink-0 ${d.color}`}>
-                      {d.pts}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className={`font-bold ${d.color}`}>
+                        {d.pts}
+                      </span>
+                      <span className="text-stone-300 group-hover:text-teal-500 transition-colors text-xs ml-1">→</span>
+                    </div>
+                  </button>
               )}
               </div>
             </div>
