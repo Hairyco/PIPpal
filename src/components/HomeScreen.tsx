@@ -19,8 +19,6 @@ import {
   Coins,
   X,
   Sparkles,
-  TrendingUp,
-  BookOpen as BookOpenIcon,
   Settings,
   Newspaper,
 } from 'lucide-react';
@@ -104,8 +102,6 @@ export function HomeScreen() {
   }, [newsHeadlines]);
 
   const hasConditions = medProfile.conditions.length > 0;
-  const hasStartedApplication = hasPaid && Object.keys(savedAnswers).length > 0;
-  const answersCount = Object.keys(savedAnswers).length;
   const firstName = user?.name ? user.name.split(' ')[0] : '';
 
   const dismissUrgency = () => {
@@ -164,37 +160,6 @@ export function HomeScreen() {
               <X className="w-4 h-4" />
             </button>
           </div>
-        )}
-
-        {/* Progress banner — only when started */}
-        {hasStartedApplication && (
-          <section className="bg-teal-700 text-white rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-teal-200" />
-                <span className="text-sm font-semibold">Your progress</span>
-              </div>
-              <span className="text-xs text-teal-200">{answersCount} / 12 questions</span>
-            </div>
-            <ProgressBar value={answersCount} max={12} />
-            <button
-              onClick={() => {
-                const allIds = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12'];
-                const nextId = allIds.find(id => !savedAnswers[id]);
-                if (nextId) {
-                  setSelectedQuestionId(nextId);
-                  navigateTo('q1_intro');
-                } else {
-                  navigateTo('question_index');
-                }
-              }}
-              className="mt-3 w-full bg-white/10 hover:bg-white/20 text-white text-sm font-medium py-2 rounded-xl transition-colors flex items-center justify-center gap-2"
-            >
-              <BookOpenIcon className="w-4 h-4" />
-              Continue — Question {Math.min(answersCount + 1, 12)} of 12
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </section>
         )}
 
         {/* Points Estimator — shows when any answers saved */}
