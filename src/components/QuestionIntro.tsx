@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   Info,
-  TrendingUp,
-  BookOpen,
   Shield,
   Lock,
   ChevronRight,
@@ -12,7 +10,7 @@ import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
 
 export function QuestionIntro() {
-  const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers, selectedQuestionId, setDescriptorHint, setQ1Result } = useAppContext();
+  const { medProfile, navigateTo, goBack, currentScreen, savedAnswers, selectedQuestionId, setDescriptorHint, setQ1Result } = useAppContext();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   const questionId = selectedQuestionId || 'q1';
@@ -31,15 +29,7 @@ export function QuestionIntro() {
     }
   }
 
-  const answeredCount = Object.keys(savedAnswers).length;
-  const totalPoints = PIP_QUESTIONS.reduce((acc, q) => {
-    const answer = savedAnswers[q.id];
-    if (answer) {
-      const descriptor = q.descriptors.find((d) => d.code === answer);
-      if (descriptor) acc += descriptor.points;
-    }
-    return acc;
-  }, 0);
+
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
@@ -73,29 +63,9 @@ export function QuestionIntro() {
           </p>
         </div>
 
-        {/* Paper form note */}
-        <div className="bg-blue-50 rounded-xl px-4 py-3 border border-blue-100 flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-blue-800 leading-relaxed">
-            <strong>Note:</strong> We call this Question {question.num}, but on the official PIP2 paper form it's {question.pipFormRef}. We skip the admin questions and focus on the ones that affect your score.
-          </p>
-        </div>
 
-        {/* Progress */}
-        {answeredCount > 0 && (
-          <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
-            <div className="flex justify-between items-end mb-2">
-              <div className="text-sm font-bold text-stone-900">Your progress</div>
-              <div className="text-xs font-medium text-stone-500">{answeredCount} / 12 answered · {totalPoints} pts so far</div>
-            </div>
-            <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-teal-500 rounded-full transition-all duration-500"
-                style={{ width: `${(answeredCount / 12) * 100}%` }}
-              />
-            </div>
-          </div>
-        )}
+
+
 
 
 
@@ -103,7 +73,7 @@ export function QuestionIntro() {
         <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
           <div className="flex items-center gap-2 mb-3">
             <Info className="w-5 h-5 text-amber-700" />
-            <h3 className="font-bold text-amber-900">What this question means for you</h3>
+            <h3 className="font-bold text-amber-900">This question explained</h3>
           </div>
           <p className="text-sm text-amber-800 leading-relaxed">{explainerText}</p>
           {explainerExample && (
@@ -116,8 +86,14 @@ export function QuestionIntro() {
 
         {/* Descriptors — always open */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-          <div className="w-full p-4 flex items-center justify-between bg-stone-50 border-b border-stone-100">
-            <span className="font-bold text-stone-900 text-sm">Descriptors — What are you scored on?</span>
+          <div className="w-full px-4 py-3 flex items-center justify-between bg-stone-50 border-b border-stone-100">
+            <span className="font-bold text-stone-900 text-sm">What are you scored on? Descriptors</span>
+            <button
+              onClick={() => navigateTo('descriptors_guide')}
+              className="text-[11px] font-semibold text-teal-600 hover:text-teal-700 shrink-0 ml-2"
+            >
+              Learn more →
+            </button>
           </div>
           <div className="px-4 pt-3 pb-1">
             <p className="text-xs text-stone-500 leading-relaxed mb-1">DWP scores you against these descriptors. <strong className="text-stone-700">Tap the one that sounds most like you</strong> and PIPpal will guide your answer around it.</p>
@@ -148,23 +124,7 @@ export function QuestionIntro() {
 
 
 
-        {/* PIP Diary tip */}
-        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 flex flex-col gap-3">
-          <div className="flex items-start gap-2.5">
-            <BookOpen className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-emerald-800 leading-relaxed">
-              <strong>Tip:</strong> {question.tip}
-            </p>
-          </div>
-          {hasPaid && (
-            <button
-              onClick={() => navigateTo('pip_diary')}
-              className="self-start inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
-            >
-              Open PIP Diary →
-            </button>
-          )}
-        </div>
+
       </div>
 
       {/* Disclaimer modal */}
