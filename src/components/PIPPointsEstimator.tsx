@@ -42,15 +42,37 @@ const RATES = {
 };
 
 export function PIPPointsEstimator() {
-  const { savedAnswers, navigateTo } = useAppContext();
+  const { savedAnswers, navigateTo, hasPaid } = useAppContext();
+  const [expanded, setExpanded] = useState(false);
 
   const answeredIds = Object.keys(savedAnswers);
   const answeredDailyCount = answeredIds.filter(id => DAILY_LIVING_QUESTIONS.includes(id)).length;
   const answeredMobilityCount = answeredIds.filter(id => MOBILITY_QUESTIONS.includes(id)).length;
   const totalAnswered = answeredIds.length;
 
-  // Only show if at least one question answered
-  if (totalAnswered === 0) return null;
+  // Show for paid users always, or for free users once they have at least Q1 answered
+  if (!hasPaid && totalAnswered === 0) return null;
+
+  // Empty state for paid users with no answers yet
+  if (hasPaid && totalAnswered === 0) {
+    return (
+      <section>
+        <button
+          onClick={() => navigateTo('question_index')}
+          className="w-full bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 hover:shadow-md transition-all active:scale-[0.98] px-4 py-4 text-left flex items-center gap-3"
+        >
+          <div className="w-9 h-9 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
+            <TrendingUp className="w-4.5 h-4.5 text-teal-700" style={{ width: '18px', height: '18px' }} />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-stone-900 text-sm">Your Points Estimate</h3>
+            <p className="text-xs text-stone-500 mt-0.5">Answer your questions to see your estimated award</p>
+          </div>
+          <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />
+        </button>
+      </section>
+    );
+  }
 
   const dailyPoints = DAILY_LIVING_QUESTIONS.reduce((sum, id) => {
     return sum + (savedAnswers[id] ? getPointsForAnswer(id, savedAnswers[id]) : 0);
@@ -79,7 +101,7 @@ export function PIPPointsEstimator() {
   return (
     <section>
       <button
-        onClick={() => navigateTo('question_index')}
+        onClick={() => setExpanded(e => !e)}
         className="w-full bg-white rounded-2xl border border-stone-100 shadow-sm hover:border-teal-200 hover:shadow-md transition-all active:scale-[0.98] overflow-hidden text-left"
       >
         {/* Header row */}
@@ -112,12 +134,16 @@ export function PIPPointsEstimator() {
                 £{weeklyEstimate.toFixed(2)}<span className="text-xs font-medium text-stone-400">/wk</span>
               </span>
             )}
-            <ChevronDown className="w-4 h-4 text-stone-400" />
+            {expanded
+              ? <ChevronUp className="w-4 h-4 text-stone-400" />
+              : <ChevronDown className="w-4 h-4 text-stone-400" />
+            }
           </div>
         </div>
 
-        {/* Summary bar */}
-        <div className="px-4 pb-4 flex gap-3">
+        {/* Collapsed summary bar */}
+        {!expanded && (
+          <div className="px-4 pb-4 flex gap-3">
             <div className={`flex-1 rounded-xl px-3 py-2 border ${dailyAward.bg} ${dailyAward.border}`}>
               <p className="text-[10px] font-semibold text-stone-500 uppercase tracking-wide mb-0.5">Daily Living</p>
               <p className={`text-xs font-bold ${dailyAward.color}`}>{dailyPoints} pts</p>
@@ -129,10 +155,11 @@ export function PIPPointsEstimator() {
               <p className={`text-[10px] ${mobilityAward.color} opacity-80 leading-tight mt-0.5`}>{answeredMobilityCount}/2 answered</p>
             </div>
           </div>
-        </button>
+        )}
+      </button>
 
-      {/* Expanded detail — now on question_index page */}
-      {false && (
+      {/* Expanded detail */}
+      {expanded && (
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm mt-0 -mt-2 pt-2 pb-4 px-4 rounded-t-none border-t-0">
 
           {/* Score breakdown */}
