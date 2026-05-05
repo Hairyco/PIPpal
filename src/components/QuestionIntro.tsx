@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
 
 export function QuestionIntro() {
-  const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers, selectedQuestionId } = useAppContext();
+  const { medProfile, navigateTo, goBack, hasPaid, currentScreen, savedAnswers, selectedQuestionId, setDescriptorHint, setQ1Result } = useAppContext();
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
@@ -138,15 +138,29 @@ export function QuestionIntro() {
                 exit={{ height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="p-4 space-y-3 border-t border-stone-100">
+                <div className="px-4 pt-3 pb-1 border-t border-stone-100">
+                  <p className="text-xs text-stone-500 leading-relaxed mb-1">DWP scores you against these descriptors. <strong className="text-stone-700">Tap the one that sounds most like you</strong> and PIPpal will guide your answer around it.</p>
+                </div>
+                <div className="px-3 pb-3 space-y-1.5">
                   {question.descriptors.map((d) => (
-                    <div key={d.code} className="flex gap-3 text-sm">
-                      <div className="font-bold w-4 text-stone-400">{d.code}</div>
-                      <div className="flex-1 text-stone-600">{d.text}</div>
-                      <div className={`font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>
-                        {d.points}
+                    <button
+                      key={d.code}
+                      onClick={() => {
+                        setDescriptorHint(d.code);
+                        setQ1Result(null);
+                        navigateTo('q1_chat');
+                      }}
+                      className="w-full flex gap-3 text-sm text-left rounded-xl px-3 py-3 border border-transparent hover:border-teal-200 hover:bg-teal-50 active:scale-[0.98] transition-all group"
+                    >
+                      <div className="font-black w-4 text-stone-400 shrink-0 mt-0.5 group-hover:text-teal-600 transition-colors">{d.code}</div>
+                      <div className="flex-1 text-stone-600 leading-snug group-hover:text-stone-900 transition-colors">{d.text}</div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`font-bold text-xs ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>
+                          {d.points}pts
+                        </span>
+                        <span className="text-stone-200 group-hover:text-teal-400 transition-colors text-sm">→</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </motion.div>
