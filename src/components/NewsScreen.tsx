@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Loader2, Newspaper, ExternalLink, ChevronRight, Bookmark, BookmarkCheck, Clock } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Loader2, Newspaper, ExternalLink, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -106,6 +106,37 @@ export function NewsScreen() {
   const featured = filteredArticles[0];
   const rest = filteredArticles.slice(1);
 
+  // Group articles by date for section headers
+  function formatDateLabel(dateStr: string): string {
+    if (!dateStr) return 'Recent';
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      const isToday = date.toDateString() === today.toDateString();
+      const isYesterday = date.toDateString() === yesterday.toDateString();
+      if (isToday) return 'Today';
+      if (isYesterday) return 'Yesterday';
+      return date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    } catch {
+      return dateStr;
+    }
+  }
+
+  // Group articles by date label
+  const groupedArticles: { label: string; articles: typeof filteredArticles }[] = [];
+  filteredArticles.forEach((article, i) => {
+    const label = formatDateLabel(article.date);
+    const existing = groupedArticles.find(g => g.label === label);
+    if (existing) {
+      existing.articles.push(article);
+    } else {
+      groupedArticles.push({ label, articles: [article] });
+    }
+  });
+
   return (
     <div className="flex flex-col h-full bg-stone-50">
 
@@ -182,96 +213,115 @@ export function NewsScreen() {
         )}
 
         {!isLoading && !error && filteredArticles.length > 0 && (
-          <div className="px-5 mt-4 space-y-3 pb-6">
-            <AnimatePresence>
-              {filteredArticles.map((article, i) => {
-                const style = getStyle(article.tags[0]);
-                const isExpanded = expanded === i;
-                const isFeatured = i === 0;
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.04 }}
-                    className={`rounded-2xl border shadow-sm overflow-hidden ${isFeatured ? 'bg-teal-700 border-teal-600' : 'bg-white border-stone-100'}`}
-                  >
-                    {!isFeatured && <div className={`h-0.5 ${style.accent}`} />}
+          <div className="px-5 mt-4 pb-6 space-y-6">
+            {groupedArticles.map(({ label, articles: groupArticles }) => {
+              // Compute global index offset for expanded state
+              const groupStartIndex = filteredArticles.indexOf(groupArticles[0]);
+              return (
+                <div key={label}>
+                  {/* Date section header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="text-xs font-black text-stone-500 uppercase tracking-widest shrink-0">
+                      {label}
+                    </span>
+                    <div className="flex-1 h-px bg-stone-200" />
+                  </div>
 
-                    <div className="flex items-start gap-2 px-4 pt-3 pb-0">
-                      <button
-                        onClick={() => setExpanded(isExpanded ? null : i)}
-                        className="flex-1 text-left"
-                      >
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-lg shrink-0">{style.icon}</span>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isFeatured ? 'bg-white/20 text-teal-100 border-teal-500' : style.pill}`}>
-                            {article.tags[0]}
-                          </span>
-                          {article.date && (
-                            <span className={`flex items-center gap-1 text-[10px] ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>
-                              <Clock className="w-3 h-3" />{article.date}
-                            </span>
-                          )}
-                        </div>
-                        <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title}</h3>
-                        {!isExpanded && (
-                          <p className={`text-xs mt-1 line-clamp-2 leading-relaxed mb-3 ${isFeatured ? 'text-teal-100' : 'text-stone-500'}`}>{article.body}</p>
-                        )}
-                      </button>
-                      <div className="flex flex-col items-center gap-1 shrink-0 ml-1">
-                        <button
-                          onClick={() => toggleBookmark(article.title)}
-                          className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${bookmarks.has(article.title) ? (isFeatured ? 'text-yellow-300' : 'text-teal-600') : (isFeatured ? 'text-teal-300 hover:text-white' : 'text-stone-300 hover:text-teal-600')}`}
-                        >
-                          {bookmarks.has(article.title)
-                            ? <BookmarkCheck className="w-4 h-4" />
-                            : <Bookmark className="w-4 h-4" />
-                          }
-                        </button>
-                        <ChevronRight
-                          onClick={() => setExpanded(isExpanded ? null : i)}
-                          className={`w-4 h-4 shrink-0 transition-transform cursor-pointer ${isExpanded ? 'rotate-90' : ''} ${isFeatured ? 'text-teal-300' : 'text-stone-300'}`}
-                        />
-                      </div>
-                    </div>
+                  <div className="space-y-3">
+                    <AnimatePresence>
+                      {groupArticles.map((article, j) => {
+                        const i = groupStartIndex + j;
+                        const style = getStyle(article.tags[0]);
+                        const isExpanded = expanded === i;
+                        const isFeatured = i === 0;
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: j * 0.04 }}
+                            className={`rounded-2xl border shadow-sm overflow-hidden ${isFeatured ? 'bg-teal-700 border-teal-600' : 'bg-white border-stone-100'}`}
+                          >
+                            {!isFeatured && <div className={`h-0.5 ${style.accent}`} />}
 
-                    {isExpanded && (
-                      <div className={`px-4 pb-4 border-t ${isFeatured ? 'border-teal-600' : 'border-stone-50'}`}>
-                        <p className={`text-sm leading-relaxed pt-3 ${isFeatured ? 'text-teal-100' : 'text-stone-600'}`}>{article.body}</p>
-                        <div className={`mt-3 rounded-xl p-3 border ${isFeatured ? 'bg-white/10 border-teal-500' : 'bg-teal-50 border-teal-100'}`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <p className={`text-[10px] font-bold uppercase tracking-wider ${isFeatured ? 'text-teal-200' : 'text-teal-800'}`}>Dig deeper</p>
-                            {!hasPaid && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFeatured ? 'bg-white/20 text-teal-200' : 'bg-amber-100 text-amber-700'}`}>Pro only</span>}
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {getContextualQuestions(article).map(q => (
-                              <button key={q}
-                                onClick={() => {
-                                  if (!hasPaid) { navigateTo('upsell'); return; }
-                                  setAssistantQuestion(q);
-                                  setAssistantContext(article.title);
-                                }}
-                                className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors active:scale-95 ${isFeatured ? 'bg-white/20 text-white border-teal-400 hover:bg-white/30' : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-100'}`}
-                              >{q}</button>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-3">
-                          <span className={`text-[11px] font-medium ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>{article.source}</span>
-                          {article.link && (
-                            <a href={article.link} target="_blank" rel="noopener noreferrer"
-                              className={`flex items-center gap-1 text-[11px] font-bold transition-colors ${isFeatured ? 'text-teal-200 hover:text-white' : 'text-teal-700 hover:text-teal-800'}`}>
-                              Read original <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                            <div className="flex items-start gap-2 px-4 pt-3 pb-0">
+                              <button
+                                onClick={() => setExpanded(isExpanded ? null : i)}
+                                className="flex-1 text-left"
+                              >
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <span className="text-lg shrink-0">{style.icon}</span>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${isFeatured ? 'bg-white/20 text-teal-100 border-teal-500' : style.pill}`}>
+                                    {article.tags[0]}
+                                  </span>
+                                  {article.source && (
+                                    <span className={`text-[10px] truncate max-w-[100px] ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>
+                                      {article.source}
+                                    </span>
+                                  )}
+                                </div>
+                                <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title}</h3>
+                                {!isExpanded && (
+                                  <p className={`text-xs mt-1 line-clamp-2 leading-relaxed mb-3 ${isFeatured ? 'text-teal-100' : 'text-stone-500'}`}>{article.body}</p>
+                                )}
+                              </button>
+                              <div className="flex flex-col items-center gap-1 shrink-0 ml-1">
+                                <button
+                                  onClick={() => toggleBookmark(article.title)}
+                                  className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${bookmarks.has(article.title) ? (isFeatured ? 'text-yellow-300' : 'text-teal-600') : (isFeatured ? 'text-teal-300 hover:text-white' : 'text-stone-300 hover:text-teal-600')}`}
+                                >
+                                  {bookmarks.has(article.title)
+                                    ? <BookmarkCheck className="w-4 h-4" />
+                                    : <Bookmark className="w-4 h-4" />
+                                  }
+                                </button>
+                                <ChevronRight
+                                  onClick={() => setExpanded(isExpanded ? null : i)}
+                                  className={`w-4 h-4 shrink-0 transition-transform cursor-pointer ${isExpanded ? 'rotate-90' : ''} ${isFeatured ? 'text-teal-300' : 'text-stone-300'}`}
+                                />
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div className={`px-4 pb-4 border-t ${isFeatured ? 'border-teal-600' : 'border-stone-50'}`}>
+                                <p className={`text-sm leading-relaxed pt-3 ${isFeatured ? 'text-teal-100' : 'text-stone-600'}`}>{article.body}</p>
+                                <div className={`mt-3 rounded-xl p-3 border ${isFeatured ? 'bg-white/10 border-teal-500' : 'bg-teal-50 border-teal-100'}`}>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className={`text-[10px] font-bold uppercase tracking-wider ${isFeatured ? 'text-teal-200' : 'text-teal-800'}`}>Dig deeper</p>
+                                    {!hasPaid && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFeatured ? 'bg-white/20 text-teal-200' : 'bg-amber-100 text-amber-700'}`}>Pro only</span>}
+                                  </div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {getContextualQuestions(article).map(q => (
+                                      <button key={q}
+                                        onClick={() => {
+                                          if (!hasPaid) { navigateTo('upsell'); return; }
+                                          setAssistantQuestion(q);
+                                          setAssistantContext(article.title);
+                                        }}
+                                        className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors active:scale-95 ${isFeatured ? 'bg-white/20 text-white border-teal-400 hover:bg-white/30' : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-100'}`}
+                                      >{q}</button>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between mt-3">
+                                  <span className={`text-[11px] font-medium ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>{article.source}</span>
+                                  {article.link && (
+                                    <a href={article.link} target="_blank" rel="noopener noreferrer"
+                                      className={`flex items-center gap-1 text-[11px] font-bold transition-colors ${isFeatured ? 'text-teal-200 hover:text-white' : 'text-teal-700 hover:text-teal-800'}`}>
+                                      Read original <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
