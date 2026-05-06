@@ -43,7 +43,7 @@ export function Hero({ onStart }: HeroProps) {
           <div className="space-y-2.5 mb-5 text-left">
             {[
               ['100%', ' success rate'],
-              ['Up to £10,246', ' a year, tax-free'],
+              ['Receive your PIP decision', ' 3–6 weeks earlier'],
               ['Unique answers', ' tailored to your condition'],
               ['Zero data sharing', ' — encrypted & private'],
             ].map(([bold, rest], i) => (
