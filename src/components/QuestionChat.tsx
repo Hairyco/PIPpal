@@ -37,13 +37,27 @@ export function QuestionChat() {
   const question = getQuestion(selectedQuestionId || 'q1');
   const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
-  const [messages, setMessages] = useState<Message[]>(
-    isQ1 ? [{
-      id: '1',
-      sender: 'bot',
-      text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?"
-    }] : []
-  );
+  // Read hint NOW — before first render — so initial message is correct
+  const initialHint = sessionStorage.getItem('pippal_descriptor_hint') || '';
+
+  const getInitialMessage = (): Message[] => {
+    if (isQ1 && initialHint) {
+      const d = PIP_QUESTIONS.find(q => q.id === 'q1')?.descriptors.find(d => d.code === initialHint.toUpperCase());
+      if (d) {
+        return [{
+          id: '1',
+          sender: 'bot',
+          text: `You've said that ${d.text.toLowerCase()}. Let me ask you a few questions to make sure we capture this properly for your claim. On your worst days, can you describe what happens when you try to prepare a meal?`
+        }];
+      }
+    }
+    if (isQ1) {
+      return [{ id: '1', sender: 'bot', text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?" }];
+    }
+    return [];
+  };
+
+  const [messages, setMessages] = useState<Message[]>(getInitialMessage);
   const [currentStep, setCurrentStep] = useState<Step>('q1');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
@@ -251,30 +265,22 @@ Options should reflect realistic answers for someone with their conditions, not 
 
   // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
-    const hint = sessionStorage.getItem('pippal_descriptor_hint');
-    sessionStorage.removeItem('pippal_descriptor_hint');
-
     if (isQ1) {
-      // For Q1: if a descriptor was tapped, jump straight to the detail step for that descriptor
-      if (hint) {
+      // Clear hint - already consumed in useState
+      if (initialHint) {
+        sessionStorage.removeItem('pippal_descriptor_hint');
         const stepMap: Record<string, Step> = {
-          'A': 'q1', 'B': 'detail_b', 'C': 'detail_c',
-          'D': 'detail_d', 'E': 'detail_e', 'F': 'detail_f'
+          'B': 'detail_b', 'C': 'detail_c', 'D': 'detail_d', 'E': 'detail_e', 'F': 'detail_f'
         };
-        const targetStep = stepMap[hint.toUpperCase()] || 'q1';
-        if (targetStep !== 'q1') {
-          const hintDescriptor = ['B','C','D','E','F'].includes(hint.toUpperCase())
-            ? hint.toUpperCase() : null;
-          if (hintDescriptor) {
-            addMessage(`You've selected: descriptor ${hintDescriptor}. Tell me more about how this applies to you.`, 'bot');
-            setCurrentStep(targetStep as Step);
-          }
-        }
+        const targetStep = stepMap[initialHint.toUpperCase()];
+        if (targetStep) setCurrentStep(targetStep as Step);
       }
       return;
     }
 
-    // Q2-Q12
+    // Q2-Q12: read hint from sessionStorage
+    const hint = sessionStorage.getItem('pippal_descriptor_hint');
+    sessionStorage.removeItem('pippal_descriptor_hint');
     if (hint) {
       fireDescriptorChat(hint);
     } else {
