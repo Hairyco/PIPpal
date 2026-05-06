@@ -220,20 +220,25 @@ export function QuestionChat() {
 
   // Capture the hint at mount time before context clears it
   const descriptorHintRef = React.useRef(descriptorHint);
+  React.useEffect(() => {
+    if (descriptorHint) descriptorHintRef.current = descriptorHint;
+  }, [descriptorHint]);
 
-  // Initialise AI chat for Q2-Q12 on mount
+  // Handle descriptor hint — fires whenever hint is set, resets chat
   useEffect(() => {
-    if (!isQ1 && !aiInitialised) {
+    if (!isQ1 && descriptorHint) {
+      const hint = descriptorHint;
+      setDescriptorHint(null);
       setAiInitialised(true);
-      const hint = descriptorHintRef.current;
-      if (hint) {
-        const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
-        const descriptorText = chosenDescriptor?.text || hint;
-        const descriptorPoints = chosenDescriptor?.points ?? 0;
-        const activityName = question?.shortTitle || 'this activity';
+      setMessages([]);
+      setAiConversation([]);
 
-        // Build a system override that replaces the button mode prompt entirely
-        const descriptorSystemPrompt = `You are PIPpal guiding someone through the "${activityName}" activity in their PIP claim.
+      const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
+      const descriptorText = chosenDescriptor?.text || hint;
+      const descriptorPoints = chosenDescriptor?.points ?? 0;
+      const activityName = question?.shortTitle || 'this activity';
+
+      const descriptorSystemPrompt = `You are PIPpal guiding someone through the "${activityName}" activity in their PIP claim.
 
 The person has already looked at the descriptors and chosen: "${descriptorText}" (${descriptorPoints} points).
 
@@ -255,12 +260,16 @@ Reply with valid JSON only:
 
 Make the options reflect what someone with their conditions might realistically answer — not generic yes/no/sometimes.`;
 
-        callAI('START', [], descriptorSystemPrompt);
-        setDescriptorHint(null);
-      } else {
-        const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
-        callAI(`START: ${opener}`, []);
-      }
+      callAI('START', [], descriptorSystemPrompt);
+    }
+  }, [descriptorHint]);
+
+  // Initialise AI chat for Q2-Q12 on mount (no descriptor hint)
+  useEffect(() => {
+    if (!isQ1 && !aiInitialised) {
+      setAiInitialised(true);
+      const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
+      callAI(`START: ${opener}`, []);
     }
   }, [isQ1, aiInitialised]);
   const getScoreInfo = (): {
