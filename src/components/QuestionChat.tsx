@@ -249,42 +249,20 @@ Options should reflect realistic answers for someone with their conditions, not 
     await callAI(userMsg, updatedConv);
   };
 
-  // Capture the hint at mount time before context clears it
-  const descriptorHintRef = React.useRef(descriptorHint);
-  React.useEffect(() => {
-    if (descriptorHint) descriptorHintRef.current = descriptorHint;
-  }, [descriptorHint]);
-
-  // Handle descriptor hint — fires whenever hint is set, resets chat
+  // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
-    if (!isQ1 && descriptorHint) {
-      const hint = descriptorHint;
-      setDescriptorHint(null);
-      sessionStorage.removeItem('pippal_descriptor_hint');
-      setAiInitialised(true);
-      setMessages([]);
-      setAiConversation([]);
+    if (isQ1) return; // Q1 has its own hardcoded flow
+    
+    const hint = sessionStorage.getItem('pippal_descriptor_hint');
+    sessionStorage.removeItem('pippal_descriptor_hint');
+    
+    if (hint) {
       fireDescriptorChat(hint);
-    }
-  }, [descriptorHint]);
-
-  // Initialise AI chat for Q2-Q12 on mount (no descriptor hint)
-  useEffect(() => {
-    if (!isQ1 && !aiInitialised) {
-      // Check sessionStorage in case context hint arrived before this effect
-      const storedHint = sessionStorage.getItem('pippal_descriptor_hint');
-      if (storedHint) {
-        sessionStorage.removeItem('pippal_descriptor_hint');
-        setDescriptorHint(null);
-        setAiInitialised(true);
-        fireDescriptorChat(storedHint);
-        return;
-      }
-      setAiInitialised(true);
+    } else {
       const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
       callAI(`START: ${opener}`, []);
     }
-  }, [isQ1, aiInitialised]);
+  }, []);
   const getScoreInfo = (): {
     descriptor: string;
     points: number;
