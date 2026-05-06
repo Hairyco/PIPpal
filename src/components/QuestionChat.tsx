@@ -116,6 +116,7 @@ export function QuestionChat() {
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
   const [aiExchangeCount, setAiExchangeCount] = useState(0);
+  const [aiDescriptor, setAiDescriptor] = useState<string | null>(null);
   const MAX_AI_EXCHANGES = 5;
   const [showFreeText, setShowFreeText] = useState(false);
   const [inputText, setInputText] = useState('');
@@ -276,6 +277,7 @@ Options should reflect realistic answers for someone with their conditions, not 
       setAiExchangeCount(newCount);
 
       if (result) {
+        setAiDescriptor(result);
         setTimeout(() => finishChat(result), 1200);
       } else if (newCount >= MAX_AI_EXCHANGES) {
         // Auto-finish after 5 exchanges — pick best descriptor from conversation
@@ -350,6 +352,7 @@ Options should reflect realistic answers for someone with their conditions, not 
     // Clear after a tick to survive double-mount
     setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
     if (hint) {
+      setAiDescriptor(hint.toUpperCase());
       fireDescriptorChat(hint);
     } else {
       const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
@@ -442,7 +445,24 @@ Options should reflect realistic answers for someone with their conditions, not 
         };
     }
   };
-  const scoreInfo = getScoreInfo();
+  const scoreInfo = (() => {
+    if (!isQ1 && aiDescriptor) {
+      const d = question?.descriptors?.find((desc: any) => desc.code === aiDescriptor);
+      return {
+        descriptor: aiDescriptor,
+        points: d?.points ?? 0,
+        label: d?.text ?? '',
+        confidence: 'high' as const,
+      };
+    }
+    if (!isQ1 && aiExchangeCount > 0) {
+      return { descriptor: '—', points: 0, label: 'Building your answer...', confidence: 'medium' as const };
+    }
+    if (!isQ1) {
+      return { descriptor: '—', points: 0, label: 'Estimating score...', confidence: 'low' as const };
+    }
+    return getScoreInfo();
+  })();
   const renderOptions = () => {
     // Q2-Q12: use AI-driven options
     if (!isQ1) {
