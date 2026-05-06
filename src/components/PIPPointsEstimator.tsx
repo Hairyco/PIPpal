@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronRight, TrendingUp, Info } from 'lucide-react';
+import { ChevronRight, ChevronDown, TrendingUp, Info } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 
