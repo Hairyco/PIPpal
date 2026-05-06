@@ -430,30 +430,12 @@ Options should reflect realistic answers for someone with their conditions, not 
     if (!isQ1) {
       if (aiLoading) {
         return (
-          <div className="flex justify-center py-2">
+          <div className="flex justify-center py-2 pt-3">
             <div className="flex gap-1">
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
             </div>
-          </div>
-        );
-      }
-      if (showFreeText) {
-        return (
-          <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-              placeholder="Add any extra details here..."
-              className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
-              rows={2}
-              autoFocus
-            />
-            <button onClick={handleFreeTextSubmit} disabled={!inputText.trim()} className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
-              <Send className="w-5 h-5" />
-            </button>
           </div>
         );
       }
@@ -478,7 +460,7 @@ Options should reflect realistic answers for someone with their conditions, not 
         const descriptorPills = initialHint ? getDescriptorPills(initialHint, conditions) : null;
         if (descriptorPills) {
           return (
-            <div className="space-y-2">
+            <div className="space-y-2 p-4">
               {descriptorPills.map((pill, i) => (
                 <button
                   key={i}
@@ -488,24 +470,6 @@ Options should reflect realistic answers for someone with their conditions, not 
                   {pill}
                 </button>
               ))}
-              {/* Always-visible text input */}
-              <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2 mt-1">
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-                  placeholder="Or type your own answer..."
-                  className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
-                  rows={1}
-                />
-                <button
-                  onClick={handleFreeTextSubmit}
-                  disabled={!inputText.trim()}
-                  className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
             </div>
           );
         }
@@ -766,8 +730,26 @@ Options should reflect realistic answers for someone with their conditions, not 
           </div>
         </div>
 
-        <div className="p-4 md:px-8 bg-stone-100 border-t border-stone-200">
+        <div className="bg-stone-100 border-t border-stone-200">
           {renderOptions()}
+          {/* Always-visible text input */}
+          <div className="flex items-end gap-2 bg-white mx-4 mb-4 rounded-2xl border border-stone-200 p-2">
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+              placeholder="Or type your own answer..."
+              className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+              rows={1}
+            />
+            <button
+              onClick={handleFreeTextSubmit}
+              disabled={!inputText.trim()}
+              className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <style>{`
@@ -1004,8 +986,26 @@ Options should reflect realistic answers for someone with their conditions, not 
         </div>
       </div>
 
-      <div className="p-4 md:px-8 bg-stone-100 border-t border-stone-200">
+      <div className="bg-stone-100 border-t border-stone-200">
         {renderOptions()}
+        {/* Always-visible text input */}
+        <div className="flex items-end gap-2 bg-white mx-4 mb-4 rounded-2xl border border-stone-200 p-2">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+            placeholder="Or type your own answer..."
+            className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+            rows={1}
+          />
+          <button
+            onClick={handleFreeTextSubmit}
+            disabled={!inputText.trim()}
+            className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <style>{`
