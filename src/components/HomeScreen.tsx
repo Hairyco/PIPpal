@@ -320,6 +320,14 @@ export function HomeScreen() {
               target="pip_benefits"
             />
             <NavCard
+              title="How Scoring Works"
+              desc="Descriptors, points and what DWP look for"
+              icon={BookOpen}
+              color="text-teal-600"
+              bg="bg-teal-50"
+              target="descriptors_guide"
+            />
+            <NavCard
               title="Export Answers"
               desc="Download your completed form"
               icon={Download}
