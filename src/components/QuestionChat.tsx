@@ -251,11 +251,30 @@ Options should reflect realistic answers for someone with their conditions, not 
 
   // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
-    if (isQ1) return; // Q1 has its own hardcoded flow
-    
     const hint = sessionStorage.getItem('pippal_descriptor_hint');
     sessionStorage.removeItem('pippal_descriptor_hint');
-    
+
+    if (isQ1) {
+      // For Q1: if a descriptor was tapped, jump straight to the detail step for that descriptor
+      if (hint) {
+        const stepMap: Record<string, Step> = {
+          'A': 'q1', 'B': 'detail_b', 'C': 'detail_c',
+          'D': 'detail_d', 'E': 'detail_e', 'F': 'detail_f'
+        };
+        const targetStep = stepMap[hint.toUpperCase()] || 'q1';
+        if (targetStep !== 'q1') {
+          const hintDescriptor = ['B','C','D','E','F'].includes(hint.toUpperCase())
+            ? hint.toUpperCase() : null;
+          if (hintDescriptor) {
+            addMessage(`You've selected: descriptor ${hintDescriptor}. Tell me more about how this applies to you.`, 'bot');
+            setCurrentStep(targetStep as Step);
+          }
+        }
+      }
+      return;
+    }
+
+    // Q2-Q12
     if (hint) {
       fireDescriptorChat(hint);
     } else {

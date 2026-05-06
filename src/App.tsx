@@ -115,7 +115,6 @@ function AppContent() {
     setAssistantContext,
     isLoading,
     selectedQuestionId,
-    descriptorHint,
   } = useAppContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -230,7 +229,7 @@ function AppContent() {
       case 'eligibility': return <EligibilityChecker />;
       case 'medical_profile': return <MedicalProfile />;
       case 'q1_intro': return hasPaid ? <QuestionIntro /> : <UpsellScreen />;
-      case 'q1_chat': return hasPaid ? <QuestionChat key={selectedQuestionId + (descriptorHint || '')} /> : <UpsellScreen />;
+      case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
       case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
       case 'new_claim_intro': return hasPaid ? <NewClaimIntro /> : <UpsellScreen />;
