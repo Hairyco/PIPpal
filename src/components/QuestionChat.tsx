@@ -488,12 +488,24 @@ Options should reflect realistic answers for someone with their conditions, not 
                   {pill}
                 </button>
               ))}
-              <button
-                onClick={() => setShowFreeText(true)}
-                className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors"
-              >
-                ✏️ Type your own answer
-              </button>
+              {/* Always-visible text input */}
+              <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2 mt-1">
+                <textarea
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+                  placeholder="Or type your own answer..."
+                  className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+                  rows={1}
+                />
+                <button
+                  onClick={handleFreeTextSubmit}
+                  disabled={!inputText.trim()}
+                  className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           );
         }
