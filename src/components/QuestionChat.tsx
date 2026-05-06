@@ -38,6 +38,7 @@ export function QuestionChat() {
   const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
   // Read hint NOW — before first render — so initial message is correct
+  // Do NOT remove from sessionStorage here — animKey causes double mount, second mount needs it too
   const initialHint = sessionStorage.getItem('pippal_descriptor_hint') || '';
 
   const getInitialMessage = (): Message[] => {
@@ -266,21 +267,23 @@ Options should reflect realistic answers for someone with their conditions, not 
   // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
     if (isQ1) {
-      // Clear hint - already consumed in useState
+      // Set correct step based on hint, then clear
       if (initialHint) {
-        sessionStorage.removeItem('pippal_descriptor_hint');
         const stepMap: Record<string, Step> = {
           'B': 'detail_b', 'C': 'detail_c', 'D': 'detail_d', 'E': 'detail_e', 'F': 'detail_f'
         };
         const targetStep = stepMap[initialHint.toUpperCase()];
         if (targetStep) setCurrentStep(targetStep as Step);
+        // Clear after a tick to survive double-mount from animKey
+        setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
       }
       return;
     }
 
-    // Q2-Q12: read hint from sessionStorage
+    // Q2-Q12
     const hint = sessionStorage.getItem('pippal_descriptor_hint');
-    sessionStorage.removeItem('pippal_descriptor_hint');
+    // Clear after a tick to survive double-mount
+    setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
     if (hint) {
       fireDescriptorChat(hint);
     } else {
