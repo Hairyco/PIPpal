@@ -154,6 +154,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     email: initialSessionUser.email || '',
     id: initialSessionUser.id,
   } : null);
+  const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
+  const isAdmin = (email: string) => email === ADMIN_EMAIL || email === 'daley_cutler@hotmail.co.uk';
+
   const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
@@ -278,7 +281,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid) {
+          if (profile?.has_paid || isAdmin(session.user.email || '')) {
             setHasPaidState(true);
           }
         } catch { /* No profile yet */ }
@@ -326,13 +329,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid) {
+          if (profile?.has_paid || isAdmin(session.user.email || '')) {
             setHasPaidState(true);
           } else {
             setHasPaidState(false);
           }
         } catch {
-          setHasPaidState(false);
+          setHasPaidState(isAdmin(session.user.email || ''));
         }
 
       } else {
