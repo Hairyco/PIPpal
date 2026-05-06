@@ -710,22 +710,23 @@ Options should reflect realistic answers for someone with their conditions, not 
           </div>
         </div>
 
-        <div className="bg-stone-100 border-t border-stone-200">
-          {renderOptions()}
-          {/* Always-visible text input */}
-          <div className="flex items-end gap-2 px-4 pb-4 pt-2">
+        <div className="bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+          <div className="px-4 pt-4 pb-2 space-y-2">
+            {renderOptions()}
+          </div>
+          <div className="flex items-end gap-2 px-4 pb-4 pt-1">
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-              placeholder="Type your own answer..."
-              className="flex-1 max-h-24 min-h-[44px] bg-white border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm shadow-sm"
+              placeholder="Or describe in your own words..."
+              className="flex-1 max-h-24 min-h-[44px] bg-stone-50 border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm"
               rows={1}
             />
             <button
               onClick={handleFreeTextSubmit}
               disabled={!inputText.trim()}
-              className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 active:scale-95 transition-all shrink-0"
+              className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-30 active:scale-95 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -966,22 +967,23 @@ Options should reflect realistic answers for someone with their conditions, not 
         </div>
       </div>
 
-      <div className="bg-stone-100 border-t border-stone-200">
-        {renderOptions()}
-        {/* Always-visible text input */}
-        <div className="flex items-end gap-2 px-4 pb-4 pt-2">
+      <div className="bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+        <div className="px-4 pt-4 pb-2 space-y-2">
+          {renderOptions()}
+        </div>
+        <div className="flex items-end gap-2 px-4 pb-4 pt-1">
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-            placeholder="Type your own answer..."
-            className="flex-1 max-h-24 min-h-[44px] bg-white border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm shadow-sm"
+            placeholder="Or describe in your own words..."
+            className="flex-1 max-h-24 min-h-[44px] bg-stone-50 border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm"
             rows={1}
           />
           <button
             onClick={handleFreeTextSubmit}
             disabled={!inputText.trim()}
-            className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 active:scale-95 transition-all shrink-0"
+            className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-30 active:scale-95 transition-all shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -993,14 +995,14 @@ Options should reflect realistic answers for someone with their conditions, not 
           width: 100%;
           text-align: left;
           background-color: white;
-          padding: 12px 16px;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          padding: 14px 16px;
+          border-radius: 14px;
+          border: 1.5px solid #e5e7eb;
           font-size: 14px;
           font-weight: 500;
           color: #1c1917;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-          transition: all 0.2s;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+          transition: all 0.15s;
         }
         .chat-option:active {
           transform: scale(0.98);
