@@ -33,7 +33,7 @@ export function Hero({ onStart }: HeroProps) {
           <span className="text-teal-700">first time</span>
         </h1>
         <p className="text-stone-500 text-base md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
-          Answer in plain English. We turn your answers into what DWP need to see. No jargon, no stress.
+          PIP claims, made simple. We turn your answers into what DWP need to see. No jargon, no stress.
         </p>
       </div>
 
