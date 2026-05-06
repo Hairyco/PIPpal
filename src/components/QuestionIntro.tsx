@@ -95,10 +95,16 @@ export function QuestionIntro() {
               Learn more →
             </button>
           </div>
-          <div className="px-4 pt-3 pb-1">
-            <p className="text-xs text-stone-500 leading-relaxed mb-1">DWP scores you against these descriptors. <strong className="text-stone-700">Tap the one that sounds most like you</strong> and PIPpal will guide your answer around it.</p>
+          <div className="px-4 pt-4 pb-3">
+            <div className="bg-teal-50 border border-teal-100 rounded-xl px-4 py-3 flex items-start gap-2.5 mb-3">
+              <span className="text-lg shrink-0">👇</span>
+              <div>
+                <p className="text-sm font-bold text-teal-900">Tap the one that sounds most like you</p>
+                <p className="text-xs text-teal-700 mt-0.5 leading-relaxed">PIPpal will open and guide your answer around the descriptor you choose.</p>
+              </div>
+            </div>
           </div>
-          <div className="px-3 pb-3 space-y-1.5">
+          <div className="px-3 pb-3 space-y-2">
             {question.descriptors.map((d) => (
               <button
                 key={d.code}
@@ -107,15 +113,17 @@ export function QuestionIntro() {
                   setQ1Result(null);
                   navigateTo('q1_chat');
                 }}
-                className="w-full flex gap-3 text-sm text-left rounded-xl px-3 py-3 border border-transparent hover:border-teal-200 hover:bg-teal-50 active:scale-[0.98] transition-all group"
+                className="w-full flex gap-3 text-sm text-left rounded-xl px-3 py-3.5 border border-stone-100 bg-white hover:border-teal-300 hover:bg-teal-50 active:scale-[0.98] transition-all group shadow-sm"
               >
-                <div className="font-black w-4 text-stone-400 shrink-0 mt-0.5 group-hover:text-teal-600 transition-colors">{d.code}</div>
+                <div className="w-6 h-6 rounded-full bg-stone-100 group-hover:bg-teal-100 flex items-center justify-center shrink-0 mt-0.5 transition-colors">
+                  <span className="font-black text-[11px] text-stone-500 group-hover:text-teal-700 transition-colors">{d.code}</span>
+                </div>
                 <div className="flex-1 text-stone-600 leading-snug group-hover:text-stone-900 transition-colors">{d.text}</div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <span className={`font-bold text-xs ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>
                     {d.points}pts
                   </span>
-                  <span className="text-stone-200 group-hover:text-teal-400 transition-colors text-sm">→</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-stone-300 group-hover:text-teal-500 transition-colors" />
                 </div>
               </button>
             ))}
