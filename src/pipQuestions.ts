@@ -548,10 +548,12 @@ export function getPrevQuestion(currentId: string): PIPQuestion | undefined {
 
 export function getTotalPoints(answers: Record<string, string>): number {
   let total = 0;
-  for (const [questionId, descriptorCode] of Object.entries(answers)) {
+  for (const [questionId, answerStr] of Object.entries(answers)) {
     const question = getQuestion(questionId);
     if (question) {
-      const descriptor = question.descriptors.find((d) => d.code === descriptorCode);
+      const match = answerStr?.match(/Descriptor\s+([A-Z])/i);
+      const code = match ? match[1].toUpperCase() : answerStr;
+      const descriptor = question.descriptors.find((d) => d.code === code);
       if (descriptor) total += descriptor.points;
     }
   }

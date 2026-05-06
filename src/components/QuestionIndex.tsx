@@ -31,7 +31,8 @@ export function QuestionIndex() {
     const isAnswered = !!savedAnswers[q.id];
     const isLocked = !q.free && !hasPaid;
     const answer = savedAnswers[q.id];
-    const descriptor = answer ? q.descriptors.find((d) => d.code === answer) : null;
+    const descriptorCode = answer?.match(/Descriptor\s+([A-Z])/i)?.[1]?.toUpperCase() ?? answer;
+    const descriptor = descriptorCode ? q.descriptors.find((d) => d.code === descriptorCode) : null;
 
     return (
       <button
@@ -60,7 +61,7 @@ export function QuestionIndex() {
           </p>
           {isAnswered && descriptor ? (
             <p className="text-xs text-stone-500 mt-0.5 truncate">
-              Descriptor {answer} · <span className={`font-bold ${getPointColor(descriptor.points)}`}>{descriptor.points} pts</span>
+              Descriptor {descriptorCode} · <span className={`font-bold ${getPointColor(descriptor.points)}`}>{descriptor.points} pts</span>
             </p>
           ) : (
             <p className="text-xs text-stone-400 mt-0.5">{isLocked ? 'Full Access required' : 'Not yet answered'}</p>

@@ -218,13 +218,17 @@ export function QuestionChat() {
     await callAI(userMsg, updatedConv);
   };
 
+  // Capture the hint at mount time before context clears it
+  const descriptorHintRef = React.useRef(descriptorHint);
+
   // Initialise AI chat for Q2-Q12 on mount
   useEffect(() => {
     if (!isQ1 && !aiInitialised) {
       setAiInitialised(true);
-      if (descriptorHint) {
-        const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === descriptorHint);
-        const descriptorText = chosenDescriptor?.text || descriptorHint;
+      const hint = descriptorHintRef.current;
+      if (hint) {
+        const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
+        const descriptorText = chosenDescriptor?.text || hint;
         const descriptorPoints = chosenDescriptor?.points ?? 0;
         const activityName = question?.shortTitle || 'this activity';
 
