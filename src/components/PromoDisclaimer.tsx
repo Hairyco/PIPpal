@@ -17,7 +17,7 @@ export function PromoDisclaimer({ promoCode, onContinue }: PromoDisclaimerProps)
             <HeartHandshake className="w-7 h-7 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-stone-900">PIPpal</h1>
-          <p className="text-stone-500 text-sm mt-1">PIP claims, made simple</p>
+          <p className="text-stone-500 text-sm mt-1">PIP claims. Made easy.</p>
         </div>
 
         {/* Pro access badge */}

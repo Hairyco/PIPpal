@@ -137,7 +137,7 @@ export function HomeScreen() {
           <h1 className="text-2xl font-bold mb-1">
             {firstName ? `Welcome back, ${firstName}` : 'Welcome to PIPpal'}
           </h1>
-          <p className="text-teal-100 text-sm">PIP claims, made simple</p>
+          <p className="text-teal-100 text-sm">PIP claims. Made easy.</p>
         </div>
         {user && (
           <div className="w-10 h-10 bg-teal-600 rounded-full flex items-center justify-center font-bold text-lg border-2 border-teal-500 shadow-sm shrink-0">
