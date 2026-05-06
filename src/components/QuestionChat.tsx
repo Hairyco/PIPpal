@@ -144,6 +144,37 @@ export function QuestionChat() {
     navigateTo('q1_result');
   };
 
+  const fireDescriptorChat = (hint: string) => {
+    const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
+    const descriptorText = chosenDescriptor?.text || hint;
+    const descriptorPoints = chosenDescriptor?.points ?? 0;
+    const activityName = question?.shortTitle || 'this activity';
+
+    const descriptorSystemPrompt = `You are PIPpal guiding someone through the "${activityName}" activity in their PIP claim.
+
+The person has already looked at the descriptors and chosen: "${descriptorText}" (${descriptorPoints} points).
+
+Open your first message by acknowledging what they have chosen in warm, plain language — something like: "You've said that ${descriptorText.toLowerCase()}. Let me ask you a few questions to make sure we capture this properly for your claim."
+
+Then ask ONE focused question to build real evidence. Focus on:
+- A specific real example from their day-to-day life
+- How often this happens
+- Whether bad days are worse
+- Whether anyone helps, prompts, or watches over them
+- Whether it takes longer or causes pain or exhaustion
+
+Warm and conversational. One question at a time. Never list multiple questions.
+
+They have: ${medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified'}.
+
+Reply with valid JSON only — no markdown, no extra text:
+{"message": "your opening message", "options": ["Option A", "Option B", "Option C"], "result": null}
+
+Options should reflect realistic answers for someone with their conditions, not generic yes/no/sometimes.`;
+
+    callAI('START', [], descriptorSystemPrompt);
+  };
+
   const callAI = async (userMsg: string, conv: {role: string; content: string}[], systemOverride?: string) => {
     setAiLoading(true);
     setCurrentOptions([]);
@@ -229,44 +260,26 @@ export function QuestionChat() {
     if (!isQ1 && descriptorHint) {
       const hint = descriptorHint;
       setDescriptorHint(null);
+      sessionStorage.removeItem('pippal_descriptor_hint');
       setAiInitialised(true);
       setMessages([]);
       setAiConversation([]);
-
-      const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
-      const descriptorText = chosenDescriptor?.text || hint;
-      const descriptorPoints = chosenDescriptor?.points ?? 0;
-      const activityName = question?.shortTitle || 'this activity';
-
-      const descriptorSystemPrompt = `You are PIPpal guiding someone through the "${activityName}" activity in their PIP claim.
-
-The person has already looked at the descriptors and chosen: "${descriptorText}" (${descriptorPoints} points).
-
-Open your first message by acknowledging what they have chosen in warm, plain language. For example: "You've said that ${descriptorText.toLowerCase()}. Let me ask you a few questions to make sure we capture this properly for your claim."
-
-Then ask ONE focused question to build real evidence around that descriptor. Ask about:
-- A specific real example from their day-to-day life
-- How often this happens (most days, every day, some days)
-- Whether bad days are worse and what those look like
-- Whether anyone helps, prompts, or watches over them
-- Whether it takes longer than it should, or causes pain or exhaustion afterwards
-
-Keep your tone warm and conversational. One question at a time. Never list multiple questions at once.
-
-They have: ${medProfile.conditions.map((c: any) => c.name).join(', ') || 'conditions not specified'}.
-
-Reply with valid JSON only:
-{"message": "your opening message here", "options": ["Option 1", "Option 2", "Option 3"], "result": null}
-
-Make the options reflect what someone with their conditions might realistically answer — not generic yes/no/sometimes.`;
-
-      callAI('START', [], descriptorSystemPrompt);
+      fireDescriptorChat(hint);
     }
   }, [descriptorHint]);
 
   // Initialise AI chat for Q2-Q12 on mount (no descriptor hint)
   useEffect(() => {
     if (!isQ1 && !aiInitialised) {
+      // Check sessionStorage in case context hint arrived before this effect
+      const storedHint = sessionStorage.getItem('pippal_descriptor_hint');
+      if (storedHint) {
+        sessionStorage.removeItem('pippal_descriptor_hint');
+        setDescriptorHint(null);
+        setAiInitialised(true);
+        fireDescriptorChat(storedHint);
+        return;
+      }
       setAiInitialised(true);
       const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
       callAI(`START: ${opener}`, []);

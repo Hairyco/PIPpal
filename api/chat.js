@@ -56,24 +56,25 @@ Rules:
         { role: 'user', content: message }
       ];
 
-      const btnResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 400,
-          messages: [
-            { role: 'system', content: btnSystemPrompt },
-            ...btnMessages,
-          ],
-        }),
-      });
-
-      const btnData = await btnResponse.json();
-      const rawReply = btnData.choices?.[0]?.message?.content || '{}';
+        let rawReply = '{}';
+      if (process.env.OPENAI_API_KEY) {
+        const btnResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+          body: JSON.stringify({ model: 'gpt-4o', max_tokens: 400, messages: [{ role: 'system', content: btnSystemPrompt }, ...btnMessages] }),
+        });
+        const btnData = await btnResponse.json();
+        rawReply = btnData.choices?.[0]?.message?.content || '{}';
+      } else {
+        // Fallback to Claude
+        const btnResponse = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: btnSystemPrompt, messages: btnMessages }),
+        });
+        const btnData = await btnResponse.json();
+        rawReply = btnData.content?.[0]?.text || '{}';
+      }
       try {
         const parsed = JSON.parse(rawReply);
         return res.status(200).json({ structured: parsed });
@@ -89,29 +90,28 @@ Rules:
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: 800,
-        messages: [
-          { role: 'system', content: activeSystemPrompt },
-          ...messages,
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`OpenAI error ${response.status}: ${errText}`);
+    let reply = '';
+    let data = {};
+    if (process.env.OPENAI_API_KEY) {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({ model: 'gpt-4o', max_tokens: 800, messages: [{ role: 'system', content: activeSystemPrompt }, ...messages] }),
+      });
+      if (!response.ok) throw new Error(`OpenAI error ${response.status}`);
+      data = await response.json();
+      reply = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+    } else {
+      // Fallback to Claude
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, system: activeSystemPrompt, messages }),
+      });
+      if (!response.ok) throw new Error(`Claude error ${response.status}`);
+      data = await response.json();
+      reply = data.content?.[0]?.text || 'Sorry, I could not generate a response.';
     }
-
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
 
     // Log token usage to Supabase
     try {

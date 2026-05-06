@@ -110,6 +110,7 @@ export function QuestionIntro() {
                 key={d.code}
                 onClick={() => {
                   setDescriptorHint(d.code);
+                  sessionStorage.setItem('pippal_descriptor_hint', d.code);
                   setQ1Result(null);
                   navigateTo('q1_chat');
                 }}
