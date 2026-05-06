@@ -115,6 +115,8 @@ export function QuestionChat() {
   const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
+  const [aiExchangeCount, setAiExchangeCount] = useState(0);
+  const MAX_AI_EXCHANGES = 5;
   const [showFreeText, setShowFreeText] = useState(false);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
@@ -270,8 +272,24 @@ Options should reflect realistic answers for someone with their conditions, not 
       setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: botMsg }]);
       setAiConversation(prev => [...prev, { role: 'assistant', content: botMsg }]);
 
+      const newCount = aiExchangeCount + 1;
+      setAiExchangeCount(newCount);
+
       if (result) {
         setTimeout(() => finishChat(result), 1200);
+      } else if (newCount >= MAX_AI_EXCHANGES) {
+        // Auto-finish after 5 exchanges — pick best descriptor from conversation
+        setTimeout(() => {
+          setCurrentOptions([]);
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            sender: 'bot',
+            text: "That's really helpful. I have enough to work out the right score for you now. Let me put your answer together."
+          }]);
+          // Ask AI to finalise
+          const finalConv = [...aiConversation, { role: 'assistant', content: botMsg }];
+          callAI('Based on everything shared, what is the best descriptor code for this person? Reply with ONLY valid JSON: {"message": "summary", "options": [], "result": "X"} where X is the descriptor letter.', finalConv);
+        }, 800);
       } else {
         setCurrentOptions(options);
       }
@@ -430,7 +448,7 @@ Options should reflect realistic answers for someone with their conditions, not 
     if (!isQ1) {
       if (aiLoading) {
         return (
-          <div className="flex justify-center py-2 pt-3">
+          <div className="flex justify-center py-3">
             <div className="flex gap-1">
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
@@ -445,9 +463,6 @@ Options should reflect realistic answers for someone with their conditions, not 
             {currentOptions.map((opt, i) => (
               <button key={i} onClick={() => handleOptionClick(opt)} className="chat-option">{opt}</button>
             ))}
-            <button onClick={() => handleOptionClick('I have more details to add')} className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors">
-              I have more details to add
-            </button>
           </div>
         );
       }
@@ -456,11 +471,10 @@ Options should reflect realistic answers for someone with their conditions, not 
 
     switch (currentStep) {
       case 'q1': {
-        // If opened via descriptor tap, show contextual pills
         const descriptorPills = initialHint ? getDescriptorPills(initialHint, conditions) : null;
         if (descriptorPills) {
           return (
-            <div className="space-y-2 p-4">
+            <div className="space-y-2">
               {descriptorPills.map((pill, i) => (
                 <button
                   key={i}
@@ -475,21 +489,9 @@ Options should reflect realistic answers for someone with their conditions, not 
         }
         return (
           <div className="space-y-2">
-            <button
-              onClick={() => handleOption('Yes, no problem', 'q2a', 'Can you do it safely every time, without risk of burning or injury?')}
-              className="chat-option">
-              Yes, no problem
-            </button>
-            <button
-              onClick={() => handleOption('Sometimes, but I struggle', 'q2b', 'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?')}
-              className="chat-option">
-              Sometimes, but I struggle
-            </button>
-            <button
-              onClick={() => handleOption("No, I can't cook", 'detail_f', 'Can you manage using a microwave instead?')}
-              className="chat-option">
-              No, I can't cook
-            </button>
+            <button onClick={() => handleOption('Yes, no problem', 'q2a', 'Can you do it safely every time, without risk of burning or injury?')} className="chat-option">Yes, no problem</button>
+            <button onClick={() => handleOption('Sometimes, but I struggle', 'q2b', 'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?')} className="chat-option">Sometimes, but I struggle</button>
+            <button onClick={() => handleOption("No, I can't cook", 'detail_f', 'Can you manage using a microwave instead?')} className="chat-option">No, I can't cook</button>
           </div>
         );
       }

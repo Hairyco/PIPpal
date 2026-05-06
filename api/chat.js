@@ -49,7 +49,8 @@ Rules:
 - Focus on worst days, safety, and whether they can do it reliably
 - Max 3 options, short and clear
 - No asterisks or exclamation marks
-- Keep your message under 60 words`;
+- Keep your message under 60 words
+- Maximum 5 exchanges total — if this is exchange 4 or 5, aim to conclude with a result`;
 
       const btnMessages = [
         ...(conversationHistory || []).slice(-6),
