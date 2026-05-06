@@ -58,6 +58,57 @@ export function QuestionChat() {
     return [];
   };
 
+  // Generate contextual pills based on descriptor and conditions
+  const getDescriptorPills = (hint: string, conditions: string): string[] => {
+    const lower = conditions.toLowerCase();
+    const hasMental = lower.includes('anxiety') || lower.includes('depression') || lower.includes('ptsd') || lower.includes('adhd') || lower.includes('autism') || lower.includes('mental');
+    const hasPhysical = lower.includes('pain') || lower.includes('arthritis') || lower.includes('fibro') || lower.includes('ms ') || lower.includes('parkinson') || lower.includes('stroke') || lower.includes('mobility') || lower.includes('fatigue') || lower.includes('me/cfs') || lower.includes('chronic');
+    const hasNeuro = lower.includes('epilep') || lower.includes('brain') || lower.includes('memory');
+
+    const code = hint.toUpperCase();
+    if (code === 'B') {
+      return [
+        hasMental ? 'I need reminding to eat' : 'I need grab rails or supports',
+        hasPhysical ? 'I use a perching stool' : 'I use adapted utensils',
+        'It takes much longer than normal',
+      ];
+    }
+    if (code === 'C') {
+      return [
+        'I can use a microwave but not the hob',
+        hasPhysical ? 'Standing at the hob causes too much pain' : 'I forget to turn the hob off',
+        hasMental ? 'The heat or process overwhelms me' : 'I cannot safely use the cooker',
+      ];
+    }
+    if (code === 'D') {
+      return [
+        hasMental ? 'I forget to eat without prompting' : 'I need reminding to start cooking',
+        hasNeuro ? 'My memory means I forget mid-way through' : 'I need someone to prompt each step',
+        'I do not initiate cooking on my own',
+      ];
+    }
+    if (code === 'E') {
+      return [
+        hasPhysical ? 'Someone needs to be there in case I fall' : 'I need physical help to cook',
+        hasMental ? 'I need someone present for my safety' : 'I cannot do it without assistance',
+        'I can do some parts but need help with others',
+      ];
+    }
+    if (code === 'F') {
+      return [
+        hasPhysical ? 'Pain stops me completely' : 'I am completely unable to cook',
+        hasMental ? 'My mental health makes it impossible' : 'I have no ability to cook safely',
+        'I rely entirely on others or ready meals',
+      ];
+    }
+    // Default Q1 pills (no hint or descriptor A)
+    return [
+      hasMental ? 'Sometimes, but I struggle with focus' : 'Sometimes, but I struggle physically',
+      'Yes, no problem',
+      "No, I can't cook",
+    ];
+  };
+
   const [messages, setMessages] = useState<Message[]>(getInitialMessage);
   const [currentStep, setCurrentStep] = useState<Step>('q1');
   const [aiLoading, setAiLoading] = useState(false);
@@ -426,46 +477,50 @@ Options should reflect realistic answers for someone with their conditions, not 
     }
 
     switch (currentStep) {
-      case 'q1':
+      case 'q1': {
+        // If opened via descriptor tap, show contextual pills
+        const descriptorPills = initialHint ? getDescriptorPills(initialHint, conditions) : null;
+        if (descriptorPills) {
+          return (
+            <div className="space-y-2">
+              {descriptorPills.map((pill, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleOption(pill, 'q2b', 'Can you tell me more about that? What happens on your worst days?')}
+                  className="chat-option"
+                >
+                  {pill}
+                </button>
+              ))}
+              <button
+                onClick={() => handleOption('I have more details to add', 'q2b', 'Tell me more — what does this look like day to day?')}
+                className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors"
+              >
+                I have more details to add
+              </button>
+            </div>
+          );
+        }
         return (
           <div className="space-y-2">
             <button
-              onClick={() =>
-              handleOption(
-                'Yes, no problem',
-                'q2a',
-                'Can you do it safely every time, without risk of burning or injury?'
-              )
-              }
+              onClick={() => handleOption('Yes, no problem', 'q2a', 'Can you do it safely every time, without risk of burning or injury?')}
               className="chat-option">
-              
               Yes, no problem
             </button>
             <button
-              onClick={() =>
-              handleOption(
-                'Sometimes, but I struggle',
-                'q2b',
-                'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?'
-              )
-              }
+              onClick={() => handleOption('Sometimes, but I struggle', 'q2b', 'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?')}
               className="chat-option">
-              
               Sometimes, but I struggle
             </button>
             <button
-              onClick={() =>
-              handleOption(
-                "No, I can't cook",
-                'detail_f',
-                'Can you manage using a microwave instead?'
-              )
-              }
+              onClick={() => handleOption("No, I can't cook", 'detail_f', 'Can you manage using a microwave instead?')}
               className="chat-option">
-              
               No, I can't cook
             </button>
-          </div>);
+          </div>
+        );
+      }
 
       case 'q2a':
         return (
