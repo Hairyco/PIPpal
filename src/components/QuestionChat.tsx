@@ -592,26 +592,6 @@ Options should reflect realistic answers for someone with their conditions, not 
           </div>);
 
       default:
-        if (currentStep.startsWith('detail_')) {
-          return (
-            <div className="flex items-end gap-2 bg-white p-2 rounded-2xl border border-stone-200 shadow-sm">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your answer here..."
-                className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-3 text-sm"
-                rows={1} />
-              
-              <button
-                onClick={handleTextInput}
-                disabled={!inputText.trim()}
-                className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:bg-stone-300 transition-colors">
-                
-                <Send className="w-5 h-5" />
-              </button>
-            </div>);
-
-        }
         return null;
     }
   };
@@ -733,19 +713,19 @@ Options should reflect realistic answers for someone with their conditions, not 
         <div className="bg-stone-100 border-t border-stone-200">
           {renderOptions()}
           {/* Always-visible text input */}
-          <div className="flex items-end gap-2 bg-white mx-4 mb-4 rounded-2xl border border-stone-200 p-2">
+          <div className="flex items-end gap-2 px-4 pb-4 pt-2">
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-              placeholder="Or type your own answer..."
-              className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+              placeholder="Type your own answer..."
+              className="flex-1 max-h-24 min-h-[44px] bg-white border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm shadow-sm"
               rows={1}
             />
             <button
               onClick={handleFreeTextSubmit}
               disabled={!inputText.trim()}
-              className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
+              className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 active:scale-95 transition-all shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -989,19 +969,19 @@ Options should reflect realistic answers for someone with their conditions, not 
       <div className="bg-stone-100 border-t border-stone-200">
         {renderOptions()}
         {/* Always-visible text input */}
-        <div className="flex items-end gap-2 bg-white mx-4 mb-4 rounded-2xl border border-stone-200 p-2">
+        <div className="flex items-end gap-2 px-4 pb-4 pt-2">
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-            placeholder="Or type your own answer..."
-            className="flex-1 max-h-24 min-h-[40px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+            placeholder="Type your own answer..."
+            className="flex-1 max-h-24 min-h-[44px] bg-white border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm shadow-sm"
             rows={1}
           />
           <button
             onClick={handleFreeTextSubmit}
             disabled={!inputText.trim()}
-            className="p-2.5 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 transition-colors shrink-0"
+            className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-40 active:scale-95 transition-all shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>
