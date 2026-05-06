@@ -215,7 +215,7 @@ export function PIPAssistant({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             onClick={handleButtonClick}
-            className="fixed bottom-6 right-5 z-40 w-14 h-14 bg-teal-700 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-teal-800 transition-colors active:scale-95"
+            className="fixed bottom-20 md:bottom-6 right-5 z-40 w-14 h-14 bg-teal-700 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-teal-800 transition-colors active:scale-95"
             aria-label="Open PIPpal Assistant"
           >
             <MessageCircle className="w-6 h-6" />
@@ -235,7 +235,7 @@ export function PIPAssistant({
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-5 z-50 bg-white rounded-2xl shadow-xl border border-stone-200 p-4 max-w-xs"
+            className="fixed bottom-36 md:bottom-24 right-5 z-50 bg-white rounded-2xl shadow-xl border border-stone-200 p-4 max-w-xs"
           >
             <button
               onClick={() => setShowUpsell(false)}
@@ -264,7 +264,7 @@ export function PIPAssistant({
       {/* Chat window */}
       <AnimatePresence>
         {isOpen && !hasPaid && freeMessageCount >= FREE_LIMIT && (
-          <div className="fixed bottom-6 right-5 z-[60] w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl border border-orange-200 p-4">
+          <div className="fixed bottom-20 md:bottom-6 right-5 z-[60] w-[340px] max-w-[calc(100vw-2.5rem)] bg-white rounded-2xl shadow-2xl border border-orange-200 p-4">
             <p className="font-bold text-stone-900 text-sm mb-1">You've used your free messages</p>
             <p className="text-xs text-stone-500 leading-relaxed mb-3">Upgrade to Full Access to continue chatting with PIPpal Assistant — plus all 12 PIP questions, Assessment Prep and more.</p>
             <div className="flex gap-2">
@@ -282,7 +282,7 @@ export function PIPAssistant({
             className={`fixed z-50 bg-white shadow-2xl border border-stone-200 flex flex-col overflow-hidden transition-all duration-300 ${
               isFullScreen
                 ? 'inset-0 rounded-none'
-                : 'bottom-6 right-5 w-[340px] max-w-[calc(100vw-2.5rem)] rounded-2xl'
+                : 'bottom-20 md:bottom-6 right-5 w-[340px] max-w-[calc(100vw-2.5rem)] rounded-2xl'
             }`}
             style={isFullScreen ? {} : { height: '520px', maxHeight: 'calc(100vh - 6rem)' }}
           >

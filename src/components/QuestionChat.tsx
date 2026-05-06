@@ -222,8 +222,25 @@ export function QuestionChat() {
     if (!isQ1 && !aiInitialised) {
       setAiInitialised(true);
       if (descriptorHint) {
-        // User tapped a descriptor — start chat focused on that descriptor
-        const hintOpener = `START: The user wants to explore whether they qualify for descriptor ${descriptorHint} for this activity. Ask them specific questions about their experience that would help confirm or refine which descriptor applies to them. Focus on real-world examples, frequency, safety, and whether they can do it reliably and in a timely manner.`;
+        // Find the descriptor text so the AI can reference it directly
+        const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === descriptorHint);
+        const descriptorText = chosenDescriptor?.text || descriptorHint;
+        const descriptorPoints = chosenDescriptor?.points ?? 0;
+        const activityName = question?.shortTitle || 'this activity';
+
+        const hintOpener = `START: The person has looked at the descriptors for "${activityName}" and selected the one that says: "${descriptorText}" (worth ${descriptorPoints} points).
+
+Open by acknowledging what they have chosen in plain, warm language — for example: "You have said that ${descriptorText.toLowerCase().replace(/^(can|cannot|needs|is|has)/, 'you $1')}. Let me ask you a few questions to make sure we capture this as clearly as possible for your claim."
+
+Then ask 2-3 focused questions that help build real evidence around that descriptor. Focus on:
+- Specific examples from their day-to-day life
+- How often this happens (most days, every day, occasionally)
+- Whether it is worse on bad days and what those look like
+- Whether anyone helps them, prompts them, or needs to be present
+- Whether it takes longer than it should or causes pain or exhaustion afterwards
+
+Keep your tone warm and conversational. One question at a time. Do not list all questions at once.`;
+
         callAI(hintOpener, []);
         setDescriptorHint(null);
       } else {
