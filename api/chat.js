@@ -36,7 +36,7 @@ How to write:
 
     // Button mode — structured JSON for guided question flow
     if (buttonMode && questionData) {
-      const btnSystemPrompt = `You are guiding someone through the "${questionData.title}" activity in their PIP claim.
+      const btnSystemPrompt = systemOverride || `You are guiding someone through the "${questionData.title}" activity in their PIP claim.
 They have: ${conditions}.
 Descriptors: ${questionData.descriptors.map(d => `${d.code}: ${d.label} (${d.points} pts)`).join('; ')}.
 

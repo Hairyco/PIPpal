@@ -144,7 +144,7 @@ export function QuestionChat() {
     navigateTo('q1_result');
   };
 
-  const callAI = async (userMsg: string, conv: {role: string; content: string}[]) => {
+  const callAI = async (userMsg: string, conv: {role: string; content: string}[], systemOverride?: string) => {
     setAiLoading(true);
     setCurrentOptions([]);
     try {
@@ -161,6 +161,7 @@ export function QuestionChat() {
             title: question?.title,
             descriptors: question?.descriptors,
           },
+          ...(systemOverride ? { systemOverride } : {}),
         }),
       });
       const data = await response.json();
@@ -222,26 +223,35 @@ export function QuestionChat() {
     if (!isQ1 && !aiInitialised) {
       setAiInitialised(true);
       if (descriptorHint) {
-        // Find the descriptor text so the AI can reference it directly
         const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === descriptorHint);
         const descriptorText = chosenDescriptor?.text || descriptorHint;
         const descriptorPoints = chosenDescriptor?.points ?? 0;
         const activityName = question?.shortTitle || 'this activity';
 
-        const hintOpener = `START: The person has looked at the descriptors for "${activityName}" and selected the one that says: "${descriptorText}" (worth ${descriptorPoints} points).
+        // Build a system override that replaces the button mode prompt entirely
+        const descriptorSystemPrompt = `You are PIPpal guiding someone through the "${activityName}" activity in their PIP claim.
 
-Open by acknowledging what they have chosen in plain, warm language — for example: "You have said that ${descriptorText.toLowerCase().replace(/^(can|cannot|needs|is|has)/, 'you $1')}. Let me ask you a few questions to make sure we capture this as clearly as possible for your claim."
+The person has already looked at the descriptors and chosen: "${descriptorText}" (${descriptorPoints} points).
 
-Then ask 2-3 focused questions that help build real evidence around that descriptor. Focus on:
-- Specific examples from their day-to-day life
-- How often this happens (most days, every day, occasionally)
-- Whether it is worse on bad days and what those look like
-- Whether anyone helps them, prompts them, or needs to be present
-- Whether it takes longer than it should or causes pain or exhaustion afterwards
+Open your first message by acknowledging what they have chosen in warm, plain language. For example: "You've said that ${descriptorText.toLowerCase()}. Let me ask you a few questions to make sure we capture this properly for your claim."
 
-Keep your tone warm and conversational. One question at a time. Do not list all questions at once.`;
+Then ask ONE focused question to build real evidence around that descriptor. Ask about:
+- A specific real example from their day-to-day life
+- How often this happens (most days, every day, some days)
+- Whether bad days are worse and what those look like
+- Whether anyone helps, prompts, or watches over them
+- Whether it takes longer than it should, or causes pain or exhaustion afterwards
 
-        callAI(hintOpener, []);
+Keep your tone warm and conversational. One question at a time. Never list multiple questions at once.
+
+They have: ${medProfile.conditions.map((c: any) => c.name).join(', ') || 'conditions not specified'}.
+
+Reply with valid JSON only:
+{"message": "your opening message here", "options": ["Option 1", "Option 2", "Option 3"], "result": null}
+
+Make the options reflect what someone with their conditions might realistically answer — not generic yes/no/sometimes.`;
+
+        callAI('START', [], descriptorSystemPrompt);
         setDescriptorHint(null);
       } else {
         const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
