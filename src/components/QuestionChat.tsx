@@ -538,92 +538,131 @@ Options should reflect realistic answers for someone with their conditions, not 
   };
   // For Q2-Q12 render AI chat
   if (!isQ1) {
+    // Q2+ uses same layout as Q1 for visual consistency
+    const q2ScoreInfo = (() => {
+      const answered = currentOptions.length === 0 && messages.length > 1 && !aiLoading;
+      return {
+        descriptor: '—',
+        points: 0,
+        label: aiLoading ? 'Thinking...' : 'Answering...',
+        confidence: 'low' as const,
+      };
+    })();
+
     return (
       <div className="flex flex-col h-full bg-stone-50">
+        {/* Header — matches Q1 exactly */}
         <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200">
+          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="font-bold text-stone-900 text-sm">Question {question?.num} of 12</h1>
-            <p className="text-xs text-stone-500">{question?.shortTitle}</p>
+            <h1 className="font-bold text-stone-900 text-sm">Q{question?.num && question.num + 2}: {question?.shortTitle}</h1>
+            <div className="text-xs text-stone-500">PIPpal Assistant</div>
           </div>
           <button
             onClick={() => setShowDescriptors(!showDescriptors)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${showDescriptors ? 'bg-teal-100 text-teal-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
           >
-            <List className="w-3.5 h-3.5" />
+            {showDescriptors ? <ChevronUp className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
             {showDescriptors ? 'Close' : 'Scores'}
           </button>
         </div>
 
         {/* Progress bar */}
         <div className="w-full bg-stone-100 h-1">
-          <div
-            className="bg-teal-500 h-1 transition-all duration-300"
-            style={{ width: `${((question?.num || 1) / 12) * 100}%` }}
-          />
+          <div className="bg-teal-500 h-1 transition-all duration-300" style={{ width: `${((question?.num || 1) / 12) * 100}%` }} />
         </div>
 
-        {showDescriptors && question?.descriptors && (
-          <div className="bg-white border-b border-stone-100 px-4 py-3 space-y-1.5">
-            {question.descriptors.map((d: any) => (
-              <div key={d.code} className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold flex items-center justify-center shrink-0">{d.code}</span>
-                <span className="text-xs text-stone-600 flex-1">{d.label}</span>
-                <span className="text-[10px] font-bold text-teal-700">{d.points}pt{d.points !== 1 ? 's' : ''}</span>
+        {/* Descriptors panel */}
+        <AnimatePresence>
+          {showDescriptors && question?.descriptors && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden bg-white border-b border-stone-100"
+            >
+              <div className="px-5 md:px-8 py-3 space-y-2">
+                <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">Descriptors — tap to close</div>
+                {question.descriptors.map((d: any) => (
+                  <div key={d.code} className="flex gap-2 text-xs">
+                    <span className="font-bold w-4 text-stone-400 shrink-0">{d.code}</span>
+                    <span className="flex-1 text-stone-600 leading-relaxed">{d.text}</span>
+                    <span className={`font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-          {messages.map((msg) => (
-            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.sender === 'user'
-                  ? 'bg-teal-600 text-white rounded-br-sm'
-                  : 'bg-white border border-stone-200 text-stone-800 rounded-bl-sm'
-              }`}>
-                {msg.text}
+        {/* Score bar — matches Q1 */}
+        <div className="bg-white border-b border-stone-100 px-5 md:px-8 py-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${aiLoading ? 'bg-amber-400' : 'bg-stone-300'}`} />
+              <span className="text-xs text-stone-500">{aiLoading ? 'Thinking...' : 'Estimating score...'}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="w-3.5 h-3.5 text-stone-400" />
+                <span className="text-sm font-bold text-stone-400">—</span>
               </div>
             </div>
-          ))}
-          {aiLoading && (
-            <div className="flex justify-start">
-              <div className="bg-white border border-stone-200 rounded-2xl rounded-bl-sm px-4 py-3">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
-                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
-                  <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
-                </div>
-              </div>
+          </div>
+        </div>
+
+        {/* Messages — matches Q1 with animation */}
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="flex-1" />
+          <div className="px-5 md:px-8 py-6 space-y-4">
+            <AnimatePresence>
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    msg.sender === 'user'
+                      ? 'bg-teal-700 text-white rounded-tr-sm'
+                      : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'
+                  }`}>
+                    {msg.text}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            <div ref={messagesEndRef} />
+          </div>
+        </div>
+
+        {/* Options — matches Q1 with bg-stone-100 container */}
+        <div className="p-4 md:px-8 bg-stone-100 border-t border-stone-200">
+          {currentOptions.length > 0 && !aiLoading && (
+            <div className="space-y-2">
+              {currentOptions.map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleOptionClick(opt)}
+                  className="chat-option"
+                >
+                  {opt}
+                </button>
+              ))}
+              <button
+                onClick={() => handleOptionClick('I have more details to add')}
+                className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors"
+              >
+                I have more details to add
+              </button>
             </div>
           )}
-        </div>
-
-        {currentOptions.length > 0 && !aiLoading && (
-          <div className="p-4 bg-white border-t border-stone-100 space-y-2">
-            {currentOptions.map((opt, i) => (
-              <button
-                key={i}
-                onClick={() => handleOptionClick(opt)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-stone-200 bg-white text-sm text-stone-800 font-medium hover:border-teal-400 hover:bg-teal-50 active:scale-[0.98] transition-all shadow-sm"
-              >
-                {opt}
-              </button>
-            ))}
-            <button
-              onClick={() => handleOptionClick('I have more details to add')}
-              className="w-full text-left px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors text-center"
-            >
-              I have more details to add
-            </button>
-          </div>
-        )}
-        {showFreeText && !aiLoading && (
-          <div className="p-4 bg-white border-t border-stone-100 space-y-2">
-            <div className="flex items-end gap-2 bg-stone-50 rounded-2xl border border-stone-200 p-2">
+          {showFreeText && !aiLoading && (
+            <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2">
               <textarea
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -633,20 +672,46 @@ Options should reflect realistic answers for someone with their conditions, not 
                 rows={2}
                 autoFocus
               />
-              <button
-                onClick={handleFreeTextSubmit}
-                disabled={!inputText.trim()}
-                className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
+              <button onClick={handleFreeTextSubmit} disabled={!inputText.trim()} className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
                 <Send className="w-5 h-5" />
               </button>
             </div>
-          </div>
-        )}
-        {aiLoading && (
-          <div className="p-4 bg-white border-t border-stone-100 text-center">
-            <p className="text-xs text-stone-400">Thinking...</p>
-          </div>
-        )}
+          )}
+          {aiLoading && (
+            <div className="flex justify-center py-2">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
+                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
+                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
+              </div>
+            </div>
+          )}
+          {!aiLoading && currentOptions.length === 0 && !showFreeText && messages.length === 0 && (
+            <div className="text-center py-2">
+              <p className="text-xs text-stone-400">Loading your question...</p>
+            </div>
+          )}
+        </div>
+
+        <style>{`
+          .chat-option {
+            width: 100%;
+            text-align: left;
+            background-color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1c1917;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+          }
+          .chat-option:active {
+            transform: scale(0.98);
+            border-color: #0f766e;
+          }
+        `}</style>
       </div>
     );
   }

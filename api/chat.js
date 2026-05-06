@@ -73,7 +73,7 @@ Rules:
           body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, system: btnSystemPrompt, messages: btnMessages }),
         });
         const btnData = await btnResponse.json();
-        rawReply = btnData.content?.[0]?.text || '{}';
+        rawReply = (btnData.content?.[0]?.text || '{}').replace(/```json\s*/g, '').replace(/```/g, '').trim();
       }
       try {
         const parsed = JSON.parse(rawReply);
