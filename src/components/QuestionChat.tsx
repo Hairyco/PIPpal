@@ -351,6 +351,52 @@ Options should reflect realistic answers for someone with their conditions, not 
   };
   const scoreInfo = getScoreInfo();
   const renderOptions = () => {
+    // Q2-Q12: use AI-driven options
+    if (!isQ1) {
+      if (aiLoading) {
+        return (
+          <div className="flex justify-center py-2">
+            <div className="flex gap-1">
+              <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
+              <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
+              <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
+            </div>
+          </div>
+        );
+      }
+      if (showFreeText) {
+        return (
+          <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2">
+            <textarea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+              placeholder="Add any extra details here..."
+              className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
+              rows={2}
+              autoFocus
+            />
+            <button onClick={handleFreeTextSubmit} disabled={!inputText.trim()} className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        );
+      }
+      if (currentOptions.length > 0) {
+        return (
+          <div className="space-y-2">
+            {currentOptions.map((opt, i) => (
+              <button key={i} onClick={() => handleOptionClick(opt)} className="chat-option">{opt}</button>
+            ))}
+            <button onClick={() => handleOptionClick('I have more details to add')} className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors">
+              I have more details to add
+            </button>
+          </div>
+        );
+      }
+      return null;
+    }
+
     switch (currentStep) {
       case 'q1':
         return (
@@ -516,83 +562,100 @@ Options should reflect realistic answers for someone with their conditions, not 
   };
   // For Q2-Q12 render AI chat
   if (!isQ1) {
-    // Q2+ uses same layout as Q1 for visual consistency
-    const q2ScoreInfo = (() => {
-      const answered = currentOptions.length === 0 && messages.length > 1 && !aiLoading;
-      return {
-        descriptor: '—',
-        points: 0,
-        label: aiLoading ? 'Thinking...' : 'Answering...',
-        confidence: 'low' as const,
-      };
-    })();
+    // Q2-Q12: exact same render as Q1, using dynamic question data
+    const q2ScoreInfo = scoreInfo; // reuse same score tracker
 
     return (
       <div className="flex flex-col h-full bg-stone-50">
-        {/* Header — matches Q1 exactly */}
         <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-          <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
+          <button
+            onClick={goBack}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="font-bold text-stone-900 text-sm">Q{question?.num && question.num + 2}: {question?.shortTitle}</h1>
+            <h1 className="font-bold text-stone-900 text-sm">
+              Q{question?.num !== undefined ? question.num + 2 : '?'}: {question?.shortTitle}
+            </h1>
             <div className="text-xs text-stone-500">PIPpal Assistant</div>
           </div>
           <button
             onClick={() => setShowDescriptors(!showDescriptors)}
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${showDescriptors ? 'bg-teal-100 text-teal-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
-          >
+            title="View descriptors">
             {showDescriptors ? <ChevronUp className="w-3.5 h-3.5" /> : <List className="w-3.5 h-3.5" />}
             {showDescriptors ? 'Close' : 'Scores'}
           </button>
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-stone-100 h-1">
-          <div className="bg-teal-500 h-1 transition-all duration-300" style={{ width: `${((question?.num || 1) / 12) * 100}%` }} />
+          <div className="bg-teal-500 h-1 transition-all" style={{ width: `${((question?.num !== undefined ? question.num + 2 : 1) / 12) * 100}%` }} />
         </div>
 
-        {/* Descriptors panel */}
         <AnimatePresence>
-          {showDescriptors && question?.descriptors && (
+          {showDescriptors && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25 }}
-              className="overflow-hidden bg-white border-b border-stone-100"
-            >
-              <div className="px-5 md:px-8 py-3 space-y-2">
-                <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">Descriptors — tap to close</div>
-                {question.descriptors.map((d: any) => (
-                  <div key={d.code} className="flex gap-2 text-xs">
-                    <span className="font-bold w-4 text-stone-400 shrink-0">{d.code}</span>
-                    <span className="flex-1 text-stone-600 leading-relaxed">{d.text}</span>
-                    <span className={`font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}</span>
-                  </div>
-                ))}
+              className="overflow-hidden bg-white border-b border-stone-100">
+              <div className="px-5 md:px-8 py-3">
+                <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
+                  Descriptors — tap to close
+                </div>
+                <div className="space-y-2">
+                  {question?.descriptors?.map((d: any) => (
+                    <div key={d.code} className={`flex gap-2 text-xs ${q2ScoreInfo.descriptor === d.code ? 'bg-teal-50 -mx-2 px-2 py-1.5 rounded-lg border border-teal-100' : ''}`}>
+                      <span className="font-bold w-4 text-stone-400 shrink-0">{d.code}</span>
+                      <span className="flex-1 text-stone-600 leading-relaxed">{d.text}</span>
+                      <span className={`font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Score bar — matches Q1 */}
-        <div className="bg-white border-b border-stone-100 px-5 md:px-8 py-2.5">
+        <motion.div
+          key={q2ScoreInfo.descriptor}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white border-b border-stone-100 px-5 md:px-8 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${aiLoading ? 'bg-amber-400' : 'bg-stone-300'}`} />
-              <span className="text-xs text-stone-500">{aiLoading ? 'Thinking...' : 'Estimating score...'}</span>
+              <div className={`w-2 h-2 rounded-full ${q2ScoreInfo.confidence === 'high' ? 'bg-teal-500' : q2ScoreInfo.confidence === 'medium' ? 'bg-amber-400' : 'bg-stone-300'}`} />
+              <span className="text-xs text-stone-500">
+                {q2ScoreInfo.confidence === 'low' ? 'Estimating score...' : `Descriptor ${q2ScoreInfo.descriptor}`}
+              </span>
             </div>
             <div className="flex items-center gap-3">
+              {stepHistory.length > 0 && (
+                <button onClick={handleUndo} className="flex items-center gap-1 text-xs text-teal-600 font-medium hover:text-teal-700 transition-colors active:scale-95">
+                  <Undo2 className="w-3.5 h-3.5" />
+                  Undo
+                </button>
+              )}
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-stone-400" />
-                <span className="text-sm font-bold text-stone-400">—</span>
+                <span className={`text-sm font-bold ${q2ScoreInfo.points >= 8 ? 'text-teal-700' : q2ScoreInfo.points >= 4 ? 'text-blue-600' : q2ScoreInfo.points >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+                  {q2ScoreInfo.confidence === 'low' ? '—' : `${q2ScoreInfo.points} pts`}
+                </span>
               </div>
             </div>
           </div>
-        </div>
+          {q2ScoreInfo.confidence !== 'low' && <p className="text-[11px] text-stone-400 mt-1">{q2ScoreInfo.label}</p>}
+        </motion.div>
 
-        {/* Messages — matches Q1 with animation */}
+        {badDayMode && (
+          <div className="bg-rose-50 border-b border-rose-100 px-5 md:px-8 py-2 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            <span className="text-xs font-medium text-rose-800">Bad Day Mode Active: Describe your worst days</span>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto flex flex-col">
           <div className="flex-1" />
           <div className="px-5 md:px-8 py-6 space-y-4">
@@ -602,15 +665,9 @@ Options should reflect realistic answers for someone with their conditions, not 
                   key={msg.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                    msg.sender === 'user'
-                      ? 'bg-teal-700 text-white rounded-tr-sm'
-                      : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'
-                  }`}>
-                    {msg.text}
-                  </div>
+                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.sender === 'user' ? 'bg-teal-700 text-white rounded-tr-sm' : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'}`}
+                    dangerouslySetInnerHTML={{ __html: msg.text }} />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -618,57 +675,8 @@ Options should reflect realistic answers for someone with their conditions, not 
           </div>
         </div>
 
-        {/* Options — matches Q1 with bg-stone-100 container */}
         <div className="p-4 md:px-8 bg-stone-100 border-t border-stone-200">
-          {currentOptions.length > 0 && !aiLoading && (
-            <div className="space-y-2">
-              {currentOptions.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleOptionClick(opt)}
-                  className="chat-option"
-                >
-                  {opt}
-                </button>
-              ))}
-              <button
-                onClick={() => handleOptionClick('I have more details to add')}
-                className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors"
-              >
-                I have more details to add
-              </button>
-            </div>
-          )}
-          {showFreeText && !aiLoading && (
-            <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-                placeholder="Add any extra details here..."
-                className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
-                rows={2}
-                autoFocus
-              />
-              <button onClick={handleFreeTextSubmit} disabled={!inputText.trim()} className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
-                <Send className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-          {aiLoading && (
-            <div className="flex justify-center py-2">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
-                <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
-              </div>
-            </div>
-          )}
-          {!aiLoading && currentOptions.length === 0 && !showFreeText && messages.length === 0 && (
-            <div className="text-center py-2">
-              <p className="text-xs text-stone-400">Loading your question...</p>
-            </div>
-          )}
+          {renderOptions()}
         </div>
 
         <style>{`
@@ -693,6 +701,7 @@ Options should reflect realistic answers for someone with their conditions, not 
       </div>
     );
   }
+
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
