@@ -318,14 +318,9 @@ Options should reflect realistic answers for someone with their conditions, not 
   // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
     if (isQ1) {
-      // Set correct step based on hint, then clear
+      // Don't change step - keep at 'q1' so contextual pills show
+      // Just clear the hint after a delay
       if (initialHint) {
-        const stepMap: Record<string, Step> = {
-          'B': 'detail_b', 'C': 'detail_c', 'D': 'detail_d', 'E': 'detail_e', 'F': 'detail_f'
-        };
-        const targetStep = stepMap[initialHint.toUpperCase()];
-        if (targetStep) setCurrentStep(targetStep as Step);
-        // Clear after a tick to survive double-mount from animKey
         setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
       }
       return;
