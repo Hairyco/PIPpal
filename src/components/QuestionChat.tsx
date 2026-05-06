@@ -312,6 +312,7 @@ Options should reflect realistic answers for someone with their conditions, not 
     setMessages(prev => [...prev, newMsg]);
     const updatedConv = [...aiConversation, { role: 'user', content: userMsg }];
     setAiConversation(updatedConv);
+    // Always use AI for free text — even on Q1
     await callAI(userMsg, updatedConv);
   };
 
@@ -488,10 +489,10 @@ Options should reflect realistic answers for someone with their conditions, not 
                 </button>
               ))}
               <button
-                onClick={() => handleOption('I have more details to add', 'q2b', 'Tell me more — what does this look like day to day?')}
+                onClick={() => setShowFreeText(true)}
                 className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors"
               >
-                I have more details to add
+                ✏️ Type your own answer
               </button>
             </div>
           );
