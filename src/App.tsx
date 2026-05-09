@@ -47,6 +47,7 @@ import { EligibilityChecker } from './components/EligibilityChecker';
 import { MedicalProfile } from './components/MedicalProfile';
 import { QuestionIntro } from './components/QuestionIntro';
 import { QuestionChat } from './components/QuestionChat';
+import { QuestionFlow } from './components/QuestionFlow';
 import { ResultCard } from './components/ResultCard';
 import { QuestionIndex } from './components/QuestionIndex';
 import { NewClaimIntro } from './components/NewClaimIntro';
@@ -230,7 +231,7 @@ function AppContent() {
       case 'eligibility': return <EligibilityChecker />;
       case 'medical_profile': return <MedicalProfile />;
       case 'question_wizard': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
-      case 'q1_intro': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
+      case 'q1_intro': return hasPaid ? <QuestionFlow key={`flow-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
       case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
