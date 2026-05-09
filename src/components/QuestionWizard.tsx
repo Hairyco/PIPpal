@@ -157,11 +157,8 @@ export function QuestionWizard() {
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(s => s + 1);
-    } else {
-      // Step 6 is the descriptor selection — navigate to chat
-      sessionStorage.setItem('pippal_wizard_answers', JSON.stringify(answers));
-      navigateTo('q1_chat');
     }
+    // Step 6 is descriptors — navigation handled by handleDescriptorTap
   };
 
   const handleBack = () => {
@@ -502,7 +499,11 @@ export function QuestionWizard() {
                 </div>
 
                 <button
-                  onClick={() => navigateTo('q1_chat')}
+                  onClick={() => {
+                    sessionStorage.setItem('pippal_wizard_answers', JSON.stringify(answers));
+                    setQ1Result(null);
+                    navigateTo('q1_chat');
+                  }}
                   className="w-full text-center text-xs text-stone-400 hover:text-teal-600 py-2 transition-colors"
                 >
                   Not sure which applies? Start the chat and PIPpal will help →
