@@ -324,27 +324,27 @@ export function QuestionWizard() {
                     <p className="text-stone-400 text-sm">No difficulties selected — tap Back to add some.</p>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                    {/* Header */}
-                    <div className="flex border-b border-stone-100 bg-stone-50 px-4 py-2">
-                      <div className="flex-1" />
-                      {FREQUENCIES.map(f => (
-                        <div key={f.key} className="w-14 text-center">
-                          <p className="text-[10px] font-bold text-stone-500 uppercase leading-tight">{f.label}</p>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Rows */}
+                  <div className="space-y-3">
                     {answers.difficulties.map((diff, di) => (
-                      <div key={di} className={`flex items-center px-4 py-3 ${di > 0 ? 'border-t border-stone-50' : ''}`}>
-                        <p className="flex-1 text-sm text-stone-700 font-medium pr-2">{diff}</p>
-                        {FREQUENCIES.map(f => (
-                          <button key={f.key} onClick={() => setFrequency(diff, f.key)} className="w-14 flex items-center justify-center">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${answers.frequencies[diff] === f.key ? 'border-teal-600 bg-teal-600' : 'border-stone-300 hover:border-teal-400'}`}>
-                              {answers.frequencies[diff] === f.key && <div className="w-2 h-2 rounded-full bg-white" />}
-                            </div>
-                          </button>
-                        ))}
+                      <div key={di} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                        <p className="text-sm font-semibold text-stone-800 mb-4">{diff}</p>
+                        <div className="flex justify-between gap-1">
+                          {FREQUENCIES.map(f => {
+                            const selected = answers.frequencies[diff] === f.key;
+                            return (
+                              <button
+                                key={f.key}
+                                onClick={() => setFrequency(diff, f.key)}
+                                className="flex-1 flex flex-col items-center gap-2"
+                              >
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selected ? 'border-teal-600 bg-teal-600' : 'border-stone-300 hover:border-teal-400'}`}>
+                                  {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
+                                </div>
+                                <span className={`text-[10px] font-semibold text-center leading-tight ${selected ? 'text-teal-700' : 'text-stone-400'}`}>{f.label}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     ))}
                   </div>
