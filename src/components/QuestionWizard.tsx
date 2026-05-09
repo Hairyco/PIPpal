@@ -319,32 +319,28 @@ export function QuestionWizard() {
                   <p className="text-teal-100 text-sm mt-1">Think about the last few months. Choose how often each difficulty happens for you.</p>
                 </div>
 
-                {answers.difficulties.length === 0 ? (
+            {answers.difficulties.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-stone-100 p-5 text-center">
                     <p className="text-stone-400 text-sm">No difficulties selected — tap Back to add some.</p>
                   </div>
                 ) : (
                   <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                    {/* Header row */}
-                    <div className="grid grid-cols-6 border-b border-stone-100 bg-stone-50">
-                      <div className="col-span-2 px-3 py-2" />
+                    {/* Header */}
+                    <div className="flex border-b border-stone-100 bg-stone-50 px-4 py-2">
+                      <div className="flex-1" />
                       {FREQUENCIES.map(f => (
-                        <div key={f.key} className="text-center py-2 px-1">
-                          <p className="text-[9px] font-bold text-stone-500 uppercase">{f.label}</p>
+                        <div key={f.key} className="w-14 text-center">
+                          <p className="text-[10px] font-bold text-stone-500 uppercase leading-tight">{f.label}</p>
                         </div>
                       ))}
                     </div>
                     {/* Rows */}
                     {answers.difficulties.map((diff, di) => (
-                      <div key={di} className={`grid grid-cols-6 items-center ${di > 0 ? 'border-t border-stone-50' : ''}`}>
-                        <div className="col-span-2 px-3 py-3">
-                          <p className="text-xs text-stone-600 leading-snug font-medium">{diff}</p>
-                        </div>
+                      <div key={di} className={`flex items-center px-4 py-3 ${di > 0 ? 'border-t border-stone-50' : ''}`}>
+                        <p className="flex-1 text-sm text-stone-700 font-medium pr-2">{diff}</p>
                         {FREQUENCIES.map(f => (
-                          <button key={f.key} onClick={() => setFrequency(diff, f.key)}
-                            className="flex items-center justify-center py-3"
-                          >
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${answers.frequencies[diff] === f.key ? 'border-teal-600 bg-teal-600' : 'border-stone-300'}`}>
+                          <button key={f.key} onClick={() => setFrequency(diff, f.key)} className="w-14 flex items-center justify-center">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${answers.frequencies[diff] === f.key ? 'border-teal-600 bg-teal-600' : 'border-stone-300 hover:border-teal-400'}`}>
                               {answers.frequencies[diff] === f.key && <div className="w-2 h-2 rounded-full bg-white" />}
                             </div>
                           </button>
