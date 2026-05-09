@@ -239,13 +239,19 @@ export function ClaimProcess() {
       />
 
       {/* Footer CTA */}
-      <div className="p-5 md:px-8 bg-white border-t border-stone-100">
+      <div className="p-5 md:px-8 bg-white border-t border-stone-100 space-y-2">
         <button
-          onClick={() => navigateTo('descriptors_guide')}
+          onClick={() => navigateTo('question_index')}
           className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2"
         >
-          Next: What assessors look for
+          Start My Questions
           <ArrowRight className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => navigateTo('descriptors_guide')}
+          className="w-full text-stone-500 text-sm py-2 hover:text-teal-700 transition-colors"
+        >
+          What will assessors look for? →
         </button>
       </div>
     </div>
