@@ -330,33 +330,29 @@ export function QuestionWizard() {
                   <p className="text-teal-100 text-sm mt-1">Think about the last few months. Choose how often each difficulty happens for you.</p>
                 </div>
 
-            {/* Step 3: Frequency — one card per difficulty */}
+            {/* Step 3: Frequency — dropdown per difficulty */}
             {answers.difficulties.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-stone-100 p-5 text-center">
                     <p className="text-stone-400 text-sm">No difficulties selected — tap Back to add some.</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden divide-y divide-stone-50">
                     {answers.difficulties.map((diff, di) => (
-                      <div key={di} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                        <p className="text-sm font-semibold text-stone-800 mb-4">{diff}</p>
-                        <div className="flex justify-between gap-1">
-                          {FREQUENCIES.map(f => {
-                            const selected = answers.frequencies[diff] === f.key;
-                            return (
-                              <button
-                                key={f.key}
-                                onClick={() => setFrequency(diff, f.key)}
-                                className="flex-1 flex flex-col items-center gap-2"
-                              >
-                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${selected ? 'border-teal-600 bg-teal-600' : 'border-stone-300 hover:border-teal-400'}`}>
-                                  {selected && <div className="w-2.5 h-2.5 rounded-full bg-white" />}
-                                </div>
-                                <span className={`text-[10px] font-semibold text-center leading-tight ${selected ? 'text-teal-700' : 'text-stone-400'}`}>{f.label}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
+                      <div key={di} className="flex items-center gap-4 px-4 py-3.5">
+                        <p className="flex-1 text-sm font-medium text-stone-700">{diff}</p>
+                        <select
+                          value={answers.frequencies[diff] || ''}
+                          onChange={e => setFrequency(diff, e.target.value)}
+                          className={`text-sm font-semibold rounded-xl border px-3 py-2 bg-white focus:ring-1 focus:ring-teal-400 focus:border-teal-400 appearance-none pr-8 ${answers.frequencies[diff] ? 'text-teal-700 border-teal-200 bg-teal-50' : 'text-stone-400 border-stone-200'}`}
+                          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
+                        >
+                          <option value="" disabled>How often?</option>
+                          <option value="never">Never</option>
+                          <option value="rarely">Rarely (1–3 days a week)</option>
+                          <option value="sometimes">Sometimes (4–6 days a week)</option>
+                          <option value="often">Often (most days)</option>
+                          <option value="most">Every day</option>
+                        </select>
                       </div>
                     ))}
                   </div>
