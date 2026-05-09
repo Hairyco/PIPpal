@@ -7,6 +7,7 @@ export type Screen =
   | 'home'
   | 'eligibility'
   | 'medical_profile'
+  | 'question_wizard'
   | 'q1_intro'
   | 'q1_chat'
   | 'q1_result'

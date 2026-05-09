@@ -52,6 +52,7 @@ import { QuestionIndex } from './components/QuestionIndex';
 import { NewClaimIntro } from './components/NewClaimIntro';
 import { ClaimProcess } from './components/ClaimProcess';
 import { DescriptorsGuide } from './components/DescriptorsGuide';
+import { QuestionWizard } from './components/QuestionWizard';
 import { UpsellScreen } from './components/UpsellScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { PostPaymentGuide } from './components/PostPaymentGuide';
@@ -228,7 +229,8 @@ function AppContent() {
       case 'home': return <HomeScreen />;
       case 'eligibility': return <EligibilityChecker />;
       case 'medical_profile': return <MedicalProfile />;
-      case 'q1_intro': return hasPaid ? <QuestionIntro /> : <UpsellScreen />;
+      case 'question_wizard': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
+      case 'q1_intro': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
       case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
       case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
