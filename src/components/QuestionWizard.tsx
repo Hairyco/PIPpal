@@ -319,6 +319,7 @@ export function QuestionWizard() {
                   <p className="text-teal-100 text-sm mt-1">Think about the last few months. Choose how often each difficulty happens for you.</p>
                 </div>
 
+            {/* Step 3: Frequency — one card per difficulty */}
             {answers.difficulties.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-stone-100 p-5 text-center">
                     <p className="text-stone-400 text-sm">No difficulties selected — tap Back to add some.</p>
