@@ -64,10 +64,14 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">Free tools available · Full access £8.99 — limited time</p>
         </div>
 
-        {/* Stars */}
-        <div className="flex items-center justify-center gap-1 mb-2">
-          {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
-          <span className="text-xs text-stone-500 ml-1.5">Trusted by thousands of claimants</span>
+        {/* Free calculators link */}
+        <div className="flex items-center justify-center">
+          <a
+            href="#free-tools"
+            className="text-xs text-teal-700 font-semibold hover:text-teal-800 underline underline-offset-2 transition-colors"
+          >
+            Try our free PIP calculators — no sign-up needed →
+          </a>
         </div>
       </div>
 
