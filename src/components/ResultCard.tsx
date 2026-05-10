@@ -71,6 +71,7 @@ export function ResultCard() {
   const [editedText, setEditedText] = useState<string | null>(null);
   const [isImproving, setIsImproving] = useState(false);
   const [showVoicePicker, setShowVoicePicker] = useState(false);
+  const [answerHistory, setAnswerHistory] = useState<string[]>([]);
 
   const VOICES = [
     {
@@ -84,6 +85,12 @@ export function ResultCard() {
       label: 'Descriptive & detailed',
       desc: 'Puts the assessor in the moment. Shows real impact.',
       example: '"When my anxiety is bad I stand at the hob and forget what I\'m doing. I\'ve left the gas on twice."',
+    },
+    {
+      key: 'everyday',
+      label: 'In my own words',
+      desc: 'Natural, honest language — like you\'d explain it to a friend.',
+      example: '"Most days I just can\'t face cooking. The pain gets too much and I end up not eating properly."',
     },
   ];
 
@@ -121,6 +128,8 @@ export function ResultCard() {
   const handleImproveWithVoice = async (voice: string) => {
     setShowVoicePicker(false);
     setIsImproving(true);
+    // Save current answer to history before overwriting
+    setAnswerHistory(prev => [...prev, editedText ?? data.text]);
     try {
       const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
       const wizardAnswers = (() => {
@@ -132,6 +141,8 @@ export function ResultCard() {
 
       const voiceInstruction = voice === 'descriptive'
         ? 'Write in a descriptive, personal style — put the assessor in the moment. Use specific examples and show real impact on daily life.'
+        : voice === 'everyday'
+        ? 'Write in natural, everyday language — honest and straightforward, like explaining to a friend. Avoid formal or clinical phrasing. It should sound like a real person talking.'
         : 'Write in a formal, factual style — clear direct statements, no emotion, just the facts of what the person can and cannot do.';
 
       const response = await fetch('/api/chat', {
@@ -364,24 +375,40 @@ Return ONLY the answer text.`,
           <RefreshCw className="w-4 h-4" />
           Redo
         </button>
-        <button
-          onClick={handleImprove}
-          disabled={isImproving}
-          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border-2 border-purple-200 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 active:scale-[0.98] transition-all disabled:opacity-50"
-        >
-          {isImproving ? (
-            <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Sparkles className="w-4 h-4" />
+        <div className="flex flex-col gap-1.5 flex-1">
+          <button
+            onClick={handleImprove}
+            disabled={isImproving}
+            className="w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border-2 border-purple-200 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 active:scale-[0.98] transition-all disabled:opacity-50"
+          >
+            {isImproving ? (
+              <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            {isImproving ? 'Improving...' : 'Improve'}
+          </button>
+          {answerHistory.length > 0 && (
+            <button
+              onClick={() => {
+                const prev = [...answerHistory];
+                const last = prev.pop()!;
+                setAnswerHistory(prev);
+                setEditedText(last);
+                saveAnswer(qId, last.replace(/<[^>]+>/g, ''));
+              }}
+              className="w-full text-center text-xs text-stone-400 hover:text-purple-600 transition-colors py-0.5"
+            >
+              ↩ Revert to {answerHistory.length === 1 ? 'original' : 'previous'} answer
+            </button>
           )}
-          {isImproving ? 'Improving...' : 'Improve'}
-        </button>
+        </div>
         <button
           onClick={handleNextQuestion}
           className="flex-1 flex items-center justify-center gap-1.5 bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm"
         >
           <Sparkles className="w-4 h-4" />
-          Next Question
+          Next
         </button>
       </div>
 
