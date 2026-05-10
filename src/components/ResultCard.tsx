@@ -102,25 +102,73 @@ export function ResultCard() {
     setIsImproving(true);
     try {
       const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
-      const plainText = displayText.replace(/<[^>]+>/g, '');
+      const wizardAnswers = (() => {
+        try { return JSON.parse(sessionStorage.getItem('pippal_wizard_answers') || '{}'); } catch { return {}; }
+      })();
+      const difficulties = wizardAnswers.difficulties?.join(', ') || '';
+      const support = wizardAnswers.supportNeeded?.join(', ') || '';
+      const impact = wizardAnswers.realLifeImpact?.join(', ') || '';
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Improve this PIP answer for descriptor ${descriptor} (${data.heading}). Make it more specific and compelling for the assessor. Keep it first-person and factual. The person has conditions: ${conditions}. Current answer: "${plainText}". Return ONLY the improved answer text, no preamble.`,
+          message: `Write a concise PIP descriptor answer (2-3 sentences MAX) for descriptor ${descriptor}: "${data.heading}".
+
+Person's conditions: ${conditions}
+Difficulties they selected: ${difficulties}
+Support they need: ${support}
+Real-life impact: ${impact}
+
+Rules:
+- 2-3 sentences ONLY — no more
+- First person ("I...")
+- Specific and factual
+- Mention frequency (most days / every day / often)
+- Mention impact or support needed
+- No preamble, no explanation — just the answer text
+
+Return ONLY the answer text.`,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
           conversationHistory: [],
           userId: null,
         }),
       });
       const res = await response.json();
-      const improved = res.reply || res.generated || '';
+      const improved = (res.reply || res.generated || '').trim();
       if (improved) {
-        setEditedText(improved);
+        // Add highlights to the improved plain text
+        const highlighted = addHighlights(improved);
+        setEditedText(highlighted);
         saveAnswer(qId, improved);
       }
     } catch (e) { /* silent */ }
     setIsImproving(false);
+  };
+
+  // Add colour highlights to plain text answer
+  const addHighlights = (text: string): string => {
+    // Frequency words — amber
+    let out = text.replace(
+      /\b(every day|most days|often|daily|frequently|on bad days|whenever|all the time|regularly|the majority of days|most of the time)\b/gi,
+      '<span class="bg-amber-100 text-amber-900 px-1 rounded">$1</span>'
+    );
+    // Support/aid — blue
+    out = out.replace(
+      /\b(someone|another person|my (partner|carer|family|husband|wife)|supervision|assistance|help|reminders?|prompting|aid|appliance|adapted|microwave|perching stool|grab rail)\b/gi,
+      '<span class="bg-blue-100 text-blue-900 px-1 rounded">$1</span>'
+    );
+    // Impact — purple
+    out = out.replace(
+      /\b(pain|exhausted|exhaustion|fatigue|anxious|anxiety|distress|overwhelmed|unsafe|danger|risk|unable|cannot|can't|struggle|difficult)\b/gi,
+      '<span class="bg-purple-100 text-purple-900 px-1 rounded">$1</span>'
+    );
+    // What they can/cannot do — teal (first sentence typically)
+    const firstSentenceEnd = out.indexOf('. ');
+    if (firstSentenceEnd > 0) {
+      out = '<span class="bg-teal-100 text-teal-900 px-1 rounded">' + out.slice(0, firstSentenceEnd) + '</span>' + out.slice(firstSentenceEnd);
+    }
+    return out;
   };
 
   const handleNextQuestion = () => {
