@@ -70,6 +70,22 @@ export function ResultCard() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState<string | null>(null);
   const [isImproving, setIsImproving] = useState(false);
+  const [showVoicePicker, setShowVoicePicker] = useState(false);
+
+  const VOICES = [
+    {
+      key: 'factual',
+      label: 'Formal & factual',
+      desc: 'Clear, direct statements. No emotion — just the facts.',
+      example: '"On most days I cannot use the hob. I use a microwave only."',
+    },
+    {
+      key: 'descriptive',
+      label: 'Descriptive & detailed',
+      desc: 'Puts the assessor in the moment. Shows real impact.',
+      example: '"When my anxiety is bad I stand at the hob and forget what I\'m doing. I\'ve left the gas on twice."',
+    },
+  ];
 
   // Save answer on mount
   useEffect(() => {
@@ -97,8 +113,13 @@ export function ResultCard() {
     navigateTo('q1_intro');
   };
 
-  const handleImprove = async () => {
+  const handleImprove = () => {
     if (!hasPaid) { navigateTo('upsell'); return; }
+    setShowVoicePicker(true);
+  };
+
+  const handleImproveWithVoice = async (voice: string) => {
+    setShowVoicePicker(false);
     setIsImproving(true);
     try {
       const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
@@ -108,6 +129,10 @@ export function ResultCard() {
       const difficulties = wizardAnswers.difficulties?.join(', ') || '';
       const support = wizardAnswers.supportNeeded?.join(', ') || '';
       const impact = wizardAnswers.realLifeImpact?.join(', ') || '';
+
+      const voiceInstruction = voice === 'descriptive'
+        ? 'Write in a descriptive, personal style — put the assessor in the moment. Use specific examples and show real impact on daily life.'
+        : 'Write in a formal, factual style — clear direct statements, no emotion, just the facts of what the person can and cannot do.';
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -119,6 +144,8 @@ Person's conditions: ${conditions}
 Difficulties they selected: ${difficulties}
 Support they need: ${support}
 Real-life impact: ${impact}
+
+Voice: ${voiceInstruction}
 
 Rules:
 - 2-3 sentences ONLY — no more
@@ -145,8 +172,6 @@ Return ONLY the answer text.`,
     } catch (e) { /* silent */ }
     setIsImproving(false);
   };
-
-  // Add colour highlights to plain text answer
   const addHighlights = (text: string): string => {
     // Frequency words — amber
     let out = text.replace(
@@ -300,6 +325,35 @@ Return ONLY the answer text.`,
         </p>
 
       </div>
+
+      {/* Voice picker modal */}
+      {showVoicePicker && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-end justify-center p-4" onClick={() => setShowVoicePicker(false)}>
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-3"
+            onClick={e => e.stopPropagation()}
+          >
+            <h3 className="font-bold text-stone-900 text-base">Choose your writing style</h3>
+            <p className="text-sm text-stone-500">How would you like your improved answer to read?</p>
+            {VOICES.map(v => (
+              <button
+                key={v.key}
+                onClick={() => handleImproveWithVoice(v.key)}
+                className="w-full text-left p-4 rounded-xl border-2 border-stone-100 hover:border-teal-300 hover:bg-teal-50 active:scale-[0.98] transition-all"
+              >
+                <p className="font-bold text-stone-900 text-sm mb-1">{v.label}</p>
+                <p className="text-xs text-stone-500 mb-2">{v.desc}</p>
+                <p className="text-xs text-stone-400 italic">{v.example}</p>
+              </button>
+            ))}
+            <button onClick={() => setShowVoicePicker(false)} className="w-full text-center text-sm text-stone-400 py-2 hover:text-stone-600">
+              Cancel
+            </button>
+          </motion.div>
+        </div>
+      )}
 
       {/* Bottom action bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-4 py-4 flex gap-2 max-w-2xl mx-auto">
