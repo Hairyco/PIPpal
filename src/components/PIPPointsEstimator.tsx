@@ -49,8 +49,8 @@ export function PIPPointsEstimator() {
   const answeredMobilityCount = answeredIds.filter(id => MOBILITY_QUESTIONS.includes(id)).length;
   const totalAnswered = answeredIds.length;
 
-  // Show for paid users always, or for free users once they have at least Q1 answered
-  if (!hasPaid && totalAnswered === 0) return null;
+  // Only show once the claimant has actually started answering questions
+  if (totalAnswered === 0) return null;
 
   // Empty state for paid users with no answers yet
   if (hasPaid && totalAnswered === 0) {
