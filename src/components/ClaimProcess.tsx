@@ -10,7 +10,7 @@ import { DWPCallScript } from './DWPCallScript';
 import { ContextualAssistantBar } from './ContextualAssistantBar';
 
 export function ClaimProcess() {
-  const { navigateTo, goBack, savedAnswers, hasPaid } = useAppContext();
+  const { navigateTo, goBack, savedAnswers, hasPaid, medProfile } = useAppContext();
   const [showTips, setShowTips] = useState(false);
   const [showContacts, setShowContacts] = useState(false);
   const hasAnswers = Object.keys(savedAnswers).length > 0;
@@ -241,10 +241,10 @@ export function ClaimProcess() {
       {/* Footer CTA */}
       <div className="p-5 md:px-8 bg-white border-t border-stone-100 space-y-2">
         <button
-          onClick={() => navigateTo('question_index')}
+          onClick={() => navigateTo(medProfile?.conditions?.length ? 'question_index' : 'medical_profile')}
           className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2"
         >
-          Start My Questions
+          {medProfile?.conditions?.length ? 'Start My Questions' : 'Add My Conditions First'}
           <ArrowRight className="w-5 h-5" />
         </button>
         <button
