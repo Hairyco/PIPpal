@@ -83,8 +83,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 1,
     pipFormRef: 'Q3',
     title: 'Can you prepare and cook a simple meal safely?',
-    subtitle: 'This covers your ability to plan, prepare, and cook a simple meal without help.',
-    explained: 'This question looks at whether you can plan, prepare, and cook a simple meal safely and reliably. It covers thinking about what to make, gathering ingredients, using kitchen equipment, and cooking safely without risk of harm. A "simple meal" means something like a cooked meal from scratch for one person — not just a sandwich. If you can only manage a microwave, or need someone there for safety, that counts.',
+    subtitle: 'Can you safely plan, prepare, and cook a proper cooked meal from scratch — not just reheat or make a sandwich?',
+    explained: "When DWP ask about preparing food, they mean a proper cooked meal — like pasta, a roast, or a hot dish — made from scratch for one person. Not a microwave ready meal. They want to know whether you can do the whole thing safely on most days: deciding what to make, getting ingredients ready, using the hob or oven, and finishing without putting yourself at risk. Pain, fatigue, memory, anxiety, tremors — all of these affect your ability to cook safely and they all count. Think about your worst days, not your best. If someone has to step in, you've had accidents, or you avoid it altogether — that's what we need to know.",
     helpQuestions: [
       'Give me another example',
       'How does this apply to anxiety?',
@@ -93,8 +93,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does forgetting to eat count?',
     ],
     exampleAnswer: {
-      name: 'Alex', age: 41, label: 'Long-term condition',
-      quote: "I can't reliably prepare a meal on most days. Some days I manage a microwave meal, but using the hob or oven isn't safe — I forget things are on and I've come close to accidents. My partner usually has to be nearby.",
+      name: 'Alex', age: 41, label: 'Anxiety and chronic pain',
+      quote: "Most days I can't cook safely. I've burned myself leaving things on the hob, and once I completely forgot a pan was on — my partner smelled it from upstairs. On a good day I might manage to heat something in the microwave, but even that takes me three times as long because my grip is poor and I have to sit down between each step. My partner prepares all my proper meals now. I haven't cooked a full meal safely by myself in about two years, and honestly I'm frightened to try. On my worst days — which is most days — I can't stand long enough to even fill the kettle safely.",
     },
     difficultyCategories: [
       {
@@ -173,8 +173,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 2,
     pipFormRef: 'Q4',
     title: 'Can you eat and drink safely and reliably?',
-    subtitle: 'This covers your ability to eat and drink a prepared meal unaided.',
-    explained: 'This question is about whether you can eat and drink once food is in front of you — it is separate from preparing it. It covers cutting food, swallowing safely, eating independently, and whether you need someone to help or supervise you at mealtimes. If your condition means you choke, forget to eat, or need someone to help you eat, that is relevant here.',
+    subtitle: 'Once food is in front of you — can you actually eat and drink safely and on your own?',
+    explained: "This is separate from cooking — it's about what happens when the food is already there. Can you cut it up, pick it up, swallow it safely, and get through the whole meal on your own? Tremors, swallowing difficulties, choking, needing someone to cut your food, or forgetting to eat — they all count here. So does needing encouragement or supervision at mealtimes. DWP want to know whether you can do this reliably, not just on a good day.",
     helpQuestions: [
       'What if I can eat some foods but not others?',
       'Does choking count?',
@@ -183,7 +183,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     ],
     exampleAnswer: {
       name: 'Maria', age: 56, label: 'Neurological condition',
-      quote: "I have difficulty swallowing and need someone to cut my food and supervise me eating to make sure I don't choke. On bad days I need assistance throughout the whole meal.",
+      quote: "I have a swallowing condition and I choke at almost every meal. My carer cuts my food into tiny pieces before I start and sits with me throughout in case I need to be helped. Even with all of that, I've had to call for help twice when I choked badly. On bad days I can't eat solid food at all and I'm losing weight because of it. Without my carer present I would not be safe eating. It's frightening and exhausting, and it's got worse over the past year.",
     },
     difficultyCategories: [
       {
@@ -247,8 +247,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 3,
     pipFormRef: 'Q5',
     title: 'Can you manage your therapy or health monitoring?',
-    subtitle: 'This covers managing medication, treatments, and monitoring your health condition.',
-    explained: "This question covers whether you can manage your medication, follow a treatment plan, monitor your condition (e.g. blood glucose, blood pressure), and carry out therapies. It includes taking medication at the right time, in the right dose, using equipment like nebulisers or dialysis machines, and any therapy exercises. If you need reminders, help, or supervision to do this safely, that matters.",
+    subtitle: 'Can you manage your medication, treatments, and therapy exercises safely and consistently — without reminders or help?',
+    explained: "This covers everything involved in keeping on top of your health: taking medication at the right time and in the right dose, using equipment like nebulisers or CPAP machines, monitoring your condition (like checking blood glucose or blood pressure), and doing any therapy exercises. If you forget doses, take the wrong amount, need reminders, or need someone to help you with injections or equipment — that all counts. Think about whether you can do all of this consistently and safely without someone stepping in.",
     helpQuestions: [
       'What if I take medication but forget doses?',
       'Does physiotherapy count?',
@@ -256,8 +256,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does monitoring blood glucose count?',
     ],
     exampleAnswer: {
-      name: 'James', age: 34, label: 'Chronic condition',
-      quote: "I have to inject insulin several times a day and test my blood glucose. I often forget or get the dose wrong when I'm stressed or tired. My partner has to remind me and sometimes supervises to make sure I do it safely.",
+      name: 'James', age: 34, label: 'Type 1 diabetes and anxiety',
+      quote: "I need to inject insulin up to five times a day. When I'm anxious or tired — which is most days — I either forget completely or miscalculate the dose, which has landed me in hospital twice. My partner now manages all of it. She sets my alarms, draws up the doses, and checks I've actually taken them. Left to myself it genuinely wouldn't be safe. I also have physiotherapy exercises I'm supposed to do daily, but the fatigue means I can only manage them maybe twice a week at best.",
     },
     difficultyCategories: [
       {
@@ -318,8 +318,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 4,
     pipFormRef: 'Q6',
     title: 'Can you wash and bathe safely?',
-    subtitle: 'This covers your ability to wash your body and bathe or shower unaided.',
-    explained: 'This question is about whether you can wash yourself — your whole body, including hair — safely and to an acceptable standard. It covers getting in and out of the bath or shower, washing all parts of your body, and drying off. If your condition means you need aids, reminders, help, or supervision, that all matters. Think about whether you can do this reliably on most days.',
+    subtitle: 'Can you wash your whole body safely — including getting in and out of the bath or shower — on most days?',
+    explained: "DWP aren't just asking whether you have a wash sometimes — they want to know if you can do it safely, reliably, and to an acceptable standard on most days. That includes getting in and out of the bath or shower without risking a fall, washing all parts of your body including your hair, and drying off. If it takes much longer, you can only manage it every few days, you use aids like grab rails or a shower seat, or you need someone's help — all of that is relevant. Don't forget bad days.",
     helpQuestions: [
       'Does hair washing count separately?',
       'What if I can shower but not bathe?',
@@ -327,8 +327,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'What about on bad days?',
     ],
     exampleAnswer: {
-      name: 'Sarah', age: 47, label: 'Physical condition',
-      quote: "I can have a quick wash at the sink on good days, but I need grab rails and a shower seat. On bad days I can't get in or out of the shower safely without someone helping me. I can only wash about 3 times a week maximum.",
+      name: 'Sarah', age: 47, label: 'Chronic pain condition',
+      quote: "I use a shower seat and grab rails just to be able to get in. Even with those, I can only shower safely about twice a week — on other days the pain and fatigue are too much. I can't wash my hair without help because I can't keep my arms raised long enough, and my partner has to wash the lower half of my body because I can't bend or reach. Without her I wouldn't be safe in the shower at all. Last month I slipped getting out even with the rail — I was on the floor for 20 minutes before she found me.",
     },
     difficultyCategories: [
       {
@@ -391,8 +391,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 5,
     pipFormRef: 'Q7',
     title: 'Can you manage your toilet needs safely?',
-    subtitle: 'This covers managing toilet needs and continence independently.',
-    explained: 'This question covers whether you can get to the toilet in time, manage clothing, clean yourself, and deal with any continence issues. It includes using a commode, catheter, or stoma bag if applicable. If you need aids, help, prompting, or supervision — including for managing continence products — that all counts.',
+    subtitle: 'Can you get to the toilet in time, manage your clothing, and clean yourself — reliably, safely, and with dignity?',
+    explained: "This covers the whole process: getting there quickly enough, managing your clothing, cleaning yourself properly, and dealing with any continence issues. If you use a catheter, stoma bag, or commode, that's relevant too. Accidents, urgency that means you don't always make it, needing help to clean yourself, needing prompting — all of it matters. It can feel like a hard thing to talk about, but it's an important part of your claim and DWP need you to be honest.",
     helpQuestions: [
       'Does using a catheter count?',
       'What about urgency and accidents?',
@@ -400,8 +400,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'What if I need help with clothing only?',
     ],
     exampleAnswer: {
-      name: 'David', age: 63, label: 'Mobility condition',
-      quote: "I have urgency issues and sometimes don't make it in time. I struggle to clean myself properly due to limited reach and pain. My wife has to help me several times a week.",
+      name: 'David', age: 63, label: 'Mobility and continence condition',
+      quote: "I have urgency incontinence and I don't always make it in time — probably two or three accidents a week. I also can't clean myself properly because of limited reach and severe back pain, so my wife helps me after every bowel movement. Getting my clothing up and down quickly enough is a real struggle too. I've had to cut the sides of some trousers to make it faster. It affects my life every single day and I can't manage it safely or with dignity on my own.",
     },
     difficultyCategories: [
       {
@@ -462,8 +462,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 6,
     pipFormRef: 'Q8',
     title: 'Can you dress and undress safely?',
-    subtitle: 'This covers your ability to dress and undress, including footwear.',
-    explained: 'This question is about whether you can choose appropriate clothing and dress and undress yourself, including socks, shoes, and fastenings. If your condition means it takes much longer, causes pain, you need help with certain items, or you need someone to be there, that all matters. Think about what it is like on most days.',
+    subtitle: 'Can you put on and take off your clothes — including shoes, socks, and fastenings — without help?',
+    explained: "This covers the whole process of getting dressed and undressed each day: choosing appropriate clothing for the weather, managing fastenings like buttons and zips, getting socks and shoes on, and dressing your whole body including both upper and lower half. If it causes significant pain, takes much longer than it should, you can only wear loose or adapted clothing, or you need someone to help you with any part of it — that all counts. Think about most days, not just when things are going well.",
     helpQuestions: [
       'Does struggling with buttons count?',
       'What if I can dress but not undress?',
@@ -472,7 +472,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     ],
     exampleAnswer: {
       name: 'Lynn', age: 52, label: 'Joint condition',
-      quote: "I can put on loose clothing on good days, but I can't do buttons, zips, or socks. My husband helps me every morning. On bad days I can't lift my arms enough to dress my top half at all.",
+      quote: "Most mornings I can't lift my arms high enough to put on a top without help. My husband dresses me every day. I can't do buttons or zips because of the pain in my fingers and my grip, and I haven't been able to put my own socks or shoes on in over a year — I wear slip-ons and my husband does my socks. Some days the pain is so bad I stay in what I slept in. Even with his help, getting dressed takes at least 45 minutes and I'm exhausted before the day has started.",
     },
     difficultyCategories: [
       {
@@ -534,8 +534,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 7,
     pipFormRef: 'Q9',
     title: 'Can you communicate verbally?',
-    subtitle: 'This covers expressing and understanding spoken information.',
-    explained: "This question is about whether you can speak and be understood, and whether you can understand what others say to you. It includes conditions that affect speech (such as a stammer, aphasia, or voice loss), as well as conditions that affect understanding spoken language. If you need aids like a communication device, or need people to speak differently, that matters.",
+    subtitle: 'Can you speak and be understood by others — and understand what people say to you?',
+    explained: "This is about whether your condition affects your ability to communicate out loud. That could be because you struggle to speak clearly, you have a stammer, you lose your words, or because understanding what people say is difficult. Things like needing people to repeat themselves, speak more slowly, or use simpler language all count. Aphasia, anxiety that makes speaking feel impossible, selective mutism, and significant hearing loss are all relevant here.",
     helpQuestions: [
       'What if I can talk but not be understood?',
       'Does a stammer count?',
@@ -543,8 +543,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does using AAC count?',
     ],
     exampleAnswer: {
-      name: 'Tom', age: 38, label: 'Acquired condition',
-      quote: "Since my stroke I have aphasia. I understand most of what people say but I struggle to find words and often people can't understand me. I use a communication app on my phone to help.",
+      name: 'Tom', age: 38, label: 'Stroke survivor with aphasia',
+      quote: "Since my stroke I know what I want to say but the words come out wrong or don't come at all. Sometimes I say a completely different word to the one I mean. I use a communication app on my phone but even that takes a long time and people still look confused. Phone calls are nearly impossible — I had to stop answering the phone altogether. My partner speaks for me in most situations now. Anything important I have to prepare in writing in advance, and even then I need her to check it makes sense.",
     },
     difficultyCategories: [
       {
@@ -605,8 +605,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 8,
     pipFormRef: 'Q10',
     title: 'Can you read and understand written information?',
-    subtitle: 'This covers reading signs, symbols, words, and written information.',
-    explained: 'This question covers whether you can read and understand written information — letters, signs, labels, instructions, forms. It includes problems with vision, reading ability, or understanding. If you need aids like glasses or a screen reader, or need someone to read things to you, that matters here.',
+    subtitle: 'Can you read and understand written information — like letters, signs, forms, and instructions?',
+    explained: "This is about whether your condition stops you from reading and taking in written information. It could be a visual impairment, dyslexia, concentration or memory problems, or anxiety that makes absorbing written content very difficult. If you need someone to read letters to you, you use a screen reader, or you struggle to understand complex or lengthy written information — all of that counts. DWP use this to understand whether you can manage things like official letters, medical instructions, and everyday written communication.",
     helpQuestions: [
       'Does poor eyesight count?',
       'What about dyslexia?',
@@ -614,7 +614,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     ],
     exampleAnswer: {
       name: 'Priya', age: 44, label: 'Visual impairment',
-      quote: "I am registered blind and cannot read standard print. I use a screen reader for most things but for physical letters and forms I need someone to read them to me and help me understand.",
+      quote: "I'm registered blind and can't read standard print at all. Everything that comes through the post — letters from DWP, bills, hospital appointments — I have to wait for my daughter to come and read to me and explain. I use a screen reader for my phone and computer, but anything on paper is completely inaccessible. I missed two medical appointments in the past year because letters arrived when my daughter was away and I had no way of knowing what they said.",
     },
     difficultyCategories: [
       {
@@ -671,8 +671,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 9,
     pipFormRef: 'Q11',
     title: 'Can you engage with other people face to face?',
-    subtitle: 'This covers social interaction and engaging with people you know and strangers.',
-    explained: 'This question is about whether you can cope with face-to-face social interaction — with people you know and with strangers. If your condition causes severe anxiety, distress, or difficulty understanding or engaging in social situations, that matters here. Think about whether you can do this reliably, safely, and without it causing overwhelming psychological distress.',
+    subtitle: 'Can you cope with being around and talking to other people — including strangers — without it causing you serious distress?',
+    explained: "This question is about face-to-face social interaction — not just with people you know well, but also with strangers or in unfamiliar situations. If your condition causes severe anxiety, panic attacks, paranoia, or overwhelming distress in social situations, that matters. Even if you can sometimes manage with great difficulty, the question is whether you can do it reliably without causing significant psychological harm. Needing someone with you to cope counts too.",
     helpQuestions: [
       'What if I can talk to family but not strangers?',
       'Does social anxiety count?',
@@ -680,8 +680,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does needing someone with me count?',
     ],
     exampleAnswer: {
-      name: 'Rachel', age: 29, label: 'Mental health condition',
-      quote: "My anxiety makes it almost impossible to interact with strangers or in groups. Even with people I know I often panic and have to leave. I need someone with me most of the time and I have had several panic attacks in social situations.",
+      name: 'Rachel', age: 29, label: 'PTSD and severe anxiety',
+      quote: "I haven't been to a shop alone in 18 months. Even leaving my house to speak to someone outside my immediate family causes extreme distress — panic attacks, shaking, and sometimes being physically sick. When I have to attend appointments, my mum comes and does most of the talking because I freeze completely. I had to cancel a GP appointment three times in a row because I couldn't face the waiting room. My world has shrunk to my home and the thought of any social situation fills me with terror.",
     },
     difficultyCategories: [
       {
@@ -740,16 +740,16 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 10,
     pipFormRef: 'Q12',
     title: 'Can you make budgeting decisions?',
-    subtitle: 'This covers managing money and making decisions about spending.',
-    explained: "This question is about whether you can make simple and complex budgeting decisions — understanding the value of money, working out whether you can afford things, managing a simple budget, and making financial decisions. It doesn't cover income levels, but whether your condition affects your ability to understand and manage money.",
+    subtitle: 'Can you manage your money and make decisions about spending — safely and without help?',
+    explained: "This is about whether your condition affects your ability to understand and manage money. It's not about how much money you have — it's about whether you can make sensible financial decisions, manage a simple budget, understand the value of money, and avoid being taken advantage of. Impulsive spending, an inability to plan financially, or needing someone else to manage your money for you because you can't do it safely — all of that matters.",
     helpQuestions: [
       'What counts as a simple budgeting decision?',
       'Does needing support with bills count?',
       'What about being exploited financially?',
     ],
     exampleAnswer: {
-      name: 'Ben', age: 41, label: 'Learning disability',
-      quote: "I understand money is for buying things but I can't manage a budget or make decisions about larger purchases. Someone else manages my money. When I have cash I often spend it without thinking of consequences.",
+      name: 'Ben', age: 41, label: 'Learning disability and bipolar disorder',
+      quote: "When I'm in a high phase I spend money without any sense of consequences — I once spent my entire month's rent in two days buying things online I don't even remember ordering. My support worker now manages my bank account and gives me a small amount of cash each week. Even simple things like working out change or understanding a bill are things I need help with. I've been financially exploited twice by people who took advantage. I genuinely can't manage money safely on my own.",
     },
     difficultyCategories: [
       {
@@ -808,8 +808,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 1,
     pipFormRef: 'Q13',
     title: 'Can you plan and follow a journey?',
-    subtitle: 'This covers planning routes and following journeys independently.',
-    explained: 'This question is about whether you can plan a route and follow it — whether familiar or unfamiliar. It covers psychological distress that prevents journeys, as well as cognitive and physical barriers. If you cannot go out alone due to overwhelming anxiety, confusion, or physical risk, that counts. Even journeys you know well are relevant if your condition makes them unreliable.',
+    subtitle: 'Can you leave home and find your way around — even on a route you know well?',
+    explained: "This is about whether you can get from A to B independently — whether that's walking to the shops, getting on a bus, or going somewhere less familiar. It covers physical barriers like pain or fatigue, but also psychological ones like severe anxiety, agoraphobia, or confusion that makes going out alone unsafe. Even if you can manage a familiar route on a good day, the question is whether you can do it reliably. Needing someone with you, turning back, or getting lost all count.",
     helpQuestions: [
       'What if I can do familiar routes but not new ones?',
       'Does agoraphobia count?',
@@ -817,8 +817,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does needing someone with me count?',
     ],
     exampleAnswer: {
-      name: 'Gemma', age: 33, label: 'Mental health condition',
-      quote: "I cannot go out alone at all. Even on familiar routes I get overwhelming panic and have to turn back. I haven't been out unaccompanied in over a year. My husband takes me everywhere.",
+      name: 'Gemma', age: 33, label: 'Agoraphobia and PTSD',
+      quote: "I haven't left the house alone in over a year. Even walking to the end of my street triggers a panic attack — my heart races, I can't breathe, and I feel like something terrible is about to happen. On the rare occasions I've tried, I've had to turn back within minutes. My husband takes me to every appointment and does all the shopping. I used to be able to get a bus alone. Now the thought of being somewhere without him nearby makes me feel physically ill.",
     },
     difficultyCategories: [
       {
@@ -880,8 +880,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     activityNum: 2,
     pipFormRef: 'Q14',
     title: 'How far can you move around?',
-    subtitle: 'This covers your ability to stand and move around on foot.',
-    explained: 'This question is about how far you can walk — standing and moving around on foot. It covers reliability: can you do it safely, repeatedly, without it taking much longer, or causing you significant pain or fatigue? If you use a wheelchair, walking aids, or orthoses, that matters. Even if you can walk on a good day, think about what most days are like.',
+    subtitle: 'How far can you actually walk — safely, reliably, and without it causing serious pain or leaving you wiped out?',
+    explained: "DWP aren't just asking what distance you can walk — they're asking whether you can walk it safely, as often as you need to, without falling, and without leaving you in significant pain or exhausted. Your worst days count here too, not just the good ones. If you use a wheelchair, walking stick, or any walking aid; if you stop frequently; if you're at real risk of falls — all of that is relevant. Be honest about the distance you can actually manage on most days.",
     helpQuestions: [
       'What counts as "reliably"?',
       'Does using a wheelchair count?',
@@ -889,8 +889,8 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       'Does pain while walking count?',
     ],
     exampleAnswer: {
-      name: 'Robert', age: 58, label: 'Joint condition',
-      quote: "On a good day I can walk about 50 metres before the pain becomes unbearable. Most days I can manage less than 20 metres. I use a stick but I still have to stop frequently. Using a wheelchair for anything longer.",
+      name: 'Robert', age: 58, label: 'Degenerative joint condition',
+      quote: "On a good day — maybe twice a month — I can walk about 50 metres before the pain becomes unbearable. On most days I can barely manage 15 to 20 metres. I use a stick but I still stumble, and I've fallen three times in the past six months. After any walking at all I need to rest for at least an hour and I'm in pain for the rest of the day. I use a wheelchair for anything more than a few metres. I've had to give up going out unless someone is with me and my wheelchair is available.",
     },
     difficultyCategories: [
       {

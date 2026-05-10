@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -22,8 +22,10 @@ export function QuestionFlow() {
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
-  const [showExplained, setShowExplained] = useState(false);
+  const [showExplained, setShowExplained] = useState(true);
   const [showFullExample, setShowFullExample] = useState(false);
+  const [personalExample, setPersonalExample] = useState<string | null>(null);
+  const [loadingExample, setLoadingExample] = useState(false);
   const [answers, setAnswers] = useState<FlowAnswers>({
     selectedDifficulties: [],
     frequencies: {},
@@ -31,6 +33,25 @@ export function QuestionFlow() {
     impacts: [],
     additionalDetail: '',
   });
+
+  useEffect(() => {
+    if (!medProfile?.conditions?.length) return;
+    setLoadingExample(true);
+    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Write a realistic 3-4 sentence first-person example answer for the PIP question: "${config?.title}". The person has: ${conditions}. Show specifically how those conditions affect this activity on most days. Be honest, mention frequency and real-life impact. Start with "I" and write only the example — no preamble.`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile.conditions },
+      }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.reply) setPersonalExample(d.reply.trim()); })
+      .catch(() => {})
+      .finally(() => setLoadingExample(false));
+  }, [questionId]);
 
   if (!config) {
     return (
@@ -273,21 +294,31 @@ export function QuestionFlow() {
 
             {/* Example answer */}
             <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4">
-              <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Example answer</p>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                  <span className="text-teal-700 text-xs font-bold">{config.exampleAnswer.name[0]}</span>
-                </div>
-                <span className="text-xs font-semibold text-stone-700">
-                  {config.exampleAnswer.name}, {config.exampleAnswer.age} · {config.exampleAnswer.label}
-                </span>
-              </div>
-              <p className={`text-sm text-stone-600 leading-relaxed italic ${!showFullExample ? 'line-clamp-3' : ''}`}>
-                "{config.exampleAnswer.quote}"
+              <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">
+                {personalExample ? 'Example based on your conditions' : 'Example answer'}
               </p>
-              <button onClick={() => setShowFullExample(!showFullExample)} className="text-xs text-teal-600 font-semibold mt-1">
-                {showFullExample ? 'Show less' : 'Show more'}
-              </button>
+              {!personalExample && (
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                    <span className="text-teal-700 text-xs font-bold">{config.exampleAnswer.name[0]}</span>
+                  </div>
+                  <span className="text-xs font-semibold text-stone-700">
+                    {config.exampleAnswer.name}, {config.exampleAnswer.age} · {config.exampleAnswer.label}
+                  </span>
+                </div>
+              )}
+              {loadingExample ? (
+                <p className="text-sm text-stone-400 italic">Tailoring an example to your conditions...</p>
+              ) : (
+                <p className={`text-sm text-stone-600 leading-relaxed italic ${!showFullExample ? 'line-clamp-3' : ''}`}>
+                  "{personalExample ?? config.exampleAnswer.quote}"
+                </p>
+              )}
+              {!loadingExample && (
+                <button onClick={() => setShowFullExample(!showFullExample)} className="text-xs text-teal-600 font-semibold mt-1">
+                  {showFullExample ? 'Show less' : 'Show more'}
+                </button>
+              )}
             </div>
           </div>
         </div>

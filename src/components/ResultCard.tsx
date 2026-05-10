@@ -77,19 +77,19 @@ export function ResultCard() {
     {
       key: 'factual',
       label: 'Formal & factual',
-      desc: 'Clear, direct statements. No emotion — just the facts.',
+      desc: 'Clear and straight to the point. Good if you want to sound precise and confident.',
       example: '"On most days I cannot use the hob. I use a microwave only."',
     },
     {
       key: 'descriptive',
-      label: 'Descriptive & detailed',
-      desc: 'Puts the assessor in the moment. Shows real impact.',
+      label: 'Detailed & personal',
+      desc: 'Paints a real picture for the assessor — shows exactly what it feels like on a bad day.',
       example: '"When my anxiety is bad I stand at the hob and forget what I\'m doing. I\'ve left the gas on twice."',
     },
     {
       key: 'everyday',
       label: 'In my own words',
-      desc: 'Natural, honest language — like you\'d explain it to a friend.',
+      desc: 'Warm and natural — like explaining it to a friend. Honest and easy to relate to.',
       example: '"Most days I just can\'t face cooking. The pain gets too much and I end up not eating properly."',
     },
   ];
@@ -346,8 +346,8 @@ Return ONLY the answer text.`,
             className="bg-white rounded-2xl w-full max-w-lg p-5 space-y-3"
             onClick={e => e.stopPropagation()}
           >
-            <h3 className="font-bold text-stone-900 text-base">Choose your writing style</h3>
-            <p className="text-sm text-stone-500">How would you like your improved answer to read?</p>
+            <h3 className="font-bold text-stone-900 text-base">How would you like your answer to sound?</h3>
+            <p className="text-sm text-stone-500">ChatGPT will rewrite it in the style you choose — pick whichever feels most like you.</p>
             {VOICES.map(v => (
               <button
                 key={v.key}
