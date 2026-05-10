@@ -184,7 +184,7 @@ export function QuestionFlow() {
     ? `DAILY LIVING ACTIVITY ${config.activityNum}`
     : `MOBILITY ACTIVITY ${config.activityNum}`;
 
-  const stepTitle = ['', 'Start', 'Your difficulties', 'How often?', 'Do you need help?', 'Real-life impact'][step];
+  const stepTitle = ['', "Let's begin", "What's hard for you?", 'How often?', 'Do you need support?', 'Day-to-day impact'][step];
 
   function Header() {
     return (
@@ -298,7 +298,7 @@ export function QuestionFlow() {
             onClick={() => goToStep(2)}
             className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
           >
-            Start Question
+            Let's get started
           </button>
         </div>
       </div>
@@ -315,8 +315,8 @@ export function QuestionFlow() {
           <div className="px-5 py-4 space-y-4 pb-32">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">Which difficulties apply to you?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Select anything that applies — even if it only happens on bad days.</p>
+              <h2 className="font-black text-lg leading-tight">What makes this hard for you?</h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Pick everything that rings true — even on your worst days.</p>
             </div>
 
             {config.difficultyCategories.map(cat => (
@@ -379,8 +379,8 @@ export function QuestionFlow() {
           <div className="px-5 py-4 pb-32 space-y-4">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">How often do these difficulties happen?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Think about the last few months. Choose how often each difficulty happens for you.</p>
+              <h2 className="font-black text-lg leading-tight">How often does this happen?</h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Think about the past few months. Be honest — there's no wrong answer here.</p>
             </div>
 
             {/* Frequency grid */}
@@ -420,7 +420,7 @@ export function QuestionFlow() {
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 Tip: There's no right or wrong answer. Choose what's true for most days.</p>
+              <p className="text-xs text-teal-800 font-medium">💡 Think about your worst days, not your best. That's what matters for PIP.</p>
             </div>
           </div>
         </div>
@@ -444,8 +444,8 @@ export function QuestionFlow() {
           <div className="px-5 py-4 pb-32 space-y-4">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">Do you need help or supervision?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Think about what support you need with this activity.</p>
+              <h2 className="font-black text-lg leading-tight">Does anyone help you with this?</h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Even needing someone nearby, or just to remind you, counts.</p>
             </div>
 
             <div className="space-y-2">
@@ -476,7 +476,7 @@ export function QuestionFlow() {
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 Tip: It's okay if your needs change from day to day. Select what's true for most days.</p>
+              <p className="text-xs text-teal-800 font-medium">💡 It's okay if this varies day to day. Choose what's true on most days.</p>
             </div>
           </div>
         </div>
@@ -501,8 +501,8 @@ export function QuestionFlow() {
           <div className="px-5 py-4 pb-32 space-y-4">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">How does this affect you in real life?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Tell us what happens because of your difficulties.</p>
+              <h2 className="font-black text-lg leading-tight">How does this really affect your life?</h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Be specific — real examples make a real difference to your claim.</p>
             </div>
 
             <p className="text-sm font-semibold text-stone-600 px-1">Select all that apply.</p>
@@ -552,7 +552,7 @@ export function QuestionFlow() {
 
         <div className="px-5 pb-8 pt-4 bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
           <button onClick={handleContinue} className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            See my score <ChevronRight className="w-4 h-4" />
+            See my result <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -253,7 +253,7 @@ Return ONLY the answer text.`,
         {/* Draft Answer */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
-            <h3 className="font-bold text-stone-900 text-sm">Draft Answer</h3>
+            <h3 className="font-bold text-stone-900 text-sm">Your draft answer</h3>
             <div className="flex items-center gap-2">
               {/* Highlight toggle */}
               <button
@@ -312,7 +312,7 @@ Return ONLY the answer text.`,
 
         {/* Why this meets the descriptor */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">
-          <h3 className="font-bold text-stone-900 text-sm mb-2">Why this meets the descriptor</h3>
+          <h3 className="font-bold text-stone-900 text-sm mb-2">Why this counts</h3>
           <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
         </div>
 
@@ -332,7 +332,7 @@ Return ONLY the answer text.`,
 
         {/* Footer tip */}
         <p className="text-xs text-stone-500 text-center leading-relaxed px-4 py-2">
-          <span className="font-bold text-stone-700">A well-documented claim makes all the difference.</span> Take your time and describe your worst days — that's what assessors need to see.
+          <span className="font-bold text-stone-700">You're doing brilliantly.</span> A clear, honest answer like this gives your claim the best possible chance.
         </p>
 
       </div>
@@ -386,7 +386,7 @@ Return ONLY the answer text.`,
             ) : (
               <Sparkles className="w-4 h-4" />
             )}
-            {isImproving ? 'Improving...' : 'Improve'}
+            {isImproving ? 'Improving...' : 'Improve my answer'}
           </button>
           {answerHistory.length > 0 && (
             <button
