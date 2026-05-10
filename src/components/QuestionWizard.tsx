@@ -95,7 +95,7 @@ export function QuestionWizard() {
   const realLifeOpts = REAL_LIFE_OPTIONS[qId] || REAL_LIFE_OPTIONS.default;
 
   const [step, setStep] = useState(1);
-  const [explainerOpen, setExplainerOpen] = useState(true);
+  const [explainerOpen] = useState(true);
   const [customDifficulty, setCustomDifficulty] = useState('');
   const [answers, setAnswers] = useState<WizardAnswer>({
     difficulties: [],
@@ -227,23 +227,15 @@ export function QuestionWizard() {
                   <p className="text-teal-100 text-sm leading-relaxed">{question.subtext}</p>
                 </div>
 
-                {/* Explained — open by default, collapsible */}
+                {/* Explained — always expanded */}
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
-                  <button
-                    onClick={() => setExplainerOpen(o => !o)}
-                    className="w-full flex items-center justify-between px-4 py-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-600 text-sm">ⓘ</span>
-                      <h3 className="font-bold text-amber-900 text-sm">This question explained</h3>
-                    </div>
-                    <span className={`text-amber-600 text-xs font-semibold transition-transform ${explainerOpen ? 'rotate-180' : ''}`}>▾</span>
-                  </button>
-                  {explainerOpen && (
-                    <div className="px-4 pb-4">
-                      <p className="text-sm text-amber-800 leading-relaxed">{question.defaultExplainer}</p>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-100">
+                    <span className="text-amber-600 text-sm">ⓘ</span>
+                    <h3 className="font-bold text-amber-900 text-sm">This question explained</h3>
+                  </div>
+                  <div className="px-4 py-4">
+                    <p className="text-sm text-amber-800 leading-relaxed">{question.defaultExplainer}</p>
+                  </div>
                 </div>
 
                 {/* Ask for more help pills */}
