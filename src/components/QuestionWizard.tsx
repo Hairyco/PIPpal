@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { getQuestion, PIP_QUESTIONS } from '../pipQuestions';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -157,6 +157,7 @@ export function QuestionWizard() {
   const [step, setStep] = useState(1);
   const [generating, setGenerating] = useState(false);
   const [explainerOpen] = useState(true);
+  const [expandedDescriptors, setExpandedDescriptors] = useState(false);
   const [customDifficulty, setCustomDifficulty] = useState('');
   const [answers, setAnswers] = useState<WizardAnswer>({
     difficulties: [],
@@ -390,6 +391,37 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                   <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-1">DAILY LIVING · ACTIVITY {question.num}</p>
                   <h2 className="font-bold text-lg">Which difficulties apply to you?</h2>
                   <p className="text-teal-100 text-sm mt-1">Select anything that applies — even if it only happens on bad days.</p>
+                </div>
+
+                {/* Collapsed descriptors */}
+                <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDescriptors(e => !e)}
+                    className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-bold text-stone-900">How you will be scored</p>
+                      <p className="text-xs text-stone-400 mt-0.5">See the official descriptors for this activity</p>
+                    </div>
+                    {expandedDescriptors
+                      ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" />
+                      : <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />}
+                  </button>
+                  <AnimatePresence>
+                    {expandedDescriptors && (
+                      <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                        <div className="divide-y divide-stone-50 border-t border-stone-100">
+                          {question.descriptors.map(d => (
+                            <div key={d.code} className="flex items-start gap-3 px-4 py-3">
+                              <span className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-stone-500 mt-0.5">{d.code}</span>
+                              <span className="flex-1 text-xs text-stone-600 leading-relaxed">{d.text}</span>
+                              <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Categories */}
