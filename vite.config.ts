@@ -1,15 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// v3 - force cache bust
 export default defineConfig({
   plugins: [react()],
   build: {
     rollupOptions: {
       output: {
-        entryFileNames: `assets/[name]-[hash]-v2.js`,
-        chunkFileNames: `assets/[name]-[hash]-v2.js`,
-        assetFileNames: `assets/[name]-[hash]-v2.[ext]`,
+        entryFileNames: `assets/app.[hash].js`,
+        chunkFileNames: `assets/chunk.[hash].js`,
+        assetFileNames: `assets/style.[hash].[ext]`,
       },
     },
   },
