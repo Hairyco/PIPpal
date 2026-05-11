@@ -47,6 +47,27 @@ const descriptorData: Record<string, { points: number; heading: string; text: st
 
 // ── Component ────────────────────────────────────────────────────────────────
 
+// Apply highlights to plain text (used for wizard-generated answers)
+function addHighlightsToPlain(text: string): string {
+  let out = text.replace(
+    /\b(every day|most days|often|daily|frequently|on bad days|whenever|all the time|regularly|the majority of days|most of the time|several days a week)\b/gi,
+    '<span class="bg-amber-100 text-amber-900 px-1 rounded">$1</span>'
+  );
+  out = out.replace(
+    /\b(someone|another person|my (?:partner|carer|family|husband|wife)|supervision|assistance|help|reminders?|prompting|aid|appliance|adapted|microwave|perching stool|grab rail)\b/gi,
+    '<span class="bg-blue-100 text-blue-900 px-1 rounded">$1</span>'
+  );
+  out = out.replace(
+    /\b(pain|exhausted|exhaustion|fatigue|anxious|anxiety|distress|overwhelmed|unsafe|danger|risk|unable|cannot|can\'t|struggle|difficult|impossible|burns?|accidents?)\b/gi,
+    '<span class="bg-purple-100 text-purple-900 px-1 rounded">$1</span>'
+  );
+  const firstSentenceEnd = out.indexOf('. ');
+  if (firstSentenceEnd > 0) {
+    out = '<span class="bg-teal-100 text-teal-900 px-1 rounded">' + out.slice(0, firstSentenceEnd) + '</span>' + out.slice(firstSentenceEnd);
+  }
+  return out;
+}
+
 export function ResultCard() {
   const {
     q1Result,
@@ -65,6 +86,12 @@ export function ResultCard() {
   const question = getQuestion(qId);
   const descriptor = q1Result?.descriptor || 'A';
   const data = descriptorData[descriptor] || descriptorData['A'];
+
+  // Use the AI-generated text from the wizard if available, otherwise use template
+  const generatedText = q1Result?.text || '';
+  const initialText = generatedText
+    ? addHighlightsToPlain(generatedText)
+    : data.text;
 
   const [highlightsOn, setHighlightsOn] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -101,7 +128,7 @@ export function ResultCard() {
     }
   }, [q1Result?.descriptor]);
 
-  const displayText = editedText ?? data.text;
+  const displayText = editedText ?? initialText;
 
   const handleEdit = () => {
     if (!isEditing) {
@@ -129,7 +156,7 @@ export function ResultCard() {
     setShowVoicePicker(false);
     setIsImproving(true);
     // Save current answer to history before overwriting
-    setAnswerHistory(prev => [...prev, editedText ?? data.text]);
+    setAnswerHistory(prev => [...prev, editedText ?? initialText]);
     try {
       const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
       const wizardAnswers = (() => {

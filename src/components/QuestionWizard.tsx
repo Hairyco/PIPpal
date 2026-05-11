@@ -155,6 +155,7 @@ export function QuestionWizard() {
   const realLifeOpts = REAL_LIFE_OPTIONS[qId] || REAL_LIFE_OPTIONS.default;
 
   const [step, setStep] = useState(1);
+  const [generating, setGenerating] = useState(false);
   const [explainerOpen] = useState(true);
   const [customDifficulty, setCustomDifficulty] = useState('');
   const [answers, setAnswers] = useState<WizardAnswer>({
@@ -230,12 +231,68 @@ export function QuestionWizard() {
     }
   };
 
-  const handleDescriptorTap = (code: string) => {
-    sessionStorage.setItem('pippal_descriptor_hint', code);
+  const handleDescriptorTap = async (code: string) => {
+    const descriptor = question?.descriptors.find(d => d.code === code);
+    if (!descriptor) return;
+
+    setGenerating(true);
     sessionStorage.setItem('pippal_wizard_answers', JSON.stringify(answers));
-    setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
-    setQ1Result(null);
-    navigateTo('q1_chat');
+
+    // Build frequency summary
+    const freqSummary = answers.difficulties
+      .map(d => {
+        const f = answers.frequencies[d];
+        const freqLabel = f === 'most' ? 'every day' : f === 'often' ? 'most days' : f === 'sometimes' ? 'several days a week' : f === 'rarely' ? 'occasionally' : '';
+        return freqLabel ? `${d} (${freqLabel})` : d;
+      })
+      .join(', ');
+
+    const supportList = answers.supportNeeded.filter(s => s !== "I don't need help").join(', ');
+    const impactList = answers.realLifeImpact.join(', ');
+    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+    const extraDetail = answers.extraDetail || '';
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Write a PIP descriptor answer for the activity "${question?.title}" matching descriptor ${code}: "${descriptor.text}".
+
+The claimant has told us:
+- Conditions: ${conditions}
+- Difficulties they experience: ${freqSummary}
+- Support or supervision they need: ${supportList || 'none stated'}
+- Real-life impact: ${impactList || 'none stated'}
+${extraDetail ? `- Additional detail: ${extraDetail}` : ''}
+
+Write 2-3 sentences in first person that:
+1. State what they cannot do or need help with (matching descriptor ${code})
+2. Include how often this happens using their frequency data
+3. Mention the specific support or supervision needed
+4. Reference the real-life impact
+
+Be specific and use the claimant's own information. No preamble. Return ONLY the answer text.`,
+          medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
+          conversationHistory: [],
+          userId: null,
+        }),
+      });
+      const res = await response.json();
+      const answerText = (res.reply || res.generated || '').trim();
+
+      setQ1Result({
+        descriptor: code,
+        text: answerText || descriptor.text,
+        points: descriptor.points,
+      });
+      navigateTo('q1_result');
+    } catch {
+      // Fallback to basic result without AI text
+      setQ1Result({ descriptor: code, points: descriptor.points, text: '' });
+      navigateTo('q1_result');
+    }
+    setGenerating(false);
   };
 
   // ── Render ───────────────────────────────────────────────────────────────────
@@ -537,7 +594,8 @@ export function QuestionWizard() {
                     <button
                       key={d.code}
                       onClick={() => handleDescriptorTap(d.code)}
-                      className="w-full flex gap-3 text-sm text-left rounded-2xl px-4 py-4 bg-white border-2 border-stone-100 hover:border-teal-300 hover:bg-teal-50 active:scale-[0.98] transition-all group shadow-sm"
+                      disabled={generating}
+                      className="w-full flex gap-3 text-sm text-left rounded-2xl px-4 py-4 bg-white border-2 border-stone-100 hover:border-teal-300 hover:bg-teal-50 active:scale-[0.98] transition-all group shadow-sm disabled:opacity-50"
                     >
                       <div className="w-7 h-7 rounded-full bg-stone-100 group-hover:bg-teal-100 flex items-center justify-center shrink-0 mt-0.5 transition-colors">
                         <span className="font-black text-xs text-stone-500 group-hover:text-teal-700 transition-colors">{d.code}</span>
@@ -552,6 +610,15 @@ export function QuestionWizard() {
                     </button>
                   ))}
                 </div>
+
+                {generating && (
+                  <div className="flex items-center justify-center gap-3 py-4 bg-teal-50 rounded-2xl border border-teal-100">
+                    <div className="flex gap-1">
+                      {[0,1,2].map(i => <div key={i} className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{animationDelay:`${i*150}ms`}} />)}
+                    </div>
+                    <p className="text-sm text-teal-700 font-medium">Building your answer from your responses…</p>
+                  </div>
+                )}
 
                 <button
                   onClick={() => {
