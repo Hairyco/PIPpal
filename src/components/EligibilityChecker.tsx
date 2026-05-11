@@ -543,26 +543,6 @@ export function EligibilityChecker() {
             Free to start · Full access from £8.99 one-time
           </p>
 
-          {/* PIP Diary Teaser */}
-          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 mb-6 flex flex-col gap-3">
-            <div className="flex items-start gap-2.5">
-              <BookOpen className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-emerald-800 leading-relaxed">
-                <strong>
-                  Start logging your daily challenges in a PIP Diary
-                </strong>{' '}
-                — it's one of the most effective ways to build evidence for your
-                claim.
-              </p>
-            </div>
-            <button
-              onClick={() => navigateTo('pip_diary')}
-              className="self-start inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors">
-              
-              Open PIP Diary →
-            </button>
-          </div>
-
           </div>
           <button
             onClick={reset}

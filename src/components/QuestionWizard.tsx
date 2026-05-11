@@ -158,6 +158,7 @@ export function QuestionWizard() {
   const [generating, setGenerating] = useState(false);
   const [explainerOpen] = useState(true);
   const [expandedDescriptors, setExpandedDescriptors] = useState(false);
+  const [openHelpPill, setOpenHelpPill] = useState<number | null>(null);
   const [customDifficulty, setCustomDifficulty] = useState('');
   const [answers, setAnswers] = useState<WizardAnswer>({
     difficulties: [],
@@ -356,16 +357,37 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                   </div>
                 </div>
 
-                {/* Ask for more help pills */}
+                {/* Ask for more help pills — inline expand */}
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                   <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">ASK FOR MORE HELP</p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
                     {question.conditionExplainers.slice(0, 5).map((ce, i) => (
-                      <button key={i} className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all">
+                      <button
+                        key={i}
+                        onClick={() => setOpenHelpPill(openHelpPill === i ? null : i)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${openHelpPill === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
+                      >
                         How does this apply to {ce.conditions[0]}?
                       </button>
                     ))}
                   </div>
+                  <AnimatePresence>
+                    {openHelpPill !== null && question.conditionExplainers[openHelpPill] && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-3 pt-3 border-t border-stone-100 space-y-2">
+                          <p className="text-sm text-stone-700 leading-relaxed">{question.conditionExplainers[openHelpPill].text}</p>
+                          {question.conditionExplainers[openHelpPill].example && (
+                            <p className="text-xs text-stone-400 italic leading-relaxed">"{question.conditionExplainers[openHelpPill].example}"</p>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Example answer */}
@@ -436,12 +458,12 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                         const selected = answers.difficulties.includes(item);
                         return (
                           <button key={ii} onClick={() => toggleDifficulty(item)}
-                            className={`w-full flex items-center justify-between px-4 py-3.5 text-left transition-all active:scale-[0.99] ${selected ? 'bg-teal-50' : 'hover:bg-stone-50'}`}
+                            className={`w-full flex flex-row items-center gap-3 px-4 py-3.5 text-left transition-all active:scale-[0.99] ${selected ? 'bg-teal-50' : 'hover:bg-stone-50'}`}
                           >
-                            <span className={`text-sm font-medium ${selected ? 'text-teal-800' : 'text-stone-700'}`}>{item}</span>
                             <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border-2 transition-all ${selected ? 'bg-teal-600 border-teal-600' : 'border-stone-300'}`}>
                               {selected && <Check className="w-3 h-3 text-white" />}
                             </div>
+                            <span className={`text-sm font-medium flex-1 ${selected ? 'text-teal-800' : 'text-stone-700'}`}>{item}</span>
                           </button>
                         );
                       })}
