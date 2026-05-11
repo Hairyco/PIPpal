@@ -172,6 +172,13 @@ export function ClaimFlow() {
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
             <p className="text-sm text-amber-800 leading-relaxed"><strong>Don't wait until everything is ready.</strong> Call DWP today on <strong>0800 917 2222</strong> to open your claim — your payments are backdated to this call, not when you return the form.</p>
           </div>
+
+          {/* Disclaimer */}
+          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4">
+            <p className="text-[11px] text-stone-500 leading-relaxed">
+              <strong className="text-stone-600">Disclaimer:</strong> PIPpal is a guidance tool designed to help you understand and prepare your PIP claim. It does not provide legal or medical advice. The information provided is based on publicly available DWP guidance and is intended as general support only. PIPpal cannot guarantee any particular outcome. For complex situations, consider speaking to a benefits adviser — Citizens Advice, Scope, or your local welfare rights service can help for free.
+            </p>
+          </div>
         </div>
       );
 
