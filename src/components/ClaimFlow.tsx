@@ -205,6 +205,10 @@ export function ClaimFlow() {
           </div>
 
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+            <p className="text-sm text-amber-800 leading-relaxed"><strong>PIP claims take an average of 6 months from start to decision.</strong> Getting it right first time matters — a strong, detailed application significantly reduces the chance of refusal and avoids the stress of an appeal.</p>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
             <p className="text-sm text-amber-800 leading-relaxed"><strong>Don't wait until everything is ready.</strong> Call DWP today on <strong>0800 917 2222</strong> to open your claim — your payments are backdated to this call, not when you return the form.</p>
           </div>
 
