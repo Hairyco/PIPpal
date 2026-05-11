@@ -214,7 +214,7 @@ export function HomeScreen() {
               icon={PlusCircle}
               color="text-teal-600"
               bg="bg-teal-50"
-              target="claim_process"
+              target="claim_flow"
             />
             <NavCard
               title={'Change of\nCircumstances'}
