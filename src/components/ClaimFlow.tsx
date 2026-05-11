@@ -150,7 +150,8 @@ export function ClaimFlow() {
 
           {/* What you'll need */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <h3 className="font-bold text-stone-900 mb-3">What you'll need</h3>
+            <h3 className="font-bold text-stone-900 mb-1">What you'll need</h3>
+            <p className="text-xs text-stone-400 mb-4">You don't need any of this right now — but you will need to provide it when you return the form. Use this list to start gathering things in the background.</p>
             <div className="space-y-2.5">
               {[
                 { icon: Stethoscope, text: 'Your diagnoses and main conditions', color: 'text-teal-600 bg-teal-50' },
@@ -167,6 +168,40 @@ export function ClaimFlow() {
                 </div>
               ))}
             </div>
+
+            {/* No diagnosis button */}
+            <div className="mt-4 pt-4 border-t border-stone-50">
+              <p className="text-xs text-stone-500 mb-2">Don't have an official diagnosis yet, or still waiting?</p>
+              <button
+                onClick={() => navigateTo('pip_diary')}
+                className="w-full flex items-center justify-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 font-semibold text-sm py-3 rounded-xl hover:bg-amber-100 active:scale-[0.98] transition-all"
+              >
+                <FileText className="w-4 h-4" />
+                Start a PIP diary instead
+              </button>
+              <p className="text-xs text-stone-400 mt-2 leading-relaxed text-center">A PIP diary lets you record your day-to-day difficulties without needing a formal diagnosis. It's accepted as supporting evidence by DWP.</p>
+            </div>
+          </div>
+
+          {/* Key tips */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
+            <h3 className="font-bold text-stone-900 mb-1">Things that make a real difference</h3>
+            {[
+              { icon: '📞', title: 'Request a telephone assessment', body: 'If you have anxiety, depression, agoraphobia or any condition that makes travelling difficult — ask for a telephone assessment when you call DWP. Say clearly: "I would like a telephone assessment due to my mental health condition." It is regularly granted.' },
+              { icon: '📅', title: 'Call as early as possible', body: 'Your claim is backdated to the date of your call — not when you return the form. Don\'t wait until everything is ready. Call 0800 917 2222 today.' },
+              { icon: '📝', title: 'Describe your worst days', body: 'DWP assesses you on how you are on your worst days — not your average or best. Be honest. If you have days where you can\'t manage at all, say so.' },
+              { icon: '🗓️', title: 'You have 1 month to return the form', body: 'Need more time? Call DWP and request an extension — it\'s almost always granted. Don\'t rush your answers.' },
+              { icon: '📋', title: 'Keep copies of everything', body: 'Photograph or photocopy your completed form before posting it. If anything goes missing, you\'ll need it.' },
+              { icon: '📄', title: 'Evidence helps but is not required', body: 'Don\'t delay your claim waiting for GP letters or reports. You can send supporting evidence separately at any time after submitting the form.' },
+            ].map((tip, i) => (
+              <div key={i} className="flex gap-3">
+                <span className="text-lg shrink-0">{tip.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">{tip.title}</p>
+                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{tip.body}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
