@@ -42,6 +42,7 @@ export function NewsScreen() {
     } catch { return new Set(); }
   });
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
+  const [sortNewest, setSortNewest] = useState(true);
 
   const toggleBookmark = (title: string) => {
     setBookmarks(prev => {
@@ -96,9 +97,15 @@ export function NewsScreen() {
   const tagFiltered = activeTag === 'All'
     ? articles
     : articles.filter(a => a.tags.includes(activeTag));
-  const filteredArticles = showBookmarksOnly
+  const filteredArticles = (showBookmarksOnly
     ? tagFiltered.filter(a => bookmarks.has(a.title))
-    : tagFiltered;
+    : tagFiltered
+  ).slice().sort((a, b) => {
+    if (!a.date || !b.date) return 0;
+    return sortNewest
+      ? new Date(b.date).getTime() - new Date(a.date).getTime()
+      : new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
 
   const availableTags = ['All', ...ALL_TAGS.slice(1).filter(tag => articles.some(a => a.tags.includes(tag)))];
 
@@ -148,6 +155,12 @@ export function NewsScreen() {
         <div className="flex-1">
           <h1 className="font-bold text-stone-900 text-lg">PIP News</h1>
           {lastUpdated && <p className="text-[10px] text-stone-400">Updated {lastUpdated}</p>}
+          <button
+            onClick={() => setSortNewest(s => !s)}
+            className="flex items-center gap-1 text-[11px] font-semibold text-stone-600 bg-stone-100 hover:bg-stone-200 px-2.5 py-1.5 rounded-full transition-all"
+          >
+            {sortNewest ? '↓ Newest' : '↑ Oldest'}
+          </button>
         </div>
         <button
           onClick={() => setShowBookmarksOnly(!showBookmarksOnly)}
@@ -221,7 +234,7 @@ export function NewsScreen() {
                 <div key={label}>
                   {/* Date section header */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xs font-black text-stone-500 uppercase tracking-widest shrink-0">
+                    <span className="text-xs font-black text-stone-900 uppercase tracking-widest shrink-0">
                       {label}
                     </span>
                     <div className="flex-1 h-px bg-stone-200" />

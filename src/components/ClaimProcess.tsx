@@ -34,18 +34,20 @@ export function ClaimProcess() {
           <p className="text-teal-100 text-sm leading-relaxed">
             Here's exactly what happens — step by step. PIPpal helps you prepare your answers so you're confident when the form arrives.
           </p>
-          <div className="flex gap-4 mt-4 pt-4 border-t border-white/10">
-            <div className="text-center">
+          <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/10 text-center">
+            <div>
               <p className="text-white font-bold text-lg">3.9M</p>
               <p className="text-teal-200 text-[11px]">people claim PIP</p>
             </div>
-            <div className="w-px bg-white/10" />
-            <div className="text-center">
+            <div className="border-l border-white/10">
+              <p className="text-white font-bold text-lg">64k</p>
+              <p className="text-teal-200 text-[11px]">new claims/month</p>
+            </div>
+            <div className="border-l border-white/10">
               <p className="text-white font-bold text-lg">6 mo</p>
               <p className="text-teal-200 text-[11px]">typical timeline</p>
             </div>
-            <div className="w-px bg-white/10" />
-            <div className="text-center">
+            <div className="border-l border-white/10">
               <p className="text-white font-bold text-lg">Backdated</p>
               <p className="text-teal-200 text-[11px]">to your call date</p>
             </div>
@@ -70,6 +72,15 @@ export function ClaimProcess() {
               </div>
             </div>
           </div>
+
+
+        {/* Anxiety / telephone tip */}
+        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800 leading-relaxed">
+            <strong>Have anxiety, depression or agoraphobia?</strong> When you call, ask for a telephone assessment. It's regularly granted for psychological conditions.
+          </p>
+        </div>
 
           {/* Step 2 */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
@@ -133,35 +144,8 @@ export function ClaimProcess() {
             </div>
           </div>
 
-          {/* Step 4 */}
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-            <div className="flex gap-3 items-start">
-              <div className="w-8 h-8 bg-teal-700 rounded-full flex items-center justify-center shrink-0">
-                <span className="text-white text-xs font-bold">4</span>
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-stone-900 text-sm mb-1">Decision — 4–8 weeks after assessment</p>
-                <p className="text-xs text-stone-500 leading-relaxed mb-3">
-                  DWP sends a decision letter. If awarded, payments begin and backpay is sent in one lump sum.
-                </p>
-                {hasAnswers && (
-                  <button onClick={() => navigateTo('downloads')} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors">
-                    <Download className="w-3.5 h-3.5" />
-                    Download assessment prep
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Anxiety / telephone tip */}
-        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-800 leading-relaxed">
-            <strong>Have anxiety, depression or agoraphobia?</strong> When you call, ask for a telephone assessment. It's regularly granted for psychological conditions.
-          </p>
-        </div>
 
         {/* Awaiting decision — only when claim completed */}
         {hasCompletedClaim && (
