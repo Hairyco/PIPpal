@@ -85,14 +85,6 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
         ))}
       </div>
 
-      {/* Free assessment CTA */}
-      <a
-        href="#eligibility-banner"
-        className="flex items-center justify-center gap-2 w-full bg-teal-50 border border-teal-200 text-teal-700 font-semibold text-sm py-3.5 rounded-xl hover:bg-teal-100 active:scale-[0.98] transition-all"
-      >
-        ✓ Try the free eligibility check — no sign-up needed
-      </a>
-
     </section>
   );
 }
