@@ -66,8 +66,6 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
         </div>
       </div>
 
-      <PIPAgeChart />
-
       {/* Why PIPpal */}
       <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>
       <p className="text-stone-500 text-sm mb-4">PIPpal is built around the things people find hardest.</p>
