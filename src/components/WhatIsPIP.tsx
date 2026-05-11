@@ -36,7 +36,7 @@ const points = [
 
 export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
   return (
-    <section className="px-5 md:px-8 py-8">
+    <section id="what-is-pip" className="px-5 md:px-8 py-8">
 
       {/* What is PIP */}
       <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 mb-5">
@@ -46,8 +46,11 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           </div>
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
+        <p className="text-sm text-stone-600 leading-relaxed mb-3">
+          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> (with both enhanced components) and is not means-tested — it doesn't matter how much you earn or whether you work.
+        </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£812 a month</strong> (with both enhanced components) and is not means-tested — it doesn't matter how much you earn or whether you work.
+          <strong className="text-stone-900">You do not need a formal diagnosis to apply for PIP.</strong> PIP looks at how your condition or symptoms affect you day-to-day.
         </p>
         <div className="bg-stone-50 rounded-xl px-4 py-3">
           <p className="text-xs font-semibold text-stone-500 mb-2">Conditions that often qualify</p>

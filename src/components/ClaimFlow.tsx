@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ArrowRight, CheckCircle2, Clock, FileText, Users, AlertCircle, ChevronDown, ChevronUp, Stethoscope, BookOpen, ClipboardList, Shield, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock, FileText, Users, AlertCircle, ChevronDown, ChevronUp, Stethoscope, BookOpen, ClipboardList, Shield, TrendingUp, Download } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PIP_QUESTIONS } from '../pipQuestions';
@@ -132,12 +132,12 @@ export function ClaimFlow() {
           {/* What is PIP */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
             <h3 className="font-bold text-stone-900">What is PIP?</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects daily life. It's worth up to <strong className="text-stone-900">£812 a month</strong> with both enhanced components and is not means-tested — it doesn't matter what you earn or whether you work.</p>
+            <p className="text-sm text-stone-600 leading-relaxed">Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> with both enhanced components and is not means-tested — it doesn't matter what you earn or whether you work.</p>
             <div className="grid grid-cols-2 gap-2 pt-1">
               {[
                 { label: '3.9 million', sub: 'people currently claim' },
-                { label: '£812/month', sub: 'maximum award' },
-                { label: 'Tax-free', sub: 'does not affect other benefits' },
+                { label: '64k+ apply', sub: 'every month' },
+                { label: '£843/month', sub: 'maximum award' },
                 { label: 'Backdated', sub: 'to the day you call' },
               ].map((s, i) => (
                 <div key={i} className="bg-stone-50 rounded-xl p-3">
@@ -247,8 +247,8 @@ export function ClaimFlow() {
             <div className="space-y-2">
               {[
                 { pts: 'Below 8 points', label: 'No award', amount: '', bg: 'bg-stone-50', border: 'border-stone-200', text: 'text-stone-500' },
-                { pts: '8–11 points', label: 'Standard rate', amount: 'Daily: £73.90/wk · Mobility: £29.20/wk', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-                { pts: '12+ points', label: 'Enhanced rate', amount: 'Daily: £110.40/wk · Mobility: £77.05/wk', bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700' },
+                { pts: '8–11 points', label: 'Standard rate', amount: 'Daily: £76.70/wk · Mobility: £30.30/wk', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+                { pts: '12+ points', label: 'Enhanced rate', amount: 'Daily: £114.60/wk · Mobility: £80.00/wk', bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700' },
               ].map(t => (
                 <div key={t.pts} className={`rounded-xl px-4 py-3 border ${t.bg} ${t.border}`}>
                   <div className="flex items-center justify-between mb-0.5">
@@ -259,39 +259,59 @@ export function ClaimFlow() {
                 </div>
               ))}
             </div>
+            <a
+              href="https://www.gov.uk/pip/how-much-youll-get"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 flex items-center gap-1.5 text-xs text-teal-600 font-semibold hover:text-teal-700 transition-colors"
+            >
+              View official DWP rates on GOV.UK →
+            </a>
           </div>
 
           {/* The 12 activities */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
             <div className="p-5 pb-3">
               <h3 className="font-bold text-stone-900 mb-1">The 12 activities PIP assesses</h3>
-              <p className="text-sm text-stone-500">Tap any activity to see what DWP is looking at.</p>
+              <p className="text-sm text-stone-500">Tap any activity to see the official descriptors and points.</p>
             </div>
             <div className="divide-y divide-stone-50">
-              {ACTIVITIES.map((a, i) => (
-                <div key={i}>
-                  <button
-                    onClick={() => setExpandedActivity(expandedActivity === i ? null : i)}
-                    className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-stone-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg">{a.icon}</span>
-                      <span className="text-sm font-medium text-stone-800">{a.name}</span>
-                    </div>
-                    {expandedActivity === i ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                  </button>
-                  <AnimatePresence>
-                    {expandedActivity === i && (
-                      <motion.div
-                        initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="px-5 pb-3 pt-0 text-sm text-stone-500 leading-relaxed">{a.desc}</p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+              {ACTIVITIES.map((a, i) => {
+                const q = PIP_QUESTIONS[i];
+                return (
+                  <div key={i}>
+                    <button
+                      onClick={() => setExpandedActivity(expandedActivity === i ? null : i)}
+                      className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-stone-50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">{a.icon}</span>
+                        <span className="text-sm font-medium text-stone-800">{a.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {q && <span className="text-xs font-bold text-teal-600">{Math.max(...q.descriptors.map(d => d.points))}pts max</span>}
+                        {expandedActivity === i ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                      </div>
+                    </button>
+                    <AnimatePresence>
+                      {expandedActivity === i && q && (
+                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+                          <div className="px-5 pb-4 pt-1 space-y-2">
+                            <p className="text-xs text-stone-500 mb-2">{a.desc}</p>
+                            {q.descriptors.map(d => (
+                              <div key={d.code} className="flex items-start gap-2">
+                                <span className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-stone-500">{d.code}</span>
+                                <span className="text-xs text-stone-600 flex-1 leading-relaxed">{d.text}</span>
+                                <span className={`text-xs font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -468,6 +488,19 @@ export function ClaimFlow() {
             <FileText className="w-4 h-4" />
             Download completed answers
           </button>
+
+          {/* PIP2 Form section */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
+            <h3 className="font-bold text-stone-900">Your PIP2 form</h3>
+            <p className="text-sm text-stone-600 leading-relaxed">When DWP sends you the PIP2 form, use your completed answers from PIPpal to fill it in. Transfer your answers into the relevant sections — they have been written in the language DWP expects.</p>
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
+              <p className="text-xs text-amber-800 leading-relaxed"><strong>Important:</strong> Take a photo or photocopy of your completed PIP2 form before posting it. If it gets lost, you will need a copy to resubmit or for appeal.</p>
+            </div>
+            <button onClick={() => navigateTo('downloads')} className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white font-semibold text-sm py-3 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all">
+              <Download className="w-4 h-4" />
+              Go to downloads folder
+            </button>
+          </div>
         </div>
       );
 

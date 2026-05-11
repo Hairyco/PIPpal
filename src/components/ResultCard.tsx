@@ -88,7 +88,7 @@ export function ResultCard() {
     },
     {
       key: 'everyday',
-      label: 'In my own words',
+      label: 'Plain and personal',
       desc: 'Warm and natural — like explaining it to a friend. Honest and easy to relate to.',
       example: '"Most days I just can\'t face cooking. The pain gets too much and I end up not eating properly."',
     },
@@ -347,7 +347,7 @@ Return ONLY the answer text.`,
             onClick={e => e.stopPropagation()}
           >
             <h3 className="font-bold text-stone-900 text-base">How would you like your answer to sound?</h3>
-            <p className="text-sm text-stone-500">ChatGPT will rewrite it in the style you choose — pick whichever feels most like you.</p>
+            <p className="text-sm text-stone-500">PIPpal will rewrite it in the style you choose — pick whichever feels most like you.</p>
             {VOICES.map(v => (
               <button
                 key={v.key}

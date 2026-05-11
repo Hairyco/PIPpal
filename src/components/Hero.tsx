@@ -68,9 +68,9 @@ export function Hero({ onStart }: HeroProps) {
         <div className="flex items-center justify-center">
           <a
             href="#free-tools"
-            className="text-xs text-teal-700 font-semibold hover:text-teal-800 underline underline-offset-2 transition-colors"
+            className="text-xs text-teal-700 font-semibold hover:text-teal-800 transition-colors"
           >
-            Try our free PIP calculators — no sign-up needed →
+            Try our free PIP calculators →
           </a>
         </div>
       </div>

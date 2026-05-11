@@ -39,7 +39,7 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
     { label: 'Blog', id: 'blog' },
     { label: 'How it works', id: 'how-it-works' },
     { label: 'Calculators', id: 'free-tools' },
-    { label: 'Eligibility', id: 'eligibility-banner' },
+    { label: 'Eligibility', id: 'what-is-pip' },
   ];
 
   return (

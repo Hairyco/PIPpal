@@ -59,10 +59,10 @@ export function DescriptorsGuide() {
           <p className="text-sm text-stone-500 mb-4 leading-relaxed">2025/26 weekly rates — paid every four weeks, tax-free.</p>
           <div className="space-y-2">
             {[
-              { label: 'Daily Living — Standard', amount: '£73.90/wk' },
-              { label: 'Daily Living — Enhanced', amount: '£110.40/wk' },
-              { label: 'Mobility — Standard', amount: '£29.20/wk' },
-              { label: 'Mobility — Enhanced', amount: '£77.05/wk' },
+              { label: 'Daily Living — Standard', amount: '£76.70/wk' },
+              { label: 'Daily Living — Enhanced', amount: '£114.60/wk' },
+              { label: 'Mobility — Standard', amount: '£30.30/wk' },
+              { label: 'Mobility — Enhanced', amount: '£80.00/wk' },
             ].map(r => (
               <div key={r.label} className="flex justify-between items-center py-2.5 border-b border-stone-50 last:border-0">
                 <span className="text-sm text-stone-600">{r.label}</span>

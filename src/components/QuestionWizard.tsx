@@ -390,19 +390,18 @@ export function QuestionWizard() {
                 ) : (
                   <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden divide-y divide-stone-50">
                     {answers.difficulties.map((diff, di) => (
-                      <div key={di} className="flex items-center gap-4 px-4 py-3.5">
-                        <p className="flex-1 text-sm font-medium text-stone-700">{diff}</p>
+                      <div key={di} className="px-4 py-3.5">
+                        <p className="text-sm font-medium text-stone-700 mb-2 leading-snug">{diff}</p>
                         <select
                           value={answers.frequencies[diff] || ''}
                           onChange={e => setFrequency(diff, e.target.value)}
-                          className={`text-sm font-semibold rounded-xl border px-3 py-2 bg-white focus:ring-1 focus:ring-teal-400 focus:border-teal-400 appearance-none pr-8 ${answers.frequencies[diff] ? 'text-teal-700 border-teal-200 bg-teal-50' : 'text-stone-400 border-stone-200'}`}
-                          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center' }}
+                          className={`w-full text-sm font-semibold rounded-xl border px-3 py-2.5 bg-white focus:ring-1 focus:ring-teal-400 focus:border-teal-400 ${answers.frequencies[diff] ? 'text-teal-700 border-teal-300 bg-teal-50' : 'text-stone-500 border-stone-200'}`}
                         >
-                          <option value="" disabled>How often?</option>
+                          <option value="" disabled>How often does this happen?</option>
                           <option value="never">Never</option>
-                          <option value="rarely">Rarely (1–3 days a week)</option>
-                          <option value="sometimes">Sometimes (4–6 days a week)</option>
-                          <option value="often">Often (most days)</option>
+                          <option value="rarely">Rarely — 1 or 2 days a week</option>
+                          <option value="sometimes">Sometimes — most days</option>
+                          <option value="often">Often — most days</option>
                           <option value="most">Every day</option>
                         </select>
                       </div>

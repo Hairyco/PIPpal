@@ -273,7 +273,7 @@ export function NewsScreen() {
                                     </span>
                                   )}
                                 </div>
-                                <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title}</h3>
+                                <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title.replace(/&amp;/g,'&').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>')}</h3>
                                 {!isExpanded && (
                                   <p className={`text-xs mt-1 line-clamp-2 leading-relaxed mb-3 ${isFeatured ? 'text-teal-100' : 'text-stone-500'}`}>{article.body}</p>
                                 )}

@@ -112,7 +112,7 @@ export function ScoringCriteria() {
                     <span className="text-stone-800 font-medium">
                       Standard rate
                     </span>
-                    <span className="text-stone-500 ml-1.5">£77.65/week</span>
+                    <span className="text-stone-500 ml-1.5">£80.00/week</span>
                   </div>
                   <span className="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
                     8–11 points
