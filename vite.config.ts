@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// v3 - force cache bust
 export default defineConfig({
   plugins: [react()],
   build: {
