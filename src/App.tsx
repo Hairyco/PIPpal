@@ -285,6 +285,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />
               <section

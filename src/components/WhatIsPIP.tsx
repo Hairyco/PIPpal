@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
+import { PIPAgeChart } from './PIPAgeChart';
 
 const conditions = [
   { emoji: '😰', label: 'Anxiety' },
@@ -64,6 +65,8 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           </div>
         </div>
       </div>
+
+      <PIPAgeChart />
 
       {/* Why PIPpal */}
       <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>

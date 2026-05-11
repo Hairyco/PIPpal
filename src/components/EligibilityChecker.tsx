@@ -534,13 +534,13 @@ export function EligibilityChecker() {
 
           <div className={showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}>
           <button
-            onClick={() => navigateTo('q1_intro')}
+            onClick={() => navigateTo('claim_flow')}
             className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm mb-2 flex items-center justify-center gap-2">
-            
-            Apply Now
+            Start My PIP Claim
+            <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-[11px] text-stone-400 text-center mb-4">
-            Free: Q1 walkthrough · Full Access: £8.99
+            Free to start · Full access from £8.99 one-time
           </p>
 
           {/* PIP Diary Teaser */}
