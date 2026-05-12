@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Edit3, Sparkles, Check, X, Save, ChevronRight } from 'lucide-react';
+import { RefreshCw, RotateCcw, Edit3, Sparkles, Check, X, Save, ChevronRight } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion } from 'framer-motion';
 import { getQuestion, PIP_QUESTIONS } from '../pipQuestions';
@@ -172,11 +172,17 @@ export function ResultCard() {
         ? 'Write in natural, everyday language — honest and straightforward, like explaining to a friend. Avoid formal or clinical phrasing. It should sound like a real person talking.'
         : 'Write in a formal, factual style — clear direct statements, no emotion, just the facts of what the person can and cannot do.';
 
+      const currentText = (editedText || displayText).replace(/<[^>]+>/g, '').trim();
+      const isUserEdited = !!editedText;
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Write a concise PIP descriptor answer (2-3 sentences MAX) for descriptor ${descriptor}: "${data.heading}".
+          message: `You are improving a PIP claim answer. ${isUserEdited ? 'The claimant has edited this answer themselves — be very faithful to their version. Strengthen the wording and add a small amount of supporting detail, but do NOT rewrite or change what they have said.' : 'Improve this answer to make it stronger and more natural.'}
+
+Current answer to improve:
+"${currentText}"
 
 Person's conditions: ${conditions}
 Difficulties they selected: ${difficulties}
@@ -186,14 +192,17 @@ Real-life impact: ${impact}
 Voice: ${voiceInstruction}
 
 Rules:
-- 2-3 sentences ONLY — no more
+- Write 4-6 sentences — enough to feel like a complete, genuine answer
 - First person ("I...")
-- Specific and factual
-- Mention frequency (most days / every day / often)
-- Mention impact or support needed
-- No preamble, no explanation — just the answer text
+- Sound like a real person, not a form — natural and honest
+- Include frequency (most days / every day / often / rarely manage)
+- Include what support or help is needed
+- Include at least one specific real-life consequence
+- Do NOT use bureaucratic phrases like "I experience difficulties with" or "I am unable to"
+- Do NOT add anything they have not indicated
+- ${isUserEdited ? 'Stay very close to what the claimant wrote — they know their situation best' : 'Make it compelling and specific'}
 
-Return ONLY the answer text.`,
+Return ONLY the answer text — no preamble.`,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
           conversationHistory: [],
           userId: null,
@@ -394,49 +403,52 @@ Return ONLY the answer text.`,
       )}
 
       {/* Bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-4 py-4 flex gap-2 max-w-2xl mx-auto">
-        <button
-          onClick={handleRedo}
-          className="flex items-center gap-1.5 px-4 py-3 rounded-xl border-2 border-stone-200 text-stone-600 font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Redo
-        </button>
-        <div className="flex flex-col gap-1.5 flex-1">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-4 py-3 max-w-2xl mx-auto">
+        {/* Previous answer row */}
+        {answerHistory.length > 0 && (
+          <button
+            onClick={() => {
+              const prev = [...answerHistory];
+              const last = prev.pop()!;
+              setAnswerHistory(prev);
+              setEditedText(last);
+              saveAnswer(qId, last.replace(/<[^>]+>/g, ''));
+            }}
+            className="w-full flex items-center justify-center gap-2 text-xs text-stone-500 hover:text-purple-600 transition-colors py-2 mb-1 border border-stone-100 rounded-xl hover:bg-stone-50"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Use {answerHistory.length === 1 ? 'original' : 'previous'} answer
+          </button>
+        )}
+        {/* Main actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleRedo}
+            className="flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl border-2 border-stone-200 text-stone-500 font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all"
+            title="Start over"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
           <button
             onClick={handleImprove}
             disabled={isImproving}
-            className="w-full flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border-2 border-purple-200 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border-2 border-purple-200 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isImproving ? (
               <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
             ) : (
               <Sparkles className="w-4 h-4" />
             )}
-            {isImproving ? 'Improving...' : 'Improve my answer'}
+            {isImproving ? 'Improving...' : 'Improve answer'}
           </button>
-          {answerHistory.length > 0 && (
-            <button
-              onClick={() => {
-                const prev = [...answerHistory];
-                const last = prev.pop()!;
-                setAnswerHistory(prev);
-                setEditedText(last);
-                saveAnswer(qId, last.replace(/<[^>]+>/g, ''));
-              }}
-              className="w-full text-center text-xs text-stone-400 hover:text-purple-600 transition-colors py-0.5"
-            >
-              ↩ Revert to {answerHistory.length === 1 ? 'original' : 'previous'} answer
-            </button>
-          )}
+          <button
+            onClick={handleNextQuestion}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
-        <button
-          onClick={handleNextQuestion}
-          className="flex-1 flex items-center justify-center gap-1.5 bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm"
-        >
-          <Sparkles className="w-4 h-4" />
-          Next
-        </button>
       </div>
 
     </div>

@@ -120,9 +120,21 @@ export function ClaimFlow() {
       // ── STEP 1: Welcome ──────────────────────────────────────────────────────
       case 1: return (
         <div className="space-y-4 px-5 pt-5 pb-28">
+
+          {/* PIP2 form banner */}
+          <div className="bg-teal-50 border border-teal-200 rounded-2xl px-4 py-3 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-bold text-teal-700 uppercase tracking-widest">Form you'll need</p>
+              <p className="text-sm font-bold text-teal-900 mt-0.5">PIP2 — How your disability affects you</p>
+            </div>
+            <button onClick={() => navigateTo('downloads')} className="text-xs font-bold text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-50 active:scale-95 transition-all">
+              Downloads →
+            </button>
+          </div>
+
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Let's build your PIP claim</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">PIPpal guides you through every step — from understanding what PIP is to building the strongest possible application.</p>
+            <h2 className="font-bold text-xl mb-2">Starting your PIP claim</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">PIPpal does the hard work for you. We ask simple questions, then build your answers in the language DWP needs to see.</p>
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/10">
               <Clock className="w-4 h-4 text-teal-300" />
               <span className="text-teal-200 text-sm">Takes 15–30 minutes in total</span>
@@ -132,7 +144,7 @@ export function ClaimFlow() {
           {/* What is PIP */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
             <h3 className="font-bold text-stone-900">What is PIP?</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> with both enhanced components and is not means-tested — it doesn't matter what you earn or whether you work.</p>
+            <p className="text-sm text-stone-600 leading-relaxed">PIP is a tax-free government benefit for people whose health condition or disability affects daily life. It doesn't matter what you earn or whether you work. You don't need a formal diagnosis to apply.</p>
             <div className="grid grid-cols-2 gap-2 pt-1">
               {[
                 { label: '3.9 million', sub: 'people currently claim' },
@@ -146,6 +158,33 @@ export function ClaimFlow() {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* How do I apply */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
+            <h3 className="font-bold text-stone-900">How do I apply?</h3>
+            {[
+              { step: '1', title: 'Call DWP to open your claim', body: 'Ring 0800 917 2222. This call takes 20 minutes. Your payments are backdated to this date — so call as soon as possible, even before you have everything ready.' },
+              { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form." },
+              { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.' },
+              { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
+            ].map((item, i) => (
+              <div key={i} className="flex gap-3">
+                <div className="w-6 h-6 rounded-full bg-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-white text-[11px] font-bold">{item.step}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* What to do next */}
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+            <p className="text-sm font-bold text-amber-900 mb-2">👉 What to do right now</p>
+            <p className="text-sm text-amber-800 leading-relaxed">Call DWP on <strong>0800 917 2222</strong> to open your claim before you do anything else. It only takes 20 minutes and your payments are backdated to today's call. Then come back to PIPpal to build your answers.</p>
           </div>
 
           {/* What you'll need */}
@@ -229,19 +268,28 @@ export function ClaimFlow() {
             <p className="text-teal-100 text-sm leading-relaxed">Before we ask you any questions, you need to understand how DWP actually decides what you get. Most people don't — and it costs them points.</p>
           </div>
 
-          {/* The key rule */}
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
-            <h3 className="font-bold text-stone-900">The most important thing to understand</h3>
-            <p className="text-sm text-stone-600 leading-relaxed">PIP is not about your diagnosis. DWP does not care what you have been diagnosed with. They care about how your condition affects you day to day.</p>
-            <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
-              <p className="text-sm font-bold text-teal-900 mb-2">DWP scores you on whether you can do each activity:</p>
-              {['Safely — without risk of harm to yourself or others', 'Repeatedly — not just once on a good day', 'To an acceptable standard — properly, not just technically', 'In a reasonable time — not taking significantly longer than usual'].map((r, i) => (
-                <div key={i} className="flex items-start gap-2 py-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-teal-800">{r}</p>
+          {/* The key rule — short and friendly */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🔑</span>
+              <h3 className="font-bold text-stone-900 text-sm">The one thing most people get wrong</h3>
+            </div>
+            <p className="text-sm text-stone-700 leading-relaxed mb-3">DWP doesn't care what you've been diagnosed with. They only care about <strong>how your condition affects you</strong> — day in, day out.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { icon: '🛡️', label: 'Safely', sub: 'Can you do it without hurting yourself?' },
+                { icon: '🔁', label: 'Repeatedly', sub: 'Not just once on a good day' },
+                { icon: '✅', label: 'Properly', sub: 'To an acceptable standard' },
+                { icon: '⏱️', label: 'In time', sub: 'Not taking much longer than normal' },
+              ].map((item, i) => (
+                <div key={i} className="bg-teal-50 rounded-xl p-3">
+                  <span className="text-base">{item.icon}</span>
+                  <p className="font-bold text-teal-900 text-xs mt-1">{item.label}</p>
+                  <p className="text-[10px] text-teal-700 mt-0.5 leading-snug">{item.sub}</p>
                 </div>
               ))}
             </div>
+            <p className="text-xs text-stone-500 mt-3 leading-relaxed">If you struggle with any activity in any of these ways — on <strong>more than half of days</strong> — you should score points.</p>
           </div>
 
           {/* Points thresholds */}
@@ -381,17 +429,16 @@ export function ClaimFlow() {
             <p className="text-teal-100 text-sm leading-relaxed">Now we go through each of the 12 PIP activities. PIPpal asks the right questions and builds a draft answer for each one — in your words.</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
-            <h3 className="font-bold text-stone-900">Tips before you start</h3>
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
+            <h3 className="font-bold text-stone-900">Here's how this works</h3>
             {[
-              { title: 'Think about your worst days', body: 'DWP assesses you on your worst days — not your best. Be honest about what you struggle with.' },
-              { title: 'Real examples matter most', body: 'Specific incidents ("I burned myself last week") are far more powerful than general statements.' },
-              { title: 'You can pause and come back', body: 'Your answers are saved as you go. You don\'t need to complete everything at once.' },
+              { icon: '💬', title: 'We ask, you tap', body: 'For each of the 12 activities, we ask simple questions. You just tap the options that apply to you — no writing needed.' },
+              { icon: '✍️', title: 'We write the answer', body: 'PIPpal takes your answers and builds a complete, well-worded response for each question — using the language DWP assessors need to see.' },
+              { icon: '✏️', title: 'You can improve it', body: "Once we've built your answer, you can tweak it, strengthen it, or change the style. It's your claim — we just do the heavy lifting." },
+              { icon: '⏸️', title: 'Save and come back', body: 'Your answers are saved automatically. Do one question at a time if you need to.' },
             ].map((tip, i) => (
               <div key={i} className="flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-teal-700 text-xs font-bold">{i + 1}</span>
-                </div>
+                <span className="text-xl shrink-0">{tip.icon}</span>
                 <div>
                   <p className="text-sm font-semibold text-stone-900">{tip.title}</p>
                   <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{tip.body}</p>

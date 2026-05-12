@@ -536,6 +536,38 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Think about the past few months. Be honest — there's no wrong answer here.</p>
             </div>
 
+            {/* What you are scored on — always visible steps 2-5 */}
+            {pipQ && (
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setShowDescriptors(s => !s)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                    {liveDescriptor && (
+                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showDescriptors && (
+                  <div className="border-t border-stone-100">
+                    {pipQ.descriptors.map(d => {
+                      const isMatch = liveDescriptor === d.code;
+                      return (
+                        <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
+                          <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Frequency grid */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
               {/* Header row */}
@@ -601,6 +633,38 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Even needing someone nearby, or just to remind you, counts.</p>
             </div>
 
+            {/* What you are scored on */}
+            {pipQ && (
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setShowDescriptors(s => !s)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                    {liveDescriptor && (
+                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showDescriptors && (
+                  <div className="border-t border-stone-100">
+                    {pipQ.descriptors.map(d => {
+                      const isMatch = liveDescriptor === d.code;
+                      return (
+                        <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
+                          <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               {config.supportOptions.map(opt => {
                 const selected = answers.supportTypes.includes(opt.id);
@@ -645,6 +709,25 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
 
   // ─── STEP 5: REAL-LIFE IMPACT ──────────────────────────────────────────────
 
+  if (generating) {
+    return (
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 z-50 px-8">
+        <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+          <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="flex gap-1">
+              {[0,1,2].map(i => <div key={i} className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{animationDelay:`${i*150}ms`}} />)}
+            </div>
+          </div>
+          <div>
+            <h2 className="font-bold text-stone-900 text-xl mb-2">Building your answer...</h2>
+            <p className="text-sm text-stone-500 leading-relaxed">PIPpal is writing your personalised claim answer using everything you've told us.</p>
+          </div>
+          <p className="text-[11px] text-stone-400">This takes a few seconds</p>
+        </div>
+      </div>
+    );
+  }
+
   if (step === 5) {
     const charLimit = 500;
     return (
@@ -657,6 +740,38 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
               <h2 className="font-black text-lg leading-tight">How does this really affect your life?</h2>
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Be specific — real examples make a real difference to your claim.</p>
             </div>
+
+            {/* What you are scored on */}
+            {pipQ && (
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setShowDescriptors(s => !s)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                    {liveDescriptor && (
+                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
+                    )}
+                  </div>
+                  <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showDescriptors && (
+                  <div className="border-t border-stone-100">
+                    {pipQ.descriptors.map(d => {
+                      const isMatch = liveDescriptor === d.code;
+                      return (
+                        <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
+                          <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             <p className="text-sm font-semibold text-stone-600 px-1">Select all that apply.</p>
 
