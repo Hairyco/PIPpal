@@ -23,6 +23,8 @@ export function QuestionFlow() {
 
   const [step, setStep] = useState<Step>(1);
   const [showExplained, setShowExplained] = useState(true);
+  const [showDescriptors, setShowDescriptors] = useState(false);
+  const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
   const [showFullExample, setShowFullExample] = useState(false);
   const [personalExample, setPersonalExample] = useState<string | null>(null);
   const [loadingExample, setLoadingExample] = useState(false);
@@ -252,44 +254,41 @@ export function QuestionFlow() {
           <div className="px-5 py-5 space-y-4 pb-32">
             <QuestionCard />
 
-            {/* This question explained */}
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-              <button
-                onClick={() => setShowExplained(!showExplained)}
-                className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-stone-50 transition-colors"
-              >
-                <Info className="w-4 h-4 text-teal-600 shrink-0" />
-                <span className="font-semibold text-stone-900 text-sm flex-1">This question explained</span>
-                <ChevronRight className={`w-4 h-4 text-stone-400 transition-transform ${showExplained ? 'rotate-90' : ''}`} />
-              </button>
-              <AnimatePresence>
-                {showExplained && (
-                  <motion.div
-                    initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <p className="px-4 pb-4 text-sm text-stone-600 leading-relaxed border-t border-stone-50 pt-3">
-                      {config.explained}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* This question explained — always expanded */}
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-amber-100">
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span className="font-bold text-amber-900 text-sm">This question explained</span>
+                </div>
+              </div>
+              <p className="px-4 py-4 text-sm text-amber-800 leading-relaxed">
+                {personalExample ? personalExample : config.explained}
+              </p>
             </div>
 
-            {/* Ask for more help */}
+            {/* Ask for more help — inline expand, no assistant */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
               <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Ask for more help</p>
               <div className="flex flex-wrap gap-2">
-                {config.helpQuestions.map(q => (
+                {config.helpQuestions.map((q, i) => (
                   <button
                     key={q}
-                    onClick={() => setAssistantQuestion(q)}
-                    className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 rounded-full px-3 py-1.5 hover:bg-teal-100 active:scale-95 transition-all"
+                    onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
+                    className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
                   >
                     {q}
                   </button>
                 ))}
               </div>
+              {openHelpIdx !== null && pipQ?.conditionExplainers[openHelpIdx] && (
+                <div className="mt-3 pt-3 border-t border-stone-100">
+                  <p className="text-sm text-stone-700 leading-relaxed">{pipQ.conditionExplainers[openHelpIdx].text}</p>
+                  {pipQ.conditionExplainers[openHelpIdx].example && (
+                    <p className="text-xs text-stone-400 italic mt-1">"{pipQ.conditionExplainers[openHelpIdx].example}"</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Example answer */}
@@ -349,6 +348,30 @@ export function QuestionFlow() {
               <h2 className="font-black text-lg leading-tight">What makes this hard for you?</h2>
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Pick everything that rings true — even on your worst days.</p>
             </div>
+
+            {/* What you are scored on — descriptors */}
+            {pipQ && (
+              <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+                <button
+                  onClick={() => setShowDescriptors(s => !s)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                >
+                  <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                  <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showDescriptors && (
+                  <div className="border-t border-stone-100">
+                    {pipQ.descriptors.map(d => (
+                      <div key={d.code} className="flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0">
+                        <span className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-stone-500 mt-0.5">{d.code}</span>
+                        <span className="flex-1 text-xs text-stone-600 leading-relaxed">{d.text}</span>
+                        <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {config.difficultyCategories.map(cat => (
               <div key={cat.id}>
