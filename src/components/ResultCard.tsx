@@ -177,6 +177,7 @@ export function ResultCard() {
 
       const currentText = (editedText || displayText).replace(/<[^>]+>/g, '').trim();
       const isUserEdited = !!editedText;
+      const tappedDetails = addedDetails.size > 0 ? `\nThe claimant tapped these specific details to include — they MUST appear in the improved answer:\n${[...addedDetails].map(d => `- ${d}`).join('\n')}` : '';
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -186,6 +187,7 @@ export function ResultCard() {
 
 Current answer to improve:
 "${currentText}"
+${tappedDetails}
 
 Person's conditions: ${conditions}
 Difficulties they selected: ${difficulties}
@@ -204,6 +206,7 @@ Rules:
 - Do NOT use bureaucratic phrases like "I experience difficulties with" or "I am unable to"
 - Do NOT add anything they have not indicated
 - ${isUserEdited ? 'Stay very close to what the claimant wrote — they know their situation best' : 'Make it compelling and specific'}
+- ${addedDetails.size > 0 ? `CRITICAL: The following tapped details MUST be woven into the answer: ${[...addedDetails].join(', ')}` : 'Be specific and genuine'}
 
 Return ONLY the answer text — no preamble.`,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
