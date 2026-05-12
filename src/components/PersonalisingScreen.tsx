@@ -162,87 +162,70 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
   const totalQuestions = 12;
   const currentQuestionNum = parseInt(questionId.replace('q', '')) || 1;
   const progressPct = Math.round((completedCount / totalQuestions) * 100);
+  const flowPreview = getQuestionFlow(questionId);
+  /** Show at least a hint of fill so the bar never looks broken at 0% */
+  const barWidthPct = completedCount === 0 ? 6 : Math.max(progressPct, 10);
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 px-8 z-50">
-      <div className="flex flex-col items-center gap-6 w-full max-w-xs text-center">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-stone-50 via-white to-stone-50 px-6 z-50">
+      <div className="flex flex-col items-center gap-8 w-full max-w-sm text-center">
 
-        {/* PIPpal logo mark */}
-        <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
-          <div className="flex gap-1">
-            {[0, 1, 2].map(i => (
-              <div
-                key={i}
-                className="w-2.5 h-2.5 bg-white rounded-full animate-bounce"
-                style={{ animationDelay: `${i * 150}ms` }}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-bold text-stone-900 text-xl mb-2">{messages[msgIndex]}</h2>
-          <p className="text-sm text-stone-500 leading-relaxed">
-            PIPpal is tailoring question {currentQuestionNum} to your conditions.
-          </p>
-        </div>
-
-        {/* Progress section */}
-        <div className="w-full bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-stone-700">Your progress</p>
-            <p className="text-xs font-bold text-teal-600">{completedCount} of {totalQuestions} done</p>
-          </div>
-
-          {/* Progress bar */}
-          <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-teal-600 rounded-full transition-all duration-700"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-
-          {/* Question dots */}
-          <div className="flex gap-1.5 justify-center flex-wrap">
-            {Array.from({ length: totalQuestions }, (_, i) => {
-              const qNum = i + 1;
-              const qId = `q${qNum}`;
-              const isDone = !!savedAnswers[qId];
-              const isCurrent = qNum === currentQuestionNum;
-              return (
+        <div className="relative shrink-0">
+          <div className="absolute -inset-6 rounded-full bg-teal-400/15 blur-2xl" aria-hidden />
+          <div className="relative w-[4.5rem] h-[4.5rem] bg-teal-700 rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-teal-900/15 ring-4 ring-white">
+            <div className="flex gap-1">
+              {[0, 1, 2].map(i => (
                 <div
                   key={i}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                    isCurrent ? 'bg-teal-700 text-white ring-2 ring-teal-300 ring-offset-1' :
-                    isDone ? 'bg-teal-100 text-teal-700' :
-                    'bg-stone-100 text-stone-400'
-                  }`}
-                >
-                  {isDone && !isCurrent ? '✓' : qNum}
-                </div>
-              );
-            })}
+                  className="w-2 h-2 bg-white/95 rounded-full animate-bounce"
+                  style={{ animationDelay: `${i * 160}ms` }}
+                />
+              ))}
+            </div>
           </div>
+        </div>
 
-          {completedCount > 0 && (
-            <p className="text-[11px] text-stone-400 text-center">
-              {totalQuestions - completedCount} question{totalQuestions - completedCount !== 1 ? 's' : ''} remaining
+        <div className="space-y-3 px-1">
+          <h2 className="font-bold text-stone-900 text-xl leading-snug tracking-tight">{messages[msgIndex]}</h2>
+          {flowPreview ? (
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Next: <span className="font-semibold text-stone-800">{flowPreview.title}</span>
+            </p>
+          ) : (
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Preparing activity {currentQuestionNum} for you.
             </p>
           )}
         </div>
 
-        {/* Condition pills */}
-        {medProfile?.conditions?.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center">
+        {/* Slim progress only — no numbered circles */}
+        <div className="w-full max-w-[260px] space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
+            <span>Claim progress</span>
+            <span className="tabular-nums text-teal-700">{completedCount}/{totalQuestions}</span>
+          </div>
+          <div className="h-2 rounded-full bg-stone-200/90 overflow-hidden ring-1 ring-stone-200/60">
+            <div
+              className="h-full rounded-full bg-teal-600 transition-all duration-700 ease-out"
+              style={{ width: `${Math.min(barWidthPct, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {medProfile?.conditions && medProfile.conditions.length > 0 && (
+          <div className="flex flex-wrap gap-2 justify-center max-w-xs">
             {medProfile.conditions.map((c: any, i: number) => (
-              <span key={i} className="text-xs font-medium text-teal-700 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+              <span
+                key={i}
+                className="text-[11px] font-medium text-teal-800/90 bg-teal-50/80 border border-teal-100/80 px-2.5 py-1 rounded-full"
+              >
                 {c.name}
               </span>
             ))}
           </div>
         )}
 
-        <p className="text-[11px] text-stone-400">This takes a few seconds</p>
+        <p className="text-xs text-stone-400">Usually just a moment</p>
       </div>
     </div>
   );
