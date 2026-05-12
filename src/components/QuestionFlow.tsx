@@ -15,6 +15,9 @@ const FREQUENCIES: { id: FrequencyLevel; label: string; sublabel: string }[] = [
   { id: 'most_days', label: 'Most days', sublabel: '7 days a week' },
 ];
 
+/** Same columns for header + rows so labels and radios stay aligned on all screen sizes */
+const FREQ_GRID_TEMPLATE = 'minmax(0,1fr) repeat(5, minmax(2.75rem, 1fr))' as const;
+
 export function QuestionFlow() {
   const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile, setAssistantQuestion } = useAppContext();
   const questionId = selectedQuestionId || 'q1';
@@ -568,35 +571,42 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
               </div>
             )}
 
-            {/* Frequency grid */}
+            {/* Frequency grid — items-start keeps radios lined up with first line when labels wrap */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
               {/* Header row */}
-              <div className="grid border-b border-stone-100" style={{ gridTemplateColumns: '1fr repeat(5, 56px)' }}>
-                <div className="p-3" />
+              <div className="grid items-start gap-0 border-b border-stone-100" style={{ gridTemplateColumns: FREQ_GRID_TEMPLATE }}>
+                <div className="p-3 min-h-[2.75rem]" aria-hidden />
                 {FREQUENCIES.map(f => (
-                  <div key={f.id} className="p-2 text-center border-l border-stone-50">
-                    <p className="text-[10px] font-bold text-stone-500 leading-tight">{f.label}</p>
-                    {f.sublabel && <p className="text-[9px] text-stone-300 leading-tight mt-0.5 hidden md:block">{f.sublabel}</p>}
+                  <div key={f.id} className="p-2 pt-3 pb-2 text-center border-l border-stone-50 min-h-[2.75rem] flex flex-col items-center justify-start gap-0.5">
+                    <p className="text-[10px] font-bold text-stone-500 leading-tight break-words hyphens-auto max-w-full px-0.5">{f.label}</p>
+                    {f.sublabel && <p className="text-[9px] text-stone-400 leading-tight hidden sm:block">{f.sublabel}</p>}
                   </div>
                 ))}
               </div>
 
               {/* Difficulty rows */}
               {selectedDiffs.map((diff, i) => (
-                <div key={diff.id} className={`grid items-center ${i < selectedDiffs.length - 1 ? 'border-b border-stone-50' : ''}`} style={{ gridTemplateColumns: '1fr repeat(5, 56px)' }}>
-                  <p className="px-3 py-3 text-xs text-stone-700 font-medium leading-snug">{diff.text}</p>
+                <div
+                  key={diff.id}
+                  className={`grid items-start gap-0 ${i < selectedDiffs.length - 1 ? 'border-b border-stone-50' : ''}`}
+                  style={{ gridTemplateColumns: FREQ_GRID_TEMPLATE }}
+                >
+                  <p className="px-3 py-3 pr-2 text-xs text-stone-700 font-medium leading-snug self-start">{diff.text}</p>
                   {FREQUENCIES.map(f => {
                     const selected = answers.frequencies[diff.id] === f.id;
                     return (
                       <button
                         key={f.id}
+                        type="button"
                         onClick={() => setAnswers(prev => ({ ...prev, frequencies: { ...prev.frequencies, [diff.id]: f.id } }))}
-                        className="flex items-center justify-center py-3 border-l border-stone-50 hover:bg-teal-50 transition-colors"
+                        className="flex items-start justify-center pt-3 pb-3 min-h-[2.75rem] border-l border-stone-50 hover:bg-teal-50 active:bg-teal-100/80 transition-colors touch-manipulation"
                       >
-                        {selected
-                          ? <div className="w-5 h-5 rounded-full bg-teal-600 flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>
-                          : <div className="w-5 h-5 rounded-full border-2 border-stone-300" />
-                        }
+                        <span className="inline-flex shrink-0 mt-0.5" aria-hidden>
+                          {selected
+                            ? <div className="w-5 h-5 rounded-full bg-teal-600 flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>
+                            : <div className="w-5 h-5 rounded-full border-2 border-stone-300 bg-white" />
+                          }
+                        </span>
                       </button>
                     );
                   })}
