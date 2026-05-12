@@ -17,52 +17,60 @@ export function PersonalisingScreen() {
   const questionId = selectedQuestionId || 'q1';
 
   useEffect(() => {
+    let navigated = false;
+    const safeNavigate = () => {
+      if (!navigated) {
+        navigated = true;
+        navigateTo('q1_intro');
+      }
+    };
+
+    // Safety net — always navigate after 12 seconds no matter what
+    const safetyTimer = setTimeout(safeNavigate, 12000);
+
     const run = async () => {
-      const conditions = medProfile?.conditions?.map((c: any) => c.name) || [];
-      const conditionNames = conditions.join(', ');
-      const config = getQuestionFlow(questionId);
-
-      // No conditions — skip straight through
-      if (!conditions.length || !config) {
-        navigateTo('q1_intro');
-        return;
-      }
-
-      const cacheKey = buildCacheKey(conditions, questionId);
-
-      // 1. Check cache first
-      const { data: cached } = await supabase
-        .from('condition_content_cache')
-        .select('explainer, example, hit_count')
-        .eq('cache_key', cacheKey)
-        .single();
-
-      if (cached) {
-        // Cache hit — store in sessionStorage and navigate
-        console.log('[PIPpal] Cache HIT for', cacheKey, `(served ${cached.hit_count + 1} times)`);
-        sessionStorage.setItem(`pippal_explainer_${questionId}`, cached.explainer);
-        sessionStorage.setItem(`pippal_example_${questionId}`, cached.example);
-
-        // Increment hit count (fire and forget)
-        supabase.from('condition_content_cache')
-          .update({ hit_count: cached.hit_count + 1, updated_at: new Date().toISOString() })
-          .eq('cache_key', cacheKey)
-          .then(() => {});
-
-        navigateTo('q1_intro');
-        return;
-      }
-
-      // 2. Cache miss — generate from API
-      console.log('[PIPpal] Cache MISS for', cacheKey, '— generating...');
-
       try {
-        const [explainerRes, exampleRes] = await Promise.all([
-          fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: `Write a warm, friendly explanation for a PIP question for someone with: ${conditionNames}.
+        const conditions = medProfile?.conditions?.map((c: any) => c.name) || [];
+        const conditionNames = conditions.join(', ');
+        const config = getQuestionFlow(questionId);
+
+        // No conditions or no config — nothing to personalise
+        if (!conditions.length || !config) return;
+
+        const cacheKey = buildCacheKey(conditions, questionId);
+
+        // 1. Check cache first — wrapped in try/catch so a missing table never stalls
+        try {
+          const { data: cached } = await supabase
+            .from('condition_content_cache')
+            .select('explainer, example, hit_count')
+            .eq('cache_key', cacheKey)
+            .single();
+
+          if (cached) {
+            console.log('[PIPpal] Cache HIT for', cacheKey, `(served ${cached.hit_count + 1} times)`);
+            sessionStorage.setItem(`pippal_explainer_${questionId}`, cached.explainer);
+            sessionStorage.setItem(`pippal_example_${questionId}`, cached.example);
+            supabase.from('condition_content_cache')
+              .update({ hit_count: cached.hit_count + 1, updated_at: new Date().toISOString() })
+              .eq('cache_key', cacheKey)
+              .then(() => {});
+            return;
+          }
+        } catch {
+          // Table may not exist yet or network failed — skip cache, go straight to generation
+        }
+
+        // 2. Cache miss — generate from API
+        console.log('[PIPpal] Cache MISS for', cacheKey, '— generating...');
+
+        try {
+          const [explainerRes, exampleRes] = await Promise.all([
+            fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: `Write a warm, friendly explanation for a PIP question for someone with: ${conditionNames}.
 
 The activity is: "${config.title}"
 Original DWP description: "${config.explained}"
@@ -74,55 +82,65 @@ Write 3-4 short sentences that:
 4. Hint that we will write the answer for them — they just need to tell us how they feel day to day
 
 Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, plain English, encouraging. Under 80 words. Return ONLY the explanation text.`,
-              conversationHistory: [],
-              medProfile: { conditions: medProfile.conditions },
+                conversationHistory: [],
+                medProfile: { conditions: medProfile.conditions },
+              }),
             }),
-          }),
-          fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: `Write a 2-3 sentence first-person example answer for PIP activity: "${config.title}". The person has: ${conditionNames}. Show how those exact conditions affect this activity on worst days. Include frequency and real impact. Start with "I". Return ONLY the example.`,
-              conversationHistory: [],
-              medProfile: { conditions: medProfile.conditions },
+            fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: `Write a 2-3 sentence first-person example answer for PIP activity: "${config.title}". The person has: ${conditionNames}. Show how those exact conditions affect this activity on worst days. Include frequency and real impact. Start with "I". Return ONLY the example.`,
+                conversationHistory: [],
+                medProfile: { conditions: medProfile.conditions },
+              }),
             }),
-          }),
-        ]);
+          ]);
 
-        const [explainerData, exampleData] = await Promise.all([
-          explainerRes.json(),
-          exampleRes.json(),
-        ]);
+          const [explainerData, exampleData] = await Promise.all([
+            explainerRes.json(),
+            exampleRes.json(),
+          ]);
 
-        const explainer = explainerData.reply?.trim() || config.explained;
-        const example = exampleData.reply?.trim() || config.exampleAnswer?.quote || '';
+          const explainer = explainerData.reply?.trim() || config.explained;
+          const example = exampleData.reply?.trim() || config.exampleAnswer?.quote || '';
 
-        // Store in sessionStorage for QuestionFlow to read
-        sessionStorage.setItem(`pippal_explainer_${questionId}`, explainer);
-        sessionStorage.setItem(`pippal_example_${questionId}`, example);
+          sessionStorage.setItem(`pippal_explainer_${questionId}`, explainer);
+          sessionStorage.setItem(`pippal_example_${questionId}`, example);
 
-        // Save to Supabase cache (fire and forget)
-        supabase.from('condition_content_cache').insert({
-          cache_key: cacheKey,
-          question_id: questionId,
-          conditions_key: conditions.map((c: string) => c.toLowerCase().trim()).sort().join('+'),
-          explainer,
-          example,
-        }).then(() => {
-          console.log('[PIPpal] Cached to Supabase:', cacheKey);
-        });
+          // Save to Supabase cache (fire and forget)
+          supabase.from('condition_content_cache').insert({
+            cache_key: cacheKey,
+            question_id: questionId,
+            conditions_key: conditions.map((c: string) => c.toLowerCase().trim()).sort().join('+'),
+            explainer,
+            example,
+          }).then(() => {
+            console.log('[PIPpal] Cached to Supabase:', cacheKey);
+          });
 
+        } catch (e) {
+          console.error('[PIPpal] Personalisation API error:', e);
+          // API failed — QuestionFlow will fall back to default content
+        }
       } catch (e) {
-        console.error('[PIPpal] Personalisation error:', e);
-        // On error just proceed — QuestionFlow will use defaults
+        console.error('[PIPpal] Personalisation unexpected error:', e);
       }
-
-      navigateTo('q1_intro');
     };
 
-    // Minimum display time — 5 seconds so user can read progress
-    const minWait = new Promise(resolve => setTimeout(resolve, 5000));
-    Promise.all([run(), minWait]).then(() => {});
+    // Wait for BOTH the work and the minimum display time before navigating
+    const minWait = new Promise<void>(resolve => setTimeout(resolve, 5000));
+    Promise.all([run(), minWait])
+      .catch(() => {})
+      .finally(() => {
+        clearTimeout(safetyTimer);
+        safeNavigate();
+      });
+
+    return () => {
+      clearTimeout(safetyTimer);
+      navigated = true; // prevent navigation if component unmounts early
+    };
   }, []);
 
   const messages = [
