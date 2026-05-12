@@ -40,6 +40,7 @@ export function QuestionFlow() {
   useEffect(() => {
     if (!medProfile?.conditions?.length || !config) return;
     const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
+    console.log('[PIPpal] Personalising for conditions:', conditions);
 
     // Personalised example answer
     setLoadingExample(true);
@@ -70,7 +71,7 @@ export function QuestionFlow() {
       .then(r => r.json())
       .then(d => { if (d.reply) setPersonalExplainer(d.reply.trim()); })
       .catch(() => {});
-  }, [questionId]);
+  }, [questionId, medProfile.conditions.length]);
 
   if (!config) {
     return (
