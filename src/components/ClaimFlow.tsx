@@ -73,7 +73,7 @@ function StepHeader({ step, title, onBack }: { step: number; title: string; onBa
 
 function BottomBar({ onNext, label = 'Continue', disabled = false, onBack, showBack = false }: { onNext: () => void; label?: string; disabled?: boolean; onBack?: () => void; showBack?: boolean }) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-5 py-4 flex gap-3 max-w-2xl mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-5 py-4 flex gap-3 max-w-4xl mx-auto">
       {showBack && onBack && (
         <button onClick={onBack} className="flex items-center gap-2 px-5 py-3.5 rounded-xl border-2 border-stone-200 text-stone-600 font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all">
           <ArrowLeft className="w-4 h-4" />
