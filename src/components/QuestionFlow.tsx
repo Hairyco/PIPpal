@@ -198,6 +198,11 @@ export function QuestionFlow() {
 
   const stepTitle = ['', "Let's begin", "What's hard for you?", 'How often?', 'Do you need support?', 'Day-to-day impact'][step];
 
+  // Live score — recalculates as user taps answers
+  const liveDescriptor = step > 1 ? config.calculateDescriptor(answers) : null;
+  const livePoints = liveDescriptor ? (pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0) : null;
+  const liveDescriptorText = liveDescriptor ? pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text : null;
+
   function Header() {
     return (
       <div className="bg-white border-b border-stone-100 sticky top-0 z-20">
@@ -209,12 +214,36 @@ export function QuestionFlow() {
             <p className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">Step {step} of 5</p>
             <p className="font-bold text-stone-900 text-sm truncate">{stepTitle}</p>
           </div>
-          {step > 1 && totalDifficulties > 0 && (
+          {step > 1 && livePoints !== null && (
+            <div className="shrink-0 flex items-center gap-1.5">
+              <span className={`text-sm font-black ${livePoints >= 8 ? 'text-teal-600' : livePoints >= 4 ? 'text-blue-600' : livePoints >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {livePoints}pts
+              </span>
+            </div>
+          )}
+          {step > 1 && totalDifficulties > 0 && livePoints === null && (
             <span className="shrink-0 text-[11px] font-bold text-white bg-teal-600 rounded-full px-2.5 py-1">
               {totalDifficulties} selected
             </span>
           )}
         </div>
+        {/* Live score bar */}
+        {step > 1 && livePoints !== null && (
+          <div className="px-5 pb-2.5">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-stone-400 font-medium">Estimated score for this activity</span>
+              <span className={`text-[10px] font-bold ${livePoints >= 8 ? 'text-teal-600' : livePoints >= 4 ? 'text-blue-600' : livePoints >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {livePoints === 0 ? 'No award yet' : livePoints >= 8 ? 'Enhanced rate' : 'Standard rate'}
+              </span>
+            </div>
+            <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${livePoints >= 8 ? 'bg-teal-500' : livePoints >= 4 ? 'bg-blue-400' : livePoints >= 2 ? 'bg-amber-400' : 'bg-stone-200'}`}
+                style={{ width: `${Math.min((livePoints / 12) * 100, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -367,25 +396,33 @@ export function QuestionFlow() {
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Pick everything that rings true — even on your worst days.</p>
             </div>
 
-            {/* What you are scored on — descriptors */}
+            {/* What you are scored on — highlights live matching descriptor */}
             {pipQ && (
               <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                 <button
                   onClick={() => setShowDescriptors(s => !s)}
                   className="w-full flex items-center justify-between px-4 py-3.5 text-left"
                 >
-                  <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                  <div>
+                    <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                    {liveDescriptor && liveDescriptorText && (
+                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
+                    )}
+                  </div>
                   <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
                 </button>
                 {showDescriptors && (
                   <div className="border-t border-stone-100">
-                    {pipQ.descriptors.map(d => (
-                      <div key={d.code} className="flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0">
-                        <span className="w-5 h-5 rounded-full bg-stone-100 flex items-center justify-center shrink-0 text-[10px] font-bold text-stone-500 mt-0.5">{d.code}</span>
-                        <span className="flex-1 text-xs text-stone-600 leading-relaxed">{d.text}</span>
-                        <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
-                      </div>
-                    ))}
+                    {pipQ.descriptors.map(d => {
+                      const isMatch = liveDescriptor === d.code;
+                      return (
+                        <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
+                          <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
