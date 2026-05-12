@@ -159,6 +159,45 @@ export function QuestionWizard() {
   const [explainerOpen] = useState(true);
   const [expandedDescriptors, setExpandedDescriptors] = useState(false);
   const [openHelpPill, setOpenHelpPill] = useState<number | null>(null);
+  const [personalisedExplainer, setPersonalisedExplainer] = useState<string | null>(null);
+  const [loadingExplainer, setLoadingExplainer] = useState(false);
+
+  const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
+
+  // Generate personalised explainer on mount if conditions exist
+  React.useEffect(() => {
+    if (!conditions || !question) return;
+    setLoadingExplainer(true);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Rewrite this PIP question explainer specifically for someone with: ${conditions}.
+
+Activity: "${question.title}"
+Original explainer: "${question.defaultExplainer}"
+
+Rules:
+- Keep it under 60 words
+- Reference their specific conditions by name
+- Explain how THEIR conditions relate to THIS activity
+- Warm, plain English — like a knowledgeable friend explaining
+- First person framing where possible ("Because you have...")
+- Do NOT add new PIP rules or invent information
+- Return ONLY the rewritten explainer text, nothing else`,
+        medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },
+        conversationHistory: [],
+        userId: null,
+      }),
+    })
+    .then(r => r.json())
+    .then(d => {
+      const text = (d.reply || d.generated || '').trim();
+      if (text) setPersonalisedExplainer(text);
+    })
+    .catch(() => {})
+    .finally(() => setLoadingExplainer(false));
+  }, [qId, conditions]);
   const [customDifficulty, setCustomDifficulty] = useState('');
   const [answers, setAnswers] = useState<WizardAnswer>({
     difficulties: [],
@@ -346,47 +385,82 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                   <p className="text-teal-100 text-sm leading-relaxed">{question.subtext}</p>
                 </div>
 
-                {/* Explained — always expanded */}
+                {/* Explained — always expanded, personalised if conditions saved */}
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-3 border-b border-amber-100">
-                    <span className="text-amber-600 text-sm">ⓘ</span>
-                    <h3 className="font-bold text-amber-900 text-sm">This question explained</h3>
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-amber-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-600 text-sm">ⓘ</span>
+                      <h3 className="font-bold text-amber-900 text-sm">This question explained</h3>
+                    </div>
+                    {conditions && (
+                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+                        {loadingExplainer ? 'Personalising…' : 'Personalised for you'}
+                      </span>
+                    )}
                   </div>
                   <div className="px-4 py-4">
-                    <p className="text-sm text-amber-800 leading-relaxed">{question.defaultExplainer}</p>
+                    {loadingExplainer ? (
+                      <div className="space-y-2">
+                        <div className="h-3 bg-amber-200 rounded animate-pulse w-full" />
+                        <div className="h-3 bg-amber-200 rounded animate-pulse w-4/5" />
+                        <div className="h-3 bg-amber-200 rounded animate-pulse w-3/5" />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-amber-800 leading-relaxed">
+                        {personalisedExplainer || question.defaultExplainer}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                {/* Ask for more help pills — inline expand */}
+                {/* Ask for more help pills — inline expand, prioritised by user conditions */}
                 <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                   <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">ASK FOR MORE HELP</p>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {question.conditionExplainers.slice(0, 5).map((ce, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setOpenHelpPill(openHelpPill === i ? null : i)}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${openHelpPill === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
-                      >
-                        How does this apply to {ce.conditions[0]}?
-                      </button>
-                    ))}
+                    {(() => {
+                      // Show condition-matched explainers first
+                      const userConditions = medProfile.conditions.map((c: any) => c.name?.toLowerCase() || '');
+                      const sorted = [...question.conditionExplainers].sort((a, b) => {
+                        const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                        const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                        return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+                      });
+                      return sorted.slice(0, 5).map((ce, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setOpenHelpPill(openHelpPill === i ? null : i)}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${openHelpPill === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
+                        >
+                          How does this apply to {ce.conditions[0]}?
+                        </button>
+                      ));
+                    })()}
                   </div>
                   <AnimatePresence>
-                    {openHelpPill !== null && question.conditionExplainers[openHelpPill] && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-3 pt-3 border-t border-stone-100 space-y-2">
-                          <p className="text-sm text-stone-700 leading-relaxed">{question.conditionExplainers[openHelpPill].text}</p>
-                          {question.conditionExplainers[openHelpPill].example && (
-                            <p className="text-xs text-stone-400 italic leading-relaxed">"{question.conditionExplainers[openHelpPill].example}"</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
+                    {openHelpPill !== null && (() => {
+                      const userConditions = medProfile.conditions.map((c: any) => c.name?.toLowerCase() || '');
+                      const sorted = [...question.conditionExplainers].sort((a, b) => {
+                        const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                        const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                        return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+                      });
+                      const ce = sorted[openHelpPill];
+                      return ce ? (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-3 pt-3 border-t border-stone-100 space-y-2">
+                            <p className="text-sm text-stone-700 leading-relaxed">{ce.text}</p>
+                            {ce.example && (
+                              <p className="text-xs text-stone-400 italic leading-relaxed">"{ce.example}"</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      ) : null;
+                    })()}
                   </AnimatePresence>
                 </div>
 
