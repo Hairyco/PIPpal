@@ -67,11 +67,13 @@ export function QuestionFlow() {
     else goToStep((step - 1) as Step);
   }
 
+  const [generating, setGenerating] = useState(false);
+
   function handleContinue() {
     if (step === 5) {
-      finishQuestion();
+      setGenerating(true);
+      finishQuestion().finally(() => setGenerating(false));
     } else {
-      // Skip step 3 if no difficulties selected
       if (step === 2 && totalDifficulties === 0) {
         goToStep(4);
       } else {
@@ -82,17 +84,47 @@ export function QuestionFlow() {
 
   // ─── FINISH ────────────────────────────────────────────────────────────────
 
-  function finishQuestion() {
+  async function finishQuestion() {
     const descriptor = config!.calculateDescriptor(answers);
     saveAnswer(questionId, `Descriptor ${descriptor}`);
 
-    // Build a result for ResultCard
     const d = pipQ?.descriptors.find(d => d.code === descriptor);
+    const rawDraft = buildDraftText(descriptor);
+    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+
+    // Send compiled answers to API to generate a natural, first-person answer
+    let finalText = rawDraft;
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Write a PIP claim answer for the activity "${config!.title}" (Descriptor ${descriptor}: "${d?.text}") for someone with: ${conditions}.
+
+They told us:
+${rawDraft}
+
+Rewrite this as 2-4 natural, first-person sentences that:
+1. State clearly what they cannot do or struggle with
+2. Reference how often this happens
+3. Mention any support or supervision needed
+4. Include the real-life impact
+5. Sound genuine — like they wrote it themselves, not a form
+
+Do NOT exaggerate. Do NOT add things they didn't say. Use plain English. Return ONLY the answer text.`,
+          conversationHistory: [],
+          medProfile: { conditions: medProfile.conditions },
+        }),
+      });
+      const data = await res.json();
+      if (data.reply) finalText = data.reply.trim();
+    } catch { /* use rawDraft as fallback */ }
+
     setQ1Result({
       descriptor,
       points: d?.points ?? 0,
       label: d?.text ?? '',
-      text: buildDraftText(descriptor),
+      text: finalText,
       confidence: 'high',
       messages: [],
     });
@@ -660,8 +692,17 @@ export function QuestionFlow() {
         </div>
 
         <div className="px-5 pb-8 pt-4 bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-          <button onClick={handleContinue} className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            See my result <ChevronRight className="w-4 h-4" />
+          <button onClick={handleContinue} disabled={generating} className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+            {generating ? (
+              <>
+                <div className="flex gap-1">
+                  {[0,1,2].map(i => <div key={i} className="w-2 h-2 bg-white rounded-full animate-bounce" style={{animationDelay:`${i*150}ms`}} />)}
+                </div>
+                Building your answer...
+              </>
+            ) : (
+              <>See my result <ChevronRight className="w-4 h-4" /></>
+            )}
           </button>
         </div>
       </div>
