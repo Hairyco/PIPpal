@@ -47,11 +47,16 @@ import { EligibilityChecker } from './components/EligibilityChecker';
 import { MedicalProfile } from './components/MedicalProfile';
 import { QuestionIntro } from './components/QuestionIntro';
 import { QuestionChat } from './components/QuestionChat';
+import { QuestionFlow } from './components/QuestionFlow';
 import { ResultCard } from './components/ResultCard';
 import { QuestionIndex } from './components/QuestionIndex';
 import { NewClaimIntro } from './components/NewClaimIntro';
 import { ClaimProcess } from './components/ClaimProcess';
 import { DescriptorsGuide } from './components/DescriptorsGuide';
+import { PersonalisingScreen } from './components/PersonalisingScreen';
+import { ClaimFlow } from './components/ClaimFlow';
+import { PointsEstimatorUpload } from './components/PointsEstimatorUpload';
+import { QuestionWizard } from './components/QuestionWizard';
 import { UpsellScreen } from './components/UpsellScreen';
 import { LoginScreen } from './components/LoginScreen';
 import { PostPaymentGuide } from './components/PostPaymentGuide';
@@ -228,7 +233,11 @@ function AppContent() {
       case 'home': return <HomeScreen />;
       case 'eligibility': return <EligibilityChecker />;
       case 'medical_profile': return <MedicalProfile />;
-      case 'q1_intro': return hasPaid ? <QuestionIntro /> : <UpsellScreen />;
+      case 'personalising': return <PersonalisingScreen />;
+      case 'claim_flow': return hasPaid ? <ClaimFlow /> : <UpsellScreen />;
+      case 'points_estimator': return <PointsEstimatorUpload />;
+      case 'question_wizard': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
+      case 'q1_intro': return hasPaid ? <QuestionFlow key={`flow-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
       case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
@@ -278,6 +287,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />
               <section

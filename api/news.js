@@ -67,7 +67,8 @@ function parseAtom(xml) {
     const link = (e.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
     const date = (e.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
     if (title && firstPassFilter(title, summary)) {
-      items.push({ title: title.trim(), summary: summary.slice(0, 400), link, date });
+      const cleanTitle = title.trim().replace(/&amp;/g,'&').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+      items.push({ title: cleanTitle, summary: summary.slice(0, 400), link, date });
     }
   }
   return items;

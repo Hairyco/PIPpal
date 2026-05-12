@@ -13,6 +13,7 @@ import {
   CheckSquare,
   Download,
   Shield,
+  TrendingUp,
   ChevronRight,
   Calculator,
   Clock,
@@ -155,6 +156,12 @@ export function HomeScreen() {
             <div className="flex-1">
               <p className="text-white font-bold text-xs leading-snug">PIP rules are changing in late 2026</p>
               <p className="text-amber-100 text-[11px] leading-relaxed mt-0.5">Eligibility thresholds are tightening. Applying now could protect your entitlement.</p>
+              <button
+                onClick={() => navigateTo('news')}
+                className="text-white underline text-[11px] font-semibold mt-1 hover:text-amber-100"
+              >
+                Read latest news →
+              </button>
             </div>
             <button onClick={dismissUrgency} className="shrink-0 text-amber-200 hover:text-white">
               <X className="w-4 h-4" />
@@ -207,7 +214,7 @@ export function HomeScreen() {
               icon={PlusCircle}
               color="text-teal-600"
               bg="bg-teal-50"
-              target="claim_process"
+              target="claim_flow"
             />
             <NavCard
               title={'Change of\nCircumstances'}
@@ -326,6 +333,14 @@ export function HomeScreen() {
               color="text-teal-600"
               bg="bg-teal-50"
               target="descriptors_guide"
+            />
+            <NavCard
+              title="Points Estimator"
+              desc="Upload your decision letter to estimate your score"
+              icon={TrendingUp}
+              color="text-purple-600"
+              bg="bg-purple-50"
+              target="points_estimator"
             />
             <NavCard
               title="Export Answers"

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
+import { PIPAgeChart } from './PIPAgeChart';
 
 const conditions = [
   { emoji: '😰', label: 'Anxiety' },
@@ -36,7 +37,7 @@ const points = [
 
 export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
   return (
-    <section className="px-5 md:px-8 py-8">
+    <section id="what-is-pip" className="px-5 md:px-8 py-8">
 
       {/* What is PIP */}
       <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 mb-5">
@@ -46,15 +47,18 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           </div>
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
+        <p className="text-sm text-stone-600 leading-relaxed mb-3">
+          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> (with both enhanced components) and is not means-tested — it doesn't matter how much you earn or whether you work.
+        </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£10,246 a year</strong> and is not means-tested — it doesn't matter how much you earn or whether you work.
+          <strong className="text-stone-900">You do not need a formal diagnosis to apply for PIP.</strong> PIP looks at how your condition or symptoms affect you day-to-day.
         </p>
         <div className="bg-stone-50 rounded-xl px-4 py-3">
           <p className="text-xs font-semibold text-stone-500 mb-2">Conditions that often qualify</p>
           <div className="flex flex-wrap gap-2">
             {conditions.map(c => (
               <span key={c.label} className="text-xs bg-white border border-stone-200 px-2.5 py-1 rounded-full text-stone-700">
-                {c.emoji} {c.label}
+                {c.label}
               </span>
             ))}
             <span className="text-xs bg-white border border-stone-200 px-2.5 py-1 rounded-full text-stone-500">+ many more</span>
@@ -63,7 +67,7 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
       </div>
 
       {/* Why PIPpal */}
-      <h2 className="font-bold text-stone-900 text-lg mb-1">Sound familiar?</h2>
+      <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>
       <p className="text-stone-500 text-sm mb-4">PIPpal is built around the things people find hardest.</p>
       <div className="space-y-3">
         {points.map((p, i) => (

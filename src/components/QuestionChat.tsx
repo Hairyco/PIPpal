@@ -35,46 +35,89 @@ export function QuestionChat() {
   const { badDayMode, setQ1Result, navigateTo, goBack, selectedQuestionId, medProfile, descriptorHint, setDescriptorHint } = useAppContext();
   const isQ1 = !selectedQuestionId || selectedQuestionId === 'q1';
   const question = getQuestion(selectedQuestionId || 'q1');
+  const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
-  // Read descriptor hint synchronously on mount so the initial message can reflect it.
-  const initialHintRef = useRef<string | null>(
-    typeof window !== 'undefined' ? sessionStorage.getItem('pippal_descriptor_hint') : null
-  );
+  // Read hint NOW — before first render — so initial message is correct
+  // Do NOT remove from sessionStorage here — animKey causes double mount, second mount needs it too
+  const initialHint = sessionStorage.getItem('pippal_descriptor_hint') || '';
 
-  const buildQ1InitialMessages = (): Message[] => {
-    const hint = initialHintRef.current?.toUpperCase();
-    if (hint && ['B', 'C', 'D', 'E', 'F'].includes(hint)) {
-      const descriptor = question?.descriptors?.find((d: any) => d.code === hint);
-      const text = (descriptor?.text || '').replace(/\.$/, '').toLowerCase();
-      return [{
-        id: '1',
-        sender: 'bot',
-        text: `You've said that you ${text}. Let me ask you a few questions to make sure we capture this properly for your claim.`,
-      }];
+  const getInitialMessage = (): Message[] => {
+    if (isQ1 && initialHint) {
+      const d = PIP_QUESTIONS.find(q => q.id === 'q1')?.descriptors.find(d => d.code === initialHint.toUpperCase());
+      if (d) {
+        return [{
+          id: '1',
+          sender: 'bot',
+          text: `You've said that ${d.text.toLowerCase()}. Let me ask you a few questions to make sure we capture this properly for your claim. On your worst days, can you describe what happens when you try to prepare a meal?`
+        }];
+      }
     }
-    return [{
-      id: '1',
-      sender: 'bot',
-      text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?",
-    }];
+    if (isQ1) {
+      return [{ id: '1', sender: 'bot', text: "Let's talk about preparing food. Can you plan and cook a simple meal on your own?" }];
+    }
+    return [];
   };
 
-  const [messages, setMessages] = useState<Message[]>(
-    isQ1 ? buildQ1InitialMessages() : []
-  );
-  const initialQ1Step: Step = (() => {
-    if (!isQ1) return 'q1';
-    const hint = initialHintRef.current?.toUpperCase();
-    const stepMap: Record<string, Step> = {
-      A: 'q1', B: 'detail_b', C: 'detail_c', D: 'detail_d', E: 'detail_e', F: 'detail_f',
-    };
-    return (hint && stepMap[hint]) || 'q1';
-  })();
-  const [currentStep, setCurrentStep] = useState<Step>(initialQ1Step);
+  // Generate contextual pills based on descriptor and conditions
+  const getDescriptorPills = (hint: string, conditions: string): string[] => {
+    const lower = conditions.toLowerCase();
+    const hasMental = lower.includes('anxiety') || lower.includes('depression') || lower.includes('ptsd') || lower.includes('adhd') || lower.includes('autism') || lower.includes('mental');
+    const hasPhysical = lower.includes('pain') || lower.includes('arthritis') || lower.includes('fibro') || lower.includes('ms ') || lower.includes('parkinson') || lower.includes('stroke') || lower.includes('mobility') || lower.includes('fatigue') || lower.includes('me/cfs') || lower.includes('chronic');
+    const hasNeuro = lower.includes('epilep') || lower.includes('brain') || lower.includes('memory');
+
+    const code = hint.toUpperCase();
+    if (code === 'B') {
+      return [
+        hasMental ? 'I need reminding to eat' : 'I need grab rails or supports',
+        hasPhysical ? 'I use a perching stool' : 'I use adapted utensils',
+        'It takes much longer than normal',
+      ];
+    }
+    if (code === 'C') {
+      return [
+        'I can use a microwave but not the hob',
+        hasPhysical ? 'Standing at the hob causes too much pain' : 'I forget to turn the hob off',
+        hasMental ? 'The heat or process overwhelms me' : 'I cannot safely use the cooker',
+      ];
+    }
+    if (code === 'D') {
+      return [
+        hasMental ? 'I forget to eat without prompting' : 'I need reminding to start cooking',
+        hasNeuro ? 'My memory means I forget mid-way through' : 'I need someone to prompt each step',
+        'I do not initiate cooking on my own',
+      ];
+    }
+    if (code === 'E') {
+      return [
+        hasPhysical ? 'Someone needs to be there in case I fall' : 'I need physical help to cook',
+        hasMental ? 'I need someone present for my safety' : 'I cannot do it without assistance',
+        'I can do some parts but need help with others',
+      ];
+    }
+    if (code === 'F') {
+      return [
+        hasPhysical ? 'Pain stops me completely' : 'I am completely unable to cook',
+        hasMental ? 'My mental health makes it impossible' : 'I have no ability to cook safely',
+        'I rely entirely on others or ready meals',
+      ];
+    }
+    // Default Q1 pills (no hint or descriptor A)
+    return [
+      hasMental ? 'Sometimes, but I struggle with focus' : 'Sometimes, but I struggle physically',
+      'Yes, no problem',
+      "No, I can't cook",
+    ];
+  };
+
+  const [messages, setMessages] = useState<Message[]>(getInitialMessage);
+  const [currentStep, setCurrentStep] = useState<Step>('q1');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiConversation, setAiConversation] = useState<{role: string; content: string}[]>([]);
   const [currentOptions, setCurrentOptions] = useState<string[]>([]);
   const [aiInitialised, setAiInitialised] = useState(false);
+  const [aiExchangeCount, setAiExchangeCount] = useState(0);
+  const [aiDescriptor, setAiDescriptor] = useState<string | null>(null);
+  const MAX_AI_EXCHANGES = 5;
   const [showFreeText, setShowFreeText] = useState(false);
   const [inputText, setInputText] = useState('');
   const [stepHistory, setStepHistory] = useState<HistoryEntry[]>([]);
@@ -99,6 +142,7 @@ export function QuestionChat() {
     );
   };
   const handleOption = (text: string, nextStep: Step, botReply?: string) => {
+    // Save current state before transitioning
     setStepHistory((prev) => [
     ...prev,
     {
@@ -135,6 +179,7 @@ export function QuestionChat() {
   };
   const handleTextInput = () => {
     if (!inputText.trim()) return;
+    // Save current state before transitioning
     setStepHistory((prev) => [
     ...prev,
     {
@@ -144,6 +189,7 @@ export function QuestionChat() {
     );
     addMessage(inputText, 'user');
     setInputText('');
+    // Determine descriptor based on current detail step
     const descriptorMap: Record<string, string> = {
       detail_b: 'B',
       detail_c: 'C',
@@ -167,7 +213,7 @@ export function QuestionChat() {
     navigateTo('q1_result');
   };
 
-  const fireDescriptorChat = (hint: string, conditionNames: string) => {
+  const fireDescriptorChat = (hint: string) => {
     const chosenDescriptor = question?.descriptors?.find((d: any) => d.code === hint);
     const descriptorText = chosenDescriptor?.text || hint;
     const descriptorPoints = chosenDescriptor?.points ?? 0;
@@ -188,12 +234,12 @@ Then ask ONE focused question to build real evidence. Focus on:
 
 Warm and conversational. One question at a time. Never list multiple questions.
 
-The person's conditions are: ${conditionNames}. Tailor your language and examples specifically to these conditions — mention them by name where relevant. Do not use generic examples that do not relate to their conditions.
+They have: ${medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified'}.
 
 Reply with valid JSON only — no markdown, no extra text:
 {"message": "your opening message", "options": ["Option A", "Option B", "Option C"], "result": null}
 
-Options should reflect realistic answers for someone with ${conditionNames}, not generic yes/no/sometimes.`;
+Options should reflect realistic answers for someone with their conditions, not generic yes/no/sometimes.`;
 
     callAI('START', [], descriptorSystemPrompt);
   };
@@ -201,8 +247,6 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
   const callAI = async (userMsg: string, conv: {role: string; content: string}[], systemOverride?: string) => {
     setAiLoading(true);
     setCurrentOptions([]);
-    // Always read the latest conditions at call time
-    const latestConditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -229,8 +273,25 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
       setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'bot', text: botMsg }]);
       setAiConversation(prev => [...prev, { role: 'assistant', content: botMsg }]);
 
+      const newCount = aiExchangeCount + 1;
+      setAiExchangeCount(newCount);
+
       if (result) {
+        setAiDescriptor(result);
         setTimeout(() => finishChat(result), 1200);
+      } else if (newCount >= MAX_AI_EXCHANGES) {
+        // Auto-finish after 5 exchanges — pick best descriptor from conversation
+        setTimeout(() => {
+          setCurrentOptions([]);
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            sender: 'bot',
+            text: "That's really helpful. I have enough to work out the right score for you now. Let me put your answer together."
+          }]);
+          // Ask AI to finalise
+          const finalConv = [...aiConversation, { role: 'assistant', content: botMsg }];
+          callAI('Based on everything shared, what is the best descriptor code for this person? Reply with ONLY valid JSON: {"message": "summary", "options": [], "result": "X"} where X is the descriptor letter.', finalConv);
+        }, 800);
       } else {
         setCurrentOptions(options);
       }
@@ -246,6 +307,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
     setMessages(prev => [...prev, newMsg]);
     const updatedConv = [...aiConversation, { role: 'user', content: option }];
     setAiConversation(updatedConv);
+    // If user wants to add more details, prompt them with a text box instead
     if (option === 'I have more details to add') {
       setCurrentOptions([]);
       setMessages(prev => [...prev, {
@@ -259,6 +321,8 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
     await callAI(option, updatedConv);
   };
 
+
+
   const handleFreeTextSubmit = async () => {
     if (!inputText.trim() || aiLoading) return;
     const userMsg = inputText.trim();
@@ -268,49 +332,33 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
     setMessages(prev => [...prev, newMsg]);
     const updatedConv = [...aiConversation, { role: 'user', content: userMsg }];
     setAiConversation(updatedConv);
+    // Always use AI for free text — even on Q1
     await callAI(userMsg, updatedConv);
   };
 
-  // ─── FIX: Wait for medProfile.conditions to be populated before firing AI ───
-  // This useEffect watches medProfile.conditions. The moment conditions load from
-  // Supabase (length > 0), it fires the AI with the real condition names.
-  // aiInitialised flag prevents it from firing more than once.
+  // Single init effect — component remounts fresh each time (keyed by questionId + hint in App.tsx)
   useEffect(() => {
-    // Q1 is hardcoded — no AI call needed on init
-    if (isQ1) return;
-    // Already fired — don't fire again if conditions update later
-    if (aiInitialised) return;
-
-    const hint = initialHintRef.current;
-
-    // If conditions haven't loaded yet, wait for the next render
-    if (medProfile.conditions.length === 0) {
-      console.log('[PIPpal] Waiting for conditions to load...');
+    if (isQ1) {
+      // Don't change step - keep at 'q1' so contextual pills show
+      // Just clear the hint after a delay
+      if (initialHint) {
+        setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
+      }
       return;
     }
 
-    // Conditions are loaded — consume the hint and fire
-    sessionStorage.removeItem('pippal_descriptor_hint');
-    setAiInitialised(true);
-
-    const conditionNames = medProfile.conditions.map((c: any) => c.name).join(', ');
-    console.log('[PIPpal] Personalising for conditions:', conditionNames);
-
+    // Q2-Q12
+    const hint = sessionStorage.getItem('pippal_descriptor_hint');
+    // Clear after a tick to survive double-mount
+    setTimeout(() => sessionStorage.removeItem('pippal_descriptor_hint'), 500);
     if (hint) {
-      fireDescriptorChat(hint, conditionNames);
+      setAiDescriptor(hint.toUpperCase());
+      fireDescriptorChat(hint);
     } else {
       const opener = question?.chatOpener || `How does your condition affect ${question?.shortTitle?.toLowerCase()}?`;
       callAI(`START: ${opener}`, []);
     }
-  }, [medProfile.conditions, aiInitialised, isQ1]);
-
-  // Q1 still needs to consume the session storage hint on mount
-  useEffect(() => {
-    if (!isQ1) return;
-    sessionStorage.removeItem('pippal_descriptor_hint');
   }, []);
-  // ─────────────────────────────────────────────────────────────────────────────
-
   const getScoreInfo = (): {
     descriptor: string;
     points: number;
@@ -397,35 +445,35 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
         };
     }
   };
-  const scoreInfo = getScoreInfo();
+  const scoreInfo = (() => {
+    if (!isQ1 && aiDescriptor) {
+      const d = question?.descriptors?.find((desc: any) => desc.code === aiDescriptor);
+      return {
+        descriptor: aiDescriptor,
+        points: d?.points ?? 0,
+        label: d?.text ?? '',
+        confidence: 'high' as const,
+      };
+    }
+    if (!isQ1 && aiExchangeCount > 0) {
+      return { descriptor: '—', points: 0, label: 'Building your answer...', confidence: 'medium' as const };
+    }
+    if (!isQ1) {
+      return { descriptor: '—', points: 0, label: 'Estimating score...', confidence: 'low' as const };
+    }
+    return getScoreInfo();
+  })();
   const renderOptions = () => {
+    // Q2-Q12: use AI-driven options
     if (!isQ1) {
       if (aiLoading) {
         return (
-          <div className="flex justify-center py-2">
+          <div className="flex justify-center py-3">
             <div className="flex gap-1">
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'0ms'}} />
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'150ms'}} />
               <div className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{animationDelay:'300ms'}} />
             </div>
-          </div>
-        );
-      }
-      if (showFreeText) {
-        return (
-          <div className="flex items-end gap-2 bg-white rounded-2xl border border-stone-200 p-2">
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
-              placeholder="Add any extra details here..."
-              className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-2 px-1 text-sm"
-              rows={2}
-              autoFocus
-            />
-            <button onClick={handleFreeTextSubmit} disabled={!inputText.trim()} className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 transition-colors">
-              <Send className="w-5 h-5" />
-            </button>
           </div>
         );
       }
@@ -435,9 +483,6 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
             {currentOptions.map((opt, i) => (
               <button key={i} onClick={() => handleOptionClick(opt)} className="chat-option">{opt}</button>
             ))}
-            <button onClick={() => handleOptionClick('I have more details to add')} className="w-full text-center px-4 py-2 rounded-xl text-xs text-stone-400 hover:text-teal-700 transition-colors">
-              I have more details to add
-            </button>
           </div>
         );
       }
@@ -445,43 +490,31 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
     }
 
     switch (currentStep) {
-      case 'q1':
+      case 'q1': {
+        const descriptorPills = initialHint ? getDescriptorPills(initialHint, conditions) : null;
+        if (descriptorPills) {
+          return (
+            <div className="space-y-2">
+              {descriptorPills.map((pill, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleOption(pill, 'q2b', 'Can you tell me more about that? What happens on your worst days?')}
+                  className="chat-option"
+                >
+                  {pill}
+                </button>
+              ))}
+            </div>
+          );
+        }
         return (
           <div className="space-y-2">
-            <button
-              onClick={() =>
-              handleOption(
-                'Yes, no problem',
-                'q2a',
-                'Can you do it safely every time, without risk of burning or injury?'
-              )
-              }
-              className="chat-option">
-              Yes, no problem
-            </button>
-            <button
-              onClick={() =>
-              handleOption(
-                'Sometimes, but I struggle',
-                'q2b',
-                'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?'
-              )
-              }
-              className="chat-option">
-              Sometimes, but I struggle
-            </button>
-            <button
-              onClick={() =>
-              handleOption(
-                "No, I can't cook",
-                'detail_f',
-                'Can you manage using a microwave instead?'
-              )
-              }
-              className="chat-option">
-              No, I can't cook
-            </button>
-          </div>);
+            <button onClick={() => handleOption('Yes, no problem', 'q2a', 'Can you do it safely every time, without risk of burning or injury?')} className="chat-option">Yes, no problem</button>
+            <button onClick={() => handleOption('Sometimes, but I struggle', 'q2b', 'What mainly causes difficulty? Is it physical (pain, grip, standing) or mental (concentration, motivation, forgetting)?')} className="chat-option">Sometimes, but I struggle</button>
+            <button onClick={() => handleOption("No, I can't cook", 'detail_f', 'Can you manage using a microwave instead?')} className="chat-option">No, I can't cook</button>
+          </div>
+        );
+      }
 
       case 'q2a':
         return (
@@ -491,6 +524,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption('Yes, I can do it safely', 'result_a')
               }
               className="chat-option">
+              
               Yes, I can do it safely
             </button>
             <button
@@ -498,6 +532,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption('Not always, I need aids or help', 'detail_b')
               }
               className="chat-option">
+              
               Not always, I need aids or help
             </button>
           </div>);
@@ -514,6 +549,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               )
               }
               className="chat-option">
+              
               Mainly mental (concentration, motivation)
             </button>
             <button
@@ -524,6 +560,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               )
               }
               className="chat-option">
+              
               Mainly physical (pain, grip, standing)
             </button>
           </div>);
@@ -534,6 +571,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
             <button
               onClick={() => handleOption('Yes, most days', 'detail_d')}
               className="chat-option">
+              
               Yes, most days
             </button>
             <button
@@ -541,6 +579,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption('Sometimes, mainly bad days', 'detail_b')
               }
               className="chat-option">
+              
               Sometimes, mainly bad days
             </button>
           </div>);
@@ -553,6 +592,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption('Yes, I can use a microwave', 'detail_c')
               }
               className="chat-option">
+              
               Yes, I can use a microwave
             </button>
             <button
@@ -560,6 +600,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption('No, I need someone to help me', 'detail_e')
               }
               className="chat-option">
+              
               No, I need someone to help me
             </button>
             <button
@@ -567,48 +608,27 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               handleOption("No, I can't prepare food at all", 'detail_f')
               }
               className="chat-option">
+              
               No, I can't prepare food at all
             </button>
           </div>);
 
       default:
-        if (currentStep.startsWith('detail_')) {
-          return (
-            <div className="flex items-end gap-2 bg-white p-2 rounded-2xl border border-stone-200 shadow-sm">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Type your answer here..."
-                className="flex-1 max-h-32 min-h-[44px] bg-transparent border-none focus:ring-0 resize-none py-3 text-sm"
-                rows={1} />
-              <button
-                onClick={handleTextInput}
-                disabled={!inputText.trim()}
-                className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-50 disabled:bg-stone-300 transition-colors">
-                <Send className="w-5 h-5" />
-              </button>
-            </div>);
-        }
         return null;
     }
   };
-
-  const headerLabel = question?.num !== undefined
-    ? `Q${question.num + 2}: ${question.shortTitle}`
-    : 'Question';
-  const progressPct = question?.num !== undefined ? ((question.num + 2) / 14) * 100 : 8.33;
-
   return (
     <div className="flex flex-col h-full bg-stone-50">
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
         <button
           onClick={goBack}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200">
+          
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1">
           <h1 className="font-bold text-stone-900 text-sm">
-            {headerLabel}
+            {isQ1 ? 'Q3: Preparing Food' : `Q${(question?.num ?? 0) + 2}: ${question?.shortTitle}`}
           </h1>
           <div className="text-xs text-stone-500">PIPpal Assistant</div>
         </div>
@@ -616,36 +636,47 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
           onClick={() => setShowDescriptors(!showDescriptors)}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${showDescriptors ? 'bg-teal-100 text-teal-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
           title="View descriptors">
+          
           {showDescriptors ?
           <ChevronUp className="w-3.5 h-3.5" /> :
+
           <List className="w-3.5 h-3.5" />
           }
           {showDescriptors ? 'Close' : 'Scores'}
         </button>
       </div>
 
-      {/* Progress bar */}
       <div className="w-full bg-stone-100 h-1">
-        <div className="bg-teal-500 h-1 transition-all" style={{ width: `${progressPct}%` }} />
+        <div className="bg-teal-500 h-1 transition-all" style={{ width: `${(isQ1 ? 1 : (question?.num ?? 0) + 2) / 12 * 100}%` }} />
       </div>
 
       <AnimatePresence>
         {showDescriptors &&
         <motion.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          initial={{
+            height: 0,
+            opacity: 0
+          }}
+          animate={{
+            height: 'auto',
+            opacity: 1
+          }}
+          exit={{
+            height: 0,
+            opacity: 0
+          }}
+          transition={{
+            duration: 0.25
+          }}
           className="overflow-hidden bg-white border-b border-stone-100">
+          
             <div className="px-5 md:px-8 py-3">
               <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">
                 Descriptors — tap to close
               </div>
               <div className="space-y-2">
-                {question?.descriptors?.map((d: any) => (
-                  <div
-                    key={d.code}
-                    className={`flex gap-2 text-xs ${scoreInfo.descriptor === d.code ? 'bg-teal-50 -mx-2 px-2 py-1.5 rounded-lg border border-teal-100' : ''}`}>
+                {(question?.descriptors || []).map((d: any) => (
+                  <div key={d.code} className={`flex gap-2 text-xs ${scoreInfo.descriptor === d.code ? 'bg-teal-50 -mx-2 px-2 py-1.5 rounded-lg border border-teal-100' : ''}`}>
                     <span className="font-bold w-4 text-stone-400 shrink-0">{d.code}</span>
                     <span className="flex-1 text-stone-600 leading-relaxed">{d.text}</span>
                     <span className={`font-bold shrink-0 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}</span>
@@ -659,14 +690,24 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
 
       <motion.div
         key={scoreInfo.descriptor}
-        initial={{ opacity: 0, y: -4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{
+          opacity: 0,
+          y: -4
+        }}
+        animate={{
+          opacity: 1,
+          y: 0
+        }}
+        transition={{
+          duration: 0.3
+        }}
         className="bg-white border-b border-stone-100 px-5 md:px-8 py-2.5">
+        
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div
               className={`w-2 h-2 rounded-full ${scoreInfo.confidence === 'high' ? 'bg-teal-500' : scoreInfo.confidence === 'medium' ? 'bg-amber-400' : 'bg-stone-300'}`} />
+            
             <span className="text-xs text-stone-500">
               {scoreInfo.confidence === 'low' ?
               'Estimating score...' :
@@ -678,6 +719,7 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
             <button
               onClick={handleUndo}
               className="flex items-center gap-1 text-xs text-teal-600 font-medium hover:text-teal-700 transition-colors active:scale-95">
+              
                 <Undo2 className="w-3.5 h-3.5" />
                 Undo
               </button>
@@ -686,7 +728,10 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
               <TrendingUp className="w-3.5 h-3.5 text-stone-400" />
               <span
                 className={`text-sm font-bold ${scoreInfo.points >= 8 ? 'text-teal-700' : scoreInfo.points >= 4 ? 'text-blue-600' : scoreInfo.points >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
-                {scoreInfo.confidence === 'low' ? '—' : `${scoreInfo.points} pts`}
+                
+                {scoreInfo.confidence === 'low' ?
+                '—' :
+                `${scoreInfo.points} pts`}
               </span>
             </div>
           </div>
@@ -712,12 +757,22 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
             {messages.map((msg) =>
             <motion.div
               key={msg.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{
+                opacity: 0,
+                y: 10
+              }}
+              animate={{
+                opacity: 1,
+                y: 0
+              }}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              
                 <div
                 className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.sender === 'user' ? 'bg-teal-700 text-white rounded-tr-sm' : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'}`}
-                dangerouslySetInnerHTML={{ __html: msg.text }} />
+                dangerouslySetInnerHTML={{
+                  __html: msg.text
+                }} />
+              
               </motion.div>
             )}
           </AnimatePresence>
@@ -725,8 +780,27 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
         </div>
       </div>
 
-      <div className="p-4 md:px-8 bg-stone-100 border-t border-stone-200">
-        {renderOptions()}
+      <div className="bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+        <div className="px-4 pt-4 pb-2 space-y-2">
+          {renderOptions()}
+        </div>
+        <div className="flex items-end gap-2 px-4 pb-4 pt-1">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleFreeTextSubmit(); } }}
+            placeholder="Or describe in your own words..."
+            className="flex-1 max-h-24 min-h-[44px] bg-stone-50 border border-stone-200 rounded-2xl focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none py-3 px-4 text-sm"
+            rows={1}
+          />
+          <button
+            onClick={handleFreeTextSubmit}
+            disabled={!inputText.trim()}
+            className="p-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 disabled:opacity-30 active:scale-95 transition-all shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <style>{`
@@ -734,14 +808,14 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
           width: 100%;
           text-align: left;
           background-color: white;
-          padding: 12px 16px;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          padding: 14px 16px;
+          border-radius: 14px;
+          border: 1.5px solid #e5e7eb;
           font-size: 14px;
           font-weight: 500;
           color: #1c1917;
-          box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-          transition: all 0.2s;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+          transition: all 0.15s;
         }
         .chat-option:active {
           transform: scale(0.98);
@@ -749,4 +823,5 @@ Options should reflect realistic answers for someone with ${conditionNames}, not
         }
       `}</style>
     </div>);
+
 }

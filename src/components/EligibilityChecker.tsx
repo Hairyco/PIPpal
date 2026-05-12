@@ -534,34 +534,14 @@ export function EligibilityChecker() {
 
           <div className={showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}>
           <button
-            onClick={() => navigateTo('q1_intro')}
+            onClick={() => navigateTo('claim_flow')}
             className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm mb-2 flex items-center justify-center gap-2">
-            
-            Apply Now
+            Start My PIP Claim
+            <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-[11px] text-stone-400 text-center mb-4">
-            Free: Q1 walkthrough · Full Access: £8.99
+            Free to start · Full access from £8.99 one-time
           </p>
-
-          {/* PIP Diary Teaser */}
-          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100 mb-6 flex flex-col gap-3">
-            <div className="flex items-start gap-2.5">
-              <BookOpen className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-emerald-800 leading-relaxed">
-                <strong>
-                  Start logging your daily challenges in a PIP Diary
-                </strong>{' '}
-                — it's one of the most effective ways to build evidence for your
-                claim.
-              </p>
-            </div>
-            <button
-              onClick={() => navigateTo('pip_diary')}
-              className="self-start inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors">
-              
-              Open PIP Diary →
-            </button>
-          </div>
 
           </div>
           <button

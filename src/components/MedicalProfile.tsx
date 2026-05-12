@@ -95,7 +95,7 @@ export function MedicalProfile() {
     setMedProfile(profile);
     showToast('Medical profile saved!', 'success');
     // Navigate immediately — save to Supabase in background
-    setTimeout(() => navigateTo('q1_intro'), 300);
+    setTimeout(() => navigateTo('question_index'), 300);
     if (user?.id) {
       const saveAsync = async () => {
         try {
@@ -253,7 +253,7 @@ export function MedicalProfile() {
           ) : saved ? (
             <><CheckCircle2 className="w-5 h-5" /> Saved!</>
           ) : (
-            'Save & Continue'
+            'Save & Start My Questions'
           )}
         </button>
       </div>

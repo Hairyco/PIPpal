@@ -93,6 +93,7 @@ const questionsList = [
 export function AssessmentPrepScreen() {
   const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
   const [showInstructions, setShowInstructions] = useState(false);
+  const [activeTab, setActiveTab] = useState<'inperson' | 'telephone'>('inperson');
   const hasAnswers = Object.keys(savedAnswers).length > 0;
   const handleDownload = () => {
     const css = [
@@ -218,7 +219,64 @@ export function AssessmentPrepScreen() {
         <h1 className="font-bold text-stone-900 text-lg">Assessment Prep</h1>
       </div>
 
+      {/* Telephone request disclaimer */}
+      <div className="mx-5 mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+        <p className="text-sm text-amber-800 leading-relaxed">
+          <strong>Have anxiety, depression, PTSD or agoraphobia?</strong> You can request a telephone assessment. Call DWP on <strong>0800 917 2222</strong> and say: <em>"I would like a telephone assessment due to my mental health condition."</em> It is regularly granted.
+        </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="mx-5 mt-4 flex bg-stone-100 rounded-xl p-1">
+        <button
+          onClick={() => setActiveTab('inperson')}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'inperson' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+        >
+          🏥 In-Person
+        </button>
+        <button
+          onClick={() => setActiveTab('telephone')}
+          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'telephone' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
+        >
+          📞 Telephone
+        </button>
+      </div>
+
       <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+
+        {/* Telephone-specific content */}
+        {activeTab === 'telephone' && (
+          <div className="space-y-4">
+            <div className="bg-teal-700 rounded-2xl p-5 text-white">
+              <h2 className="font-bold text-base mb-2">Preparing for your telephone assessment</h2>
+              <p className="text-teal-100 text-sm leading-relaxed">A telephone assessment works the same way as in-person — the assessor asks questions and you describe how your condition affects you. Here's how to prepare.</p>
+            </div>
+            {[
+              { icon: '📋', title: 'Have your notes ready', body: 'Keep your PIPpal answers open on another screen or printed out. You can refer to them during the call — this is completely allowed.' },
+              { icon: '🔇', title: 'Find a quiet space', body: 'Choose a quiet room where you won\'t be interrupted. Let anyone in the house know not to disturb you for the duration of the call.' },
+              { icon: '👤', title: 'You can have someone with you', body: 'A carer, family member or support worker can sit with you during the call. Tell the assessor who they are at the start.' },
+              { icon: '⏱️', title: 'Calls typically last 45–90 minutes', body: 'Have a glass of water nearby. You can ask for a short break if you need one.' },
+              { icon: '📝', title: 'Describe your worst days', body: 'Just like in-person, always describe how you are on your worst days. Say "on my worst days" clearly when this applies.' },
+              { icon: '🔄', title: 'You can ask for questions to be repeated', body: 'Don\'t rush. If you don\'t understand a question, ask them to repeat or rephrase it. Take your time.' },
+              { icon: '📞', title: 'Note the time and assessor\'s name', body: 'Write down when the call started, the assessor\'s name if given, and any important things said. You may need this later.' },
+            ].map((tip, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+                <span className="text-xl shrink-0">{tip.icon}</span>
+                <div>
+                  <p className="font-semibold text-stone-900 text-sm mb-1">{tip.title}</p>
+                  <p className="text-xs text-stone-500 leading-relaxed">{tip.body}</p>
+                </div>
+              </div>
+            ))}
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-sm text-amber-800 leading-relaxed"><strong>After the call:</strong> Write down everything you remember as soon as the call ends — what was asked, what you said, anything that felt wrong. You may need this if you challenge the decision.</p>
+            </div>
+          </div>
+        )}
+
+        {/* In-person content — existing content below */}
+        {activeTab === 'inperson' && <>
+
         {/* SAFE tips banner */}
         <div className="bg-teal-700 rounded-2xl p-5 text-white shadow-sm">
           <p className="text-xs font-bold uppercase tracking-wider text-teal-200 mb-3">The SAFE rule — remember this</p>
@@ -560,6 +618,7 @@ export function AssessmentPrepScreen() {
             </div>
           </a>
         </div>
+        </> /* end in-person tab */}
       </div>
     </div>);
 

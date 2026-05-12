@@ -33,7 +33,7 @@ export function Hero({ onStart }: HeroProps) {
           <span className="text-teal-700">first time</span>
         </h1>
         <p className="text-stone-500 text-base md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
-          Answer in plain English. We turn your answers into what DWP need to see. No jargon, no stress.
+          PIP claims, made simple. We turn your answers into what DWP need to see. No jargon, no stress.
         </p>
       </div>
 
@@ -43,7 +43,7 @@ export function Hero({ onStart }: HeroProps) {
           <div className="space-y-2.5 mb-5 text-left">
             {[
               ['100%', ' success rate'],
-              ['Up to £10,246', ' a year, tax-free'],
+              ['Receive your PIP decision', ' 3–6 weeks earlier'],
               ['Unique answers', ' tailored to your condition'],
               ['Zero data sharing', ' — encrypted & private'],
             ].map(([bold, rest], i) => (
@@ -64,10 +64,14 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">Free tools available · Full access £8.99 — limited time</p>
         </div>
 
-        {/* Stars */}
-        <div className="flex items-center justify-center gap-1 mb-2">
-          {[1,2,3,4,5].map(s => <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}
-          <span className="text-xs text-stone-500 ml-1.5">Trusted by thousands of claimants</span>
+        {/* Free calculators link */}
+        <div className="flex items-center justify-center">
+          <a
+            href="#free-tools"
+            className="text-xs text-teal-700 font-semibold hover:text-teal-800 transition-colors"
+          >
+            Try our free PIP calculators →
+          </a>
         </div>
       </div>
 

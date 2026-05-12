@@ -41,7 +41,7 @@ export function QuestionIndex() {
             navigateTo('upsell');
           } else {
             setSelectedQuestionId(q.id);
-            navigateTo('q1_intro');
+            navigateTo('personalising');
           }
         }}
         className={`w-full flex items-center gap-3 p-4 bg-white rounded-2xl border shadow-sm transition-all active:scale-[0.98] text-left
@@ -72,12 +72,7 @@ export function QuestionIndex() {
         {isLocked ? (
           <Lock className="w-4 h-4 text-stone-300 shrink-0" />
         ) : isAnswered ? (
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className={`text-sm font-bold ${getPointColor(descriptor?.points || 0)}`}>
-              {descriptor?.points || 0}pts
-            </span>
-            <ChevronRight className="w-4 h-4 text-stone-300" />
-          </div>
+          <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
         ) : (
           <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
         )}
@@ -174,20 +169,7 @@ export function QuestionIndex() {
             </div>
           )}
 
-          {/* Descriptors Guide card */}
-          <button
-            onClick={() => navigateTo('descriptors_guide')}
-            className="w-full flex items-center gap-3 bg-white rounded-2xl p-4 border border-stone-100 shadow-sm hover:border-teal-200 hover:shadow-md transition-all active:scale-[0.98] text-left"
-          >
-            <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
-              <BookOpen className="w-5 h-5 text-teal-700" />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-stone-900 text-sm">How does scoring work?</p>
-              <p className="text-xs text-stone-500 mt-0.5">Understand descriptors, thresholds and what DWP are really looking for</p>
-            </div>
-            <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
-          </button>
+
 
           {/* Upgrade banner for free users */}
           {!hasPaid && (
