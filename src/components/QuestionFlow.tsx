@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -26,9 +26,16 @@ export function QuestionFlow() {
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
   const [showFullExample, setShowFullExample] = useState(false);
-  const [personalExample, setPersonalExample] = useState<string | null>(null);
-  const [personalExplainer, setPersonalExplainer] = useState<string | null>(null);
-  const [loadingExample, setLoadingExample] = useState(false);
+  const [loadingExample] = useState(false);
+
+  // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
+  const [personalExample] = useState<string | null>(
+    () => sessionStorage.getItem(`pippal_example_${questionId}`) || null
+  );
+  const [personalExplainer] = useState<string | null>(
+    () => sessionStorage.getItem(`pippal_explainer_${questionId}`) || null
+  );
+
   const [answers, setAnswers] = useState<FlowAnswers>({
     selectedDifficulties: [],
     frequencies: {},
@@ -36,48 +43,6 @@ export function QuestionFlow() {
     impacts: [],
     additionalDetail: '',
   });
-
-  useEffect(() => {
-    if (!medProfile?.conditions?.length || !config) return;
-    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
-    console.log('[PIPpal] Personalising for conditions:', conditions);
-
-    // Personalised example answer
-    setLoadingExample(true);
-    fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `Write a 2-3 sentence first-person example answer for PIP activity: "${config?.title}". The person has: ${conditions}. Show how those exact conditions affect this activity on worst days. Include frequency and real impact. Start with "I". Return ONLY the example.`,
-        conversationHistory: [],
-        medProfile: { conditions: medProfile.conditions },
-      }),
-    })
-      .then(r => r.json())
-      .then(d => {
-        console.log('[PIPpal] Example API response:', d);
-        if (d.reply) setPersonalExample(d.reply.trim());
-      })
-      .catch(e => console.error('[PIPpal] Example API error:', e))
-      .finally(() => setLoadingExample(false));
-
-    // Personalised explainer
-    fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `Rewrite this PIP question explainer for someone with: ${conditions}. Original: "${config.explained}". Rules: Under 60 words. Reference their conditions by name. Warm plain English. Return ONLY the rewritten text.`,
-        conversationHistory: [],
-        medProfile: { conditions: medProfile.conditions },
-      }),
-    })
-      .then(r => r.json())
-      .then(d => {
-        console.log('[PIPpal] Explainer API response:', d);
-        if (d.reply) setPersonalExplainer(d.reply.trim());
-      })
-      .catch(e => console.error('[PIPpal] Explainer API error:', e));
-  }, [questionId, medProfile.conditions.length]);
 
   if (!config) {
     return (

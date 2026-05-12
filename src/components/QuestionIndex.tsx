@@ -41,7 +41,7 @@ export function QuestionIndex() {
             navigateTo('upsell');
           } else {
             setSelectedQuestionId(q.id);
-            navigateTo('q1_intro');
+            navigateTo('personalising');
           }
         }}
         className={`w-full flex items-center gap-3 p-4 bg-white rounded-2xl border shadow-sm transition-all active:scale-[0.98] text-left
