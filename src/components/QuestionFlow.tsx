@@ -27,6 +27,7 @@ export function QuestionFlow() {
   const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
   const [showFullExample, setShowFullExample] = useState(false);
   const [personalExample, setPersonalExample] = useState<string | null>(null);
+  const [personalExplainer, setPersonalExplainer] = useState<string | null>(null);
   const [loadingExample, setLoadingExample] = useState(false);
   const [answers, setAnswers] = useState<FlowAnswers>({
     selectedDifficulties: [],
@@ -37,14 +38,16 @@ export function QuestionFlow() {
   });
 
   useEffect(() => {
-    if (!medProfile?.conditions?.length) return;
-    setLoadingExample(true);
+    if (!medProfile?.conditions?.length || !config) return;
     const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
+
+    // Personalised example answer
+    setLoadingExample(true);
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `Write a realistic 3-4 sentence first-person example answer for the PIP question: "${config?.title}". The person has: ${conditions}. Show specifically how those conditions affect this activity on most days. Be honest, mention frequency and real-life impact. Start with "I" and write only the example — no preamble.`,
+        message: `Write a 2-3 sentence first-person example answer for PIP activity: "${config?.title}". The person has: ${conditions}. Show how those exact conditions affect this activity on worst days. Include frequency and real impact. Start with "I". Return ONLY the example.`,
         conversationHistory: [],
         medProfile: { conditions: medProfile.conditions },
       }),
@@ -53,6 +56,20 @@ export function QuestionFlow() {
       .then(d => { if (d.reply) setPersonalExample(d.reply.trim()); })
       .catch(() => {})
       .finally(() => setLoadingExample(false));
+
+    // Personalised explainer
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Rewrite this PIP question explainer for someone with: ${conditions}. Original: "${config.explained}". Rules: Under 60 words. Reference their conditions by name. Warm plain English. Return ONLY the rewritten text.`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile.conditions },
+      }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.reply) setPersonalExplainer(d.reply.trim()); })
+      .catch(() => {});
   }, [questionId]);
 
   if (!config) {
@@ -263,7 +280,7 @@ export function QuestionFlow() {
                 </div>
               </div>
               <p className="px-4 py-4 text-sm text-amber-800 leading-relaxed">
-                {personalExample ? personalExample : config.explained}
+                {personalExplainer || config.explained}
               </p>
             </div>
 
@@ -296,18 +313,26 @@ export function QuestionFlow() {
               <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">
                 {personalExample ? 'Example based on your conditions' : 'Example answer'}
               </p>
-              {!personalExample && (
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                    <span className="text-teal-700 text-xs font-bold">{config.exampleAnswer.name[0]}</span>
-                  </div>
-                  <span className="text-xs font-semibold text-stone-700">
-                    {config.exampleAnswer.name}, {config.exampleAnswer.age} · {config.exampleAnswer.label}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                  <span className="text-teal-700 text-xs font-bold">
+                    {personalExample
+                      ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
+                      : config.exampleAnswer.name[0]}
                   </span>
                 </div>
-              )}
+                <span className="text-xs font-semibold text-stone-700">
+                  {personalExample
+                    ? medProfile.conditions.map((c: any) => c.name).join(' · ')
+                    : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
+                </span>
+              </div>
               {loadingExample ? (
-                <p className="text-sm text-stone-400 italic">Tailoring an example to your conditions...</p>
+                <div className="space-y-1.5">
+                  <div className="h-3 bg-stone-200 rounded animate-pulse w-full" />
+                  <div className="h-3 bg-stone-200 rounded animate-pulse w-4/5" />
+                  <div className="h-3 bg-stone-200 rounded animate-pulse w-3/5" />
+                </div>
               ) : (
                 <p className={`text-sm text-stone-600 leading-relaxed italic ${!showFullExample ? 'line-clamp-3' : ''}`}>
                   "{personalExample ?? config.exampleAnswer.quote}"
