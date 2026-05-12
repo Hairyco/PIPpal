@@ -13,7 +13,7 @@ function buildCacheKey(conditions: string[], questionId: string): string {
 }
 
 export function PersonalisingScreen() {
-  const { navigateTo, selectedQuestionId, medProfile } = useAppContext();
+  const { navigateTo, selectedQuestionId, medProfile, savedAnswers } = useAppContext();
   const questionId = selectedQuestionId || 'q1';
 
   useEffect(() => {
@@ -120,8 +120,8 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
       navigateTo('q1_intro');
     };
 
-    // Minimum display time — feels intentional, not rushed
-    const minWait = new Promise(resolve => setTimeout(resolve, 3500));
+    // Minimum display time — 5 seconds so user can read progress
+    const minWait = new Promise(resolve => setTimeout(resolve, 5000));
     Promise.all([run(), minWait]).then(() => {});
   }, []);
 
@@ -140,9 +140,14 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     return () => clearInterval(t);
   }, []);
 
+  const completedCount = Object.keys(savedAnswers).length;
+  const totalQuestions = 12;
+  const currentQuestionNum = parseInt(questionId.replace('q', '')) || 1;
+  const progressPct = Math.round((completedCount / totalQuestions) * 100);
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 px-8 z-50">
-      <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+      <div className="flex flex-col items-center gap-6 w-full max-w-xs text-center">
 
         {/* PIPpal logo mark */}
         <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
@@ -160,8 +165,52 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
         <div>
           <h2 className="font-bold text-stone-900 text-xl mb-2">{messages[msgIndex]}</h2>
           <p className="text-sm text-stone-500 leading-relaxed">
-            PIPpal is preparing a personalised walkthrough based on your conditions.
+            PIPpal is tailoring question {currentQuestionNum} to your conditions.
           </p>
+        </div>
+
+        {/* Progress section */}
+        <div className="w-full bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-stone-700">Your progress</p>
+            <p className="text-xs font-bold text-teal-600">{completedCount} of {totalQuestions} done</p>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-3 bg-stone-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-teal-600 rounded-full transition-all duration-700"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
+          {/* Question dots */}
+          <div className="flex gap-1.5 justify-center flex-wrap">
+            {Array.from({ length: totalQuestions }, (_, i) => {
+              const qNum = i + 1;
+              const qId = `q${qNum}`;
+              const isDone = !!savedAnswers[qId];
+              const isCurrent = qNum === currentQuestionNum;
+              return (
+                <div
+                  key={i}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
+                    isCurrent ? 'bg-teal-700 text-white ring-2 ring-teal-300 ring-offset-1' :
+                    isDone ? 'bg-teal-100 text-teal-700' :
+                    'bg-stone-100 text-stone-400'
+                  }`}
+                >
+                  {isDone && !isCurrent ? '✓' : qNum}
+                </div>
+              );
+            })}
+          </div>
+
+          {completedCount > 0 && (
+            <p className="text-[11px] text-stone-400 text-center">
+              {totalQuestions - completedCount} question{totalQuestions - completedCount !== 1 ? 's' : ''} remaining
+            </p>
+          )}
         </div>
 
         {/* Condition pills */}
@@ -175,7 +224,7 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
           </div>
         )}
 
-        <p className="text-[11px] text-stone-400">This only takes a few seconds</p>
+        <p className="text-[11px] text-stone-400">This takes a few seconds</p>
       </div>
     </div>
   );
