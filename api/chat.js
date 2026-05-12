@@ -99,7 +99,10 @@ Rules:
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
         body: JSON.stringify({ model: 'gpt-4o', max_tokens: 800, messages: [{ role: 'system', content: activeSystemPrompt }, ...messages] }),
       });
-      if (!response.ok) throw new Error(`OpenAI error ${response.status}`);
+      if (!response.ok) {
+        const errBody = await response.text();
+        throw new Error(`OpenAI error ${response.status}: ${errBody}`);
+      }
       data = await response.json();
       reply = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
     } else {
