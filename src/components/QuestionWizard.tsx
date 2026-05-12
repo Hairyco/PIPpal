@@ -496,8 +496,8 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                     className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-bold text-stone-900">How you will be scored</p>
-                      <p className="text-xs text-stone-400 mt-0.5">See the official descriptors for this activity</p>
+                      <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Tap to see the official DWP descriptors and points</p>
                     </div>
                     {expandedDescriptors
                       ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" />
@@ -574,8 +574,8 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                     className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-bold text-stone-900">How you will be scored</p>
-                      <p className="text-xs text-stone-400 mt-0.5">See the official descriptors for this activity</p>
+                      <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Tap to see the official DWP descriptors and points</p>
                     </div>
                     {expandedDescriptors
                       ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" />
@@ -648,8 +648,8 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                     className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-bold text-stone-900">How you will be scored</p>
-                      <p className="text-xs text-stone-400 mt-0.5">See the official descriptors for this activity</p>
+                      <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Tap to see the official DWP descriptors and points</p>
                     </div>
                     {expandedDescriptors
                       ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" />
@@ -715,8 +715,8 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                     className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
                   >
                     <div>
-                      <p className="text-sm font-bold text-stone-900">How you will be scored</p>
-                      <p className="text-xs text-stone-400 mt-0.5">See the official descriptors for this activity</p>
+                      <p className="text-sm font-bold text-stone-900">What you are scored on</p>
+                      <p className="text-xs text-stone-400 mt-0.5">Tap to see the official DWP descriptors and points</p>
                     </div>
                     {expandedDescriptors
                       ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" />
