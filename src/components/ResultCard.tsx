@@ -93,7 +93,7 @@ export function ResultCard() {
     ? addHighlightsToPlain(generatedText)
     : data.text;
 
-  const [highlightsOn, setHighlightsOn] = useState(true);
+  const [highlightsOn, setHighlightsOn] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState<string | null>(null);
   const [isImproving, setIsImproving] = useState(false);
@@ -250,7 +250,7 @@ Return ONLY the answer text — no preamble.`,
     if (nextId) {
       setSelectedQuestionId(nextId);
       setQ1Result(null);
-      navigateTo('q1_intro');
+      navigateTo('personalising'); // goes through loading screen → generates personalised content → q1_intro
     } else {
       navigateTo('question_index');
     }
