@@ -25,8 +25,8 @@ export function PersonalisingScreen() {
       }
     };
 
-    // Safety net — always navigate after 12 seconds no matter what
-    const safetyTimer = setTimeout(safeNavigate, 12000);
+    // Safety net — always navigate after 10 seconds no matter what
+    const safetyTimer = setTimeout(safeNavigate, 10000);
 
     const run = async () => {
       try {
@@ -129,7 +129,7 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     };
 
     // Wait for BOTH the work and the minimum display time before navigating
-    const minWait = new Promise<void>(resolve => setTimeout(resolve, 5000));
+    const minWait = new Promise<void>(resolve => setTimeout(resolve, 3000));
     Promise.all([run(), minWait])
       .catch(() => {})
       .finally(() => {
