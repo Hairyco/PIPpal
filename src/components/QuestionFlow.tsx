@@ -99,19 +99,26 @@ export function QuestionFlow() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Write a PIP claim answer for the activity "${config!.title}" (Descriptor ${descriptor}: "${d?.text}") for someone with: ${conditions}.
+          message: `You are helping someone write their PIP claim answer. Write this as if the claimant wrote it themselves — genuine, human, not robotic.
 
-They told us:
-${rawDraft}
+Activity: "${config!.title}"
+Their conditions: ${conditions}
+What they told us: ${rawDraft}
+The descriptor they qualify for: ${descriptor} — "${d?.text}"
 
-Rewrite this as 2-4 natural, first-person sentences that:
-1. State clearly what they cannot do or struggle with
-2. Reference how often this happens
-3. Mention any support or supervision needed
-4. Include the real-life impact
-5. Sound genuine — like they wrote it themselves, not a form
+Write 3-5 sentences that:
+- Sound completely natural — like a real person describing their life, not a form
+- Use plain everyday language — no medical jargon, no bureaucratic phrases
+- Describe what actually happens on their worst days, not average days
+- Include how often difficulties happen (use their frequency data)
+- Mention any help or supervision they need
+- Include the real impact on their daily life
+- Feel honest and personal — like they sat down and wrote it themselves
 
-Do NOT exaggerate. Do NOT add things they didn't say. Use plain English. Return ONLY the answer text.`,
+Do NOT use phrases like "I experience difficulties with" or "I am unable to" — these sound robotic.
+Do NOT start with the activity name.
+Do NOT add anything they didn't tell us.
+Write in first person. Return ONLY the answer — no preamble, no explanation.`,
           conversationHistory: [],
           medProfile: { conditions: medProfile.conditions },
         }),
@@ -230,10 +237,18 @@ Do NOT exaggerate. Do NOT add things they didn't say. Use plain English. Return 
 
   const stepTitle = ['', "Let's begin", "What's hard for you?", 'How often?', 'Do you need support?', 'Day-to-day impact'][step];
 
-  // Live score — recalculates as user taps answers
-  const liveDescriptor = step > 1 ? config.calculateDescriptor(answers) : null;
-  const livePoints = liveDescriptor ? (pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0) : null;
-  const liveDescriptorText = liveDescriptor ? pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text : null;
+  // Live score — uses calculateDescriptor when enough data, otherwise estimates from difficulties
+  const liveDescriptor = config.calculateDescriptor(answers);
+  const livePoints = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0;
+  const liveDescriptorText = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text ?? '';
+
+  // On step 2, estimate pts based on number of difficulties selected (preview only)
+  const estimatedPts = step === 2
+    ? answers.selectedDifficulties.length === 0 ? 0
+      : answers.selectedDifficulties.length >= 4 ? 8
+      : answers.selectedDifficulties.length >= 2 ? 4
+      : 2
+    : livePoints;
 
   function Header() {
     return (
@@ -246,32 +261,29 @@ Do NOT exaggerate. Do NOT add things they didn't say. Use plain English. Return 
             <p className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">Step {step} of 5</p>
             <p className="font-bold text-stone-900 text-sm truncate">{stepTitle}</p>
           </div>
-          {step > 1 && livePoints !== null && (
+          {step > 1 && (
             <div className="shrink-0 flex items-center gap-1.5">
-              <span className={`text-sm font-black ${livePoints >= 8 ? 'text-teal-600' : livePoints >= 4 ? 'text-blue-600' : livePoints >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
-                {livePoints}pts
+              <span className={`text-sm font-black ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-blue-600' : estimatedPts >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {estimatedPts}pts
               </span>
             </div>
           )}
-          {step > 1 && totalDifficulties > 0 && livePoints === null && (
-            <span className="shrink-0 text-[11px] font-bold text-white bg-teal-600 rounded-full px-2.5 py-1">
-              {totalDifficulties} selected
-            </span>
-          )}
         </div>
         {/* Live score bar */}
-        {step > 1 && livePoints !== null && (
+        {step > 1 && (
           <div className="px-5 pb-2.5">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-stone-400 font-medium">Estimated score for this activity</span>
-              <span className={`text-[10px] font-bold ${livePoints >= 8 ? 'text-teal-600' : livePoints >= 4 ? 'text-blue-600' : livePoints >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
-                {livePoints === 0 ? 'No award yet' : livePoints >= 8 ? 'Enhanced rate' : 'Standard rate'}
+              <span className="text-[10px] text-stone-400 font-medium">
+                {step === 2 ? 'Estimated score (updates as you answer)' : 'Score for this activity'}
+              </span>
+              <span className={`text-[10px] font-bold ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-blue-600' : estimatedPts >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+                {estimatedPts === 0 ? 'No award yet' : estimatedPts >= 8 ? 'Enhanced rate' : 'Standard rate'}
               </span>
             </div>
             <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${livePoints >= 8 ? 'bg-teal-500' : livePoints >= 4 ? 'bg-blue-400' : livePoints >= 2 ? 'bg-amber-400' : 'bg-stone-200'}`}
-                style={{ width: `${Math.min((livePoints / 12) * 100, 100)}%` }}
+                className={`h-full rounded-full transition-all duration-500 ${estimatedPts >= 8 ? 'bg-teal-500' : estimatedPts >= 4 ? 'bg-blue-400' : estimatedPts >= 2 ? 'bg-amber-400' : 'bg-stone-200'}`}
+                style={{ width: `${Math.min((estimatedPts / 12) * 100, 100)}%` }}
               />
             </div>
           </div>
@@ -677,12 +689,12 @@ Do NOT exaggerate. Do NOT add things they didn't say. Use plain English. Return 
 
             {/* Optional detail */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-              <p className="text-sm font-bold text-stone-900 mb-1">Add more detail <span className="font-normal text-stone-400">(optional)</span></p>
-              <p className="text-xs text-stone-500 mb-3">Anything else you want the assessor to understand?</p>
+              <p className="text-sm font-bold text-stone-900 mb-1">Anything else? <span className="font-normal text-stone-400">(optional)</span></p>
+              <p className="text-xs text-stone-500 mb-3">PIPpal writes the answer for you using what you've told us. Add anything specific you want included — a particular incident, a doctor's comment, or something that happens regularly.</p>
               <textarea
                 value={answers.additionalDetail}
                 onChange={e => setAnswers(prev => ({ ...prev, additionalDetail: e.target.value.slice(0, charLimit) }))}
-                placeholder={`e.g. I often feel anxious using the ${config.title.toLowerCase().split('?')[0].replace('can you ', '')} and worry I'll forget something.`}
+                placeholder="e.g. Last week I left the hob on twice. My GP told me it's not safe for me to cook unsupervised."
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none"
                 rows={3}
               />
