@@ -272,18 +272,27 @@ Return ONLY the answer text — no preamble.`,
 
       <div className="flex-1 overflow-y-auto pb-28 space-y-3 px-4 pt-4">
 
+        {/* Question hero */}
+        <div className="bg-teal-700 rounded-2xl p-4 text-white">
+          <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">
+            {question?.category === 'Mobility' ? 'Mobility' : 'Daily Living'} · Activity {question?.num}
+          </p>
+          <h2 className="font-bold text-lg leading-tight">{question?.title || qId.toUpperCase()}</h2>
+          <p className="text-teal-200 text-xs mt-1">{question?.subtext}</p>
+        </div>
+
         {/* Descriptor hero */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-amber-50 border border-amber-100 rounded-2xl p-6 text-center"
+          className="bg-amber-50 border border-amber-100 rounded-2xl p-5 text-center"
         >
           <p className="text-[11px] font-black text-amber-600 uppercase tracking-widest mb-2">DESCRIPTOR {descriptor}</p>
           <div className="flex items-baseline justify-center gap-2 mb-1">
             <span className={`text-5xl font-black ${pointsColor}`}>{data.points}</span>
             <span className={`text-xl font-bold ${pointsColor}`}>pts</span>
           </div>
-          <p className={`font-bold text-lg ${pointsColor}`}>{data.heading}</p>
+          <p className={`font-bold text-base ${pointsColor}`}>{data.heading}</p>
         </motion.div>
 
         {/* Draft Answer */}
