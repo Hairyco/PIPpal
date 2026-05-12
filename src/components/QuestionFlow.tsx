@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppContext } from './AppContext';
+import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
-import { PIP_QUESTIONS } from '../pipQuestions';
+import { PIP_QUESTIONS, type PIPQuestion } from '../pipQuestions';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -18,8 +18,49 @@ const FREQUENCIES: { id: FrequencyLevel; label: string; sublabel: string }[] = [
 /** Same columns for header + rows so labels and radios stay aligned on all screen sizes */
 const FREQ_GRID_TEMPLATE = 'minmax(0,1fr) repeat(5, minmax(2.75rem, 1fr))' as const;
 
+/** Set `true` to restore "Ask for more help" on question intro (step 1). */
+const SHOW_ASK_MORE_HELP_SECTION = false;
+
+function AskMoreHelpSection({ pipQ, medProfile }: { pipQ: PIPQuestion; medProfile: MedProfile }) {
+  const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
+  const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
+  const explainers = pipQ.conditionExplainers || [];
+  const sorted = [...explainers].sort((a, b) => {
+    const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+    const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+    return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+  });
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+      <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Ask for more help</p>
+      <div className="flex flex-wrap gap-2">
+        {sorted.slice(0, 4).map((ce, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
+            className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
+          >
+            How does this affect {ce.conditions[0]}?
+          </button>
+        ))}
+      </div>
+      {openHelpIdx !== null && (() => {
+        const ce = sorted[openHelpIdx];
+        return ce ? (
+          <div className="mt-3 pt-3 border-t border-stone-100">
+            <p className="text-sm text-stone-700 leading-relaxed">{ce.text}</p>
+            {ce.example && <p className="text-xs text-stone-400 italic mt-1">&quot;{ce.example}&quot;</p>}
+          </div>
+        ) : null;
+      })()}
+    </div>
+  );
+}
+
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile, setAssistantQuestion } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile } = useAppContext();
   const questionId = selectedQuestionId || 'q1';
   const config = getQuestionFlow(questionId);
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
@@ -27,7 +68,6 @@ export function QuestionFlow() {
   const [step, setStep] = useState<Step>(1);
   const [showExplained, setShowExplained] = useState(true);
   const [showDescriptors, setShowDescriptors] = useState(false);
-  const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
   const [showFullExample, setShowFullExample] = useState(false);
   const [loadingExample] = useState(false);
 
@@ -335,47 +375,9 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
               </p>
             </div>
 
-            {/* Ask for more help — personalised to user conditions */}
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-              <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Ask for more help</p>
-              <div className="flex flex-wrap gap-2">
-                {(() => {
-                  // Sort condition explainers to match user's conditions first
-                  const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
-                  const explainers = pipQ?.conditionExplainers || [];
-                  const sorted = [...explainers].sort((a, b) => {
-                    const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-                    const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-                    return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
-                  });
-                  return sorted.slice(0, 4).map((ce, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
-                      className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
-                    >
-                      How does this affect {ce.conditions[0]}?
-                    </button>
-                  ));
-                })()}
-              </div>
-              {openHelpIdx !== null && (() => {
-                const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
-                const explainers = pipQ?.conditionExplainers || [];
-                const sorted = [...explainers].sort((a, b) => {
-                  const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-                  const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-                  return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
-                });
-                const ce = sorted[openHelpIdx];
-                return ce ? (
-                  <div className="mt-3 pt-3 border-t border-stone-100">
-                    <p className="text-sm text-stone-700 leading-relaxed">{ce.text}</p>
-                    {ce.example && <p className="text-xs text-stone-400 italic mt-1">"{ce.example}"</p>}
-                  </div>
-                ) : null;
-              })()}
-            </div>
+            {SHOW_ASK_MORE_HELP_SECTION && pipQ && (
+              <AskMoreHelpSection pipQ={pipQ} medProfile={medProfile} />
+            )}
 
             {/* Example answer */}
             <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4">
