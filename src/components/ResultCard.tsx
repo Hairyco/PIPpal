@@ -99,6 +99,9 @@ export function ResultCard() {
   const [isImproving, setIsImproving] = useState(false);
   const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [answerHistory, setAnswerHistory] = useState<string[]>([]);
+  const [detailSuggestions, setDetailSuggestions] = useState<string[]>([]);
+  const [addedDetails, setAddedDetails] = useState<Set<string>>(new Set());
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const VOICES = [
     {
@@ -258,6 +261,50 @@ Return ONLY the answer text — no preamble.`,
 
   const pointsColor = data.points >= 8 ? 'text-teal-700' : data.points >= 4 ? 'text-blue-600' : data.points >= 2 ? 'text-amber-600' : 'text-stone-500';
 
+  // Generate personalised detail suggestions on mount
+  useEffect(() => {
+    if (!question) return;
+    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+    setLoadingSuggestions(true);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Generate 6-8 short, specific detail suggestions for a PIP claim answer about "${question.title}" for someone with: ${conditions}.
+
+Each suggestion should be a brief phrase (3-7 words) describing a real-life difficulty that could strengthen their answer.
+
+Examples for "Preparing food": "Leaving the hob on", "Burning food regularly", "Only managing ready meals", "Forgetting to eat", "Needing reminders to cook", "Panic attacks in the kitchen"
+
+Make them specific to ${conditions} and directly relevant to ${question.title}.
+
+Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phrase one", "Phrase two"]`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile.conditions },
+      }),
+    })
+      .then(r => r.json())
+      .then(d => {
+        try {
+          const text = (d.reply || '').replace(/```json\n?|```/g, '').trim();
+          const parsed = JSON.parse(text);
+          if (Array.isArray(parsed)) setDetailSuggestions(parsed.slice(0, 8));
+        } catch { /* use fallback */ }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingSuggestions(false));
+  }, [qId]);
+
+  // Append a detail to the draft answer
+  const handleAddDetail = (detail: string) => {
+    if (addedDetails.has(detail)) return;
+    setAddedDetails(prev => new Set([...prev, detail]));
+    const current = (editedText || displayText).replace(/<[^>]+>/g, '').trim();
+    const appended = `${current} ${detail.endsWith('.') ? detail : detail + '.'}`;
+    setEditedText(appended);
+    saveAnswer(qId, appended);
+  };
+
   return (
     <div className="flex flex-col h-full bg-stone-50">
 
@@ -359,6 +406,39 @@ Return ONLY the answer text — no preamble.`,
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">
           <h3 className="font-bold text-stone-900 text-sm mb-2">Why this counts</h3>
           <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
+        </div>
+
+        {/* Helpful details to include */}
+        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">
+          <h3 className="font-bold text-stone-900 text-sm mb-1">Helpful details to include</h3>
+          <p className="text-xs text-stone-400 mb-3">Tap anything that's true for you — it gets added to your answer.</p>
+          {loadingSuggestions ? (
+            <div className="flex gap-2 flex-wrap">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-8 bg-stone-100 rounded-full animate-pulse" style={{ width: `${80 + i * 15}px` }} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {detailSuggestions.map((detail, i) => {
+                const added = addedDetails.has(detail);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleAddDetail(detail)}
+                    disabled={added}
+                    className={`flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-full border transition-all active:scale-95 ${
+                      added
+                        ? 'bg-teal-600 text-white border-teal-600 cursor-default'
+                        : 'text-stone-700 bg-stone-50 border-stone-200 hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700'
+                    }`}
+                  >
+                    {added ? '✓ ' : '+ '}{detail}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Linked Conditions */}
