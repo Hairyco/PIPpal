@@ -14,7 +14,6 @@ function buildCacheKey(conditions: string[], questionId: string): string {
 
 export function PersonalisingScreen() {
   const { navigateTo, selectedQuestionId, medProfile } = useAppContext();
-  const [message, setMessage] = useState('Personalising your questions...');
   const questionId = selectedQuestionId || 'q1';
 
   useEffect(() => {
@@ -55,7 +54,6 @@ export function PersonalisingScreen() {
       }
 
       // 2. Cache miss — generate from API
-      setMessage('Tailoring the questions to your conditions...');
       console.log('[PIPpal] Cache MISS for', cacheKey, '— generating...');
 
       try {
@@ -64,7 +62,18 @@ export function PersonalisingScreen() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              message: `Rewrite this PIP question explainer for someone with: ${conditionNames}. Original: "${config.explained}". Rules: Under 60 words. Reference their conditions by name. Warm plain English. Return ONLY the rewritten text.`,
+              message: `Write a warm, friendly explanation for a PIP question for someone with: ${conditionNames}.
+
+The activity is: "${config.title}"
+Original DWP description: "${config.explained}"
+
+Write 3-4 short sentences that:
+1. Explain in plain English what DWP is REALLY asking (not the jargon version)
+2. Reassure them — they do NOT need to be severely physically disabled to score points. Mental health, fatigue, brain fog, needing help, taking longer — all count
+3. Tell them specifically how ${conditionNames} is relevant to THIS activity
+4. Hint that we will write the answer for them — they just need to tell us how they feel day to day
+
+Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, plain English, encouraging. Under 80 words. Return ONLY the explanation text.`,
               conversationHistory: [],
               medProfile: { conditions: medProfile.conditions },
             }),
@@ -111,27 +120,47 @@ export function PersonalisingScreen() {
       navigateTo('q1_intro');
     };
 
-    run();
+    // Minimum display time — feels intentional, not rushed
+    const minWait = new Promise(resolve => setTimeout(resolve, 3500));
+    Promise.all([run(), minWait]).then(() => {});
+  }, []);
+
+  const messages = [
+    'Personalising your questions...',
+    'Reading your conditions...',
+    'Tailoring the examples to you...',
+    'Almost ready...',
+  ];
+  const [msgIndex, setMsgIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setMsgIndex(i => Math.min(i + 1, messages.length - 1));
+    }, 900);
+    return () => clearInterval(t);
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-stone-50 px-8">
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 px-8 z-50">
       <div className="flex flex-col items-center gap-6 max-w-xs text-center">
-        {/* Animated dots */}
-        <div className="flex gap-2">
-          {[0, 1, 2].map(i => (
-            <div
-              key={i}
-              className="w-3 h-3 bg-teal-600 rounded-full animate-bounce"
-              style={{ animationDelay: `${i * 150}ms` }}
-            />
-          ))}
+
+        {/* PIPpal logo mark */}
+        <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="flex gap-1">
+            {[0, 1, 2].map(i => (
+              <div
+                key={i}
+                className="w-2.5 h-2.5 bg-white rounded-full animate-bounce"
+                style={{ animationDelay: `${i * 150}ms` }}
+              />
+            ))}
+          </div>
         </div>
 
         <div>
-          <h2 className="font-bold text-stone-900 text-lg mb-2">{message}</h2>
+          <h2 className="font-bold text-stone-900 text-xl mb-2">{messages[msgIndex]}</h2>
           <p className="text-sm text-stone-500 leading-relaxed">
-            We're tailoring the examples and explanations to your specific conditions.
+            PIPpal is preparing a personalised walkthrough based on your conditions.
           </p>
         </div>
 
@@ -145,6 +174,8 @@ export function PersonalisingScreen() {
             ))}
           </div>
         )}
+
+        <p className="text-[11px] text-stone-400">This only takes a few seconds</p>
       </div>
     </div>
   );

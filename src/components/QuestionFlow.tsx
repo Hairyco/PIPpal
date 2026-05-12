@@ -243,41 +243,62 @@ export function QuestionFlow() {
           <div className="px-5 py-5 space-y-4 pb-32">
             <QuestionCard />
 
-            {/* This question explained — always expanded */}
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-amber-100">
+            {/* This question explained — always expanded, white bg */}
+            <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
                 <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span className="font-bold text-amber-900 text-sm">This question explained</span>
+                  <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                  <span className="font-bold text-stone-900 text-sm">This question explained</span>
                 </div>
+                {personalExplainer && (
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">Personalised for you</span>
+                )}
               </div>
-              <p className="px-4 py-4 text-sm text-amber-800 leading-relaxed">
+              <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
                 {personalExplainer || config.explained}
               </p>
             </div>
 
-            {/* Ask for more help — inline expand, no assistant */}
+            {/* Ask for more help — personalised to user conditions */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
               <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Ask for more help</p>
               <div className="flex flex-wrap gap-2">
-                {config.helpQuestions.map((q, i) => (
-                  <button
-                    key={q}
-                    onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
-                    className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
-                  >
-                    {q}
-                  </button>
-                ))}
+                {(() => {
+                  // Sort condition explainers to match user's conditions first
+                  const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
+                  const explainers = pipQ?.conditionExplainers || [];
+                  const sorted = [...explainers].sort((a, b) => {
+                    const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                    const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                    return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+                  });
+                  return sorted.slice(0, 4).map((ce, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
+                      className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
+                    >
+                      How does this affect {ce.conditions[0]}?
+                    </button>
+                  ));
+                })()}
               </div>
-              {openHelpIdx !== null && pipQ?.conditionExplainers[openHelpIdx] && (
-                <div className="mt-3 pt-3 border-t border-stone-100">
-                  <p className="text-sm text-stone-700 leading-relaxed">{pipQ.conditionExplainers[openHelpIdx].text}</p>
-                  {pipQ.conditionExplainers[openHelpIdx].example && (
-                    <p className="text-xs text-stone-400 italic mt-1">"{pipQ.conditionExplainers[openHelpIdx].example}"</p>
-                  )}
-                </div>
-              )}
+              {openHelpIdx !== null && (() => {
+                const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
+                const explainers = pipQ?.conditionExplainers || [];
+                const sorted = [...explainers].sort((a, b) => {
+                  const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                  const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
+                  return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
+                });
+                const ce = sorted[openHelpIdx];
+                return ce ? (
+                  <div className="mt-3 pt-3 border-t border-stone-100">
+                    <p className="text-sm text-stone-700 leading-relaxed">{ce.text}</p>
+                    {ce.example && <p className="text-xs text-stone-400 italic mt-1">"{ce.example}"</p>}
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             {/* Example answer */}
