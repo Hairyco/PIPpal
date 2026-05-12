@@ -54,8 +54,11 @@ export function QuestionFlow() {
       }),
     })
       .then(r => r.json())
-      .then(d => { if (d.reply) setPersonalExample(d.reply.trim()); })
-      .catch(() => {})
+      .then(d => {
+        console.log('[PIPpal] Example API response:', d);
+        if (d.reply) setPersonalExample(d.reply.trim());
+      })
+      .catch(e => console.error('[PIPpal] Example API error:', e))
       .finally(() => setLoadingExample(false));
 
     // Personalised explainer
@@ -69,8 +72,11 @@ export function QuestionFlow() {
       }),
     })
       .then(r => r.json())
-      .then(d => { if (d.reply) setPersonalExplainer(d.reply.trim()); })
-      .catch(() => {});
+      .then(d => {
+        console.log('[PIPpal] Explainer API response:', d);
+        if (d.reply) setPersonalExplainer(d.reply.trim());
+      })
+      .catch(e => console.error('[PIPpal] Explainer API error:', e));
   }, [questionId, medProfile.conditions.length]);
 
   if (!config) {
