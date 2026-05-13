@@ -181,12 +181,6 @@ export function ClaimFlow() {
             ))}
           </div>
 
-          {/* What to do next */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-            <p className="text-sm font-bold text-amber-900 mb-2">👉 What to do right now</p>
-            <p className="text-sm text-amber-800 leading-relaxed">Call DWP on <strong>0800 917 2222</strong> to open your claim before you do anything else. It only takes 20 minutes and your payments are backdated to today's call. Then come back to PIPpal to build your answers.</p>
-          </div>
-
           {/* What you'll need */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
             <h3 className="font-bold text-stone-900 mb-1">What you'll need</h3>
