@@ -157,12 +157,18 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     'Almost ready...',
   ];
   const [msgIndex, setMsgIndex] = useState(0);
+  const [showStuck, setShowStuck] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => {
       setMsgIndex(i => Math.min(i + 1, preparingMessages.length - 1));
     }, 900);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowStuck(true), 5000);
+    return () => clearTimeout(t);
   }, []);
 
   return (
@@ -237,6 +243,15 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
         )}
 
         <p className="text-xs text-stone-400">Usually just a moment</p>
+
+        {showStuck && (
+          <button
+            onClick={() => navigateTo('q1_intro')}
+            className="text-xs text-stone-400 hover:text-teal-600 underline underline-offset-2 transition-colors"
+          >
+            Page stuck? Tap to continue
+          </button>
+        )}
       </div>
     </div>
   );

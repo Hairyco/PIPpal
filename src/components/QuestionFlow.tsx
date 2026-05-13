@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
@@ -59,25 +59,114 @@ function AskMoreHelpSection({ pipQ, medProfile }: { pipQ: PIPQuestion; medProfil
   );
 }
 
+function GeneratingOverlay({ onSkip }: { onSkip: () => void }) {
+  const [showStuck, setShowStuck] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowStuck(true), 5000);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 z-50 px-8">
+      <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+        <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="flex gap-1">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{ animationDelay: `${i * 150}ms` }} />
+            ))}
+          </div>
+        </div>
+        <div>
+          <h2 className="font-bold text-stone-900 text-xl mb-2">Building your answer...</h2>
+          <p className="text-sm text-stone-500 leading-relaxed">PIPpal is writing your personalised claim answer using everything you've told us.</p>
+        </div>
+        <p className="text-[11px] text-stone-400">This takes a few seconds</p>
+        {showStuck && (
+          <button
+            onClick={onSkip}
+            className="text-xs text-stone-400 hover:text-teal-600 underline underline-offset-2 transition-colors"
+          >
+            Page stuck? Tap to continue
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile, savedAnswers } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, savedAnswers, cocMode, cocPreviousAnswers } = useAppContext();
   const questionId = selectedQuestionId || 'q1';
   const config = getQuestionFlow(questionId);
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
   const [showExplained, setShowExplained] = useState(true);
-  const [showDescriptors, setShowDescriptors] = useState(true);
+  // Expanded by default on mobile, collapsed on desktop
+  const [showDescriptors, setShowDescriptors] = useState(() => window.innerWidth < 768);
   const [showFullExample, setShowFullExample] = useState(true);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
-  const [personalExample] = useState<string | null>(
+  const [personalExample, setPersonalExample] = useState<string | null>(
     () => sessionStorage.getItem(`pippal_example_${questionId}`) || null
   );
-  const [personalExplainer] = useState<string | null>(
+  const [personalExplainer, setPersonalExplainer] = useState<string | null>(
     () => sessionStorage.getItem(`pippal_explainer_${questionId}`) || null
   );
+  const [isPersonalising, setIsPersonalising] = useState(false);
+  const [personalisedJustNow, setPersonalisedJustNow] = useState(false);
+
+  async function rePersonalise() {
+    if (!config || isPersonalising) return;
+    const conditions = medProfile?.conditions?.map((c: any) => c.name) || [];
+    if (!conditions.length) return;
+    const conditionNames = conditions.join(', ');
+    setIsPersonalising(true);
+    setPersonalisedJustNow(false);
+    try {
+      const [explainerRes, exampleRes] = await Promise.all([
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Write a warm, friendly explanation for a PIP question for someone with: ${conditionNames}.
+
+The activity is: "${config.title}"
+Original DWP description: "${config.explained}"
+
+Write 3-4 short sentences that:
+1. Explain in plain English what DWP is REALLY asking
+2. Reassure them — they don't need to be severely physically disabled to score points. Mental health, fatigue, brain fog, needing help — all count
+3. Tell them specifically how ${conditionNames} is relevant to THIS activity
+4. Hint that PIPpal will write the answer for them — they just need to describe how they feel day to day
+
+Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the explanation text.`,
+            conversationHistory: [],
+            medProfile: { conditions: medProfile.conditions },
+          }),
+        }),
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `Write a 2-3 sentence first-person example answer for PIP activity: "${config.title}". The person has: ${conditionNames}. Show how those exact conditions affect this activity on worst days. Include frequency and real impact. Start with "I". Return ONLY the example.`,
+            conversationHistory: [],
+            medProfile: { conditions: medProfile.conditions },
+          }),
+        }),
+      ]);
+      if (explainerRes.ok && exampleRes.ok) {
+        const [ed, exd] = await Promise.all([explainerRes.json(), exampleRes.json()]);
+        const explainer = ed.reply?.trim();
+        const example = exd.reply?.trim();
+        if (explainer) { setPersonalExplainer(explainer); sessionStorage.setItem(`pippal_explainer_${questionId}`, explainer); }
+        if (example) { setPersonalExample(example); sessionStorage.setItem(`pippal_example_${questionId}`, example); }
+        setPersonalisedJustNow(true);
+      }
+    } catch { /* silently fail */ }
+    setIsPersonalising(false);
+  }
 
   const [answers, setAnswers] = useState<FlowAnswers>({
     selectedDifficulties: [],
@@ -131,6 +220,12 @@ export function QuestionFlow() {
     const descriptor = config!.calculateDescriptor(answers);
     saveAnswer(questionId, `Descriptor ${descriptor}`);
 
+    // Persist selected difficulty texts for Assessment Prep snapshot
+    const allDiff = config!.difficultyCategories.flatMap(c => c.difficulties);
+    const difficultyTexts = answers.selectedDifficulties
+      .map(id => allDiff.find(d => d.id === id)?.text)
+      .filter((t): t is string => Boolean(t));
+
     const d = pipQ?.descriptors.find(d => d.code === descriptor);
     const nothingSelected = answers.selectedDifficulties.length === 0;
 
@@ -182,6 +277,8 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           .replace(/These difficulties occur /i, 'This happens ');
       }
     }
+
+    saveAnswerDetails(questionId, { difficulties: difficultyTexts, answerText: finalText || undefined });
 
     setQ1Result({
       descriptor,
@@ -399,9 +496,26 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                   <Info className="w-4 h-4 text-teal-600 shrink-0" />
                   <span className="font-bold text-stone-900 text-sm">This question explained</span>
                 </div>
-                {personalExplainer && (
-                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">Personalised for you</span>
-                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={rePersonalise}
+                    disabled={isPersonalising}
+                    className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border transition-all disabled:opacity-50 ${
+                      !isPersonalising && (personalExplainer || personalisedJustNow)
+                        ? 'text-teal-600 bg-teal-50 border-teal-200 hover:bg-teal-100'
+                        : 'text-stone-400 hover:text-teal-600 border-stone-200 hover:border-teal-300'
+                    }`}
+                  >
+                    {isPersonalising ? (
+                      <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (personalExplainer || personalisedJustNow) ? (
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5" />
+                    )}
+                    {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
+                  </button>
+                </div>
               </div>
               <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
                 {personalExplainer || config.explained}
@@ -412,41 +526,84 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
               <AskMoreHelpSection pipQ={pipQ} medProfile={medProfile} />
             )}
 
-            {/* Example answer */}
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                  <span className="text-teal-700 text-xs font-bold">
-                    {personalExample
-                      ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
-                      : config.exampleAnswer.name[0]}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
-                    {personalExample ? 'Example based on your conditions' : 'Example answer'}
-                  </p>
-                  <p className="text-xs font-semibold text-stone-600 mt-0.5">
-                    {personalExample
-                      ? medProfile.conditions.map((c: any) => c.name).join(' · ')
-                      : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
-                  </p>
-                </div>
-              </div>
-              <div className="border-l-4 border-teal-300 pl-3">
-                {loadingExample ? (
-                  <div className="space-y-1.5">
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
+            {/* Previous answer (CoC mode) OR example answer (new claim) */}
+            {cocMode ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-blue-700">P</span>
                   </div>
+                  <p className="text-[11px] font-bold text-blue-500 uppercase tracking-widest">Your previous answer</p>
+                </div>
+                {cocPreviousAnswers[questionId] ? (
+                  <>
+                    <div className="border-l-4 border-blue-300 pl-3">
+                      <p className="text-sm text-blue-900 leading-relaxed italic">"{cocPreviousAnswers[questionId]}"</p>
+                    </div>
+                    <p className="text-[11px] text-blue-600 font-semibold mt-2">
+                      Your goal: write something stronger and more specific than this.
+                    </p>
+                  </>
                 ) : (
-                  <p className="text-sm text-stone-600 leading-relaxed italic">
-                    "{personalExample ?? config.exampleAnswer.quote}"
-                  </p>
+                  <p className="text-sm text-blue-400 italic">No previous answer found for this activity — build a fresh one below.</p>
                 )}
               </div>
-            </div>
+            ) : (
+              <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                      <span className="text-teal-700 text-xs font-bold">
+                        {personalExample
+                          ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
+                          : config.exampleAnswer.name[0]}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
+                        {personalExample ? 'Example based on your conditions' : 'Example answer'}
+                      </p>
+                      <p className="text-xs font-semibold text-stone-600 mt-0.5 truncate">
+                        {personalExample
+                          ? medProfile.conditions.map((c: any) => c.name).join(' · ')
+                          : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={rePersonalise}
+                    disabled={isPersonalising}
+                    className={`flex items-center gap-1 text-[10px] font-bold bg-white border px-2 py-1 rounded-full transition-all disabled:opacity-50 shrink-0 ${
+                      !isPersonalising && (personalExample || personalisedJustNow)
+                        ? 'text-teal-600 border-teal-300 hover:bg-teal-50'
+                        : 'text-stone-400 hover:text-teal-600 border-teal-200 hover:border-teal-300'
+                    }`}
+                  >
+                    {isPersonalising ? (
+                      <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (personalExample || personalisedJustNow) ? (
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5" />
+                    )}
+                    {isPersonalising ? 'Personalising...' : (personalExample || personalisedJustNow) ? 'Personalised' : 'Personalise'}
+                  </button>
+                </div>
+                <div className="border-l-4 border-teal-300 pl-3">
+                  {loadingExample ? (
+                    <div className="space-y-1.5">
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-600 leading-relaxed italic">
+                      "{personalExample ?? config.exampleAnswer.quote}"
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -473,8 +630,8 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-4 space-y-4 pb-32">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">What makes this hard for you?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Select everything that applies — tick all that are true, even on your worst days. The more difficulties you select that are genuine, the higher your score can be.</p>
+              <h2 className="font-black text-lg leading-tight">{cocMode ? 'How has this got harder?' : 'What makes this hard for you?'}</h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">{cocMode ? 'Select everything that applies now — even if it was true before. Focus on what\'s got worse or more frequent since your last assessment.' : 'Select everything that applies — tick all that are true, even on your worst days. The more difficulties you select that are genuine, the higher your score can be.'}</p>
             </div>
 
             {/* What you are scored on — highlights live matching descriptor */}
@@ -765,20 +922,9 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
 
   if (generating) {
     return (
-      <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 z-50 px-8">
-        <div className="flex flex-col items-center gap-6 max-w-xs text-center">
-          <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
-            <div className="flex gap-1">
-              {[0,1,2].map(i => <div key={i} className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{animationDelay:`${i*150}ms`}} />)}
-            </div>
-          </div>
-          <div>
-            <h2 className="font-bold text-stone-900 text-xl mb-2">Building your answer...</h2>
-            <p className="text-sm text-stone-500 leading-relaxed">PIPpal is writing your personalised claim answer using everything you've told us.</p>
-          </div>
-          <p className="text-[11px] text-stone-400">This takes a few seconds</p>
-        </div>
-      </div>
+      <GeneratingOverlay
+        onSkip={() => navigateTo('q1_result')}
+      />
     );
   }
 

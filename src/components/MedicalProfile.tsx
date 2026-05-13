@@ -94,8 +94,8 @@ export function MedicalProfile() {
     const profile = { conditions, medications, notes };
     setMedProfile(profile);
     showToast('Medical profile saved!', 'success');
-    // Navigate immediately — save to Supabase in background
-    setTimeout(() => navigateTo('question_index'), 300);
+    // Return to wherever the user came from; save to Supabase in background
+    setTimeout(() => goBack(), 300);
     if (user?.id) {
       const saveAsync = async () => {
         try {

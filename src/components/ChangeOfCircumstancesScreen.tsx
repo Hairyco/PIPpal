@@ -95,7 +95,11 @@ const MED_CHANGE_OPTIONS = [
 export function ChangeOfCircumstancesScreen() {
   const { goBack, navigateTo, medProfile, isAdmin, setCocPreviousAnswers, setCocMode } = useAppContext();
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => {
+    const saved = sessionStorage.getItem('coc_return_step');
+    if (saved) { sessionStorage.removeItem('coc_return_step'); return parseInt(saved); }
+    return 1;
+  });
   const [notReportedOpen, setNotReportedOpen] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,6 +112,7 @@ export function ChangeOfCircumstancesScreen() {
   const [confirmedAnswers, setConfirmedAnswers] = useState<Record<string, string>>({});
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
+  const [noForm, setNoForm] = useState(false);
 
   // Medical then vs now
   const [medChanges, setMedChanges] = useState<string[]>([]);
@@ -212,8 +217,8 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const stepTitles = [
-    'Your previous form',
-    'Then vs now',
+    'Upload your previous form',
+    'Your health picture',
     'How this works',
   ];
 
@@ -275,10 +280,10 @@ export function ChangeOfCircumstancesScreen() {
 
           {/* Hero */}
           <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">Build better answers for your review</h2>
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 1 — Your previous answers</p>
+            <h2 className="font-bold text-2xl leading-tight mb-3">See exactly what to improve</h2>
             <p className="text-teal-100 text-sm leading-relaxed">
-              DWP sends the same form as your original PIP2 — all 12 activities. We'll go through every question and help you write stronger, more detailed answers than last time.
+              Your original answers will appear alongside every question. You'll know straight away what scored well, what was too vague, and where to go further this time.
             </p>
           </div>
 
@@ -290,17 +295,32 @@ export function ChangeOfCircumstancesScreen() {
                   <Upload className="w-6 h-6 text-teal-700" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-stone-900 text-lg leading-snug">Got your previous PIP form?</h3>
+                  <h3 className="font-bold text-stone-900 text-lg leading-snug">Photograph your original PIP2 form</h3>
                   <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-                    Upload your original PIP2, PA4 assessor report or award letter. We'll read your previous answers — even if they're handwritten — and show them alongside each question so you can improve on them.
+                    Take a photo of each page of the form you sent to DWP — handwriting is fine. We'll read what you wrote and use it to show your previous answers alongside each question, so you can write something stronger this time.
                   </p>
                 </div>
               </div>
 
+              {/* How to photo guide */}
+              <div className="bg-stone-50 rounded-xl p-4 border border-stone-100 space-y-2">
+                <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">How to do it</p>
+                {[
+                  { step: '1', text: 'Lay your form flat in good light' },
+                  { step: '2', text: 'Take one photo per page — include all the writing' },
+                  { step: '3', text: 'Upload all pages at once below' },
+                ].map(({ step, text }) => (
+                  <div key={step} className="flex items-center gap-3">
+                    <span className="w-5 h-5 rounded-full bg-teal-700 text-white text-[10px] font-black flex items-center justify-center shrink-0">{step}</span>
+                    <span className="text-sm text-stone-600">{text}</span>
+                  </div>
+                ))}
+              </div>
+
               <div className="bg-stone-50 rounded-xl p-3 border border-stone-100">
-                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">Accepted</p>
+                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">Also works with</p>
                 <div className="flex flex-wrap gap-2">
-                  {['PIP2 form', 'PA4 assessor report', 'Award letter', 'Decision notice', 'Photos of the form'].map(label => (
+                  {['AR1 Review Form', 'PA4 assessor report', 'Award letter', 'Decision notice', 'Scanned PDF'].map(label => (
                     <span key={label} className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white border border-stone-200 text-stone-600">{label}</span>
                   ))}
                 </div>
@@ -309,11 +329,11 @@ export function ChangeOfCircumstancesScreen() {
               <input ref={uploadInputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onUploadPick} />
               <button type="button" onClick={() => uploadInputRef.current?.click()}
                 className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white shadow-sm hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
-                <Upload className="w-5 h-5" />Upload my previous form
+                <Upload className="w-5 h-5" />Take a photo or upload pages
               </button>
-              <button type="button" onClick={next}
+              <button type="button" onClick={() => setNoForm(true)}
                 className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
-                I don't have it — continue without
+                I don't have my form
               </button>
             </div>
           ) : (
@@ -404,51 +424,38 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {/* Haven't reported yet? */}
-          <div className="rounded-2xl border border-blue-200 bg-blue-50/60 overflow-hidden">
-            <button type="button" onClick={() => setNotReportedOpen(v => !v)}
-              className="w-full flex items-center justify-between px-4 py-3.5 text-left">
-              <div className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-blue-600 shrink-0" />
-                <span className="text-sm font-semibold text-blue-900">Haven't told DWP yet?</span>
+          {/* No form — request from DWP guidance */}
+          {noForm && !hasUploaded && (
+            <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
+              <div className="space-y-1">
+                <p className="font-bold text-blue-900 text-base">Request your form from DWP</p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  You're entitled to a copy of your original PIP2 form. Call DWP and ask for it — it usually arrives within a few days and makes a real difference to building stronger answers.
+                </p>
               </div>
-              {notReportedOpen ? <ChevronUp className="w-4 h-4 text-blue-600 shrink-0" /> : <ChevronDown className="w-4 h-4 text-blue-600 shrink-0" />}
-            </button>
-            {notReportedOpen && (
-              <div className="px-4 pb-4 space-y-3 border-t border-blue-200/70">
-                <p className="text-sm font-semibold text-blue-900 mt-3">Tell DWP as soon as possible</p>
-                <p className="text-sm text-blue-800 leading-relaxed">Any increase is backdated to the date you first contact them — not when you return the form. The sooner you call, the more you're entitled to.</p>
-                <a href="tel:08009172222"
-                  className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
-                  <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
-                </a>
-                <p className="text-xs text-blue-700 leading-relaxed text-center">You can prepare everything here first. When you're ready to call, your answers will be waiting.</p>
-              </div>
-            )}
-          </div>
 
-          {/* Risk stats */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-              <p className="font-bold text-amber-900 text-sm">Something to know first</p>
+              <div className="bg-white rounded-xl border border-blue-200 p-4 space-y-2">
+                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider">What to say when you call</p>
+                <p className="text-sm text-blue-900 italic leading-relaxed">
+                  "I'd like a copy of my original PIP2 form and my most recent award letter please."
+                </p>
+              </div>
+
+              <a href="tel:08009172222"
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
+                <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
+              </a>
+
+              <p className="text-xs text-blue-700 leading-relaxed text-center">
+                You can start preparing your answers now while you wait for it to arrive. Tap below to continue.
+              </p>
+
+              <button type="button" onClick={next}
+                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-blue-300 text-blue-800 bg-white hover:bg-blue-50 active:scale-[0.99] transition-all">
+                Continue without my form for now
+              </button>
             </div>
-            <p className="text-xs text-amber-800 leading-relaxed">
-              When you tell DWP things have got worse, they look at your whole award again — not just what's changed. For most people the award goes up or stays the same. But it's worth knowing it could go down too.
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { pct: '37%', label: 'Award increases', color: 'bg-teal-50 border-teal-200 text-teal-800' },
-                { pct: '46%', label: 'Stays the same', color: 'bg-stone-100 border-stone-200 text-stone-700' },
-                { pct: '17%', label: 'Award reduces', color: 'bg-red-50 border-red-200 text-red-800' },
-              ].map(({ pct, label, color }) => (
-                <div key={label} className={`rounded-xl border p-2.5 text-center ${color}`}>
-                  <p className="font-bold text-base leading-tight">{pct}</p>
-                  <p className="text-[10px] mt-0.5 leading-tight">{label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Admin preview panel */}
           {isAdmin && (
@@ -482,7 +489,7 @@ export function ChangeOfCircumstancesScreen() {
           {hasUploaded && (
             <button type="button" onClick={next} disabled={analysisBusy}
               className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
-              {analysisBusy ? <><Loader2 className="w-5 h-5 animate-spin" />Reading your form…</> : <>Continue<ArrowRight className="w-5 h-5" /></>}
+              {analysisBusy ? <><Loader2 className="w-5 h-5 animate-spin" />Reading your form…</> : <>Medical profile<ArrowRight className="w-5 h-5" /></>}
             </button>
           )}
         </div>
@@ -504,7 +511,10 @@ export function ChangeOfCircumstancesScreen() {
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
               <p className="font-bold text-stone-900 text-sm">Your conditions</p>
-              <button type="button" onClick={() => navigateTo('medical_profile')}
+              <button type="button" onClick={() => {
+                sessionStorage.setItem('coc_return_step', '2');
+                navigateTo('medical_profile');
+              }}
                 className="text-xs font-semibold text-teal-600 hover:text-teal-800 underline underline-offset-2">
                 Edit in medical profile
               </button>
@@ -519,7 +529,10 @@ export function ChangeOfCircumstancesScreen() {
                 ))}
               </div>
             ) : (
-              <button type="button" onClick={() => navigateTo('medical_profile')}
+              <button type="button" onClick={() => {
+                sessionStorage.setItem('coc_return_step', '2');
+                navigateTo('medical_profile');
+              }}
                 className="w-full py-3 rounded-xl text-sm font-semibold border-2 border-dashed border-teal-200 text-teal-700 hover:bg-teal-50 transition-all">
                 + Add your conditions
               </button>

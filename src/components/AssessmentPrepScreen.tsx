@@ -1,660 +1,716 @@
-import React, { useState, createElement } from 'react';
+import React, { useState } from 'react';
 import {
   ArrowLeft,
-  Download,
-  ShieldAlert,
   CheckCircle2,
-  AlertTriangle,
-  FileText,
-  User,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
-  Smartphone,
-  Star,
-  Users,
-  Mail } from
-'lucide-react';
+  AlertCircle,
+  BookOpen,
+  MessageSquare,
+  Volume2,
+} from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { motion, AnimatePresence } from 'framer-motion';
-const questionsList = [
-{
-  id: 'q1',
-  num: 1,
-  title: 'Preparing food',
-  category: 'Daily Living'
-},
-{
-  id: 'q2',
-  num: 2,
-  title: 'Taking nutrition',
-  category: 'Daily Living'
-},
-{
-  id: 'q3',
-  num: 3,
-  title: 'Managing therapy or monitoring a health condition',
-  category: 'Daily Living'
-},
-{
-  id: 'q4',
-  num: 4,
-  title: 'Washing and bathing',
-  category: 'Daily Living'
-},
-{
-  id: 'q5',
-  num: 5,
-  title: 'Managing toilet needs or incontinence',
-  category: 'Daily Living'
-},
-{
-  id: 'q6',
-  num: 6,
-  title: 'Dressing and undressing',
-  category: 'Daily Living'
-},
-{
-  id: 'q7',
-  num: 7,
-  title: 'Communicating verbally',
-  category: 'Daily Living'
-},
-{
-  id: 'q8',
-  num: 8,
-  title: 'Reading and understanding signs, symbols and words',
-  category: 'Daily Living'
-},
-{
-  id: 'q9',
-  num: 9,
-  title: 'Engaging with other people face to face',
-  category: 'Daily Living'
-},
-{
-  id: 'q10',
-  num: 10,
-  title: 'Making budgeting decisions',
-  category: 'Daily Living'
-},
-{
-  id: 'q11',
-  num: 11,
-  title: 'Planning and following journeys',
-  category: 'Mobility'
-},
-{
-  id: 'q12',
-  num: 12,
-  title: 'Moving around',
-  category: 'Mobility'
-}];
+import { PIP_QUESTIONS, type PIPQuestion, type Descriptor } from '../pipQuestions';
+import { Check } from 'lucide-react';
 
-export function AssessmentPrepScreen() {
-  const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [activeTab, setActiveTab] = useState<'choose' | 'inperson' | 'telephone'>('choose');
-  const hasAnswers = Object.keys(savedAnswers).length > 0;
-  const handleDownload = () => {
-    const css = [
-    'body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 2rem; }',
-    'h1 { color: #0f766e; margin-bottom: 0.5rem; border-bottom: 2px solid #ccfbf1; padding-bottom: 0.5rem; }',
-    'h2 { color: #115e59; margin-top: 2rem; margin-bottom: 1rem; }',
-    '.intro { margin-bottom: 2rem; color: #666; font-size: 0.95rem; }',
-    '.medical-profile { background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }',
-    '.condition-tag { display: inline-block; background: #115e59; color: white; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; margin-right: 0.5rem; margin-bottom: 0.5rem; }',
-    '.q-block { border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; page-break-inside: avoid; background: #fff; }',
-    '.q-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid #f3f4f6; padding-bottom: 0.75rem; }',
-    '.q-num { background: #0f766e; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }',
-    '.q-title { font-weight: bold; font-size: 1.1rem; color: #1f2937; margin: 0; }',
-    '.q-answer { padding: 1rem; background: #f9fafb; border-radius: 6px; border: 1px solid #f3f4f6; white-space: pre-wrap; font-size: 0.95rem; }',
-    '.tip-box { margin-top: 1rem; padding: 0.75rem; background: #fffbeb; border-left: 4px solid #f59e0b; font-size: 0.85rem; color: #92400e; }',
-    '@media print { body { padding: 0; background: white; } .q-block { border: 1px solid #d1d5db; } }'].
-    join('\n');
-    const conditionsHtml =
-    medProfile.conditions.length > 0 ?
-    `<div class="medical-profile">
-          <h3 style="margin-top: 0; color: #0f766e;">My Conditions</h3>
-          <div>${medProfile.conditions.map((c) => `<span class="condition-tag">${c.name}</span>`).join('')}</div>
-          ${medProfile.medications ? `<div style="margin-top: 1rem;"><strong>Medications:</strong><br/>${medProfile.medications}</div>` : ''}
-        </div>` :
-    '';
-    const answersHtml = questionsList.
-    filter((q) => savedAnswers[q.id]).
-    map((q) => {
-      // Strip HTML tags from the saved answer for a clean document
-      const cleanAnswer = savedAnswers[q.id].replace(/<[^>]*>?/gm, '');
-      return `
-        <div class="q-block">
-          <div class="q-header">
-            <div class="q-num">${q.num}</div>
-            <h3 class="q-title">${q.title}</h3>
-          </div>
-          <div class="q-answer">${cleanAnswer}</div>
-          <div class="tip-box">
-            <strong>Assessment Tip:</strong> Remember to describe your worst days, not your best. If you can only do this sometimes, or it causes pain or exhaustion, make sure to mention that to the assessor.
-          </div>
-        </div>
-      `;
-    }).
-    join('');
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>PIP Assessment Preparation</title>
-        <style>${css}</style>
-      </head>
-      <body>
-        <h1>PIP Assessment Preparation</h1>
-        <p class="intro">This document contains a summary of my difficulties for each PIP activity. I am using this as a reference during my assessment to ensure I accurately describe how my condition affects me on the majority of days.</p>
-        
-        ${conditionsHtml}
-        
-        <h2>My Answers</h2>
-        ${answersHtml || '<p>No answers recorded yet.</p>'}
-      </body>
-      </html>
-    `;
-    const blob = new Blob([htmlContent], {
-      type: 'text/html'
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `PIP-Assessment-Prep-${new Date().toISOString().split('T')[0]}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => {
-      const newWindow = window.open(url, '_blank');
-      if (newWindow) {
-        newWindow.onload = () => newWindow.print();
-      }
-    }, 100);
-  };
-  if (!hasAnswers) {
-    return (
-      <div className="flex flex-col h-full bg-stone-50">
-        <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-          <button
-            onClick={goBack}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
-            
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-bold text-stone-900 text-lg">Assessment Prep</h1>
-        </div>
+type View = 'choose' | 'snapshot' | 'inperson' | 'telephone';
 
-        <div className="flex-1 px-5 py-12 flex flex-col items-center justify-center text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-            <ShieldAlert className="w-8 h-8 text-blue-600" />
-          </div>
-          <h2 className="text-xl font-bold text-stone-900 mb-2">
-            Complete your questions first
-          </h2>
-          <p className="text-stone-500 text-sm leading-relaxed max-w-[280px] mb-6">
-            You need to save answers to your PIP questions before we can
-            generate your assessment preparation document.
-          </p>
-          <button
-            onClick={() => navigateTo('question_index')}
-            className="bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-95 transition-all shadow-sm">
-            
-            Go to Questions
-          </button>
-        </div>
-      </div>);
+// ─── TALKING POINTS GENERATOR ─────────────────────────────────────────────────
 
+function getTalkingPoints(descriptor: Descriptor): string[] {
+  const t = descriptor.text.toLowerCase();
+  const pts = descriptor.points;
+
+  if (pts === 0) {
+    return [
+      'You scored 0 points here — be honest with the assessor about your current situation.',
+      'If your condition has worsened since your form, say so clearly.',
+    ];
   }
+
+  const points: string[] = [];
+
+  if (t.includes('aid') || t.includes('appliance')) {
+    points.push('Name the specific aid or appliance you use — don\'t be vague.');
+    points.push('Explain what happens if you try without it — danger, pain, failure to complete.');
+    points.push('Say how often you need it: "I use it every time / most days."');
+  }
+
+  if (t.includes('prompting')) {
+    points.push('"Without a reminder I don\'t do this — I need prompting every time."');
+    points.push('Say who prompts you and how often they need to remind you.');
+    points.push('Describe what happens if no one prompts: you skip it, it causes harm.');
+  }
+
+  if (t.includes('supervision')) {
+    points.push('"I can\'t do this safely alone — I need someone present or nearby."');
+    points.push('Be specific about what the supervision involves: watching, intervening, being on call.');
+    points.push('Give a real example: "Last week I needed my [partner/carer] to..."');
+  }
+
+  if (t.includes('assistance') && !t.includes('supervision')) {
+    points.push('"I need someone to physically help me — not just be nearby."');
+    points.push('Describe how often you need that help: often or most days, not just occasionally.');
+  }
+
+  if (t.includes('cannot')) {
+    points.push('"I cannot do this — not sometimes, but consistently."');
+    points.push('Give a recent, specific example from the past week or two.');
+    points.push('Don\'t soften it — "I struggle a bit" undersells your real situation.');
+  }
+
+  if (t.includes('unaided')) {
+    points.push('If you technically can do this unaided, say so — but also mention the cost (pain, exhaustion, risk).');
+  }
+
+  if (t.includes('microwave') || t.includes('conventional cooker')) {
+    points.push('"I can only use a microwave — a conventional cooker is not safe for me."');
+    points.push('Explain why: burns, forgetting the hob, fatigue, coordination.');
+  }
+
+  if (t.includes('communicate') || t.includes('understand') || t.includes('hearing')) {
+    points.push('Describe any communication difficulties that came up in the assessment itself — that\'s evidence.');
+    points.push('Mention any aids you use: hearing aids, writing things down, lip reading.');
+  }
+
+  if (t.includes('distance') || t.includes('metres') || t.includes('walking')) {
+    points.push('Be precise: estimate the maximum distance you can manage on a bad day, not a good one.');
+    points.push('Mention how long it takes, if you need to rest, and whether you use a stick or wheelchair.');
+    points.push('"I can walk about [X] metres before the pain/breathlessness/fatigue forces me to stop."');
+  }
+
+  if (t.includes('journey') || t.includes('route') || t.includes('navigate')) {
+    points.push('"I cannot plan or follow a journey alone — I get lost / overwhelmed / anxious."');
+    points.push('Describe what happens when you try: panic, confusion, exhaustion.');
+    points.push('Mention how often you are unable to travel independently.');
+  }
+
+  if (points.length === 0) {
+    points.push(`Describe clearly: "${descriptor.text.replace(/^(Cannot|Needs?|Can)\s/i, '').trim()}"`);
+    points.push('Use specific examples — real incidents carry much more weight than general statements.');
+    points.push('Say how often it happens. "Often" (4+ days/week) is much stronger than "sometimes".');
+  }
+
+  return points;
+}
+
+// ─── FREQUENCY HIGHLIGHT ──────────────────────────────────────────────────────
+
+function FrequencyBanner() {
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+      <div className="flex items-start gap-3">
+        <Volume2 className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+        <div>
+          <p className="font-bold text-amber-900 text-sm mb-1.5">Emphasise frequency — this is critical</p>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            {[
+              { word: 'Often', sub: '4–6 days a week' },
+              { word: 'Most days', sub: 'Every day' },
+              { word: 'Sometimes', sub: '1–3 days a week' },
+              { word: 'Rarely', sub: 'Less than 1 day' },
+            ].map(f => (
+              <div key={f.word} className={`rounded-xl px-3 py-2 text-center ${f.word === 'Often' || f.word === 'Most days' ? 'bg-amber-600 text-white' : 'bg-white border border-amber-100 text-amber-800'}`}>
+                <p className="font-bold text-sm">{f.word}</p>
+                <p className={`text-[10px] ${f.word === 'Often' || f.word === 'Most days' ? 'text-amber-100' : 'text-amber-600'}`}>{f.sub}</p>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-amber-800 leading-relaxed">
+            Use <strong>"often"</strong> or <strong>"most days"</strong> when accurate — these carry the most weight. Saying <em>"sometimes"</em> can lead to a lower score. Base everything on your <strong>worst days</strong>, not your best.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── QUESTION SNAPSHOT CARD ──────────────────────────────────────────────────
+
+function QuestionSnapshotCard({ q, descriptorCode }: { q: PIPQuestion; descriptorCode: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const descriptor = q.descriptors.find(d => d.code === descriptorCode);
+  if (!descriptor) return null;
+
+  const talkingPoints = getTalkingPoints(descriptor);
+  const pts = descriptor.points;
+  const ptsColor = pts >= 8 ? 'text-teal-700 bg-teal-100' : pts >= 4 ? 'text-blue-700 bg-blue-100' : pts >= 2 ? 'text-amber-700 bg-amber-100' : 'text-stone-500 bg-stone-100';
+  const activityLabel = q.category === 'Daily Living' ? `Daily Living ${q.num}` : `Mobility ${q.num - 10}`;
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+      {/* Card header — always visible */}
+      <button
+        type="button"
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
+      >
+        <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
+          <CheckCircle2 className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-none mb-0.5">{activityLabel}</p>
+          <p className="font-semibold text-stone-900 text-sm truncate">{q.shortTitle}</p>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-xs font-black px-2 py-0.5 rounded-full ${ptsColor}`}>
+            {descriptorCode} · {pts}pts
+          </span>
+          {expanded ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+        </div>
+      </button>
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-3">
+          {/* Descriptor summary */}
+          <div className="bg-stone-50 rounded-xl px-3 py-2.5">
+            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1">Your descriptor</p>
+            <p className="text-xs text-stone-700 leading-relaxed">{descriptor.text}</p>
+          </div>
+
+          {/* What to say */}
+          <div>
+            <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wide mb-2">What to say at your assessment</p>
+            <ul className="space-y-2">
+              {talkingPoints.map((point, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <p className="text-xs text-stone-700 leading-relaxed">{point}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {pts >= 2 && (
+            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
+              <Volume2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <p className="text-xs text-amber-800 font-medium">
+                Emphasise: <strong>"often"</strong> or <strong>"most days"</strong> — not just "sometimes"
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── SNAPSHOT VIEW ───────────────────────────────────────────────────────────
+
+function KeyRulesSection() {
+  const [open, setOpen] = useState(false);
+  const tips = [
+    { text: 'Always describe your worst days — not your best or average.', highlight: true },
+    { text: 'Use real examples: "Last Tuesday...", "Three times this week..." — specifics score higher.' },
+    { text: 'Never say "I manage" without explaining the cost — time, pain, needing rest after.' },
+    { text: 'If you need help, say so clearly. Don\'t underplay it to seem polite or capable.' },
+    { text: 'You can ask the assessor to repeat or rephrase any question. Take your time.' },
+  ];
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
+      >
+        <p className="text-sm font-bold text-stone-900">Key rules for every answer</p>
+        {open ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+      </button>
+      {open && (
+        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-2">
+          {tips.map((tip, i) => (
+            <div key={i} className={`rounded-xl px-4 py-3 flex items-start gap-2.5 ${tip.highlight ? 'bg-teal-50 border border-teal-100' : 'bg-stone-50 border border-stone-100'}`}>
+              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${tip.highlight ? 'bg-teal-500' : 'bg-stone-300'}`} />
+              <p className={`text-xs leading-relaxed ${tip.highlight ? 'text-teal-800 font-medium' : 'text-stone-600'}`}>{tip.text}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SnapshotView({ onBack, navigateTo }: { onBack: () => void; navigateTo: (s: any) => void }) {
+  const { savedAnswers, savedAnswerDetails } = useAppContext();
+  const [expandAll, setExpandAll] = useState(false);
+
+  const dailyLiving = PIP_QUESTIONS.filter(q => q.category === 'Daily Living' && savedAnswers[q.id]);
+  const mobility = PIP_QUESTIONS.filter(q => q.category === 'Mobility' && savedAnswers[q.id]);
+  const totalAnswered = dailyLiving.length + mobility.length;
+  const getDescriptorCode = (qId: string) => savedAnswers[qId]?.match(/^Descriptor ([A-Z]+)$/)?.[1] ?? null;
+
+  if (totalAnswered === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+        <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center">
+          <MessageSquare className="w-7 h-7 text-teal-600" />
+        </div>
+        <div>
+          <p className="font-bold text-stone-900 mb-1">No answers yet</p>
+          <p className="text-sm text-stone-500 leading-relaxed">Complete some of your PIP questions first. Your talking points will appear here automatically once you've answered them.</p>
+        </div>
+        <button
+          onClick={() => navigateTo('question_index')}
+          className="bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all"
+        >
+          Go to My Questions
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+      {/* Hero */}
+      <div className="bg-teal-700 px-5 py-6 text-white">
+        <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">Assessment cheat sheet</p>
+        <h2 className="font-bold text-xl mb-1">What to say at your assessment</h2>
+        <p className="text-teal-100 text-sm leading-relaxed">
+          Based on your {totalAnswered} answered question{totalAnswered !== 1 ? 's' : ''} — tap any activity to see your talking points.
+        </p>
+      </div>
+
+      <div className="px-5 py-5 space-y-5">
+        {/* Frequency reminder — top of the page, always visible */}
+        <FrequencyBanner />
+
+        {/* Order note */}
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 flex items-start gap-2.5">
+          <div className="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">i</div>
+          <p className="text-xs text-blue-800 leading-relaxed">
+            <strong>Questions are not always in the same order</strong> as your form — the assessor may jump around. Use this as a guide for what they are looking for in each activity, not a script to follow in sequence.
+          </p>
+        </div>
+
+        {/* Expand all toggle */}
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs font-bold text-stone-500 uppercase tracking-wide">Your activities</p>
+          <button
+            onClick={() => setExpandAll(e => !e)}
+            className="text-xs font-semibold text-teal-600 hover:text-teal-700"
+          >
+            {expandAll ? 'Collapse all' : 'Expand all'}
+          </button>
+        </div>
+
+        {/* Daily Living */}
+        {dailyLiving.length > 0 && (
+          <section>
+            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-1">Daily Living</p>
+            <div className="space-y-2">
+              {dailyLiving.map(q => {
+                const code = getDescriptorCode(q.id);
+                return code ? (
+                  <ExpandableCard
+                    key={q.id}
+                    q={q}
+                    descriptorCode={code}
+                    forceExpand={expandAll}
+                    details={savedAnswerDetails[q.id]}
+                  />
+                ) : null;
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Mobility */}
+        {mobility.length > 0 && (
+          <section>
+            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-1">Mobility</p>
+            <div className="space-y-2">
+              {mobility.map(q => {
+                const code = getDescriptorCode(q.id);
+                return code ? (
+                  <ExpandableCard
+                    key={q.id}
+                    q={q}
+                    descriptorCode={code}
+                    forceExpand={expandAll}
+                    details={savedAnswerDetails[q.id]}
+                  />
+                ) : null;
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* General tips — collapsible */}
+        <KeyRulesSection />
+
+      </div>
+    </div>
+  );
+}
+
+// Wrapper that can be force-expanded
+function ExpandableCard({
+  q,
+  descriptorCode,
+  forceExpand,
+  details,
+}: {
+  q: PIPQuestion;
+  descriptorCode: string;
+  forceExpand: boolean;
+  details?: { difficulties: string[]; answerText?: string };
+}) {
+  const [localExpanded, setLocalExpanded] = useState(false);
+  const expanded = forceExpand || localExpanded;
+
+  const descriptor = q.descriptors.find(d => d.code === descriptorCode);
+  if (!descriptor) return null;
+
+  const talkingPoints = getTalkingPoints(descriptor);
+  const pts = descriptor.points;
+  const ptsColor = pts >= 8 ? 'text-teal-700 bg-teal-100' : pts >= 4 ? 'text-blue-700 bg-blue-100' : pts >= 2 ? 'text-amber-700 bg-amber-100' : 'text-stone-500 bg-stone-100';
+  const activityLabel = q.category === 'Daily Living' ? `DL ${q.num}` : `MOB ${q.num - 10}`;
+  const hasDifficulties = details?.difficulties && details.difficulties.length > 0;
+
+  return (
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setLocalExpanded(e => !e)}
+        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
+      >
+        <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
+          <CheckCircle2 className="w-4 h-4 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-none mb-0.5">{activityLabel}</p>
+          <p className="font-semibold text-stone-900 text-sm truncate">{q.shortTitle}</p>
+          {hasDifficulties && !expanded && (
+            <p className="text-[10px] text-stone-400 mt-0.5 truncate">{details!.difficulties.slice(0, 2).join(' · ')}{details!.difficulties.length > 2 ? ` +${details!.difficulties.length - 2} more` : ''}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`text-xs font-black px-2 py-0.5 rounded-full ${ptsColor}`}>
+            {descriptorCode} · {pts}pts
+          </span>
+          {expanded ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-3">
+
+          {/* What you said — difficulty chips matching step 2 style */}
+          {hasDifficulties && (
+            <div>
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-2">What you said affects you</p>
+              <div className="space-y-2">
+                {details!.difficulties.map((text, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between px-4 py-3 rounded-xl bg-teal-700 text-white text-sm font-medium"
+                  >
+                    <span>{text}</span>
+                    <Check className="w-4 h-4 shrink-0 ml-2 text-teal-300" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Generated answer text */}
+          {details?.answerText && (
+            <div className="bg-stone-50 rounded-xl px-3 py-3">
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">Your written answer</p>
+              <p className="text-xs text-stone-700 leading-relaxed italic">"{details.answerText}"</p>
+            </div>
+          )}
+
+          {/* Fallback descriptor if no saved details */}
+          {!hasDifficulties && !details?.answerText && (
+            <div className="bg-stone-50 rounded-xl px-3 py-2.5">
+              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1">Your descriptor</p>
+              <p className="text-xs text-stone-700 leading-relaxed">{descriptor.text}</p>
+            </div>
+          )}
+
+          {/* What to say at the assessment */}
+          <div>
+            <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wide mb-2">What to say at your assessment</p>
+            <ul className="space-y-2">
+              {talkingPoints.map((point, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                  <p className="text-xs text-stone-700 leading-relaxed">{point}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {pts >= 2 && (
+            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
+              <Volume2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <p className="text-xs text-amber-800 font-medium">
+                Say <strong>"often"</strong> or <strong>"most days"</strong> — not just "sometimes"
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── NEXT STEPS ──────────────────────────────────────────────────────────────
+
+
+// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
+
+// Conditions that commonly make in-person attendance difficult
+const TRAVEL_DIFFICULT_CONDITIONS = [
+  'anxiety', 'panic', 'agoraphobia', 'ptsd', 'depression', 'bipolar',
+  'autism', 'autistic', 'adhd', 'chronic fatigue', 'me/cfs', 'cfs', 'fibromyalgia',
+  'chronic pain', 'ms ', 'multiple sclerosis', 'parkinson', 'epilepsy',
+  'crohn', 'ibs', 'colitis', 'copd', 'heart', 'stroke', 'dementia',
+  'schizophrenia', 'psychosis', 'ocd', 'phobia', 'fatigue', 'mobility',
+];
+
+function TelephoneInfoBox({ conditions }: { conditions: string[] }) {
+  const lower = conditions.map(c => c.toLowerCase());
+
+  const matched = conditions.filter(c =>
+    TRAVEL_DIFFICULT_CONDITIONS.some(k => c.toLowerCase().includes(k))
+  );
+
+  const hasMatches = matched.length > 0;
+
+  return (
+    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-2">
+      <p className="text-sm font-bold text-amber-900">Not sure which type you have?</p>
+      <p className="text-sm text-amber-800 leading-relaxed">
+        Check your appointment letter. If your condition makes attending in person difficult or harmful, you can <strong>request a telephone assessment</strong>. Call DWP on <strong>0800 917 2222</strong> and explain why — it is regularly granted.
+      </p>
+      {hasMatches ? (
+        <div className="bg-white border border-amber-200 rounded-xl px-3 py-2.5">
+          <p className="text-xs font-bold text-amber-900 mb-1.5">Based on your conditions, you may be eligible:</p>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {matched.map((c, i) => (
+              <span key={i} className="text-xs font-semibold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full border border-amber-200">
+                {c}
+              </span>
+            ))}
+          </div>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            Conditions like yours — including anxiety, chronic pain, fatigue, and mental health conditions — are regularly accepted as valid reasons for a telephone assessment. Be honest about the impact travel has on you.
+          </p>
+        </div>
+      ) : (
+        <p className="text-xs text-amber-700 leading-relaxed">
+          This includes anxiety, depression, PTSD, chronic pain, chronic fatigue, autism, mobility issues, or any condition where leaving home causes significant harm or distress.
+        </p>
+      )}
+    </div>
+  );
+}
+
+export function AssessmentPrep() {
+  const { navigateTo, goBack, savedAnswers, medProfile } = useAppContext();
+  const [view, setView] = useState<View>('choose');
+
+  const answeredCount = Object.keys(savedAnswers).length;
+
+  const inPersonTips = [
+    { title: 'Review your talking points', body: 'Tap "View my talking points" before you go. Read through each activity — the assessor may ask about them in any order.' },
+    { title: 'Bring a support person', body: 'You can bring a friend, family member or carer. They can add information and take notes. Attending alone may be used against you.' },
+    { title: 'Bring your evidence', body: 'Bring originals and copies of any GP letters, prescription lists, or specialist reports. You can also hand in evidence after.' },
+    { title: 'You can record the assessment', body: 'Request an audio recording from your assessment provider at least 2 weeks in advance. You must leave a copy with the assessor.' },
+    { title: 'Be careful about your journey', body: 'The assessor may ask how you got there. Explain what the journey cost you — recovery time, whether someone helped, whether you could do it every day.' },
+    { title: "Don't do tasks you can't normally do", body: "If asked to do a physical task you wouldn't normally manage, say so. Doing it once may be recorded as evidence that you always can." },
+    { title: 'Dress as you would on a bad day', body: "Don't dress up. The assessor observes everything from the moment you arrive. Appear as you do on a typical difficult day." },
+    { title: 'You can request a home visit', body: "If leaving home significantly affects your health, request a home assessment. If the centre is more than 90 minutes away, request a closer one." },
+    { title: 'Request a same-gender assessor', body: 'Call your assessment provider using the number on your appointment letter. Other reasonable adjustments can also be requested.' },
+    { title: 'The assessor is a contractor — not DWP', body: 'Your assessment is carried out by Capita or Maximus. They write a report, but a DWP caseworker makes the final decision.' },
+  ];
+
+  const telephoneTips = [
+    { title: 'Have your notes open', body: 'Keep your talking points open on another screen or printed. You can refer to them during the call — this is completely allowed.' },
+    { title: 'Find a quiet space', body: "Choose a quiet room where you won't be interrupted. Let others in the house know not to disturb you." },
+    { title: 'You can have someone with you', body: 'A carer, family member or support worker can sit with you during the call. Tell the assessor who they are at the start.' },
+    { title: 'Describe your worst days', body: 'Always describe how you are on your worst days. Say "on my worst days" out loud. Be specific — "4 out of 7 days", not just "sometimes".' },
+    { title: 'Calls last 45–90 minutes', body: 'Have water nearby. You can ask for a short break. There is no rush to answer — take your time.' },
+    { title: 'Ask for questions to be repeated', body: "Don't rush. If you don't understand a question, ask them to repeat or rephrase it. This is completely normal." },
+    { title: "Note the time and assessor's name", body: "Write down when the call started, the assessor's name, and anything important that was said. You may need this later." },
+    { title: 'Write notes straight after', body: "As soon as the call ends, write down everything you remember — what was asked, what you said, anything that felt wrong." },
+  ];
+
+  const tips = view === 'inperson' ? inPersonTips : telephoneTips;
+
   return (
     <div className="flex flex-col h-full bg-stone-50">
       {/* Header */}
       <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
         <button
-          onClick={activeTab === 'choose' ? goBack : () => setActiveTab('choose')}
+          onClick={view === 'choose' ? goBack : () => setView('choose')}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-stone-900 text-lg leading-tight">
-            {activeTab === 'choose' ? 'Assessment Prep' : activeTab === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
+            {view === 'choose' ? 'Assessment Prep' : view === 'snapshot' ? 'My Talking Points' : view === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
           </h1>
-          {activeTab !== 'choose' && (
-            <button onClick={() => setActiveTab('choose')} className="text-xs text-teal-600 font-medium hover:text-teal-700">
-              ← Choose assessment type
+          {view !== 'choose' && (
+            <button onClick={() => setView('choose')} className="text-xs text-teal-600 font-medium hover:text-teal-700">
+              Back to overview
             </button>
           )}
         </div>
       </div>
 
-      {/* Landing — choose assessment type */}
-      {activeTab === 'choose' && (
-        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
-          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+      {/* CHOOSE view */}
+      {view === 'choose' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+          <div className="bg-teal-700 px-5 py-6 text-white">
             <h2 className="font-bold text-xl mb-1">Prepare for your assessment</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">What type of assessment do you have? Choose below for a tailored preparation guide.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">Know exactly what to say before you go in. Tap below to get started.</p>
           </div>
 
-          {/* In-person card */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('inperson')}
-            className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">🏥</div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-stone-900 text-base mb-1">In-Person Assessment</p>
-                <p className="text-sm text-stone-500 leading-relaxed">Face-to-face at an assessment centre or at your home. Includes what to expect, SAFE tips, what to bring, and things most people don't know.</p>
-                <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
-              </div>
-            </div>
-          </button>
+          <div className="px-5 py-5 space-y-4 max-w-2xl mx-auto">
+            {/* Talking points CTA — prominently first if answers exist */}
+            {answeredCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setView('snapshot')}
+                className="w-full bg-teal-700 text-white rounded-2xl p-5 text-left hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">
+                    <MessageSquare className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-white text-base mb-1">My talking points</p>
+                    <p className="text-sm text-teal-100 leading-relaxed">Based on your {answeredCount} answered question{answeredCount !== 1 ? 's' : ''} — what to say for each activity, with frequency reminders.</p>
+                    <div className="flex items-center gap-1 mt-3">
+                      <span className="text-xs font-bold text-white">Open cheat sheet</span>
+                      <ChevronRight className="w-3.5 h-3.5 text-teal-200" />
+                    </div>
+                  </div>
+                </div>
+              </button>
+            )}
 
-          {/* Telephone card */}
-          <button
-            type="button"
-            onClick={() => setActiveTab('telephone')}
-            className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">📞</div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-stone-900 text-base mb-1">Telephone Assessment</p>
-                <p className="text-sm text-stone-500 leading-relaxed">Assessment by phone from your own home. Covers how to prepare your space, what to say, how to handle questions, and what to do after.</p>
-                <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
+            {answeredCount === 0 && (
+              <div className="bg-stone-100 border border-stone-200 rounded-2xl p-4 text-center">
+                <p className="text-sm font-semibold text-stone-600 mb-1">No answers yet</p>
+                <p className="text-xs text-stone-500 mb-3">Complete your PIP questions first. Your personalised talking points will appear here automatically.</p>
+                <button onClick={() => navigateTo('question_index')} className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors">
+                  Go to My Questions
+                </button>
               </div>
-            </div>
-          </button>
+            )}
 
-          {/* Not sure / request telephone */}
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">Not sure which type you have?</p>
-            <p className="text-sm text-amber-800 leading-relaxed">Check your appointment letter. If you have anxiety, depression, PTSD, or agoraphobia you can request a telephone assessment — call DWP on <strong>0800 917 2222</strong> and ask.</p>
+            {/* Assessment type chooser */}
+            <p className="text-xs font-bold text-stone-500 uppercase tracking-wide px-1">Assessment tips by type</p>
+
+            <button
+              type="button"
+              onClick={() => setView('inperson')}
+              className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">🏥</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-stone-900 text-base mb-1">In-Person Assessment</p>
+                  <p className="text-sm text-stone-500 leading-relaxed">Face-to-face at an assessment centre or at your home. What to bring, what to say, and what most people don't know.</p>
+                  <p className="mt-3 text-xs font-bold text-teal-700">Open guide</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone-300 shrink-0 mt-1" />
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setView('telephone')}
+              className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">📞</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-stone-900 text-base mb-1">Telephone Assessment</p>
+                  <p className="text-sm text-stone-500 leading-relaxed">Assessment by phone from your own home. How to prepare, what to say, and what to do after the call.</p>
+                  <p className="mt-3 text-xs font-bold text-teal-700">Open guide</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-stone-300 shrink-0 mt-1" />
+              </div>
+            </button>
+
+            <TelephoneInfoBox conditions={medProfile?.conditions?.map((c: any) => c.name) ?? []} />
           </div>
         </div>
       )}
 
-      <div className={`flex-1 overflow-y-auto px-5 py-6 space-y-6 ${activeTab === 'choose' ? 'hidden' : ''}`}>
+      {/* SNAPSHOT view */}
+      {view === 'snapshot' && (
+        <SnapshotView onBack={() => setView('choose')} navigateTo={navigateTo} />
+      )}
 
-        {/* Telephone-specific content */}
-        {activeTab === 'telephone' && (
-          <div className="space-y-4">
-            <div className="bg-teal-700 rounded-2xl p-5 text-white">
-              <h2 className="font-bold text-base mb-2">Preparing for your telephone assessment</h2>
-              <p className="text-teal-100 text-sm leading-relaxed">A telephone assessment works the same way as in-person — the assessor asks questions and you describe how your condition affects you. Here's how to prepare.</p>
-            </div>
-            {[
-              { icon: '📋', title: 'Have your notes ready', body: 'Keep your PIPpal answers open on another screen or printed out. You can refer to them during the call — this is completely allowed.' },
-              { icon: '🔇', title: 'Find a quiet space', body: 'Choose a quiet room where you won\'t be interrupted. Let anyone in the house know not to disturb you for the duration of the call.' },
-              { icon: '👤', title: 'You can have someone with you', body: 'A carer, family member or support worker can sit with you during the call. Tell the assessor who they are at the start.' },
-              { icon: '⏱️', title: 'Calls typically last 45–90 minutes', body: 'Have a glass of water nearby. You can ask for a short break if you need one.' },
-              { icon: '📝', title: 'Describe your worst days', body: 'Just like in-person, always describe how you are on your worst days. Say "on my worst days" clearly when this applies.' },
-              { icon: '🔄', title: 'You can ask for questions to be repeated', body: 'Don\'t rush. If you don\'t understand a question, ask them to repeat or rephrase it. Take your time.' },
-              { icon: '📞', title: 'Note the time and assessor\'s name', body: 'Write down when the call started, the assessor\'s name if given, and any important things said. You may need this later.' },
-            ].map((tip, i) => (
+      {/* TIPS views */}
+      {(view === 'inperson' || view === 'telephone') && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+          <div className={`px-5 py-5 text-white ${view === 'inperson' ? 'bg-teal-700' : 'bg-blue-700'}`}>
+            <p className="text-sm leading-relaxed opacity-90">
+              {view === 'inperson'
+                ? 'Tips for your face-to-face assessment.'
+                : 'Tips to prepare for your telephone assessment from home.'}
+            </p>
+          </div>
+
+          <div className="px-5 py-5 space-y-3 max-w-2xl mx-auto">
+            {/* Inline frequency reminder */}
+            <FrequencyBanner />
+
+            {tips.map((tip, i) => (
               <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
-                <span className="text-xl shrink-0">{tip.icon}</span>
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-black text-white mt-0.5 ${view === 'inperson' ? 'bg-teal-600' : 'bg-blue-600'}`}>{i + 1}</span>
                 <div>
                   <p className="font-semibold text-stone-900 text-sm mb-1">{tip.title}</p>
                   <p className="text-xs text-stone-500 leading-relaxed">{tip.body}</p>
                 </div>
               </div>
             ))}
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-              <p className="text-sm text-amber-800 leading-relaxed"><strong>After the call:</strong> Write down everything you remember as soon as the call ends — what was asked, what you said, anything that felt wrong. You may need this if you challenge the decision.</p>
-            </div>
-          </div>
-        )}
 
-        {/* In-person content — existing content below */}
-        {activeTab === 'inperson' && <>
-
-        {/* SAFE tips banner */}
-        <div className="bg-teal-700 rounded-2xl p-5 text-white shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wider text-teal-200 mb-3">The SAFE rule — remember this</p>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { letter: 'S', word: 'Safely', desc: 'Can you do it without risk of injury?' },
-              { letter: 'A', word: 'Adequately', desc: 'Can you do it to an acceptable standard?' },
-              { letter: 'F', word: 'For long enough', desc: 'Can you repeat it as many times as needed?' },
-              { letter: 'E', word: 'Every time', desc: 'Can you do it reliably, on more than half of days?' },
-            ].map(({ letter, word, desc }) => (
-              <div key={letter} className="bg-white/10 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="w-6 h-6 bg-white text-teal-700 rounded-full flex items-center justify-center text-xs font-black shrink-0">{letter}</span>
-                  <span className="text-sm font-bold">{word}</span>
-                </div>
-                <p className="text-[11px] text-teal-100 leading-relaxed">{desc}</p>
+            {view === 'inperson' && (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <p className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-600" />On the day</p>
+                <ul className="space-y-2">
+                  {['Arrive early — rushing increases anxiety', 'Dress as you would on a typical bad day', "Don't downplay your condition to seem polite", 'If a question confuses you, ask for it to be repeated', 'Mention all conditions, not just your main one'].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-amber-800">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />{item}
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-teal-200 mt-3 leading-relaxed">If the answer to any of these is no — you may score points for that activity.</p>
-        </div>
+            )}
 
-        {/* Link to their questions */}
-        <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-start gap-3">
-          <div className="w-9 h-9 bg-amber-50 rounded-full flex items-center justify-center shrink-0">
-            <FileText className="w-4 h-4 text-amber-600" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-stone-900 mb-1">Review your PIP answers</p>
-            <p className="text-xs text-stone-500 leading-relaxed mb-3">The assessor will not always follow the 12 questions in order — they may ask things in a different way. Use your saved answers as a guide, not a script.</p>
-            <button
-              onClick={() => navigateTo('question_index')}
-              className="text-xs font-bold text-teal-700 hover:text-teal-800 transition-colors"
-            >
-              View my answers →
+            {view === 'telephone' && (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <p className="text-sm text-amber-800 leading-relaxed"><strong>After the call:</strong> Write down everything you remember as soon as it ends — what was asked, what you said, anything that felt wrong. You may need this if you challenge the decision.</p>
+              </div>
+            )}
+
+            {answeredCount > 0 && (
+              <button
+                onClick={() => setView('snapshot')}
+                className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                <MessageSquare className="w-4 h-4" />View my talking points
+              </button>
+            )}
+
+            <button onClick={() => navigateTo('pip_diary')} className="w-full bg-white border border-stone-200 text-stone-700 py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              <BookOpen className="w-4 h-4 text-teal-600" />Open my PIP Diary
             </button>
           </div>
         </div>
-
-        <div className="bg-blue-700 rounded-2xl p-5 text-white">
-          <p className="font-bold text-lg mb-1">Practice with a mock assessment</p>
-          <p className="text-blue-100 text-sm leading-relaxed mb-4">Answer questions the way a real assessor would ask them. PIPpal gives you coaching feedback after each answer — helping you describe your experiences more clearly and score more points.</p>
-          <button onClick={() => navigateTo('assessment_mock')}
-            className="w-full bg-white text-blue-700 py-3 rounded-xl font-bold text-sm hover:bg-blue-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            Start mock assessment →
-          </button>
-        </div>
-
-        <p className="text-sm text-stone-600 leading-relaxed px-1">Or download your prep document to review before your assessment — or take it with you on the day.</p>
-
-        <button
-          onClick={handleDownload}
-          className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-base hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2">
-          
-          <Download className="w-5 h-5" />
-          Download Prep Document
-        </button>
-
-        {/* What to expect */}
-        <div className="bg-white rounded-2xl p-5 border border-stone-100 shadow-sm">
-          <h3 className="font-bold text-stone-900 text-sm mb-4">
-            What to expect at your assessment
-          </h3>
-          <div className="space-y-3">
-            <div className="flex items-start gap-2.5">
-              <CheckCircle2 className="w-4.5 h-4.5 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-stone-700 leading-relaxed">
-                <strong>They will ask about your daily life:</strong> The
-                assessor wants to know how you manage the 12 activities. Keep
-                your answers focused on these.
-              </p>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <AlertTriangle className="w-4.5 h-4.5 text-amber-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-stone-700 leading-relaxed">
-                <strong>Describe your worst days:</strong> Don't minimize your
-                struggles. If you can only do something sometimes, or it causes
-                pain, tell them.
-              </p>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <FileText className="w-4.5 h-4.5 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-stone-700 leading-relaxed">
-                <strong>Bring your evidence:</strong> Have your PIP Diary,
-                medical evidence, and this prep document with you.
-              </p>
-            </div>
-            <div className="flex items-start gap-2.5">
-              <User className="w-4.5 h-4.5 text-blue-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-stone-700 leading-relaxed">
-                <strong>You can bring support:</strong> You are allowed to have
-                someone with you during the assessment for support.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Medical Profile Summary */}
-        {medProfile.conditions.length > 0 &&
-        <div className="bg-teal-50 rounded-2xl p-5 border border-teal-100 shadow-sm">
-            <h3 className="font-bold text-teal-900 text-sm mb-3">
-              Your Conditions
-            </h3>
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {medProfile.conditions.map((c, i) =>
-            <span
-              key={i}
-              className="bg-teal-600 text-white text-xs px-2.5 py-1 rounded-full font-medium">
-              
-                  {c.name}
-                </span>
-            )}
-            </div>
-            {medProfile.medications &&
-          <div>
-                <h4 className="font-bold text-teal-900 text-xs mb-1">
-                  Medications
-                </h4>
-                <p className="text-sm text-teal-800 leading-relaxed">
-                  {medProfile.medications}
-                </p>
-              </div>
-          }
-          </div>
-        }
-
-        {/* Answers Preview */}
-        <div>
-          <h3 className="font-bold text-stone-900 text-sm mb-3 px-1">
-            Your Answers Summary
-          </h3>
-          <div className="space-y-4">
-            {questionsList.
-            filter((q) => savedAnswers[q.id]).
-            map((q) =>
-            <div
-              key={q.id}
-              className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
-              
-                  <div className="bg-stone-50 px-4 py-3 border-b border-stone-200 flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center text-xs font-bold shrink-0">
-                      {q.num}
-                    </div>
-                    <h4 className="font-bold text-stone-900 text-sm">
-                      {q.title}
-                    </h4>
-                  </div>
-                  <div className="p-4">
-                    <p
-                  className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{
-                    __html: savedAnswers[q.id]
-                  }}>
-                </p>
-                    <div className="mt-4 bg-amber-50 rounded-xl p-3 border border-amber-100 flex items-start gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-xs text-amber-800 leading-relaxed">
-                        <strong>Tip:</strong> Remember to mention any aids you
-                        use and if you need prompting or supervision for this
-                        activity.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-            )}
-          </div>
-        </div>
-
-        {/* Assessment tips from real experience */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
-          <h3 className="font-bold text-stone-900 text-sm">Things most people don't know</h3>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-teal-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🎙️</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can record your assessment</p>
-              <p className="text-xs text-stone-500 leading-relaxed">Both phone and face-to-face assessments can be audio recorded. Call your assessment provider in advance to arrange it — you can't make a video recording, and you must leave a copy with the assessor. If they refuse, you can complain to the provider.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-amber-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🧑‍🤝‍🧑</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">Don't attend alone if you can help it</p>
-              <p className="text-xs text-stone-500 leading-relaxed">Attending alone may be noted and used to suggest you can manage independently. Bring a friend, family member, or carer. They can add information and take notes for you.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-rose-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🚌</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">Be careful what you say about your journey there</p>
-              <p className="text-xs text-stone-500 leading-relaxed">The assessor may ask how you got to the assessment. If you say "I came by bus alone" they'll record that you can travel independently. Always explain what the journey cost you — how long it took to recover, whether you could do it every day, and any help you needed.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-purple-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🙅</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">Don't do physical tasks you can't normally do</p>
-              <p className="text-xs text-stone-500 leading-relaxed">You may be asked to do physical tasks during the assessment. If you do something you wouldn't normally manage, the assessor may assume you can always do it. If you're uncomfortable — say so.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🏠</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can request a home visit</p>
-              <p className="text-xs text-stone-500 leading-relaxed">If you're housebound due to a mental or physical health condition, you can request a home assessment. If the assessment centre is more than 90 minutes away and you struggle to travel, you can also request a closer location.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">⚧️</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">You can request a same-gender assessor</p>
-              <p className="text-xs text-stone-500 leading-relaxed">Call your assessment provider in advance using the number on your appointment letter and ask for this adjustment. Other reasonable adjustments — like a specific room layout — can also be requested.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🚫</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">Never say "sometimes" or "a lot of the time"</p>
-              <p className="text-xs text-stone-500 leading-relaxed">Vague words like "sometimes" or "often" are ignored or scored at zero. Be specific — say "4 out of 7 days" or "every morning for around 20 minutes." The more specific you are, the harder it is to dismiss.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center shrink-0"><span className="text-sm">🤝</span></div>
-            <div>
-              <p className="text-sm font-semibold text-stone-900 mb-0.5">The assessor is a contractor — not DWP</p>
-              <p className="text-xs text-stone-500 leading-relaxed">Your assessment is carried out by a private company (such as Capita or Maximus). They write a report, but a DWP case worker makes the final decision. The assessor's job is to gather information — not to decide your award.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Printing Instructions */}
-        <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-6">
-          <button
-            onClick={() => setShowInstructions(!showInstructions)}
-            className="w-full p-4 flex items-center justify-between bg-stone-50 hover:bg-stone-100 transition-colors">
-            
-            <div className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4 text-stone-500" />
-              <span className="font-bold text-stone-900 text-sm">
-                How to print or save to your phone
-              </span>
-            </div>
-            {showInstructions ?
-            <ChevronUp className="w-5 h-5 text-stone-500" /> :
-
-            <ChevronDown className="w-5 h-5 text-stone-500" />
-            }
-          </button>
-
-          <AnimatePresence>
-            {showInstructions &&
-            <motion.div
-              initial={{
-                height: 0
-              }}
-              animate={{
-                height: 'auto'
-              }}
-              exit={{
-                height: 0
-              }}
-              className="overflow-hidden">
-              
-                <div className="p-4 space-y-4 border-t border-stone-100 bg-white">
-                  <div>
-                    <h4 className="font-bold text-stone-900 text-sm mb-2 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center text-[10px]">
-                        🍎
-                      </span>
-                      iPhone / iPad
-                    </h4>
-                    <ol className="text-xs text-stone-600 space-y-1.5 list-decimal list-inside pl-1">
-                      <li>
-                        Tap <strong>Download Prep Document</strong> above
-                      </li>
-                      <li>
-                        When the file opens, tap the <strong>Share</strong> icon
-                        (square with up arrow) at the bottom
-                      </li>
-                      <li>
-                        To print: Scroll down and tap <strong>Print</strong>
-                      </li>
-                      <li>
-                        To save: Tap <strong>Save to Files</strong> or email it
-                        to yourself
-                      </li>
-                    </ol>
-                  </div>
-
-                  <div className="pt-3 border-t border-stone-100">
-                    <h4 className="font-bold text-stone-900 text-sm mb-2 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center text-[10px]">
-                        🤖
-                      </span>
-                      Android
-                    </h4>
-                    <ol className="text-xs text-stone-600 space-y-1.5 list-decimal list-inside pl-1">
-                      <li>
-                        Tap <strong>Download Prep Document</strong> above
-                      </li>
-                      <li>The file will download to your device</li>
-                      <li>
-                        Open your <strong>Downloads</strong> or{' '}
-                        <strong>Files</strong> app to find it
-                      </li>
-                      <li>
-                        Tap the file, then tap the menu (three dots) to{' '}
-                        <strong>Print</strong> or <strong>Share</strong> via
-                        email
-                      </li>
-                    </ol>
-                  </div>
-                </div>
-              </motion.div>
-            }
-          </AnimatePresence>
-        </div>
-
-        {/* Contact */}
-        <div className="pt-2">
-          <a
-            href="mailto:support@pippal.uk"
-            className="block bg-white rounded-2xl p-4 border border-stone-100 shadow-sm hover:border-stone-200 transition-all active:scale-[0.98]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-stone-100 rounded-full flex items-center justify-center shrink-0">
-                <Mail className="w-4 h-4 text-stone-600" />
-              </div>
-              <div>
-                <p className="font-bold text-stone-900 text-sm">Need help?</p>
-                <p className="text-xs text-stone-500">support@pippal.uk</p>
-              </div>
-            </div>
-          </a>
-        </div>
-        </> /* end in-person tab */}
-      </div>
-    </div>);
-
+      )}
+    </div>
+  );
 }

@@ -66,7 +66,6 @@ import {
   BackpayCalculatorScreen,
 } from './components/CalculatorScreens';
 import {
-  AssessmentPrep,
   Downloads,
   ClaimSteps,
   AboutScreen,
@@ -75,6 +74,7 @@ import {
   TermsScreen,
   AwaitingDecisionScreen,
 } from './components/Placeholders';
+import { AssessmentPrep } from './components/AssessmentPrepScreen';
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
 import { NewsScreen } from './components/NewsScreen';
@@ -84,6 +84,7 @@ import { PIPBenefitsScreen } from './components/PIPBenefitsScreen';
 import { AssessmentMockTest } from './components/AssessmentMockTest';
 import { BlogPostScreen } from './components/BlogPostScreen';
 import { ChangeOfCircumstancesScreen } from './components/ChangeOfCircumstancesScreen';
+import { SurveyScreen } from './components/SurveyScreen';
 import { DecisionReceivedScreen } from './components/DecisionReceivedScreen';
 import { MandatoryReconsiderationScreen } from './components/MandatoryReconsiderationScreen';
 import { AppealScreen } from './components/AppealScreen';
@@ -260,6 +261,7 @@ function AppContent() {
       case 'influencer_portal': return <InfluencerPortal />;
       case 'pip_benefits': return <PIPBenefitsScreen />;
       case 'assessment_mock': return <AssessmentMockTest />;
+      case 'survey': return <SurveyScreen />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
       case 'awaiting_decision': return hasPaid ? <AwaitingDecisionScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;

@@ -7,12 +7,13 @@ import {
   Sparkles,
   TrendingUp,
   BookOpen,
+  Mic,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
 
 export function QuestionIndex() {
-  const { navigateTo, goBack, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
+  const { navigateTo, goBack, hasPaid, savedAnswers, setSelectedQuestionId, cocMode } = useAppContext();
 
   const totalPoints = getTotalPoints(savedAnswers);
   const answeredCount = Object.keys(savedAnswers).length;
@@ -129,39 +130,60 @@ export function QuestionIndex() {
 
         <div className="px-5 md:px-8 py-6 space-y-6">
 
-          {/* All done — survey + diary banner */}
+          {/* Assessment Prep CTA — hidden in CoC mode */}
+          {answeredCount >= 1 && !cocMode && (
+            <button
+              type="button"
+              onClick={() => navigateTo('assessment_prep')}
+              className="w-full flex items-start gap-3 bg-teal-50 border border-teal-200 rounded-2xl p-4 text-left hover:bg-teal-100 hover:border-teal-300 active:scale-[0.98] transition-all"
+            >
+              <div className="w-9 h-9 bg-teal-600 rounded-xl flex items-center justify-center shrink-0">
+                <Mic className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-teal-900 text-sm mb-0.5">Prepare for your assessment</p>
+                <p className="text-xs text-teal-700 leading-relaxed">See exactly what to say for each of your {answeredCount} answered question{answeredCount !== 1 ? 's' : ''}, with frequency reminders and next steps.</p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-teal-400 shrink-0 mt-1" />
+            </button>
+          )}
+
+          {/* All done — completion banner */}
           {answeredCount === 12 && (
             <div className="space-y-3">
               <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm">
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl shrink-0">🎉</span>
-                  <div className="flex-1">
-                    <p className="font-bold text-base mb-1">You have completed all 12 questions!</p>
-                    <p className="text-emerald-100 text-xs leading-relaxed mb-4">Well done. Your answers are saved and ready to use. We would love to know what you think — it takes 2 minutes and really helps us improve.</p>
-                    <a
-                      href="https://uk.trustpilot.com/review/pippal.uk"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full bg-white text-emerald-700 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-50 transition-colors active:scale-[0.98] block"
-                    >
-                      ⭐ Leave a review on Trustpilot
-                    </a>
-                  </div>
+                <p className="font-bold text-base mb-1">All 12 questions complete!</p>
+                <p className="text-emerald-100 text-xs leading-relaxed mb-4">Well done. Your answers are saved. Takes 30 seconds — let us know how it went.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigateTo('survey')}
+                    className="flex-1 bg-white text-emerald-700 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-50 transition-colors active:scale-[0.98]"
+                  >
+                    Leave feedback
+                  </button>
+                  <a
+                    href="https://uk.trustpilot.com/review/pippal.uk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98] block"
+                  >
+                    ⭐ Trustpilot
+                  </a>
                 </div>
               </div>
               <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
                 <div className="flex items-start gap-3">
                   <div className="w-9 h-9 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
-                    <span className="text-base">📔</span>
+                    <BookOpen className="w-5 h-5 text-teal-600" />
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-stone-900 text-sm mb-1">Start your PIP Diary</p>
-                    <p className="text-xs text-stone-500 leading-relaxed mb-3">Your diary is pre-filled from your answers. Use it to record how your condition affects you each day — this is powerful evidence for your assessment. Open the diary, review the pre-filled notes, and adjust them for each day.</p>
+                    <p className="text-xs text-stone-500 leading-relaxed mb-3">Record how your condition affects you each day — powerful evidence for your assessment.</p>
                     <button
                       onClick={() => navigateTo('pip_diary')}
                       className="w-full bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all"
                     >
-                      Open PIP Diary →
+                      Open PIP Diary
                     </button>
                   </div>
                 </div>

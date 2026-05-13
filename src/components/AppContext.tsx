@@ -43,7 +43,8 @@ export type Screen =
   | 'blog_post'
   | 'influencer_portal'
   | 'pip_benefits'
-  | 'assessment_mock';
+  | 'assessment_mock'
+  | 'survey';
 
 export interface User {
   name: string;
@@ -100,6 +101,9 @@ interface AppContextType {
   savedAnswers: Record<string, string>;
   saveAnswer: (questionId: string, answer: string) => void;
   getSavedAnswer: (questionId: string) => string | undefined;
+  /** Selected difficulty texts + generated answer text, keyed by question ID */
+  savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>;
+  saveAnswerDetails: (questionId: string, details: { difficulties: string[]; answerText?: string }) => void;
   /** Previous answers extracted from uploaded CoC documents — shown in QuestionWizard step 1 instead of the example answer */
   cocPreviousAnswers: Record<string, string>;
   setCocPreviousAnswers: (answers: Record<string, string>) => void;
@@ -193,6 +197,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadFromStorage('pippal_answers', {})
   );
 
+  const [savedAnswerDetails, setSavedAnswerDetails] = useState<Record<string, { difficulties: string[]; answerText?: string }>>(() =>
+    loadFromStorage('pippal_answer_details', {})
+  );
+
   const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
   const [cocMode, setCocMode] = useState(false);
 
@@ -202,6 +210,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Persist to localStorage
   useEffect(() => { saveToStorage('pippal_med_profile', medProfile); }, [medProfile]);
   useEffect(() => { saveToStorage('pippal_answers', savedAnswers); }, [savedAnswers]);
+  useEffect(() => { saveToStorage('pippal_answer_details', savedAnswerDetails); }, [savedAnswerDetails]);
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
   useEffect(() => { saveToStorage('pippal_paid_cache', hasPaid); }, [hasPaid]);
 
@@ -317,6 +326,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
             });
           }
         } catch { /* No profile yet */ }
+
+        // Load saved answers from Supabase — restores progress on new device/browser
+        try {
+          const { data: answerRows } = await supabase
+            .from('pip_answers')
+            .select('question_id, answer')
+            .eq('user_id', session.user.id);
+          if (answerRows && answerRows.length > 0) {
+            const remoteAnswers = Object.fromEntries(answerRows.map((r: any) => [r.question_id, r.answer]));
+            setSavedAnswers(prev => ({ ...remoteAnswers, ...prev })); // local takes priority if both exist
+          }
+        } catch { /* pip_answers table may not exist yet */ }
       } else {
         setIsLoading(false);
       }
@@ -389,10 +410,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setHasPaidState(false);
     setSavedAnswers({});
+    setSavedAnswerDetails({});
     setMedProfileState({ conditions: [], medications: '', notes: '' });
     setHasCompletedEligibilityState(false);
     localStorage.removeItem('pippal_med_profile');
     localStorage.removeItem('pippal_answers');
+    localStorage.removeItem('pippal_answer_details');
     localStorage.removeItem('pippal_eligibility');
     setCurrentScreen('landing');
     setNavigationHistory([]);
@@ -427,10 +450,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveAnswer = (questionId: string, answer: string) => {
-    setSavedAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    setSavedAnswers((prev) => {
+      const updated = { ...prev, [questionId]: answer };
+      // Sync to Supabase if logged in (fire and forget)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          supabase.from('pip_answers').upsert({
+            user_id: session.user.id,
+            question_id: questionId,
+            answer,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,question_id' }).then(() => {});
+        }
+      });
+      return updated;
+    });
   };
 
   const getSavedAnswer = (questionId: string) => savedAnswers[questionId];
+
+  const saveAnswerDetails = (questionId: string, details: { difficulties: string[]; answerText?: string }) => {
+    setSavedAnswerDetails((prev) => ({ ...prev, [questionId]: details }));
+  };
 
   const showToast = useCallback(
     (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -495,6 +536,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         savedAnswers,
         saveAnswer,
         getSavedAnswer,
+        savedAnswerDetails,
+        saveAnswerDetails,
         cocPreviousAnswers,
         setCocPreviousAnswers,
         cocMode,
