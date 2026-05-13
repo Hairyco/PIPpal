@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
@@ -60,14 +60,14 @@ function AskMoreHelpSection({ pipQ, medProfile }: { pipQ: PIPQuestion; medProfil
 }
 
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, setQ1Result, medProfile, savedAnswers } = useAppContext();
   const questionId = selectedQuestionId || 'q1';
   const config = getQuestionFlow(questionId);
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
   const [showExplained, setShowExplained] = useState(true);
-  const [showDescriptors, setShowDescriptors] = useState(false);
+  const [showDescriptors, setShowDescriptors] = useState(true);
   const [showFullExample, setShowFullExample] = useState(true);
   const [loadingExample] = useState(false);
 
@@ -298,6 +298,18 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
   const livePoints = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0;
   const liveDescriptorText = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text ?? '';
 
+  // Accumulated points from all previously completed questions
+  const accumulatedPoints = Object.entries(savedAnswers)
+    .filter(([qId]) => qId !== questionId)
+    .reduce((total, [qId, val]) => {
+      const match = val?.match(/^Descriptor ([A-Z]+)$/);
+      if (!match) return total;
+      const code = match[1];
+      const q = PIP_QUESTIONS.find(q => q.id === qId);
+      const pts = q?.descriptors.find(d => d.code === code)?.points ?? 0;
+      return total + pts;
+    }, 0);
+
   // On step 2, estimate pts based on number of difficulties selected (preview only)
   const estimatedPts = step === 2
     ? answers.selectedDifficulties.length === 0 ? 0
@@ -317,13 +329,24 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             <p className="text-[11px] text-stone-400 font-semibold uppercase tracking-wider">Step {step} of 5</p>
             <p className="font-bold text-stone-900 text-sm truncate">{stepTitle}</p>
           </div>
-          {step > 1 && (
-            <div className="shrink-0 flex items-center gap-1.5">
-              <span className={`text-sm font-black ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-teal-600' : estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
+          <div className="shrink-0 flex items-center gap-2">
+            {step > 1 && (
+              <span className={`text-sm font-black ${estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
                 {estimatedPts}pts
               </span>
-            </div>
-          )}
+            )}
+            <button
+              onClick={() => {
+                sessionStorage.setItem('pippal_resume', JSON.stringify({ questionId, step, title: config!.title }));
+                navigateTo('home');
+              }}
+              className="flex items-center gap-1 text-[11px] font-semibold text-stone-400 hover:text-teal-600 transition-colors px-2 py-1 rounded-lg hover:bg-teal-50"
+              title="Go to dashboard"
+            >
+              <Home className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </button>
+          </div>
         </div>
         {/* Live score bar */}
         {step > 1 && (
@@ -463,21 +486,26 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                 >
                   <div>
                     <p className="text-sm font-bold text-stone-900">What you are scored on</p>
-                    {liveDescriptor && liveDescriptorText && (
-                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
-                    )}
+                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                      {livePoints > 0 && (
+                        <p className="text-xs text-teal-600 font-medium">This question: {livePoints}pts</p>
+                      )}
+                      {accumulatedPoints > 0 && (
+                        <p className="text-xs text-stone-500 font-medium">Running total: <span className="text-teal-700 font-bold">{accumulatedPoints + livePoints}pts</span></p>
+                      )}
+                    </div>
                   </div>
                   <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
                 </button>
                 {showDescriptors && (
                   <div className="border-t border-stone-100">
                     {pipQ.descriptors.map(d => {
-                      const isMatch = liveDescriptor === d.code;
+                      const isMatch = liveDescriptor === d.code && livePoints > 0;
                       return (
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : isMatch ? 'text-teal-600' : 'text-stone-400'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}
@@ -550,7 +578,7 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
               <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Your frequency answers directly affect your score. "Often" or "always" tells the assessor this is a persistent, recurring problem — not a one-off.</p>
             </div>
 
-            {/* What you are scored on — always visible steps 2-5 */}
+            {/* What you are scored on — always visible steps 3-5 */}
             {pipQ && (
               <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
                 <button
@@ -559,21 +587,26 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                 >
                   <div>
                     <p className="text-sm font-bold text-stone-900">What you are scored on</p>
-                    {liveDescriptor && (
-                      <p className="text-xs text-teal-600 font-medium mt-0.5">Currently: Descriptor {liveDescriptor} · {livePoints}pts</p>
-                    )}
+                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                      {livePoints > 0 && (
+                        <p className="text-xs text-teal-600 font-medium">This question: {livePoints}pts</p>
+                      )}
+                      {accumulatedPoints > 0 && (
+                        <p className="text-xs text-stone-500 font-medium">Running total: <span className="text-teal-700 font-bold">{accumulatedPoints + livePoints}pts</span></p>
+                      )}
+                    </div>
                   </div>
                   <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
                 </button>
                 {showDescriptors && (
                   <div className="border-t border-stone-100">
                     {pipQ.descriptors.map(d => {
-                      const isMatch = liveDescriptor === d.code;
+                      const isMatch = liveDescriptor === d.code && livePoints > 0;
                       return (
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : isMatch ? 'text-teal-600' : 'text-stone-400'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}

@@ -100,6 +100,12 @@ interface AppContextType {
   savedAnswers: Record<string, string>;
   saveAnswer: (questionId: string, answer: string) => void;
   getSavedAnswer: (questionId: string) => string | undefined;
+  /** Previous answers extracted from uploaded CoC documents — shown in QuestionWizard step 1 instead of the example answer */
+  cocPreviousAnswers: Record<string, string>;
+  setCocPreviousAnswers: (answers: Record<string, string>) => void;
+  /** When true the question wizard shows "previous answer" framing instead of "example answer" */
+  cocMode: boolean;
+  setCocMode: (on: boolean) => void;
   hasCompletedEligibility: boolean;
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
@@ -186,6 +192,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
     loadFromStorage('pippal_answers', {})
   );
+
+  const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
+  const [cocMode, setCocMode] = useState(false);
 
   const [hasCompletedEligibility, setHasCompletedEligibilityState] =
     useState<boolean>(() => loadFromStorage('pippal_eligibility', false));
@@ -486,6 +495,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         savedAnswers,
         saveAnswer,
         getSavedAnswer,
+        cocPreviousAnswers,
+        setCocPreviousAnswers,
+        cocMode,
+        setCocMode,
         hasCompletedEligibility,
         setHasCompletedEligibility,
         hasPaid,

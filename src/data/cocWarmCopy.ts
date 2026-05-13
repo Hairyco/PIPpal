@@ -98,6 +98,12 @@ export type CocWarmCopy = {
       acceptedChips: Record<AcceptedUploadId, string>;
       uploadButton: string;
       skipButton: string;
+      notReportedToggle: string;
+      notReportedTitle: string;
+      notReportedBody: string;
+      notReportedCallLabel: string;
+      notReportedCallNumber: string;
+      notReportedContinueNote: string;
       riskTitle: string;
       riskBody: string;
       adminEyebrow: string;
@@ -137,6 +143,7 @@ export type CocWarmCopy = {
     s04: {
       leadTitle: string;
       leadBody: string;
+      contextNote: string;
       pickOneHint: string;
     };
     s05: {
@@ -200,20 +207,20 @@ export type CocWarmCopy = {
   };
 };
 
-export const COC_WARM_COPY_CACHE_KEY = 'pippal_coc_warm_copy_v3';
+export const COC_WARM_COPY_CACHE_KEY = 'pippal_coc_warm_copy_v4';
 const CACHE_MS = 1000 * 60 * 60 * 6;
 
 export function getDefaultCocWarmCopy(): CocWarmCopy {
   return {
     stepHeaders: {
       s01: 'Let\'s get started',
-      s02a: 'Looking at what you\'ve shared',
+      s02a: 'Your previous answers',
       s02b: 'No documents — no problem',
-      s03a: 'What were you awarded before?',
+      s03a: 'Your current award',
       s03b: 'Your current award',
-      s04: 'What\'s got harder?',
+      s04: 'Background context',
       s05: 'Your health picture',
-      s06: 'Which activities are affected?',
+      s06: 'Complete your review form',
       s07: 'Helpful evidence',
       s08: 'One thing to be aware of',
       s09: 'Your draft wording',
@@ -227,12 +234,12 @@ export function getDefaultCocWarmCopy(): CocWarmCopy {
     steps: {
       s01: {
         heroEyebrow: 'Change of circumstances',
-        heroTitle: 'Report a Change of Circumstances',
+        heroTitle: 'Build better answers for your review',
         heroSubtitle:
-          'Things have got harder and you want DWP to know. We\'ll walk through it together, one step at a time.',
-        uploadTitle: 'Got any old PIP paperwork?',
+          'DWP will send you a review form covering all 12 activities — the same as your original PIP2. This walkthrough helps you build stronger, more detailed answers than last time, for every single question.',
+        uploadTitle: 'Got your previous PIP paperwork?',
         uploadBody:
-          'If you have your previous award letter, assessor\'s report or decision notice, uploading them helps us understand what was accepted before — so we can show clearly what\'s changed. Totally optional.',
+          'Upload your award letter, PA4 assessor\'s report or decision notice and we\'ll show you exactly what was said for each activity — so you can see what needs improving and write better answers this time.',
         acceptedLabel: 'Things you can upload',
         acceptedChips: {
           award_letter: 'Award letter',
@@ -242,11 +249,19 @@ export function getDefaultCocWarmCopy(): CocWarmCopy {
           assessor_report: 'Assessor report',
           screenshots: 'Screenshots or photos',
         },
-        uploadButton: 'Upload my documents',
-        skipButton: 'I don\'t have anything to upload',
-        riskTitle: 'Something to know before you start',
+        uploadButton: 'Upload my previous PIP documents',
+        skipButton: 'I don\'t have anything — continue without',
+        notReportedToggle: 'Haven\'t reported to DWP yet?',
+        notReportedTitle: 'Tell DWP as soon as possible',
+        notReportedBody:
+          'Any increase in your award is backdated to the date you first contact DWP — not when you return the form. The sooner you call, the more you\'re entitled to.',
+        notReportedCallLabel: 'Call DWP to start the process',
+        notReportedCallNumber: '0800 917 2222',
+        notReportedContinueNote:
+          'You can prepare all your answers with PIPpal now. When you\'re ready to call, everything will be here waiting.',
+        riskTitle: 'What usually happens when you report a change',
         riskBody:
-          'When you tell DWP things have got worse, they look at your whole award again — not just what\'s changed. For most people the award goes up or stays the same. But it\'s worth knowing it could go down too.',
+          'DWP reviews your whole award — not just what\'s changed. Source: DWP PIP statistics. More than 8 in 10 people maintain or improve their award. A well-prepared, specific claim is your strongest protection — that\'s what PIPpal helps you build.',
         adminEyebrow: 'Admin preview',
         adminBody:
           'Skip straight to the flow without uploading. Only you can see this.',
@@ -254,57 +269,62 @@ export function getDefaultCocWarmCopy(): CocWarmCopy {
         adminPreviewSkip: 'Preview without documents →',
       },
       s02a: {
-        leadTitle: 'Thanks — we\'ve got your documents',
+        leadTitle: 'Your previous answers are your starting point',
         leadBody:
-          'We\'ve looked at what you uploaded and picked out which activities are likely to be relevant. Have a look and remove anything that doesn\'t feel right.',
-        analysisLoading: 'Reading what you\'ve shared…',
-        queuedLabel: 'Files you uploaded',
-        signalsTitle: 'Activities that look relevant',
+          'We\'ll show you what was said for each activity last time. Your job is to build on it — more detail, stronger examples, anything that was missed. Every answer can be improved.',
+        analysisLoading: 'Getting your previous answers ready…',
+        queuedLabel: 'Documents you uploaded',
+        signalsTitle: 'Activities with previous answers',
         signalsBody:
-          'These are the areas that came up in your paperwork. Tap to deselect anything that doesn\'t apply, or carry on to add more as you go.',
+          'These are the activities you\'ve previously answered in PIPpal. We\'ll show each one alongside the new questions so you can write a stronger version.',
         hintNoAnswers:
-          'You haven\'t answered any PIP questions in the app yet, so we\'ve suggested some common areas to start with. You can change these as you go.',
+          'No previous answers found. That\'s fine — we\'ll go through all 12 activities fresh. You\'ll build a complete set of answers from scratch.',
         hintWithAnswers:
-          'These match what you\'ve told us before. Tap to adjust — your previous answers are a useful starting point, not a fixed answer.',
+          'We found your previous answers. For each activity, we\'ll show what you said before so you can write something stronger.',
       },
       s02b: {
-        leadTitle: 'That\'s completely fine',
+        leadTitle: 'No documents — that\'s fine',
         leadBody:
-          'Lots of people don\'t have their paperwork to hand. We\'ll ask you a few simple questions to build up a picture of where things stand, and you can add documents later if you find them.',
-        worthTitle: 'Worth trying to find if you can',
+          'You don\'t need paperwork to prepare strong answers. We\'ll take you through all 12 activities just like the review form and help you build detailed, specific answers for each one.',
+        worthTitle: 'Worth trying to get hold of if you can',
         worthItems: ['PA4 assessor report', 'Award letter', 'Previous review form'],
       },
       s03a: {
-        leadTitle: 'What was in your last assessment?',
-        leadBody: 'Tap the areas that were included in your previous award. Don\'t worry if you\'re not sure — just go with what feels right.',
+        leadTitle: 'What are you currently receiving?',
+        leadBody:
+          'A quick snapshot of your current award. This gives us context for building your new answers — the goal is to reflect your situation accurately and completely.',
         dailyLivingLabel: 'Daily Living',
         mobilityLabel: 'Mobility',
       },
       s03b: {
-        leadTitle: 'What are you getting at the moment?',
-        leadBody: 'Tap the rate for each part of your award. An estimate is fine if you\'re not sure of the exact figure.',
-        dailyLivingSection: 'Daily Living',
-        mobilitySection: 'Mobility',
-        prevAwardSection: 'What were you awarded for?',
+        leadTitle: 'What are you currently receiving?',
+        leadBody:
+          'Tell us roughly what you\'re getting now. This is just context — the detail that matters comes in the activity questions.',
+        dailyLivingSection: 'Daily Living rate',
+        mobilitySection: 'Mobility rate',
+        prevAwardSection: 'What were you previously awarded for?',
       },
       s04: {
-        leadTitle: 'What\'s got harder since your last assessment?',
-        leadBody: 'Tap everything that applies. You can change your mind at any point.',
-        pickOneHint: 'Tap at least one thing to continue.',
+        leadTitle: 'What\'s changed since your last assessment?',
+        leadBody:
+          'Give the assessor a clear picture of what\'s different now. This sits alongside your activity answers as background context.',
+        contextNote:
+          'Think of this as a brief summary for the assessor — the real detail comes when you answer each activity question.',
+        pickOneHint: 'Select at least one to continue.',
       },
       s05: {
-        leadTitle: 'Tell us a bit about your health',
+        leadTitle: 'Your health picture',
         leadBody:
-          'A few quick taps so we understand your situation better. Go with what feels true right now — not what\'s on a letter.',
+          'Quick context before we go through the activities. This helps tailor the questions — go with what\'s true now.',
         statusSection: 'Where things stand medically',
         symptomSection: 'What you deal with day to day',
         flowBExtraSection: 'Support and medication',
         medicalProfileCta: 'Update your medical profile',
       },
       s06: {
-        leadTitle: 'Which activities are affected?',
+        leadTitle: 'Complete your review form',
         leadBody:
-          'Work through each activity and tap the things that honestly describe what happens. Think about your bad days, not your best ones.',
+          'This is the core of your review — all 12 activities, just like the PIP2 form. For each one, we\'ll show your previous answer and help you write a stronger, more detailed version. Work through every activity.',
         difficultiesLabel: 'What makes it hard',
         reliabilityLabel: 'How it affects you overall',
       },

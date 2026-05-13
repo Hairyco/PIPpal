@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, RotateCcw, Edit3, Sparkles, Check, X, Save, ChevronRight } from 'lucide-react';
+import { RefreshCw, RotateCcw, Edit3, Sparkles, Check, X, Save, ChevronRight, Home } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion } from 'framer-motion';
 import { getQuestion, PIP_QUESTIONS } from '../pipQuestions';
@@ -104,6 +104,7 @@ export function ResultCard() {
   const [detailSuggestions, setDetailSuggestions] = useState<string[]>([]);
   const [addedDetails, setAddedDetails] = useState<Set<string>>(new Set());
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [customDetail, setCustomDetail] = useState('');
 
   const VOICES = [
     {
@@ -319,7 +320,16 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           <Check className="w-3.5 h-3.5 text-teal-500" />
           Your conversation is saved
         </div>
-        <ChevronRight className="w-3.5 h-3.5 text-stone-400" />
+        <button
+          onClick={() => {
+            sessionStorage.setItem('pippal_resume', JSON.stringify({ questionId: qId, step: 'result', title: question?.title || qId }));
+            navigateTo('home');
+          }}
+          className="flex items-center gap-1 text-xs font-semibold text-stone-400 hover:text-teal-600 transition-colors"
+        >
+          <Home className="w-3.5 h-3.5" />
+          Dashboard
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto pb-28 space-y-3 px-4 pt-4">
@@ -479,6 +489,39 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
               })}
             </div>
           )}
+
+          {/* Add your own words */}
+          <div className="mt-4 pt-3 border-t border-stone-100 space-y-2">
+            <p className="text-xs font-semibold text-stone-700">Add your own words</p>
+            <p className="text-[11px] text-stone-400 leading-relaxed">Type anything specific to your situation — a real example, a bad day, something the suggestions missed.</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customDetail}
+                onChange={e => setCustomDetail(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && customDetail.trim()) {
+                    handleAddDetail(customDetail.trim());
+                    setCustomDetail('');
+                  }
+                }}
+                placeholder="e.g. I burnt myself last month because I forgot the hob was on"
+                className="flex-1 text-sm bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-teal-300 placeholder:text-stone-300"
+              />
+              <button
+                onClick={() => {
+                  if (customDetail.trim()) {
+                    handleAddDetail(customDetail.trim());
+                    setCustomDetail('');
+                  }
+                }}
+                disabled={!customDetail.trim()}
+                className="text-sm font-bold px-4 py-2.5 rounded-xl bg-teal-600 text-white disabled:opacity-40 active:scale-95 transition-all shrink-0"
+              >
+                Add
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Linked Conditions */}

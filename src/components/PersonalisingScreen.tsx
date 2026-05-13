@@ -143,32 +143,31 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     };
   }, []);
 
-  const messages = [
-    'Personalising your questions...',
+  const completedCount = Object.keys(savedAnswers).length;
+  const totalQuestions = 12;
+  const currentQuestionNum = parseInt(questionId.replace('q', '')) || 1;
+  const progressPct = Math.round((completedCount / totalQuestions) * 100);
+  const flowPreview = getQuestionFlow(questionId);
+  const barWidthPct = completedCount === 0 ? 6 : Math.max(progressPct, 10);
+
+  const preparingMessages = [
+    'Personalising your next question...',
     'Reading your conditions...',
-    'Tailoring the examples to you...',
+    'Tailoring the example to you...',
     'Almost ready...',
   ];
   const [msgIndex, setMsgIndex] = useState(0);
 
   useEffect(() => {
     const t = setInterval(() => {
-      setMsgIndex(i => Math.min(i + 1, messages.length - 1));
+      setMsgIndex(i => Math.min(i + 1, preparingMessages.length - 1));
     }, 900);
     return () => clearInterval(t);
   }, []);
 
-  const completedCount = Object.keys(savedAnswers).length;
-  const totalQuestions = 12;
-  const currentQuestionNum = parseInt(questionId.replace('q', '')) || 1;
-  const progressPct = Math.round((completedCount / totalQuestions) * 100);
-  const flowPreview = getQuestionFlow(questionId);
-  /** Show at least a hint of fill so the bar never looks broken at 0% */
-  const barWidthPct = completedCount === 0 ? 6 : Math.max(progressPct, 10);
-
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-stone-50 via-white to-stone-50 px-6 z-50">
-      <div className="flex flex-col items-center gap-8 w-full max-w-sm text-center">
+      <div className="flex flex-col items-center gap-6 w-full max-w-sm text-center">
 
         <div className="relative shrink-0">
           <div className="absolute -inset-6 rounded-full bg-teal-400/15 blur-2xl" aria-hidden />
@@ -185,20 +184,32 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
           </div>
         </div>
 
-        <div className="space-y-3 px-1">
-          <h2 className="font-bold text-stone-900 text-xl leading-snug tracking-tight">{messages[msgIndex]}</h2>
+        {/* Completed confirmation — shown from Q2 onwards */}
+        {completedCount > 0 && (
+          <div className="bg-teal-50 border border-teal-100 rounded-2xl px-5 py-3 w-full">
+            <p className="text-sm font-bold text-teal-800">
+              ✓ Question {completedCount} complete
+            </p>
+            <p className="text-xs text-teal-600 mt-0.5">
+              {completedCount} of {totalQuestions} activities done — {totalQuestions - completedCount} remaining
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-2 px-1">
+          <h2 className="font-bold text-stone-900 text-xl leading-snug tracking-tight">{preparingMessages[msgIndex]}</h2>
           {flowPreview ? (
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Next: <span className="font-semibold text-stone-800">{flowPreview.title}</span>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Up next: <span className="font-semibold text-stone-800">{flowPreview.title}</span>
             </p>
           ) : (
-            <p className="text-sm text-stone-600 leading-relaxed">
-              Preparing activity {currentQuestionNum} for you.
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Preparing question {currentQuestionNum} of {totalQuestions}
             </p>
           )}
         </div>
 
-        {/* Slim progress only — no numbered circles */}
+        {/* Progress bar */}
         <div className="w-full max-w-[260px] space-y-2">
           <div className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wider text-stone-400">
             <span>Claim progress</span>

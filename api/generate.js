@@ -31,6 +31,49 @@ async function openaiChat(system, user, { jsonObject = false, maxTokens = 2000 }
   return (data.choices?.[0]?.message?.content || '').trim();
 }
 
+/**
+ * GPT-4o Vision call — accepts an array of base64-encoded images (JPEG/PNG/PDF-pages)
+ * and a text prompt, returns the model's text reply.
+ */
+async function openaiVision(systemPrompt, userText, imageObjects, { maxTokens = 3000 } = {}) {
+  if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
+
+  const imageMessages = imageObjects.map(img => ({
+    type: 'image_url',
+    image_url: { url: `data:${img.mimeType};base64,${img.base64}`, detail: 'high' },
+  }));
+
+  const body = {
+    model: 'gpt-4o',
+    max_tokens: maxTokens,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: [
+          ...imageMessages,
+          { type: 'text', text: userText },
+        ],
+      },
+    ],
+  };
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenAI Vision error ${response.status}: ${errText}`);
+  }
+
+  const data = await response.json();
+  return (data.choices?.[0]?.message?.content || '').trim();
+}
+
 async function anthropicComplete(prompt, maxTokens = 2000) {
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -221,6 +264,72 @@ ${JSON.stringify(baseCopy)}`;
     } catch (err) {
       console.error('coc-walkthrough-copy:', err.message);
       return res.status(500).json({ error: err.message, walkthroughCopy: null });
+    }
+
+  // ── COC DOCUMENT ANALYSIS — extract previous PIP2 answers from scanned form ─
+  } else if (type === 'coc-document-analysis') {
+    const { files } = req.body || {};
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ error: 'files array is required' });
+    }
+
+    // Validate each file has base64 + mimeType
+    const imageObjects = files
+      .filter(f => f && f.base64 && f.mimeType)
+      .map(f => ({ base64: f.base64, mimeType: f.mimeType }));
+
+    if (imageObjects.length === 0) {
+      return res.status(400).json({ error: 'No valid image files provided' });
+    }
+
+    const system = `You are a specialist in reading UK PIP (Personal Independence Payment) forms — both typed and handwritten. Your only job is to extract the claimant's written answers from scanned PIP2 forms or award letters.
+
+The UK PIP2 form covers these 12 daily living and mobility activities:
+q1: Preparing food
+q2: Taking nutrition (eating and drinking)
+q3: Managing therapy or monitoring a health condition
+q4: Washing and bathing
+q5: Managing toilet needs or incontinence
+q6: Dressing and undressing
+q7: Communicating verbally
+q8: Reading and understanding signs, symbols and words
+q9: Engaging with other people face to face
+q10: Making budgeting decisions
+q11: Planning and following journeys
+q12: Moving around
+
+Extract what the claimant wrote for each activity. Return a single JSON object with keys q1 through q12. For each key provide:
+- "answer": the claimant's written answer (verbatim where possible, or a faithful summary if very long). Empty string if the page wasn't provided or that section is blank.
+- "confidence": "high", "medium", or "low" based on how legible/complete the answer was.
+
+Rules:
+- Transcribe exactly what is written — do not interpret, improve, or add information.
+- If the handwriting is unclear, do your best and set confidence to "low".
+- If a question appears blank or unanswered, set answer to "" and confidence to "low".
+- Return ONLY the JSON object. No explanation text.`;
+
+    const userText = `Please extract the claimant's answers for all 12 PIP activities from these scanned pages. Return the JSON object as described.`;
+
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(503).json({ error: 'OpenAI Vision not available (no API key)' });
+      }
+      const raw = await openaiVision(system, userText, imageObjects, { maxTokens: 3000 });
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        // Try to extract JSON if model prepended text
+        const match = raw.match(/\{[\s\S]*\}/);
+        parsed = match ? JSON.parse(match[0]) : null;
+      }
+      if (!parsed) {
+        return res.status(500).json({ error: 'Could not parse extraction result' });
+      }
+      return res.status(200).json({ extractedAnswers: parsed });
+    } catch (err) {
+      console.error('coc-document-analysis:', err.message);
+      return res.status(500).json({ error: err.message });
     }
 
   } else {

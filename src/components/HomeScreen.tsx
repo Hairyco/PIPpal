@@ -23,6 +23,7 @@ import {
   Settings,
   Newspaper,
   Hourglass,
+  PlayCircle,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 
@@ -106,6 +107,29 @@ export function HomeScreen() {
   const hasConditions = medProfile.conditions.length > 0;
   const firstName = user?.name ? user.name.split(' ')[0] : '';
 
+  // Resume state — set when user navigates to dashboard mid-question
+  const [resumeData, setResumeData] = useState<{ questionId: string; step: number | string; title: string } | null>(() => {
+    try { return JSON.parse(sessionStorage.getItem('pippal_resume') || 'null'); } catch { return null; }
+  });
+
+  const handleResume = () => {
+    if (!resumeData) return;
+    sessionStorage.removeItem('pippal_resume');
+    setResumeData(null);
+    setSelectedQuestionId(resumeData.questionId);
+    // If they left from the result screen, go back to result; otherwise go to intro
+    if (resumeData.step === 'result') {
+      navigateTo('q1_result');
+    } else {
+      navigateTo('personalising');
+    }
+  };
+
+  const dismissResume = () => {
+    sessionStorage.removeItem('pippal_resume');
+    setResumeData(null);
+  };
+
   const dismissUrgency = () => {
     sessionStorage.setItem('urgency_dismissed', 'true');
     setUrgencyDismissed(true);
@@ -167,6 +191,31 @@ export function HomeScreen() {
             <button onClick={dismissUrgency} className="shrink-0 text-amber-200 hover:text-white">
               <X className="w-4 h-4" />
             </button>
+          </div>
+        )}
+
+        {/* Resume banner — shown when user navigated away mid-question */}
+        {resumeData && (
+          <div className="bg-teal-700 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm">
+            <PlayCircle className="w-8 h-8 text-teal-200 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-sm leading-snug">Continue where you left off</p>
+              <p className="text-teal-200 text-xs mt-0.5 truncate">{resumeData.title}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={dismissResume}
+                className="text-teal-300 hover:text-white text-xs font-semibold transition-colors"
+              >
+                Dismiss
+              </button>
+              <button
+                onClick={handleResume}
+                className="bg-white text-teal-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-50 active:scale-95 transition-all"
+              >
+                Resume →
+              </button>
+            </div>
           </div>
         )}
 

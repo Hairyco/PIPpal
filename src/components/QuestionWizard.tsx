@@ -142,7 +142,7 @@ const REAL_LIFE_OPTIONS: Record<string, { icon: string; label: string; sub: stri
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export function QuestionWizard() {
-  const { selectedQuestionId, navigateTo, goBack, medProfile, setDescriptorHint, setQ1Result } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, medProfile, setDescriptorHint, setQ1Result, cocMode, cocPreviousAnswers } = useAppContext();
   const qId = selectedQuestionId || 'q1';
   const question = getQuestion(qId);
   if (!question) return null;
@@ -464,17 +464,38 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                   </AnimatePresence>
                 </div>
 
-                {/* Example answer */}
-                {question.conditionExplainers[0]?.example && (
-                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                {/* Previous answer (CoC mode) OR example answer (new claim) */}
+                {cocMode ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
-                        <span className="text-[10px]">👤</span>
+                      <div className="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
+                        <span className="text-[10px]">📋</span>
                       </div>
-                      <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">EXAMPLE ANSWER</p>
+                      <p className="text-[11px] font-bold text-blue-500 uppercase tracking-widest">YOUR PREVIOUS ANSWER</p>
                     </div>
-                    <p className="text-sm text-stone-600 leading-relaxed italic">"{question.conditionExplainers[0].example}"</p>
+                    {cocPreviousAnswers[qId] ? (
+                      <p className="text-sm text-blue-900 leading-relaxed">"{cocPreviousAnswers[qId]}"</p>
+                    ) : (
+                      <p className="text-sm text-blue-400 italic">No previous answer for this activity — build a fresh one below.</p>
+                    )}
+                    {cocPreviousAnswers[qId] && (
+                      <p className="text-[11px] text-blue-600 font-semibold mt-2">
+                        Your goal: write something stronger and more specific than this.
+                      </p>
+                    )}
                   </div>
+                ) : (
+                  question.conditionExplainers[0]?.example && (
+                    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center shrink-0">
+                          <span className="text-[10px]">👤</span>
+                        </div>
+                        <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">EXAMPLE ANSWER</p>
+                      </div>
+                      <p className="text-sm text-stone-600 leading-relaxed italic">"{question.conditionExplainers[0].example}"</p>
+                    </div>
+                  )
                 )}
               </div>
             )}
@@ -485,8 +506,12 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                 {/* Hero */}
                 <div className="bg-teal-700 rounded-2xl p-4 text-white">
                   <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-1">DAILY LIVING · ACTIVITY {question.num}</p>
-                  <h2 className="font-bold text-lg">Which difficulties apply to you?</h2>
-                  <p className="text-teal-100 text-sm mt-1">Select anything that applies — even if it only happens on bad days.</p>
+                  <h2 className="font-bold text-lg">{cocMode ? 'How has this got harder?' : 'Which difficulties apply to you?'}</h2>
+                  <p className="text-teal-100 text-sm mt-1">
+                    {cocMode
+                      ? 'Select everything that applies NOW — even if it was an issue before too. Think about what\'s got worse or more frequent.'
+                      : 'Select anything that applies — even if it only happens on bad days.'}
+                  </p>
                 </div>
 
                 {/* What you are scored on — simple toggle, no animation library */}
