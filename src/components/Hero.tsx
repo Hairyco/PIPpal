@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown } from 'lucide-react';
+import { Trophy, CheckCircle2, ArrowRight, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onStart?: () => void;
@@ -14,16 +14,9 @@ export function Hero({ onStart }: HeroProps) {
     return () => clearTimeout(t);
   }, []);
 
-  const stats: { value: string; label: string; labelClass?: string }[] = [
-    { value: '12', label: 'questions guided' },
-    { value: '15–30', label: 'mins typical' },
-    { value: '3–6 wks', label: 'Get your PIP decision 3–6 weeks earlier', labelClass: 'text-[9px] leading-snug' },
-  ];
-
   const checks = [
     { text: 'Guides you through all 12 PIP questions' },
-    { text: 'Tailored to your specific conditions' },
-    { text: 'Built-in PIP Diary to log daily challenges' },
+    { text: 'Answers tailored to your specific conditions' },
     { text: 'Assessment prep & appeal letter generator' },
   ];
 
@@ -37,7 +30,7 @@ export function Hero({ onStart }: HeroProps) {
       >
         <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-6">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
-          Plain-English PIP guidance
+          Plain-English PIP guidance and answers
         </div>
       </div>
 
@@ -85,33 +78,11 @@ export function Hero({ onStart }: HeroProps) {
         </div>
       </div>
 
-      {/* Stats row — no success-rate percentage */}
-      <div
-        className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-        style={{ transitionDelay: '240ms' }}
-      >
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {stats.map((stat, i) => (
-            <div key={i} className="bg-white rounded-xl p-3 border border-stone-100 shadow-sm text-center">
-              <div className="font-bold text-teal-700 text-lg leading-none mb-1">{stat.value}</div>
-              <div className={`${stat.labelClass ?? 'text-[10px]'} text-stone-500`}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-center gap-1.5 mb-6">
-          {[1, 2, 3, 4, 5].map((s) => (
-            <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
-          ))}
-          <span className="text-xs text-stone-500 ml-1 font-medium">Structured help for UK claimants</span>
-        </div>
-      </div>
-
       {/* Scroll hint */}
       <button
         type="button"
         onClick={() => document.getElementById('free-tools')?.scrollIntoView({ behavior: 'smooth' })}
-        className="text-sm text-teal-700 font-medium hover:text-teal-800 transition-colors flex items-center gap-1.5 group"
+        className="mt-2 text-sm text-teal-700 font-medium hover:text-teal-800 transition-colors flex items-center gap-1.5 group"
       >
         Try our free calculators
         <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
