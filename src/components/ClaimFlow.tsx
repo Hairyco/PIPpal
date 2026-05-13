@@ -160,7 +160,7 @@ export function ClaimFlow() {
                 backpayLink: true,
               },
               { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the form — it usually arrives in 2–4 weeks. You don't need to wait. Start building your answers in PIPpal now and return the form the moment it lands.", downloadsLink: true },
-              { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.' },
+              { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.', assessmentLink: true },
               { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
             ].map((item, i) => (
               <div key={i} className="flex gap-3">
@@ -177,6 +177,15 @@ export function ClaimFlow() {
                       className="mt-2 block text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
                     >
                       Open the Backpay calculator →
+                    </button>
+                  )}
+                  {'assessmentLink' in item && item.assessmentLink && (
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('assessment_prep')}
+                      className="mt-2 block text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
+                    >
+                      Open Assessment Prep — in-person and telephone guides →
                     </button>
                   )}
                   {'downloadsLink' in item && item.downloadsLink && (
