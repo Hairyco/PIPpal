@@ -93,7 +93,7 @@ const questionsList = [
 export function AssessmentPrepScreen() {
   const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
   const [showInstructions, setShowInstructions] = useState(false);
-  const [activeTab, setActiveTab] = useState<'inperson' | 'telephone'>('inperson');
+  const [activeTab, setActiveTab] = useState<'choose' | 'inperson' | 'telephone'>('choose');
   const hasAnswers = Object.keys(savedAnswers).length > 0;
   const handleDownload = () => {
     const css = [
@@ -209,40 +209,75 @@ export function AssessmentPrepScreen() {
   }
   return (
     <div className="flex flex-col h-full bg-stone-50">
+      {/* Header */}
       <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
         <button
-          onClick={goBack}
-          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
-          
+          onClick={activeTab === 'choose' ? goBack : () => setActiveTab('choose')}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all"
+        >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-bold text-stone-900 text-lg">Assessment Prep</h1>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-bold text-stone-900 text-lg leading-tight">
+            {activeTab === 'choose' ? 'Assessment Prep' : activeTab === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
+          </h1>
+          {activeTab !== 'choose' && (
+            <button onClick={() => setActiveTab('choose')} className="text-xs text-teal-600 font-medium hover:text-teal-700">
+              ← Choose assessment type
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Telephone request disclaimer */}
-      <div className="mx-5 mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4">
-        <p className="text-sm text-amber-800 leading-relaxed">
-          <strong>Have anxiety, depression, PTSD or agoraphobia?</strong> You can request a telephone assessment. Call DWP on <strong>0800 917 2222</strong> and say: <em>"I would like a telephone assessment due to my mental health condition."</em> It is regularly granted.
-        </p>
-      </div>
+      {/* Landing — choose assessment type */}
+      {activeTab === 'choose' && (
+        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-4">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <h2 className="font-bold text-xl mb-1">Prepare for your assessment</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">What type of assessment do you have? Choose below for a tailored preparation guide.</p>
+          </div>
 
-      {/* Tabs */}
-      <div className="mx-5 mt-4 flex bg-stone-100 rounded-xl p-1">
-        <button
-          onClick={() => setActiveTab('inperson')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'inperson' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-        >
-          🏥 In-Person
-        </button>
-        <button
-          onClick={() => setActiveTab('telephone')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === 'telephone' ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}
-        >
-          📞 Telephone
-        </button>
-      </div>
+          {/* In-person card */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('inperson')}
+            className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">🏥</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-stone-900 text-base mb-1">In-Person Assessment</p>
+                <p className="text-sm text-stone-500 leading-relaxed">Face-to-face at an assessment centre or at your home. Includes what to expect, SAFE tips, what to bring, and things most people don't know.</p>
+                <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
+              </div>
+            </div>
+          </button>
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          {/* Telephone card */}
+          <button
+            type="button"
+            onClick={() => setActiveTab('telephone')}
+            className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">📞</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-stone-900 text-base mb-1">Telephone Assessment</p>
+                <p className="text-sm text-stone-500 leading-relaxed">Assessment by phone from your own home. Covers how to prepare your space, what to say, how to handle questions, and what to do after.</p>
+                <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Not sure / request telephone */}
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+            <p className="text-sm font-bold text-amber-900 mb-1">Not sure which type you have?</p>
+            <p className="text-sm text-amber-800 leading-relaxed">Check your appointment letter. If you have anxiety, depression, PTSD, or agoraphobia you can request a telephone assessment — call DWP on <strong>0800 917 2222</strong> and ask.</p>
+          </div>
+        </div>
+      )}
+
+      <div className={`flex-1 overflow-y-auto px-5 py-6 space-y-6 ${activeTab === 'choose' ? 'hidden' : ''}`}>
 
         {/* Telephone-specific content */}
         {activeTab === 'telephone' && (
