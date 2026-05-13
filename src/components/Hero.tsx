@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ArrowRight, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Trophy, CheckCircle2, Star, ArrowRight, ChevronDown } from 'lucide-react';
 
 interface HeroProps {
   onStart?: () => void;
@@ -14,91 +14,108 @@ export function Hero({ onStart }: HeroProps) {
     return () => clearTimeout(t);
   }, []);
 
-  return (
-    <section className="px-5 md:px-8 pt-10 md:pt-16 pb-10 flex flex-col items-center text-center max-w-3xl mx-auto">
+  const stats = [
+    { value: '12', label: 'questions guided' },
+    { value: '15–30', label: 'mins typical' },
+    { value: '£8.99', label: 'Full access' },
+  ];
 
-      {/* Urgency banner */}
-      <div className="w-full bg-amber-500 rounded-2xl px-4 py-3.5 mb-8 flex items-start gap-3 text-left shadow-sm">
-        <AlertTriangle className="w-4 h-4 text-white shrink-0 mt-0.5" />
-        <div>
-          <p className="text-white font-bold text-sm">PIP rules are changing in late 2026</p>
-          <p className="text-amber-100 text-xs leading-relaxed mt-0.5">The government is tightening eligibility. If you think you qualify, applying now protects your entitlement.</p>
+  const checks = [
+    { text: 'Guides you through all 12 PIP questions' },
+    { text: 'Tailored to your specific conditions' },
+    { text: 'Built-in PIP Diary to log daily challenges' },
+    { text: 'Assessment prep & appeal letter generator' },
+  ];
+
+  return (
+    <section className="px-5 md:px-8 pt-10 md:pt-20 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
+
+      {/* Badge */}
+      <div
+        className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
+        style={{ transitionDelay: '0ms' }}
+      >
+        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-6">
+          <Trophy className="w-3.5 h-3.5 text-amber-600" />
+          Plain-English PIP guidance
         </div>
       </div>
 
       {/* Headline */}
-      <div className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      <div
+        className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        style={{ transitionDelay: '80ms' }}
+      >
         <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-4">
           Get your PIP application right —{' '}
           <span className="text-teal-700">first time</span>
         </h1>
-        <p className="text-stone-500 text-base md:text-lg leading-relaxed mb-8 max-w-xl mx-auto">
-          PIP claims, made simple. We turn your answers into what DWP need to see. No jargon, no stress.
+        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto px-2">
+          We guide you through every question, tailored to your condition. No jargon, no stress, no expensive advisers.
         </p>
       </div>
 
-      {/* DWP outcome context */}
+      {/* Main card */}
       <div
-        className={`w-full max-w-xl mb-8 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-        style={{ transitionDelay: '60ms' }}
+        className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        style={{ transitionDelay: '160ms' }}
       >
-        <div className="rounded-2xl border border-stone-200 bg-stone-50 p-5 text-left shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center shrink-0">
-              <BarChart3 className="w-4 h-4 text-teal-700" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider mb-1.5">Why strong applications matter</p>
-              <p className="text-sm text-stone-700 leading-relaxed">
-                DWP statistics indicate that <span className="font-semibold text-stone-900">over half</span> of PIP applications are rejected. For the quarter ending January 2026, only <span className="font-semibold text-stone-900">35%</span> of new claims received an award — a decrease from <span className="font-semibold text-stone-900">43%</span> a year earlier. That high rate of unsuccessful outcomes shows why effective application assistance matters — and why we built PIPpal to help you put your case clearly.
-              </p>
-              <p className="text-[11px] text-stone-500 mt-2.5 leading-relaxed">
-                Official figures change each quarter; see the latest DWP statistical summaries on{' '}
-                <a href="https://www.gov.uk/government/collections/personal-independence-payment-statistics" className="text-teal-700 font-semibold hover:text-teal-800 underline underline-offset-2" target="_blank" rel="noopener noreferrer">gov.uk</a>.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CTA card */}
-      <div className={`w-full max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '100ms' }}>
-        <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100 mb-5">
-          <div className="space-y-2.5 mb-5 text-left">
-            {[
-              ['12 questions', ' — guided in plain English'],
-              ['Assessment prep', ' — what assessors look for'],
-              ['Personalised unique answers', ' for your condition'],
-              ['Zero data sharing', ' — encrypted & private'],
-            ].map(([bold, rest], i) => (
+        <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
+          <div className="space-y-3 mb-5 text-left">
+            {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                <span className="text-sm text-stone-700"><strong>{bold}</strong>{rest}</span>
+                <span className="text-sm text-stone-700">{check.text}</span>
               </div>
             ))}
           </div>
 
           <button
+            type="button"
             onClick={onStart}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
           >
-            Start Now — It's Free
+            Start Now — It&apos;s Free
             <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-center text-xs text-stone-400 mt-3">Free tools available · Full access £8.99 — limited time</p>
-        </div>
 
-        {/* Free calculators link */}
-        <div className="flex items-center justify-center">
-          <a
-            href="#free-tools"
-            className="text-xs text-teal-700 font-semibold hover:text-teal-800 transition-colors"
-          >
-            Try our free PIP calculators →
-          </a>
+          <p className="text-center text-xs text-stone-400 mt-3">
+            Free tools available · Full access £8.99 — limited time
+          </p>
         </div>
       </div>
 
+      {/* Stats row — no success-rate percentage */}
+      <div
+        className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        style={{ transitionDelay: '240ms' }}
+      >
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {stats.map((stat, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 border border-stone-100 shadow-sm text-center">
+              <div className="font-bold text-teal-700 text-lg leading-none mb-1">{stat.value}</div>
+              <div className="text-[10px] text-stone-500">{stat.label}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center justify-center gap-1.5 mb-6">
+          {[1, 2, 3, 4, 5].map((s) => (
+            <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
+          ))}
+          <span className="text-xs text-stone-500 ml-1 font-medium">Structured help for UK claimants</span>
+        </div>
+      </div>
+
+      {/* Scroll hint */}
+      <button
+        type="button"
+        onClick={() => document.getElementById('free-tools')?.scrollIntoView({ behavior: 'smooth' })}
+        className="text-sm text-teal-700 font-medium hover:text-teal-800 transition-colors flex items-center gap-1.5 group"
+      >
+        Try our free calculators
+        <ChevronDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+      </button>
     </section>
   );
 }

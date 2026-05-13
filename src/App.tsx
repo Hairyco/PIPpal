@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { LandingDwpContext } from './components/LandingDwpContext';
 import { WhatIsPIP } from './components/WhatIsPIP';
 import { ClaimSelector } from './components/ClaimSelector';
 import { EligibilityBanner } from './components/EligibilityBanner';
@@ -308,6 +309,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <LandingDwpContext />
               <WhyPIPpal />
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
