@@ -151,6 +151,25 @@ function saveToStorage(key: string, value: any) {
   }
 }
 
+/** Deep-link targets for /blog and /blog/:slug (SPA has no router — path was ignored before). */
+export type BlogPathParse = { type: 'blog' } | { type: 'blog_post'; slug: string } | null;
+
+export function parseBlogPath(): BlogPathParse {
+  try {
+    let path = window.location.pathname || '/';
+    if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
+    if (path.toLowerCase() === '/blog') return { type: 'blog' };
+    const m = path.match(/^\/blog\/([^/]+)$/i);
+    if (m?.[1]) {
+      const slug = decodeURIComponent(m[1]);
+      if (slug) return { type: 'blog_post', slug };
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
 
   // Read Supabase session from localStorage instantly — no network call needed
@@ -171,7 +190,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // If URL has a code param, Supabase needs to process it — show loading
   const hasAuthCode = window.location.search.includes('code=');
 
-  const [currentScreen, setCurrentScreen] = useState<Screen>(initialSessionUser && !hasAuthCode ? 'home' : 'landing');
+  const blogPath = !hasAuthCode ? parseBlogPath() : null;
+  const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
+    if (blogPath?.type === 'blog') return 'blog';
+    if (blogPath?.type === 'blog_post') return 'blog_post';
+    return initialSessionUser && !hasAuthCode ? 'home' : 'landing';
+  });
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
   const [isLoading, setIsLoading] = useState(hasAuthCode);
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -199,7 +223,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
   const [assistantQuestion, setAssistantQuestion] = useState<string | null>(null);
   const [assistantContext, setAssistantContext] = useState<string | null>(null);
-  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(null);
+  const [selectedBlogSlug, setSelectedBlogSlug] = useState<string | null>(() =>
+    blogPath?.type === 'blog_post' ? blogPath.slug : null,
+  );
   const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
@@ -308,7 +334,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
               }
             } catch { /* Not a valid influencer code */ }
           }
-          setCurrentScreen('home');
+          const p = parseBlogPath();
+          if (p?.type === 'blog') {
+            setCurrentScreen('blog');
+            setSelectedBlogSlug(null);
+          } else if (p?.type === 'blog_post') {
+            setCurrentScreen('blog_post');
+            setSelectedBlogSlug(p.slug);
+          } else {
+            setCurrentScreen('home');
+          }
         }
 
         // Always load has_paid status from Supabase — this is the source of truth
@@ -359,7 +394,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip if we are in the middle of logging out
       if (localStorage.getItem('pippal_logging_out') === 'true') return;
       // Always clear loading when auth state changes
@@ -368,8 +403,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const email = session.user.email || '';
         setUser({ name, email, id: session.user.id });
-        // Always navigate to home when a session is detected
-        setCurrentScreen('home');
+        // Do not reset screen on TOKEN_REFRESHED — only align with URL on sign-in / initial session
+        if (event === 'SIGNED_IN') {
+          const p = parseBlogPath();
+          if (p?.type === 'blog') {
+            setCurrentScreen('blog');
+            setSelectedBlogSlug(null);
+          } else if (p?.type === 'blog_post') {
+            setCurrentScreen('blog_post');
+            setSelectedBlogSlug(p.slug);
+          } else {
+            setCurrentScreen('home');
+          }
+        } else if (event === 'INITIAL_SESSION') {
+          const p = parseBlogPath();
+          if (p?.type === 'blog') {
+            setCurrentScreen('blog');
+            setSelectedBlogSlug(null);
+          } else if (p?.type === 'blog_post') {
+            setCurrentScreen('blog_post');
+            setSelectedBlogSlug(p.slug);
+          }
+        }
 
         // Always check Supabase for paid status — never trust localStorage alone
         try {

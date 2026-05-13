@@ -198,7 +198,7 @@ export function BlogPostScreen() {
             {/* CTA */}
             <div className="mx-5 mb-8 bg-stone-900 rounded-2xl p-5">
               <p className="font-bold text-white text-base mb-1">Ready to claim PIP?</p>
-              <p className="text-xs text-stone-300 leading-relaxed mb-4">100% success rate. Complete your form in 15–30 minutes. Get your decision 3–6 weeks earlier. Just £8.99 one-time.</p>
+              <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15–30 minutes. Full access from £8.99 one-time.</p>
               <button
                 onClick={() => {
                   supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => {});

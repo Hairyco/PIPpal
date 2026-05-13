@@ -122,6 +122,7 @@ function AppContent() {
     setAssistantContext,
     isLoading,
     selectedQuestionId,
+    selectedBlogSlug,
   } = useAppContext();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -160,6 +161,22 @@ function AppContent() {
       }).then(() => {});
     }
   }, [currentScreen]);
+
+  // Keep shareable URLs in sync for blog (SPA otherwise stays on "/" while showing blog)
+  useEffect(() => {
+    if (currentScreen === 'blog') {
+      window.history.replaceState({}, '', '/blog');
+      return;
+    }
+    if (currentScreen === 'blog_post' && selectedBlogSlug) {
+      window.history.replaceState({}, '', `/blog/${encodeURIComponent(selectedBlogSlug)}`);
+      return;
+    }
+    const path = window.location.pathname.replace(/\/$/, '') || '/';
+    if (path.toLowerCase().startsWith('/blog')) {
+      window.history.replaceState({}, '', '/');
+    }
+  }, [currentScreen, selectedBlogSlug]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {

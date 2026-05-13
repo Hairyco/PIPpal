@@ -3,7 +3,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   Sparkles,
-  Shield,
+  ClipboardList,
   Clock,
   TrendingUp,
   Lock,
@@ -123,7 +123,7 @@ export function UpsellScreen() {
           {/* Stats grid */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: Shield, bg: 'bg-teal-50', color: 'text-teal-600', value: '100%', label: 'Success rate' },
+              { icon: ClipboardList, bg: 'bg-teal-50', color: 'text-teal-600', value: '12', label: 'Questions guided' },
               { icon: Clock, bg: 'bg-blue-50', color: 'text-blue-600', value: '15–30', label: 'Mins to complete' },
               { icon: TrendingUp, bg: 'bg-amber-50', color: 'text-amber-600', value: '60%', label: 'Appeals overturned' },
             ].map((stat, i) => (

@@ -27,6 +27,12 @@ function getCategoryStyle(category: string) {
   return CATEGORY_STYLES[category] || 'bg-stone-100 text-stone-600 border-stone-200';
 }
 
+function normalizeBlogTags(tags: unknown): string[] {
+  if (Array.isArray(tags)) return tags.filter((t): t is string => typeof t === 'string');
+  if (typeof tags === 'string' && tags.trim()) return [tags.trim()];
+  return [];
+}
+
 export function BlogScreen() {
   const { goBack, navigateTo, setSelectedBlogSlug } = useAppContext();
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -35,6 +41,7 @@ export function BlogScreen() {
   const [dateRange, setDateRange] = useState('all');
 
   useEffect(() => {
+    setSelectedBlogSlug(null);
     fetchPosts();
     // Pick up tag filter from blog post screen
     const tagFilter = sessionStorage.getItem('blog_tag_filter');
@@ -46,17 +53,29 @@ export function BlogScreen() {
 
   const fetchPosts = async () => {
     setIsLoading(true);
-    const { data } = await supabase
-      .from('blog_posts')
-      .select('id, title, slug, excerpt, category, tags, created_at')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
-    setPosts(data || []);
-    setIsLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt, category, tags, created_at')
+        .eq('published', true)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Blog fetch:', error);
+        setPosts([]);
+        return;
+      }
+      const rows = (data || []).map((p) => ({ ...p, tags: normalizeBlogTags(p.tags) }));
+      setPosts(rows);
+    } catch (e) {
+      console.error('Blog fetch:', e);
+      setPosts([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const categories = ['All', ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))];
-  const allTags = Array.from(new Set(posts.flatMap(p => p.tags || []))).sort();
+  const allTags = Array.from(new Set(posts.flatMap(p => normalizeBlogTags(p.tags)))).sort();
   const allFilters = [...categories, ...allTags.filter(t => !categories.includes(t))];
   const dateFiltered = dateRange === 'all' ? posts : posts.filter(p => {
     const days = parseInt(dateRange);
@@ -65,7 +84,7 @@ export function BlogScreen() {
     return new Date(p.created_at) >= cutoff;
   });
   const filtered = activeTag === 'All' ? dateFiltered
-    : dateFiltered.filter(p => p.category === activeTag || (p.tags || []).includes(activeTag));
+    : dateFiltered.filter(p => p.category === activeTag || normalizeBlogTags(p.tags).includes(activeTag));
 
   const openPost = (slug: string) => {
     setSelectedBlogSlug(slug);

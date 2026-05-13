@@ -26,7 +26,7 @@ Write a 60-second TikTok script based on this blog post. Format it for speaking 
 Rules:
 - Start with a hook that stops the scroll in the first 3 seconds
 - Use short punchy sentences — this is spoken word not written
-- Reference real numbers: 94% success rate, 15-30 minutes, 3-6 weeks earlier
+- You may mention that the in-app flow often takes around 15–30 minutes — do not invent success rates or guarantee DWP timelines
 - End with a clear CTA: "Link in bio to try PIPpal free"
 - Write in sections: [HOOK], [MAIN POINT 1], [MAIN POINT 2], [MAIN POINT 3], [CTA]
 - Estimated time next to each section in seconds e.g. [HOOK - 5s]

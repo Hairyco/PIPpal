@@ -66,9 +66,9 @@ export function Hero({ onStart }: HeroProps) {
         <div className="bg-white rounded-2xl p-5 shadow-md border border-stone-100 mb-5">
           <div className="space-y-2.5 mb-5 text-left">
             {[
-              ['100%', ' success rate'],
-              ['Receive your PIP decision', ' 3–6 weeks earlier'],
-              ['Unique answers', ' tailored to your condition'],
+              ['12 questions', ' — guided in plain English'],
+              ['Assessment prep', ' — what assessors look for'],
+              ['Personalised unique answers', ' for your condition'],
               ['Zero data sharing', ' — encrypted & private'],
             ].map(([bold, rest], i) => (
               <div key={i} className="flex items-center gap-2.5">

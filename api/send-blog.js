@@ -31,7 +31,7 @@ function buildBlogEmailHtml(post, unsubscribeUrl) {
           <a href="https://www.pippal.uk" style="display:inline-block;background:#f97316;color:#fff;text-decoration:none;padding:14px 32px;border-radius:12px;font-size:14px;font-weight:700;">Read the full guide →</a>
         </td></tr>
         <tr><td style="background:#fff;padding:20px 28px 28px 28px;text-align:center;">
-          <p style="margin:0 0 12px 0;font-size:14px;color:#44403c;">PIPpal guides you through every PIP question in plain English — with a <strong>94% success rate</strong> and average completion time of just 15–30 minutes.</p>
+          <p style="margin:0 0 12px 0;font-size:14px;color:#44403c;">PIPpal guides you through every PIP question in plain English. Many people finish the in-app flow in around 15–30 minutes.</p>
           <a href="https://www.pippal.uk" style="display:inline-block;background:#0f766e;color:#fff;text-decoration:none;padding:12px 28px;border-radius:10px;font-size:13px;font-weight:700;">Visit PIPpal →</a>
         </td></tr>
         <tr><td style="background:#f5f5f4;border-radius:0 0 16px 16px;padding:16px 28px;text-align:center;">
