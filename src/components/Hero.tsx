@@ -14,6 +14,16 @@ export function Hero({ onStart }: HeroProps) {
     return () => clearTimeout(t);
   }, []);
 
+  const stats: { value: string; label: string; labelClass?: string }[] = [
+    { value: '12', label: 'questions guided' },
+    { value: '15–30', label: 'mins typical' },
+    {
+      value: '3–6 wks',
+      label: 'Get your PIP decision 3–6 weeks earlier',
+      labelClass: 'text-[9px] leading-snug',
+    },
+  ];
+
   const checks = [
     { text: 'Guides you through all 12 PIP questions' },
     { text: 'Answers tailored to your specific conditions' },
@@ -43,17 +53,9 @@ export function Hero({ onStart }: HeroProps) {
           Get your PIP application right —{' '}
           <span className="text-teal-700">first time</span>
         </h1>
-        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-6 max-w-2xl mx-auto px-2">
+        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto px-2">
           We guide you through every question, tailored to your condition. No jargon, no stress, no expensive advisers.
         </p>
-        <div className="mb-8 flex justify-center px-2">
-          <div className="rounded-2xl border border-teal-100 bg-white px-6 py-3.5 shadow-sm text-center min-w-[200px]">
-            <p className="text-2xl md:text-3xl font-bold text-teal-700 tabular-nums leading-none">3–6 wks</p>
-            <p className="text-xs text-stone-500 mt-2 leading-snug max-w-[240px]">
-              Get your PIP decision 3–6 weeks earlier
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Main card */}
@@ -83,6 +85,21 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">
             Free tools available · Full access £8.99 — limited time
           </p>
+        </div>
+      </div>
+
+      {/* Stats row — includes 3–6 weeks timing (no success-rate claims) */}
+      <div
+        className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+        style={{ transitionDelay: '240ms' }}
+      >
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          {stats.map((stat, i) => (
+            <div key={i} className="bg-white rounded-xl p-3 border border-stone-100 shadow-sm text-center">
+              <div className="font-bold text-teal-700 text-lg leading-none mb-1">{stat.value}</div>
+              <div className={`${stat.labelClass ?? 'text-[10px]'} text-stone-500`}>{stat.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 
