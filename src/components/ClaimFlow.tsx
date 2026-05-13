@@ -121,17 +121,6 @@ export function ClaimFlow() {
       case 1: return (
         <div className="space-y-4 px-5 pt-5 pb-28">
 
-          {/* PIP2 form banner */}
-          <div className="bg-teal-50 border border-teal-200 rounded-2xl px-4 py-3 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold text-teal-700 uppercase tracking-widest">Form you'll need</p>
-              <p className="text-sm font-bold text-teal-900 mt-0.5">PIP2 — How your disability affects you</p>
-            </div>
-            <button onClick={() => navigateTo('downloads')} className="text-xs font-bold text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-50 active:scale-95 transition-all">
-              Downloads →
-            </button>
-          </div>
-
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <h2 className="font-bold text-xl mb-2">Starting your PIP claim</h2>
             <p className="text-teal-100 text-sm leading-relaxed">PIPpal does the hard work for you. We ask simple questions, then build your answers in the language DWP needs to see.</p>
@@ -165,7 +154,7 @@ export function ClaimFlow() {
             <h3 className="font-bold text-stone-900">How do I apply?</h3>
             {[
               { step: '1', title: 'Call DWP to open your claim', body: 'Ring 0800 917 2222. This call takes 20 minutes. Your payments are backdated to this date — so call as soon as possible, even before you have everything ready.' },
-              { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form." },
+              { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form.", downloadsLink: true },
               { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.' },
               { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
             ].map((item, i) => (
@@ -173,9 +162,18 @@ export function ClaimFlow() {
                 <div className="w-6 h-6 rounded-full bg-teal-700 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-white text-[11px] font-bold">{item.step}</span>
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-stone-900">{item.title}</p>
                   <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                  {'downloadsLink' in item && item.downloadsLink && (
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('downloads')}
+                      className="mt-2 text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
+                    >
+                      Open your downloads folder — PIP2 form and other templates →
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
