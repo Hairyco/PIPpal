@@ -601,6 +601,9 @@ export function EligibilityChecker() {
               — you can claim whether you're employed, self-employed, or not
               working. Your income and savings do not affect it.
             </p>
+            <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5">
+              <p className="text-xs text-teal-900 leading-relaxed"><strong>You don't need to be physically disabled or severely ill to qualify.</strong> Mental health conditions, chronic pain, fatigue, anxiety and hidden conditions all count — it's about how your condition affects your daily life, not your diagnosis.</p>
+            </div>
           </div>
 
           {/* Did You Know */}

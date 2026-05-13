@@ -19,6 +19,7 @@ export type Screen =
   | 'pip_diary'
   | 'downloads'
   | 'decision_received'
+  | 'awaiting_decision'
   | 'mandatory_reconsideration'
   | 'appeal'
   | 'change_of_circumstances'
@@ -103,6 +104,8 @@ interface AppContextType {
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
   setHasPaid: (paid: boolean) => void;
+  /** True when the signed-in user's email matches admin (env or owner fallback). Used for previews / dashboards. */
+  isAdmin: boolean;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   toasts: Toast[];
@@ -159,7 +162,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     id: initialSessionUser.id,
   } : null);
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
-  const isAdmin = (email: string) => email === ADMIN_EMAIL || email === 'daley_cutler@hotmail.co.uk';
+  const emailIsAdmin = (email: string) => email === ADMIN_EMAIL || email === 'daley_cutler@hotmail.co.uk';
 
   const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
 
@@ -285,7 +288,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid || isAdmin(session.user.email || '')) {
+          if (profile?.has_paid || emailIsAdmin(session.user.email || '')) {
             setHasPaidState(true);
           }
         } catch { /* No profile yet */ }
@@ -333,13 +336,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid || isAdmin(session.user.email || '')) {
+          if (profile?.has_paid || emailIsAdmin(session.user.email || '')) {
             setHasPaidState(true);
           } else {
             setHasPaidState(false);
           }
         } catch {
-          setHasPaidState(isAdmin(session.user.email || ''));
+          setHasPaidState(emailIsAdmin(session.user.email || ''));
         }
 
       } else {
@@ -487,6 +490,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setHasCompletedEligibility,
         hasPaid,
         setHasPaid,
+        isAdmin: !!(user?.email && emailIsAdmin(user.email)),
         isLoading,
         setIsLoading,
         toasts,

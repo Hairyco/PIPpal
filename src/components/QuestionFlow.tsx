@@ -68,7 +68,7 @@ export function QuestionFlow() {
   const [step, setStep] = useState<Step>(1);
   const [showExplained, setShowExplained] = useState(true);
   const [showDescriptors, setShowDescriptors] = useState(false);
-  const [showFullExample, setShowFullExample] = useState(false);
+  const [showFullExample, setShowFullExample] = useState(true);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -132,43 +132,56 @@ export function QuestionFlow() {
     saveAnswer(questionId, `Descriptor ${descriptor}`);
 
     const d = pipQ?.descriptors.find(d => d.code === descriptor);
-    const rawDraft = buildDraftText(descriptor);
-    const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+    const nothingSelected = answers.selectedDifficulties.length === 0;
 
-    // Send compiled answers to API to generate a natural, first-person answer
-    let finalText = rawDraft;
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `You are helping someone write their PIP claim answer. Write this as if the claimant wrote it themselves — genuine, human, not robotic.
+    // If nothing was selected, leave the draft blank — no answer to generate
+    let finalText = '';
+    if (!nothingSelected) {
+      const rawDraft = buildDraftText(descriptor);
+      const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
-Activity: "${config!.title}"
-Their conditions: ${conditions}
-What they told us: ${rawDraft}
-The descriptor they qualify for: ${descriptor} — "${d?.text}"
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `You are helping a UK PIP claimant write one section of their PIP2 form. Rewrite the structured notes below as a natural first-person answer — how a real person would describe their life, not a form.
 
-Write 3-5 sentences that:
-- Sound completely natural — like a real person describing their life, not a form
-- Use plain everyday language — no medical jargon, no bureaucratic phrases
-- Describe what actually happens on their worst days, not average days
-- Include how often difficulties happen (use their frequency data)
-- Mention any help or supervision they need
-- Include the real impact on their daily life
-- Feel honest and personal — like they sat down and wrote it themselves
+Activity being assessed: "${config!.title}"
+Claimant's conditions: ${conditions}
+Structured notes (do NOT copy these word-for-word): ${rawDraft}
+Qualifying descriptor: ${descriptor} — "${d?.text}"
 
-Do NOT use phrases like "I experience difficulties with" or "I am unable to" — these sound robotic.
-Do NOT start with the activity name.
-Do NOT add anything they didn't tell us.
-Write in first person. Return ONLY the answer — no preamble, no explanation.`,
-          conversationHistory: [],
-          medProfile: { conditions: medProfile.conditions },
-        }),
-      });
-      const data = await res.json();
-      if (data.reply) finalText = data.reply.trim();
-    } catch { /* use rawDraft as fallback */ }
+Requirements:
+- 3–5 sentences, written in first person
+- Start with a specific, concrete example of what happens (e.g. "Most mornings I..." or "When I try to...")
+- Use plain everyday British English — no jargon, no formal phrases
+- Describe their worst or typical bad days, not their best
+- Include how often the difficulties happen
+- Mention any help, supervision, or aids they need
+- Include real-life impact (e.g. relying on ready meals, needing someone present)
+- Sound like the person wrote it themselves — honest, human, specific
+
+Do NOT start with "I experience difficulties", "I am unable to", or the activity name.
+Do NOT invent anything not in the notes above.
+Return ONLY the final answer text — no preamble, no labels, no explanation.`,
+            conversationHistory: [],
+            medProfile: { conditions: medProfile.conditions },
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reply) finalText = data.reply.trim();
+        }
+      } catch { /* fall through to rawDraft */ }
+
+      // Fallback: use the raw draft but strip the robotic opener
+      if (!finalText) {
+        finalText = rawDraft
+          .replace(/^I experience difficulties with [^,]+, specifically: /i, 'I struggle with ')
+          .replace(/These difficulties occur /i, 'This happens ');
+      }
+    }
 
     setQ1Result({
       descriptor,
@@ -306,7 +319,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
           </div>
           {step > 1 && (
             <div className="shrink-0 flex items-center gap-1.5">
-              <span className={`text-sm font-black ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-blue-600' : estimatedPts >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+              <span className={`text-sm font-black ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-teal-600' : estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
                 {estimatedPts}pts
               </span>
             </div>
@@ -315,17 +328,14 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
         {/* Live score bar */}
         {step > 1 && (
           <div className="px-5 pb-2.5">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-stone-400 font-medium">
-                {step === 2 ? 'Estimated score (updates as you answer)' : 'Score for this activity'}
-              </span>
-              <span className={`text-[10px] font-bold ${estimatedPts >= 8 ? 'text-teal-600' : estimatedPts >= 4 ? 'text-blue-600' : estimatedPts >= 2 ? 'text-amber-600' : 'text-stone-400'}`}>
+            <div className="flex items-center justify-end mb-1">
+              <span className={`text-[10px] font-bold ${estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
                 {estimatedPts === 0 ? 'No award yet' : estimatedPts >= 8 ? 'Enhanced rate' : 'Standard rate'}
               </span>
             </div>
             <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${estimatedPts >= 8 ? 'bg-teal-500' : estimatedPts >= 4 ? 'bg-blue-400' : estimatedPts >= 2 ? 'bg-amber-400' : 'bg-stone-200'}`}
+                className={`h-full rounded-full transition-all duration-500 ${estimatedPts >= 2 ? 'bg-teal-600' : 'bg-stone-200'}`}
                 style={{ width: `${Math.min((estimatedPts / 12) * 100, 100)}%` }}
               />
             </div>
@@ -380,11 +390,8 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
             )}
 
             {/* Example answer */}
-            <div className="bg-stone-50 rounded-2xl border border-stone-100 p-4">
-              <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">
-                {personalExample ? 'Example based on your conditions' : 'Example answer'}
-              </p>
-              <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+              <div className="flex items-center gap-2 mb-3">
                 <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
                   <span className="text-teal-700 text-xs font-bold">
                     {personalExample
@@ -392,28 +399,30 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
                       : config.exampleAnswer.name[0]}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-stone-700">
-                  {personalExample
-                    ? medProfile.conditions.map((c: any) => c.name).join(' · ')
-                    : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
-                </span>
-              </div>
-              {loadingExample ? (
-                <div className="space-y-1.5">
-                  <div className="h-3 bg-stone-200 rounded animate-pulse w-full" />
-                  <div className="h-3 bg-stone-200 rounded animate-pulse w-4/5" />
-                  <div className="h-3 bg-stone-200 rounded animate-pulse w-3/5" />
+                <div>
+                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
+                    {personalExample ? 'Example based on your conditions' : 'Example answer'}
+                  </p>
+                  <p className="text-xs font-semibold text-stone-600 mt-0.5">
+                    {personalExample
+                      ? medProfile.conditions.map((c: any) => c.name).join(' · ')
+                      : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
+                  </p>
                 </div>
-              ) : (
-                <p className={`text-sm text-stone-600 leading-relaxed italic ${!showFullExample ? 'line-clamp-3' : ''}`}>
-                  "{personalExample ?? config.exampleAnswer.quote}"
-                </p>
-              )}
-              {!loadingExample && (
-                <button onClick={() => setShowFullExample(!showFullExample)} className="text-xs text-teal-600 font-semibold mt-1">
-                  {showFullExample ? 'Show less' : 'Show more'}
-                </button>
-              )}
+              </div>
+              <div className="border-l-4 border-teal-300 pl-3">
+                {loadingExample ? (
+                  <div className="space-y-1.5">
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-stone-600 leading-relaxed italic">
+                    "{personalExample ?? config.exampleAnswer.quote}"
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -442,7 +451,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
               <h2 className="font-black text-lg leading-tight">What makes this hard for you?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Pick everything that rings true — even on your worst days.</p>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Select everything that applies — tick all that are true, even on your worst days. The more difficulties you select that are genuine, the higher your score can be.</p>
             </div>
 
             {/* What you are scored on — highlights live matching descriptor */}
@@ -468,7 +477,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}
@@ -538,7 +547,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
               <h2 className="font-black text-lg leading-tight">How often does this happen?</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Think about the past few months. Be honest — there's no wrong answer here.</p>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">Your frequency answers directly affect your score. "Often" or "always" tells the assessor this is a persistent, recurring problem — not a one-off.</p>
             </div>
 
             {/* What you are scored on — always visible steps 2-5 */}
@@ -564,7 +573,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}
@@ -617,7 +626,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 Think about your worst days, not your best. That's what matters for PIP.</p>
+              <p className="text-xs text-teal-800 font-medium">💡 Always answer based on your worst days, not your best. PIP is assessed on whether you can do something <strong>reliably, safely, and repeatedly</strong> — if you can only manage on good days, that's not reliable. "Often" means more than half the time. "Always" means every time. Both carry significant weight with an assessor.</p>
             </div>
           </div>
         </div>
@@ -668,7 +677,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}
@@ -705,7 +714,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 It's okay if this varies day to day. Choose what's true on most days.</p>
+              <p className="text-xs text-teal-800 font-medium">💡 If you need any help — even just someone being nearby for safety, reminding you, or stepping in occasionally — select it. Needing supervision or prompting counts just as much as needing physical help. Assessors look for whether you can do this <strong>alone, safely, and consistently</strong>. If the answer is no, that's relevant.</p>
             </div>
           </div>
         </div>
@@ -776,7 +785,7 @@ Write in first person. Return ONLY the answer — no preamble, no explanation.`,
                         <div key={d.code} className={`flex items-start gap-3 px-4 py-3 border-b border-stone-50 last:border-0 transition-all ${isMatch ? 'bg-teal-50' : ''}`}>
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold mt-0.5 transition-all ${isMatch ? 'bg-teal-600 text-white' : 'bg-stone-100 text-stone-500'}`}>{d.code}</span>
                           <span className={`flex-1 text-xs leading-relaxed transition-all ${isMatch ? 'text-teal-900 font-semibold' : 'text-stone-600'}`}>{d.text}</span>
-                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : d.points >= 8 ? 'text-teal-600' : d.points >= 4 ? 'text-blue-600' : 'text-amber-600'}`}>{d.points}pts</span>
+                          <span className={`text-xs font-bold shrink-0 mt-0.5 ${d.points === 0 ? 'text-stone-400' : 'text-teal-600'}`}>{d.points}pts</span>
                         </div>
                       );
                     })}

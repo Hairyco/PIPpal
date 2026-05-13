@@ -73,6 +73,7 @@ import {
   PrivacyScreen,
   AccessibilityScreen,
   TermsScreen,
+  AwaitingDecisionScreen,
 } from './components/Placeholders';
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
@@ -260,6 +261,7 @@ function AppContent() {
       case 'pip_benefits': return <PIPBenefitsScreen />;
       case 'assessment_mock': return <AssessmentMockTest />;
       case 'decision_received': return hasPaid ? <DecisionReceivedScreen /> : <UpsellScreen />;
+      case 'awaiting_decision': return hasPaid ? <AwaitingDecisionScreen /> : <UpsellScreen />;
       case 'mandatory_reconsideration': return hasPaid ? <MandatoryReconsiderationScreen /> : <UpsellScreen />;
       case 'appeal': return hasPaid ? <AppealScreen /> : <UpsellScreen />;
       case 'change_of_circumstances': return hasPaid ? <ChangeOfCircumstancesScreen /> : <UpsellScreen />;
@@ -287,6 +289,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <WhyPIPpal />
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />

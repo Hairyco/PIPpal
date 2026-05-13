@@ -100,7 +100,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       {
         id: 'mental',
         name: 'Mental Health',
-        selectedBg: 'bg-rose-500',
+        selectedBg: 'bg-teal-700',
         selectedText: 'text-white',
         difficulties: [
           { id: 'overwhelmed_cooking', text: 'I get overwhelmed cooking' },
@@ -114,7 +114,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       {
         id: 'physical',
         name: 'Physical',
-        selectedBg: 'bg-blue-500',
+        selectedBg: 'bg-teal-700',
         selectedText: 'text-white',
         difficulties: [
           { id: 'standing_pain', text: 'Standing causes pain or fatigue' },
@@ -128,7 +128,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
       {
         id: 'cognitive',
         name: 'Cognitive / Neurodivergent',
-        selectedBg: 'bg-violet-500',
+        selectedBg: 'bg-teal-700',
         selectedText: 'text-white',
         difficulties: [
           { id: 'forget_steps', text: 'I forget steps mid-way through' },
@@ -187,7 +187,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'anxious_eating', text: 'I get anxious about eating' },
           { id: 'forget_to_eat', text: 'I forget to eat or lose appetite' },
@@ -196,7 +196,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'swallowing_difficulty', text: 'I have difficulty swallowing' },
           { id: 'struggle_cutting', text: 'I struggle to cut food' },
@@ -207,7 +207,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'distracted_eating', text: 'I get distracted and stop eating' },
           { id: 'forget_eating_mid', text: 'I forget I am eating' },
@@ -261,7 +261,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'forget_medication', text: 'I forget to take medication' },
           { id: 'struggle_motivation', text: 'I struggle to motivate myself to manage treatment' },
@@ -270,7 +270,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'struggle_injections', text: 'I struggle to self-inject or use equipment' },
           { id: 'complex_regime', text: 'I have a complex medication regime' },
@@ -279,7 +279,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'wrong_dose', text: 'I sometimes take the wrong dose' },
           { id: 'forget_monitoring', text: 'I forget to monitor my condition' },
@@ -332,7 +332,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'no_motivation_wash', text: 'Lack of motivation to wash' },
           { id: 'anxious_bathing', text: 'Anxiety about bathing or showering' },
@@ -341,7 +341,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'cant_get_in_bath', text: "I can't get in or out of the bath safely" },
           { id: 'balance_washing', text: 'Balance problems make washing unsafe' },
@@ -351,7 +351,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'forget_washing_steps', text: "I forget steps or whether I've washed" },
           { id: 'need_prompting_wash', text: 'I need reminding to wash' },
@@ -405,7 +405,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'urgency_accidents', text: 'I have urgency and sometimes have accidents' },
           { id: 'cant_clean_self', text: "I can't clean myself properly" },
@@ -416,7 +416,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'anxiety_toilet', text: 'Anxiety affects my toilet needs' },
           { id: 'distress_accidents', text: 'Accidents cause severe distress' },
@@ -424,7 +424,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'need_prompting_toilet', text: 'I need reminding to use the toilet' },
           { id: 'cant_manage_stoma', text: "I can't manage stoma/catheter independently" },
@@ -476,7 +476,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'pain_dressing', text: 'Dressing causes pain' },
           { id: 'limited_reach', text: 'Limited reach or movement' },
@@ -487,7 +487,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'no_motivation_dress', text: 'Lack of motivation to dress' },
           { id: 'forget_to_dress', text: 'I forget to dress or choose appropriate clothing' },
@@ -495,7 +495,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'sensory_clothing', text: 'Sensory issues with clothing textures' },
           { id: 'wrong_clothes', text: 'I put on wrong or inappropriate clothing' },
@@ -548,7 +548,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'physical', name: 'Physical / Speech', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical / Speech', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'unclear_speech', text: 'My speech is unclear or hard to understand' },
           { id: 'stammer', text: 'I have a significant stammer or stutter' },
@@ -558,7 +558,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'anxiety_speaking', text: 'Anxiety severely affects my ability to speak' },
           { id: 'selective_mutism', text: 'I have selective mutism' },
@@ -566,7 +566,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'process_verbal_info', text: 'I struggle to process verbal information quickly' },
           { id: 'overwhelmed_conversation', text: 'Conversations overwhelm me' },
@@ -618,7 +618,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'physical', name: 'Physical / Visual', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical / Visual', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'low_vision', text: 'I have low vision or am blind' },
           { id: 'pain_reading', text: 'Reading causes pain (eyes, headaches)' },
@@ -626,14 +626,14 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'concentration_reading', text: 'Concentration problems affect my reading' },
           { id: 'anxiety_reading', text: 'Anxiety affects my ability to read and take in information' },
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'dyslexia', text: 'Dyslexia makes reading difficult' },
           { id: 'cant_understand_complex', text: "I can't understand complex written information" },
@@ -685,7 +685,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'severe_anxiety_social', text: 'Severe anxiety in social situations' },
           { id: 'panic_attacks_social', text: 'Panic attacks around other people' },
@@ -695,14 +695,14 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'communication_physical', text: 'Physical condition affects my communication' },
           { id: 'pain_social', text: 'Being around people causes physical problems' },
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'misread_social', text: "I misread social cues or people's intentions" },
           { id: 'overwhelmed_groups', text: 'Groups or social settings overwhelm me' },
@@ -753,7 +753,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'dont_understand_value', text: "I don't understand the value of money" },
           { id: 'impulsive_spending', text: 'I spend impulsively without thinking of consequences' },
@@ -763,7 +763,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'mania_spending', text: 'Mania or highs lead to excessive spending' },
           { id: 'anxiety_money', text: 'Anxiety about money is overwhelming' },
@@ -771,7 +771,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'brain_fog_money', text: 'Brain fog or fatigue affects financial thinking' },
           { id: 'pain_concentration_money', text: 'Pain or fatigue affects my concentration for financial tasks' },
@@ -822,7 +822,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'cant_go_out_anxiety', text: "I can't go out alone due to anxiety" },
           { id: 'panic_on_journeys', text: 'Panic attacks on journeys' },
@@ -832,7 +832,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'cant_walk_far', text: "I can't walk far enough to complete journeys" },
           { id: 'pain_travel', text: 'Pain prevents me from travelling' },
@@ -841,7 +841,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'get_lost', text: 'I get lost or confused on journeys' },
           { id: 'cant_plan_route', text: "I can't plan a route or use maps/apps" },
@@ -894,7 +894,7 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
     },
     difficultyCategories: [
       {
-        id: 'physical', name: 'Physical', selectedBg: 'bg-blue-500', selectedText: 'text-white',
+        id: 'physical', name: 'Physical', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'pain_walking', text: 'Pain severely limits how far I can walk' },
           { id: 'fatigue_walking', text: 'Fatigue means I cannot walk far' },
@@ -906,14 +906,14 @@ export const QUESTION_FLOW_DATA: Record<string, QuestionFlowConfig> = {
         ],
       },
       {
-        id: 'mental', name: 'Mental Health', selectedBg: 'bg-rose-500', selectedText: 'text-white',
+        id: 'mental', name: 'Mental Health', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'anxiety_walking', text: 'Anxiety affects my ability to walk outside' },
           { id: 'dissociation_walking', text: 'Dissociation makes walking unsafe' },
         ],
       },
       {
-        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-violet-500', selectedText: 'text-white',
+        id: 'cognitive', name: 'Cognitive / Neurodivergent', selectedBg: 'bg-teal-700', selectedText: 'text-white',
         difficulties: [
           { id: 'sensory_walking', text: 'Sensory difficulties make walking difficult' },
           { id: 'need_supervision_walking', text: 'I need supervision to walk safely' },

@@ -22,6 +22,7 @@ import {
   Sparkles,
   Settings,
   Newspaper,
+  Hourglass,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 
@@ -307,6 +308,15 @@ export function HomeScreen() {
               color="text-cyan-600"
               bg="bg-cyan-50"
               target="pre_claim_checklist"
+              locked={!hasPaid}
+            />
+            <NavCard
+              title="Awaiting Decision"
+              desc="What to do while you wait after assessment"
+              icon={Hourglass}
+              color="text-teal-600"
+              bg="bg-teal-50"
+              target="awaiting_decision"
               locked={!hasPaid}
             />
             <NavCard

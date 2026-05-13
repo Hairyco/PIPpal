@@ -88,10 +88,12 @@ export function ResultCard() {
   const data = descriptorData[descriptor] || descriptorData['A'];
 
   // Use the AI-generated text from the wizard if available, otherwise use template
+  // If nothing was selected (0 points, no difficulties tapped), leave the draft blank
   const generatedText = q1Result?.text || '';
+  const noAnswerGiven = data.points === 0 && !generatedText;
   const initialText = generatedText
     ? addHighlightsToPlain(generatedText)
-    : data.text;
+    : noAnswerGiven ? '' : data.text;
 
   const [highlightsOn, setHighlightsOn] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -374,6 +376,11 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
                 className="w-full text-sm text-stone-700 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl p-3 min-h-[120px] resize-none focus:ring-1 focus:ring-teal-400 focus:border-teal-400"
                 autoFocus
               />
+            ) : noAnswerGiven ? (
+              <div className="bg-stone-50 border border-stone-100 rounded-xl p-4 text-center">
+                <p className="text-sm font-semibold text-stone-500 mb-1">No difficulties selected</p>
+                <p className="text-xs text-stone-400 leading-relaxed">You indicated you can manage this activity without difficulty. No draft answer has been generated. If that's not right, go back and review your answers.</p>
+              </div>
             ) : (
               <p
                 className="text-sm text-stone-700 leading-relaxed"

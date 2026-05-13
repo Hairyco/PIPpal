@@ -21,6 +21,10 @@ import {
   ChevronRight,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Phone,
+  TrendingUp,
+  UserCheck,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 
@@ -456,6 +460,108 @@ export function AccessibilityScreen() {
         ))}
         <div className="bg-teal-50 rounded-2xl p-4 border border-teal-100">
           <p className="text-xs text-teal-800 leading-relaxed">We are committed to continuously improving accessibility. If you encounter any barriers, please email us at <a href="mailto:support@pippal.uk" className="font-medium underline">support@pippal.uk</a></p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AWAITING DECISION ─────────────────────────────────────────────────────────
+export function AwaitingDecisionScreen() {
+  const { goBack, navigateTo } = useAppContext();
+
+  const steps = [
+    {
+      icon: Phone,
+      color: 'text-teal-600',
+      bg: 'bg-teal-50',
+      title: 'Contact the assessment contractor — not DWP',
+      body: 'Your assessment was carried out by a private contractor (Capita or Maximus — check your appointment letter). Call them directly to confirm the date your form was received by DWP. This gives you a clearer picture of where you are in the process. DWP cannot always tell you this.',
+    },
+    {
+      icon: FileText,
+      color: 'text-blue-600',
+      bg: 'bg-blue-50',
+      title: 'Request your PA4 assessor report immediately',
+      body: "As soon as your assessment is done, contact the contractor and request a copy of the PA4 report — the document the assessor wrote about you. You are entitled to this. It usually takes 1–3 weeks to arrive. Read it carefully — it shows exactly which descriptors the assessor used and why. Errors in this report are one of the most common grounds for a successful challenge.",
+    },
+    {
+      icon: TrendingUp,
+      color: 'text-purple-600',
+      bg: 'bg-purple-50',
+      title: 'Upload your PA4 to the Points Estimator',
+      body: "Once your PA4 arrives, upload it to PIPpal's Points Estimator. It reads the descriptors used by the assessor and estimates your likely outcome — Standard or Enhanced rate for Daily Living and Mobility — before the official decision letter arrives.",
+      link: { label: 'Open Points Estimator →', screen: 'points_estimator' as const },
+    },
+    {
+      icon: UserCheck,
+      color: 'text-amber-600',
+      bg: 'bg-amber-50',
+      title: 'Request to speak to a case manager',
+      body: 'While you wait, you can call DWP on 0800 121 4433 and ask to speak to the case manager handling your claim. They can confirm the current stage of your application. You cannot usually influence the decision at this point, but knowing the status can reduce uncertainty.',
+    },
+    {
+      icon: Clock,
+      color: 'text-stone-500',
+      bg: 'bg-stone-100',
+      title: 'Typical timelines',
+      body: 'Most decisions arrive within 4–8 weeks of your assessment. The full process from initial call to decision typically takes 6 months. If you have been waiting more than 8 weeks after your assessment with no letter, call DWP to chase.',
+    },
+  ];
+
+  return (
+    <div className="flex flex-col h-full bg-stone-50">
+      <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
+        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="font-bold text-stone-900 text-lg">Awaiting Decision</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+        <div className="bg-teal-700 px-5 py-6 text-white">
+          <h2 className="font-bold text-xl mb-1">Your assessment is done — what now?</h2>
+          <p className="text-teal-100 text-sm leading-relaxed">The wait after your assessment is the hardest part. Here is exactly what you can do right now to stay informed and prepared.</p>
+        </div>
+
+        <div className="px-5 py-5 space-y-4 max-w-2xl mx-auto">
+          {steps.map((s, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+              <div className="flex items-start gap-3">
+                <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center shrink-0`}>
+                  <s.icon className={`w-5 h-5 ${s.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-5 h-5 rounded-full bg-teal-700 text-white text-[10px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
+                    <p className="font-bold text-stone-900 text-sm leading-snug">{s.title}</p>
+                  </div>
+                  <p className="text-xs text-stone-500 leading-relaxed mt-1">{s.body}</p>
+                  {'link' in s && s.link && (
+                    <button
+                      type="button"
+                      onClick={() => navigateTo(s.link!.screen)}
+                      className="mt-2 text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
+                    >
+                      {s.link.label}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+            <p className="text-sm font-bold text-amber-900 mb-1">Start preparing now — don't wait</p>
+            <p className="text-sm text-amber-800 leading-relaxed">If your decision is lower than expected, you have <strong>1 month</strong> to request a Mandatory Reconsideration. Having your PA4 report ready means you can act immediately rather than scrambling for paperwork.</p>
+            <button
+              type="button"
+              onClick={() => navigateTo('mandatory_reconsideration')}
+              className="mt-2 text-sm font-semibold text-amber-900 hover:text-amber-950 underline underline-offset-2"
+            >
+              Open Mandatory Reconsideration guide →
+            </button>
+          </div>
         </div>
       </div>
     </div>

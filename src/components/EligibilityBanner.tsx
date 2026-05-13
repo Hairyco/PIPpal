@@ -54,9 +54,13 @@ export function EligibilityBanner({ onStart }: EligibilityBannerProps) {
             </p>
           </div>
 
-          <p className="text-sm text-teal-800 leading-relaxed mb-4">
+          <p className="text-sm text-teal-800 leading-relaxed mb-3">
             Answer 8 simple questions and we'll tell you whether you're likely to qualify. <strong>Over 3.9 million people</strong> currently claim PIP — many more are eligible and don't realise.
           </p>
+
+          <div className="bg-white/60 rounded-xl px-3 py-2.5 mb-4 border border-teal-100">
+            <p className="text-xs text-teal-900 leading-relaxed"><strong>You don't need to be physically disabled or severely ill to qualify.</strong> Mental health conditions, chronic pain, fatigue, anxiety and hidden conditions all count — it's about how your condition affects your daily life.</p>
+          </div>
 
           <button
             onClick={onStart}

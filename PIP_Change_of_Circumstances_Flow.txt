@@ -1,0 +1,187 @@
+PIP Change of Circumstances Flow (Final Structure)
+Master Flow
+Start Change of Circumstances
+?
+Upload Existing PIP Documents (Recommended)
+?
+Do You Have Existing Documents?
+??? YES ? Personalised Award Review Flow
+??? NO ? Standard Guided Change Flow
+1. Welcome / Hero Section
+Hero Title:
+Report a Change of Circumstances
+
+Hero Subtitle:
+Tell us what has changed since your last PIP assessment and we’ll help guide you through the process step-by-step.
+Large Upload Section Directly Under Hero
+This section should be visually dominant and positioned immediately below the hero.
+
+Purpose:
+• understand current award
+• identify previous descriptors
+• reduce contradictions
+• guide relevant changes
+• generate more accurate wording
+
+Accepted Documents:
+• Award Letter
+• PA4 Assessment Report
+• Previous Review Form
+• Decision Notice
+• Assessor Report
+• Screenshots or Photos
+
+Primary CTA:
+[ Upload Existing PIP Documents ]
+
+Secondary CTA:
+Continue Without Documents
+FLOW A — USER UPLOADS DOCUMENTS
+2A. AI Award Analysis
+- Extract likely descriptors awarded
+- Current points
+- Accepted difficulties
+- Previous assessor reasoning
+
+3A. Current Award Snapshot
+Example:
+Daily Living:
+• Preparing Food — likely awarded
+• Washing & Bathing — likely awarded
+
+Mobility:
+• Planning & Following Journeys — likely awarded
+
+4A. What Has Changed?
+Tap selections:
+• increased pain
+• worse fatigue
+• reduced mobility
+• more falls
+• increased anxiety
+• panic attacks
+• now need supervision
+• now need prompting
+• new condition
+• medication changes
+
+5A. Medical Profile Updates
+Per condition:
+• diagnosed
+• awaiting assessment
+• suspected
+• symptoms only
+
+Tap symptoms:
+• pain
+• exhaustion
+• confusion
+• panic
+• tremors
+• dizziness
+
+6A. Guided Descriptor Review
+Example activity:
+Preparing Food
+
+Tap difficulties:
+• need supervision
+• unsafe alone
+• leave cooker on
+• burns/cuts
+• exhaustion
+• confusion
+
+Reliability layer:
+• cannot do safely
+• cannot repeat task
+• takes much longer
+
+7A. Evidence Suggestions
+• medication changes
+• carers statements
+• falls evidence
+• GP letters
+• specialist referrals
+
+8A. Risk & Review Guidance
+Reporting a change may result in your full award being reviewed. Awards can increase, decrease or stay the same depending on how your needs have changed.
+
+9A. AI Generated Summary
+Generate:
+• descriptor-focused wording
+• functional impact explanations
+• reliability criteria wording
+• change comparison narrative
+
+10A. Review & Export
+• edit answers
+• review wording
+• export PDF
+• prepare for submission
+FLOW B — USER HAS NO DOCUMENTS
+2B. Continue Without Documents
+
+Reassurance:
+You can still continue without documents. If possible, requesting your previous award information may help improve accuracy later.
+
+Suggested documents:
+• PA4 report
+• award notice
+• previous review form
+
+3B. Current Award Overview
+Questions:
+• Current Daily Living Award
+• Current Mobility Award
+• What were you previously awarded for?
+
+Tap options:
+• mobility
+• supervision
+• prompting
+• anxiety outdoors
+• physical assistance
+• fatigue
+• cognitive difficulties
+
+4B. What Has Changed?
+Same structured tap-based change flow.
+
+5B. Medical Profile
+• conditions
+• symptoms
+• fluctuation
+• medication
+• support
+
+6B. Guided Descriptor Review
+Same activity-by-activity structure.
+Tap-based.
+Low typing.
+Optional examples only.
+
+7B. Evidence Suggestions
+• GP records
+• prescriptions
+• carers statements
+• therapy involvement
+• physiotherapy
+
+8B. Risk & Review Guidance
+Same balanced explanation.
+
+9B. AI Generated Summary
+Generate:
+• structured change wording
+• likely descriptor impacts
+• reliability explanations
+
+10B. Review & Export
+Final review and export flow identical to upload users.
+Core UX Principle
+The experience should feel like:
+‘guided evidence building’
+
+NOT:
+‘filling in a government form’

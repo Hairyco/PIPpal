@@ -48,9 +48,13 @@ export function WhyPIPpal() {
       <h2 className="text-xl md:text-2xl font-bold text-stone-900 mb-1">
         Built for first-time applicants
       </h2>
-      <p className="text-stone-500 text-sm mb-5">
+      <p className="text-stone-500 text-sm mb-4">
         We know what you're going through — here's how we help.
       </p>
+
+      <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 mb-5">
+        <p className="text-sm text-teal-900 leading-relaxed"><strong>You don't need to be physically disabled or severely ill to qualify.</strong> PIP is based on how your condition affects your daily life — not your diagnosis. Mental health conditions, chronic pain, fatigue, anxiety and many hidden conditions all count. If your condition limits what you can do reliably, safely and consistently, you may well be entitled.</p>
+      </div>
 
       {/* Time saving banner */}
       <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mb-6 flex items-start gap-3">

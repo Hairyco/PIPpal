@@ -161,7 +161,8 @@ export function ClaimFlow() {
               },
               { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the form — it usually arrives in 2–4 weeks. You don't need to wait. Start building your answers in PIPpal now and return the form the moment it lands.", downloadsLink: true },
               { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.', assessmentLink: true },
-              { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
+              { step: '4', title: 'Awaiting your decision', body: 'After your assessment it typically takes 4–8 weeks for a decision. Request your PA4 assessor report immediately — it shows which descriptors were used by your assessor and lets you estimate your outcome before the letter arrives.', awaitingLink: true },
+              { step: '5', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
             ].map((item, i) => (
               <div key={i} className="flex gap-3">
                 <div className="w-6 h-6 rounded-full bg-teal-700 flex items-center justify-center shrink-0 mt-0.5">
@@ -177,6 +178,15 @@ export function ClaimFlow() {
                       className="mt-2 block text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
                     >
                       Open the Backpay calculator →
+                    </button>
+                  )}
+                  {'awaitingLink' in item && item.awaitingLink && (
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('awaiting_decision')}
+                      className="mt-2 block text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
+                    >
+                      Open Awaiting Decision guide →
                     </button>
                   )}
                   {'assessmentLink' in item && item.assessmentLink && (
@@ -262,10 +272,6 @@ export function ClaimFlow() {
             <p className="text-sm text-amber-800 leading-relaxed"><strong>PIP claims take an average of 6 months from start to decision.</strong> Getting it right first time matters — a strong, detailed application significantly reduces the chance of refusal and avoids the stress of an appeal.</p>
           </div>
 
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-            <p className="text-sm text-amber-800 leading-relaxed"><strong>Don't wait until everything is ready.</strong> Call DWP today on <strong>0800 917 2222</strong> to open your claim — your payments are backdated to this call, not when you return the form.</p>
-          </div>
-
           {/* Disclaimer */}
           <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4">
             <p className="text-[11px] text-stone-500 leading-relaxed">
@@ -289,7 +295,7 @@ export function ClaimFlow() {
               <span className="text-lg">🔑</span>
               <h3 className="font-bold text-stone-900 text-sm">The one thing most people get wrong</h3>
             </div>
-            <p className="text-sm text-stone-700 leading-relaxed mb-3">DWP doesn't care what you've been diagnosed with. They only care about <strong>how your condition affects you</strong> — day in, day out.</p>
+            <p className="text-sm text-stone-700 leading-relaxed mb-3">Your diagnosis alone won't determine your award. What matters to DWP is <strong>how your condition affects you</strong> — day in, day out.</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { icon: '🛡️', label: 'Safely', sub: 'Can you do it without hurting yourself?' },
@@ -309,8 +315,21 @@ export function ClaimFlow() {
 
           {/* Points thresholds */}
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
-            <h3 className="font-bold text-stone-900 mb-3">How points turn into money</h3>
-            <p className="text-sm text-stone-500 mb-3">The same thresholds apply to both Daily Living and Mobility — they're scored separately.</p>
+            <h3 className="font-bold text-stone-900 mb-3">How your score becomes an award</h3>
+            <p className="text-sm text-stone-500 mb-3">You are scored across up to 12 questions covering Daily Living and Mobility — each scored separately. Every question carries a points value and your scores add up. You only need to reach the threshold in a component to qualify — for example, scoring 8 points on a single task alone can be enough.</p>
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 mb-3">
+              <p className="text-xs text-amber-900 leading-relaxed"><strong>Common misconception:</strong> Many people assume PIP is only for those who are physically disabled or severely ill. It isn't. PIP is awarded based on how your condition affects your daily life — mental health conditions, chronic pain, fatigue, anxiety and many hidden conditions all qualify. If your condition limits what you can do reliably, safely and repeatedly, you may well be entitled.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="bg-stone-50 rounded-xl p-3 border border-stone-100">
+                <p className="text-xs font-bold text-stone-700 mb-1">Daily Living</p>
+                <p className="text-xs text-stone-500 leading-relaxed">How your condition affects everyday tasks — things like preparing food, washing, dressing, managing medication, and communicating.</p>
+              </div>
+              <div className="bg-stone-50 rounded-xl p-3 border border-stone-100">
+                <p className="text-xs font-bold text-stone-700 mb-1">Mobility</p>
+                <p className="text-xs text-stone-500 leading-relaxed">How your condition affects getting around — including walking, planning journeys, and using public transport.</p>
+              </div>
+            </div>
             <div className="space-y-2">
               {[
                 { pts: 'Below 8 points', label: 'No award', amount: '', bg: 'bg-stone-50', border: 'border-stone-200', text: 'text-stone-500' },
