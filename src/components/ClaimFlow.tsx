@@ -286,7 +286,7 @@ export function ClaimFlow() {
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <h2 className="font-bold text-xl mb-2">How PIP scoring works</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">Before we ask you any questions, you need to understand how DWP actually decides what you get. Most people don't — and it costs them points.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">Before we ask any questions, here&apos;s how DWP decides what you get. Many people aren&apos;t shown this clearly upfront — and that can cost points.</p>
           </div>
 
           {/* The key rule — short and friendly */}
@@ -407,7 +407,7 @@ export function ClaimFlow() {
       case 3: return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Tell us about your conditions</h2>
+            <h2 className="font-bold text-xl mb-2">Your conditions</h2>
             <p className="text-teal-100 text-sm leading-relaxed">PIPpal uses your conditions to tailor every question, suggest relevant evidence, and build answers in the right context.</p>
           </div>
 
@@ -426,7 +426,7 @@ export function ClaimFlow() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-stone-500">You haven't added your conditions yet. Add them so PIPpal can tailor your claim properly.</p>
+              <p className="text-sm text-stone-500">You haven't added your conditions yet. Adding them helps PIPpal tailor your claim.</p>
             )}
             <button
               onClick={() => navigateTo('medical_profile')}
@@ -459,17 +459,17 @@ export function ClaimFlow() {
       case 4: return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Tell us how you're affected</h2>
+            <h2 className="font-bold text-xl mb-2">How PIP affects you</h2>
             <p className="text-teal-100 text-sm leading-relaxed">Now we go through each of the 12 PIP activities. PIPpal asks the right questions and builds a draft answer for each one — in your words.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
-            <h3 className="font-bold text-stone-900">Here's how this works</h3>
+            <h3 className="font-bold text-stone-900">How this works</h3>
             {[
-              { icon: '💬', title: 'We ask, you tap', body: 'For each of the 12 activities, we ask simple questions. You just tap the options that apply to you — no writing needed.' },
+              { icon: '💬', title: 'Tap-through questions', body: 'For each of the 12 activities, we ask simple questions. Tap the options that fit you — no writing needed.' },
               { icon: '✍️', title: 'We write the answer', body: 'PIPpal takes your answers and builds a complete, well-worded response for each question — using the language DWP assessors need to see.' },
               { icon: '✏️', title: 'You can improve it', body: "Once we've built your answer, you can tweak it, strengthen it, or change the style. It's your claim — we just do the heavy lifting." },
-              { icon: '⏸️', title: 'Save and come back', body: 'Your answers are saved automatically. Do one question at a time if you need to.' },
+              { icon: '⏸️', title: 'Save and come back', body: 'Your answers are saved automatically. One question at a time is fine if that suits you better.' },
             ].map((tip, i) => (
               <div key={i} className="flex gap-3">
                 <span className="text-xl shrink-0">{tip.icon}</span>
@@ -632,8 +632,8 @@ export function ClaimFlow() {
   const stepTitles = [
     'What is PIP?',
     'How does scoring work?',
-    'Tell us about your conditions',
-    'Tell us how you\'re affected',
+    'Your conditions',
+    'How PIP affects you',
     'Let\'s build evidence',
     'Review before submission',
     'You\'re ready',

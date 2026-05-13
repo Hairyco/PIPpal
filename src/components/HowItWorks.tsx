@@ -5,7 +5,7 @@ const steps = [
   {
     num: '1',
     icon: MessageSquareText,
-    title: 'Tell us about your life',
+    title: 'Your day-to-day',
     desc: "Describe how your condition affects you day-to-day. Simple questions, your own words — no medical knowledge needed.",
   },
   {

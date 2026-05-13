@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ChevronDown, ChevronUp, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
@@ -95,15 +95,26 @@ function GeneratingOverlay({ onSkip }: { onSkip: () => void }) {
 }
 
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, savedAnswers, cocMode, cocPreviousAnswers } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, savedAnswers, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes } = useAppContext();
+
+  const hasPip2Answer = (qid: string) => !!(cocPreviousAnswers[qid] && (cocDocumentType === 'pip2_only' || cocDocumentType === 'both'));
+  const hasAssessorNote = (qid: string) => !!(cocAssessorNotes[qid] && (cocDocumentType === 'pa4_only' || cocDocumentType === 'both'));
+
+  const prevAnswerLabel = cocDocumentType === 'pa4_only' ? 'What the assessor noted' : 'Your previous answer';
+
+  const prevAnswerGoal = cocDocumentType === 'pa4_only'
+    ? 'The assessor wrote this — not you. Your answer should be in your own words and go further than what they recorded.'
+    : cocFormType === 'ar1'
+      ? 'DWP has this on file. Only describe what has changed or got worse since this was written.'
+      : 'Your goal: write something stronger and more specific than this.';
   const questionId = selectedQuestionId || 'q1';
   const config = getQuestionFlow(questionId);
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
-  const [showExplained, setShowExplained] = useState(true);
+  const [showExplained, setShowExplained] = useState(false);
   // Expanded by default on mobile, collapsed on desktop
-  const [showDescriptors, setShowDescriptors] = useState(() => window.innerWidth < 768);
+  const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
   const [loadingExample] = useState(false);
 
@@ -489,16 +500,21 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-5 space-y-4 pb-32">
             <QuestionCard />
 
-            {/* This question explained — always expanded, white bg */}
+            {/* This question explained — collapsed by default */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
+              <button
+                type="button"
+                onClick={() => setShowExplained(s => !s)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors"
+              >
                 <div className="flex items-center gap-2">
                   <Info className="w-4 h-4 text-teal-600 shrink-0" />
                   <span className="font-bold text-stone-900 text-sm">This question explained</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={rePersonalise}
+                    type="button"
+                    onClick={e => { e.stopPropagation(); rePersonalise(); }}
                     disabled={isPersonalising}
                     className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border transition-all disabled:opacity-50 ${
                       !isPersonalising && (personalExplainer || personalisedJustNow)
@@ -515,11 +531,14 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                     )}
                     {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
                   </button>
+                  {showExplained ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />}
                 </div>
-              </div>
-              <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
-                {personalExplainer || config.explained}
-              </p>
+              </button>
+              {showExplained && (
+                <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed border-t border-stone-50">
+                  {personalExplainer || config.explained}
+                </p>
+              )}
             </div>
 
             {SHOW_ASK_MORE_HELP_SECTION && pipQ && (
@@ -528,24 +547,57 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
 
             {/* Previous answer (CoC mode) OR example answer (new claim) */}
             {cocMode ? (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-6 h-6 rounded-full bg-blue-200 flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-blue-700">P</span>
-                  </div>
-                  <p className="text-[11px] font-bold text-blue-500 uppercase tracking-widest">Your previous answer</p>
-                </div>
-                {cocPreviousAnswers[questionId] ? (
-                  <>
-                    <div className="border-l-4 border-blue-300 pl-3">
-                      <p className="text-sm text-blue-900 leading-relaxed italic">"{cocPreviousAnswers[questionId]}"</p>
+              <div className="space-y-2">
+                {/* PIP2 — claimant's own words (shown unless pa4_only) */}
+                {cocDocumentType !== 'pa4_only' && (
+                  <div className={`rounded-2xl p-4 border ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className={`text-[11px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>Your previous answer</p>
+                      {cocFormType === 'ar1' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800">describe the change</span>}
                     </div>
-                    <p className="text-[11px] text-blue-600 font-semibold mt-2">
-                      Your goal: write something stronger and more specific than this.
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-blue-400 italic">No previous answer found for this activity — build a fresh one below.</p>
+                    {hasPip2Answer(questionId) ? (
+                      <>
+                        <div className={`border-l-4 pl-3 ${cocFormType === 'ar1' ? 'border-purple-300' : 'border-blue-300'}`}>
+                          <p className={`text-sm leading-relaxed italic ${cocFormType === 'ar1' ? 'text-purple-900' : 'text-blue-900'}`}>"{cocPreviousAnswers[questionId]}"</p>
+                        </div>
+                        <p className={`text-[11px] font-semibold mt-2 ${cocFormType === 'ar1' ? 'text-purple-700' : 'text-blue-600'}`}>{prevAnswerGoal}</p>
+                      </>
+                    ) : (
+                      <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found for this activity — build a fresh one below.</p>
+                    )}
+                  </div>
+                )}
+                {/* PA4-only primary card (no PIP2 uploaded) */}
+                {cocDocumentType === 'pa4_only' && (
+                  <div className="rounded-2xl p-4 border bg-amber-50 border-amber-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">assessor's view</span>
+                    </div>
+                    {cocPreviousAnswers[questionId] ? (
+                      <>
+                        <div className="border-l-4 border-amber-300 pl-3">
+                          <p className="text-sm leading-relaxed italic text-amber-900">"{cocPreviousAnswers[questionId]}"</p>
+                        </div>
+                        <p className="text-[11px] font-semibold mt-2 text-amber-700">The assessor wrote this — not you. Answer in your own words and go further than what they recorded.</p>
+                      </>
+                    ) : (
+                      <p className="text-sm italic text-amber-400">No assessor observation recorded for this activity — build your answer fresh below.</p>
+                    )}
+                  </div>
+                )}
+                {/* PA4 secondary card (shown when both were uploaded) */}
+                {hasAssessorNote(questionId) && (
+                  <div className="rounded-2xl p-4 border bg-amber-50 border-amber-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">PA4 report</span>
+                    </div>
+                    <div className="border-l-4 border-amber-300 pl-3">
+                      <p className="text-sm leading-relaxed italic text-amber-900">"{cocAssessorNotes[questionId]}"</p>
+                    </div>
+                    <p className="text-[11px] font-semibold mt-2 text-amber-700">Use this to understand where you scored low — and make sure your new answer addresses it directly.</p>
+                  </div>
                 )}
               </div>
             ) : (
@@ -630,9 +682,61 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-4 space-y-4 pb-32">
             <div className="bg-teal-700 rounded-2xl p-5 text-white">
               <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">{questionLabel}</p>
-              <h2 className="font-black text-lg leading-tight">{cocMode ? 'How has this got harder?' : 'What makes this hard for you?'}</h2>
-              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">{cocMode ? 'Select everything that applies now — even if it was true before. Focus on what\'s got worse or more frequent since your last assessment.' : 'Select everything that applies — tick all that are true, even on your worst days. The more difficulties you select that are genuine, the higher your score can be.'}</p>
+              <h2 className="font-black text-lg leading-tight">
+                {!cocMode ? 'What makes this hard for you?' : cocFormType === 'ar1' ? 'What has changed since your last assessment?' : 'How has this got harder?'}
+              </h2>
+              <p className="text-teal-200 text-sm mt-1.5 leading-relaxed">
+                {!cocMode
+                  ? 'Select everything that applies — tick all that are true, even on your worst days. The more difficulties you select that are genuine, the higher your score can be.'
+                  : cocFormType === 'ar1'
+                    ? 'Select only what has changed or got worse since your last form. If something is the same as before, skip it — DWP already has that information.'
+                    : 'Select everything that applies now — even if it was true before. Focus on what\'s got worse or more frequent since your last assessment.'}
+              </p>
             </div>
+
+            {/* Previous answer reference — CoC mode only */}
+            {cocMode && (
+              <div className="space-y-2">
+                {/* PIP2 reference (not shown when pa4_only) */}
+                {cocDocumentType !== 'pa4_only' && (
+                  <div className={`rounded-2xl p-4 border ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>Your previous answer</p>
+                      {cocFormType === 'ar1' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800">only describe the change</span>}
+                    </div>
+                    {hasPip2Answer(questionId) ? (
+                      <p className={`text-sm leading-relaxed italic line-clamp-3 ${cocFormType === 'ar1' ? 'text-purple-900' : 'text-blue-900'}`}>"{cocPreviousAnswers[questionId]}"</p>
+                    ) : (
+                      <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found — select what applies now.</p>
+                    )}
+                  </div>
+                )}
+                {/* PA4-only primary reference */}
+                {cocDocumentType === 'pa4_only' && (
+                  <div className="rounded-2xl p-4 border bg-amber-50 border-amber-200">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">assessor's view</span>
+                    </div>
+                    {cocPreviousAnswers[questionId] ? (
+                      <p className="text-sm leading-relaxed italic line-clamp-3 text-amber-900">"{cocPreviousAnswers[questionId]}"</p>
+                    ) : (
+                      <p className="text-sm italic text-amber-400">No assessor observation — select what applies now.</p>
+                    )}
+                  </div>
+                )}
+                {/* PA4 secondary reference when both uploaded */}
+                {hasAssessorNote(questionId) && (
+                  <div className="rounded-2xl p-3 border bg-amber-50 border-amber-200">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Assessor's view</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">PA4</span>
+                    </div>
+                    <p className="text-xs leading-relaxed italic line-clamp-2 text-amber-900">"{cocAssessorNotes[questionId]}"</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* What you are scored on — highlights live matching descriptor */}
             {pipQ && (
@@ -671,9 +775,15 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
               </div>
             )}
 
+            {cocMode && (
+              <p className="text-xs font-bold text-stone-500 uppercase tracking-wide px-1">
+                {cocFormType === 'ar1' ? "What's changed since your last form?" : "What's got worse or more frequent?"}
+              </p>
+            )}
+
             {config.difficultyCategories.map(cat => (
               <div key={cat.id}>
-                <p className="text-xs font-bold text-stone-500 uppercase tracking-wide px-1 mb-2">{cat.name}</p>
+                {!cocMode && <p className="text-xs font-bold text-stone-500 uppercase tracking-wide px-1 mb-2">{cat.name}</p>}
                 <div className="space-y-2">
                   {cat.difficulties.map(diff => {
                     const selected = answers.selectedDifficulties.includes(diff.id);
@@ -816,7 +926,13 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 Always answer based on your worst days, not your best. PIP is assessed on whether you can do something <strong>reliably, safely, and repeatedly</strong> — if you can only manage on good days, that's not reliable. "Often" means more than half the time. "Always" means every time. Both carry significant weight with an assessor.</p>
+              {cocMode && cocFormType === 'ar1' ? (
+                <p className="text-xs text-teal-800 font-medium">If this difficulty has got <strong>more frequent</strong> since your last form, select a higher frequency than before — even if it was already a problem. The increase in frequency is exactly what the AR1 wants to capture.</p>
+              ) : cocMode ? (
+                <p className="text-xs text-teal-800 font-medium">Answer based on how things are <strong>now</strong>, not how they were when you last filled in the form. If something has got worse, reflect that here — more frequent means a stronger answer.</p>
+              ) : (
+                <p className="text-xs text-teal-800 font-medium">Always answer based on your worst days, not your best. PIP is assessed on whether you can do something <strong>reliably, safely, and repeatedly</strong> — if you can only manage on good days, that's not reliable. "Often" means more than half the time. "Always" means every time. Both carry significant weight with an assessor.</p>
+              )}
             </div>
           </div>
         </div>
@@ -904,7 +1020,13 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             </div>
 
             <div className="bg-teal-50 rounded-xl px-4 py-3 border border-teal-100">
-              <p className="text-xs text-teal-800 font-medium">💡 If you need any help — even just someone being nearby for safety, reminding you, or stepping in occasionally — select it. Needing supervision or prompting counts just as much as needing physical help. Assessors look for whether you can do this <strong>alone, safely, and consistently</strong>. If the answer is no, that's relevant.</p>
+              {cocMode && cocFormType === 'ar1' ? (
+                <p className="text-xs text-teal-800 font-medium">If you now need <strong>more help</strong> than before — or need help for the first time — select it. Even a small increase in the support you need is relevant and should be declared on the AR1.</p>
+              ) : cocMode ? (
+                <p className="text-xs text-teal-800 font-medium">Select any support you need <strong>now</strong> — including things you've started needing since your last assessment. If someone has stepped in more, or you've had to start using an aid, that change matters.</p>
+              ) : (
+                <p className="text-xs text-teal-800 font-medium">If you need any help — even just someone being nearby for safety, reminding you, or stepping in occasionally — select it. Needing supervision or prompting counts just as much as needing physical help. Assessors look for whether you can do this <strong>alone, safely, and consistently</strong>. If the answer is no, that's relevant.</p>
+              )}
             </div>
           </div>
         </div>
@@ -1005,11 +1127,23 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             {/* Optional detail */}
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
               <p className="text-sm font-bold text-stone-900 mb-1">Anything else? <span className="font-normal text-stone-400">(optional)</span></p>
-              <p className="text-xs text-stone-500 mb-3">PIPpal writes the answer for you using what you've told us. Add anything specific you want included — a particular incident, a doctor's comment, or something that happens regularly.</p>
+              <p className="text-xs text-stone-500 mb-3">
+                {cocMode && cocFormType === 'ar1'
+                  ? 'Use this to describe a specific change — a new diagnosis, a recent incident, or something a doctor or carer has said. The more concrete the better.'
+                  : cocMode
+                    ? 'Add anything that shows how things are worse now — a recent incident, a new medication, something a professional has said, or a change in your daily routine.'
+                    : 'PIPpal writes the answer for you using what you\'ve told us. Add anything specific you want included — a particular incident, a doctor\'s comment, or something that happens regularly.'}
+              </p>
               <textarea
                 value={answers.additionalDetail}
                 onChange={e => setAnswers(prev => ({ ...prev, additionalDetail: e.target.value.slice(0, charLimit) }))}
-                placeholder="e.g. Last week I left the hob on twice. My GP told me it's not safe for me to cook unsupervised."
+                placeholder={
+                  cocMode && cocFormType === 'ar1'
+                    ? 'e.g. Since my last assessment my consultant increased my medication. I now need my partner to help me every morning where before I could manage alone.'
+                    : cocMode
+                      ? 'e.g. My pain has increased significantly since my last form. My GP referred me to a specialist in January — I wasn\'t doing that before.'
+                      : 'e.g. Last week I left the hob on twice. My GP told me it\'s not safe for me to cook unsupervised.'
+                }
                 className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none"
                 rows={3}
               />

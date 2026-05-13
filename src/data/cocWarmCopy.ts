@@ -299,7 +299,7 @@ export function getDefaultCocWarmCopy(): CocWarmCopy {
       s03b: {
         leadTitle: 'What are you currently receiving?',
         leadBody:
-          'Tell us roughly what you\'re getting now. This is just context — the detail that matters comes in the activity questions.',
+          'Roughly what you\'re getting now is enough here. This is just context — the detail that matters comes in the activity questions.',
         dailyLivingSection: 'Daily Living rate',
         mobilitySection: 'Mobility rate',
         prevAwardSection: 'What were you previously awarded for?',

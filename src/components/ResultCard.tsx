@@ -80,6 +80,11 @@ export function ResultCard() {
     getSavedAnswer,
     hasPaid,
     medProfile,
+    cocMode,
+    cocPreviousAnswers,
+    cocFormType,
+    cocDocumentType,
+    cocAssessorNotes,
   } = useAppContext();
 
   const qId = selectedQuestionId || 'q1';
@@ -357,6 +362,56 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           <p className={`font-bold text-base ${pointsColor}`}>{data.heading}</p>
         </motion.div>
 
+        {/* Previous answer — CoC mode only */}
+        {cocMode && (
+          <div className="space-y-2">
+            {/* PIP2 card (your own words) */}
+            {cocDocumentType !== 'pa4_only' && (
+              <div className={`rounded-2xl border p-4 ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>
+                    Your previous answer
+                  </p>
+                </div>
+                {cocPreviousAnswers[qId] ? (
+                  <p className={`text-sm leading-relaxed italic ${cocFormType === 'ar1' ? 'text-purple-900' : 'text-blue-900'}`}>
+                    "{cocPreviousAnswers[qId]}"
+                  </p>
+                ) : (
+                  <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>
+                    No previous answer on file for this activity.
+                  </p>
+                )}
+              </div>
+            )}
+            {/* PA4-only primary card */}
+            {cocDocumentType === 'pa4_only' && (
+              <div className="rounded-2xl border p-4 bg-amber-50 border-amber-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">assessor's view</span>
+                </div>
+                {cocPreviousAnswers[qId] ? (
+                  <p className="text-sm leading-relaxed italic text-amber-900">"{cocPreviousAnswers[qId]}"</p>
+                ) : (
+                  <p className="text-sm italic text-amber-400">No assessor observation on file for this activity.</p>
+                )}
+              </div>
+            )}
+            {/* PA4 secondary card when both were uploaded */}
+            {(cocDocumentType === 'both') && cocAssessorNotes[qId] && (
+              <div className="rounded-2xl border p-4 bg-amber-50 border-amber-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">PA4 report</span>
+                </div>
+                <p className="text-sm leading-relaxed italic text-amber-900">"{cocAssessorNotes[qId]}"</p>
+                <p className="text-[11px] font-semibold mt-2 text-amber-700">Your new answer now shows the full picture — not just what the assessor recorded.</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Draft Answer */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50">
@@ -452,10 +507,76 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           </div>
         )}
 
-        {/* Why this meets the descriptor */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">
-          <h3 className="font-bold text-stone-900 text-sm mb-2">Why this counts</h3>
-          <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
+        {/* Why this counts / What has changed */}
+        <div className={`rounded-2xl border shadow-sm px-4 py-4 ${cocMode ? (cocFormType === 'ar1' ? 'bg-purple-50 border-purple-100' : 'bg-blue-50 border-blue-100') : 'bg-white border-stone-100'}`}>
+          <h3 className="font-bold text-stone-900 text-sm mb-2">
+            {cocMode ? 'What has changed — and why it\'s stronger' : 'Why this counts'}
+          </h3>
+          {cocMode ? (
+            <div className="space-y-3">
+              {cocPreviousAnswers[qId] ? (
+                <div className="space-y-2">
+                  {cocDocumentType === 'pa4_only' ? (
+                    <>
+                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what the assessor recorded. Where the PA4 described the situation from their perspective, this version:</p>
+                      <ul className="space-y-1.5 mt-1">
+                        {[
+                          'Is written in your own words — exactly what DWP wants to hear',
+                          'Addresses the gaps and low scores from your previous assessment',
+                          'Gives context the assessor couldn\'t know from observing you briefly',
+                        ].map((point, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                            <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : cocFormType === 'ar1' ? (
+                    <>
+                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what DWP has on file. Where your previous answer described your situation generally, this version:</p>
+                      <ul className="space-y-1.5 mt-1">
+                        {[
+                          'Clearly identifies what has got worse or more frequent',
+                          'Uses language that signals a change of circumstances, not a repeat',
+                          'Gives the assessor a reason to update your award',
+                        ].map((point, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                            <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer is stronger than your previous one. Where your last form was a starting point, this version:</p>
+                      <ul className="space-y-1.5 mt-1">
+                        {[
+                          'Is more specific about your difficulties and how often they happen',
+                          'Reflects how your condition affects you now, not then',
+                          'Uses clearer language that scores higher with assessors',
+                        ].map((point, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                            <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-stone-600 leading-relaxed">
+                  {cocFormType === 'ar1'
+                    ? 'This answer describes your current difficulties in a way that clearly communicates a change of circumstances to DWP.'
+                    : 'This is a fresh, stronger answer built around how things are for you now.'}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
+          )}
         </div>
 
         {/* Helpful details to include */}

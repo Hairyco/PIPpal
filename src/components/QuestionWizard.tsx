@@ -660,7 +660,7 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                 <div className="bg-teal-700 rounded-2xl p-4 text-white">
                   <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-1">DAILY LIVING · ACTIVITY {question.num}</p>
                   <h2 className="font-bold text-lg">How does this affect you in real life?</h2>
-                  <p className="text-teal-100 text-sm mt-1">Tell us what happens because of your difficulties.</p>
+                  <p className="text-teal-100 text-sm mt-1">Select anything below that reflects your experience when this is difficult for you.</p>
                 </div>
 
                 <p className="text-sm font-semibold text-stone-700 px-1">Select all that apply.</p>

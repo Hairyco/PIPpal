@@ -110,6 +110,15 @@ interface AppContextType {
   /** When true the question wizard shows "previous answer" framing instead of "example answer" */
   cocMode: boolean;
   setCocMode: (on: boolean) => void;
+  /** Which form the user is completing — affects framing throughout the question wizard */
+  cocFormType: 'pip2' | 'ar1' | null;
+  setCocFormType: (type: 'pip2' | 'ar1' | null) => void;
+  /** What was uploaded — affects label and card logic throughout the wizard */
+  cocDocumentType: 'pip2_only' | 'pa4_only' | 'both' | null;
+  setCocDocumentType: (type: 'pip2_only' | 'pa4_only' | 'both' | null) => void;
+  /** Assessor observations extracted from PA4 — shown as a secondary card alongside pip2 answers */
+  cocAssessorNotes: Record<string, string>;
+  setCocAssessorNotes: (notes: Record<string, string>) => void;
   hasCompletedEligibility: boolean;
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
@@ -203,6 +212,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
   const [cocMode, setCocMode] = useState(false);
+  const [cocFormType, setCocFormType] = useState<'pip2' | 'ar1' | null>(null);
+  const [cocDocumentType, setCocDocumentType] = useState<'pip2_only' | 'pa4_only' | 'both' | null>(null);
+  const [cocAssessorNotes, setCocAssessorNotes] = useState<Record<string, string>>({});
 
   const [hasCompletedEligibility, setHasCompletedEligibilityState] =
     useState<boolean>(() => loadFromStorage('pippal_eligibility', false));
@@ -542,6 +554,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocPreviousAnswers,
         cocMode,
         setCocMode,
+        cocFormType,
+        setCocFormType,
+        cocDocumentType,
+        setCocDocumentType,
+        cocAssessorNotes,
+        setCocAssessorNotes,
         hasCompletedEligibility,
         setHasCompletedEligibility,
         hasPaid,

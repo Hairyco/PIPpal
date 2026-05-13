@@ -266,9 +266,9 @@ ${JSON.stringify(baseCopy)}`;
       return res.status(500).json({ error: err.message, walkthroughCopy: null });
     }
 
-  // ── COC DOCUMENT ANALYSIS — extract previous PIP2 answers from scanned form ─
+  // ── COC DOCUMENT ANALYSIS — extract previous answers from scanned document ─
   } else if (type === 'coc-document-analysis') {
-    const { files } = req.body || {};
+    const { files, docType } = req.body || {};
     if (!Array.isArray(files) || files.length === 0) {
       return res.status(400).json({ error: 'files array is required' });
     }
@@ -282,10 +282,7 @@ ${JSON.stringify(baseCopy)}`;
       return res.status(400).json({ error: 'No valid image files provided' });
     }
 
-    const system = `You are a specialist in reading UK PIP (Personal Independence Payment) forms — both typed and handwritten. Your only job is to extract the claimant's written answers from scanned PIP2 forms or award letters.
-
-The UK PIP2 form covers these 12 daily living and mobility activities:
-q1: Preparing food
+    const activityList = `q1: Preparing food
 q2: Taking nutrition (eating and drinking)
 q3: Managing therapy or monitoring a health condition
 q4: Washing and bathing
@@ -296,19 +293,44 @@ q8: Reading and understanding signs, symbols and words
 q9: Engaging with other people face to face
 q10: Making budgeting decisions
 q11: Planning and following journeys
-q12: Moving around
+q12: Moving around`;
 
-Extract what the claimant wrote for each activity. Return a single JSON object with keys q1 through q12. For each key provide:
-- "answer": the claimant's written answer (verbatim where possible, or a faithful summary if very long). Empty string if the page wasn't provided or that section is blank.
+    const isPa4 = docType === 'pa4';
+
+    const system = isPa4
+      ? `You are a specialist in reading UK PA4 PIP assessor reports. Your job is to extract the health professional's observations and descriptor recommendations for each of the 12 PIP activities.
+
+The 12 PIP activities are:
+${activityList}
+
+For each activity extract the assessor's key observations, the recommended descriptor code if visible, and any notes about the claimant's aids, support needs, or functional ability. Write in third person as the assessor did (e.g. "The claimant was observed to...").
+
+Return a single JSON object with keys q1 through q12. For each key provide:
+- "answer": the assessor's observations for this activity. Empty string if the activity is not covered.
+- "confidence": "high", "medium", or "low" based on how much detail was present.
+
+Rules:
+- Extract only what is written — do not add interpretation.
+- If handwriting is unclear, do your best and set confidence to "low".
+- Return ONLY the JSON object. No explanation, no preamble.`
+      : `You are a specialist in reading UK PIP2 forms — both typed and handwritten. Your job is to extract the claimant's own written answers for each of the 12 PIP activities.
+
+The 12 PIP activities are:
+${activityList}
+
+Extract exactly what the claimant wrote for each activity — verbatim where possible, or a faithful summary if very long.
+
+Return a single JSON object with keys q1 through q12. For each key provide:
+- "answer": the claimant's own words. Empty string if the section is blank.
 - "confidence": "high", "medium", or "low" based on how legible/complete the answer was.
 
 Rules:
 - Transcribe exactly what is written — do not interpret, improve, or add information.
-- If the handwriting is unclear, do your best and set confidence to "low".
-- If a question appears blank or unanswered, set answer to "" and confidence to "low".
-- Return ONLY the JSON object. No explanation text.`;
+- If handwriting is unclear, do your best and set confidence to "low".
+- If a question is blank, set answer to "" and confidence to "low".
+- Return ONLY the JSON object. No explanation, no preamble.`;
 
-    const userText = `Please extract the claimant's answers for all 12 PIP activities from these scanned pages. Return the JSON object as described.`;
+    const userText = `Please extract information for all 12 PIP activities from these scanned pages. Return the JSON object as described.`;
 
     try {
       if (!process.env.OPENAI_API_KEY) {

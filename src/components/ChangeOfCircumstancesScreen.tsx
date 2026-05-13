@@ -18,13 +18,35 @@ import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 
 // ── Steps ────────────────────────────────────────────────────────────────────
-// 1  Upload (+ show extracted answers in accordions)
-// 2  Medical: then vs now
-// 3  How this works + Start  → navigates to question_index with cocMode on
-const TOTAL_STEPS = 3;
+// 1  Form type selector (PIP2 vs AR1)
+// 2  Upload (+ show extracted answers in accordions)
+// 3  Medical: then vs now
+// 4  How this works + Start  → navigates to question_index with cocMode on
+const TOTAL_STEPS = 4;
 
 const DAILY_LIVING_IDS = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
 const MOBILITY_IDS = ['q11','q12'];
+
+/** Keeps JSON body under Vercel's ~4.5 MB serverless limit after base64 encoding overhead */
+const COC_UPLOAD_MAX_FILES = 24;
+const COC_UPLOAD_MAX_TOTAL_BYTES = 3_500_000;
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function validateCocFileSelection(files: File[]): string | null {
+  if (files.length > COC_UPLOAD_MAX_FILES) {
+    return `Too many files (${files.length}). Add at most ${COC_UPLOAD_MAX_FILES} images or PDFs in one go (use one PDF for the full form, or upload in two steps: remove files, then add the rest).`;
+  }
+  const total = files.reduce((n, f) => n + f.size, 0);
+  if (total > COC_UPLOAD_MAX_TOTAL_BYTES) {
+    return `These files total ${formatFileSize(total)} — together they need to stay under about ${formatFileSize(COC_UPLOAD_MAX_TOTAL_BYTES)} per upload (server limit). Try fewer pages, lower photo resolution, or compress your scan.`;
+  }
+  return null;
+}
 
 // ── Header ────────────────────────────────────────────────────────────────────
 function StepHeader({ step, title, total, onBack }: { step: number; title: string; total: number; onBack: () => void }) {
@@ -93,26 +115,39 @@ const MED_CHANGE_OPTIONS = [
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
-  const { goBack, navigateTo, medProfile, isAdmin, setCocPreviousAnswers, setCocMode } = useAppContext();
+  const { goBack, navigateTo, medProfile, isAdmin, setCocPreviousAnswers, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes } = useAppContext();
 
   const [step, setStep] = useState(() => {
     const saved = sessionStorage.getItem('coc_return_step');
     if (saved) { sessionStorage.removeItem('coc_return_step'); return parseInt(saved); }
     return 1;
   });
+  const [formType, setFormType] = useState<'pip2' | 'ar1' | null>(null);
   const [notReportedOpen, setNotReportedOpen] = useState(false);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const pip2InputRef = useRef<HTMLInputElement>(null);
+  const pa4InputRef = useRef<HTMLInputElement>(null);
 
-  // Upload state
-  const [uploadedLabels, setUploadedLabels] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<{ name: string; base64: string; mimeType: string }[]>([]);
-  const [analysisBusy, setAnalysisBusy] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [extractedAnswers, setExtractedAnswers] = useState<Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>>({});
-  const [confirmedAnswers, setConfirmedAnswers] = useState<Record<string, string>>({});
+  // PIP2 upload state
+  const [pip2Labels, setPip2Labels] = useState<string[]>([]);
+  const [pip2Files, setPip2Files] = useState<{ name: string; base64: string; mimeType: string; size: number }[]>([]);
+  const [pip2Busy, setPip2Busy] = useState(false);
+  const [pip2Error, setPip2Error] = useState<string | null>(null);
+  const [pip2UploadError, setPip2UploadError] = useState<string | null>(null);
+  const [pip2Extracted, setPip2Extracted] = useState<Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>>({});
+
+  // PA4 upload state
+  const [pa4Labels, setPa4Labels] = useState<string[]>([]);
+  const [pa4Files, setPa4Files] = useState<{ name: string; base64: string; mimeType: string; size: number }[]>([]);
+  const [pa4Busy, setPa4Busy] = useState(false);
+  const [pa4Error, setPa4Error] = useState<string | null>(null);
+  const [pa4UploadError, setPa4UploadError] = useState<string | null>(null);
+  const [pa4Extracted, setPa4Extracted] = useState<Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>>({});
+
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
   const [noForm, setNoForm] = useState(false);
+  /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
+  const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
 
   // Medical then vs now
   const [medChanges, setMedChanges] = useState<string[]>([]);
@@ -121,48 +156,56 @@ export function ChangeOfCircumstancesScreen() {
   const next = () => setStep(s => Math.min(s + 1, TOTAL_STEPS));
   const back = () => step === 1 ? goBack() : setStep(s => s - 1);
 
-  // Run Vision extraction when files arrive on step 1→2
-  useEffect(() => {
-    if (step !== 1 || uploadedFiles.length === 0) return;
-    if (Object.keys(extractedAnswers).length > 0) return;
-    let cancelled = false;
-    setAnalysisBusy(true);
-    setAnalysisError(null);
-    async function extract() {
-      try {
-        const res = await fetch('/api/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'coc-document-analysis',
-            files: uploadedFiles.map(f => ({ base64: f.base64, mimeType: f.mimeType })),
-          }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (cancelled) return;
-        if (data?.extractedAnswers) {
-          setExtractedAnswers(data.extractedAnswers);
-          const pre: Record<string, string> = {};
-          for (const [key, val] of Object.entries(data.extractedAnswers as Record<string, { answer: string }>)) {
-            pre[key] = (val as { answer: string }).answer ?? '';
-          }
-          setConfirmedAnswers(pre);
-        } else {
-          setAnalysisError(data?.error ?? 'Could not extract answers automatically.');
-        }
-      } catch {
-        if (!cancelled) setAnalysisError('Could not reach the extraction service.');
-      } finally {
-        if (!cancelled) setAnalysisBusy(false);
+  // Extraction helper
+  async function runExtraction(
+    files: { base64: string; mimeType: string }[],
+    docType: 'pip2' | 'pa4',
+    setBusy: (v: boolean) => void,
+    setError: (v: string | null) => void,
+    setExtracted: (v: Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>) => void,
+  ) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'coc-document-analysis', files, docType }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data?.extractedAnswers) {
+        setExtracted(data.extractedAnswers);
+      } else {
+        setError(data?.error ?? 'Could not extract answers automatically.');
       }
+    } catch {
+      setError('Could not reach the extraction service.');
+    } finally {
+      setBusy(false);
     }
-    extract();
-    return () => { cancelled = true; };
-  }, [uploadedFiles]);
+  }
 
-  // Admin mock form loader — injects realistic sample previous answers for all 12 activities
-  const loadMockForm = () => {
-    const mockAnswers: Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }> = {
+  // Run extraction when PIP2 files arrive
+  useEffect(() => {
+    if (pip2Files.length === 0 || Object.keys(pip2Extracted).length > 0) return;
+    runExtraction(
+      pip2Files.map(f => ({ base64: f.base64, mimeType: f.mimeType })),
+      'pip2', setPip2Busy, setPip2Error, setPip2Extracted,
+    );
+  }, [pip2Files]);
+
+  // Run extraction when PA4 files arrive
+  useEffect(() => {
+    if (pa4Files.length === 0 || Object.keys(pa4Extracted).length > 0) return;
+    runExtraction(
+      pa4Files.map(f => ({ base64: f.base64, mimeType: f.mimeType })),
+      'pa4', setPa4Busy, setPa4Error, setPa4Extracted,
+    );
+  }, [pa4Files]);
+
+  // Admin mock form loader — content varies by selected document type
+  const MOCK_DATA: Record<string, Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>> = {
+    pip2: {
       q1:  { answer: 'I can prepare a simple meal but I need to sit down regularly due to pain. I use the microwave most days as standing at the hob is too difficult. My partner helps with anything involving heavy pans or the oven.', confidence: 'high' },
       q2:  { answer: 'I can eat independently but I sometimes drop cutlery due to tremors. I need food cutting up on bad days. I eat slowly and often leave meals unfinished due to fatigue and pain.', confidence: 'high' },
       q3:  { answer: 'I take several medications daily. I sometimes forget doses when my concentration is low. I have a dosette box my carer fills weekly. I need reminders from my partner most days.', confidence: 'medium' },
@@ -175,64 +218,142 @@ export function ChangeOfCircumstancesScreen() {
       q10: { answer: 'I manage basic day-to-day purchases but struggle with complex financial decisions. I sometimes make mistakes with change or forget what I have spent. My partner checks my bank statements with me.', confidence: 'high' },
       q11: { answer: 'I cannot use public transport alone due to anxiety and unpredictable symptoms. I rely on my partner or taxis for all journeys. I need to know the route and toilet locations in advance. Unfamiliar routes cause severe anxiety.', confidence: 'high' },
       q12: { answer: 'I can walk short distances on a good day but I use a walking stick. I cannot walk more than 50 metres without stopping due to pain and breathlessness. On bad days I use a wheelchair.', confidence: 'high' },
-    };
-    const pre: Record<string, string> = {};
-    for (const [k, v] of Object.entries(mockAnswers)) pre[k] = v.answer;
-    setUploadedLabels(['mock_pip2_form.jpg']);
-    setExtractedAnswers(mockAnswers);
-    setConfirmedAnswers(pre);
-    setAnalysisBusy(false);
-    setAnalysisError(null);
+    },
+    pa4: {
+      q1:  { answer: 'Claimant states they use a microwave only and cannot use the hob due to pain and fatigue. A perching stool is used at the kitchen counter. Partner reported to assist with preparing hot food daily. Observed reduced grip strength on examination. Recommended descriptor: E (supervision required). 4 points.', confidence: 'high' },
+      q2:  { answer: 'Claimant uses adapted cutlery. Tremor observed during assessment — moderate bilateral hand tremor. Claimant states food is cut up by partner on most days. Eating is slow; claimant did not finish food brought to assessment. Recommended descriptor: C (uses aid/appliance). 2 points.', confidence: 'high' },
+      q3:  { answer: 'Claimant uses a pre-filled dosette box filled by carer weekly. States they forget doses without prompting. No evidence of missed doses causing harm at time of assessment. Recommended descriptor: C (prompting required). 1 point.', confidence: 'medium' },
+      q4:  { answer: 'Claimant uses a shower seat and grab rails (prescription evidence provided). States they cannot wash hair or lower body independently. Partner stated to assist daily. Claimant arrived to assessment with hair unwashed. Recommended descriptor: D (assistance with bathing). 2 points.', confidence: 'high' },
+      q5:  { answer: 'Claimant reports daily use of continence pads (prescription confirmed). Urgency stated as primary issue — claimant describes not always making it to the toilet in time. Grab rails fitted. Recommended descriptor: C (use of aids/appliances for toilet). 2 points.', confidence: 'high' },
+      q6:  { answer: 'Claimant attended in elasticated-waist clothing and slip-on shoes. States dressing independently takes over 30 minutes on average and they require a long-handled aid for socks. Partner confirmed they assist with complex clothing. Recommended descriptor: C (uses an aid). 2 points.', confidence: 'medium' },
+      q7:  { answer: 'Speech was audible throughout assessment but claimant\'s voice became quiet and less clear toward the end of the session. Claimant reported difficulty maintaining conversation when fatigued. No formal speech or language disorder evident. Recommended descriptor: A (no difficulty). 0 points.', confidence: 'high' },
+      q8:  { answer: 'Claimant uses a handheld magnifier (brought to assessment). Reports re-reading required for complex documents. Confirmed ability to read standard newspaper print with magnifier. Recommended descriptor: B (uses an aid). 2 points.', confidence: 'high' },
+      q9:  { answer: 'Claimant reported significant anxiety in social situations. Attended assessment alone but stated this required considerable effort. Reports cancelling social engagements frequently. No observed distress during assessment but stated one-to-one situations are manageable; groups are not. Recommended descriptor: C (needs prompting to engage). 2 points.', confidence: 'medium' },
+      q10: { answer: 'Claimant states partner checks bank statements. Some confusion noted when discussing budgeting — claimant could not recall recent spending when asked. Benefit payments managed by partner. Recommended descriptor: C (needs prompting for complex decisions). 2 points.', confidence: 'high' },
+      q11: { answer: 'Claimant did not use public transport to attend — arrived by taxi with partner. States they cannot use unfamiliar routes alone. Pre-assessment questionnaire noted severe anxiety when route includes unpredictable elements (e.g. cancelled trains). Recommended descriptor: E (cannot follow journeys without another person). 8 points.', confidence: 'high' },
+      q12: { answer: 'Claimant walked from waiting area to assessment room (approx. 40m) with a walking stick and one rest. Stated this was a better day. Claims to use a manual wheelchair on most days. No wheelchair observed at assessment. Timed walk test not completed — claimant declined. Recommended descriptor: C (can walk up to 50m). 4 points.', confidence: 'high' },
+    },
+  };
+
+  const loadMockForm = () => {
+    setPip2Labels(['mock_pip2_form.jpg']);
+    setPip2Extracted(MOCK_DATA.pip2);
+
+    setPa4Labels(['mock_pa4_assessor_report.pdf']);
+    setPa4Extracted(MOCK_DATA.pa4);
+
+    setPip2Busy(false); setPip2Error(null);
+    setPa4Busy(false); setPa4Error(null);
+    setPip2UploadError(null);
+    setPa4UploadError(null);
+    setActivityFallbackNotes({});
     setExpandedSection('daily');
     setExpandedActivityId(null);
   };
 
-  // File picker handler
-  const onUploadPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
-    const fileList = Array.from(files);
-    setUploadedLabels(fileList.map(f => f.name));
-    setExtractedAnswers({});
-    setConfirmedAnswers({});
-    setAnalysisError(null);
-    const readers = fileList.map(
-      file => new Promise<{ name: string; base64: string; mimeType: string }>(resolve => {
+  async function readFilesToBase64List(files: File[]): Promise<{ name: string; base64: string; mimeType: string; size: number }[]> {
+    return Promise.all(files.map(file =>
+      new Promise<{ name: string; base64: string; mimeType: string; size: number }>(resolve => {
         const reader = new FileReader();
         reader.onload = ev => {
           const dataUrl = ev.target?.result as string;
-          resolve({ name: file.name, base64: dataUrl.split(',')[1] ?? '', mimeType: file.type || 'image/jpeg' });
+          resolve({
+            name: file.name,
+            base64: dataUrl.split(',')[1] ?? '',
+            mimeType: file.type || 'image/jpeg',
+            size: file.size,
+          });
         };
         reader.readAsDataURL(file);
       })
-    );
-    Promise.all(readers).then(results => setUploadedFiles(results));
+    ));
+  }
+
+  const onPip2Pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files ?? []);
     e.target.value = '';
+    if (!raw.length) return;
+    const bad = validateCocFileSelection(raw);
+    if (bad) {
+      setPip2UploadError(bad);
+      return;
+    }
+    setPip2UploadError(null);
+    const results = await readFilesToBase64List(raw);
+    setPip2Labels(results.map(f => f.name));
+    setPip2Files(results);
+    setPip2Extracted({});
+    setPip2Error(null);
+    setActivityFallbackNotes({});
+  };
+
+  const onPa4Pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (!raw.length) return;
+    const bad = validateCocFileSelection(raw);
+    if (bad) {
+      setPa4UploadError(bad);
+      return;
+    }
+    setPa4UploadError(null);
+    const results = await readFilesToBase64List(raw);
+    setPa4Labels(results.map(f => f.name));
+    setPa4Files(results);
+    setPa4Extracted({});
+    setPa4Error(null);
+    setActivityFallbackNotes({});
   };
 
   const startQuestions = () => {
+    const hasPip2 = pip2Labels.length > 0;
+    const hasPa4 = pa4Labels.length > 0;
+    const derivedDocType = hasPip2 && hasPa4 ? 'both' : hasPa4 ? 'pa4_only' : 'pip2_only';
+
+    // PIP2 answers = primary (claimant's words)
+    const pip2Answers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(pip2Extracted)) pip2Answers[k] = v.answer ?? '';
+
+    // PA4 answers = assessor notes stored separately
+    const pa4Answers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(pa4Extracted)) pa4Answers[k] = v.answer ?? '';
+
+    // What goes into wizard as "previous answer": pip2 if available, pa4 fills gaps
+    const primary = { ...pa4Answers };
+    for (const [k, v] of Object.entries(pip2Answers)) { if (v) primary[k] = v; }
+
+    // Optional typing: fills gaps, or replaces automatic read when you correct a box
+    for (const [k, v] of Object.entries(activityFallbackNotes)) {
+      const t = v?.trim();
+      if (t) primary[k] = t;
+    }
+
     setCocMode(true);
-    setCocPreviousAnswers(confirmedAnswers);
+    setCocFormType(formType);
+    setCocDocumentType(derivedDocType);
+    setCocPreviousAnswers(primary);
+    setCocAssessorNotes(pa4Answers);
     navigateTo('question_index');
   };
 
   const stepTitles = [
-    'Upload your previous form',
+    'Which form are you completing?',
+    'PIP2 form and optional PA4',
     'Your health picture',
     'How this works',
   ];
 
-  const hasUploaded = uploadedLabels.length > 0;
-  const hasExtracted = Object.keys(extractedAnswers).length > 0;
-
   const renderActivityAccordion = (qid: string) => {
     const q = PIP_QUESTIONS.find(x => x.id === qid);
     if (!q) return null;
-    const extracted = extractedAnswers[qid];
-    const confirmed = confirmedAnswers[qid] ?? '';
+    const extractedPip2 = pip2Extracted[qid];
+    const extractedPa4 = pa4Extracted[qid];
+    const pip2Text = extractedPip2?.answer?.trim() ?? '';
+    const pa4Text = extractedPa4?.answer?.trim() ?? '';
+    const manual = activityFallbackNotes[qid] ?? '';
     const isOpen = expandedActivityId === qid;
-    const hasAnswer = confirmed.trim().length > 0;
-    const confidence = extracted?.confidence ?? 'low';
+    const hasAnswer = Boolean(pip2Text || pa4Text || manual.trim());
+    const confidence = (extractedPip2 ?? extractedPa4)?.confidence ?? 'low';
     return (
       <div key={qid} className="border-b border-stone-100 last:border-0">
         <button type="button"
@@ -250,22 +371,47 @@ export function ChangeOfCircumstancesScreen() {
         {isOpen && (
           <div className="px-4 pb-4 space-y-2">
             <p className="text-xs text-stone-500 italic leading-relaxed">{q.headline}</p>
-            {hasAnswer ? (
-              <textarea
-                value={confirmed}
-                onChange={ev => setConfirmedAnswers(prev => ({ ...prev, [qid]: ev.target.value }))}
-                rows={3}
-                className="w-full text-sm text-stone-700 bg-stone-50 border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300"
-              />
+            {pip2Text || pa4Text ? (
+              <div className="space-y-2">
+                {pip2Text ? (
+                  <div className="rounded-xl border border-teal-100 bg-teal-50/60 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-teal-600 mb-1">From your PIP2</p>
+                    <p className="text-xs text-stone-700 leading-relaxed">"{pip2Text}"</p>
+                  </div>
+                ) : null}
+                {pa4Text ? (
+                  <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">From assessor report (PA4)</p>
+                    <p className="text-xs text-stone-700 leading-relaxed">"{pa4Text}"</p>
+                  </div>
+                ) : null}
+              </div>
             ) : (
-              <textarea
-                placeholder="Nothing found on the form — type what you remember or leave blank"
-                value={confirmed}
-                onChange={ev => setConfirmedAnswers(prev => ({ ...prev, [qid]: ev.target.value }))}
-                rows={2}
-                className="w-full text-sm text-stone-300 bg-stone-50 border border-dashed border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-300"
-              />
+              <p className="text-xs text-stone-400 leading-relaxed">
+                Nothing was read from your documents for this activity.
+              </p>
             )}
+
+            <div className="rounded-xl border border-stone-200 bg-stone-50/90 px-3 py-3 space-y-2">
+              <p className="text-[11px] text-stone-600 leading-relaxed">
+                {pip2Text || pa4Text ? (
+                  <>
+                    <span className="font-semibold text-stone-700">Optional.</span> If anything above doesn&apos;t match your papers or the reader missed words, type what should count as your previous answer for this activity. We&apos;ll use what you type in the walkthrough instead of the automatic text. Leave blank if it looks right.
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold text-stone-700">Optional backup.</span> Blurry photos, glare, and unclear handwriting are common — automatic reading sometimes misses a box. If you remember what you or the assessor wrote here, type it so we can show it next to this question in the walkthrough. Skip it if you prefer to start fresh in the questions.
+                  </>
+                )}
+              </p>
+              <textarea
+                value={manual}
+                onChange={ev => setActivityFallbackNotes(prev => ({ ...prev, [qid]: ev.target.value }))}
+                rows={3}
+                placeholder={pip2Text || pa4Text ? 'Optional — correct wording only if needed' : 'Optional — only if you remember what was on the form'}
+                className="w-full text-sm text-stone-700 bg-white border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-400"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -273,187 +419,367 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const renderStep = () => {
-    // ── STEP 1: Upload + extracted answers ──────────────────────────────────
+    // ── STEP 1: Form type selector ───────────────────────────────────────────
     if (step === 1) {
+      return (
+        <div className="space-y-5 px-5 pt-5 pb-32">
+          <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-5 shadow-sm">
+            <p className="text-[11px] font-bold text-purple-600 uppercase tracking-widest mb-2">Change of circumstances</p>
+            <h2 className="font-bold text-stone-900 text-lg leading-tight mb-2">What this is for</h2>
+            <p className="text-sm text-stone-600 leading-relaxed">
+              A <span className="font-semibold text-stone-800">change of circumstances</span> is when something important about your health, disability, or day-to-day needs has changed since DWP last set your PIP award — and you need them to review it (for example after a deterioration, new diagnosis, or much more help than before).
+            </p>
+            <p className="text-sm text-stone-600 leading-relaxed mt-2">
+              PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now.
+            </p>
+          </div>
+
+          <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 1 — Form type</p>
+            <h2 className="font-bold text-2xl leading-tight mb-3">Which form are you completing?</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">
+              PIP2 and the AR1 review form ask for different levels of detail. Choose the one that matches the form DWP sent you — we&apos;ll shape the walkthrough around that.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {/* PIP2 option */}
+            <button
+              type="button"
+              onClick={() => setFormType('pip2')}
+              className={`w-full text-left rounded-2xl border-2 p-5 transition-all active:scale-[0.98] ${
+                formType === 'pip2'
+                  ? 'border-teal-500 bg-teal-50 shadow-sm'
+                  : 'border-stone-200 bg-white hover:border-stone-300'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                  formType === 'pip2' ? 'border-teal-500 bg-teal-500' : 'border-stone-300'
+                }`}>
+                  {formType === 'pip2' && <div className="w-2 h-2 rounded-full bg-white" />}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-bold text-stone-900 text-base">PIP2 form</p>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">Full reassessment</span>
+                  </div>
+                  <p className="text-sm text-stone-600 leading-relaxed">
+                    Choose this if you&apos;ve <span className="font-semibold text-stone-800">reported a change of circumstances</span> to DWP and the form they want back is the main <span className="font-semibold text-stone-800">PIP2</span> — where you describe how your disability affects you across every activity. That&apos;s the form this walkthrough matches.
+                  </p>
+                  <p className="text-xs text-stone-400 mt-2">Also used for new claims and full renewals; here we focus on building stronger answers when your situation has changed since your last award.</p>
+                </div>
+              </div>
+            </button>
+
+            {/* AR1 option */}
+            <button
+              type="button"
+              onClick={() => setFormType('ar1')}
+              className={`w-full text-left rounded-2xl border-2 p-5 transition-all active:scale-[0.98] ${
+                formType === 'ar1'
+                  ? 'border-teal-500 bg-teal-50 shadow-sm'
+                  : 'border-stone-200 bg-white hover:border-stone-300'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                  formType === 'ar1' ? 'border-teal-500 bg-teal-500' : 'border-stone-300'
+                }`}>
+                  {formType === 'ar1' && <div className="w-2 h-2 rounded-full bg-white" />}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-bold text-stone-900 text-base">AR1 review form</p>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Change of circumstances</span>
+                  </div>
+                  <p className="text-sm text-stone-600 leading-relaxed">
+                    The review form DWP sends when your award is being checked. You mainly need to describe what has <span className="font-semibold">changed</span> since your last assessment — not repeat everything.
+                  </p>
+                  <p className="text-xs text-stone-400 mt-2">Sent mid-award when DWP wants to know if your condition or circumstances have changed.</p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={next}
+            disabled={!formType}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
+          >
+            Continue <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      );
+    }
+
+    // ── STEP 2: Upload PIP2 (required) + PA4 (optional) ────────────────────
+    if (step === 2) {
+      const hasPip2 = pip2Labels.length > 0;
+      const hasPa4 = pa4Labels.length > 0;
+      const busy = pip2Busy || pa4Busy;
+      const hasAny = hasPip2 || hasPa4;
+      const hasExtracted = Object.keys(pip2Extracted).length > 0 || Object.keys(pa4Extracted).length > 0;
+      const extractionFailedSomewhere = (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error);
+      const showActivityReview = hasAny && !busy && (hasExtracted || extractionFailedSomewhere);
+      const canContinue = hasAny && !busy;
+
+      const UploadZone = ({
+        label, sublabel, badge, badgeColour, labels,
+        busy: zoneBusy, error, extracted,
+        inputRef, onPick,
+        onRemove,
+        isOptional,
+        fileCount,
+        totalBytes,
+        maxFiles,
+        maxTotalBytes,
+        pickError,
+      }: {
+        label: string; sublabel: string; badge?: string; badgeColour?: string;
+        labels: string[];
+        busy: boolean; error: string | null;
+        extracted: Record<string, { answer: string; confidence: string }>;
+        inputRef: React.RefObject<HTMLInputElement>;
+        onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
+        onRemove: () => void;
+        isOptional?: boolean;
+        fileCount: number;
+        totalBytes: number;
+        maxFiles: number;
+        maxTotalBytes: number;
+        pickError: string | null;
+      }) => {
+        const uploaded = labels.length > 0;
+        const done = Object.keys(extracted).length > 0;
+        const overRecommendedSize = totalBytes > maxTotalBytes * 0.9;
+        return (
+          <div className={`rounded-2xl border-2 p-4 space-y-3 ${uploaded ? 'border-teal-200 bg-teal-50/30' : 'border-stone-200 bg-white'}`}>
+            {pickError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
+              </div>
+            )}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-stone-900 text-sm">{label}</p>
+                  {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
+                  {isOptional && !uploaded && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">optional</span>}
+                </div>
+                <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
+              </div>
+              {uploaded && (
+                <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0">Remove</button>
+              )}
+            </div>
+
+            {uploaded ? (
+              <div className="space-y-1.5">
+                {labels.map(name => (
+                  <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
+                    <FileText className="w-4 h-4 text-teal-600 shrink-0" />
+                    <span className="break-all text-xs">{name}</span>
+                  </div>
+                ))}
+                {zoneBusy && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <Loader2 className="w-3.5 h-3.5 text-teal-600 animate-spin shrink-0" />
+                    <p className="text-xs text-stone-500">Reading document…</p>
+                  </div>
+                )}
+                {!zoneBusy && done && (
+                  <div className="flex items-center gap-2 pt-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                    <p className="text-xs text-teal-700 font-semibold">Answers extracted</p>
+                  </div>
+                )}
+                {!zoneBusy && error && (
+                  <div className="flex items-start gap-2 pt-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800">Couldn't read automatically — answers will be blank; add manually.</p>
+                  </div>
+                )}
+                <p className={`text-[10px] pt-1 leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
+                  <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
+                  {uploaded && totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
+                  {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
+                </p>
+              </div>
+            ) : (
+              <>
+                <input ref={inputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onPick} />
+                <button type="button" onClick={() => inputRef.current?.click()}
+                  className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${isOptional ? 'border-2 border-dashed border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700' : 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'}`}>
+                  <Upload className="w-4 h-4" />
+                  {isOptional ? 'Add PA4 report (optional)' : 'Take a photo or upload pages'}
+                </button>
+                <p className={`text-[10px] leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
+                  <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
+                  {totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
+                  {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
+                </p>
+              </>
+            )}
+          </div>
+        );
+      };
+
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
 
           {/* Hero */}
           <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 1 — Your previous answers</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">See exactly what to improve</h2>
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 2 — Your documents</p>
+            <h2 className="font-bold text-2xl leading-tight mb-3">Upload your previous documents</h2>
             <p className="text-teal-100 text-sm leading-relaxed">
-              Your original answers will appear alongside every question. You'll know straight away what scored well, what was too vague, and where to go further this time.
+              Upload your original PIP2 form — your own words, exactly as you wrote them. If you also have your PA4 assessor report, add that too and we'll show both side by side in every question.
+            </p>
+            <p className="text-teal-100/90 text-[11px] leading-relaxed mt-3 pt-3 border-t border-white/20">
+              <span className="font-semibold text-teal-50">Upload caps (each box is separate):</span>{' '}
+              up to {COC_UPLOAD_MAX_FILES} files in one go, and about {formatFileSize(COC_UPLOAD_MAX_TOTAL_BYTES)} combined per upload so the request fits our host&apos;s size limit (base64 makes files heavier). One multi-page PDF counts as one file. Very large scans may need to be compressed or split.
             </p>
           </div>
 
-          {/* Upload card */}
-          {!hasUploaded ? (
-            <div className="rounded-2xl border-2 border-teal-200 bg-white shadow-md p-5 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center shrink-0">
-                  <Upload className="w-6 h-6 text-teal-700" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-stone-900 text-lg leading-snug">Photograph your original PIP2 form</h3>
-                  <p className="text-sm text-stone-500 mt-1 leading-relaxed">
-                    Take a photo of each page of the form you sent to DWP — handwriting is fine. We'll read what you wrote and use it to show your previous answers alongside each question, so you can write something stronger this time.
-                  </p>
-                </div>
-              </div>
-
-              {/* How to photo guide */}
-              <div className="bg-stone-50 rounded-xl p-4 border border-stone-100 space-y-2">
-                <p className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">How to do it</p>
-                {[
-                  { step: '1', text: 'Lay your form flat in good light' },
-                  { step: '2', text: 'Take one photo per page — include all the writing' },
-                  { step: '3', text: 'Upload all pages at once below' },
-                ].map(({ step, text }) => (
-                  <div key={step} className="flex items-center gap-3">
-                    <span className="w-5 h-5 rounded-full bg-teal-700 text-white text-[10px] font-black flex items-center justify-center shrink-0">{step}</span>
-                    <span className="text-sm text-stone-600">{text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="bg-stone-50 rounded-xl p-3 border border-stone-100">
-                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">Also works with</p>
-                <div className="flex flex-wrap gap-2">
-                  {['AR1 Review Form', 'PA4 assessor report', 'Award letter', 'Decision notice', 'Scanned PDF'].map(label => (
-                    <span key={label} className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-white border border-stone-200 text-stone-600">{label}</span>
-                  ))}
-                </div>
-              </div>
-
-              <input ref={uploadInputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onUploadPick} />
-              <button type="button" onClick={() => uploadInputRef.current?.click()}
-                className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white shadow-sm hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2">
-                <Upload className="w-5 h-5" />Take a photo or upload pages
-              </button>
-              <button type="button" onClick={() => setNoForm(true)}
-                className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
-                I don't have my form
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {/* Files + extraction status */}
-              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-bold text-stone-400 uppercase tracking-wider">Uploaded</p>
-                  <button type="button" onClick={() => { setUploadedLabels([]); setUploadedFiles([]); setExtractedAnswers({}); setConfirmedAnswers({}); }}
-                    className="text-xs text-stone-400 hover:text-stone-600 underline">Remove</button>
-                </div>
-                {uploadedLabels.map(name => (
-                  <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
-                    <FileText className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span className="break-all">{name}</span>
-                  </div>
-                ))}
-                {analysisBusy && (
-                  <div className="flex items-center gap-3 pt-2 border-t border-stone-100">
-                    <Loader2 className="w-4 h-4 text-teal-600 animate-spin shrink-0" />
-                    <p className="text-sm text-stone-600">Reading your form and extracting answers…</p>
-                  </div>
-                )}
-                {!analysisBusy && hasExtracted && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                    <p className="text-sm text-teal-700 font-semibold">Answers extracted — check them below</p>
-                  </div>
-                )}
-                {!analysisBusy && analysisError && (
-                  <div className="flex items-start gap-2 pt-2 border-t border-stone-100">
-                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800">Couldn't read the documents automatically. You can continue and your answers will appear as blank in the wizard.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Extracted answers in accordions */}
-              {(hasExtracted || analysisError) && (
-                <div className="space-y-2">
-                  <p className="text-xs text-stone-500 px-1">
-                    {hasExtracted
-                      ? 'These are the answers we extracted. Tap any activity to check — you can correct anything that wasn\'t read clearly.'
-                      : 'No answers were extracted. You can still add them manually below, or skip and build fresh answers in the wizard.'}
-                  </p>
-
-                  {/* Daily Living accordion group */}
-                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                    <button type="button"
-                      onClick={() => setExpandedSection(expandedSection === 'daily' ? null : 'daily')}
-                      className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
-                      <div>
-                        <p className="font-bold text-stone-900 text-sm">Daily Living activities</p>
-                        <p className="text-xs text-stone-400 mt-0.5">Activities 1–10</p>
-                      </div>
-                      {expandedSection === 'daily'
-                        ? <ChevronUp className="w-4 h-4 text-stone-400" />
-                        : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                    </button>
-                    {expandedSection === 'daily' && (
-                      <div className="border-t border-stone-100">
-                        {DAILY_LIVING_IDS.map(renderActivityAccordion)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Mobility accordion group */}
-                  <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                    <button type="button"
-                      onClick={() => setExpandedSection(expandedSection === 'mobility' ? null : 'mobility')}
-                      className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
-                      <div>
-                        <p className="font-bold text-stone-900 text-sm">Mobility activities</p>
-                        <p className="text-xs text-stone-400 mt-0.5">Activities 11–12</p>
-                      </div>
-                      {expandedSection === 'mobility'
-                        ? <ChevronUp className="w-4 h-4 text-stone-400" />
-                        : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                    </button>
-                    {expandedSection === 'mobility' && (
-                      <div className="border-t border-stone-100">
-                        {MOBILITY_IDS.map(renderActivityAccordion)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+          {/* PA4-only notice */}
+          {!hasPip2 && !hasPa4 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+              <p className="text-xs text-blue-800 leading-relaxed">
+                <span className="font-bold">Don't have your PIP2 form yet?</span> You can upload just the PA4 assessor report — we'll flag where your own wording is missing so you know what to write fresh.
+              </p>
             </div>
           )}
 
-          {/* No form — request from DWP guidance */}
-          {noForm && !hasUploaded && (
+          {/* PIP2 upload zone */}
+          <UploadZone
+            label="Original PIP2 form"
+            sublabel="The form you filled in and returned to DWP — your own handwritten or typed answers."
+            badge="Your words"
+            badgeColour="bg-teal-100 text-teal-700"
+            labels={pip2Labels}
+            busy={pip2Busy}
+            error={pip2Error}
+            extracted={pip2Extracted}
+            inputRef={pip2InputRef}
+            onPick={onPip2Pick}
+            onRemove={() => {
+              setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({});
+            }}
+            fileCount={pip2Labels.length}
+            totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
+            maxFiles={COC_UPLOAD_MAX_FILES}
+            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+            pickError={pip2UploadError}
+          />
+
+          {/* PA4 upload zone */}
+          <UploadZone
+            label="PA4 assessor report"
+            sublabel="The report written by the health professional — shows what they observed for each activity and why they scored you as they did."
+            badge="Assessor's view"
+            badgeColour="bg-amber-100 text-amber-700"
+            labels={pa4Labels}
+            busy={pa4Busy}
+            error={pa4Error}
+            extracted={pa4Extracted}
+            inputRef={pa4InputRef}
+            onPick={onPa4Pick}
+            onRemove={() => {
+              setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({});
+            }}
+            isOptional
+            fileCount={pa4Labels.length}
+            totalBytes={pa4Files.reduce((s, f) => s + f.size, 0)}
+            maxFiles={COC_UPLOAD_MAX_FILES}
+            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+            pickError={pa4UploadError}
+          />
+
+          {/* No document guidance */}
+          {noForm && !hasAny && (
             <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
-              <div className="space-y-1">
-                <p className="font-bold text-blue-900 text-base">Request your form from DWP</p>
-                <p className="text-sm text-blue-800 leading-relaxed">
-                  You're entitled to a copy of your original PIP2 form. Call DWP and ask for it — it usually arrives within a few days and makes a real difference to building stronger answers.
-                </p>
-              </div>
-
-              <div className="bg-white rounded-xl border border-blue-200 p-4 space-y-2">
-                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider">What to say when you call</p>
+              <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                You're entitled to copies of your PIP2 form and PA4 assessor report. Call DWP and ask — they usually arrive within a few days.
+              </p>
+              <div className="bg-white rounded-xl border border-blue-200 p-4">
+                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
                 <p className="text-sm text-blue-900 italic leading-relaxed">
-                  "I'd like a copy of my original PIP2 form and my most recent award letter please."
+                  "I'd like a copy of my original PIP2 form and my PA4 assessor report please."
                 </p>
               </div>
-
               <a href="tel:08009172222"
                 className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
                 <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
               </a>
-
-              <p className="text-xs text-blue-700 leading-relaxed text-center">
-                You can start preparing your answers now while you wait for it to arrive. Tap below to continue.
-              </p>
-
               <button type="button" onClick={next}
                 className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-blue-300 text-blue-800 bg-white hover:bg-blue-50 active:scale-[0.99] transition-all">
-                Continue without my form for now
+                Continue without documents for now
               </button>
+            </div>
+          )}
+          {!noForm && !hasAny && (
+            <button type="button" onClick={() => setNoForm(true)}
+              className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
+              I don't have these documents yet
+            </button>
+          )}
+
+          {/* Extracted answers review — or full list when reading failed */}
+          {showActivityReview && (
+            <div className="space-y-2">
+              {extractionFailedSomewhere && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 space-y-1.5">
+                  <p className="text-xs font-semibold text-amber-900">We couldn&apos;t read one of your uploads automatically</p>
+                  <p className="text-[11px] text-amber-900/90 leading-relaxed">
+                    That usually means a blurry photo, a glare on the page, handwriting the scanner couldn&apos;t make out, or a short connection problem — not something you did wrong. Optional boxes appear below for each activity where nothing came through: add what you remember if you want it next to that question, or leave them blank and continue. Your new answers are still built properly in the walkthrough.
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-stone-500 px-1">
+                {!hasExtracted
+                  ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
+                  : Object.keys(pa4Extracted).length > 0 && Object.keys(pip2Extracted).length > 0
+                    ? 'Answers extracted from both documents — open each activity to see your PIP2 and assessor text. Use the optional box at the bottom if anything needs correcting or was missed.'
+                    : Object.keys(pa4Extracted).length > 0 && Object.keys(pip2Extracted).length === 0
+                      ? 'Answers extracted from your PA4 — open each activity below. Use the optional box if the scan missed something or you want to add your own wording.'
+                      : 'Answers extracted from your PIP2 — open each activity below. Use the optional box if the scan missed something or you want to correct the read.'}
+              </p>
+              {/* Daily Living */}
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <button type="button"
+                  onClick={() => setExpandedSection(expandedSection === 'daily' ? null : 'daily')}
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">Daily Living activities</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Activities 1–10</p>
+                  </div>
+                  {expandedSection === 'daily' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+                {expandedSection === 'daily' && (
+                  <div className="border-t border-stone-100">
+                    {DAILY_LIVING_IDS.map(renderActivityAccordion)}
+                  </div>
+                )}
+              </div>
+              {/* Mobility */}
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <button type="button"
+                  onClick={() => setExpandedSection(expandedSection === 'mobility' ? null : 'mobility')}
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">Mobility activities</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Activities 11–12</p>
+                  </div>
+                  {expandedSection === 'mobility' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+                {expandedSection === 'mobility' && (
+                  <div className="border-t border-stone-100">
+                    {MOBILITY_IDS.map(renderActivityAccordion)}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -461,22 +787,17 @@ export function ChangeOfCircumstancesScreen() {
           {isAdmin && (
             <div className="rounded-2xl border-2 border-dashed border-amber-400 bg-amber-50/60 p-4 space-y-3">
               <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Admin preview</p>
-              <p className="text-xs text-amber-800 leading-relaxed">
-                Load a mock form with sample previous answers so you can walk through every step.
-              </p>
               <button type="button" onClick={loadMockForm}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
-                Load mock uploaded form + answers
+                Load mock PIP2 + PA4 answers
               </button>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setStep(2)}
-                  className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
-                  → Step 2
-                </button>
-                <button type="button" onClick={() => setStep(3)}
-                  className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
-                  → Step 3
-                </button>
+              <div className="flex gap-2 flex-wrap">
+                {[3, 4].map(s => (
+                  <button key={s} type="button" onClick={() => setStep(s)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
+                    → Step {s}
+                  </button>
+                ))}
                 <button type="button" onClick={startQuestions}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
                   → Questions
@@ -485,23 +806,23 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {/* Continue button — inline, not BottomBar on step 1 */}
-          {hasUploaded && (
-            <button type="button" onClick={next} disabled={analysisBusy}
-              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
-              {analysisBusy ? <><Loader2 className="w-5 h-5 animate-spin" />Reading your form…</> : <>Medical profile<ArrowRight className="w-5 h-5" /></>}
+          {/* Continue */}
+          {canContinue && (
+            <button type="button" onClick={next}
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
+              Medical profile <ArrowRight className="w-5 h-5" />
             </button>
           )}
         </div>
       );
     }
 
-    // ── STEP 2: Medical then vs now ─────────────────────────────────────────
-    if (step === 2) {
+    // ── STEP 3: Medical then vs now ─────────────────────────────────────────
+    if (step === 3) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Tell us about your conditions</h2>
+            <h2 className="font-bold text-xl mb-2">Your conditions</h2>
             <p className="text-teal-100 text-sm leading-relaxed">
               PIPpal uses your conditions to tailor every question and build answers in the right context.
             </p>
@@ -544,7 +865,7 @@ export function ChangeOfCircumstancesScreen() {
             <div>
               <p className="font-bold text-stone-900 text-sm">What's changed since your last assessment?</p>
               <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Tap everything that applies. This gives your assessor context alongside your individual answers.
+                Anything that applies helps — tap all that fit you. It gives your assessor useful context alongside your activity answers.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -573,8 +894,8 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 3: How this works (mirrors ClaimFlow step 4) ───────────────────
-    if (step === 3) {
+    // ── STEP 4: How this works ───────────────────────────────────────────────
+    if (step === 4) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
@@ -585,16 +906,22 @@ export function ChangeOfCircumstancesScreen() {
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
-            <h3 className="font-bold text-stone-900">Here's how this works</h3>
-            {[
-              { icon: '📋', title: 'Your previous answer is shown first', body: 'For every activity, you\'ll see exactly what was on your original form. This is your starting point.' },
-              { icon: '💬', title: 'We ask, you tap', body: 'Simple tap-to-select questions for each activity — no blank boxes to fill in. Think about your bad days.' },
-              { icon: '✍️', title: 'We write a stronger answer', body: 'PIPpal builds a new answer using your selections — in the language DWP assessors need to see. Better than last time.' },
-              { icon: '✏️', title: 'You can improve it', body: 'Once built, you can tweak every answer before you submit. It\'s your claim — we do the heavy lifting.' },
-              { icon: '⏸️', title: 'Save and come back', body: 'Your answers are saved automatically. Do one activity at a time if you need to.' },
-            ].map((tip, i) => (
+            <h3 className="font-bold text-stone-900">How this works</h3>
+            {(formType === 'ar1' ? [
+              { title: 'Your previous answer is shown first', body: 'For every activity you\'ll see what you wrote last time — so you know exactly what DWP already has on file.' },
+              { title: 'Focus on what\'s changed', body: 'The AR1 is about updating your record. You can stick to what\'s got worse, more frequent, or harder — there\'s no need to repeat everything DWP already has.' },
+              { title: 'We write the change for you', body: 'PIPpal builds a concise update in the language assessors need — explaining the deterioration clearly and with the right detail.' },
+              { title: 'You can improve it', body: 'Once built, you can tweak every answer before you submit. It\'s your claim — we do the heavy lifting.' },
+              { title: 'Save and come back', body: 'Your answers are saved automatically. One activity at a time is fine if that suits you better.' },
+            ] : [
+              { title: 'Your previous answer is shown first', body: 'For every activity, you\'ll see exactly what was on your original form. This is your starting point.' },
+              { title: 'Tap-through questions', body: 'Simple tap-to-select questions for each activity — no blank boxes to fill in. When you choose, it helps to think about harder days — that\'s what DWP needs to understand.' },
+              { title: 'We write a stronger answer', body: 'PIPpal builds a new answer using your selections — in the language DWP assessors need to see. Better than last time.' },
+              { title: 'You can improve it', body: 'Once built, you can tweak every answer before you submit. It\'s your claim — we do the heavy lifting.' },
+              { title: 'Save and come back', body: 'Your answers are saved automatically. One activity at a time is fine if that suits you better.' },
+            ]).map((tip, i) => (
               <div key={i} className="flex gap-3">
-                <span className="text-xl shrink-0">{tip.icon}</span>
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-black text-white ${formType === 'ar1' ? 'bg-purple-500' : 'bg-teal-600'}`}>{i + 1}</span>
                 <div>
                   <p className="text-sm font-semibold text-stone-900">{tip.title}</p>
                   <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{tip.body}</p>
@@ -602,6 +929,15 @@ export function ChangeOfCircumstancesScreen() {
               </div>
             ))}
           </div>
+
+          {formType === 'ar1' && (
+            <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
+              <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1">AR1 tip</p>
+              <p className="text-sm text-purple-900 leading-relaxed">
+                DWP already has your previous answers. Rewriting everything isn&apos;t necessary — a clear explanation of what has changed and why your needs are greater now is enough.
+              </p>
+            </div>
+          )}
 
           <button type="button" onClick={startQuestions}
             className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-4 rounded-xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">
@@ -630,8 +966,8 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Step 1: inline buttons; step 2: BottomBar; step 3: inline Start button */}
-      {step === 2 && (
+      {/* Steps 1,2,4: inline buttons; step 3: BottomBar */}
+      {step === 3 && (
         <BottomBar showBack onBack={back} onNext={next} />
       )}
     </div>
