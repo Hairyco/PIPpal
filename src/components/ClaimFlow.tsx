@@ -153,7 +153,12 @@ export function ClaimFlow() {
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
             <h3 className="font-bold text-stone-900">How do I apply?</h3>
             {[
-              { step: '1', title: 'Call DWP to open your claim', body: 'Ring 0800 917 2222. This call takes 20 minutes. Your payments are backdated to this date — so call as soon as possible, even before you have everything ready.' },
+              {
+                step: '1',
+                title: 'Call DWP to start your claim',
+                body: 'Ring 0800 917 2222 to start your claim and ask DWP to send your PIP2 form. The call usually takes about 20 minutes. If you are awarded PIP, payment can be backdated from your claim date — use the Backpay calculator below to estimate lump-sum backpay. The form typically arrives in 2–4 weeks. You can still build all your answers in PIPpal before it arrives, then complete and return the form as soon as you get it. Most decisions take around 6 months from when you apply.',
+                backpayLink: true,
+              },
               { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form.", downloadsLink: true },
               { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.' },
               { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
@@ -165,6 +170,15 @@ export function ClaimFlow() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-stone-900">{item.title}</p>
                   <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                  {'backpayLink' in item && item.backpayLink && (
+                    <button
+                      type="button"
+                      onClick={() => navigateTo('backpay_calculator')}
+                      className="mt-2 block text-left text-xs font-semibold text-teal-700 hover:text-teal-800 underline underline-offset-2"
+                    >
+                      Open the Backpay calculator →
+                    </button>
+                  )}
                   {'downloadsLink' in item && item.downloadsLink && (
                     <button
                       type="button"
