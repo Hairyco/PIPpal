@@ -14,10 +14,10 @@ export function Hero({ onStart }: HeroProps) {
     return () => clearTimeout(t);
   }, []);
 
-  const stats = [
+  const stats: { value: string; label: string; labelClass?: string }[] = [
     { value: '12', label: 'questions guided' },
     { value: '15–30', label: 'mins typical' },
-    { value: '£8.99', label: 'Full access' },
+    { value: '3–6 wks', label: 'Get your PIP decision 3–6 weeks earlier', labelClass: 'text-[9px] leading-snug' },
   ];
 
   const checks = [
@@ -94,7 +94,7 @@ export function Hero({ onStart }: HeroProps) {
           {stats.map((stat, i) => (
             <div key={i} className="bg-white rounded-xl p-3 border border-stone-100 shadow-sm text-center">
               <div className="font-bold text-teal-700 text-lg leading-none mb-1">{stat.value}</div>
-              <div className="text-[10px] text-stone-500">{stat.label}</div>
+              <div className={`${stat.labelClass ?? 'text-[10px]'} text-stone-500`}>{stat.label}</div>
             </div>
           ))}
         </div>
