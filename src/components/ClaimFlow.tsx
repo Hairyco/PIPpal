@@ -156,7 +156,7 @@ export function ClaimFlow() {
               {
                 step: '1',
                 title: 'Call DWP to start your claim',
-                body: 'Ring 0800 917 2222 to start your claim and ask DWP to send your PIP2 form. The call usually takes about 20 minutes. If you are awarded PIP, payment can be backdated from your claim date — use the Backpay calculator below to estimate lump-sum backpay. The form typically arrives in 2–4 weeks. You can still build all your answers in PIPpal before it arrives, then complete and return the form as soon as you get it. Most decisions take around 6 months from when you apply.',
+                body: 'Call 0800 917 2222 — DWP will open your claim and post you the PIP2 form. The form takes 2–4 weeks to arrive, but start building your answers in PIPpal now so you can return it immediately. Decisions usually take around 6 months, and any award is backdated to today\'s call.',
                 backpayLink: true,
               },
               { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form.", downloadsLink: true },
