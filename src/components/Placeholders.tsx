@@ -41,50 +41,148 @@ function ScreenHeader({ title }: { title: string }) {
 
 // ─── ASSESSMENT PREP ───────────────────────────────────────────────────────────
 export function AssessmentPrep() {
-  const { navigateTo } = useAppContext();
-  const tips = [
-    { title: 'Know your worst day', body: 'Assessors want to know how your condition affects you on a bad day, not your best. Be honest about the full range of your experience.', icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { title: 'Bring evidence', body: 'Letters from your GP, consultant, or specialist carry significant weight. Bring originals and copies to your assessment.', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Take someone with you', body: 'You are entitled to bring a supporter — a friend, family member, or carer. They can take notes and help you remember what was said.', icon: Users, color: 'text-teal-600', bg: 'bg-teal-50' },
-    { title: 'Ask for a copy of the report', body: "After your assessment, you can request a copy of the assessor's report. This is your right — always ask for it.", icon: BookOpen, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { title: 'You can request a home assessment', body: "If attending in person would significantly affect your health or safety, you can request a home visit or telephone/video assessment.", icon: Smartphone, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Record the assessment', body: "You have the right to request an audio recording of your face-to-face assessment. Request this in writing at least 2 weeks before.", icon: Volume2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  const { navigateTo, goBack } = useAppContext();
+  const [view, setView] = useState<'choose' | 'inperson' | 'telephone'>('choose');
+
+  const inPersonTips = [
+    { icon: '📋', title: 'Review your PIPpal answers', body: 'Read through your saved answers before the day. The assessor may ask questions in a different order — use your answers as a guide, not a script.' },
+    { icon: '📝', title: 'Describe your worst days', body: 'Always describe how you are on your worst days, not your average. Say "on my worst days" clearly. Vague words like "sometimes" are scored at zero — be specific.' },
+    { icon: '🧑‍🤝‍🧑', title: 'Bring someone with you', body: 'You can bring a friend, family member or carer. They can add information and take notes. Attending alone may be noted and used against you.' },
+    { icon: '📄', title: 'Bring your evidence', body: 'Bring originals and copies of any GP letters, prescription lists, or specialist reports. You can also hand in evidence after the assessment.' },
+    { icon: '🎙️', title: 'You can record the assessment', body: 'Request an audio recording from your assessment provider at least 2 weeks in advance. You must leave a copy with the assessor. Video recording is not allowed.' },
+    { icon: '🚌', title: 'Be careful about your journey', body: 'The assessor may ask how you got there. Always explain what the journey cost you — recovery time, whether someone helped, whether you could do it every day.' },
+    { icon: '🙅', title: "Don't do tasks you can't normally do", body: "If asked to do a physical task you wouldn't normally manage, say so. Doing it once in an assessment may be recorded as evidence that you can always do it." },
+    { icon: '🏠', title: 'You can request a home visit', body: "If leaving home would significantly affect your health, request a home assessment. If the centre is more than 90 minutes away, you can request a closer one." },
+    { icon: '⚧️', title: 'Request a same-gender assessor', body: 'Call your assessment provider using the number on your appointment letter. Other reasonable adjustments — like a specific room layout — can also be requested.' },
+    { icon: '🤝', title: 'The assessor is a contractor — not DWP', body: 'Your assessment is carried out by a private company (Capita or Maximus). They write a report, but a DWP caseworker makes the final decision.' },
   ];
+
+  const telephoneTips = [
+    { icon: '📋', title: 'Have your notes ready', body: 'Keep your PIPpal answers open on another screen or printed out. You can refer to them during the call — this is completely allowed.' },
+    { icon: '🔇', title: 'Find a quiet space', body: "Choose a quiet room where you won't be interrupted. Let anyone in the house know not to disturb you for the duration of the call." },
+    { icon: '👤', title: 'You can have someone with you', body: 'A carer, family member or support worker can sit with you during the call. Tell the assessor who they are at the start.' },
+    { icon: '📝', title: 'Describe your worst days', body: 'Just like in-person, always describe how you are on your worst days. Say "on my worst days" clearly. Be specific — say "4 out of 7 days", not "sometimes".' },
+    { icon: '⏱️', title: 'Calls last 45–90 minutes', body: 'Have a glass of water nearby. You can ask for a short break if you need one. There is no rush.' },
+    { icon: '🔄', title: 'Ask for questions to be repeated', body: "Don't rush. If you don't understand a question, ask them to repeat or rephrase it. Take your time before answering." },
+    { icon: '📞', title: "Note the time and assessor's name", body: "Write down when the call started, the assessor's name if given, and anything important that was said. You may need this later." },
+    { icon: '✍️', title: 'Write notes straight after', body: "As soon as the call ends, write down everything you remember — what was asked, what you said, anything that felt wrong or inaccurate." },
+  ];
+
+  const tips = view === 'inperson' ? inPersonTips : telephoneTips;
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
-      <ScreenHeader title="Assessment Preparation" />
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
-        <div className="bg-teal-700 px-5 md:px-8 py-6 text-white">
-          <p className="text-teal-100 text-sm leading-relaxed">Your PIP assessment is one of the most important parts of your claim. Here's everything you need to know to be fully prepared.</p>
-        </div>
-        <div className="px-5 md:px-8 py-6 space-y-4 max-w-2xl mx-auto">
-          {tips.map((tip, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-start gap-4">
-              <div className={`w-10 h-10 ${tip.bg} rounded-full flex items-center justify-center shrink-0`}>
-                <tip.icon className={`w-5 h-5 ${tip.color}`} />
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-sm mb-1">{tip.title}</h3>
-                <p className="text-xs text-stone-600 leading-relaxed">{tip.body}</p>
-              </div>
-            </div>
-          ))}
-          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mt-2">
-            <h3 className="font-bold text-amber-900 text-sm mb-2 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-600" />On the day</h3>
-            <ul className="space-y-2">
-              {['Arrive early — rushing increases anxiety', 'Dress comfortably, as you would on a typical day', "Don't downplay your condition to seem polite", 'If a question confuses you, ask for it to be repeated', 'Mention all conditions, not just the main one'].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-amber-800">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />{item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <button onClick={() => navigateTo('pip_diary')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <BookOpen className="w-4 h-4" />Open my PIP Diary
-          </button>
+      {/* Header */}
+      <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
+        <button
+          onClick={view === 'choose' ? goBack : () => setView('choose')}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-bold text-stone-900 text-lg leading-tight">
+            {view === 'choose' ? 'Assessment Prep' : view === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
+          </h1>
+          {view !== 'choose' && (
+            <button onClick={() => setView('choose')} className="text-xs text-teal-600 font-medium hover:text-teal-700">
+              ← Choose assessment type
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Landing — choose type */}
+      {view === 'choose' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+          <div className="bg-teal-700 px-5 py-6 text-white">
+            <h2 className="font-bold text-xl mb-1">Prepare for your assessment</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">What type of assessment do you have? Choose below for a tailored guide.</p>
+          </div>
+          <div className="px-5 py-5 space-y-4 max-w-2xl mx-auto">
+            {/* In-person card */}
+            <button
+              type="button"
+              onClick={() => setView('inperson')}
+              className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">🏥</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-stone-900 text-base mb-1">In-Person Assessment</p>
+                  <p className="text-sm text-stone-500 leading-relaxed">Face-to-face at an assessment centre or at your home. What to bring, what to say, and what most people don't know.</p>
+                  <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
+                </div>
+              </div>
+            </button>
+
+            {/* Telephone card */}
+            <button
+              type="button"
+              onClick={() => setView('telephone')}
+              className="w-full bg-white rounded-2xl border border-stone-200 shadow-sm p-5 text-left hover:border-teal-300 hover:shadow-md active:scale-[0.98] transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 text-2xl">📞</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-stone-900 text-base mb-1">Telephone Assessment</p>
+                  <p className="text-sm text-stone-500 leading-relaxed">Assessment by phone from your own home. How to prepare, what to say, and what to do after the call.</p>
+                  <p className="mt-3 text-xs font-bold text-teal-700">Open guide →</p>
+                </div>
+              </div>
+            </button>
+
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-sm font-bold text-amber-900 mb-1">Not sure which type you have?</p>
+              <p className="text-sm text-amber-800 leading-relaxed">Check your appointment letter. If you have anxiety, depression, PTSD or agoraphobia you can <strong>request a telephone assessment</strong> — call DWP on <strong>0800 917 2222</strong> and ask.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guide content */}
+      {view !== 'choose' && (
+        <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+          <div className={`px-5 py-5 text-white ${view === 'inperson' ? 'bg-teal-700' : 'bg-blue-700'}`}>
+            <p className="text-sm leading-relaxed opacity-90">
+              {view === 'inperson'
+                ? 'Tips for your face-to-face assessment. Tap any item to read more.'
+                : 'Tips to prepare for your telephone assessment from home.'}
+            </p>
+          </div>
+          <div className="px-5 py-5 space-y-3 max-w-2xl mx-auto">
+            {tips.map((tip, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+                <span className="text-xl shrink-0">{tip.icon}</span>
+                <div>
+                  <p className="font-semibold text-stone-900 text-sm mb-1">{tip.title}</p>
+                  <p className="text-xs text-stone-500 leading-relaxed">{tip.body}</p>
+                </div>
+              </div>
+            ))}
+            {view === 'inperson' && (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <p className="text-sm font-bold text-amber-900 mb-2 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-600" />On the day</p>
+                <ul className="space-y-2">
+                  {['Arrive early — rushing increases anxiety', 'Dress as you would on a typical bad day', "Don't downplay your condition to seem polite", 'If a question confuses you, ask for it to be repeated', 'Mention all conditions, not just your main one'].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-amber-800">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />{item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {view === 'telephone' && (
+              <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <p className="text-sm text-amber-800 leading-relaxed"><strong>After the call:</strong> Write down everything you remember as soon as it ends — what was asked, what you said, anything that felt wrong. You may need this if you challenge the decision.</p>
+              </div>
+            )}
+            <button onClick={() => navigateTo('pip_diary')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              <BookOpen className="w-4 h-4" />Open my PIP Diary
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
