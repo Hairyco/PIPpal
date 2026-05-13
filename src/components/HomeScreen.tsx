@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PIPPointsEstimator } from './PIPPointsEstimator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  AlertTriangle,
   PlusCircle,
   RefreshCw,
   Scale,
@@ -18,7 +17,6 @@ import {
   Calculator,
   Clock,
   Coins,
-  X,
   Sparkles,
   Settings,
   Newspaper,
@@ -80,9 +78,6 @@ export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
   const [newsHeadlines, setNewsHeadlines] = useState<string[]>([]);
   const [tickerIndex, setTickerIndex] = useState(0);
-  const [urgencyDismissed, setUrgencyDismissed] = useState(
-    () => sessionStorage.getItem('urgency_dismissed') === 'true'
-  );
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -130,11 +125,6 @@ export function HomeScreen() {
     setResumeData(null);
   };
 
-  const dismissUrgency = () => {
-    sessionStorage.setItem('urgency_dismissed', 'true');
-    setUrgencyDismissed(true);
-  };
-
   return (
     <div className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-24">
 
@@ -173,26 +163,6 @@ export function HomeScreen() {
       </div>
 
       <div className="px-5 md:px-8 space-y-6">
-
-        {/* Urgency banner — dismissible */}
-        {!urgencyDismissed && (
-          <div className="bg-amber-500 rounded-2xl px-4 py-3 flex items-start gap-2.5 shadow-sm">
-            <AlertTriangle className="w-4 h-4 text-white shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-white font-bold text-xs leading-snug">PIP rules are changing in late 2026</p>
-              <p className="text-amber-100 text-[11px] leading-relaxed mt-0.5">Eligibility thresholds are tightening. Applying now could protect your entitlement.</p>
-              <button
-                onClick={() => navigateTo('news')}
-                className="text-white underline text-[11px] font-semibold mt-1 hover:text-amber-100"
-              >
-                Read latest news →
-              </button>
-            </div>
-            <button onClick={dismissUrgency} className="shrink-0 text-amber-200 hover:text-white">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
 
         {/* Resume banner — shown when user navigated away mid-question */}
         {resumeData && (

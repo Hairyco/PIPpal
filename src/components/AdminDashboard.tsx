@@ -218,77 +218,55 @@ export function AdminDashboard() {
   const [editingPost, setEditingPost] = useState<any | null>(null);
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogSaving, setBlogSaving] = useState(false);
-  const [blogMsg, setBlogMsg] = useState('');
-  const [redditInsights, setRedditInsights] = useState<any[]>([]);
-  const [insightLoading, setInsightLoading] = useState(false);
-  const [insightTotal, setInsightTotal] = useState(0);
-  const [insightScannedAt, setInsightScannedAt] = useState('');
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [blogNotice, setBlogNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const blogNoticeRef = useRef<HTMLDivElement>(null);
+  const blogNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showBlogNotice = (type: 'success' | 'error', text: string, clearMs = 8000) => {
+    if (blogNoticeTimerRef.current) clearTimeout(blogNoticeTimerRef.current);
+    setBlogNotice({ type, text });
+    blogNoticeTimerRef.current = setTimeout(() => setBlogNotice(null), clearMs);
+  };
+
+  useEffect(() => {
+    if (!blogNotice) return;
+    blogNoticeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [blogNotice]);
+
+  useEffect(
+    () => () => {
+      if (blogNoticeTimerRef.current) clearTimeout(blogNoticeTimerRef.current);
+    },
+    [],
+  );
+
   const [generating, setGenerating] = useState(false);
   const [generateTopic, setGenerateTopic] = useState('');
-  const [redditSources, setRedditSources] = useState<any[]>([]);
   const [showGenerator, setShowGenerator] = useState(false);
-
-  const scanReddit = async () => {
-    setInsightLoading(true);
-    try {
-      const res = await fetch('/api/scan-reddit');
-      const data = await res.json();
-      setRedditInsights(data.categories || []);
-      setInsightTotal(data.total_pip_posts || 0);
-      setInsightScannedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-    } catch {
-      setBlogMsg('Failed to load topics');
-    } finally {
-      setInsightLoading(false);
-    }
-  };
-
-  const generatePostWithTopic = async (topic: string) => {
-    setGenerating(true);
-    setBlogMsg('');
-    try {
-      const res = await fetch('/api/generate-blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic }),
-      });
-      const data = await res.json();
-      if (data.post) {
-        setEditingPost({ ...data.post, published: false });
-        setRedditSources(data.reddit_sources || []);
-        setShowGenerator(false);
-        setBlogMsg(`✨ Post generated from: "${data.generated_from}"`);
-      } else {
-        setBlogMsg('Generation failed. Try again.');
-      }
-    } catch {
-      setBlogMsg('Error generating post.');
-    } finally {
-      setGenerating(false);
-    }
-  };
 
   const generatePost = async () => {
     setGenerating(true);
-    setBlogMsg('');
+    setBlogNotice(null);
     try {
       const res = await fetch('/api/generate-blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: generateTopic || undefined }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showBlogNotice('error', data.error || `Generation failed (${res.status}). Try again.`);
+        return;
+      }
       if (data.post) {
         setEditingPost({ ...data.post, published: false });
-        setRedditSources(data.reddit_sources || []);
         setShowGenerator(false);
-        setBlogMsg(`Post generated from: "${data.generated_from}"`);
+        showBlogNotice('success', `Draft ready — topic: "${data.generated_from}". Review below, then save.`);
       } else {
-        setBlogMsg('Generation failed. Try again.');
+        showBlogNotice('error', data.error || 'Generation failed. Try again.');
       }
     } catch {
-      setBlogMsg('Error generating post.');
+      showBlogNotice('error', 'Error generating post. Check your connection and try again.');
     } finally {
       setGenerating(false);
     }
@@ -311,7 +289,7 @@ export function AdminDashboard() {
       const data = await res.json();
       if (data.script) setTiktokScript({ postId: post.id, script: data.script });
     } catch {
-      setBlogMsg('TikTok script generation failed');
+      showBlogNotice('error', 'TikTok script generation failed.');
     } finally {
       setGeneratingTiktok(null);
     }
@@ -349,15 +327,6 @@ export function AdminDashboard() {
     setBlogClicks(clicks);
   };
 
-  const loadStoredInsights = async () => {
-    const { data } = await supabase.from('reddit_insights').select('*').order('question_count', { ascending: false });
-    if (data && data.length > 0) {
-      setRedditInsights(data);
-      setInsightTotal(data.reduce((sum: number, d: any) => sum + d.question_count, 0));
-      setInsightScannedAt(new Date(data[0].scanned_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-    }
-  };
-
   const fetchBlogPosts = async () => {
     setBlogLoading(true);
     // Fetch all posts including drafts for admin
@@ -371,38 +340,53 @@ export function AdminDashboard() {
   };
 
   const savePost = async () => {
-    if (!editingPost?.title || !editingPost?.slug) { setBlogMsg('Title and slug are required'); return; }
+    if (!editingPost?.title?.trim() || !editingPost?.slug?.trim()) {
+      showBlogNotice('error', 'Title and slug are required.');
+      return;
+    }
     setBlogSaving(true);
-    // Remove seo field — not in DB schema
-    const { id, seo, ...rest } = editingPost;
-    const payload = {
-      title: rest.title,
-      slug: rest.slug,
-      excerpt: rest.excerpt || '',
-      body: rest.body || '',
-      category: rest.category || 'Tips',
-      tags: Array.isArray(rest.tags) ? rest.tags : [],
-      published: rest.published || false,
-      updated_at: new Date().toISOString(),
-    };
-    let error;
-    if (id) {
-      const result = await supabase.from('blog_posts').update(payload).eq('id', id);
-      error = result.error;
-    } else {
-      const result = await supabase.from('blog_posts').insert({ ...payload, created_at: new Date().toISOString() });
-      error = result.error;
-    }
-    if (error) {
-      console.log('Supabase error:', error);
-      setBlogMsg(`Error: ${error.message}`);
-    } else {
-      setBlogMsg('✅ Saved!');
+    setBlogNotice(null);
+    try {
+      // Remove seo field — not in DB schema
+      const { id, seo, ...rest } = editingPost;
+      const payload = {
+        title: rest.title.trim(),
+        slug: rest.slug.trim(),
+        excerpt: rest.excerpt || '',
+        body: rest.body || '',
+        category: rest.category || 'Tips',
+        tags: Array.isArray(rest.tags) ? rest.tags : [],
+        published: rest.published || false,
+        updated_at: new Date().toISOString(),
+      };
+      if (id) {
+        const { data, error } = await supabase.from('blog_posts').update(payload).eq('id', id).select('id');
+        if (error) throw error;
+        if (!data?.length) {
+          showBlogNotice('error', 'Nothing was updated. Refresh the post list — this draft may be out of date.');
+          return;
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('blog_posts')
+          .insert({ ...payload, created_at: new Date().toISOString() })
+          .select('id');
+        if (error) throw error;
+        if (!data?.length) {
+          showBlogNotice('error', 'Save did not create a row. Check Supabase RLS and the blog_posts table in the dashboard.');
+          return;
+        }
+      }
+      showBlogNotice('success', 'Post saved.');
       setEditingPost(null);
-      fetchBlogPosts();
+      void fetchBlogPosts();
+    } catch (e: any) {
+      console.error('savePost', e);
+      const msg = e?.message || e?.error_description || String(e);
+      showBlogNotice('error', msg ? `Save failed: ${msg}` : 'Save failed. Check your connection and try again.');
+    } finally {
+      setBlogSaving(false);
     }
-    setBlogSaving(false);
-    setTimeout(() => setBlogMsg(''), 5000);
   };
 
   const deletePost = async (id: string) => {
@@ -729,7 +713,7 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email', 'influencers'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); loadStoredInsights(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } if (tab === 'stats') fetchAiCosts(); }}
+            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } if (tab === 'stats') fetchAiCosts(); }}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
@@ -1173,91 +1157,44 @@ export function AdminDashboard() {
             </div>
           </div>
 
-          {/* Reddit Intelligence */}
-          <div className="bg-stone-900 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <p className="font-bold text-white text-sm">🔍 PIP Question Intelligence</p>
-                <p className="text-[10px] text-stone-400">{insightTotal > 0 ? `${insightTotal} PIP questions found across Reddit` : 'Scan Reddit for what claimants are asking'}{insightScannedAt ? ` · ${insightScannedAt}` : ''}</p>
-              </div>
-              <button onClick={scanReddit} disabled={insightLoading}
-                className="bg-stone-700 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-stone-600 disabled:opacity-50 shrink-0">
-                {insightLoading ? '⏳ Scanning...' : '🔄 Scan now'}
-              </button>
-            </div>
-            {redditInsights.length > 0 && (
-              <div className="space-y-2">
-                {redditInsights.map((insight: any) => (
-                  <div key={insight.category} className="bg-stone-800 rounded-xl overflow-hidden">
-                    <button onClick={() => setExpandedCategory(expandedCategory === insight.category ? null : insight.category)}
-                      className="w-full flex items-center justify-between px-3 py-2.5 text-left">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-xs font-bold text-white truncate">{insight.category}</span>
-                        <span className="text-[10px] bg-teal-600 text-white px-2 py-0.5 rounded-full font-bold shrink-0">{insight.question_count}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                        <button onClick={e => { e.stopPropagation(); const t = `${insight.category}: ${insight.top_questions?.[0]?.title || ''}`; setGenerateTopic(t); setShowGenerator(false); generatePostWithTopic(t); }}
-                          className="text-[10px] font-bold bg-purple-600 text-white px-2 py-1 rounded-lg hover:bg-purple-500">✨ Generate</button>
-                        <span className="text-stone-400 text-xs">{expandedCategory === insight.category ? '▲' : '▼'}</span>
-                      </div>
-                    </button>
-                    {expandedCategory === insight.category && (
-                      <div className="px-3 pb-3 space-y-2 border-t border-stone-700 pt-2">
-                        {/* Browse subreddits */}
-                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mb-1">Browse live posts</p>
-                        <div className="flex gap-2 flex-wrap">
-                          {['PIP_UK', 'DWPhelp', 'BenefitsAdviceUK'].map((sub: string) => (
-                            <a key={sub} href={`https://www.reddit.com/r/${sub}/search/?q=PIP&sort=new&t=month`} target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] font-bold bg-orange-600 text-white px-2.5 py-1.5 rounded-lg hover:bg-orange-500">
-                              r/{sub} (new) →
-                            </a>
-                          ))}
-                        </div>
-
-                        {/* Topic questions */}
-                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-wider mt-2 mb-1">Common questions — search Reddit</p>
-                        {insight.top_questions.map((q: any, i: number) => (
-                          <div key={i} className="bg-stone-700 rounded-lg p-2.5">
-                            <p className="text-[11px] text-stone-200 leading-snug mb-2">{q.title}</p>
-                            <a
-                              href={`https://www.reddit.com/r/PIP_UK+DWPhelp+BenefitsAdviceUK/search/?q=${encodeURIComponent(q.title)}&sort=new&t=month&type=link`}
-                              target="_blank" rel="noopener noreferrer"
-                              className="text-[10px] font-bold text-purple-400 hover:text-purple-300 bg-stone-600 px-2 py-1 rounded-md">
-                              Search Reddit (last month) →
-                            </a>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {redditInsights.length === 0 && !insightLoading && (
-              <p className="text-xs text-stone-500 text-center py-2">Tap "Scan now" to see what PIP claimants are asking</p>
-            )}
+          <div className="bg-teal-50 border border-teal-100 rounded-2xl px-3 py-2.5 mb-4">
+            <p className="text-[11px] text-teal-900 leading-relaxed">
+              <span className="font-bold">Daily drafts:</span> Vercel runs <code className="text-[10px] bg-white/70 px-1 rounded">/api/blog-daily</code> once per day (07:00 UTC). It picks a topic you have not used recently, generates a draft with Claude, and saves it unpublished (tag <code className="text-[10px] bg-white/70 px-1 rounded">daily-cron</code>). Requires <code className="text-[10px] bg-white/70 px-1 rounded">CRON_SECRET</code>, <code className="text-[10px] bg-white/70 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code>, and <code className="text-[10px] bg-white/70 px-1 rounded">ANTHROPIC_API_KEY</code> in production.
+            </p>
           </div>
 
           {/* Generator panel */}
           {showGenerator && (
             <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4 mb-4">
-              <p className="font-bold text-purple-900 text-sm mb-1">✨ AI Blog Generator</p>
-              <p className="text-xs text-purple-700 mb-3">Searches Reddit for real PIP questions, then writes an SEO-optimised post that funnels readers to PIPpal.</p>
+              <p className="font-bold text-purple-900 text-sm mb-1">AI blog generator</p>
+              <p className="text-xs text-purple-700 mb-3">Writes an SEO-oriented draft from common PIP claimant topics. Edit before publishing.</p>
               <input
                 value={generateTopic}
                 onChange={e => setGenerateTopic(e.target.value)}
-                placeholder="Topic (optional — leave blank to auto-pick from Reddit)"
+                placeholder="Topic (optional — leave blank to auto-pick a PIP topic)"
                 className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white mb-3"
               />
               <button onClick={generatePost} disabled={generating}
-                className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50">
-                {generating ? '⏳ Generating post...' : '✨ Generate post from Reddit questions'}
+                className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50 active:scale-[0.98] transition-transform">
+                {generating ? 'Generating…' : 'Generate draft'}
               </button>
-              {generating && <p className="text-xs text-purple-600 text-center mt-2">This takes 15-20 seconds...</p>}
+              {generating && <p className="text-xs text-purple-600 text-center mt-2">This usually takes 15–20 seconds.</p>}
             </div>
           )}
 
-          {blogMsg && <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2 mb-3">{blogMsg}</p>}
+          {blogNotice && (
+            <div
+              ref={blogNoticeRef}
+              role="alert"
+              className={`text-xs rounded-xl px-3 py-2.5 mb-3 border ${
+                blogNotice.type === 'error'
+                  ? 'text-rose-800 bg-rose-50 border-rose-100'
+                  : 'text-emerald-800 bg-emerald-50 border-emerald-100'
+              }`}
+            >
+              {blogNotice.text}
+            </div>
+          )}
           {blogSendResult && <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-2 mb-3">📧 {blogSendResult}</p>}
 
           {/* Editor */}
@@ -1316,15 +1253,6 @@ export function AdminDashboard() {
                       <span className="text-stone-700 font-medium">"{editingPost.seo.keyword}"</span>
                     </div>
                   </div>
-                  {redditSources.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-stone-200">
-                      <p className="text-[10px] font-bold text-stone-500 mb-1">Generated from Reddit questions:</p>
-                      {redditSources.map((s: any, i: number) => (
-                        <a key={i} href={s.url} target="_blank" rel="noopener noreferrer"
-                          className="block text-[10px] text-purple-600 hover:text-purple-800 truncate">↗ {s.title}</a>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
               <div className="flex items-center gap-2">
@@ -1353,7 +1281,7 @@ export function AdminDashboard() {
                 </div>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { navigator.clipboard?.writeText(tiktokScript.script); setBlogMsg('Script copied to clipboard!'); }}
+                    onClick={() => { navigator.clipboard?.writeText(tiktokScript.script); showBlogNotice('success', 'Script copied to clipboard.'); }}
                     className="text-[10px] font-bold bg-white/20 text-white px-3 py-1.5 rounded-lg hover:bg-white/30"
                   >📋 Copy</button>
                   <button onClick={() => setTiktokScript(null)} className="text-[10px] text-pink-300 hover:text-white">✕</button>

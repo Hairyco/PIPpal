@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronRight, ChevronDown, ChevronUp, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
@@ -95,7 +95,7 @@ function GeneratingOverlay({ onSkip }: { onSkip: () => void }) {
 }
 
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, savedAnswers, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes } = useAppContext();
 
   const hasPip2Answer = (qid: string) => !!(cocPreviousAnswers[qid] && (cocDocumentType === 'pip2_only' || cocDocumentType === 'both'));
   const hasAssessorNote = (qid: string) => !!(cocAssessorNotes[qid] && (cocDocumentType === 'pa4_only' || cocDocumentType === 'both'));
@@ -112,7 +112,6 @@ export function QuestionFlow() {
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
-  const [showExplained, setShowExplained] = useState(false);
   // Expanded by default on mobile, collapsed on desktop
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
@@ -406,18 +405,6 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
   const livePoints = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0;
   const liveDescriptorText = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text ?? '';
 
-  // Accumulated points from all previously completed questions
-  const accumulatedPoints = Object.entries(savedAnswers)
-    .filter(([qId]) => qId !== questionId)
-    .reduce((total, [qId, val]) => {
-      const match = val?.match(/^Descriptor ([A-Z]+)$/);
-      if (!match) return total;
-      const code = match[1];
-      const q = PIP_QUESTIONS.find(q => q.id === qId);
-      const pts = q?.descriptors.find(d => d.code === code)?.points ?? 0;
-      return total + pts;
-    }, 0);
-
   // On step 2, estimate pts based on number of difficulties selected (preview only)
   const estimatedPts = step === 2
     ? answers.selectedDifficulties.length === 0 ? 0
@@ -500,45 +487,36 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-5 space-y-4 pb-32">
             <QuestionCard />
 
-            {/* This question explained — collapsed by default */}
+            {/* This question explained — always expanded (new claim & CoC) */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
-              <button
-                type="button"
-                onClick={() => setShowExplained(s => !s)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-stone-50 transition-colors"
-              >
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50 gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Info className="w-4 h-4 text-teal-600 shrink-0" />
                   <span className="font-bold text-stone-900 text-sm">This question explained</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={e => { e.stopPropagation(); rePersonalise(); }}
-                    disabled={isPersonalising}
-                    className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border transition-all disabled:opacity-50 ${
-                      !isPersonalising && (personalExplainer || personalisedJustNow)
-                        ? 'text-teal-600 bg-teal-50 border-teal-200 hover:bg-teal-100'
-                        : 'text-stone-400 hover:text-teal-600 border-stone-200 hover:border-teal-300'
-                    }`}
-                  >
-                    {isPersonalising ? (
-                      <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                    ) : (personalExplainer || personalisedJustNow) ? (
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                    ) : (
-                      <Sparkles className="w-2.5 h-2.5" />
-                    )}
-                    {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
-                  </button>
-                  {showExplained ? <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />}
-                </div>
-              </button>
-              {showExplained && (
-                <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed border-t border-stone-50">
-                  {personalExplainer || config.explained}
-                </p>
-              )}
+                <button
+                  type="button"
+                  onClick={rePersonalise}
+                  disabled={isPersonalising}
+                  className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full border transition-all disabled:opacity-50 shrink-0 ${
+                    !isPersonalising && (personalExplainer || personalisedJustNow)
+                      ? 'text-teal-600 bg-teal-50 border-teal-200 hover:bg-teal-100'
+                      : 'text-stone-400 hover:text-teal-600 border-stone-200 hover:border-teal-300'
+                  }`}
+                >
+                  {isPersonalising ? (
+                    <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (personalExplainer || personalisedJustNow) ? (
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                  ) : (
+                    <Sparkles className="w-2.5 h-2.5" />
+                  )}
+                  {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
+                </button>
+              </div>
+              <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
+                {personalExplainer || config.explained}
+              </p>
             </div>
 
             {SHOW_ASK_MORE_HELP_SECTION && pipQ && (
@@ -751,9 +729,6 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                       {livePoints > 0 && (
                         <p className="text-xs text-teal-600 font-medium">This question: {livePoints}pts</p>
                       )}
-                      {accumulatedPoints > 0 && (
-                        <p className="text-xs text-stone-500 font-medium">Running total: <span className="text-teal-700 font-bold">{accumulatedPoints + livePoints}pts</span></p>
-                      )}
                     </div>
                   </div>
                   <span className="text-xs font-semibold text-stone-400">{showDescriptors ? '▲ Hide' : '▼ Show'}</span>
@@ -857,9 +832,6 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                     <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                       {livePoints > 0 && (
                         <p className="text-xs text-teal-600 font-medium">This question: {livePoints}pts</p>
-                      )}
-                      {accumulatedPoints > 0 && (
-                        <p className="text-xs text-stone-500 font-medium">Running total: <span className="text-teal-700 font-bold">{accumulatedPoints + livePoints}pts</span></p>
                       )}
                     </div>
                   </div>

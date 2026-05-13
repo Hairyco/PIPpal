@@ -44,6 +44,10 @@
     {
       "path": "/api/send-digest?cron=test",
       "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/blog-daily",
+      "schedule": "0 7 * * *"
     }
   ]
 }
