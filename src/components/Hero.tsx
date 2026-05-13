@@ -43,9 +43,17 @@ export function Hero({ onStart }: HeroProps) {
           Get your PIP application right —{' '}
           <span className="text-teal-700">first time</span>
         </h1>
-        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto px-2">
+        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-6 max-w-2xl mx-auto px-2">
           We guide you through every question, tailored to your condition. No jargon, no stress, no expensive advisers.
         </p>
+        <div className="mb-8 flex justify-center px-2">
+          <div className="rounded-2xl border border-teal-100 bg-white px-6 py-3.5 shadow-sm text-center min-w-[200px]">
+            <p className="text-2xl md:text-3xl font-bold text-teal-700 tabular-nums leading-none">3–6 wks</p>
+            <p className="text-xs text-stone-500 mt-2 leading-snug max-w-[240px]">
+              Get your PIP decision 3–6 weeks earlier
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Main card */}
