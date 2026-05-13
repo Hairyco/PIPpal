@@ -110,6 +110,7 @@ export function ResultCard() {
   const [addedDetails, setAddedDetails] = useState<Set<string>>(new Set());
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [customDetail, setCustomDetail] = useState('');
+  const [lengthAdjustBusy, setLengthAdjustBusy] = useState<'shorten' | 'lengthen' | null>(null);
 
   const VOICES = [
     {
@@ -140,6 +141,8 @@ export function ResultCard() {
   }, [q1Result?.descriptor]);
 
   const displayText = editedText ?? initialText;
+
+  const plainDraft = () => (editedText || displayText).replace(/<[^>]+>/g, '').trim();
 
   const handleEdit = () => {
     if (!isEditing) {
@@ -233,6 +236,51 @@ Return ONLY the answer text — no preamble.`,
     } catch (e) { /* silent */ }
     setIsImproving(false);
   };
+
+  const handleLengthAdjust = async (direction: 'shorten' | 'lengthen') => {
+    if (!hasPaid) {
+      navigateTo('upsell');
+      return;
+    }
+    const current = plainDraft();
+    if (!current) return;
+
+    const instr =
+      direction === 'shorten'
+        ? `Shorten this PIP claim answer noticeably. Cut repetition and filler, keep every factual point (what happens, how often, what help/supervision is needed, consequences). Aim for roughly 40–60% of the word count. First person UK English. Plain words only — no bullet lists.`
+        : `Lengthen this PIP claim answer slightly (add about 2–4 short sentences tops). Only add detail that reasonably follows from what is already said — frequency on bad days, safety risk, prompts/supervision, or everyday impact. Do NOT invent diagnoses, carers, aids, or events not implied by the text. First person UK English.`;
+
+    setLengthAdjustBusy(direction);
+    setAnswerHistory(prev => [...prev, editedText ?? initialText]);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `${instr}
+
+Their answer text:
+"${current}"
+
+Return ONLY the rewritten answer — no preamble, no quotation marks.`,
+          medProfile: { conditions: medProfile.conditions },
+          conversationHistory: [],
+          userId: null,
+        }),
+      });
+      const res = await response.json();
+      const next = (res.reply || '').trim();
+      if (next) {
+        const highlighted = addHighlights(next);
+        setEditedText(highlighted);
+        saveAnswer(qId, next);
+      }
+    } catch {
+      /* silent */
+    }
+    setLengthAdjustBusy(null);
+  };
+
   const addHighlights = (text: string): string => {
     // Frequency words — amber
     let out = text.replace(
@@ -454,6 +502,36 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             )}
           </div>
 
+          {!noAnswerGiven && plainDraft().length > 0 && (
+            <div className="px-4 pb-3 border-t border-stone-50 pt-3">
+              <p className="text-[11px] text-stone-400 mb-2">Tighten or expand the wording — we keep the same facts.</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleLengthAdjust('shorten')}
+                  disabled={!!lengthAdjustBusy || isImproving}
+                  className="flex-1 min-w-[7rem] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-teal-200 disabled:opacity-50 transition-all"
+                >
+                  {lengthAdjustBusy === 'shorten' ? (
+                    <div className="w-3.5 h-3.5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                  ) : null}
+                  Shorten
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleLengthAdjust('lengthen')}
+                  disabled={!!lengthAdjustBusy || isImproving}
+                  className="flex-1 min-w-[7rem] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-bold border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-teal-200 disabled:opacity-50 transition-all"
+                >
+                  {lengthAdjustBusy === 'lengthen' ? (
+                    <div className="w-3.5 h-3.5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                  ) : null}
+                  Lengthen
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Highlight legend */}
           {highlightsOn && !isEditing && (
             <div className="px-4 pb-4 grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -493,7 +571,7 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
               </button>
               <button
                 onClick={handleImprove}
-                disabled={isImproving}
+                disabled={isImproving || !!lengthAdjustBusy}
                 className="flex items-center gap-1.5 bg-white text-teal-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-50 active:scale-95 transition-all disabled:opacity-50"
               >
                 {isImproving ? (
@@ -724,7 +802,7 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           </button>
           <button
             onClick={handleImprove}
-            disabled={isImproving}
+            disabled={isImproving || !!lengthAdjustBusy}
             className="flex-1 flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl border-2 border-purple-200 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 active:scale-[0.98] transition-all disabled:opacity-50"
           >
             {isImproving ? (
