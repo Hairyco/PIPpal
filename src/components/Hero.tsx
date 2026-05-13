@@ -17,7 +17,6 @@ export function Hero({ onStart }: HeroProps) {
   const checks = [
     { text: 'Guides you through all 12 PIP questions' },
     { text: 'Unique answers to your specific conditions' },
-    { text: 'Assessment prep & appeal letter generator' },
     { text: 'Get your PIP decision 3–6 weeks earlier' },
   ];
 
