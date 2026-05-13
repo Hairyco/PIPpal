@@ -337,7 +337,7 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const stepTitles = [
-    'Which form are you completing?',
+    'Change of circumstances',
     'PIP2 form and optional PA4',
     'Your health picture',
     'How this works',
@@ -423,22 +423,22 @@ export function ChangeOfCircumstancesScreen() {
     if (step === 1) {
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
-          <div className="rounded-2xl border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white p-5 shadow-sm">
-            <p className="text-[11px] font-bold text-purple-600 uppercase tracking-widest mb-2">Change of circumstances</p>
-            <h2 className="font-bold text-stone-900 text-lg leading-tight mb-2">What this is for</h2>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              A <span className="font-semibold text-stone-800">change of circumstances</span> is when something important about your health, disability, or day-to-day needs has changed since DWP last set your PIP award — and you need them to review it (for example after a deterioration, new diagnosis, or much more help than before).
+          <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
+            <h2 className="font-bold text-2xl leading-tight mb-3">What this is for</h2>
+            <p className="text-teal-50 text-sm leading-relaxed">
+              A <span className="font-semibold text-white">change of circumstances</span> is when something important about your health, disability, or day-to-day needs has changed since DWP last set your PIP award — and you need them to review it (for example after a deterioration, new diagnosis, or much more help than before).
             </p>
-            <p className="text-sm text-stone-600 leading-relaxed mt-2">
+            <p className="text-teal-100 text-sm leading-relaxed mt-2">
               PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now.
             </p>
           </div>
 
-          <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 1 — Form type</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">Which form are you completing?</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">
-              PIP2 and the AR1 review form ask for different levels of detail. Choose the one that matches the form DWP sent you — we&apos;ll shape the walkthrough around that.
+          <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3.5">
+            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Form type</p>
+            <h3 className="font-semibold text-stone-800 text-base leading-snug mb-1">Which form are you completing?</h3>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              PIP2 and the AR1 review form ask for different levels of detail. Pick the one that matches the form DWP sent — we&apos;ll match the walkthrough to that.
             </p>
           </div>
 
