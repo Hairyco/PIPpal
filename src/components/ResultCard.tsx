@@ -412,6 +412,36 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           )}
         </div>
 
+        {/* Pending details action bar — shown when details have been tapped but not yet applied */}
+        {addedDetails.size > 0 && (
+          <div className="bg-teal-700 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-white text-xs font-bold leading-snug">{addedDetails.size} detail{addedDetails.size > 1 ? 's' : ''} ready to include</p>
+              <p className="text-teal-200 text-[11px] leading-snug mt-0.5">Tap "Improve answer" to weave them in</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => setAddedDetails(new Set())}
+                className="text-teal-200 hover:text-white text-xs font-semibold underline underline-offset-2 transition-colors"
+              >
+                Clear
+              </button>
+              <button
+                onClick={handleImprove}
+                disabled={isImproving}
+                className="flex items-center gap-1.5 bg-white text-teal-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-50 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isImproving ? (
+                  <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                {isImproving ? 'Improving...' : 'Improve answer'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Why this meets the descriptor */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">
           <h3 className="font-bold text-stone-900 text-sm mb-2">Why this counts</h3>
