@@ -66,7 +66,6 @@ import {
   BackpayCalculatorScreen,
 } from './components/CalculatorScreens';
 import {
-  AssessmentPrep,
   Downloads,
   ClaimSteps,
   AboutScreen,
@@ -74,6 +73,7 @@ import {
   AccessibilityScreen,
   TermsScreen,
 } from './components/Placeholders';
+import { AssessmentPrepScreen } from './components/AssessmentPrepScreen';
 import { PreClaimChecklist } from './components/PreClaimChecklist';
 import { PIPDiaryScreen } from './components/PIPDiaryScreen';
 import { NewsScreen } from './components/NewsScreen';
@@ -250,7 +250,7 @@ function AppContent() {
       case 'timeline_calculator': return <TimelineCalculatorScreen />;
       case 'payment_calculator': return <PaymentCalculatorScreen />;
       case 'backpay_calculator': return <BackpayCalculatorScreen />;
-      case 'assessment_prep': return hasPaid ? <AssessmentPrep /> : <UpsellScreen />;
+      case 'assessment_prep': return hasPaid ? <AssessmentPrepScreen /> : <UpsellScreen />;
       case 'pip_diary': return <PIPDiaryScreen hasPaid={hasPaid} />;
       case 'downloads': return hasPaid ? <Downloads /> : <UpsellScreen />;
       case 'news': return <NewsScreen />;

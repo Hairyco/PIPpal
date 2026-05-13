@@ -39,56 +39,6 @@ function ScreenHeader({ title }: { title: string }) {
   );
 }
 
-// ─── ASSESSMENT PREP ───────────────────────────────────────────────────────────
-export function AssessmentPrep() {
-  const { navigateTo } = useAppContext();
-  const tips = [
-    { title: 'Know your worst day', body: 'Assessors want to know how your condition affects you on a bad day, not your best. Be honest about the full range of your experience.', icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { title: 'Bring evidence', body: 'Letters from your GP, consultant, or specialist carry significant weight. Bring originals and copies to your assessment.', icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Take someone with you', body: 'You are entitled to bring a supporter — a friend, family member, or carer. They can take notes and help you remember what was said.', icon: Users, color: 'text-teal-600', bg: 'bg-teal-50' },
-    { title: 'Ask for a copy of the report', body: "After your assessment, you can request a copy of the assessor's report. This is your right — always ask for it.", icon: BookOpen, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { title: 'You can request a home assessment', body: "If attending in person would significantly affect your health or safety, you can request a home visit or telephone/video assessment.", icon: Smartphone, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { title: 'Record the assessment', body: "You have the right to request an audio recording of your face-to-face assessment. Request this in writing at least 2 weeks before.", icon: Volume2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ];
-
-  return (
-    <div className="flex flex-col h-full bg-stone-50">
-      <ScreenHeader title="Assessment Preparation" />
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
-        <div className="bg-teal-700 px-5 md:px-8 py-6 text-white">
-          <p className="text-teal-100 text-sm leading-relaxed">Your PIP assessment is one of the most important parts of your claim. Here's everything you need to know to be fully prepared.</p>
-        </div>
-        <div className="px-5 md:px-8 py-6 space-y-4 max-w-2xl mx-auto">
-          {tips.map((tip, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm flex items-start gap-4">
-              <div className={`w-10 h-10 ${tip.bg} rounded-full flex items-center justify-center shrink-0`}>
-                <tip.icon className={`w-5 h-5 ${tip.color}`} />
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-sm mb-1">{tip.title}</h3>
-                <p className="text-xs text-stone-600 leading-relaxed">{tip.body}</p>
-              </div>
-            </div>
-          ))}
-          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 mt-2">
-            <h3 className="font-bold text-amber-900 text-sm mb-2 flex items-center gap-2"><AlertCircle className="w-4 h-4 text-amber-600" />On the day</h3>
-            <ul className="space-y-2">
-              {['Arrive early — rushing increases anxiety', 'Dress comfortably, as you would on a typical day', "Don't downplay your condition to seem polite", 'If a question confuses you, ask for it to be repeated', 'Mention all conditions, not just the main one'].map((item, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-amber-800">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />{item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <button onClick={() => navigateTo('pip_diary')} className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <BookOpen className="w-4 h-4" />Open my PIP Diary
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── DOWNLOADS ─────────────────────────────────────────────────────────────────
 export function Downloads() {
   const { hasPaid, navigateTo } = useAppContext();
