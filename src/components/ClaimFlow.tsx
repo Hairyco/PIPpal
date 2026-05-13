@@ -156,10 +156,10 @@ export function ClaimFlow() {
               {
                 step: '1',
                 title: 'Call DWP to start your claim',
-                body: 'Call 0800 917 2222 — DWP will open your claim and post you the PIP2 form. The form takes 2–4 weeks to arrive, but start building your answers in PIPpal now so you can return it immediately. Decisions usually take around 6 months, and any award is backdated to today\'s call.',
+                body: 'Call 0800 917 2222 — DWP will open your claim. Any award is backdated to the date of this call, so ring as soon as possible.',
                 backpayLink: true,
               },
-              { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the 'How your disability affects you' form (PIP2). You have 1 month to return it. PIPpal builds your answers for this form.", downloadsLink: true },
+              { step: '2', title: "You'll be sent a PIP2 form", body: "DWP posts you the form — it usually arrives in 2–4 weeks. You don't need to wait. Start building your answers in PIPpal now and return the form the moment it lands. Decisions typically take around 6 months, and any award is backdated to your original call.", downloadsLink: true },
               { step: '3', title: 'Assessment', body: 'Most people have an assessment — telephone, video or face-to-face. PIPpal helps you prepare.' },
               { step: '4', title: 'Decision letter', body: 'DWP writes to tell you the outcome. If awarded, payments begin and backpay is sent as a lump sum.' },
             ].map((item, i) => (
