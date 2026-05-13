@@ -134,7 +134,7 @@ export function AssessmentPrep() {
 
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
               <p className="text-sm font-bold text-amber-900 mb-1">Not sure which type you have?</p>
-              <p className="text-sm text-amber-800 leading-relaxed">Check your appointment letter. If you have anxiety, depression, PTSD or agoraphobia you can <strong>request a telephone assessment</strong> — call DWP on <strong>0800 917 2222</strong> and ask.</p>
+              <p className="text-sm text-amber-800 leading-relaxed">Check your appointment letter. If your condition — physical or psychological — makes attending in person difficult or harmful, you can <strong>request a telephone assessment</strong>. This includes anxiety, depression, PTSD, chronic pain, mobility issues, fatigue, or any condition where leaving home is a significant challenge. Call DWP on <strong>0800 917 2222</strong> and explain why — it is regularly granted.</p>
             </div>
           </div>
         </div>
