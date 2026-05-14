@@ -310,7 +310,7 @@ function AppContent() {
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <LandingDwpContext />
-              <WhyPIPpal />
+              
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />
