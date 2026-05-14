@@ -783,7 +783,7 @@ export function ChangeOfCircumstancesScreen() {
         <div className="space-y-5 px-5 pt-5 pb-32">
           <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">What this is for</h2>
+            <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
               A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
