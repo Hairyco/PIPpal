@@ -66,6 +66,23 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
         </div>
       </div>
 
+      {/* Why PIPpal */}
+      <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>
+      <p className="text-stone-500 text-sm mb-4">PIPpal is built around the things people find hardest.</p>
+      <div className="space-y-3">
+        {points.map((p, i) => (
+          <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+            <div className={`w-9 h-9 ${p.bg} rounded-xl flex items-center justify-center shrink-0 mt-0.5`}>
+              <p.icon className={`w-4.5 h-4.5 ${p.color}`} />
+            </div>
+            <div>
+              <p className="font-semibold text-stone-900 text-sm mb-0.5">{p.title}</p>
+              <p className="text-stone-500 text-xs leading-relaxed">{p.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
     </section>
   );
 }
