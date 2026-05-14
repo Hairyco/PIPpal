@@ -71,7 +71,7 @@ export function Downloads() {
               <Lock className="w-8 h-8 text-stone-300 mx-auto mb-2" />
               <p className="text-sm font-semibold text-stone-600 mb-1">Full Access required</p>
               <p className="text-xs text-stone-500 mb-3">Unlock to export your answers as a PDF</p>
-              <button onClick={() => navigateTo('upsell')} className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors">Unlock Full Access — £12.99</button>
+              <button onClick={() => navigateTo('upsell')} className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors">Unlock Full Access — £6.99</button>
             </div>
           )}
         </section>
@@ -255,7 +255,7 @@ export function TermsScreen() {
     { title: '2. What PIPpal is', body: 'PIPpal is a guidance tool that helps you understand and navigate the PIP (Personal Independence Payment) claims process. We provide information, structured question walkthroughs, and tools to help you describe how your condition affects you. We are not a law firm, benefits agency, or medical service.' },
     { title: '3. What PIPpal is not', body: 'PIPpal does not provide legal advice, medical advice, or financial advice. We do not guarantee the outcome of any PIP claim or appeal. The information we provide is for educational and guidance purposes only. You should always verify information with official DWP sources and consult a qualified benefits adviser for complex situations.' },
     { title: '4. Your responsibilities', body: 'You agree to: provide truthful and accurate information in your PIP claim answers; not use PIPpal to exaggerate or fabricate information; keep your account credentials secure; use PIPpal only for lawful purposes; and not attempt to misuse, copy, or reverse-engineer our service.' },
-    { title: '5. Payment terms', body: 'Full Access is available for a one-time payment of £12.99. This payment is non-refundable once Full Access has been granted and you have accessed the paid content. All payments are processed securely by Stripe. We do not store your payment card details.' },
+    { title: '5. Payment terms', body: 'Full Access is available for a one-time payment of £6.99. This payment is non-refundable once Full Access has been granted and you have accessed the paid content. All payments are processed securely by Stripe. We do not store your payment card details.' },
     { title: '6. Intellectual property', body: 'All content, design, software, and materials on PIPpal are owned by PIPpal or its licensors. You may not copy, reproduce, or distribute any part of PIPpal without our written permission. Your personal data and answers remain your own.' },
     { title: '7. Disclaimer of warranties', body: 'PIPpal is provided "as is" without any warranties, express or implied. We do not warrant that our service will be uninterrupted, error-free, or that any information will be complete, accurate, or up to date. PIP rules and rates change — always check gov.uk for the latest information.' },
     { title: '8. Limitation of liability', body: 'To the maximum extent permitted by UK law, PIPpal shall not be liable for any indirect, incidental, or consequential damages arising from your use of our service. Our total liability to you shall not exceed the amount you paid for Full Access.' },

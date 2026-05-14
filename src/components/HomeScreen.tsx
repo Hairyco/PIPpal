@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PIPPointsEstimator } from './PIPPointsEstimator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   PlusCircle,
@@ -22,8 +21,10 @@ import {
   Newspaper,
   Hourglass,
   PlayCircle,
+  ListChecks,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
+import { PIP_QUESTIONS } from '../pipQuestions';
 
 interface NavCardProps {
   title: string;
@@ -101,6 +102,8 @@ export function HomeScreen() {
 
   const hasConditions = medProfile.conditions.length > 0;
   const firstName = user?.name ? user.name.split(' ')[0] : '';
+  const pipActivityIds = PIP_QUESTIONS.map(q => q.id);
+  const answeredActivityCount = pipActivityIds.filter(id => !!savedAnswers[id]).length;
 
   // Resume state — set when user navigates to dashboard mid-question
   const [resumeData, setResumeData] = useState<{ questionId: string; step: number | string; title: string } | null>(() => {
@@ -189,8 +192,37 @@ export function HomeScreen() {
           </div>
         )}
 
-        {/* Points Estimator — shows when any answers saved */}
-        <PIPPointsEstimator />
+        {/* PIP activities — entry to the 12-question list (same destination as drawer “My Questions”) */}
+        <section>
+          <button
+            type="button"
+            onClick={() => navigateTo('question_index')}
+            className="w-full relative bg-white rounded-2xl p-4 border border-stone-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all hover:border-teal-200 hover:shadow-md text-left"
+          >
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
+                <ListChecks className="w-5 h-5 text-teal-700" />
+              </div>
+              <div className="min-w-0">
+                <h2 className="font-bold text-stone-900 text-sm mb-0.5 flex items-center gap-2 flex-wrap">
+                  Your PIP questions
+                  {answeredActivityCount > 0 && (
+                    <span className="text-[10px] font-semibold text-teal-700 bg-teal-50 border border-teal-100 px-1.5 py-0.5 rounded-full tabular-nums">
+                      {answeredActivityCount}/12
+                    </span>
+                  )}
+                  {!hasPaid && (
+                    <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
+                  )}
+                </h2>
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  Open the list of all 12 questions, answer in any order, and pick up where you left off.
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-stone-400 shrink-0 ml-2" />
+          </button>
+        </section>
 
         {/* Medical profile */}
         <section>
@@ -418,8 +450,8 @@ export function HomeScreen() {
                 <span className="text-[10px] font-black text-amber-300 bg-amber-300/20 border border-amber-300/30 px-2 py-0.5 rounded-full uppercase tracking-wide">Limited time</span>
               </div>
               <div className="flex items-baseline gap-2 mb-1.5">
-                <span className="text-2xl font-black text-white">£8.99</span>
-                <span className="text-teal-300 text-xs line-through">£12.99</span>
+                <span className="text-2xl font-black text-white">£6.99</span>
+                <span className="text-teal-300 text-xs line-through">£8.99</span>
                 <span className="text-teal-200 text-xs">one-time</span>
               </div>
               <p className="text-teal-100 text-xs leading-relaxed">

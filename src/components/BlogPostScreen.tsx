@@ -113,7 +113,7 @@ export function BlogPostScreen() {
                 onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
                 className="bg-orange-500 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
               >
-                {hasPaid ? '→ Continue my PIP claim' : '→ Try PIPpal — £8.99 one-time'}
+                {hasPaid ? '→ Continue my PIP claim' : '→ Try PIPpal — £6.99 one-time'}
               </button>
             </div>
           );
@@ -198,7 +198,7 @@ export function BlogPostScreen() {
             {/* CTA */}
             <div className="mx-5 mb-8 bg-stone-900 rounded-2xl p-5">
               <p className="font-bold text-white text-base mb-1">Ready to claim PIP?</p>
-              <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15–30 minutes. Full access from £8.99 one-time.</p>
+              <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15–30 minutes. Full access from £6.99 one-time.</p>
               <button
                 onClick={() => {
                   supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => {});
@@ -206,7 +206,7 @@ export function BlogPostScreen() {
                 }}
                 className="w-full bg-orange-500 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
               >
-                {hasPaid ? '→ Continue my PIP claim' : '→ Start my PIP claim — £8.99'}
+                {hasPaid ? '→ Continue my PIP claim' : '→ Start my PIP claim — £6.99'}
               </button>
             </div>
           </div>

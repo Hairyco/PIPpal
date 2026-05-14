@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,7 +12,6 @@ import {
   ChevronUp,
   ChevronRight,
   Info,
-  Stethoscope,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -22,12 +21,74 @@ import { PIP_QUESTIONS } from '../pipQuestions';
 // 1  Intro + step guide
 // 2  Form type selector (PIP2 vs AR1)
 // 3  Upload (+ show extracted answers in accordions)
-// 4  Your conditions (link to medical profile)
+// 4  Opens Medical Profile (same screen as elsewhere); return lands on step 5
 // 5  How this works + Start  → navigates to question_index with cocMode on
 const TOTAL_STEPS = 5;
 
 const DAILY_LIVING_IDS = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
 const MOBILITY_IDS = ['q11','q12'];
+const ALL_ACTIVITY_IDS = [...DAILY_LIVING_IDS, ...MOBILITY_IDS];
+
+type CocExtractedEntry = {
+  answer: string;
+  confidence: 'high' | 'medium' | 'low';
+  pointsAwarded?: number | null;
+};
+
+function normalizeActivityPoints(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  const n = typeof raw === 'number' ? raw : Number(String(raw).trim());
+  if (!Number.isFinite(n)) return null;
+  return Math.round(Math.max(0, Math.min(12, n)));
+}
+
+function normalizeExtractedAnswers(raw: Record<string, unknown>): Record<string, CocExtractedEntry> {
+  const out: Record<string, CocExtractedEntry> = {};
+  for (const [k, v] of Object.entries(raw ?? {})) {
+    if (!v || typeof v !== 'object') continue;
+    const o = v as Record<string, unknown>;
+    const conf = o.confidence;
+    const confidence: 'high' | 'medium' | 'low' =
+      conf === 'high' || conf === 'medium' || conf === 'low' ? conf : 'low';
+    out[k] = {
+      answer: typeof o.answer === 'string' ? o.answer : '',
+      confidence,
+      pointsAwarded: normalizeActivityPoints(o.pointsAwarded),
+    };
+  }
+  return out;
+}
+
+function mergeCocPreviousPoints(
+  pip2: Record<string, CocExtractedEntry>,
+  pa4: Record<string, CocExtractedEntry>,
+  award: Record<string, CocExtractedEntry>,
+  manualRaw: Record<string, string>,
+): Record<string, number | null> {
+  const merged: Record<string, number | null> = {};
+  for (const id of ALL_ACTIVITY_IDS) {
+    const typed = manualRaw[id]?.trim();
+    if (typed) {
+      const m = normalizeActivityPoints(typed);
+      if (m != null) {
+        merged[id] = m;
+        continue;
+      }
+    }
+    const fromAward = normalizeActivityPoints(award[id]?.pointsAwarded);
+    if (fromAward != null) {
+      merged[id] = fromAward;
+      continue;
+    }
+    const fromP2 = normalizeActivityPoints(pip2[id]?.pointsAwarded);
+    if (fromP2 != null) {
+      merged[id] = fromP2;
+      continue;
+    }
+    merged[id] = normalizeActivityPoints(pa4[id]?.pointsAwarded);
+  }
+  return merged;
+}
 
 /** Keeps JSON body under Vercel's ~4.5 MB serverless limit after base64 encoding overhead */
 const COC_UPLOAD_MAX_FILES = 24;
@@ -72,24 +133,6 @@ function StepHeader({ step, title, total, onBack }: { step: number; title: strin
   );
 }
 
-function BottomBar({ onNext, label = 'Continue', disabled = false, onBack, showBack = false }:
-  { onNext: () => void; label?: string; disabled?: boolean; onBack?: () => void; showBack?: boolean }) {
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-100 px-5 py-4 flex gap-3 max-w-4xl mx-auto safe-area-pb z-20">
-      {showBack && onBack && (
-        <button type="button" onClick={onBack}
-          className="flex items-center gap-2 px-5 py-3.5 rounded-xl border-2 border-stone-200 text-stone-600 font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all">
-          <ArrowLeft className="w-4 h-4" />Back
-        </button>
-      )}
-      <button type="button" onClick={onNext} disabled={disabled}
-        className="flex-1 flex items-center justify-center gap-2 bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all disabled:opacity-40 shadow-sm">
-        {label}<ArrowRight className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
-
 type CocUploadZoneProps = {
   label: string;
   sublabel: string;
@@ -98,11 +141,13 @@ type CocUploadZoneProps = {
   labels: string[];
   busy: boolean;
   error: string | null;
-  extracted: Record<string, { answer: string; confidence: string }>;
+  extracted: Record<string, CocExtractedEntry>;
   inputRef: React.RefObject<HTMLInputElement>;
   onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
   isOptional?: boolean;
+  /** Shown on the dashed pick button when `isOptional` and nothing uploaded yet */
+  optionalPickLabel?: string;
   fileCount: number;
   totalBytes: number;
   maxFiles: number;
@@ -114,7 +159,7 @@ type CocUploadZoneProps = {
 function CocUploadZone({
   label, sublabel, badge, badgeColour, labels,
   busy: zoneBusy, error, extracted,
-  inputRef, onPick, onRemove, isOptional,
+  inputRef, onPick, onRemove, isOptional, optionalPickLabel,
   fileCount, totalBytes, maxFiles, maxTotalBytes, pickError,
 }: CocUploadZoneProps) {
   const [expanded, setExpanded] = useState(true);
@@ -150,7 +195,7 @@ function CocUploadZone({
         <button type="button" onClick={() => inputRef.current?.click()}
           className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${isOptional ? 'border-2 border-dashed border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700' : 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'}`}>
           <Upload className="w-4 h-4" />
-          {isOptional ? 'Add PA4 report (optional)' : 'Take a photo or upload pages'}
+          {isOptional ? (optionalPickLabel ?? 'Add file (optional)') : 'Take a photo or upload pages'}
         </button>
         <p className={`text-[10px] leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
           <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
@@ -276,7 +321,7 @@ function CocUploadZone({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
-  const { goBack, navigateTo, medProfile, isAdmin, setCocPreviousAnswers, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes } = useAppContext();
+  const { goBack, navigateTo, isAdmin, setCocPreviousAnswers, setCocPreviousPoints, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes } = useAppContext();
 
   const [step, setStep] = useState(() => {
     const saved = sessionStorage.getItem('coc_return_step');
@@ -287,6 +332,7 @@ export function ChangeOfCircumstancesScreen() {
   const [notReportedOpen, setNotReportedOpen] = useState(false);
   const pip2InputRef = useRef<HTMLInputElement>(null);
   const pa4InputRef = useRef<HTMLInputElement>(null);
+  const awardInputRef = useRef<HTMLInputElement>(null);
 
   // PIP2 upload state
   const [pip2Labels, setPip2Labels] = useState<string[]>([]);
@@ -294,7 +340,7 @@ export function ChangeOfCircumstancesScreen() {
   const [pip2Busy, setPip2Busy] = useState(false);
   const [pip2Error, setPip2Error] = useState<string | null>(null);
   const [pip2UploadError, setPip2UploadError] = useState<string | null>(null);
-  const [pip2Extracted, setPip2Extracted] = useState<Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>>({});
+  const [pip2Extracted, setPip2Extracted] = useState<Record<string, CocExtractedEntry>>({});
 
   // PA4 upload state
   const [pa4Labels, setPa4Labels] = useState<string[]>([]);
@@ -302,25 +348,52 @@ export function ChangeOfCircumstancesScreen() {
   const [pa4Busy, setPa4Busy] = useState(false);
   const [pa4Error, setPa4Error] = useState<string | null>(null);
   const [pa4UploadError, setPa4UploadError] = useState<string | null>(null);
-  const [pa4Extracted, setPa4Extracted] = useState<Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>>({});
+  const [pa4Extracted, setPa4Extracted] = useState<Record<string, CocExtractedEntry>>({});
+
+  // Award / decision letter (optional — best source for official points per activity)
+  const [awardLabels, setAwardLabels] = useState<string[]>([]);
+  const [awardFiles, setAwardFiles] = useState<{ name: string; base64: string; mimeType: string; size: number }[]>([]);
+  const [awardBusy, setAwardBusy] = useState(false);
+  const [awardError, setAwardError] = useState<string | null>(null);
+  const [awardUploadError, setAwardUploadError] = useState<string | null>(null);
+  const [awardExtracted, setAwardExtracted] = useState<Record<string, CocExtractedEntry>>({});
 
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
   const [noForm, setNoForm] = useState(false);
   /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
+  /** Optional per-activity points from decision letter — overrides extracted scores when filled */
+  const [cocManualPoints, setCocManualPoints] = useState<Record<string, string>>({});
 
-  // Medical then vs now
-  const next = () => setStep(s => Math.min(s + 1, TOTAL_STEPS));
-  const back = () => step === 1 ? goBack() : setStep(s => s - 1);
+  // Step 4 opens Medical Profile; coc_return_step '5' restores “How this works” on return
+  const next = () => {
+    if (step === 3) {
+      sessionStorage.setItem('coc_return_step', '5');
+      navigateTo('medical_profile');
+      return;
+    }
+    setStep(s => Math.min(s + 1, TOTAL_STEPS));
+  };
+  const back = () => {
+    if (step === 1) goBack();
+    else if (step === 5) setStep(3);
+    else setStep(s => s - 1);
+  };
+
+  useLayoutEffect(() => {
+    if (step !== 4) return;
+    sessionStorage.setItem('coc_return_step', '5');
+    navigateTo('medical_profile');
+  }, [step, navigateTo]);
 
   // Extraction helper
   async function runExtraction(
     files: { base64: string; mimeType: string }[],
-    docType: 'pip2' | 'pa4',
+    docType: 'pip2' | 'pa4' | 'award_letter',
     setBusy: (v: boolean) => void,
     setError: (v: string | null) => void,
-    setExtracted: (v: Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>) => void,
+    setExtracted: (v: Record<string, CocExtractedEntry>) => void,
   ) {
     setBusy(true);
     setError(null);
@@ -332,7 +405,7 @@ export function ChangeOfCircumstancesScreen() {
       });
       const data = await res.json().catch(() => ({}));
       if (data?.extractedAnswers) {
-        setExtracted(data.extractedAnswers);
+        setExtracted(normalizeExtractedAnswers(data.extractedAnswers as Record<string, unknown>));
       } else {
         setError(data?.error ?? 'Could not extract answers automatically.');
       }
@@ -361,8 +434,17 @@ export function ChangeOfCircumstancesScreen() {
     );
   }, [pa4Files]);
 
+  // Run extraction when award letter files arrive
+  useEffect(() => {
+    if (awardFiles.length === 0 || Object.keys(awardExtracted).length > 0) return;
+    runExtraction(
+      awardFiles.map(f => ({ base64: f.base64, mimeType: f.mimeType })),
+      'award_letter', setAwardBusy, setAwardError, setAwardExtracted,
+    );
+  }, [awardFiles]);
+
   // Admin mock form loader — content varies by selected document type
-  const MOCK_DATA: Record<string, Record<string, { answer: string; confidence: 'high' | 'medium' | 'low' }>> = {
+  const MOCK_DATA: Record<string, Record<string, CocExtractedEntry>> = {
     pip2: {
       q1:  { answer: 'I can prepare a simple meal but I need to sit down regularly due to pain. I use the microwave most days as standing at the hob is too difficult. My partner helps with anything involving heavy pans or the oven.', confidence: 'high' },
       q2:  { answer: 'I can eat independently but I sometimes drop cutlery due to tremors. I need food cutting up on bad days. I eat slowly and often leave meals unfinished due to fatigue and pain.', confidence: 'high' },
@@ -378,18 +460,32 @@ export function ChangeOfCircumstancesScreen() {
       q12: { answer: 'I can walk short distances on a good day but I use a walking stick. I cannot walk more than 50 metres without stopping due to pain and breathlessness. On bad days I use a wheelchair.', confidence: 'high' },
     },
     pa4: {
-      q1:  { answer: 'Claimant states they use a microwave only and cannot use the hob due to pain and fatigue. A perching stool is used at the kitchen counter. Partner reported to assist with preparing hot food daily. Observed reduced grip strength on examination. Recommended descriptor: E (supervision required). 4 points.', confidence: 'high' },
-      q2:  { answer: 'Claimant uses adapted cutlery. Tremor observed during assessment — moderate bilateral hand tremor. Claimant states food is cut up by partner on most days. Eating is slow; claimant did not finish food brought to assessment. Recommended descriptor: C (uses aid/appliance). 2 points.', confidence: 'high' },
-      q3:  { answer: 'Claimant uses a pre-filled dosette box filled by carer weekly. States they forget doses without prompting. No evidence of missed doses causing harm at time of assessment. Recommended descriptor: C (prompting required). 1 point.', confidence: 'medium' },
-      q4:  { answer: 'Claimant uses a shower seat and grab rails (prescription evidence provided). States they cannot wash hair or lower body independently. Partner stated to assist daily. Claimant arrived to assessment with hair unwashed. Recommended descriptor: D (assistance with bathing). 2 points.', confidence: 'high' },
-      q5:  { answer: 'Claimant reports daily use of continence pads (prescription confirmed). Urgency stated as primary issue — claimant describes not always making it to the toilet in time. Grab rails fitted. Recommended descriptor: C (use of aids/appliances for toilet). 2 points.', confidence: 'high' },
-      q6:  { answer: 'Claimant attended in elasticated-waist clothing and slip-on shoes. States dressing independently takes over 30 minutes on average and they require a long-handled aid for socks. Partner confirmed they assist with complex clothing. Recommended descriptor: C (uses an aid). 2 points.', confidence: 'medium' },
-      q7:  { answer: 'Speech was audible throughout assessment but claimant\'s voice became quiet and less clear toward the end of the session. Claimant reported difficulty maintaining conversation when fatigued. No formal speech or language disorder evident. Recommended descriptor: A (no difficulty). 0 points.', confidence: 'high' },
-      q8:  { answer: 'Claimant uses a handheld magnifier (brought to assessment). Reports re-reading required for complex documents. Confirmed ability to read standard newspaper print with magnifier. Recommended descriptor: B (uses an aid). 2 points.', confidence: 'high' },
-      q9:  { answer: 'Claimant reported significant anxiety in social situations. Attended assessment alone but stated this required considerable effort. Reports cancelling social engagements frequently. No observed distress during assessment but stated one-to-one situations are manageable; groups are not. Recommended descriptor: C (needs prompting to engage). 2 points.', confidence: 'medium' },
-      q10: { answer: 'Claimant states partner checks bank statements. Some confusion noted when discussing budgeting — claimant could not recall recent spending when asked. Benefit payments managed by partner. Recommended descriptor: C (needs prompting for complex decisions). 2 points.', confidence: 'high' },
-      q11: { answer: 'Claimant did not use public transport to attend — arrived by taxi with partner. States they cannot use unfamiliar routes alone. Pre-assessment questionnaire noted severe anxiety when route includes unpredictable elements (e.g. cancelled trains). Recommended descriptor: E (cannot follow journeys without another person). 8 points.', confidence: 'high' },
-      q12: { answer: 'Claimant walked from waiting area to assessment room (approx. 40m) with a walking stick and one rest. Stated this was a better day. Claims to use a manual wheelchair on most days. No wheelchair observed at assessment. Timed walk test not completed — claimant declined. Recommended descriptor: C (can walk up to 50m). 4 points.', confidence: 'high' },
+      q1:  { answer: 'Claimant states they use a microwave only and cannot use the hob due to pain and fatigue. A perching stool is used at the kitchen counter. Partner reported to assist with preparing hot food daily. Observed reduced grip strength on examination. Recommended descriptor: E (supervision required). 4 points.', confidence: 'high', pointsAwarded: 4 },
+      q2:  { answer: 'Claimant uses adapted cutlery. Tremor observed during assessment — moderate bilateral hand tremor. Claimant states food is cut up by partner on most days. Eating is slow; claimant did not finish food brought to assessment. Recommended descriptor: C (uses aid/appliance). 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q3:  { answer: 'Claimant uses a pre-filled dosette box filled by carer weekly. States they forget doses without prompting. No evidence of missed doses causing harm at time of assessment. Recommended descriptor: C (prompting required). 1 point.', confidence: 'medium', pointsAwarded: 1 },
+      q4:  { answer: 'Claimant uses a shower seat and grab rails (prescription evidence provided). States they cannot wash hair or lower body independently. Partner stated to assist daily. Claimant arrived to assessment with hair unwashed. Recommended descriptor: D (assistance with bathing). 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q5:  { answer: 'Claimant reports daily use of continence pads (prescription confirmed). Urgency stated as primary issue — claimant describes not always making it to the toilet in time. Grab rails fitted. Recommended descriptor: C (use of aids/appliances for toilet). 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q6:  { answer: 'Claimant attended in elasticated-waist clothing and slip-on shoes. States dressing independently takes over 30 minutes on average and they require a long-handled aid for socks. Partner confirmed they assist with complex clothing. Recommended descriptor: C (uses an aid). 2 points.', confidence: 'medium', pointsAwarded: 2 },
+      q7:  { answer: 'Speech was audible throughout assessment but claimant\'s voice became quiet and less clear toward the end of the session. Claimant reported difficulty maintaining conversation when fatigued. No formal speech or language disorder evident. Recommended descriptor: A (no difficulty). 0 points.', confidence: 'high', pointsAwarded: 0 },
+      q8:  { answer: 'Claimant uses a handheld magnifier (brought to assessment). Reports re-reading required for complex documents. Confirmed ability to read standard newspaper print with magnifier. Recommended descriptor: B (uses an aid). 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q9:  { answer: 'Claimant reported significant anxiety in social situations. Attended assessment alone but stated this required considerable effort. Reports cancelling social engagements frequently. No observed distress during assessment but stated one-to-one situations are manageable; groups are not. Recommended descriptor: C (needs prompting to engage). 2 points.', confidence: 'medium', pointsAwarded: 2 },
+      q10: { answer: 'Claimant states partner checks bank statements. Some confusion noted when discussing budgeting — claimant could not recall recent spending when asked. Benefit payments managed by partner. Recommended descriptor: C (needs prompting for complex decisions). 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q11: { answer: 'Claimant did not use public transport to attend — arrived by taxi with partner. States they cannot use unfamiliar routes alone. Pre-assessment questionnaire noted severe anxiety when route includes unpredictable elements (e.g. cancelled trains). Recommended descriptor: E (cannot follow journeys without another person). 8 points.', confidence: 'high', pointsAwarded: 8 },
+      q12: { answer: 'Claimant walked from waiting area to assessment room (approx. 40m) with a walking stick and one rest. Stated this was a better day. Claims to use a manual wheelchair on most days. No wheelchair observed at assessment. Timed walk test not completed — claimant declined. Recommended descriptor: C (can walk up to 50m). 4 points.', confidence: 'high', pointsAwarded: 4 },
+    },
+    award: {
+      q1:  { answer: 'Preparing food — 4 points (descriptor E).', confidence: 'high', pointsAwarded: 4 },
+      q2:  { answer: 'Taking nutrition — 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q3:  { answer: 'Managing therapy — 1 point.', confidence: 'medium', pointsAwarded: 1 },
+      q4:  { answer: 'Washing and bathing — 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q5:  { answer: 'Managing toilet needs — 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q6:  { answer: 'Dressing and undressing — 2 points.', confidence: 'medium', pointsAwarded: 2 },
+      q7:  { answer: 'Communicating verbally — 0 points.', confidence: 'high', pointsAwarded: 0 },
+      q8:  { answer: 'Reading — 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q9:  { answer: 'Engaging with others — 2 points.', confidence: 'medium', pointsAwarded: 2 },
+      q10: { answer: 'Making budgeting decisions — 2 points.', confidence: 'high', pointsAwarded: 2 },
+      q11: { answer: 'Planning and following journeys — 8 points.', confidence: 'high', pointsAwarded: 8 },
+      q12: { answer: 'Moving around — 4 points.', confidence: 'high', pointsAwarded: 4 },
     },
   };
 
@@ -400,11 +496,17 @@ export function ChangeOfCircumstancesScreen() {
     setPa4Labels(['mock_pa4_assessor_report.pdf']);
     setPa4Extracted(MOCK_DATA.pa4);
 
+    setAwardLabels(['mock_dwp_award_letter.pdf']);
+    setAwardExtracted(MOCK_DATA.award);
+
     setPip2Busy(false); setPip2Error(null);
     setPa4Busy(false); setPa4Error(null);
+    setAwardBusy(false); setAwardError(null);
     setPip2UploadError(null);
     setPa4UploadError(null);
+    setAwardUploadError(null);
     setActivityFallbackNotes({});
+    setCocManualPoints({});
     setExpandedSection('daily');
     setExpandedActivityId(null);
   };
@@ -443,6 +545,7 @@ export function ChangeOfCircumstancesScreen() {
     setPip2Extracted({});
     setPip2Error(null);
     setActivityFallbackNotes({});
+    setCocManualPoints({});
   };
 
   const onPa4Pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -461,12 +564,36 @@ export function ChangeOfCircumstancesScreen() {
     setPa4Extracted({});
     setPa4Error(null);
     setActivityFallbackNotes({});
+    setCocManualPoints({});
+  };
+
+  const onAwardPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (!raw.length) return;
+    const bad = validateCocFileSelection(raw);
+    if (bad) {
+      setAwardUploadError(bad);
+      return;
+    }
+    setAwardUploadError(null);
+    const results = await readFilesToBase64List(raw);
+    setAwardLabels(results.map(f => f.name));
+    setAwardFiles(results);
+    setAwardExtracted({});
+    setAwardError(null);
   };
 
   const startQuestions = () => {
     const hasPip2 = pip2Labels.length > 0;
     const hasPa4 = pa4Labels.length > 0;
-    const derivedDocType = hasPip2 && hasPa4 ? 'both' : hasPa4 ? 'pa4_only' : 'pip2_only';
+    const hasAward = awardLabels.length > 0;
+
+    let derivedDocType: 'pip2_only' | 'pa4_only' | 'both' | 'award_only';
+    if (hasPip2 && hasPa4) derivedDocType = 'both';
+    else if (hasPa4) derivedDocType = 'pa4_only';
+    else if (hasAward && !hasPip2 && !hasPa4) derivedDocType = 'award_only';
+    else derivedDocType = 'pip2_only';
 
     // PIP2 answers = primary (claimant's words)
     const pip2Answers: Record<string, string> = {};
@@ -476,9 +603,19 @@ export function ChangeOfCircumstancesScreen() {
     const pa4Answers: Record<string, string> = {};
     for (const [k, v] of Object.entries(pa4Extracted)) pa4Answers[k] = v.answer ?? '';
 
+    const awardAnswers: Record<string, string> = {};
+    for (const [k, v] of Object.entries(awardExtracted)) awardAnswers[k] = v.answer ?? '';
+
     // What goes into wizard as "previous answer": pip2 if available, pa4 fills gaps
     const primary = { ...pa4Answers };
     for (const [k, v] of Object.entries(pip2Answers)) { if (v) primary[k] = v; }
+
+    // Award letter fills gaps where PIP2/PA4 have no text (e.g. points lines only, or award-only upload)
+    for (const id of ALL_ACTIVITY_IDS) {
+      if (primary[id]?.trim()) continue;
+      const fromAward = awardAnswers[id]?.trim();
+      if (fromAward) primary[id] = fromAward;
+    }
 
     // Optional typing: fills gaps, or replaces automatic read when you correct a box
     for (const [k, v] of Object.entries(activityFallbackNotes)) {
@@ -490,6 +627,7 @@ export function ChangeOfCircumstancesScreen() {
     setCocFormType(formType);
     setCocDocumentType(derivedDocType);
     setCocPreviousAnswers(primary);
+    setCocPreviousPoints(mergeCocPreviousPoints(pip2Extracted, pa4Extracted, awardExtracted, cocManualPoints));
     setCocAssessorNotes(pa4Answers);
     navigateTo('question_index');
   };
@@ -498,7 +636,7 @@ export function ChangeOfCircumstancesScreen() {
     'Change of circumstances',
     'Which form are you completing?',
     'Upload your documents',
-    'Your conditions',
+    'Medical profile',
     'How this works',
   ];
 
@@ -507,12 +645,19 @@ export function ChangeOfCircumstancesScreen() {
     if (!q) return null;
     const extractedPip2 = pip2Extracted[qid];
     const extractedPa4 = pa4Extracted[qid];
+    const extractedAward = awardExtracted[qid];
     const pip2Text = extractedPip2?.answer?.trim() ?? '';
     const pa4Text = extractedPa4?.answer?.trim() ?? '';
+    const awardText = extractedAward?.answer?.trim() ?? '';
     const manual = activityFallbackNotes[qid] ?? '';
+    const pip2Pts = normalizeActivityPoints(extractedPip2?.pointsAwarded);
+    const pa4Pts = normalizeActivityPoints(extractedPa4?.pointsAwarded);
+    const awardPts = normalizeActivityPoints(extractedAward?.pointsAwarded);
+    const manualPtsStr = cocManualPoints[qid] ?? '';
     const isOpen = expandedActivityId === qid;
-    const hasAnswer = Boolean(pip2Text || pa4Text || manual.trim());
-    const confidence = (extractedPip2 ?? extractedPa4)?.confidence ?? 'low';
+    const hasScoreHints = pip2Pts != null || pa4Pts != null || awardPts != null || manualPtsStr.trim() !== '';
+    const hasAnswer = Boolean(pip2Text || pa4Text || awardText || manual.trim() || hasScoreHints);
+    const confidence = (extractedPip2 ?? extractedPa4 ?? extractedAward)?.confidence ?? 'low';
     return (
       <div key={qid} className="border-b border-stone-100 last:border-0">
         <button type="button"
@@ -530,7 +675,7 @@ export function ChangeOfCircumstancesScreen() {
         {isOpen && (
           <div className="px-4 pb-4 space-y-2">
             <p className="text-xs text-stone-500 italic leading-relaxed">{q.headline}</p>
-            {pip2Text || pa4Text ? (
+            {pip2Text || pa4Text || awardText ? (
               <div className="space-y-2">
                 {pip2Text ? (
                   <div className="rounded-xl border border-teal-100 bg-teal-50/60 px-3 py-2">
@@ -544,6 +689,12 @@ export function ChangeOfCircumstancesScreen() {
                     <p className="text-xs text-stone-700 leading-relaxed">"{pa4Text}"</p>
                   </div>
                 ) : null}
+                {awardText ? (
+                  <div className="rounded-xl border border-indigo-100 bg-indigo-50/80 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">From your award / decision letter</p>
+                    <p className="text-xs text-stone-700 leading-relaxed">"{awardText}"</p>
+                  </div>
+                ) : null}
               </div>
             ) : (
               <p className="text-xs text-stone-400 leading-relaxed">
@@ -551,9 +702,29 @@ export function ChangeOfCircumstancesScreen() {
               </p>
             )}
 
+            {(pip2Pts != null || pa4Pts != null || awardPts != null) && (
+              <div className="flex flex-wrap gap-2">
+                {pip2Pts != null && (
+                  <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-teal-100 text-teal-800">
+                    Points from read (PIP2): {pip2Pts}
+                  </span>
+                )}
+                {pa4Pts != null && (
+                  <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-amber-100 text-amber-800">
+                    Points from read (PA4): {pa4Pts}
+                  </span>
+                )}
+                {awardPts != null && (
+                  <span className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-indigo-100 text-indigo-900">
+                    Points from read (award letter): {awardPts}
+                  </span>
+                )}
+              </div>
+            )}
+
             <div className="rounded-xl border border-stone-200 bg-stone-50/90 px-3 py-3 space-y-2">
               <p className="text-[11px] text-stone-600 leading-relaxed">
-                {pip2Text || pa4Text ? (
+                {pip2Text || pa4Text || awardText ? (
                   <>
                     <span className="font-semibold text-stone-700">Optional.</span> If anything above doesn&apos;t match your papers or the reader missed words, type what should count as your previous answer for this activity. We&apos;ll use what you type in the walkthrough instead of the automatic text. Leave blank if it looks right.
                   </>
@@ -567,8 +738,24 @@ export function ChangeOfCircumstancesScreen() {
                 value={manual}
                 onChange={ev => setActivityFallbackNotes(prev => ({ ...prev, [qid]: ev.target.value }))}
                 rows={3}
-                placeholder={pip2Text || pa4Text ? 'Optional — correct wording only if needed' : 'Optional — only if you remember what was on the form'}
+                placeholder={pip2Text || pa4Text || awardText ? 'Optional — correct wording only if needed' : 'Optional — only if you remember what was on the form'}
                 className="w-full text-sm text-stone-700 bg-white border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-400"
+              />
+            </div>
+
+            <div className="rounded-xl border border-stone-200 bg-stone-50/90 px-3 py-3 space-y-2">
+              <p className="text-[11px] text-stone-600 leading-relaxed">
+                <span className="font-semibold text-stone-700">Optional — points on your last award.</span> If your letter shows points for this activity (0–12), enter it here. When you type a number, it overrides scores we read from your award letter, PIP2, or PA4 for this line.
+              </p>
+              <input
+                type="number"
+                min={0}
+                max={12}
+                inputMode="numeric"
+                value={manualPtsStr}
+                onChange={ev => setCocManualPoints(prev => ({ ...prev, [qid]: ev.target.value }))}
+                placeholder="e.g. 4"
+                className="w-full max-w-[8rem] text-sm text-stone-700 bg-white border border-stone-200 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-400"
               />
             </div>
           </div>
@@ -582,8 +769,8 @@ export function ChangeOfCircumstancesScreen() {
     if (step === 1) {
       const guideSteps = [
         { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
-        { title: 'Upload your documents', body: 'Add your previous PIP2 (your own words) and, if you have it, your PA4 assessor report, as photos or PDFs.' },
-        { title: 'Your conditions', body: 'Check your conditions are complete and correct — PIPpal uses them to tailor every question and answer.' },
+        { title: 'Upload your documents', body: 'Add your PIP2, optional PA4, and — if you have it — your DWP award or decision letter (best for reading official points per activity).' },
+        { title: 'Medical profile', body: 'Next you’ll open your Medical Profile (same screen as the rest of the app) to confirm conditions and notes — PIPpal uses them to tailor every question.' },
         { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
       ];
       return (
@@ -595,7 +782,7 @@ export function ChangeOfCircumstancesScreen() {
               A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
             <p className="text-teal-100 text-sm leading-relaxed mt-2">
-              PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now. If you don&apos;t have your original PIP2 form, that&apos;s fine — we can still help.
+              PIPpal walks you through each activity using your old PIP2 wording, assessor report, or what your decision letter says, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now. If you don&apos;t have your original paperwork, that&apos;s fine — we can still help.
             </p>
           </div>
 
@@ -712,16 +899,27 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 3: Upload PIP2 (required) + PA4 (optional) ────────────────────
+    // ── STEP 3: Upload PIP2 + optional PA4 + optional award letter ────────────────────
     if (step === 3) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
-      const busy = pip2Busy || pa4Busy;
-      const hasAny = hasPip2 || hasPa4;
-      const hasExtracted = Object.keys(pip2Extracted).length > 0 || Object.keys(pa4Extracted).length > 0;
-      const extractionFailedSomewhere = (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error);
+      const hasAward = awardLabels.length > 0;
+      const busy = pip2Busy || pa4Busy || awardBusy;
+      const hasAny = hasPip2 || hasPa4 || hasAward;
+      const hasExtracted =
+        Object.keys(pip2Extracted).length > 0 ||
+        Object.keys(pa4Extracted).length > 0 ||
+        Object.keys(awardExtracted).length > 0;
+      const extractionFailedSomewhere =
+        (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
       const showActivityReview = hasAny && !busy && (hasExtracted || extractionFailedSomewhere);
       const canContinue = hasAny && !busy;
+
+      const extractedFromDocLabels = [
+        Object.keys(pip2Extracted).length > 0 && 'PIP2',
+        Object.keys(pa4Extracted).length > 0 && 'PA4',
+        Object.keys(awardExtracted).length > 0 && 'award letter',
+      ].filter(Boolean) as string[];
 
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
@@ -739,7 +937,7 @@ export function ChangeOfCircumstancesScreen() {
             inputRef={pip2InputRef}
             onPick={onPip2Pick}
             onRemove={() => {
-              setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({});
+              setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
             }}
             fileCount={pip2Labels.length}
             totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
@@ -761,9 +959,10 @@ export function ChangeOfCircumstancesScreen() {
             inputRef={pa4InputRef}
             onPick={onPa4Pick}
             onRemove={() => {
-              setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({});
+              setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
             }}
             isOptional
+            optionalPickLabel="Add PA4 report (optional)"
             fileCount={pa4Labels.length}
             totalBytes={pa4Files.reduce((s, f) => s + f.size, 0)}
             maxFiles={COC_UPLOAD_MAX_FILES}
@@ -771,17 +970,41 @@ export function ChangeOfCircumstancesScreen() {
             pickError={pa4UploadError}
           />
 
+          {/* Award / decision letter — optional; best source for official points */}
+          <CocUploadZone
+            label="PIP award or decision letter"
+            sublabel="DWP decision notice or award letter showing points for each activity — we read the scoring table to fill your previous points."
+            badge="Official scores"
+            badgeColour="bg-indigo-100 text-indigo-800"
+            labels={awardLabels}
+            busy={awardBusy}
+            error={awardError}
+            extracted={awardExtracted}
+            inputRef={awardInputRef}
+            onPick={onAwardPick}
+            onRemove={() => {
+              setAwardLabels([]); setAwardFiles([]); setAwardExtracted({}); setAwardUploadError(null);
+            }}
+            isOptional
+            optionalPickLabel="Add award or decision letter (optional)"
+            fileCount={awardLabels.length}
+            totalBytes={awardFiles.reduce((s, f) => s + f.size, 0)}
+            maxFiles={COC_UPLOAD_MAX_FILES}
+            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+            pickError={awardUploadError}
+          />
+
           {/* No document guidance */}
           {noForm && !hasAny && (
             <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
               <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
               <p className="text-sm text-blue-800 leading-relaxed">
-                You're entitled to copies of your PIP2 form and PA4 assessor report. Call DWP and ask — they usually arrive within a few days.
+                You're entitled to copies of your PIP2, PA4 report, and decision paperwork. Call DWP and ask — they usually arrive within a few days.
               </p>
               <div className="bg-white rounded-xl border border-blue-200 p-4">
                 <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
                 <p className="text-sm text-blue-900 italic leading-relaxed">
-                  "I'd like a copy of my original PIP2 form and my PA4 assessor report please."
+                  "I'd like a copy of my PIP2, PA4 assessor report, and my decision letter with my scores please."
                 </p>
               </div>
               <a href="tel:08009172222"
@@ -815,11 +1038,9 @@ export function ChangeOfCircumstancesScreen() {
               <p className="text-xs text-stone-500 px-1">
                 {!hasExtracted
                   ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
-                  : Object.keys(pa4Extracted).length > 0 && Object.keys(pip2Extracted).length > 0
-                    ? 'Answers extracted from both documents — open each activity to see your PIP2 and assessor text. Use the optional box at the bottom if anything needs correcting or was missed.'
-                    : Object.keys(pa4Extracted).length > 0 && Object.keys(pip2Extracted).length === 0
-                      ? 'Answers extracted from your PA4 — open each activity below. Use the optional box if the scan missed something or you want to add your own wording.'
-                      : 'Answers extracted from your PIP2 — open each activity below. Use the optional box if the scan missed something or you want to correct the read.'}
+                  : extractedFromDocLabels.length > 0
+                    ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
+                    : 'Open each activity below.'}
               </p>
               {/* Daily Living */}
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -864,7 +1085,7 @@ export function ChangeOfCircumstancesScreen() {
               <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Admin preview</p>
               <button type="button" onClick={loadMockForm}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
-                Load mock PIP2 + PA4 answers
+                Load mock PIP2 + PA4 + award letter
               </button>
               <div className="flex gap-2 flex-wrap">
                 {[4, 5].map(s => (
@@ -892,48 +1113,12 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 4: Your conditions (medical profile) ──────────────────────────
+    // ── STEP 4: Redirect-only — Medical Profile (see useLayoutEffect) ───────
     if (step === 4) {
       return (
-        <div className="space-y-4 px-5 pt-5 pb-28">
-          <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Your conditions</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">
-              PIPpal uses your conditions to tailor every question and build answers in the right context.
-            </p>
-          </div>
-
-          {/* Conditions — mirror ClaimFlow step 3 */}
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-stone-900 text-sm">Your conditions</p>
-              <button type="button" onClick={() => {
-                sessionStorage.setItem('coc_return_step', '4');
-                navigateTo('medical_profile');
-              }}
-                className="text-xs font-semibold text-teal-600 hover:text-teal-800 underline underline-offset-2">
-                Edit in medical profile
-              </button>
-            </div>
-            {medProfile.conditions.length > 0 ? (
-              <div className="space-y-2">
-                {medProfile.conditions.map((c: { name: string }, i: number) => (
-                  <div key={i} className="flex items-center gap-2 bg-stone-50 rounded-xl px-3 py-2.5">
-                    <Stethoscope className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span className="text-sm text-stone-700 font-medium">{c.name}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <button type="button" onClick={() => {
-                sessionStorage.setItem('coc_return_step', '4');
-                navigateTo('medical_profile');
-              }}
-                className="w-full py-3 rounded-xl text-sm font-semibold border-2 border-dashed border-teal-200 text-teal-700 hover:bg-teal-50 transition-all">
-                + Add your conditions
-              </button>
-            )}
-          </div>
+        <div className="flex flex-col flex-1 items-center justify-center px-5 py-20 gap-3 min-h-[40vh]">
+          <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+          <p className="text-sm text-stone-500 text-center">Opening medical profile…</p>
         </div>
       );
     }
@@ -1010,10 +1195,7 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Steps 1–3 & 5: inline buttons; step 4: BottomBar */}
-      {step === 4 && (
-        <BottomBar showBack onBack={back} onNext={next} />
-      )}
+      {/* Steps 1–3 & 5: inline buttons in content; step 4 redirects to Medical Profile */}
     </div>
   );
 }

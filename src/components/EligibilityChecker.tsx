@@ -540,7 +540,7 @@ export function EligibilityChecker() {
             <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-[11px] text-stone-400 text-center mb-4">
-            Free to start · Full access from £8.99 one-time
+            Free to start · Full access from £6.99 one-time
           </p>
 
           </div>

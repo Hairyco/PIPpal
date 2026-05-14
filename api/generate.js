@@ -295,10 +295,11 @@ q10: Making budgeting decisions
 q11: Planning and following journeys
 q12: Moving around`;
 
-    const isPa4 = docType === 'pa4';
+    const docKind = docType === 'pa4' ? 'pa4' : docType === 'award_letter' ? 'award_letter' : 'pip2';
 
-    const system = isPa4
-      ? `You are a specialist in reading UK PA4 PIP assessor reports. Your job is to extract the health professional's observations and descriptor recommendations for each of the 12 PIP activities.
+    const system =
+      docKind === 'pa4'
+        ? `You are a specialist in reading UK PA4 PIP assessor reports. Your job is to extract the health professional's observations and descriptor recommendations for each of the 12 PIP activities.
 
 The 12 PIP activities are:
 ${activityList}
@@ -308,12 +309,30 @@ For each activity extract the assessor's key observations, the recommended descr
 Return a single JSON object with keys q1 through q12. For each key provide:
 - "answer": the assessor's observations for this activity. Empty string if the activity is not covered.
 - "confidence": "high", "medium", or "low" based on how much detail was present.
+- "pointsAwarded": a number 0–12 if the document shows how many points were awarded for this activity (decision letter score, outcome summary, or explicit points next to the activity). Use null if no numeric score is visible.
 
 Rules:
 - Extract only what is written — do not add interpretation.
 - If handwriting is unclear, do your best and set confidence to "low".
 - Return ONLY the JSON object. No explanation, no preamble.`
-      : `You are a specialist in reading UK PIP2 forms — both typed and handwritten. Your job is to extract the claimant's own written answers for each of the 12 PIP activities.
+        : docKind === 'award_letter'
+          ? `You are a specialist in reading UK PIP decision paperwork: award letters, decision notices, and mandatory reconsideration outcomes from DWP (or Social Security Scotland for Adult Disability Payment in Scotland). Your priority is to read the official **points scored per activity**.
+
+The 12 PIP activities are:
+${activityList}
+
+For each activity (q1–q12):
+- "pointsAwarded": **Required focus.** The number of points (0–12) DWP awarded for that activity, exactly as shown on the scoring table or activities list in the letter. Use null only if this activity genuinely does not appear or no numeric points are given for it.
+- "answer": A short faithful quote or summary of what the letter says for that activity (e.g. descriptor letter, activity title + points line). Empty string if nothing is stated for that activity.
+- "confidence": "high", "medium", or "low" based on legibility and clarity of the score for that line.
+
+Rules:
+- Map each row in the letter's scoring table to the correct q1–q12 key (watch for daily living vs mobility ordering).
+- Copy points numbers exactly from the document — do not guess or infer from descriptor text alone if the letter does not state points.
+- If the letter uses only daily living total / mobility total without a per-activity breakdown, set pointsAwarded to null for activities where no line score appears, and put a brief note in "answer" only where the letter text maps clearly to one activity.
+- Extract only what is written.
+- Return ONLY the JSON object. No explanation, no preamble.`
+          : `You are a specialist in reading UK PIP2 forms — both typed and handwritten. Your job is to extract the claimant's own written answers for each of the 12 PIP activities.
 
 The 12 PIP activities are:
 ${activityList}
@@ -323,6 +342,7 @@ Extract exactly what the claimant wrote for each activity — verbatim where pos
 Return a single JSON object with keys q1 through q12. For each key provide:
 - "answer": the claimant's own words. Empty string if the section is blank.
 - "confidence": "high", "medium", or "low" based on how legible/complete the answer was.
+- "pointsAwarded": a number 0–12 if the uploaded pages show the points DWP awarded for this activity (e.g. on an award notice or scores summary). Use null if no score is visible.
 
 Rules:
 - Transcribe exactly what is written — do not interpret, improve, or add information.

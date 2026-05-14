@@ -189,8 +189,8 @@ export function UpsellScreen() {
               </div>
               <div className="text-right">
                   <div className="flex items-baseline gap-1.5 justify-end">
-                    <span className="font-black text-2xl text-teal-700">£8.99</span>
-                    <span className="text-stone-400 text-sm line-through">£12.99</span>
+                    <span className="font-black text-2xl text-teal-700">£6.99</span>
+                    <span className="text-stone-400 text-sm line-through">£8.99</span>
                   </div>
                   <span className="text-[10px] font-black text-amber-600 uppercase tracking-wide">Limited time</span>
                 </div>
@@ -266,7 +266,7 @@ export function UpsellScreen() {
               </>
             ) : (
               <>
-                Unlock Full Access — £8.99
+                Unlock Full Access — £6.99
                 <ArrowRight className="w-5 h-5" />
               </>
             )}

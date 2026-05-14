@@ -100,13 +100,21 @@ export function QuestionFlow() {
   const hasPip2Answer = (qid: string) => !!(cocPreviousAnswers[qid] && (cocDocumentType === 'pip2_only' || cocDocumentType === 'both'));
   const hasAssessorNote = (qid: string) => !!(cocAssessorNotes[qid] && (cocDocumentType === 'pa4_only' || cocDocumentType === 'both'));
 
-  const prevAnswerLabel = cocDocumentType === 'pa4_only' ? 'What the assessor noted' : 'Your previous answer';
+  const prevAnswerLabel =
+    cocDocumentType === 'pa4_only'
+      ? 'What the assessor noted'
+      : cocDocumentType === 'award_only'
+        ? 'What your award letter says'
+        : 'Your previous answer';
 
-  const prevAnswerGoal = cocDocumentType === 'pa4_only'
-    ? 'The assessor wrote this — not you. Your answer should be in your own words and go further than what they recorded.'
-    : cocFormType === 'ar1'
-      ? 'DWP has this on file. Only describe what has changed or got worse since this was written.'
-      : 'Your goal: write something stronger and more specific than this.';
+  const prevAnswerGoal =
+    cocDocumentType === 'pa4_only'
+      ? 'The assessor wrote this — not you. Your answer should be in your own words and go further than what they recorded.'
+      : cocDocumentType === 'award_only'
+        ? 'This is what DWP decided last time — your new answer should explain what has changed or got harder since then, in your own words.'
+        : cocFormType === 'ar1'
+          ? 'DWP has this on file. Only describe what has changed or got worse since this was written.'
+          : 'Your goal: write something stronger and more specific than this.';
   const questionId = selectedQuestionId || 'q1';
   const config = getQuestionFlow(questionId);
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
@@ -551,10 +559,10 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             {cocMode ? (
               <div className="space-y-2">
                 {/* PIP2 — claimant's own words (shown unless pa4_only) */}
-                {cocDocumentType !== 'pa4_only' && (
+                {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
                   <div className={`rounded-2xl p-4 border ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-center gap-2 mb-2">
-                      <p className={`text-[11px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>Your previous answer</p>
+                      <p className={`text-[11px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>{prevAnswerLabel}</p>
                       {cocFormType === 'ar1' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800">describe the change</span>}
                     </div>
                     {hasPip2Answer(questionId) ? (
@@ -566,6 +574,24 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                       </>
                     ) : (
                       <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found for this activity — build a fresh one below.</p>
+                    )}
+                  </div>
+                )}
+                {cocDocumentType === 'award_only' && (
+                  <div className="rounded-2xl p-4 border bg-indigo-50 border-indigo-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-indigo-600">{prevAnswerLabel}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">DWP decision</span>
+                    </div>
+                    {cocPreviousAnswers[questionId] ? (
+                      <>
+                        <div className="border-l-4 border-indigo-300 pl-3">
+                          <p className="text-sm leading-relaxed italic text-indigo-950">"{cocPreviousAnswers[questionId]}"</p>
+                        </div>
+                        <p className="text-[11px] font-semibold mt-2 text-indigo-800">{prevAnswerGoal}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm italic text-indigo-400">Nothing read for this activity from your letter — build your answer fresh below.</p>
                     )}
                   </div>
                 )}
@@ -700,16 +726,29 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             {cocMode && (
               <div className="space-y-2">
                 {/* PIP2 reference (not shown when pa4_only) */}
-                {cocDocumentType !== 'pa4_only' && (
+                {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
                   <div className={`rounded-2xl p-4 border ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
                     <div className="flex items-center gap-2 mb-1.5">
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>Your previous answer</p>
+                      <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>{prevAnswerLabel}</p>
                       {cocFormType === 'ar1' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800">only describe the change</span>}
                     </div>
                     {hasPip2Answer(questionId) ? (
                       <p className={`text-sm leading-relaxed italic line-clamp-3 ${cocFormType === 'ar1' ? 'text-purple-900' : 'text-blue-900'}`}>"{cocPreviousAnswers[questionId]}"</p>
                     ) : (
                       <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found — select what applies now.</p>
+                    )}
+                  </div>
+                )}
+                {cocDocumentType === 'award_only' && (
+                  <div className="rounded-2xl p-4 border bg-indigo-50 border-indigo-200">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">{prevAnswerLabel}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">DWP decision</span>
+                    </div>
+                    {cocPreviousAnswers[questionId] ? (
+                      <p className="text-sm leading-relaxed italic line-clamp-3 text-indigo-950">"{cocPreviousAnswers[questionId]}"</p>
+                    ) : (
+                      <p className="text-sm italic text-indigo-400">Nothing read from your letter — select what applies now.</p>
                     )}
                   </div>
                 )}

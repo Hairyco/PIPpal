@@ -309,6 +309,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <ClaimSelector onSelect={handleNavigate} />
               <LandingDwpContext />
               
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
@@ -328,7 +329,6 @@ function AppContent() {
                   <BackpayCalculator />
                 </div>
               </section>
-              <ClaimSelector onSelect={handleNavigate} />
               <FinalCTA onStart={() => handleNavigate('home')} />
               <PIPAssistant
                 isVisible={showAssistant}
@@ -469,7 +469,7 @@ function AppContent() {
                             <span className="text-sm font-bold text-orange-900">Unlock Full Access</span>
                           </div>
                           <p className="text-[11px] text-orange-700 leading-relaxed">
-                            All 12 questions, PIP Diary, downloads & more — £12.99 one-time
+                            All 12 questions, PIP Diary, downloads & more — £6.99 one-time
                           </p>
                         </button>
                       </div>

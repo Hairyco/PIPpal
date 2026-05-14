@@ -99,34 +99,36 @@ export function QuestionIndex() {
 
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
 
-        {/* Score summary */}
-        <div className="bg-teal-700 px-5 md:px-8 py-6 text-white">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-teal-200 text-sm mb-1">Total score so far</p>
-              <div className="flex items-end gap-2">
-                <span className="text-4xl font-bold">{totalPoints}</span>
-                <span className="text-teal-200 text-sm mb-1">pts total</span>
+        {/* Score summary — hidden in Change of circumstances walkthrough */}
+        {!cocMode && (
+          <div className="bg-teal-700 px-5 md:px-8 py-6 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-teal-200 text-sm mb-1">Total score so far</p>
+                <div className="flex items-end gap-2">
+                  <span className="text-4xl font-bold">{totalPoints}</span>
+                  <span className="text-teal-200 text-sm mb-1">pts total</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <TrendingUp className="w-8 h-8 text-teal-300 ml-auto mb-1" />
+                <p className="text-teal-200 text-xs">{answeredCount} of 12 answered</p>
               </div>
             </div>
-            <div className="text-right">
-              <TrendingUp className="w-8 h-8 text-teal-300 ml-auto mb-1" />
-              <p className="text-teal-200 text-xs">{answeredCount} of 12 answered</p>
+            <div className="w-full bg-teal-800 rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-white h-full rounded-full transition-all duration-500"
+                style={{ width: `${Math.min((totalPoints / 164) * 100, 100)}%` }}
+              />
             </div>
+            {totalPoints >= 12 && (
+              <p className="text-teal-200 text-xs mt-2">
+                {totalPoints >= 12 && totalPoints < 24 ? '✓ Standard rate Daily Living likely' : ''}
+                {totalPoints >= 24 ? '✓ Enhanced rate may apply — keep going!' : ''}
+              </p>
+            )}
           </div>
-          <div className="w-full bg-teal-800 rounded-full h-2 overflow-hidden">
-            <div
-              className="bg-white h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.min((totalPoints / 164) * 100, 100)}%` }}
-            />
-          </div>
-          {totalPoints >= 12 && (
-            <p className="text-teal-200 text-xs mt-2">
-              {totalPoints >= 12 && totalPoints < 24 ? '✓ Standard rate Daily Living likely' : ''}
-              {totalPoints >= 24 ? '✓ Enhanced rate may apply — keep going!' : ''}
-            </p>
-          )}
-        </div>
+        )}
 
         <div className="px-5 md:px-8 py-6 space-y-6">
 
@@ -204,7 +206,7 @@ export function QuestionIndex() {
                 <span className="text-sm font-bold text-orange-900">Unlock questions 2–12</span>
               </div>
               <p className="text-xs text-orange-700 leading-relaxed">
-                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — £8.99 one-time.
+                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — £6.99 one-time.
               </p>
             </button>
           )}

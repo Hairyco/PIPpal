@@ -82,6 +82,7 @@ export function ResultCard() {
     medProfile,
     cocMode,
     cocPreviousAnswers,
+    cocPreviousPoints,
     cocFormType,
     cocDocumentType,
     cocAssessorNotes,
@@ -91,11 +92,14 @@ export function ResultCard() {
   const question = getQuestion(qId);
   const descriptor = q1Result?.descriptor || 'A';
   const data = descriptorData[descriptor] || descriptorData['A'];
+  const displayPoints = typeof q1Result?.points === 'number' ? q1Result.points : data.points;
+  const displayHeading =
+    q1Result?.label != null && String(q1Result.label).trim() !== '' ? q1Result.label : data.heading;
 
   // Use the AI-generated text from the wizard if available, otherwise use template
   // If nothing was selected (0 points, no difficulties tapped), leave the draft blank
   const generatedText = q1Result?.text || '';
-  const noAnswerGiven = data.points === 0 && !generatedText;
+  const noAnswerGiven = displayPoints === 0 && !generatedText;
   const initialText = generatedText
     ? addHighlightsToPlain(generatedText)
     : noAnswerGiven ? '' : data.text;
@@ -318,7 +322,9 @@ Return ONLY the rewritten answer — no preamble, no quotation marks.`,
     }
   };
 
-  const pointsColor = data.points >= 8 ? 'text-teal-700' : data.points >= 4 ? 'text-blue-600' : data.points >= 2 ? 'text-amber-600' : 'text-stone-500';
+  const pointsColor = displayPoints >= 8 ? 'text-teal-700' : displayPoints >= 4 ? 'text-blue-600' : displayPoints >= 2 ? 'text-amber-600' : 'text-stone-500';
+
+  const previousAwardPoints = cocPreviousPoints[qId];
 
   // Generate personalised detail suggestions on mount
   useEffect(() => {
@@ -404,17 +410,32 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
         >
           <p className="text-[11px] font-black text-amber-600 uppercase tracking-widest mb-2">DESCRIPTOR {descriptor}</p>
           <div className="flex items-baseline justify-center gap-2 mb-1">
-            <span className={`text-5xl font-black ${pointsColor}`}>{data.points}</span>
+            <span className={`text-5xl font-black ${pointsColor}`}>{displayPoints}</span>
             <span className={`text-xl font-bold ${pointsColor}`}>pts</span>
           </div>
-          <p className={`font-bold text-base ${pointsColor}`}>{data.heading}</p>
+          <p className={`font-bold text-base ${pointsColor}`}>{displayHeading}</p>
+          {cocMode && (
+            <p className="text-sm text-amber-900/90 font-semibold mt-3 leading-snug">
+              {previousAwardPoints != null ? (
+                <>
+                  Last award: <span className="tabular-nums">{previousAwardPoints}</span> pts → this draft:{' '}
+                  <span className="tabular-nums">{displayPoints}</span> pts
+                </>
+              ) : (
+                <>
+                  Previous score not recorded for this activity — this draft:{' '}
+                  <span className="tabular-nums">{displayPoints}</span> pts
+                </>
+              )}
+            </p>
+          )}
         </motion.div>
 
         {/* Previous answer — CoC mode only */}
         {cocMode && (
           <div className="space-y-2">
             {/* PIP2 card (your own words) */}
-            {cocDocumentType !== 'pa4_only' && (
+            {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
               <div className={`rounded-2xl border p-4 ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>
@@ -429,6 +450,19 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
                   <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>
                     No previous answer on file for this activity.
                   </p>
+                )}
+              </div>
+            )}
+            {cocDocumentType === 'award_only' && (
+              <div className="rounded-2xl border p-4 bg-indigo-50 border-indigo-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">What your award letter says</p>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">DWP decision</span>
+                </div>
+                {cocPreviousAnswers[qId] ? (
+                  <p className="text-sm leading-relaxed italic text-indigo-950">"{cocPreviousAnswers[qId]}"</p>
+                ) : (
+                  <p className="text-sm italic text-indigo-400">No text on file for this activity from your letter.</p>
                 )}
               </div>
             )}
@@ -594,7 +628,23 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             <div className="space-y-3">
               {cocPreviousAnswers[qId] ? (
                 <div className="space-y-2">
-                  {cocDocumentType === 'pa4_only' ? (
+                  {cocDocumentType === 'award_only' ? (
+                    <>
+                      <p className="text-sm text-stone-700 leading-relaxed">Your award letter showed the score DWP gave each activity. This new answer:</p>
+                      <ul className="space-y-1.5 mt-1">
+                        {[
+                          'Explains what has changed since that decision — not just what the letter said',
+                          'Uses your own words so DWP sees the full picture of how things are now',
+                          'Supports a clear change of circumstances if your needs have increased',
+                        ].map((point, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                            <span className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : cocDocumentType === 'pa4_only' ? (
                     <>
                       <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what the assessor recorded. Where the PA4 described the situation from their perspective, this version:</p>
                       <ul className="space-y-1.5 mt-1">

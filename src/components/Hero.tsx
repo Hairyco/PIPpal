@@ -74,7 +74,7 @@ export function Hero({ onStart }: HeroProps) {
           </button>
 
           <p className="text-center text-xs text-stone-400 mt-3">
-            Free tools available · Full access £8.99 — limited time
+            Free tools available · Full access £6.99 — limited time
           </p>
         </div>
       </div>

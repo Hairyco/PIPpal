@@ -22,7 +22,7 @@ export function ValueProp() {
         <div className="bg-white/10 rounded-2xl p-4 mb-6 backdrop-blur-sm border border-white/10">
           <div className="flex justify-between items-center">
             <span className="text-teal-50 text-sm">Full Access cost</span>
-            <span className="font-bold text-xl">£8.99</span>
+            <span className="font-bold text-xl">£6.99</span>
           </div>
         </div>
 

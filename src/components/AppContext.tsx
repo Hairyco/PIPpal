@@ -114,11 +114,14 @@ interface AppContextType {
   cocFormType: 'pip2' | 'ar1' | null;
   setCocFormType: (type: 'pip2' | 'ar1' | null) => void;
   /** What was uploaded — affects label and card logic throughout the wizard */
-  cocDocumentType: 'pip2_only' | 'pa4_only' | 'both' | null;
-  setCocDocumentType: (type: 'pip2_only' | 'pa4_only' | 'both' | null) => void;
+  cocDocumentType: 'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null;
+  setCocDocumentType: (type: 'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null) => void;
   /** Assessor observations extracted from PA4 — shown as a secondary card alongside pip2 answers */
   cocAssessorNotes: Record<string, string>;
   setCocAssessorNotes: (notes: Record<string, string>) => void;
+  /** Points awarded on the previous decision letter / extraction, per activity (q1–q12); null if unknown */
+  cocPreviousPoints: Record<string, number | null>;
+  setCocPreviousPoints: (points: Record<string, number | null>) => void;
   hasCompletedEligibility: boolean;
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
@@ -239,8 +242,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
   const [cocMode, setCocMode] = useState(false);
   const [cocFormType, setCocFormType] = useState<'pip2' | 'ar1' | null>(null);
-  const [cocDocumentType, setCocDocumentType] = useState<'pip2_only' | 'pa4_only' | 'both' | null>(null);
+  const [cocDocumentType, setCocDocumentType] = useState<'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null>(null);
   const [cocAssessorNotes, setCocAssessorNotes] = useState<Record<string, string>>({});
+  const [cocPreviousPoints, setCocPreviousPoints] = useState<Record<string, number | null>>({});
 
   const [hasCompletedEligibility, setHasCompletedEligibilityState] =
     useState<boolean>(() => loadFromStorage('pippal_eligibility', false));
@@ -615,6 +619,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocDocumentType,
         cocAssessorNotes,
         setCocAssessorNotes,
+        cocPreviousPoints,
+        setCocPreviousPoints,
         hasCompletedEligibility,
         setHasCompletedEligibility,
         hasPaid,
