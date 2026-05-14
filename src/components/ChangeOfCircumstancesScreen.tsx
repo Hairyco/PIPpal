@@ -623,7 +623,7 @@ export function ChangeOfCircumstancesScreen() {
               A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
             <p className="text-teal-100 text-sm leading-relaxed mt-2">
-              PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now.
+              PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now. If you don&apos;t have your original PIP2 form, that&apos;s fine — we can still help.
             </p>
           </div>
 
