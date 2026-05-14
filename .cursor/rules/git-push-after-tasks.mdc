@@ -1,0 +1,16 @@
+---
+description: After finishing a coding task, commit and push to origin unless the user opts out.
+alwaysApply: true
+---
+
+# Git: commit and push when work is done
+
+When you finish a job that changed this repo:
+
+1. Run `git status`. Stage only intentional changes (avoid unrelated paths such as `.claude/worktrees`, local env files, or accidental edits unless the user asked to include them).
+2. Commit with a clear message describing what changed and why.
+3. Push to `origin` on the current branch (`git push origin HEAD` or `git push origin main` as appropriate).
+
+Do not skip push solely because you assume the user prefers local-only work—they asked for pushes after tasks.
+
+If push fails (auth, conflicts), fix what you can (e.g. pull --rebase with permission), report clearly if blocked.
