@@ -93,10 +93,9 @@ export function buildAnswersPlainText(opts: {
 
       lines.push('');
       lines.push(`Activity ${q.num}: ${q.title}`);
-      lines.push(q.pipFormRef);
-      lines.push('Question:');
       lines.push(q.headline);
       if (q.subtext?.trim()) lines.push(q.subtext);
+      lines.push(`Form reference: ${q.pipFormRef}`);
       if (!has) {
         lines.push('(Not answered yet in PIPpal)');
         continue;
@@ -184,19 +183,18 @@ export function AnswersReviewScreen() {
 
     return (
       <article key={q.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-stone-50 bg-stone-50/80">
-          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-0.5">
+        <div className="px-4 py-4 border-b border-stone-100 bg-gradient-to-b from-stone-50/90 to-white">
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">
             {q.category === 'Daily Living' ? `Daily living · ${q.num}` : `Mobility · ${q.num - 10}`}
           </p>
-          <h2 className="font-bold text-stone-900 text-sm leading-snug">{q.shortTitle}</h2>
-          <p className="text-[11px] text-stone-500 mt-1">{q.pipFormRef}</p>
-        </div>
-        <div className="px-4 py-3 border-b border-stone-100 bg-white">
-          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">The question</p>
-          <p className="text-sm font-semibold text-stone-900 leading-snug">{q.headline}</p>
+          <h2 className="font-black text-base text-stone-900 leading-snug">{q.title}</h2>
+          <p className="text-sm font-semibold text-stone-800 leading-snug mt-2.5">{q.headline}</p>
           {q.subtext?.trim() ? (
             <p className="text-xs text-stone-600 leading-relaxed mt-2">{q.subtext}</p>
           ) : null}
+          <p className="text-[10px] text-stone-400 mt-3 leading-snug" title={q.pipFormRef}>
+            {q.pipFormRef}
+          </p>
         </div>
         <div className="px-4 py-4 space-y-3">
           {!has ? (
