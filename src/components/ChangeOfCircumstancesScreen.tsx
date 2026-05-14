@@ -673,15 +673,6 @@ export function ChangeOfCircumstancesScreen() {
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
 
-          {/* PA4-only notice */}
-          {!hasPip2 && !hasPa4 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-              <p className="text-xs text-blue-800 leading-relaxed">
-                <span className="font-bold">Don't have your PIP2 form yet?</span> You can upload just the PA4 assessor report — we'll flag where your own wording is missing so you know what to write fresh.
-              </p>
-            </div>
-          )}
-
           {/* PIP2 upload zone */}
           <UploadZone
             label="Original PIP2 form"
