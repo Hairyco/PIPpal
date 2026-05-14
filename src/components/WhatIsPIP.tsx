@@ -48,7 +48,7 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> (with both enhanced components) and is not means-tested — it doesn't matter how much you earn or whether you work.
+          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> and is not means-tested — it doesn't matter how much you earn or whether you work.
         </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
           <strong className="text-stone-900">You do not need a formal diagnosis to apply for PIP.</strong> PIP looks at how your condition or symptoms affect you day-to-day.
