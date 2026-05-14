@@ -56,21 +56,34 @@ export function questionHasStoredAnswer(
   return hasAnyStoredContent(q, savedAnswers[q.id], savedAnswerDetails[q.id]);
 }
 
+/** True when all 12 PIP activities have some saved detail (descriptor, difficulties, or prose). */
+export function allPipActivitiesComplete(
+  savedAnswers: Record<string, string>,
+  savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>,
+): boolean {
+  return PIP_QUESTIONS.every((q) => questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails));
+}
+
 export interface AnswersPackOpts {
   savedAnswers: Record<string, string>;
   savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>;
   cocMode: boolean;
+  /** Shown in export header — e.g. "New claim", "Change of circumstances" */
+  packSectionLabel?: string;
   userLabel?: string;
 }
 
 export function buildAnswersPlainText(opts: AnswersPackOpts): string {
-  const { savedAnswers, savedAnswerDetails, cocMode, userLabel } = opts;
+  const { savedAnswers, savedAnswerDetails, cocMode, packSectionLabel, userLabel } = opts;
   const lines: string[] = [];
   const now = new Date();
   lines.push('PIPPal — Your PIP answers');
   lines.push(`Exported ${now.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}`);
   if (userLabel) lines.push(`Account / name: ${userLabel}`);
-  lines.push(`Walkthrough: ${cocMode ? 'Change of circumstances' : 'PIP questions'}`);
+  const section =
+    packSectionLabel?.trim() ||
+    (cocMode ? 'Change of circumstances' : 'PIP questions (new claim)');
+  lines.push(`Category: ${section}`);
   lines.push('');
   lines.push('—'.repeat(48));
 
@@ -152,7 +165,7 @@ export async function buildAnswersDocxBlob(opts: AnswersPackOpts): Promise<Blob>
     return out;
   }
 
-  const { savedAnswers, savedAnswerDetails, cocMode, userLabel } = opts;
+  const { savedAnswers, savedAnswerDetails, cocMode, packSectionLabel, userLabel } = opts;
   const now = new Date();
   const children: DocxParagraph[] = [];
 
@@ -177,10 +190,13 @@ export async function buildAnswersDocxBlob(opts: AnswersPackOpts): Promise<Blob>
   if (userLabel) {
     children.push(lineParagraph([new TextRun({ text: `Account / name: ${userLabel}`, color: '525252' })]));
   }
+  const docxSection =
+    packSectionLabel?.trim() ||
+    (cocMode ? 'Change of circumstances' : 'PIP questions (new claim)');
   children.push(
     lineParagraph([
       new TextRun({
-        text: `Walkthrough: ${cocMode ? 'Change of circumstances' : 'PIP questions'}`,
+        text: `Category: ${docxSection}`,
         color: '525252',
       }),
     ]),

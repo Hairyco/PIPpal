@@ -1,4 +1,4 @@
-import React, { useState, createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
+import React, { useState, createContext, useContext, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import {
   COC_POST_MEDICAL_SNAPSHOT_KEY,
@@ -111,6 +111,18 @@ interface AppContextType {
   /** Selected difficulty texts + generated answer text, keyed by question ID */
   savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>;
   saveAnswerDetails: (questionId: string, details: { difficulties: string[]; answerText?: string }) => void;
+  /** Worksheet answers from the new-claim path (not CoC walkthrough) */
+  savedAnswersNewClaim: Record<string, string>;
+  savedAnswerDetailsNewClaim: Record<string, { difficulties: string[]; answerText?: string }>;
+  /** Worksheet answers updated during Change of circumstances */
+  savedAnswersCoC: Record<string, string>;
+  savedAnswerDetailsCoC: Record<string, { difficulties: string[]; answerText?: string }>;
+  /** Latest Mandatory Reconsideration letter draft for the answer library */
+  mrDraftLetter: string;
+  setMrDraftLetter: (text: string) => void;
+  /** Latest tribunal appeal grounds draft */
+  appealDraftReasons: string;
+  setAppealDraftReasons: (text: string) => void;
   /** Previous answers extracted from uploaded CoC documents — shown in QuestionWizard step 1 instead of the example answer */
   cocPreviousAnswers: Record<string, string>;
   setCocPreviousAnswers: (answers: Record<string, string>) => void;
@@ -248,8 +260,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const [savedAnswerDetails, setSavedAnswerDetails] = useState<Record<string, { difficulties: string[]; answerText?: string }>>(() =>
-    loadFromStorage('pippal_answer_details', {})
+    loadFromStorage('pippal_answer_details', {}),
   );
+
+  const [savedAnswersNewClaim, setSavedAnswersNewClaim] = useState<Record<string, string>>(() => {
+    const bucket = loadFromStorage('pippal_answers_new_claim', {});
+    if (Object.keys(bucket).length > 0) return bucket;
+    return loadFromStorage('pippal_answers', {});
+  });
+
+  const [savedAnswerDetailsNewClaim, setSavedAnswerDetailsNewClaim] = useState<
+    Record<string, { difficulties: string[]; answerText?: string }>
+  >(() => {
+    const bucket = loadFromStorage('pippal_answer_details_new_claim', {});
+    if (Object.keys(bucket).length > 0) return bucket;
+    return loadFromStorage('pippal_answer_details', {});
+  });
+
+  const [savedAnswersCoC, setSavedAnswersCoC] = useState<Record<string, string>>(() =>
+    loadFromStorage('pippal_answers_coc', {}),
+  );
+
+  const [savedAnswerDetailsCoC, setSavedAnswerDetailsCoC] = useState<
+    Record<string, { difficulties: string[]; answerText?: string }>
+  >(() => loadFromStorage('pippal_answer_details_coc', {}));
+
+  const [mrDraftLetter, setMrDraftLetterState] = useState<string>(() => loadFromStorage('pippal_mr_draft', ''));
+  const [appealDraftReasons, setAppealDraftReasonsState] = useState<string>(() =>
+    loadFromStorage('pippal_appeal_draft', ''),
+  );
+
+  const savedAnswersRef = useRef(savedAnswers);
+  savedAnswersRef.current = savedAnswers;
+  const savedAnswerDetailsRef = useRef(savedAnswerDetails);
+  savedAnswerDetailsRef.current = savedAnswerDetails;
 
   const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
   const [cocMode, setCocMode] = useState(false);
@@ -268,8 +312,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Persist to localStorage
   useEffect(() => { saveToStorage('pippal_med_profile', medProfile); }, [medProfile]);
-  useEffect(() => { saveToStorage('pippal_answers', savedAnswers); }, [savedAnswers]);
-  useEffect(() => { saveToStorage('pippal_answer_details', savedAnswerDetails); }, [savedAnswerDetails]);
+  useEffect(() => {
+    saveToStorage('pippal_answers', savedAnswers);
+  }, [savedAnswers]);
+  useEffect(() => {
+    saveToStorage('pippal_answer_details', savedAnswerDetails);
+  }, [savedAnswerDetails]);
+  useEffect(() => {
+    saveToStorage('pippal_answers_new_claim', savedAnswersNewClaim);
+  }, [savedAnswersNewClaim]);
+  useEffect(() => {
+    saveToStorage('pippal_answer_details_new_claim', savedAnswerDetailsNewClaim);
+  }, [savedAnswerDetailsNewClaim]);
+  useEffect(() => {
+    saveToStorage('pippal_answers_coc', savedAnswersCoC);
+  }, [savedAnswersCoC]);
+  useEffect(() => {
+    saveToStorage('pippal_answer_details_coc', savedAnswerDetailsCoC);
+  }, [savedAnswerDetailsCoC]);
+  useEffect(() => {
+    saveToStorage('pippal_mr_draft', mrDraftLetter);
+  }, [mrDraftLetter]);
+  useEffect(() => {
+    saveToStorage('pippal_appeal_draft', appealDraftReasons);
+  }, [appealDraftReasons]);
   useEffect(() => { saveToStorage('pippal_eligibility', hasCompletedEligibility); }, [hasCompletedEligibility]);
   useEffect(() => { saveToStorage('pippal_paid_cache', hasPaid); }, [hasPaid]);
 
@@ -499,6 +565,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setHasPaidState(false);
     setSavedAnswers({});
     setSavedAnswerDetails({});
+    setSavedAnswersNewClaim({});
+    setSavedAnswerDetailsNewClaim({});
+    setSavedAnswersCoC({});
+    setSavedAnswerDetailsCoC({});
+    setMrDraftLetterState('');
+    setAppealDraftReasonsState('');
     setCocMode(false);
     setCocWalkthroughAnsweredIds({});
     setCocPreviousAnswers({});
@@ -511,6 +583,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('pippal_med_profile');
     localStorage.removeItem('pippal_answers');
     localStorage.removeItem('pippal_answer_details');
+    localStorage.removeItem('pippal_answers_new_claim');
+    localStorage.removeItem('pippal_answer_details_new_claim');
+    localStorage.removeItem('pippal_answers_coc');
+    localStorage.removeItem('pippal_answer_details_coc');
+    localStorage.removeItem('pippal_mr_draft');
+    localStorage.removeItem('pippal_appeal_draft');
     localStorage.removeItem('pippal_eligibility');
     setCurrentScreen('landing');
     setNavigationHistory([]);
@@ -575,6 +653,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCocPreviousAnswers(session.primary);
       setCocPreviousPoints(session.cocPreviousPoints);
       setCocAssessorNotes(session.pa4Answers);
+      setSavedAnswersCoC({ ...savedAnswersRef.current });
+      setSavedAnswerDetailsCoC({ ...savedAnswerDetailsRef.current });
       navigateTo('question_index');
       return true;
     } catch {
@@ -585,21 +665,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const saveAnswer = (questionId: string, answer: string) => {
     setSavedAnswers((prev) => {
       const updated = { ...prev, [questionId]: answer };
-      // Sync to Supabase if logged in (fire and forget)
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          supabase.from('pip_answers').upsert({
-            user_id: session.user.id,
-            question_id: questionId,
-            answer,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'user_id,question_id' }).then(() => {});
+          supabase
+            .from('pip_answers')
+            .upsert(
+              {
+                user_id: session.user.id,
+                question_id: questionId,
+                answer,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: 'user_id,question_id' },
+            )
+            .then(() => {});
         }
       });
       return updated;
     });
     if (cocMode) {
+      setSavedAnswersCoC((prev) => ({ ...prev, [questionId]: answer }));
       setCocWalkthroughAnsweredIds((prev) => ({ ...prev, [questionId]: true }));
+    } else {
+      setSavedAnswersNewClaim((prev) => ({ ...prev, [questionId]: answer }));
     }
   };
 
@@ -607,7 +695,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const saveAnswerDetails = (questionId: string, details: { difficulties: string[]; answerText?: string }) => {
     setSavedAnswerDetails((prev) => ({ ...prev, [questionId]: details }));
+    if (cocMode) {
+      setSavedAnswerDetailsCoC((prev) => ({ ...prev, [questionId]: details }));
+    } else {
+      setSavedAnswerDetailsNewClaim((prev) => ({ ...prev, [questionId]: details }));
+    }
   };
+
+  const setMrDraftLetter = useCallback((text: string) => {
+    setMrDraftLetterState(text);
+  }, []);
+
+  const setAppealDraftReasons = useCallback((text: string) => {
+    setAppealDraftReasonsState(text);
+  }, []);
 
   const showToast = useCallback(
     (message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -674,6 +775,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         getSavedAnswer,
         savedAnswerDetails,
         saveAnswerDetails,
+        savedAnswersNewClaim,
+        savedAnswerDetailsNewClaim,
+        savedAnswersCoC,
+        savedAnswerDetailsCoC,
+        mrDraftLetter,
+        setMrDraftLetter,
+        appealDraftReasons,
+        setAppealDraftReasons,
         cocPreviousAnswers,
         setCocPreviousAnswers,
         cocMode,

@@ -142,7 +142,18 @@ const REAL_LIFE_OPTIONS: Record<string, { icon: string; label: string; sub: stri
 // ── Main Component ───────────────────────────────────────────────────────────
 
 export function QuestionWizard() {
-  const { selectedQuestionId, navigateTo, goBack, medProfile, setDescriptorHint, setQ1Result, cocMode, cocPreviousAnswers } = useAppContext();
+  const {
+    selectedQuestionId,
+    navigateTo,
+    goBack,
+    medProfile,
+    setDescriptorHint,
+    setQ1Result,
+    cocMode,
+    cocPreviousAnswers,
+    cocAssessorNotes,
+    cocPreviousPoints,
+  } = useAppContext();
   const qId = selectedQuestionId || 'q1';
   const question = getQuestion(qId);
   if (!question) return null;
@@ -293,6 +304,26 @@ Rules:
     const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
     const extraDetail = answers.extraDetail || '';
 
+    const prevPts = cocPreviousPoints[qId];
+    const prevAns = cocPreviousAnswers[qId]?.trim();
+    const pa4Line = cocAssessorNotes[qId]?.trim();
+
+    let cocInstructions = '';
+    if (cocMode) {
+      cocInstructions = `
+
+CHANGE OF CIRCUMSTANCES — mandatory content rules:
+${prevPts != null ? `- Previous official points recorded for this activity on file: ${prevPts}. Draft descriptor carries ${descriptor.points} points (${code}). Frame the answer around deterioration or worsening needs since then, not improvement.` : '- Previous activity points were not read from documents — still write vs what appears on file below as "before", and emphasise worsening since then.'}
+${prevAns ? `- Previous answer / wording on form or letter for this activity (address this directly — quote briefly or paraphrase accurately):\n"${prevAns.slice(0, 2400)}${prevAns.length > 2400 ? '…' : ''}"` : '- No previous answer text on file for this activity — reference assessor notes if present, otherwise focus on worsening since last award.'}
+${pa4Line ? `- Assessor PA4 wording for this activity (respond to this where it is wrong, thin, or no longer true):\n"${pa4Line.slice(0, 2400)}${pa4Line.length > 2400 ? '…' : ''}"` : ''}
+
+You MUST:
+1. Start by tying to what was on file (previous answer and/or assessor wording above) — then state clearly what is harder, more frequent, or less safe NOW.
+2. Never suggest their condition or functioning has improved overall.
+3. Match descriptor ${code}: "${descriptor.text}" using their selections below and reliability (safe, acceptable, often enough, reasonable time, sustainable).
+`;
+    }
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -306,12 +337,13 @@ The claimant has told us:
 - Support or supervision they need: ${supportList || 'none stated'}
 - Real-life impact: ${impactList || 'none stated'}
 ${extraDetail ? `- Additional detail: ${extraDetail}` : ''}
-
-Write 2-3 sentences in first person that:
+${cocInstructions}
+Write ${cocMode ? '3-5' : '2-3'} sentences in first person that:
 1. State what they cannot do or need help with (matching descriptor ${code})
 2. Include how often this happens using their frequency data
 3. Mention the specific support or supervision needed
 4. Reference the real-life impact
+${cocMode ? '5. Explicitly contrasts "before" (on-file / assessor) with worse or harder "now"' : ''}
 
 Be specific and use the claimant's own information. No preamble. Return ONLY the answer text.`,
           medProfile: { conditions: medProfile.conditions, medications: '', notes: '' },

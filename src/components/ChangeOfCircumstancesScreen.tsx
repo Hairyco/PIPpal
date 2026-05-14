@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -315,7 +315,19 @@ function CocUploadZone({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
-  const { goBack, navigateTo, isAdmin, setCocPreviousAnswers, setCocPreviousPoints, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes, resetCocWalkthroughProgress } = useAppContext();
+  const {
+    goBack,
+    navigateTo,
+    isAdmin,
+    savedAnswersNewClaim,
+    setCocPreviousAnswers,
+    setCocPreviousPoints,
+    setCocMode,
+    setCocFormType,
+    setCocDocumentType,
+    setCocAssessorNotes,
+    resetCocWalkthroughProgress,
+  } = useAppContext();
 
   const [step, setStep] = useState(readStoredCocStep);
 
@@ -355,12 +367,19 @@ export function ChangeOfCircumstancesScreen() {
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
   /** Single accordion on step 3 wrapping PIP2 / PA4 / award uploads */
-  const [documentsUploadOpen, setDocumentsUploadOpen] = useState(false);
+  const [documentsUploadOpen, setDocumentsUploadOpen] = useState(true);
   const [noForm, setNoForm] = useState(false);
+  /** Seed “previous” wording from answers saved during the normal new-claim walkthrough — for users who never kept a paper PIP2 */
+  const [usePlatformWorkbookAnswers, setUsePlatformWorkbookAnswers] = useState(false);
   /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
   const [cocManualPoints, setCocManualPoints] = useState<Record<string, string>>({});
+
+  const newClaimAnswerCount = useMemo(
+    () => Object.keys(savedAnswersNewClaim ?? {}).filter(k => savedAnswersNewClaim[k]?.trim()).length,
+    [savedAnswersNewClaim],
+  );
 
   const writeCocMedicalSnapshotToSession = useCallback(() => {
     try {
@@ -372,6 +391,8 @@ export function ChangeOfCircumstancesScreen() {
         pip2Extracted,
         pa4Extracted,
         awardExtracted,
+        platformWorkbookAnswers:
+          usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? { ...savedAnswersNewClaim } : undefined,
         activityFallbackNotes,
         cocManualPoints,
       };
@@ -381,7 +402,20 @@ export function ChangeOfCircumstancesScreen() {
     } catch {
       /* ignore */
     }
-  }, [formType, pip2Labels.length, pa4Labels.length, awardLabels.length, pip2Extracted, pa4Extracted, awardExtracted, activityFallbackNotes, cocManualPoints]);
+  }, [
+    formType,
+    pip2Labels.length,
+    pa4Labels.length,
+    awardLabels.length,
+    pip2Extracted,
+    pa4Extracted,
+    awardExtracted,
+    usePlatformWorkbookAnswers,
+    newClaimAnswerCount,
+    savedAnswersNewClaim,
+    activityFallbackNotes,
+    cocManualPoints,
+  ]);
 
   // Step 4 opens Medical Profile; saving there consumes snapshot → question_index
   const next = () => {
@@ -610,6 +644,8 @@ export function ChangeOfCircumstancesScreen() {
       pip2Extracted,
       pa4Extracted,
       awardExtracted,
+      platformWorkbookAnswers:
+        usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? { ...savedAnswersNewClaim } : undefined,
       activityFallbackNotes,
       cocManualPoints,
     };
@@ -627,7 +663,7 @@ export function ChangeOfCircumstancesScreen() {
   const stepTitles = [
     'Change of circumstances',
     'Which form are you completing?',
-    'Upload your documents',
+    'Answers & documents',
     'Medical profile',
   ];
 
@@ -645,9 +681,11 @@ export function ChangeOfCircumstancesScreen() {
     const pa4Pts = normalizeActivityPoints(extractedPa4?.pointsAwarded);
     const awardPts = normalizeActivityPoints(extractedAward?.pointsAwarded);
     const manualPtsStr = cocManualPoints[qid] ?? '';
+    const platformWorkbookPreview =
+      usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? (savedAnswersNewClaim[qid]?.trim() ?? '') : '';
     const isOpen = expandedActivityId === qid;
     const hasScoreHints = pip2Pts != null || pa4Pts != null || awardPts != null || manualPtsStr.trim() !== '';
-    const hasAnswer = Boolean(pip2Text || pa4Text || awardText || manual.trim() || hasScoreHints);
+    const hasAnswer = Boolean(pip2Text || pa4Text || awardText || platformWorkbookPreview || manual.trim() || hasScoreHints);
     const confidence = (extractedPip2 ?? extractedPa4 ?? extractedAward)?.confidence ?? 'low';
     return (
       <div key={qid} className="border-b border-stone-100 last:border-0">
@@ -674,6 +712,14 @@ export function ChangeOfCircumstancesScreen() {
                     <p className="text-xs text-stone-700 leading-relaxed">"{pip2Text}"</p>
                   </div>
                 ) : null}
+                {platformWorkbookPreview ? (
+                  <div className="rounded-xl border border-teal-200 bg-white px-3 py-2 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-1">
+                      From My Questions (PIPpal workbook)
+                    </p>
+                    <p className="text-xs text-stone-700 leading-relaxed">"{platformWorkbookPreview}"</p>
+                  </div>
+                ) : null}
                 {pa4Text ? (
                   <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">From assessor report (PA4)</p>
@@ -687,9 +733,16 @@ export function ChangeOfCircumstancesScreen() {
                   </div>
                 ) : null}
               </div>
+            ) : platformWorkbookPreview ? (
+              <div className="rounded-xl border border-teal-200 bg-white px-3 py-2 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-1">
+                  From My Questions (PIPpal workbook)
+                </p>
+                <p className="text-xs text-stone-700 leading-relaxed">"{platformWorkbookPreview}"</p>
+              </div>
             ) : (
               <p className="text-xs text-stone-400 leading-relaxed">
-                Nothing was read from your documents for this activity.
+                Nothing uploaded or saved from your workbook yet for this activity — you can add a reminder in the box below if you wish.
               </p>
             )}
 
@@ -715,7 +768,7 @@ export function ChangeOfCircumstancesScreen() {
 
             <div className="rounded-xl border border-stone-200 bg-stone-50/90 px-3 py-3 space-y-2">
               <p className="text-[11px] text-stone-600 leading-relaxed">
-                {pip2Text || pa4Text || awardText ? (
+                {pip2Text || pa4Text || awardText || platformWorkbookPreview ? (
                   <>
                     <span className="font-semibold text-stone-700">Optional.</span> If anything above doesn&apos;t match your papers or the reader missed words, type what should count as your previous answer for this activity. We&apos;ll use what you type in the walkthrough instead of the automatic text. Leave blank if it looks right.
                   </>
@@ -729,7 +782,11 @@ export function ChangeOfCircumstancesScreen() {
                 value={manual}
                 onChange={ev => setActivityFallbackNotes(prev => ({ ...prev, [qid]: ev.target.value }))}
                 rows={3}
-                placeholder={pip2Text || pa4Text || awardText ? 'Optional — correct wording only if needed' : 'Optional — only if you remember what was on the form'}
+                placeholder={
+                  pip2Text || pa4Text || awardText || platformWorkbookPreview
+                    ? 'Optional — correct wording only if needed'
+                    : 'Optional — only if you remember what was on the form'
+                }
                 className="w-full text-sm text-stone-700 bg-white border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-400"
               />
             </div>
@@ -761,9 +818,9 @@ export function ChangeOfCircumstancesScreen() {
       const guideSteps = [
         { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
         {
-          title: 'Upload your documents',
+          title: 'Previous answers — upload or reuse',
           body:
-            "Use your completed PIP2, PA4 assessor report, and DWP award or decision letter when you have them — they carry your previous wording and official points. If you do not have copies yet, contact DWP and ask for those three items — many arrive within a few days. You can still continue without uploading: use \"I don't have these documents yet\" on the next step and fill gaps when prompted.",
+            'If you still have it, photographs of your completed PIP2, PA4, or award letter help us mirror DWP wording. Have not kept the form? Tick to reuse answers you already saved under My Questions (new claim) on PIPpal, upload other papers only, or continue without documents and type short reminders per activity when you wish.',
         },
         { title: 'Medical profile', body: 'Next you’ll open your Medical Profile (same screen as the rest of the app) to confirm conditions and notes — PIPpal uses them to tailor every question.' },
         { title: 'My Questions', body: 'When you save your Medical Profile, My Questions opens straight away — no extra screen. Work through all 12 activities with your previous answers beside each one.' },
@@ -781,8 +838,8 @@ export function ChangeOfCircumstancesScreen() {
           <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
             <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you upload</p>
             <p className="text-sm text-teal-950 leading-snug">
-              No paperwork to hand? Contact DWP and request your <strong className="font-semibold">PIP2</strong>, <strong className="font-semibold">PA4</strong>, and{' '}
-              <strong className="font-semibold">decision letter</strong> — or carry on without files.
+              No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>, <strong className="font-semibold">PA4</strong>, and{' '}
+              <strong className="font-semibold">decision letter</strong> from DWP — reuse your <strong className="font-semibold">My Questions</strong> answers from a past new-claim workbook on this app — or carry on without files.
             </p>
             <a
               href="tel:08009172222"
@@ -918,8 +975,11 @@ export function ChangeOfCircumstancesScreen() {
         Object.keys(awardExtracted).length > 0;
       const extractionFailedSomewhere =
         (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
-      const showActivityReview = hasAny && !busy && (hasExtracted || extractionFailedSomewhere);
-      const canContinue = hasAny && !busy;
+      const uploadReviewReady = hasAny && (hasExtracted || extractionFailedSomewhere);
+      const workbookPathOk = usePlatformWorkbookAnswers && newClaimAnswerCount > 0;
+      const showActivityReview =
+        !busy && (uploadReviewReady || workbookPathOk || (noForm && !hasAny));
+      const canContinue = !busy && (hasAny || noForm || workbookPathOk);
 
       const extractedFromDocLabels = [
         Object.keys(pip2Extracted).length > 0 && 'PIP2',
@@ -931,6 +991,49 @@ export function ChangeOfCircumstancesScreen() {
 
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
+          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3">
+            <div className="flex items-start gap-2">
+              <FileText className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-stone-900 text-sm">No paper PIP2 to photograph?</p>
+                <p className="text-xs text-stone-600 leading-relaxed mt-1">
+                  That is fine. Upload a PA4 or decision letter instead if you have one, reuse answers from a previous{' '}
+                  <strong className="text-stone-800">new claim</strong> walkthrough saved in My Questions, or tap &quot;I don&apos;t have these
+                  documents yet&quot; — then add short reminders per activity if you want DWP wording on screen before you rewrite it.
+                </p>
+              </div>
+            </div>
+            <label
+              className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? 'border-teal-400 bg-teal-50/50' : 'border-stone-200 bg-stone-50/70 hover:bg-stone-50'}`}
+            >
+              <input
+                type="checkbox"
+                checked={usePlatformWorkbookAnswers}
+                disabled={newClaimAnswerCount === 0}
+                onChange={ev => setUsePlatformWorkbookAnswers(ev.target.checked)}
+                className="mt-1 w-4 h-4 rounded border-stone-300 text-teal-700 focus:ring-teal-500 disabled:opacity-40"
+              />
+              <span className="min-w-0">
+                <span className="text-sm font-semibold text-stone-900 leading-snug">Use answers from My Questions (new claim on PIPpal)</span>
+                <span className="block text-[11px] text-stone-600 leading-snug mt-1">
+                  {newClaimAnswerCount > 0
+                    ? `${newClaimAnswerCount} activit${newClaimAnswerCount !== 1 ? 'ies have' : 'y has'} saved wording — we show it beside each activity in the checklist below before you refresh your medical profile and continue in CoC mode.`
+                    : 'Nothing saved yet. Open My Questions from Home (outside this flow), complete answers for how things were last time as best you can, then come back here and tick again.'}
+                </span>
+              </span>
+            </label>
+            <button
+              type="button"
+              onClick={() => navigateTo('question_index')}
+              className="w-full py-3 rounded-xl text-sm font-semibold border border-stone-300 text-stone-800 hover:bg-stone-100 active:scale-[0.99] transition-all"
+            >
+              Open My Questions to add answers
+              <ChevronRight className="inline w-4 h-4 mb-px ml-1 text-stone-500" aria-hidden />
+            </button>
+            <p className="text-[10px] text-stone-500 leading-snug">
+              That leaves this flow briefly — reopen Change of circumstances from Home when finished. Uploaded documents are not preserved if you reload the screen.
+            </p>
+          </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
             <button
@@ -941,7 +1044,9 @@ export function ChangeOfCircumstancesScreen() {
             >
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-stone-900 text-sm">Your documents</p>
-                <p className="text-xs text-stone-500 mt-0.5">PIP2, optional PA4, optional award letter</p>
+                <p className="text-xs text-stone-500 mt-0.5">
+                  Original PIP2 optional — PA4 / award helpful if you still have scans
+                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {busy && <Loader2 className="w-4 h-4 text-teal-600 animate-spin" aria-hidden />}
@@ -961,7 +1066,7 @@ export function ChangeOfCircumstancesScreen() {
               <div className="border-t border-stone-100 px-3 py-3 space-y-3 bg-stone-50/40">
                 <CocUploadZone
                   label="Original PIP2 form"
-                  sublabel="The form you filled in and returned to DWP — your own handwritten or typed answers."
+                  sublabel="Handy if you kept a scan — skip if you reuse My Questions wording above instead."
                   badge="Your words"
                   badgeColour="bg-teal-100 text-teal-700"
                   labels={pip2Labels}
@@ -974,6 +1079,8 @@ export function ChangeOfCircumstancesScreen() {
                   onRemove={() => {
                     setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
                   }}
+                  isOptional
+                  optionalPickLabel="Upload PIP2 (optional)"
                   fileCount={pip2Labels.length}
                   totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
                   maxFiles={COC_UPLOAD_MAX_FILES}
@@ -1032,37 +1139,7 @@ export function ChangeOfCircumstancesScreen() {
             )}
           </div>
 
-          {/* No document guidance */}
-          {noForm && !hasAny && (
-            <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
-              <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
-              <p className="text-sm text-blue-800 leading-relaxed">
-                You&apos;re entitled to copies of your PIP2, PA4 report, and decision paperwork. Call the PIP helpline on <span className="font-bold text-blue-950">0800 917 2222</span> (freephone) and ask — copies usually arrive within a few days.
-              </p>
-              <div className="bg-white rounded-xl border border-blue-200 p-4">
-                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
-                <p className="text-sm text-blue-900 italic leading-relaxed">
-                  "I'd like a copy of my PIP2, PA4 assessor report, and my decision letter with my scores please."
-                </p>
-              </div>
-              <a href="tel:08009172222"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
-                <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
-              </a>
-              <button type="button" onClick={next}
-                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-blue-300 text-blue-800 bg-white hover:bg-blue-50 active:scale-[0.99] transition-all">
-                Continue without documents for now
-              </button>
-            </div>
-          )}
-          {!noForm && !hasAny && (
-            <button type="button" onClick={() => setNoForm(true)}
-              className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
-              I don't have these documents yet
-            </button>
-          )}
-
-          {/* Extracted answers review — or full list when reading failed */}
+          {/* Checklist — uploads, workbook seeds, manual reminders, no-doc route */}
           {showActivityReview && (
             <div className="space-y-2">
               {extractionFailedSomewhere && (
@@ -1074,11 +1151,17 @@ export function ChangeOfCircumstancesScreen() {
                 </div>
               )}
               <p className="text-xs text-stone-500 px-1">
-                {!hasExtracted
-                  ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
-                  : extractedFromDocLabels.length > 0
-                    ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
-                    : 'Open each activity below.'}
+                {uploadReviewReady
+                  ? !hasExtracted
+                    ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
+                    : extractedFromDocLabels.length > 0
+                      ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
+                      : 'Open each activity below.'
+                  : workbookPathOk
+                    ? 'Your saved answers from My Questions appear under each activity. Adjust optional notes or scores before continuing — handwritten overrides take priority when you finish Medical Profile.'
+                    : noForm && !hasAny
+                      ? 'No scans attached — jot quick reminders below if helpful, then continue.'
+                      : 'Open each activity below.'}
               </p>
               {/* Daily Living */}
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -1114,6 +1197,37 @@ export function ChangeOfCircumstancesScreen() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {!noForm && !hasAny && (
+            <button type="button" onClick={() => setNoForm(true)}
+              className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
+              I don't have these documents yet
+            </button>
+          )}
+
+          {/* No document guidance */}
+          {noForm && !hasAny && (
+            <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
+              <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
+              <p className="text-sm text-blue-800 leading-relaxed">
+                You&apos;re entitled to copies of your PIP2, PA4 report, and decision paperwork. Call the PIP helpline on <span className="font-bold text-blue-950">0800 917 2222</span> (freephone) and ask — copies usually arrive within a few days.
+              </p>
+              <div className="bg-white rounded-xl border border-blue-200 p-4">
+                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
+                <p className="text-sm text-blue-900 italic leading-relaxed">
+                  "I'd like a copy of my PIP2, PA4 assessor report, and my decision letter with my scores please."
+                </p>
+              </div>
+              <a href="tel:08009172222"
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
+                <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
+              </a>
+              <button type="button" onClick={next}
+                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-blue-300 text-blue-800 bg-white hover:bg-blue-50 active:scale-[0.99] transition-all">
+                Continue without documents for now
+              </button>
             </div>
           )}
 

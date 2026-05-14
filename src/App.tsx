@@ -26,7 +26,6 @@ import {
   Shield,
   Newspaper,
   Rss,
-  ScrollText,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -427,7 +426,6 @@ function AppContent() {
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
                       <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} />
-                      <NavItem icon={ScrollText} label="Review answers" screen="answers_review" badge={!hasPaid ? "PRO" : undefined} />
                       {hasPaid && (
                         <>
                           <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />

@@ -17,6 +17,8 @@ export type CocMedicalSnapshot = {
   pip2Extracted: Record<string, CocSnapshotExtractedEntry>;
   pa4Extracted: Record<string, CocSnapshotExtractedEntry>;
   awardExtracted: Record<string, CocSnapshotExtractedEntry>;
+  /** Saved new-claim workbook answers from PIPpal — used when claimant has no copy of their PIP2 */
+  platformWorkbookAnswers?: Record<string, string>;
   activityFallbackNotes: Record<string, string>;
   cocManualPoints: Record<string, string>;
 };
@@ -70,7 +72,17 @@ export function computeCocSessionFromSnapshot(s: CocMedicalSnapshot): {
   pa4Answers: Record<string, string>;
   cocPreviousPoints: Record<string, number | null>;
 } {
-  const { hasPip2, hasPa4, hasAward, pip2Extracted, pa4Extracted, awardExtracted, activityFallbackNotes, cocManualPoints } = s;
+  const {
+    hasPip2,
+    hasPa4,
+    hasAward,
+    pip2Extracted,
+    pa4Extracted,
+    awardExtracted,
+    platformWorkbookAnswers,
+    activityFallbackNotes,
+    cocManualPoints,
+  } = s;
 
   let derivedDocType: 'pip2_only' | 'pa4_only' | 'both' | 'award_only';
   if (hasPip2 && hasPa4) derivedDocType = 'both';
@@ -96,6 +108,13 @@ export function computeCocSessionFromSnapshot(s: CocMedicalSnapshot): {
     if (primary[id]?.trim()) continue;
     const fromAward = awardAnswers[id]?.trim();
     if (fromAward) primary[id] = fromAward;
+  }
+
+  const workbook = platformWorkbookAnswers ?? {};
+  for (const id of ALL_ACTIVITY_IDS) {
+    if (primary[id]?.trim()) continue;
+    const w = workbook[id]?.trim();
+    if (w) primary[id] = w;
   }
 
   for (const [k, v] of Object.entries(activityFallbackNotes)) {

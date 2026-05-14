@@ -7,93 +7,12 @@ import {
   ChevronUp,
   AlertCircle,
   BookOpen,
-  MessageSquare,
+  FileText,
   Volume2,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { PIP_QUESTIONS, type PIPQuestion, type Descriptor } from '../pipQuestions';
-import { Check } from 'lucide-react';
 
-type View = 'choose' | 'snapshot' | 'inperson' | 'telephone';
-
-// ─── TALKING POINTS GENERATOR ─────────────────────────────────────────────────
-
-function getTalkingPoints(descriptor: Descriptor): string[] {
-  const t = descriptor.text.toLowerCase();
-  const pts = descriptor.points;
-
-  if (pts === 0) {
-    return [
-      'You scored 0 points here — be honest with the assessor about your current situation.',
-      'If your condition has worsened since your form, say so clearly.',
-    ];
-  }
-
-  const points: string[] = [];
-
-  if (t.includes('aid') || t.includes('appliance')) {
-    points.push('Name the specific aid or appliance you use — don\'t be vague.');
-    points.push('Explain what happens if you try without it — danger, pain, failure to complete.');
-    points.push('Say how often you need it: "I use it every time / most days."');
-  }
-
-  if (t.includes('prompting')) {
-    points.push('"Without a reminder I don\'t do this — I need prompting every time."');
-    points.push('Say who prompts you and how often they need to remind you.');
-    points.push('Describe what happens if no one prompts: you skip it, it causes harm.');
-  }
-
-  if (t.includes('supervision')) {
-    points.push('"I can\'t do this safely alone — I need someone present or nearby."');
-    points.push('Be specific about what the supervision involves: watching, intervening, being on call.');
-    points.push('Give a real example: "Last week I needed my [partner/carer] to..."');
-  }
-
-  if (t.includes('assistance') && !t.includes('supervision')) {
-    points.push('"I need someone to physically help me — not just be nearby."');
-    points.push('Describe how often you need that help: often or most days, not just occasionally.');
-  }
-
-  if (t.includes('cannot')) {
-    points.push('"I cannot do this — not sometimes, but consistently."');
-    points.push('Give a recent, specific example from the past week or two.');
-    points.push('Don\'t soften it — "I struggle a bit" undersells your real situation.');
-  }
-
-  if (t.includes('unaided')) {
-    points.push('If you technically can do this unaided, say so — but also mention the cost (pain, exhaustion, risk).');
-  }
-
-  if (t.includes('microwave') || t.includes('conventional cooker')) {
-    points.push('"I can only use a microwave — a conventional cooker is not safe for me."');
-    points.push('Explain why: burns, forgetting the hob, fatigue, coordination.');
-  }
-
-  if (t.includes('communicate') || t.includes('understand') || t.includes('hearing')) {
-    points.push('Describe any communication difficulties that came up in the assessment itself — that\'s evidence.');
-    points.push('Mention any aids you use: hearing aids, writing things down, lip reading.');
-  }
-
-  if (t.includes('distance') || t.includes('metres') || t.includes('walking')) {
-    points.push('Be precise: estimate the maximum distance you can manage on a bad day, not a good one.');
-    points.push('Mention how long it takes, if you need to rest, and whether you use a stick or wheelchair.');
-    points.push('"I can walk about [X] metres before the pain/breathlessness/fatigue forces me to stop."');
-  }
-
-  if (t.includes('journey') || t.includes('route') || t.includes('navigate')) {
-    points.push('"I cannot plan or follow a journey alone — I get lost / overwhelmed / anxious."');
-    points.push('Describe what happens when you try: panic, confusion, exhaustion.');
-    points.push('Mention how often you are unable to travel independently.');
-  }
-
-  if (points.length === 0) {
-    points.push(`Describe clearly: "${descriptor.text.replace(/^(Cannot|Needs?|Can)\s/i, '').trim()}"`);
-    points.push('Use specific examples — real incidents carry much more weight than general statements.');
-    points.push('Say how often it happens. "Often" (4+ days/week) is much stronger than "sometimes".');
-  }
-
-  return points;
-}
+type View = 'choose' | 'inperson' | 'telephone';
 
 // ─── FREQUENCY HIGHLIGHT ──────────────────────────────────────────────────────
 
@@ -125,351 +44,6 @@ function FrequencyBanner() {
     </div>
   );
 }
-
-// ─── QUESTION SNAPSHOT CARD ──────────────────────────────────────────────────
-
-function QuestionSnapshotCard({ q, descriptorCode }: { q: PIPQuestion; descriptorCode: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const descriptor = q.descriptors.find(d => d.code === descriptorCode);
-  if (!descriptor) return null;
-
-  const talkingPoints = getTalkingPoints(descriptor);
-  const pts = descriptor.points;
-  const ptsColor = pts >= 8 ? 'text-teal-700 bg-teal-100' : pts >= 4 ? 'text-blue-700 bg-blue-100' : pts >= 2 ? 'text-amber-700 bg-amber-100' : 'text-stone-500 bg-stone-100';
-  const activityLabel = q.category === 'Daily Living' ? `Daily Living ${q.num}` : `Mobility ${q.num - 10}`;
-
-  return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-      {/* Card header — always visible */}
-      <button
-        type="button"
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
-      >
-        <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
-          <CheckCircle2 className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-none mb-0.5">{activityLabel}</p>
-          <p className="font-semibold text-stone-900 text-sm truncate">{q.shortTitle}</p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`text-xs font-black px-2 py-0.5 rounded-full ${ptsColor}`}>
-            {descriptorCode} · {pts}pts
-          </span>
-          {expanded ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-        </div>
-      </button>
-
-      {/* Expanded detail */}
-      {expanded && (
-        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-3">
-          {/* Descriptor summary */}
-          <div className="bg-stone-50 rounded-xl px-3 py-2.5">
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1">Your descriptor</p>
-            <p className="text-xs text-stone-700 leading-relaxed">{descriptor.text}</p>
-          </div>
-
-          {/* What to say */}
-          <div>
-            <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wide mb-2">What to say at your assessment</p>
-            <ul className="space-y-2">
-              {talkingPoints.map((point, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  <p className="text-xs text-stone-700 leading-relaxed">{point}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {pts >= 2 && (
-            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
-              <Volume2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <p className="text-xs text-amber-800 font-medium">
-                Emphasise: <strong>"often"</strong> or <strong>"most days"</strong> — not just "sometimes"
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── SNAPSHOT VIEW ───────────────────────────────────────────────────────────
-
-function KeyRulesSection() {
-  const [open, setOpen] = useState(false);
-  const tips = [
-    { text: 'Always describe your worst days — not your best or average.', highlight: true },
-    { text: 'Use real examples: "Last Tuesday...", "Three times this week..." — specifics score higher.' },
-    { text: 'Never say "I manage" without explaining the cost — time, pain, needing rest after.' },
-    { text: 'If you need help, say so clearly. Don\'t underplay it to seem polite or capable.' },
-    { text: 'You can ask the assessor to repeat or rephrase any question. Take your time.' },
-  ];
-
-  return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
-      >
-        <p className="text-sm font-bold text-stone-900">Key rules for every answer</p>
-        {open ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-      </button>
-      {open && (
-        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-2">
-          {tips.map((tip, i) => (
-            <div key={i} className={`rounded-xl px-4 py-3 flex items-start gap-2.5 ${tip.highlight ? 'bg-teal-50 border border-teal-100' : 'bg-stone-50 border border-stone-100'}`}>
-              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${tip.highlight ? 'bg-teal-500' : 'bg-stone-300'}`} />
-              <p className={`text-xs leading-relaxed ${tip.highlight ? 'text-teal-800 font-medium' : 'text-stone-600'}`}>{tip.text}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SnapshotView({ onBack, navigateTo }: { onBack: () => void; navigateTo: (s: any) => void }) {
-  const { savedAnswers, savedAnswerDetails } = useAppContext();
-  const [expandAll, setExpandAll] = useState(false);
-
-  const dailyLiving = PIP_QUESTIONS.filter(q => q.category === 'Daily Living' && savedAnswers[q.id]);
-  const mobility = PIP_QUESTIONS.filter(q => q.category === 'Mobility' && savedAnswers[q.id]);
-  const totalAnswered = dailyLiving.length + mobility.length;
-  const getDescriptorCode = (qId: string) => savedAnswers[qId]?.match(/^Descriptor ([A-Z]+)$/)?.[1] ?? null;
-
-  if (totalAnswered === 0) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-        <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center">
-          <MessageSquare className="w-7 h-7 text-teal-600" />
-        </div>
-        <div>
-          <p className="font-bold text-stone-900 mb-1">No answers yet</p>
-          <p className="text-sm text-stone-500 leading-relaxed">Complete some of your PIP questions first. Your talking points will appear here automatically once you've answered them.</p>
-        </div>
-        <button
-          onClick={() => navigateTo('question_index')}
-          className="bg-teal-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all"
-        >
-          Go to My Questions
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
-      {/* Hero */}
-      <div className="bg-teal-700 px-5 py-6 text-white">
-        <p className="text-teal-300 text-[10px] font-bold uppercase tracking-widest mb-1">Assessment cheat sheet</p>
-        <h2 className="font-bold text-xl mb-1">What to say at your assessment</h2>
-        <p className="text-teal-100 text-sm leading-relaxed">
-          Based on your {totalAnswered} answered question{totalAnswered !== 1 ? 's' : ''} — tap any activity to see your talking points.
-        </p>
-      </div>
-
-      <div className="px-5 py-5 space-y-5">
-        {/* Frequency reminder — top of the page, always visible */}
-        <FrequencyBanner />
-
-        {/* Order note */}
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 flex items-start gap-2.5">
-          <div className="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">i</div>
-          <p className="text-xs text-blue-800 leading-relaxed">
-            <strong>Questions are not always in the same order</strong> as your form — the assessor may jump around. Use this as a guide for what they are looking for in each activity, not a script to follow in sequence.
-          </p>
-        </div>
-
-        {/* Expand all toggle */}
-        <div className="flex items-center justify-between px-1 gap-3 flex-wrap">
-          <p className="text-xs font-bold text-stone-500 uppercase tracking-wide">Your activities</p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigateTo('answers_review')}
-              className="text-xs font-semibold text-teal-600 hover:text-teal-700 whitespace-nowrap"
-            >
-              Answer pack · download
-            </button>
-            <button
-              onClick={() => setExpandAll(e => !e)}
-              className="text-xs font-semibold text-teal-600 hover:text-teal-700 whitespace-nowrap"
-            >
-              {expandAll ? 'Collapse all' : 'Expand all'}
-            </button>
-          </div>
-        </div>
-
-        {/* Daily Living */}
-        {dailyLiving.length > 0 && (
-          <section>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-1">Daily Living</p>
-            <div className="space-y-2">
-              {dailyLiving.map(q => {
-                const code = getDescriptorCode(q.id);
-                return code ? (
-                  <ExpandableCard
-                    key={q.id}
-                    q={q}
-                    descriptorCode={code}
-                    forceExpand={expandAll}
-                    details={savedAnswerDetails[q.id]}
-                  />
-                ) : null;
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* Mobility */}
-        {mobility.length > 0 && (
-          <section>
-            <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-1">Mobility</p>
-            <div className="space-y-2">
-              {mobility.map(q => {
-                const code = getDescriptorCode(q.id);
-                return code ? (
-                  <ExpandableCard
-                    key={q.id}
-                    q={q}
-                    descriptorCode={code}
-                    forceExpand={expandAll}
-                    details={savedAnswerDetails[q.id]}
-                  />
-                ) : null;
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* General tips — collapsible */}
-        <KeyRulesSection />
-
-      </div>
-    </div>
-  );
-}
-
-// Wrapper that can be force-expanded
-function ExpandableCard({
-  q,
-  descriptorCode,
-  forceExpand,
-  details,
-}: {
-  q: PIPQuestion;
-  descriptorCode: string;
-  forceExpand: boolean;
-  details?: { difficulties: string[]; answerText?: string };
-}) {
-  const [localExpanded, setLocalExpanded] = useState(false);
-  const expanded = forceExpand || localExpanded;
-
-  const descriptor = q.descriptors.find(d => d.code === descriptorCode);
-  if (!descriptor) return null;
-
-  const talkingPoints = getTalkingPoints(descriptor);
-  const pts = descriptor.points;
-  const ptsColor = pts >= 8 ? 'text-teal-700 bg-teal-100' : pts >= 4 ? 'text-blue-700 bg-blue-100' : pts >= 2 ? 'text-amber-700 bg-amber-100' : 'text-stone-500 bg-stone-100';
-  const activityLabel = q.category === 'Daily Living' ? `DL ${q.num}` : `MOB ${q.num - 10}`;
-  const hasDifficulties = details?.difficulties && details.difficulties.length > 0;
-
-  return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setLocalExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-stone-50 transition-colors"
-      >
-        <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
-          <CheckCircle2 className="w-4 h-4 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wider leading-none mb-0.5">{activityLabel}</p>
-          <p className="font-semibold text-stone-900 text-sm truncate">{q.shortTitle}</p>
-          {hasDifficulties && !expanded && (
-            <p className="text-[10px] text-stone-400 mt-0.5 truncate">{details!.difficulties.slice(0, 2).join(' · ')}{details!.difficulties.length > 2 ? ` +${details!.difficulties.length - 2} more` : ''}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={`text-xs font-black px-2 py-0.5 rounded-full ${ptsColor}`}>
-            {descriptorCode} · {pts}pts
-          </span>
-          {expanded ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-        </div>
-      </button>
-
-      {expanded && (
-        <div className="border-t border-stone-100 px-4 pb-4 pt-3 space-y-3">
-
-          {/* What you said — difficulty chips matching step 2 style */}
-          {hasDifficulties && (
-            <div>
-              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-2">What you said affects you</p>
-              <div className="space-y-2">
-                {details!.difficulties.map((text, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between px-4 py-3 rounded-xl bg-teal-700 text-white text-sm font-medium"
-                  >
-                    <span>{text}</span>
-                    <Check className="w-4 h-4 shrink-0 ml-2 text-teal-300" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Generated answer text */}
-          {details?.answerText && (
-            <div className="bg-stone-50 rounded-xl px-3 py-3">
-              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">Your written answer</p>
-              <p className="text-xs text-stone-700 leading-relaxed italic">"{details.answerText}"</p>
-            </div>
-          )}
-
-          {/* Fallback descriptor if no saved details */}
-          {!hasDifficulties && !details?.answerText && (
-            <div className="bg-stone-50 rounded-xl px-3 py-2.5">
-              <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1">Your descriptor</p>
-              <p className="text-xs text-stone-700 leading-relaxed">{descriptor.text}</p>
-            </div>
-          )}
-
-          {/* What to say at the assessment */}
-          <div>
-            <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wide mb-2">What to say at your assessment</p>
-            <ul className="space-y-2">
-              {talkingPoints.map((point, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-teal-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                  <p className="text-xs text-stone-700 leading-relaxed">{point}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {pts >= 2 && (
-            <div className="flex items-center gap-2 bg-amber-50 rounded-xl px-3 py-2">
-              <Volume2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <p className="text-xs text-amber-800 font-medium">
-                Say <strong>"often"</strong> or <strong>"most days"</strong> — not just "sometimes"
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── NEXT STEPS ──────────────────────────────────────────────────────────────
-
 
 // ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
 
@@ -521,13 +95,14 @@ function TelephoneInfoBox({ conditions }: { conditions: string[] }) {
 }
 
 export function AssessmentPrep() {
-  const { navigateTo, goBack, savedAnswers, medProfile } = useAppContext();
+  const { navigateTo, goBack, medProfile } = useAppContext();
   const [view, setView] = useState<View>('choose');
 
-  const answeredCount = Object.keys(savedAnswers).length;
-
   const inPersonTips = [
-    { title: 'Review your talking points', body: 'Tap "View my talking points" before you go. Read through each activity — the assessor may ask about them in any order.' },
+    {
+      title: 'Review Your answers prep',
+      body: 'Before you go, open Your answers prep from Assessment Prep — each activity’s drafts in one scrollable sheet (My Questions · Review & download). Refresh anything that needs tightening.',
+    },
     { title: 'Bring a support person', body: 'You can bring a friend, family member or carer. They can add information and take notes. Attending alone may be used against you.' },
     { title: 'Bring your evidence', body: 'Bring originals and copies of any GP letters, prescription lists, or specialist reports. You can also hand in evidence after.' },
     { title: 'You can record the assessment', body: 'Request an audio recording from your assessment provider at least 2 weeks in advance. You must leave a copy with the assessor.' },
@@ -540,7 +115,10 @@ export function AssessmentPrep() {
   ];
 
   const telephoneTips = [
-    { title: 'Have your notes open', body: 'Keep your talking points open on another screen or printed. You can refer to them during the call — this is completely allowed.' },
+    {
+      title: 'Have Your answers prep open',
+      body: 'Open Your answers prep on another device or printed (Home → Assessment Prep → Your answers prep, or Review & download). You may read from your own drafts during the call — that is allowed.',
+    },
     { title: 'Find a quiet space', body: "Choose a quiet room where you won't be interrupted. Let others in the house know not to disturb you." },
     { title: 'You can have someone with you', body: 'A carer, family member or support worker can sit with you during the call. Tell the assessor who they are at the start.' },
     { title: 'Describe your worst days', body: 'Always describe how you are on your worst days. Say "on my worst days" out loud. Be specific — "4 out of 7 days", not just "sometimes".' },
@@ -564,7 +142,7 @@ export function AssessmentPrep() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-stone-900 text-lg leading-tight">
-            {view === 'choose' ? 'Assessment Prep' : view === 'snapshot' ? 'My Talking Points' : view === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
+            {view === 'choose' ? 'Assessment Prep' : view === 'inperson' ? 'In-Person Assessment' : 'Telephone Assessment'}
           </h1>
           {view !== 'choose' && (
             <button onClick={() => setView('choose')} className="text-xs text-teal-600 font-medium hover:text-teal-700">
@@ -579,42 +157,33 @@ export function AssessmentPrep() {
         <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
           <div className="bg-teal-700 px-5 py-6 text-white">
             <h2 className="font-bold text-xl mb-1">Prepare for your assessment</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">Know exactly what to say before you go in. Tap below to get started.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">
+              Use the guides below, and open Your answers prep for your full drafts before the day — same wording you built in My Questions.
+            </p>
           </div>
 
           <div className="px-5 py-5 space-y-4 max-w-2xl mx-auto">
-            {/* Talking points CTA — prominently first if answers exist */}
-            {answeredCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setView('snapshot')}
-                className="w-full bg-teal-700 text-white rounded-2xl p-5 text-left hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">
-                    <MessageSquare className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white text-base mb-1">My talking points</p>
-                    <p className="text-sm text-teal-100 leading-relaxed">Based on your {answeredCount} answered question{answeredCount !== 1 ? 's' : ''} — what to say for each activity, with frequency reminders.</p>
-                    <div className="flex items-center gap-1 mt-3">
-                      <span className="text-xs font-bold text-white">Open cheat sheet</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-teal-200" />
-                    </div>
+            <button
+              type="button"
+              onClick={() => navigateTo('answers_review')}
+              className="w-full bg-teal-700 text-white rounded-2xl p-5 text-left hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center shrink-0 text-2xl">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-base mb-1">Your answers prep</p>
+                  <p className="text-sm text-teal-100 leading-relaxed">
+                    Read every drafted activity before the assessor — print or scroll on another device. Unlocks once all 12 have saved detail; until then finish them in My Questions.
+                  </p>
+                  <div className="flex items-center gap-1 mt-3">
+                    <span className="text-xs font-bold text-white">Open review</span>
+                    <ChevronRight className="w-3.5 h-3.5 text-teal-200" />
                   </div>
                 </div>
-              </button>
-            )}
-
-            {answeredCount === 0 && (
-              <div className="bg-stone-100 border border-stone-200 rounded-2xl p-4 text-center">
-                <p className="text-sm font-semibold text-stone-600 mb-1">No answers yet</p>
-                <p className="text-xs text-stone-500 mb-3">Complete your PIP questions first. Your personalised talking points will appear here automatically.</p>
-                <button onClick={() => navigateTo('question_index')} className="bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-teal-800 transition-colors">
-                  Go to My Questions
-                </button>
               </div>
-            )}
+            </button>
 
             {/* Assessment type chooser */}
             <p className="text-xs font-bold text-stone-500 uppercase tracking-wide px-1">Assessment tips by type</p>
@@ -656,12 +225,8 @@ export function AssessmentPrep() {
         </div>
       )}
 
-      {/* SNAPSHOT view */}
-      {view === 'snapshot' && (
-        <SnapshotView onBack={() => setView('choose')} navigateTo={navigateTo} />
-      )}
 
-      {/* TIPS views */}
+
       {(view === 'inperson' || view === 'telephone') && (
         <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
           <div className={`px-5 py-5 text-white ${view === 'inperson' ? 'bg-teal-700' : 'bg-blue-700'}`}>
@@ -705,14 +270,14 @@ export function AssessmentPrep() {
               </div>
             )}
 
-            {answeredCount > 0 && (
-              <button
-                onClick={() => setView('snapshot')}
-                className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-              >
-                <MessageSquare className="w-4 h-4" />View my talking points
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => navigateTo('answers_review')}
+              className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Open Your answers prep
+            </button>
 
             <button onClick={() => navigateTo('pip_diary')} className="w-full bg-white border border-stone-200 text-stone-700 py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
               <BookOpen className="w-4 h-4 text-teal-600" />Open my PIP Diary

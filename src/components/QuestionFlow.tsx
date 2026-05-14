@@ -95,7 +95,7 @@ function GeneratingOverlay({ onSkip }: { onSkip: () => void }) {
 }
 
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes, cocPreviousPoints } = useAppContext();
 
   const hasPip2Answer = (qid: string) => !!(cocPreviousAnswers[qid] && (cocDocumentType === 'pip2_only' || cocDocumentType === 'both'));
   const hasAssessorNote = (qid: string) => !!(cocAssessorNotes[qid] && (cocDocumentType === 'pa4_only' || cocDocumentType === 'both'));
@@ -243,7 +243,7 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
     const descriptor = config!.calculateDescriptor(answers);
     saveAnswer(questionId, `Descriptor ${descriptor}`);
 
-    // Persist selected difficulty texts for Assessment Prep snapshot
+    // Persist selected difficulty texts for Your answers prep / exports
     const allDiff = config!.difficultyCategories.flatMap(c => c.difficulties);
     const difficultyTexts = answers.selectedDifficulties
       .map(id => allDiff.find(d => d.id === id)?.text)
@@ -258,6 +258,22 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
       const rawDraft = buildDraftText(descriptor);
       const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
 
+      const prevPts = cocPreviousPoints[questionId];
+      const prevAns = cocPreviousAnswers[questionId]?.trim();
+      const pa4Line = cocAssessorNotes[questionId]?.trim();
+      const cocBlock =
+        cocMode === true
+          ? `
+
+CHANGE OF CIRCUMSTANCES — mandatory:
+${prevPts != null ? `- Previous recorded points for this activity: ${prevPts}. Descriptor now: ${descriptor} (${d?.points ?? '?'} pts). Explain worsening since then.` : '- Previous activity points unknown — contrast honestly with prior wording below.'}
+${prevAns ? `- On-file wording: "${prevAns.slice(0, 2400)}${prevAns.length > 2400 ? '…' : ''}"` : ''}
+${pa4Line ? `- Assessor PA4 wording: "${pa4Line.slice(0, 2400)}${pa4Line.length > 2400 ? '…' : ''}" — correct or extend where their notes were thin or outdated.` : ''}
+
+You MUST briefly reference what was on file before, then show what is harder, less reliable, or less safe NOW. Never imply improvement overall.
+`
+          : '';
+
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -269,7 +285,7 @@ Activity being assessed: "${config!.title}"
 Claimant's conditions: ${conditions}
 Structured notes (do NOT copy these word-for-word): ${rawDraft}
 Qualifying descriptor: ${descriptor} — "${d?.text}"
-
+${cocBlock}
 Requirements:
 - 3–5 sentences, written in first person
 - Start with a specific, concrete example of what happens (e.g. "Most mornings I..." or "When I try to...")
@@ -279,6 +295,7 @@ Requirements:
 - Mention any help, supervision, or aids they need
 - Include real-life impact (e.g. relying on ready meals, needing someone present)
 - Sound like the person wrote it themselves — honest, human, specific
+${cocMode ? '- Tie explicitly to earlier on-file or assessor wording where provided, then show deterioration clearly.' : ''}
 
 Do NOT start with "I experience difficulties", "I am unable to", or the activity name.
 Do NOT invent anything not in the notes above.

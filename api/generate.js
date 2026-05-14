@@ -219,16 +219,15 @@ CONDITIONS: ${conditionsList}
 WHAT HAS CHANGED (as described by the claimant):
 ${changesText}
 
-THEIR PREVIOUS ANSWERS (for context):
+THEIR PREVIOUS ANSWERS ON FILE (treat as what DWP or the assessor already had — you must respond to this):
 ${answersText}
 
 Write updated answers for the activities where things have changed. For each one:
-1. Acknowledge what they could do before
-2. Clearly describe how it has worsened
-3. Apply the SAFES rule — Safely, Acceptable standard, Frequently, Enough time, Sustainably
-4. Use the claimant's own words where possible
-5. Be specific with times and frequencies
-6. Mention any new aids, supervision, or prompting now needed
+1. Open by quoting or faithfully paraphrasing what was on file for that activity, then spell out how it is WORSE, less safe, less frequent reliability, or needs more support NOW — never imply overall improvement.
+2. Where PA4-style assessor wording is embedded in previous answers, address gaps or inaccuracies if the claimant's change notes contradict them.
+3. Apply reliability: safely, acceptable standard, as often as needed, reasonable time, without exhaustion — only where accurate for their story.
+4. Use the claimant's own words where possible; be specific with times and frequencies.
+5. Mention new or increased aids, supervision, or prompting now needed.
 
 Also write a brief covering paragraph (2-3 sentences) explaining the overall change in circumstances.
 

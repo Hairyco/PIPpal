@@ -194,6 +194,14 @@ export function ResultCard() {
       const isUserEdited = !!editedText;
       const tappedDetails = addedDetails.size > 0 ? `\nThe claimant tapped these specific details to include — they MUST appear in the improved answer:\n${[...addedDetails].map(d => `- ${d}`).join('\n')}` : '';
 
+      const prevLine = cocPreviousAnswers[qId]?.trim();
+      const pa4Line = cocAssessorNotes[qId]?.trim();
+      const prevPts = cocPreviousPoints[qId];
+      const cocImproveBlock =
+        cocMode && (prevLine || pa4Line || prevPts != null)
+          ? `\nCHANGE OF CIRCUMSTANCES: ${prevPts != null ? `Last recorded points for this activity: ${prevPts}. ` : ''}${prevLine ? `On-file / previous wording: "${prevLine.slice(0, 1500)}${prevLine.length > 1500 ? '…' : ''}". ` : ''}${pa4Line ? `Assessor (PA4) wording: "${pa4Line.slice(0, 1500)}${pa4Line.length > 1500 ? '…' : ''}". ` : ''}The improved answer MUST still tie back to what was on file where relevant and stress worsening or harder needs now — never imply things have got easier overall.\n`
+          : '';
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,6 +211,7 @@ export function ResultCard() {
 Current answer to improve:
 "${currentText}"
 ${tappedDetails}
+${cocImproveBlock}
 
 Person's conditions: ${conditions}
 Difficulties they selected: ${difficulties}
@@ -325,6 +334,12 @@ Return ONLY the rewritten answer — no preamble, no quotation marks.`,
   const pointsColor = displayPoints >= 8 ? 'text-teal-700' : displayPoints >= 4 ? 'text-blue-600' : displayPoints >= 2 ? 'text-amber-600' : 'text-stone-500';
 
   const previousAwardPoints = cocPreviousPoints[qId];
+  /** Numbered “stronger draft” checklist only when draft points strictly exceed last recorded award points */
+  const showCoCPointsImprovedBanner =
+    cocMode &&
+    previousAwardPoints != null &&
+    typeof displayPoints === 'number' &&
+    displayPoints > previousAwardPoints;
 
   // Generate personalised detail suggestions on mount
   useEffect(() => {
@@ -622,76 +637,88 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
         {/* Why this counts / What has changed */}
         <div className={`rounded-2xl border shadow-sm px-4 py-4 ${cocMode ? (cocFormType === 'ar1' ? 'bg-purple-50 border-purple-100' : 'bg-blue-50 border-blue-100') : 'bg-white border-stone-100'}`}>
           <h3 className="font-bold text-stone-900 text-sm mb-2">
-            {cocMode ? 'What has changed — and why it\'s stronger' : 'Why this counts'}
+            {cocMode
+              ? showCoCPointsImprovedBanner
+                ? 'What has changed — and why this draft may score higher'
+                : 'What has changed'
+              : 'Why this counts'}
           </h3>
           {cocMode ? (
             <div className="space-y-3">
               {cocPreviousAnswers[qId] ? (
                 <div className="space-y-2">
-                  {cocDocumentType === 'award_only' ? (
-                    <>
-                      <p className="text-sm text-stone-700 leading-relaxed">Your award letter showed the score DWP gave each activity. This new answer:</p>
-                      <ul className="space-y-1.5 mt-1">
-                        {[
-                          'Explains what has changed since that decision — not just what the letter said',
-                          'Uses your own words so DWP sees the full picture of how things are now',
-                          'Supports a clear change of circumstances if your needs have increased',
-                        ].map((point, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
-                            <span className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : cocDocumentType === 'pa4_only' ? (
-                    <>
-                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what the assessor recorded. Where the PA4 described the situation from their perspective, this version:</p>
-                      <ul className="space-y-1.5 mt-1">
-                        {[
-                          'Is written in your own words — exactly what DWP wants to hear',
-                          'Addresses the gaps and low scores from your previous assessment',
-                          'Gives context the assessor couldn\'t know from observing you briefly',
-                        ].map((point, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
-                            <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  ) : cocFormType === 'ar1' ? (
-                    <>
-                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what DWP has on file. Where your previous answer described your situation generally, this version:</p>
-                      <ul className="space-y-1.5 mt-1">
-                        {[
-                          'Clearly identifies what has got worse or more frequent',
-                          'Uses language that signals a change of circumstances, not a repeat',
-                          'Gives the assessor a reason to update your award',
-                        ].map((point, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
-                            <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+                  {showCoCPointsImprovedBanner ? (
+                    cocDocumentType === 'award_only' ? (
+                      <>
+                        <p className="text-sm text-stone-700 leading-relaxed">Your award letter showed the score DWP gave each activity. This new answer:</p>
+                        <ul className="space-y-1.5 mt-1">
+                          {[
+                            'Explains what has changed since that decision — not just what the letter said',
+                            'Uses your own words so DWP sees the full picture of how things are now',
+                            'Supports a clear change of circumstances if your needs have increased',
+                          ].map((point, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                              <span className="w-4 h-4 rounded-full bg-indigo-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : cocDocumentType === 'pa4_only' ? (
+                      <>
+                        <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what the assessor recorded. Where the PA4 described the situation from their perspective, this version:</p>
+                        <ul className="space-y-1.5 mt-1">
+                          {[
+                            'Is written in your own words — exactly what DWP wants to hear',
+                            'Addresses the gaps and low scores from your previous assessment',
+                            'Gives context the assessor couldn\'t know from observing you briefly',
+                          ].map((point, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                              <span className="w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : cocFormType === 'ar1' ? (
+                      <>
+                        <p className="text-sm text-stone-700 leading-relaxed">Your new answer goes beyond what DWP has on file. Where your previous answer described your situation generally, this version:</p>
+                        <ul className="space-y-1.5 mt-1">
+                          {[
+                            'Clearly identifies what has got worse or more frequent',
+                            'Uses language that signals a change of circumstances, not a repeat',
+                            'Gives the assessor a reason to update your award',
+                          ].map((point, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                              <span className="w-4 h-4 rounded-full bg-purple-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-stone-700 leading-relaxed">Your new answer is stronger than your previous one. Where your last form was a starting point, this version:</p>
+                        <ul className="space-y-1.5 mt-1">
+                          {[
+                            'Is more specific about your difficulties and how often they happen',
+                            'Reflects how your condition affects you now, not then',
+                            'Uses clearer language that scores higher with assessors',
+                          ].map((point, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
+                              <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                              {point}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    )
                   ) : (
-                    <>
-                      <p className="text-sm text-stone-700 leading-relaxed">Your new answer is stronger than your previous one. Where your last form was a starting point, this version:</p>
-                      <ul className="space-y-1.5 mt-1">
-                        {[
-                          'Is more specific about your difficulties and how often they happen',
-                          'Reflects how your condition affects you now, not then',
-                          'Uses clearer language that scores higher with assessors',
-                        ].map((point, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-stone-700">
-                            <span className="w-4 h-4 rounded-full bg-blue-500 text-white text-[9px] font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
+                    <p className="text-sm text-stone-700 leading-relaxed">
+                      {previousAwardPoints != null && typeof displayPoints === 'number' && displayPoints <= previousAwardPoints
+                        ? 'This draft matches or sits below the points we have on file for your last award for this activity. That can still be right for a change of circumstances if you are showing worse function, more risk, or less reliability — the important part is that your wording answers what DWP or the assessor had before and explains what is harder now, with dates and examples.'
+                        : 'Focus your wording on what was on file before (your previous answer or the assessor letter) and spell out what has got worse or less safe since then. DWP decides the final descriptor; your job is an honest, specific picture of change.'}
+                    </p>
                   )}
                 </div>
               ) : (

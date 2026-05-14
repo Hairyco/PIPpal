@@ -8,7 +8,7 @@ import { useAppContext } from './AppContext';
 import { useState } from 'react';
 
 export function AppealScreen() {
-  const { goBack, navigateTo, savedAnswers, medProfile } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile, setAppealDraftReasons } = useAppContext();
   const [mrOutcome, setMrOutcome] = useState('');
   const [generating, setGenerating] = useState(false);
   const [appealReasons, setAppealReasons] = useState<string | null>(null);
@@ -19,13 +19,22 @@ export function AppealScreen() {
     setGenerating(true);
     setAppealReasons(null);
     try {
-      const res = await fetch('/api/generate-sscs1', {
+      const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ savedAnswers, medProfile, mrOutcome }),
+        body: JSON.stringify({
+          type: 'sscs1',
+          savedAnswers,
+          medProfile,
+          mrOutcome,
+        }),
       });
       const data = await res.json();
-      setAppealReasons(data.reasons || 'Could not generate. Please try again.');
+      const reasons = data.reasons || 'Could not generate. Please try again.';
+      setAppealReasons(reasons);
+      if (res.ok && typeof data.reasons === 'string' && data.reasons.trim()) {
+        setAppealDraftReasons(data.reasons.trim());
+      }
     } catch {
       setAppealReasons('Something went wrong. Please try again.');
     } finally {

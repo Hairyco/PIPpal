@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
-import { questionHasStoredAnswer } from '../utils/pipAnswersPack';
+import { allPipActivitiesComplete } from '../utils/pipAnswersPack';
 
 interface NavCardProps {
   title: string;
@@ -105,9 +105,7 @@ export function HomeScreen() {
   const firstName = user?.name ? user.name.split(' ')[0] : '';
   const pipActivityIds = PIP_QUESTIONS.map(q => q.id);
   const answeredActivityCount = pipActivityIds.filter(id => !!savedAnswers[id]).length;
-  const hasExportableAnswers = PIP_QUESTIONS.some((q) =>
-    questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails),
-  );
+  const allActivitiesCompleteForDownload = allPipActivitiesComplete(savedAnswers, savedAnswerDetails);
 
   // Resume state — set when user navigates to dashboard mid-question
   const [resumeData, setResumeData] = useState<{ questionId: string; step: number | string; title: string } | null>(() => {
@@ -226,15 +224,20 @@ export function HomeScreen() {
             </div>
             <ChevronRight className="w-5 h-5 text-stone-400 shrink-0 ml-2" />
           </button>
-          {hasPaid && hasExportableAnswers && (
+          {hasPaid && allActivitiesCompleteForDownload && (
             <button
               type="button"
               onClick={() => navigateTo('answers_review')}
               className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-teal-100 bg-teal-50/80 text-teal-800 text-xs font-bold hover:bg-teal-50 transition-colors active:scale-[0.98]"
             >
               <Download className="w-3.5 h-3.5" />
-              Review & download saved answers
+              Your answers prep · review &amp; download
             </button>
+          )}
+          {hasPaid && !allActivitiesCompleteForDownload && answeredActivityCount > 0 && (
+            <p className="mt-2 text-[11px] text-stone-500 text-center leading-relaxed px-1">
+              Complete all 12 activities to unlock Review & download on this screen.
+            </p>
           )}
         </section>
 
@@ -350,7 +353,7 @@ export function HomeScreen() {
             />
             <NavCard
               title="Assessment Prep"
-              desc="Get ready for your assessment"
+              desc="Tips & Your answers prep"
               icon={BookOpen}
               color="text-blue-600"
               bg="bg-blue-50"

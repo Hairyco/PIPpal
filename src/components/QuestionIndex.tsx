@@ -8,11 +8,9 @@ import {
   TrendingUp,
   BookOpen,
   Mic,
-  Download,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
-import { questionHasStoredAnswer } from '../utils/pipAnswersPack';
 
 export function QuestionIndex() {
   const {
@@ -33,10 +31,6 @@ export function QuestionIndex() {
   const allQuestionsComplete = cocMode ? cocWalkthroughCount >= totalQuestions : answeredCount >= totalQuestions;
 
   const totalPoints = getTotalPoints(savedAnswers);
-
-  const storedActivitiesCount = PIP_QUESTIONS.filter((q) =>
-    questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails),
-  ).length;
 
   const dailyLiving = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
@@ -155,26 +149,6 @@ export function QuestionIndex() {
 
         <div className="px-5 md:px-8 py-6 space-y-6">
 
-          {/* Saved answers — review & export (partial or complete) */}
-          {storedActivitiesCount >= 1 && (
-            <button
-              type="button"
-              onClick={() => navigateTo('answers_review')}
-              className="w-full flex items-start gap-3 bg-white border border-teal-200 rounded-2xl p-4 text-left hover:bg-teal-50/50 hover:border-teal-300 active:scale-[0.98] transition-all shadow-sm"
-            >
-              <div className="w-9 h-9 bg-teal-600 rounded-xl flex items-center justify-center shrink-0">
-                <Download className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-teal-900 text-sm mb-0.5">Review & download your answers</p>
-                <p className="text-xs text-teal-800/90 leading-relaxed">
-                  See all {PIP_QUESTIONS.length} activities with saved wording underneath — works with partial progress. Download Word, share, or copy plain text.
-                </p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-teal-400 shrink-0 mt-1" />
-            </button>
-          )}
-
           {/* Assessment Prep CTA — hidden in CoC mode */}
           {answeredCount >= 1 && !cocMode && (
             <button
@@ -187,7 +161,9 @@ export function QuestionIndex() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-teal-900 text-sm mb-0.5">Prepare for your assessment</p>
-                <p className="text-xs text-teal-700 leading-relaxed">See exactly what to say for each of your {answeredCount} answered question{answeredCount !== 1 ? 's' : ''}, with frequency reminders and next steps.</p>
+                <p className="text-xs text-teal-700 leading-relaxed">
+                  Open Assessment Prep for in-person and phone tips, plus a direct link to Your answers prep when your workbook is finished.
+                </p>
               </div>
               <ChevronRight className="w-4 h-4 text-teal-400 shrink-0 mt-1" />
             </button>
@@ -208,10 +184,10 @@ export function QuestionIndex() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => navigateTo('answers_review')}
+                    onClick={() => navigateTo('home')}
                     className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98]"
                   >
-                    View answer pack
+                    Go to Home to review answers
                   </button>
                   <a
                     href="https://uk.trustpilot.com/review/pippal.uk"
