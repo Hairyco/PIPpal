@@ -664,7 +664,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Form type</p>
             <h3 className="font-semibold text-stone-800 text-base leading-snug mb-1">Which form are you completing?</h3>
             <p className="text-xs text-stone-500 leading-relaxed">
-              PIP2 and the AR1 review form ask for different levels of detail. Pick the one that matches the form DWP sent — we&apos;ll match the walkthrough to that.
+              Pick the one that matches the form DWP sent — we&apos;ll match the walkthrough to that.
             </p>
           </div>
 
