@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Copy, Download, CheckCircle2, Share2 } from 'lucide-react';
+import { ArrowLeft, Copy, Download, CheckCircle2, Share2, ChevronRight } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import {
@@ -18,6 +18,9 @@ export function AnswersReviewScreen() {
     cocMode,
     user,
     showToast,
+    navigateTo,
+    setSelectedQuestionId,
+    hasPaid,
   } = useAppContext();
 
   const [copied, setCopied] = useState(false);
@@ -122,6 +125,15 @@ export function AnswersReviewScreen() {
   const daily = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
 
+  function openQuestionDraft(q: (typeof PIP_QUESTIONS)[0]) {
+    if (!hasPaid && !q.free) {
+      navigateTo('upsell');
+      return;
+    }
+    setSelectedQuestionId(q.id);
+    navigateTo('personalising');
+  }
+
   const renderQuestion = (q: (typeof PIP_QUESTIONS)[0]) => {
     const saved = savedAnswers[q.id];
     const details = savedAnswerDetails[q.id];
@@ -129,7 +141,13 @@ export function AnswersReviewScreen() {
     const has = !!(descriptor || difficulties.length || prose);
 
     return (
-      <article key={q.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+      <button
+        key={q.id}
+        type="button"
+        onClick={() => openQuestionDraft(q)}
+        className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden w-full text-left cursor-pointer transition-all hover:border-teal-200 hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 print:pointer-events-none print:border-stone-100"
+        aria-label={`Edit draft for ${q.title}`}
+      >
         <div className="px-4 py-4 border-b border-stone-100 bg-gradient-to-b from-stone-50/90 to-white">
           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1">
             {q.category === 'Daily Living' ? `Daily living · ${q.num}` : `Mobility · ${q.num - 10}`}
@@ -179,7 +197,11 @@ export function AnswersReviewScreen() {
             </>
           )}
         </div>
-      </article>
+        <div className="px-4 py-2.5 bg-teal-50/80 border-t border-teal-100 flex items-center justify-between gap-2 print:hidden">
+          <span className="text-[11px] font-semibold text-teal-800">Tap to edit draft</span>
+          <ChevronRight className="w-4 h-4 text-teal-600 shrink-0" aria-hidden />
+        </div>
+      </button>
     );
   };
 
@@ -207,7 +229,7 @@ export function AnswersReviewScreen() {
         <div className="bg-teal-700 px-5 md:px-8 py-5 text-white print:bg-teal-800">
           <p className="text-teal-200 text-[10px] font-bold uppercase tracking-widest mb-1">Answer pack</p>
           <p className="text-sm text-teal-100 leading-relaxed">
-            Download a Word document for your records or the form, share it from your phone, or copy plain text to paste elsewhere.
+            Tap any activity to open your draft and edit it. Download Word, share, or copy plain text below.
           </p>
         </div>
 
