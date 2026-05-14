@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
-import { questionHasStoredAnswer } from './AnswersReviewScreen';
+import { questionHasStoredAnswer } from '../utils/pipAnswersPack';
 
 export function QuestionIndex() {
   const {
@@ -168,7 +168,7 @@ export function QuestionIndex() {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-teal-900 text-sm mb-0.5">Review & download your answers</p>
                 <p className="text-xs text-teal-800/90 leading-relaxed">
-                  See all {PIP_QUESTIONS.length} activities with saved wording underneath — works with partial progress. Export as a text file or copy everything.
+                  See all {PIP_QUESTIONS.length} activities with saved wording underneath — works with partial progress. Download Word, share, or copy plain text.
                 </p>
               </div>
               <ChevronRight className="w-4 h-4 text-teal-400 shrink-0 mt-1" />

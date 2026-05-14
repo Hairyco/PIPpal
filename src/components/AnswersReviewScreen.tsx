@@ -1,125 +1,14 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowLeft, Copy, Download, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Copy, Download, CheckCircle2, Share2 } from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { PIP_QUESTIONS, type PIPQuestion } from '../pipQuestions';
-
-function stripHtmlForExport(s: string): string {
-  return s
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/p>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
-function parseDescriptor(saved: string | undefined, q: PIPQuestion): { code: string; points: number; line: string } | null {
-  if (!saved?.trim()) return null;
-  const m = saved.trim().match(/^Descriptor\s+([A-Z]+)$/i);
-  if (!m) return null;
-  const code = m[1].toUpperCase();
-  const d = q.descriptors.find((x) => x.code === code);
-  if (!d) return { code, points: 0, line: `Descriptor ${code}` };
-  return { code, points: d.points, line: `Descriptor ${code} · ${d.points} pts — ${d.text}` };
-}
-
-function formatAnswerBody(
-  q: PIPQuestion,
-  saved: string | undefined,
-  details?: { difficulties: string[]; answerText?: string },
-): { descriptor: ReturnType<typeof parseDescriptor>; difficulties: string[]; prose: string | null } {
-  const descriptor = parseDescriptor(saved, q);
-  const difficulties = details?.difficulties?.filter(Boolean) ?? [];
-  let prose: string | null = null;
-  if (details?.answerText?.trim()) {
-    prose = stripHtmlForExport(details.answerText);
-  } else if (saved?.trim()) {
-    const onlyDescriptor = /^Descriptor\s+[A-Z]+$/i.test(saved.trim());
-    if (!onlyDescriptor) {
-      prose = stripHtmlForExport(saved);
-    }
-  }
-  return { descriptor, difficulties, prose };
-}
-
-function hasAnyStoredContent(
-  q: PIPQuestion,
-  saved: string | undefined,
-  details?: { difficulties: string[]; answerText?: string },
-): boolean {
-  const { descriptor, difficulties, prose } = formatAnswerBody(q, saved, details);
-  return !!(descriptor || difficulties.length || prose);
-}
-
-/** Used by QuestionIndex / Home to decide whether to show export CTAs */
-export function questionHasStoredAnswer(
-  q: PIPQuestion,
-  savedAnswers: Record<string, string>,
-  savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>,
-): boolean {
-  return hasAnyStoredContent(q, savedAnswers[q.id], savedAnswerDetails[q.id]);
-}
-
-export function buildAnswersPlainText(opts: {
-  savedAnswers: Record<string, string>;
-  savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>;
-  cocMode: boolean;
-  userLabel?: string;
-}): string {
-  const { savedAnswers, savedAnswerDetails, cocMode, userLabel } = opts;
-  const lines: string[] = [];
-  const now = new Date();
-  lines.push('PIPPal — Your PIP answers');
-  lines.push(`Exported ${now.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}`);
-  if (userLabel) lines.push(`Account / name: ${userLabel}`);
-  lines.push(`Walkthrough: ${cocMode ? 'Change of circumstances' : 'PIP questions'}`);
-  lines.push('');
-  lines.push('—'.repeat(48));
-
-  const sections: { title: string; qs: PIPQuestion[] }[] = [
-    { title: 'Daily Living', qs: PIP_QUESTIONS.filter((q) => q.category === 'Daily Living') },
-    { title: 'Mobility', qs: PIP_QUESTIONS.filter((q) => q.category === 'Mobility') },
-  ];
-
-  for (const sec of sections) {
-    lines.push('');
-    lines.push(sec.title.toUpperCase());
-    lines.push('—'.repeat(48));
-
-    for (const q of sec.qs) {
-      const saved = savedAnswers[q.id];
-      const details = savedAnswerDetails[q.id];
-      const { descriptor, difficulties, prose } = formatAnswerBody(q, saved, details);
-      const has = hasAnyStoredContent(q, saved, details);
-
-      lines.push('');
-      lines.push(`Activity ${q.num}: ${q.title}`);
-      lines.push(q.headline);
-      if (q.subtext?.trim()) lines.push(q.subtext);
-      lines.push(`Form reference: ${q.pipFormRef}`);
-      if (!has) {
-        lines.push('(Not answered yet in PIPpal)');
-        continue;
-      }
-      if (descriptor) lines.push(descriptor.line);
-      if (difficulties.length) {
-        lines.push('Difficulties selected:');
-        difficulties.forEach((t) => lines.push(`  • ${t}`));
-      }
-      if (prose) {
-        lines.push('Your wording:');
-        lines.push(prose);
-      } else if (!descriptor && difficulties.length === 0 && saved?.trim()) {
-        lines.push(stripHtmlForExport(saved));
-      }
-    }
-  }
-
-  lines.push('');
-  lines.push('—'.repeat(48));
-  lines.push('PIPpal is a guide — always review before sending to DWP.');
-  lines.push('');
-  return lines.join('\n');
-}
+import { PIP_QUESTIONS } from '../pipQuestions';
+import {
+  buildAnswersPlainText,
+  buildAnswersDocxBlob,
+  stripHtmlForExport,
+  questionHasStoredAnswer,
+  formatAnswerBody,
+} from '../utils/pipAnswersPack';
 
 export function AnswersReviewScreen() {
   const {
@@ -132,33 +21,91 @@ export function AnswersReviewScreen() {
   } = useAppContext();
 
   const [copied, setCopied] = useState(false);
+  const [wordBusy, setWordBusy] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
 
-  const answeredCount = useMemo(
-    () => PIP_QUESTIONS.filter((q) => hasAnyStoredContent(q, savedAnswers[q.id], savedAnswerDetails[q.id])).length,
-    [savedAnswers, savedAnswerDetails],
-  );
-
-  const exportText = useMemo(
-    () =>
-      buildAnswersPlainText({
-        savedAnswers,
-        savedAnswerDetails,
-        cocMode,
-        userLabel: user?.name || user?.email || undefined,
-      }),
+  const packOpts = useMemo(
+    () => ({
+      savedAnswers,
+      savedAnswerDetails,
+      cocMode,
+      userLabel: user?.name || user?.email || undefined,
+    }),
     [savedAnswers, savedAnswerDetails, cocMode, user?.name, user?.email],
   );
 
-  const downloadTxt = () => {
-    const blob = new Blob([exportText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const dateStamp = new Date().toISOString().slice(0, 10);
-    a.href = url;
-    a.download = `PIPPal-PIP-answers-${dateStamp}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Download started', 'success');
+  const answeredCount = useMemo(
+    () => PIP_QUESTIONS.filter((q) => questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails)).length,
+    [savedAnswers, savedAnswerDetails],
+  );
+
+  const exportText = useMemo(() => buildAnswersPlainText(packOpts), [packOpts]);
+
+  const downloadWord = async () => {
+    setWordBusy(true);
+    try {
+      const blob = await buildAnswersDocxBlob(packOpts);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `PIPPal-PIP-answers-${dateStamp}.docx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Word document downloaded', 'success');
+    } catch {
+      showToast('Could not create Word document', 'error');
+    } finally {
+      setWordBusy(false);
+    }
+  };
+
+  const sharePack = async () => {
+    setShareBusy(true);
+    try {
+      const blob = await buildAnswersDocxBlob(packOpts);
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      const file = new File([blob], `PIPPal-PIP-answers-${dateStamp}.docx`, {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      const withFiles: ShareData = {
+        title: 'PIPpal — PIP answers',
+        text: 'PIP activities and answers exported from PIPpal (Word document attached where supported).',
+        files: [file],
+      };
+
+      if (navigator.canShare?.(withFiles)) {
+        await navigator.share(withFiles);
+        showToast('Shared', 'success');
+        return;
+      }
+
+      const textOnly: ShareData = {
+        title: 'PIPpal — PIP answers',
+        text: exportText.length > 100_000 ? `${exportText.slice(0, 99_900)}\n\n…(truncated)` : exportText,
+      };
+
+      if (navigator.share && (!navigator.canShare || navigator.canShare(textOnly))) {
+        await navigator.share(textOnly);
+        showToast('Shared text summary', 'success');
+        return;
+      }
+
+      await navigator.clipboard.writeText(exportText);
+      showToast('Copied — file sharing needs a supported browser', 'info');
+    } catch (e) {
+      const err = e as Error & { name?: string };
+      if (err?.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(exportText);
+        showToast('Copied instead — share unavailable here', 'info');
+      } catch {
+        showToast('Share failed — try Download Word', 'error');
+      }
+    } finally {
+      setShareBusy(false);
+    }
   };
 
   const copyAll = async () => {
@@ -168,18 +115,18 @@ export function AnswersReviewScreen() {
       showToast('Copied to clipboard', 'success');
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      showToast('Could not copy — try Download instead', 'error');
+      showToast('Could not copy — try Download Word', 'error');
     }
   };
 
   const daily = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
 
-  const renderQuestion = (q: PIPQuestion) => {
+  const renderQuestion = (q: (typeof PIP_QUESTIONS)[0]) => {
     const saved = savedAnswers[q.id];
     const details = savedAnswerDetails[q.id];
     const { descriptor, difficulties, prose } = formatAnswerBody(q, saved, details);
-    const has = hasAnyStoredContent(q, saved, details);
+    const has = !!(descriptor || difficulties.length || prose);
 
     return (
       <article key={q.id} className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
@@ -256,11 +203,11 @@ export function AnswersReviewScreen() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-36 print:pb-4">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-40 print:pb-4">
         <div className="bg-teal-700 px-5 md:px-8 py-5 text-white print:bg-teal-800">
           <p className="text-teal-200 text-[10px] font-bold uppercase tracking-widest mb-1">Answer pack</p>
           <p className="text-sm text-teal-100 leading-relaxed">
-            Everything PIPpal has stored so far — including partial progress. Download or copy to paste into your PIP2, renewal, or journal.
+            Download a Word document for your records or the form, share it from your phone, or copy plain text to paste elsewhere.
           </p>
         </div>
 
@@ -281,23 +228,35 @@ export function AnswersReviewScreen() {
       </div>
 
       <div className="px-5 pb-6 pt-3 bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)] print:hidden sticky bottom-0">
-        <div className="flex gap-2 max-w-2xl mx-auto w-full">
+        <div className="flex flex-col gap-2 max-w-2xl mx-auto w-full">
           <button
             type="button"
-            onClick={copyAll}
-            className="flex-1 flex items-center justify-center gap-2 bg-stone-100 text-stone-800 py-3.5 rounded-2xl font-bold text-sm hover:bg-stone-200 active:scale-[0.98] transition-all"
+            onClick={() => void downloadWord()}
+            disabled={wordBusy}
+            className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm disabled:opacity-60"
           >
-            {copied ? <CheckCircle2 className="w-4 h-4 text-teal-600" /> : <Copy className="w-4 h-4" />}
-            {copied ? 'Copied' : 'Copy all'}
+            <Download className="w-4 h-4 shrink-0" />
+            {wordBusy ? 'Creating Word…' : 'Download Word (.docx)'}
           </button>
-          <button
-            type="button"
-            onClick={downloadTxt}
-            className="flex-1 flex items-center justify-center gap-2 bg-teal-700 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
-          >
-            <Download className="w-4 h-4" />
-            Download (.txt)
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => void sharePack()}
+              disabled={shareBusy || wordBusy}
+              className="flex-1 flex items-center justify-center gap-2 bg-stone-900 text-white py-3 rounded-2xl font-bold text-sm hover:bg-stone-800 active:scale-[0.98] transition-all disabled:opacity-60"
+            >
+              <Share2 className="w-4 h-4 shrink-0" />
+              {shareBusy ? '…' : 'Share'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void copyAll()}
+              className="flex-1 flex items-center justify-center gap-2 bg-stone-100 text-stone-800 py-3 rounded-2xl font-bold text-sm hover:bg-stone-200 active:scale-[0.98] transition-all"
+            >
+              {copied ? <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" /> : <Copy className="w-4 h-4 shrink-0" />}
+              {copied ? 'Copied' : 'Copy text'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

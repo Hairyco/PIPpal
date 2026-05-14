@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
-import { questionHasStoredAnswer } from './AnswersReviewScreen';
+import { questionHasStoredAnswer } from '../utils/pipAnswersPack';
 
 interface NavCardProps {
   title: string;
