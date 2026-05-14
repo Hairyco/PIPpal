@@ -190,18 +190,6 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
           </div>
         </div>
 
-        {/* Completed confirmation — shown from Q2 onwards */}
-        {completedCount > 0 && (
-          <div className="bg-teal-50 border border-teal-100 rounded-2xl px-5 py-3 w-full">
-            <p className="text-sm font-bold text-teal-800">
-              ✓ Question {completedCount} complete
-            </p>
-            <p className="text-xs text-teal-600 mt-0.5">
-              {completedCount} of {totalQuestions} activities done — {totalQuestions - completedCount} remaining
-            </p>
-          </div>
-        )}
-
         <div className="space-y-2 px-1">
           <h2 className="font-bold text-stone-900 text-xl leading-snug tracking-tight">{preparingMessages[msgIndex]}</h2>
           {flowPreview ? (
