@@ -29,7 +29,6 @@ import {
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { LandingDwpContext } from './components/LandingDwpContext';
 import { WhatIsPIP } from './components/WhatIsPIP';
 import { ClaimSelector } from './components/ClaimSelector';
 import { EligibilityBanner } from './components/EligibilityBanner';
@@ -310,8 +309,7 @@ function AppContent() {
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
-              <LandingDwpContext />
-              
+
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
               <ChatPreview onStart={() => handleNavigate('home')} />

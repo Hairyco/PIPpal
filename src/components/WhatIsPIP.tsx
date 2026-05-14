@@ -1,6 +1,5 @@
 import React from 'react';
-import { Heart, PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
-import { PIPAgeChart } from './PIPAgeChart';
+import { PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
 
 const conditions = [
   { emoji: '😰', label: 'Anxiety' },
@@ -48,10 +47,25 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It's worth up to <strong className="text-stone-900">£843 a month</strong> and is not means-tested — it doesn't matter how much you earn or whether you work.
+          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It&apos;s worth up to <strong className="text-stone-900">£843 a month</strong> and is not means-tested — it doesn&apos;t matter how much you earn or whether you work.
         </p>
-        <p className="text-sm text-stone-600 leading-relaxed mb-4">
+        <p className="text-sm text-stone-600 leading-relaxed mb-3">
+          It is also one of the main ways people secure extra support for long-term conditions — yet <strong className="text-stone-900">DWP figures show outcomes are tough</strong>. Roughly <strong className="text-stone-900">over half</strong> of PIP applications are unsuccessful. For the quarter ending January 2026, only <strong className="text-stone-900">35%</strong> of new claims received an award, down from <strong className="text-stone-900">43%</strong> a year earlier. That is why <strong className="text-stone-900">how you describe your day-to-day difficulties on the form</strong> matters: assessors need a clear picture to award fairly.
+        </p>
+        <p className="text-sm text-stone-600 leading-relaxed mb-3">
           <strong className="text-stone-900">You do not need a formal diagnosis to apply for PIP.</strong> PIP looks at how your condition or symptoms affect you day-to-day.
+        </p>
+        <p className="text-[11px] text-stone-500 leading-relaxed mb-4">
+          Official figures change each quarter — see the latest DWP statistical summaries on{' '}
+          <a
+            href="https://www.gov.uk/government/collections/personal-independence-payment-statistics"
+            className="text-teal-700 font-semibold hover:text-teal-800 underline underline-offset-2"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            gov.uk
+          </a>
+          .
         </p>
         <div className="bg-stone-50 rounded-xl px-4 py-3">
           <p className="text-xs font-semibold text-stone-500 mb-2">Conditions that often qualify</p>

@@ -153,6 +153,8 @@ type CocUploadZoneProps = {
   maxFiles: number;
   maxTotalBytes: number;
   pickError: string | null;
+  /** When true, skip the compact summary row — use inside a parent "Your documents" accordion */
+  embedInDocumentsGroup?: boolean;
 };
 
 /** Upload card: after successful extraction, defaults to a compact row; tap to expand full details */
@@ -161,21 +163,23 @@ function CocUploadZone({
   busy: zoneBusy, error, extracted,
   inputRef, onPick, onRemove, isOptional, optionalPickLabel,
   fileCount, totalBytes, maxFiles, maxTotalBytes, pickError,
+  embedInDocumentsGroup = false,
 }: CocUploadZoneProps) {
   const [expanded, setExpanded] = useState(true);
   const uploaded = labels.length > 0;
   const done = Object.keys(extracted).length > 0;
   const overRecommendedSize = totalBytes > maxTotalBytes * 0.9;
   const canCollapse = uploaded && done && !zoneBusy && !error;
+  const allowCompact = canCollapse && !embedInDocumentsGroup;
 
   useEffect(() => {
-    if (canCollapse) setExpanded(false);
+    if (allowCompact) setExpanded(false);
     else setExpanded(true);
-  }, [canCollapse]);
+  }, [allowCompact]);
 
   if (!uploaded) {
     return (
-      <div className={`rounded-2xl border-2 p-4 space-y-3 border-stone-200 bg-white`}>
+      <div className={`${embedInDocumentsGroup ? 'rounded-xl border border-stone-200' : 'rounded-2xl border-2 border-stone-200'} p-4 space-y-3 bg-white`}>
         {pickError && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
             <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
@@ -206,7 +210,7 @@ function CocUploadZone({
     );
   }
 
-  if (canCollapse && !expanded) {
+  if (allowCompact && !expanded) {
     return (
       <div className="rounded-2xl border-2 border-teal-200 bg-teal-50/30 p-3 shadow-sm">
         {pickError && (
@@ -243,7 +247,7 @@ function CocUploadZone({
   }
 
   return (
-    <div className={`rounded-2xl border-2 p-4 space-y-3 border-teal-200 bg-teal-50/30`}>
+    <div className={`${embedInDocumentsGroup ? 'rounded-xl border border-stone-200 bg-stone-50/40' : 'rounded-2xl border-2 border-teal-200 bg-teal-50/30'} p-4 space-y-3`}>
       {pickError && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
           <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
@@ -251,7 +255,7 @@ function CocUploadZone({
       )}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          {canCollapse ? (
+          {allowCompact ? (
             <button
               type="button"
               onClick={() => setExpanded(false)}
@@ -279,9 +283,9 @@ function CocUploadZone({
         )}
       </div>
 
-      {(!canCollapse || expanded) && (
+      {(!allowCompact || expanded) && (
         <>
-          {canCollapse && <p className="text-xs text-stone-500 leading-relaxed pl-6 -mt-1">{sublabel}</p>}
+          {allowCompact && <p className="text-xs text-stone-500 leading-relaxed pl-6 -mt-1">{sublabel}</p>}
           <div className="space-y-1.5">
             {labels.map(name => (
               <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
@@ -360,6 +364,8 @@ export function ChangeOfCircumstancesScreen() {
 
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
+  /** Single accordion on step 3 wrapping PIP2 / PA4 / award uploads */
+  const [documentsUploadOpen, setDocumentsUploadOpen] = useState(false);
   const [noForm, setNoForm] = useState(false);
   /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
@@ -781,9 +787,6 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-teal-50 text-sm leading-relaxed">
               A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
-            <p className="text-teal-100 text-sm leading-relaxed mt-2">
-              PIPpal walks you through each activity using your old PIP2 wording, assessor report, or what your decision letter says, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now. If you don&apos;t have your original paperwork, that&apos;s fine — we can still help.
-            </p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
@@ -921,78 +924,110 @@ export function ChangeOfCircumstancesScreen() {
         Object.keys(awardExtracted).length > 0 && 'award letter',
       ].filter(Boolean) as string[];
 
+      const docSlotLabels = [hasPip2 && 'PIP2', hasPa4 && 'PA4', hasAward && 'Award'].filter(Boolean) as string[];
+
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
 
-          {/* PIP2 upload zone */}
-          <CocUploadZone
-            label="Original PIP2 form"
-            sublabel="The form you filled in and returned to DWP — your own handwritten or typed answers."
-            badge="Your words"
-            badgeColour="bg-teal-100 text-teal-700"
-            labels={pip2Labels}
-            busy={pip2Busy}
-            error={pip2Error}
-            extracted={pip2Extracted}
-            inputRef={pip2InputRef}
-            onPick={onPip2Pick}
-            onRemove={() => {
-              setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
-            }}
-            fileCount={pip2Labels.length}
-            totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
-            maxFiles={COC_UPLOAD_MAX_FILES}
-            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-            pickError={pip2UploadError}
-          />
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+            <button
+              type="button"
+              aria-expanded={documentsUploadOpen}
+              onClick={() => setDocumentsUploadOpen(o => !o)}
+              className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-stone-50 transition-colors"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-stone-900 text-sm">Your documents</p>
+                <p className="text-xs text-stone-500 mt-0.5">PIP2, optional PA4, optional award letter</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {busy && <Loader2 className="w-4 h-4 text-teal-600 animate-spin" aria-hidden />}
+                {docSlotLabels.length > 0 && !busy && (
+                  <span className="text-[11px] font-semibold text-teal-800 bg-teal-50 px-2 py-1 rounded-lg max-w-[11rem] truncate">
+                    {docSlotLabels.join(' · ')}
+                  </span>
+                )}
+                {documentsUploadOpen ? (
+                  <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" aria-hidden />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" aria-hidden />
+                )}
+              </div>
+            </button>
+            {documentsUploadOpen && (
+              <div className="border-t border-stone-100 px-3 py-3 space-y-3 bg-stone-50/40">
+                <CocUploadZone
+                  label="Original PIP2 form"
+                  sublabel="The form you filled in and returned to DWP — your own handwritten or typed answers."
+                  badge="Your words"
+                  badgeColour="bg-teal-100 text-teal-700"
+                  labels={pip2Labels}
+                  busy={pip2Busy}
+                  error={pip2Error}
+                  extracted={pip2Extracted}
+                  inputRef={pip2InputRef}
+                  onPick={onPip2Pick}
+                  embedInDocumentsGroup
+                  onRemove={() => {
+                    setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
+                  }}
+                  fileCount={pip2Labels.length}
+                  totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
+                  maxFiles={COC_UPLOAD_MAX_FILES}
+                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+                  pickError={pip2UploadError}
+                />
 
-          {/* PA4 upload zone */}
-          <CocUploadZone
-            label="PA4 assessor report"
-            sublabel="The report written by the health professional — shows what they observed for each activity and why they scored you as they did."
-            badge="Assessor's view"
-            badgeColour="bg-amber-100 text-amber-700"
-            labels={pa4Labels}
-            busy={pa4Busy}
-            error={pa4Error}
-            extracted={pa4Extracted}
-            inputRef={pa4InputRef}
-            onPick={onPa4Pick}
-            onRemove={() => {
-              setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
-            }}
-            isOptional
-            optionalPickLabel="Add PA4 report (optional)"
-            fileCount={pa4Labels.length}
-            totalBytes={pa4Files.reduce((s, f) => s + f.size, 0)}
-            maxFiles={COC_UPLOAD_MAX_FILES}
-            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-            pickError={pa4UploadError}
-          />
+                <CocUploadZone
+                  label="PA4 assessor report"
+                  sublabel="The report written by the health professional — shows what they observed for each activity and why they scored you as they did."
+                  badge="Assessor's view"
+                  badgeColour="bg-amber-100 text-amber-700"
+                  labels={pa4Labels}
+                  busy={pa4Busy}
+                  error={pa4Error}
+                  extracted={pa4Extracted}
+                  inputRef={pa4InputRef}
+                  onPick={onPa4Pick}
+                  embedInDocumentsGroup
+                  onRemove={() => {
+                    setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
+                  }}
+                  isOptional
+                  optionalPickLabel="Add PA4 report (optional)"
+                  fileCount={pa4Labels.length}
+                  totalBytes={pa4Files.reduce((s, f) => s + f.size, 0)}
+                  maxFiles={COC_UPLOAD_MAX_FILES}
+                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+                  pickError={pa4UploadError}
+                />
 
-          {/* Award / decision letter — optional; best source for official points */}
-          <CocUploadZone
-            label="PIP award or decision letter"
-            sublabel="DWP decision notice or award letter showing points for each activity — we read the scoring table to fill your previous points."
-            badge="Official scores"
-            badgeColour="bg-indigo-100 text-indigo-800"
-            labels={awardLabels}
-            busy={awardBusy}
-            error={awardError}
-            extracted={awardExtracted}
-            inputRef={awardInputRef}
-            onPick={onAwardPick}
-            onRemove={() => {
-              setAwardLabels([]); setAwardFiles([]); setAwardExtracted({}); setAwardUploadError(null);
-            }}
-            isOptional
-            optionalPickLabel="Add award or decision letter (optional)"
-            fileCount={awardLabels.length}
-            totalBytes={awardFiles.reduce((s, f) => s + f.size, 0)}
-            maxFiles={COC_UPLOAD_MAX_FILES}
-            maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-            pickError={awardUploadError}
-          />
+                <CocUploadZone
+                  label="PIP award or decision letter"
+                  sublabel="DWP decision notice or award letter showing points for each activity — we read the scoring table to fill your previous points."
+                  badge="Official scores"
+                  badgeColour="bg-indigo-100 text-indigo-800"
+                  labels={awardLabels}
+                  busy={awardBusy}
+                  error={awardError}
+                  extracted={awardExtracted}
+                  inputRef={awardInputRef}
+                  onPick={onAwardPick}
+                  embedInDocumentsGroup
+                  onRemove={() => {
+                    setAwardLabels([]); setAwardFiles([]); setAwardExtracted({}); setAwardUploadError(null);
+                  }}
+                  isOptional
+                  optionalPickLabel="Add award or decision letter (optional)"
+                  fileCount={awardLabels.length}
+                  totalBytes={awardFiles.reduce((s, f) => s + f.size, 0)}
+                  maxFiles={COC_UPLOAD_MAX_FILES}
+                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
+                  pickError={awardUploadError}
+                />
+              </div>
+            )}
+          </div>
 
           {/* No document guidance */}
           {noForm && !hasAny && (
