@@ -631,9 +631,6 @@ export function ChangeOfCircumstancesScreen() {
             <div>
               <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Step guide</p>
               <h3 className="font-semibold text-stone-900 text-base leading-snug">What you&apos;ll do in this walkthrough</h3>
-              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Four stages after this page — tap Continue when you&apos;re ready to begin.
-              </p>
             </div>
             <ol className="space-y-3.5">
               {guideSteps.map((item, i) => (
