@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ChevronRight, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronRight, ChevronDown, ChevronUp, Info, CheckCircle2, Circle, Check, Home, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext, type MedProfile } from './AppContext';
 import { getQuestionFlow, FlowAnswers, FrequencyLevel } from '../data/questionFlowData';
@@ -115,6 +115,7 @@ export function QuestionFlow() {
   // Expanded by default on mobile, collapsed on desktop
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(!cocMode);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -185,6 +186,11 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
     impacts: [],
     additionalDetail: '',
   });
+
+  useEffect(() => {
+    if (cocMode) setQuestionExplainedOpen(false);
+    else setQuestionExplainedOpen(true);
+  }, [questionId, cocMode]);
 
   if (!config) {
     return (
@@ -487,13 +493,29 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-5 space-y-4 pb-32">
             <QuestionCard />
 
-            {/* This question explained — always expanded (new claim & CoC) */}
+            {/* This question explained — expanded by default; collapsed by default in change of circumstances */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50 gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <Info className="w-4 h-4 text-teal-600 shrink-0" />
-                  <span className="font-bold text-stone-900 text-sm">This question explained</span>
-                </div>
+                {cocMode ? (
+                  <button
+                    type="button"
+                    onClick={() => setQuestionExplainedOpen(o => !o)}
+                    className="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg -mx-1 px-1 py-0.5 hover:bg-stone-50 transition-colors"
+                  >
+                    <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                    <span className="font-bold text-stone-900 text-sm">This question explained</span>
+                    {questionExplainedOpen ? (
+                      <ChevronUp className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                    <span className="font-bold text-stone-900 text-sm">This question explained</span>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={rePersonalise}
@@ -514,9 +536,11 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                   {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
                 </button>
               </div>
-              <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
-                {personalExplainer || config.explained}
-              </p>
+              {(!cocMode || questionExplainedOpen) && (
+                <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
+                  {personalExplainer || config.explained}
+                </p>
+              )}
             </div>
 
             {SHOW_ASK_MORE_HELP_SECTION && pipQ && (
