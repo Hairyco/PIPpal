@@ -22,7 +22,7 @@ import { PIP_QUESTIONS } from '../pipQuestions';
 // 1  Intro + step guide
 // 2  Form type selector (PIP2 vs AR1)
 // 3  Upload (+ show extracted answers in accordions)
-// 4  Medical: then vs now
+// 4  Your conditions (link to medical profile)
 // 5  How this works + Start  → navigates to question_index with cocMode on
 const TOTAL_STEPS = 5;
 
@@ -87,17 +87,6 @@ function BottomBar({ onNext, label = 'Continue', disabled = false, onBack, showB
         {label}<ArrowRight className="w-4 h-4" />
       </button>
     </div>
-  );
-}
-
-function Chip({ selected, onClick, children }: { selected: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button type="button" onClick={onClick}
-      className={`text-left text-xs sm:text-sm font-medium px-3 py-2.5 rounded-xl border transition-all active:scale-[0.98] ${
-        selected ? 'bg-teal-50 border-teal-400 text-teal-900 shadow-sm' : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
-      }`}>
-      {children}
-    </button>
   );
 }
 
@@ -285,20 +274,6 @@ function CocUploadZone({
   );
 }
 
-// ── Condition severity chips ──────────────────────────────────────────────────
-const MED_CHANGE_OPTIONS = [
-  'My condition has got worse',
-  'I have a new diagnosis',
-  'My medication has changed',
-  'I need more help than before',
-  'I have more bad days now',
-  'My mobility has reduced',
-  'My mental health has worsened',
-  'I need more supervision',
-  'I use new aids or equipment',
-  'I have had a hospital stay or procedure',
-];
-
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
   const { goBack, navigateTo, medProfile, isAdmin, setCocPreviousAnswers, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes } = useAppContext();
@@ -336,9 +311,6 @@ export function ChangeOfCircumstancesScreen() {
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
 
   // Medical then vs now
-  const [medChanges, setMedChanges] = useState<string[]>([]);
-  const [conditionNotes, setConditionNotes] = useState('');
-
   const next = () => setStep(s => Math.min(s + 1, TOTAL_STEPS));
   const back = () => step === 1 ? goBack() : setStep(s => s - 1);
 
@@ -526,7 +498,7 @@ export function ChangeOfCircumstancesScreen() {
     'Change of circumstances',
     'Which form are you completing?',
     'Upload your documents',
-    'Your health picture',
+    'Your conditions',
     'How this works',
   ];
 
@@ -611,7 +583,7 @@ export function ChangeOfCircumstancesScreen() {
       const guideSteps = [
         { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
         { title: 'Upload your documents', body: 'Add your previous PIP2 (your own words) and, if you have it, your PA4 assessor report, as photos or PDFs.' },
-        { title: 'Your health picture', body: 'Tell us what has changed since your last assessment so DWP gets useful context.' },
+        { title: 'Your conditions', body: 'Check your conditions are complete and correct — PIPpal uses them to tailor every question and answer.' },
         { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
       ];
       return (
@@ -913,14 +885,14 @@ export function ChangeOfCircumstancesScreen() {
           {canContinue && (
             <button type="button" onClick={next}
               className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
-              Medical profile <ArrowRight className="w-5 h-5" />
+              Continue <ArrowRight className="w-5 h-5" />
             </button>
           )}
         </div>
       );
     }
 
-    // ── STEP 4: Medical then vs now ─────────────────────────────────────────
+    // ── STEP 4: Your conditions (medical profile) ──────────────────────────
     if (step === 4) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-28">
@@ -961,37 +933,6 @@ export function ChangeOfCircumstancesScreen() {
                 + Add your conditions
               </button>
             )}
-          </div>
-
-          {/* What's changed since last assessment */}
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-3">
-            <div>
-              <p className="font-bold text-stone-900 text-sm">What's changed since your last assessment?</p>
-              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Anything that applies helps — tap all that fit you. It gives your assessor useful context alongside your activity answers.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {MED_CHANGE_OPTIONS.map(opt => (
-                <Chip key={opt} selected={medChanges.includes(opt)}
-                  onClick={() => setMedChanges(prev => prev.includes(opt) ? prev.filter(x => x !== opt) : [...prev, opt])}>
-                  {opt}
-                </Chip>
-              ))}
-            </div>
-          </div>
-
-          {/* Free text for any other detail */}
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-2">
-            <p className="font-bold text-stone-900 text-sm">Anything else you want DWP to know?</p>
-            <p className="text-xs text-stone-500">Optional — this will be included in your covering summary.</p>
-            <textarea
-              value={conditionNotes}
-              onChange={e => setConditionNotes(e.target.value)}
-              rows={3}
-              placeholder="e.g. I was hospitalised twice last year. My pain levels are much higher than they were during my last assessment."
-              className="w-full text-sm text-stone-700 bg-stone-50 border border-stone-200 rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-teal-300 placeholder:text-stone-300"
-            />
           </div>
         </div>
       );
