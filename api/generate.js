@@ -1,7 +1,7 @@
 // api/generate.js
 // Merged generator — replaces generate-mr-letter.js, generate-sscs1.js, generate-coc-answers.js
 // Reduces serverless function count from 14 → 12 (Vercel Hobby plan limit)
-// Pass { type: 'mr-letter' | 'sscs1' | 'coc-answers' | 'coc-walkthrough-copy', ...data } in the request body
+// Pass { type: 'mr-letter' | 'sscs1' | 'coc-answers' | 'coc-walkthrough-copy' | 'coc-document-analysis', ...data } in the request body
 
 async function openaiChat(system, user, { jsonObject = false, maxTokens = 2000 } = {}) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
