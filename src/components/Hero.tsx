@@ -16,7 +16,7 @@ export function Hero({ onStart }: HeroProps) {
 
   const checks = [
     { text: 'Guides you through all 12 PIP questions' },
-    { text: 'All answers original and unique — every time' },
+    { text: 'Answers original & unique — every time' },
     { text: 'Complete in 15–30 minutes' },
     { text: 'Get your PIP decision 3–6 weeks earlier' },
   ];
