@@ -18,11 +18,12 @@ import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 
 // ── Steps ────────────────────────────────────────────────────────────────────
-// 1  Form type selector (PIP2 vs AR1)
-// 2  Upload (+ show extracted answers in accordions)
-// 3  Medical: then vs now
-// 4  How this works + Start  → navigates to question_index with cocMode on
-const TOTAL_STEPS = 4;
+// 1  Intro + step guide
+// 2  Form type selector (PIP2 vs AR1)
+// 3  Upload (+ show extracted answers in accordions)
+// 4  Medical: then vs now
+// 5  How this works + Start  → navigates to question_index with cocMode on
+const TOTAL_STEPS = 5;
 
 const DAILY_LIVING_IDS = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
 const MOBILITY_IDS = ['q11','q12'];
@@ -338,7 +339,8 @@ export function ChangeOfCircumstancesScreen() {
 
   const stepTitles = [
     'Change of circumstances',
-    'PIP2 form and optional PA4',
+    'Which form are you completing?',
+    'Upload your documents',
     'Your health picture',
     'How this works',
   ];
@@ -419,8 +421,14 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const renderStep = () => {
-    // ── STEP 1: Form type selector ───────────────────────────────────────────
+    // ── STEP 1: Intro + step guide ───────────────────────────────────────────
     if (step === 1) {
+      const guideSteps = [
+        { title: 'Choose your form', body: 'Say whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
+        { title: 'Upload your documents', body: 'Add your previous PIP2 (your own words) and, if you have it, your PA4 assessor report, as photos or PDFs.' },
+        { title: 'Your health picture', body: 'Tell us what has changed since your last assessment so DWP gets useful context.' },
+        { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
+      ];
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
           <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
@@ -434,6 +442,42 @@ export function ChangeOfCircumstancesScreen() {
             </p>
           </div>
 
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
+            <div>
+              <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Step guide</p>
+              <h3 className="font-semibold text-stone-900 text-base leading-snug">What you&apos;ll do in this walkthrough</h3>
+              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                Four stages after this page — tap Continue when you&apos;re ready to begin.
+              </p>
+            </div>
+            <ol className="space-y-3.5">
+              {guideSteps.map((item, i) => (
+                <li key={item.title} className="flex gap-3">
+                  <span className="w-7 h-7 rounded-full bg-teal-100 text-teal-800 text-xs font-bold flex items-center justify-center shrink-0 tabular-nums">{i + 1}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                    <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <button
+            type="button"
+            onClick={next}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Continue <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      );
+    }
+
+    // ── STEP 2: Form type selector (PIP2 vs AR1) ─────────────────────────────
+    if (step === 2) {
+      return (
+        <div className="space-y-5 px-5 pt-5 pb-32">
           <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3.5">
             <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Form type</p>
             <h3 className="font-semibold text-stone-800 text-base leading-snug mb-1">Which form are you completing?</h3>
@@ -514,8 +558,8 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 2: Upload PIP2 (required) + PA4 (optional) ────────────────────
-    if (step === 2) {
+    // ── STEP 3: Upload PIP2 (required) + PA4 (optional) ────────────────────
+    if (step === 3) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
       const busy = pip2Busy || pa4Busy;
@@ -631,7 +675,7 @@ export function ChangeOfCircumstancesScreen() {
 
           {/* Hero */}
           <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Step 2 — Your documents</p>
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Upload documents</p>
             <h2 className="font-bold text-2xl leading-tight mb-3">Upload your previous documents</h2>
             <p className="text-teal-100 text-sm leading-relaxed">
               Upload your original PIP2 form — your own words, exactly as you wrote them. If you also have your PA4 assessor report, add that too and we'll show both side by side in every question.
@@ -792,7 +836,7 @@ export function ChangeOfCircumstancesScreen() {
                 Load mock PIP2 + PA4 answers
               </button>
               <div className="flex gap-2 flex-wrap">
-                {[3, 4].map(s => (
+                {[4, 5].map(s => (
                   <button key={s} type="button" onClick={() => setStep(s)}
                     className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
                     → Step {s}
@@ -817,8 +861,8 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 3: Medical then vs now ─────────────────────────────────────────
-    if (step === 3) {
+    // ── STEP 4: Medical then vs now ─────────────────────────────────────────
+    if (step === 4) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
@@ -833,7 +877,7 @@ export function ChangeOfCircumstancesScreen() {
             <div className="flex items-center justify-between">
               <p className="font-bold text-stone-900 text-sm">Your conditions</p>
               <button type="button" onClick={() => {
-                sessionStorage.setItem('coc_return_step', '2');
+                sessionStorage.setItem('coc_return_step', '4');
                 navigateTo('medical_profile');
               }}
                 className="text-xs font-semibold text-teal-600 hover:text-teal-800 underline underline-offset-2">
@@ -851,7 +895,7 @@ export function ChangeOfCircumstancesScreen() {
               </div>
             ) : (
               <button type="button" onClick={() => {
-                sessionStorage.setItem('coc_return_step', '2');
+                sessionStorage.setItem('coc_return_step', '4');
                 navigateTo('medical_profile');
               }}
                 className="w-full py-3 rounded-xl text-sm font-semibold border-2 border-dashed border-teal-200 text-teal-700 hover:bg-teal-50 transition-all">
@@ -894,8 +938,8 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 4: How this works ───────────────────────────────────────────────
-    if (step === 4) {
+    // ── STEP 5: How this works ───────────────────────────────────────────────
+    if (step === 5) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
@@ -966,8 +1010,8 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Steps 1,2,4: inline buttons; step 3: BottomBar */}
-      {step === 3 && (
+      {/* Steps 1–3 & 5: inline buttons; step 4: BottomBar */}
+      {step === 4 && (
         <BottomBar showBack onBack={back} onNext={next} />
       )}
     </div>
