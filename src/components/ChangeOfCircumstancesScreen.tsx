@@ -609,7 +609,7 @@ export function ChangeOfCircumstancesScreen() {
     // ── STEP 1: Intro + step guide ───────────────────────────────────────────
     if (step === 1) {
       const guideSteps = [
-        { title: 'Choose your form', body: 'Say whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
+        { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
         { title: 'Upload your documents', body: 'Add your previous PIP2 (your own words) and, if you have it, your PA4 assessor report, as photos or PDFs.' },
         { title: 'Your health picture', body: 'Tell us what has changed since your last assessment so DWP gets useful context.' },
         { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
