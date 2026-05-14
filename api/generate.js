@@ -101,6 +101,8 @@ export default async function handler(req, res) {
     savedAnswers,
     medProfile,
     decisionDetails,
+    /** Plain-text summary of per-activity scores from an uploaded decision letter (vision extract) */
+    decisionLetterExtraction,
     disputedActivities,
     mrOutcome,
     changes,
@@ -122,32 +124,41 @@ export default async function handler(req, res) {
       .map(a => `- ${a.activity}: DWP gave ${a.dwpScore} points, I believe I should score ${a.expectedScore} points because: ${a.reason}`)
       .join('\n');
 
+    const extractionBlock =
+      typeof decisionLetterExtraction === 'string' && decisionLetterExtraction.trim()
+        ? decisionLetterExtraction.trim()
+        : 'Not provided';
+
     prompt = `You are helping a UK PIP claimant write a Mandatory Reconsideration letter to DWP.
 
 Write a complete, professional MR letter based on this information:
 
 CONDITIONS: ${conditionsList}
 
-DECISION DETAILS:
+WHAT THE DECISION LETTER SHOWS (per-activity — from the claimant's uploaded letter, when available):
+${extractionBlock}
+
+CLAIMANT'S OWN NOTES (extra points they want to make — may repeat or add to the above):
 ${decisionDetails || 'Not provided'}
 
-ACTIVITIES BEING DISPUTED:
-${disputedText || 'To be identified from answers below'}
+ACTIVITIES BEING DISPUTED (explicit list — if blank, infer from answers and decision text above):
+${disputedText || 'Not specified — infer from answers and decision wording above'}
 
 CLAIMANT'S SAVED PIP ANSWERS:
-${answersText}
+${answersText || 'Not provided'}
 
 Rules for the letter:
 - Use formal letter format with [YOUR NAME], [YOUR ADDRESS], [DATE], [YOUR NI NUMBER], [REFERENCE NUMBER] as placeholders
 - Open by clearly stating this is a request for Mandatory Reconsideration
-- For each disputed activity: state what DWP scored, quote what the claimant actually experiences from their answers, name the specific descriptor that should apply, and apply the SAFES rule (Safely, Acceptable standard, Frequently, Enough time, Sustainably)
+- Where decision letter extraction is available, state accurately what DWP scored per activity before explaining why it should change
+- For each disputed activity: quote what the claimant actually experiences from their answers, name the specific descriptor that should apply, and apply the SAFES rule (Safely, Acceptable standard, Frequently, Enough time, Sustainably)
 - Reference the PA4 assessment report where relevant
 - Use plain, clear English — no jargon
 - Be specific and factual — use the claimant's own words from their answers
 - End with a request for a full review and contact details placeholder
 - Do not use ** for bold — use plain text
 - Do not make up details not provided
-- If disputed activities not specified, identify the strongest ones from the answers
+- If disputed activities are not specified, identify the strongest cases from the answers and decision text
 
 Write the full letter now:`;
     responseKey = 'letter';
