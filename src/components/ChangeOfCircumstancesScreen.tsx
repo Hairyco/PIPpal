@@ -10,6 +10,7 @@ import {
   Phone,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   Info,
   Stethoscope,
 } from 'lucide-react';
@@ -97,6 +98,190 @@ function Chip({ selected, onClick, children }: { selected: boolean; onClick: () 
       }`}>
       {children}
     </button>
+  );
+}
+
+type CocUploadZoneProps = {
+  label: string;
+  sublabel: string;
+  badge?: string;
+  badgeColour?: string;
+  labels: string[];
+  busy: boolean;
+  error: string | null;
+  extracted: Record<string, { answer: string; confidence: string }>;
+  inputRef: React.RefObject<HTMLInputElement>;
+  onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: () => void;
+  isOptional?: boolean;
+  fileCount: number;
+  totalBytes: number;
+  maxFiles: number;
+  maxTotalBytes: number;
+  pickError: string | null;
+};
+
+/** Upload card: after successful extraction, defaults to a compact row; tap to expand full details */
+function CocUploadZone({
+  label, sublabel, badge, badgeColour, labels,
+  busy: zoneBusy, error, extracted,
+  inputRef, onPick, onRemove, isOptional,
+  fileCount, totalBytes, maxFiles, maxTotalBytes, pickError,
+}: CocUploadZoneProps) {
+  const [expanded, setExpanded] = useState(true);
+  const uploaded = labels.length > 0;
+  const done = Object.keys(extracted).length > 0;
+  const overRecommendedSize = totalBytes > maxTotalBytes * 0.9;
+  const canCollapse = uploaded && done && !zoneBusy && !error;
+
+  useEffect(() => {
+    if (canCollapse) setExpanded(false);
+    else setExpanded(true);
+  }, [canCollapse]);
+
+  if (!uploaded) {
+    return (
+      <div className={`rounded-2xl border-2 p-4 space-y-3 border-stone-200 bg-white`}>
+        {pickError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+            <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
+          </div>
+        )}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-bold text-stone-900 text-sm">{label}</p>
+              {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
+              {isOptional && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">optional</span>}
+            </div>
+            <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
+          </div>
+        </div>
+        <input ref={inputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onPick} />
+        <button type="button" onClick={() => inputRef.current?.click()}
+          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${isOptional ? 'border-2 border-dashed border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700' : 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'}`}>
+          <Upload className="w-4 h-4" />
+          {isOptional ? 'Add PA4 report (optional)' : 'Take a photo or upload pages'}
+        </button>
+        <p className={`text-[10px] leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
+          <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
+          {totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
+          {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
+        </p>
+      </div>
+    );
+  }
+
+  if (canCollapse && !expanded) {
+    return (
+      <div className="rounded-2xl border-2 border-teal-200 bg-teal-50/30 p-3 shadow-sm">
+        {pickError && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 mb-2">
+            <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="flex-1 flex items-center gap-2 min-w-0 text-left rounded-xl py-1 pr-1 hover:bg-white/60 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4 shrink-0 text-stone-400" />
+            <FileText className="w-4 h-4 text-teal-600 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-bold text-stone-900 text-sm">{label}</span>
+                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
+              </div>
+              <p className="text-[11px] text-teal-800 font-medium mt-0.5">
+                Answers extracted · {fileCount} file{fileCount !== 1 ? 's' : ''}
+                {totalBytes > 0 ? <> · {formatFileSize(totalBytes)}</> : null}
+              </p>
+            </div>
+            <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+          </button>
+          <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0 px-1 py-2">
+            Remove
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`rounded-2xl border-2 p-4 space-y-3 border-teal-200 bg-teal-50/30`}>
+      {pickError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+          <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
+        </div>
+      )}
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          {canCollapse ? (
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="w-full text-left rounded-xl -mx-1 px-1 py-0.5 hover:bg-white/50 transition-colors"
+            >
+              <div className="flex items-center gap-2 flex-wrap">
+                <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />
+                <p className="font-bold text-stone-900 text-sm">{label}</p>
+                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
+              </div>
+              <p className="text-[11px] text-stone-500 mt-1 pl-6">Tap to hide details</p>
+            </button>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-bold text-stone-900 text-sm">{label}</p>
+                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
+              </div>
+              <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
+            </>
+          )}
+        </div>
+        {uploaded && (
+          <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0">Remove</button>
+        )}
+      </div>
+
+      {(!canCollapse || expanded) && (
+        <>
+          {canCollapse && <p className="text-xs text-stone-500 leading-relaxed pl-6 -mt-1">{sublabel}</p>}
+          <div className="space-y-1.5">
+            {labels.map(name => (
+              <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
+                <FileText className="w-4 h-4 text-teal-600 shrink-0" />
+                <span className="break-all text-xs">{name}</span>
+              </div>
+            ))}
+            {zoneBusy && (
+              <div className="flex items-center gap-2 pt-1">
+                <Loader2 className="w-3.5 h-3.5 text-teal-600 animate-spin shrink-0" />
+                <p className="text-xs text-stone-500">Reading document…</p>
+              </div>
+            )}
+            {!zoneBusy && done && (
+              <div className="flex items-center gap-2 pt-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                <p className="text-xs text-teal-700 font-semibold">Answers extracted</p>
+              </div>
+            )}
+            {!zoneBusy && error && (
+              <div className="flex items-start gap-2 pt-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800">Couldn&apos;t read automatically — answers will be blank; add manually.</p>
+              </div>
+            )}
+            <p className={`text-[10px] pt-1 leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
+              <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
+              {uploaded && totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
+              {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
+            </p>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -569,112 +754,11 @@ export function ChangeOfCircumstancesScreen() {
       const showActivityReview = hasAny && !busy && (hasExtracted || extractionFailedSomewhere);
       const canContinue = hasAny && !busy;
 
-      const UploadZone = ({
-        label, sublabel, badge, badgeColour, labels,
-        busy: zoneBusy, error, extracted,
-        inputRef, onPick,
-        onRemove,
-        isOptional,
-        fileCount,
-        totalBytes,
-        maxFiles,
-        maxTotalBytes,
-        pickError,
-      }: {
-        label: string; sublabel: string; badge?: string; badgeColour?: string;
-        labels: string[];
-        busy: boolean; error: string | null;
-        extracted: Record<string, { answer: string; confidence: string }>;
-        inputRef: React.RefObject<HTMLInputElement>;
-        onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
-        onRemove: () => void;
-        isOptional?: boolean;
-        fileCount: number;
-        totalBytes: number;
-        maxFiles: number;
-        maxTotalBytes: number;
-        pickError: string | null;
-      }) => {
-        const uploaded = labels.length > 0;
-        const done = Object.keys(extracted).length > 0;
-        const overRecommendedSize = totalBytes > maxTotalBytes * 0.9;
-        return (
-          <div className={`rounded-2xl border-2 p-4 space-y-3 ${uploaded ? 'border-teal-200 bg-teal-50/30' : 'border-stone-200 bg-white'}`}>
-            {pickError && (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
-                <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
-              </div>
-            )}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-stone-900 text-sm">{label}</p>
-                  {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
-                  {isOptional && !uploaded && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">optional</span>}
-                </div>
-                <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
-              </div>
-              {uploaded && (
-                <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0">Remove</button>
-              )}
-            </div>
-
-            {uploaded ? (
-              <div className="space-y-1.5">
-                {labels.map(name => (
-                  <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
-                    <FileText className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span className="break-all text-xs">{name}</span>
-                  </div>
-                ))}
-                {zoneBusy && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <Loader2 className="w-3.5 h-3.5 text-teal-600 animate-spin shrink-0" />
-                    <p className="text-xs text-stone-500">Reading document…</p>
-                  </div>
-                )}
-                {!zoneBusy && done && (
-                  <div className="flex items-center gap-2 pt-1">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                    <p className="text-xs text-teal-700 font-semibold">Answers extracted</p>
-                  </div>
-                )}
-                {!zoneBusy && error && (
-                  <div className="flex items-start gap-2 pt-1">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-amber-800">Couldn't read automatically — answers will be blank; add manually.</p>
-                  </div>
-                )}
-                <p className={`text-[10px] pt-1 leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
-                  <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
-                  {uploaded && totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
-                  {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
-                </p>
-              </div>
-            ) : (
-              <>
-                <input ref={inputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onPick} />
-                <button type="button" onClick={() => inputRef.current?.click()}
-                  className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${isOptional ? 'border-2 border-dashed border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700' : 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'}`}>
-                  <Upload className="w-4 h-4" />
-                  {isOptional ? 'Add PA4 report (optional)' : 'Take a photo or upload pages'}
-                </button>
-                <p className={`text-[10px] leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
-                  <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
-                  {totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
-                  {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
-                </p>
-              </>
-            )}
-          </div>
-        );
-      };
-
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
 
           {/* PIP2 upload zone */}
-          <UploadZone
+          <CocUploadZone
             label="Original PIP2 form"
             sublabel="The form you filled in and returned to DWP — your own handwritten or typed answers."
             badge="Your words"
@@ -696,7 +780,7 @@ export function ChangeOfCircumstancesScreen() {
           />
 
           {/* PA4 upload zone */}
-          <UploadZone
+          <CocUploadZone
             label="PA4 assessor report"
             sublabel="The report written by the health professional — shows what they observed for each activity and why they scored you as they did."
             badge="Assessor's view"
