@@ -673,19 +673,6 @@ export function ChangeOfCircumstancesScreen() {
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
 
-          {/* Hero */}
-          <div className="bg-teal-700 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Upload documents</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">Upload your previous documents</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">
-              Upload your original PIP2 form — your own words, exactly as you wrote them. If you also have your PA4 assessor report, add that too and we'll show both side by side in every question.
-            </p>
-            <p className="text-teal-100/90 text-[11px] leading-relaxed mt-3 pt-3 border-t border-white/20">
-              <span className="font-semibold text-teal-50">Upload caps (each box is separate):</span>{' '}
-              up to {COC_UPLOAD_MAX_FILES} files in one go, and about {formatFileSize(COC_UPLOAD_MAX_TOTAL_BYTES)} combined per upload so the request fits our host&apos;s size limit (base64 makes files heavier). One multi-page PDF counts as one file. Very large scans may need to be compressed or split.
-            </p>
-          </div>
-
           {/* PA4-only notice */}
           {!hasPip2 && !hasPa4 && (
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
