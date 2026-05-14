@@ -490,7 +490,7 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
       <div className="flex flex-col h-full bg-stone-50">
         <Header />
         <div className="flex-1 overflow-y-auto scrollbar-hide">
-          <div className="px-5 py-5 space-y-4 pb-32">
+          <div className="px-5 py-5 space-y-4 pb-4">
             <QuestionCard />
 
             {/* This question explained — expanded by default; collapsed by default in change of circumstances */}
@@ -662,7 +662,7 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
         </div>
 
         {/* Fixed Start button */}
-        <div className="px-5 pb-8 pt-4 bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+        <div className="px-5 pb-6 pt-3 bg-white border-t border-stone-100 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
           <button
             onClick={() => goToStep(2)}
             className="w-full bg-teal-700 text-white py-4 rounded-2xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm"
