@@ -427,7 +427,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
             <h2 className="font-bold text-2xl leading-tight mb-3">What this is for</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
-              A <span className="font-semibold text-white">change of circumstances</span> is when something important about your health, disability, or day-to-day needs has changed since DWP last set your PIP award — and you need them to review it (for example after a deterioration, new diagnosis, or much more help than before).
+              A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
             <p className="text-teal-100 text-sm leading-relaxed mt-2">
               PIPpal walks you through each activity using your old PIP2 wording and, if you have it, your assessor report, so you can see what to improve and describe what has changed clearly for the form you&apos;re filling in now.
