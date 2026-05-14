@@ -122,6 +122,9 @@ interface AppContextType {
   /** Points awarded on the previous decision letter / extraction, per activity (q1–q12); null if unknown */
   cocPreviousPoints: Record<string, number | null>;
   setCocPreviousPoints: (points: Record<string, number | null>) => void;
+  /** During CoC, questions counted here when the user saves an answer — avoids treating old saved answers as “done” */
+  cocWalkthroughAnsweredIds: Record<string, boolean>;
+  resetCocWalkthroughProgress: () => void;
   hasCompletedEligibility: boolean;
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
@@ -245,6 +248,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [cocDocumentType, setCocDocumentType] = useState<'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null>(null);
   const [cocAssessorNotes, setCocAssessorNotes] = useState<Record<string, string>>({});
   const [cocPreviousPoints, setCocPreviousPoints] = useState<Record<string, number | null>>({});
+  const [cocWalkthroughAnsweredIds, setCocWalkthroughAnsweredIds] = useState<Record<string, boolean>>({});
+
+  const resetCocWalkthroughProgress = useCallback(() => {
+    setCocWalkthroughAnsweredIds({});
+  }, []);
 
   const [hasCompletedEligibility, setHasCompletedEligibilityState] =
     useState<boolean>(() => loadFromStorage('pippal_eligibility', false));
@@ -482,6 +490,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setHasPaidState(false);
     setSavedAnswers({});
     setSavedAnswerDetails({});
+    setCocMode(false);
+    setCocWalkthroughAnsweredIds({});
+    setCocPreviousAnswers({});
+    setCocFormType(null);
+    setCocDocumentType(null);
+    setCocAssessorNotes({});
+    setCocPreviousPoints({});
     setMedProfileState({ conditions: [], medications: '', notes: '' });
     setHasCompletedEligibilityState(false);
     localStorage.removeItem('pippal_med_profile');
@@ -503,6 +518,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const navigateTo = (screen: Screen) => {
+    if (screen === 'change_of_circumstances') {
+      try {
+        sessionStorage.removeItem('coc_flow_step');
+        sessionStorage.removeItem('coc_return_step');
+      } catch {
+        /* ignore */
+      }
+    }
     setNavigationHistory((prev) => [...prev, currentScreen]);
     setCurrentScreen(screen);
     scrollToTop();
@@ -536,6 +559,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       });
       return updated;
     });
+    if (cocMode) {
+      setCocWalkthroughAnsweredIds((prev) => ({ ...prev, [questionId]: true }));
+    }
   };
 
   const getSavedAnswer = (questionId: string) => savedAnswers[questionId];
@@ -621,6 +647,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocAssessorNotes,
         cocPreviousPoints,
         setCocPreviousPoints,
+        cocWalkthroughAnsweredIds,
+        resetCocWalkthroughProgress,
         hasCompletedEligibility,
         setHasCompletedEligibility,
         hasPaid,

@@ -13,10 +13,23 @@ import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
 
 export function QuestionIndex() {
-  const { navigateTo, goBack, hasPaid, savedAnswers, setSelectedQuestionId, cocMode } = useAppContext();
+  const {
+    navigateTo,
+    goBack,
+    hasPaid,
+    savedAnswers,
+    setSelectedQuestionId,
+    cocMode,
+    cocWalkthroughAnsweredIds,
+  } = useAppContext();
+
+  const totalQuestions = PIP_QUESTIONS.length;
+  const answeredCount = Object.keys(savedAnswers).length;
+  const cocWalkthroughCount = Object.keys(cocWalkthroughAnsweredIds).length;
+  const headerDoneCount = cocMode ? cocWalkthroughCount : answeredCount;
+  const allQuestionsComplete = cocMode ? cocWalkthroughCount >= totalQuestions : answeredCount >= totalQuestions;
 
   const totalPoints = getTotalPoints(savedAnswers);
-  const answeredCount = Object.keys(savedAnswers).length;
 
   const dailyLiving = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
@@ -29,7 +42,8 @@ export function QuestionIndex() {
   };
 
   const QuestionCard = ({ q }: { q: typeof PIP_QUESTIONS[0] }) => {
-    const isAnswered = !!savedAnswers[q.id];
+    const isAnswered = cocMode ? !!cocWalkthroughAnsweredIds[q.id] : !!savedAnswers[q.id];
+    const hasLegacyAnswer = !!savedAnswers[q.id];
     const isLocked = !q.free && !hasPaid;
     const answer = savedAnswers[q.id];
     const descriptorCode = answer?.match(/Descriptor\s+([A-Z])/i)?.[1]?.toUpperCase() ?? answer;
@@ -64,6 +78,8 @@ export function QuestionIndex() {
             <p className="text-xs text-stone-500 mt-0.5 truncate">
               Descriptor {descriptorCode} · <span className={`font-bold ${getPointColor(descriptor.points)}`}>{descriptor.points} pts</span>
             </p>
+          ) : cocMode && hasLegacyAnswer ? (
+            <p className="text-xs text-stone-500 mt-0.5 truncate">Previous answer on file — open to update</p>
           ) : (
             <p className="text-xs text-stone-400 mt-0.5">{isLocked ? 'Full Access required' : 'Not yet answered'}</p>
           )}
@@ -93,7 +109,7 @@ export function QuestionIndex() {
         </button>
         <h1 className="font-bold text-stone-900 text-lg">My Questions</h1>
         <span className="ml-auto text-xs font-bold bg-teal-100 text-teal-700 px-2 py-1 rounded-full">
-          {answeredCount}/12 done
+          {headerDoneCount}/{totalQuestions} done
         </span>
       </div>
 
@@ -112,7 +128,7 @@ export function QuestionIndex() {
               </div>
               <div className="text-right">
                 <TrendingUp className="w-8 h-8 text-teal-300 ml-auto mb-1" />
-                <p className="text-teal-200 text-xs">{answeredCount} of 12 answered</p>
+                <p className="text-teal-200 text-xs">{answeredCount} of {totalQuestions} answered</p>
               </div>
             </div>
             <div className="w-full bg-teal-800 rounded-full h-2 overflow-hidden">
@@ -151,7 +167,7 @@ export function QuestionIndex() {
           )}
 
           {/* All done — completion banner */}
-          {answeredCount === 12 && (
+          {allQuestionsComplete && (
             <div className="space-y-3">
               <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm">
                 <p className="font-bold text-base mb-1">All 12 questions complete!</p>
@@ -216,7 +232,7 @@ export function QuestionIndex() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-stone-900">Daily Living</h2>
               <span className="text-xs text-stone-500">
-                {dailyLiving.filter((q) => savedAnswers[q.id]).length}/{dailyLiving.length} answered
+                {dailyLiving.filter((q) => (cocMode ? cocWalkthroughAnsweredIds[q.id] : savedAnswers[q.id])).length}/{dailyLiving.length} answered
               </span>
             </div>
             <div className="space-y-2">
@@ -229,7 +245,7 @@ export function QuestionIndex() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-bold text-stone-900">Mobility</h2>
               <span className="text-xs text-stone-500">
-                {mobility.filter((q) => savedAnswers[q.id]).length}/{mobility.length} answered
+                {mobility.filter((q) => (cocMode ? cocWalkthroughAnsweredIds[q.id] : savedAnswers[q.id])).length}/{mobility.length} answered
               </span>
             </div>
             <div className="space-y-2">

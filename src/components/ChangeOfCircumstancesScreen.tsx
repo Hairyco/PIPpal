@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
-  Info,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -24,6 +23,21 @@ import { PIP_QUESTIONS } from '../pipQuestions';
 // 4  Opens Medical Profile (same screen as elsewhere); return lands on step 5
 // 5  How this works + Start  → navigates to question_index with cocMode on
 const TOTAL_STEPS = 5;
+
+/** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
+const COC_FLOW_STEP_KEY = 'coc_flow_step';
+
+function readStoredCocStep(): number {
+  try {
+    const raw = sessionStorage.getItem(COC_FLOW_STEP_KEY);
+    if (!raw) return 1;
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n) || n < 1 || n > TOTAL_STEPS) return 1;
+    return n;
+  } catch {
+    return 1;
+  }
+}
 
 const DAILY_LIVING_IDS = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
 const MOBILITY_IDS = ['q11','q12'];
@@ -325,13 +339,13 @@ function CocUploadZone({
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
-  const { goBack, navigateTo, isAdmin, setCocPreviousAnswers, setCocPreviousPoints, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes } = useAppContext();
+  const { goBack, navigateTo, isAdmin, setCocPreviousAnswers, setCocPreviousPoints, setCocMode, setCocFormType, setCocDocumentType, setCocAssessorNotes, resetCocWalkthroughProgress } = useAppContext();
 
-  const [step, setStep] = useState(() => {
-    const saved = sessionStorage.getItem('coc_return_step');
-    if (saved) { sessionStorage.removeItem('coc_return_step'); return parseInt(saved); }
-    return 1;
-  });
+  const [step, setStep] = useState(readStoredCocStep);
+
+  useEffect(() => {
+    sessionStorage.setItem(COC_FLOW_STEP_KEY, String(step));
+  }, [step]);
   const [formType, setFormType] = useState<'pip2' | 'ar1' | null>(null);
   const [notReportedOpen, setNotReportedOpen] = useState(false);
   const pip2InputRef = useRef<HTMLInputElement>(null);
@@ -372,10 +386,10 @@ export function ChangeOfCircumstancesScreen() {
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
   const [cocManualPoints, setCocManualPoints] = useState<Record<string, string>>({});
 
-  // Step 4 opens Medical Profile; coc_return_step '5' restores “How this works” on return
+  // Step 4 opens Medical Profile; step 5 restore uses COC_FLOW_STEP_KEY after medical (survives Strict Mode remount)
   const next = () => {
     if (step === 3) {
-      sessionStorage.setItem('coc_return_step', '5');
+      sessionStorage.setItem(COC_FLOW_STEP_KEY, '5');
       navigateTo('medical_profile');
       return;
     }
@@ -389,7 +403,7 @@ export function ChangeOfCircumstancesScreen() {
 
   useLayoutEffect(() => {
     if (step !== 4) return;
-    sessionStorage.setItem('coc_return_step', '5');
+    sessionStorage.setItem(COC_FLOW_STEP_KEY, '5');
     navigateTo('medical_profile');
   }, [step, navigateTo]);
 
@@ -629,6 +643,7 @@ export function ChangeOfCircumstancesScreen() {
       if (t) primary[k] = t;
     }
 
+    resetCocWalkthroughProgress();
     setCocMode(true);
     setCocFormType(formType);
     setCocDocumentType(derivedDocType);
@@ -775,7 +790,11 @@ export function ChangeOfCircumstancesScreen() {
     if (step === 1) {
       const guideSteps = [
         { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
-        { title: 'Upload your documents', body: 'Add your PIP2, optional PA4, and — if you have it — your DWP award or decision letter (best for reading official points per activity).' },
+        {
+          title: 'Upload your documents',
+          body:
+            "Use your completed PIP2, PA4 assessor report, and DWP award or decision letter when you have them — they carry your previous wording and official points. If you do not have copies yet, contact DWP and ask for those three items — many arrive within a few days. You can still continue without uploading: use \"I don't have these documents yet\" on the next step and fill gaps when prompted.",
+        },
         { title: 'Medical profile', body: 'Next you’ll open your Medical Profile (same screen as the rest of the app) to confirm conditions and notes — PIPpal uses them to tailor every question.' },
         { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
       ];
@@ -787,6 +806,21 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-teal-50 text-sm leading-relaxed">
               A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
             </p>
+          </div>
+
+          <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you upload</p>
+            <p className="text-sm text-teal-950 leading-snug">
+              No paperwork to hand? Contact DWP and request your <strong className="font-semibold">PIP2</strong>, <strong className="font-semibold">PA4</strong>, and{' '}
+              <strong className="font-semibold">decision letter</strong> — or carry on without files.
+            </p>
+            <a
+              href="tel:08009172222"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
+            >
+              <Phone className="w-4 h-4 shrink-0" aria-hidden />
+              Call 0800 917 2222 — PIP enquiries
+            </a>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
@@ -821,41 +855,39 @@ export function ChangeOfCircumstancesScreen() {
     // ── STEP 2: Form type selector (PIP2 vs AR1) ─────────────────────────────
     if (step === 2) {
       return (
-        <div className="space-y-5 px-5 pt-5 pb-32">
-          <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3.5">
-            <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Form type</p>
-            <h3 className="font-semibold text-stone-800 text-base leading-snug mb-1">Which form are you completing?</h3>
-            <p className="text-xs text-stone-500 leading-relaxed">
-              Pick the one that matches the form DWP sent — we&apos;ll match the walkthrough to that.
-            </p>
-          </div>
+        <div className="space-y-4 px-5 pt-5 pb-32">
+          <p className="text-xs text-stone-600 leading-snug">
+            <span className="font-semibold text-stone-800">Which paperwork did DWP send?</span>{' '}
+            We match the walkthrough to the form type — tap one option.
+          </p>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* PIP2 option */}
             <button
               type="button"
               onClick={() => setFormType('pip2')}
-              className={`w-full text-left rounded-2xl border-2 p-5 transition-all active:scale-[0.98] ${
+              className={`w-full text-left rounded-xl border p-3.5 transition-all active:scale-[0.99] ${
                 formType === 'pip2'
-                  ? 'border-teal-500 bg-teal-50 shadow-sm'
-                  : 'border-stone-200 bg-white hover:border-stone-300'
+                  ? 'border-teal-500 bg-teal-50/90 shadow-[0_0_0_1px_rgba(20,184,166,0.15)]'
+                  : 'border-stone-200/90 bg-white hover:border-stone-300 hover:bg-stone-50/80'
               }`}
             >
-              <div className="flex items-start gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                  formType === 'pip2' ? 'border-teal-500 bg-teal-500' : 'border-stone-300'
+              <div className="flex items-start gap-3">
+                <div className={`w-4 h-4 rounded-full border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                  formType === 'pip2' ? 'border-teal-500 bg-teal-500' : 'border-stone-300 bg-white'
                 }`}>
-                  {formType === 'pip2' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  {formType === 'pip2' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-bold text-stone-900 text-base">PIP2 form</p>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">Full reassessment</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-semibold text-stone-900 text-sm">PIP2 form</span>
+                    <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                      Full reassessment
+                    </span>
                   </div>
-                  <p className="text-sm text-stone-600 leading-relaxed">
-                    Choose this if you&apos;ve <span className="font-semibold text-stone-800">reported a change of circumstances</span> to DWP and the form they want back is the main <span className="font-semibold text-stone-800">PIP2</span> — where you describe how your disability affects you across every activity. That&apos;s the form this walkthrough matches.
+                  <p className="text-[13px] text-stone-600 leading-snug">
+                    The main form covering all activities — including after you&apos;ve told DWP your circumstances changed.
                   </p>
-                  <p className="text-xs text-stone-400 mt-2">Also used for new claims and full renewals; here we focus on building stronger answers when your situation has changed since your last award.</p>
                 </div>
               </div>
             </button>
@@ -864,27 +896,28 @@ export function ChangeOfCircumstancesScreen() {
             <button
               type="button"
               onClick={() => setFormType('ar1')}
-              className={`w-full text-left rounded-2xl border-2 p-5 transition-all active:scale-[0.98] ${
+              className={`w-full text-left rounded-xl border p-3.5 transition-all active:scale-[0.99] ${
                 formType === 'ar1'
-                  ? 'border-teal-500 bg-teal-50 shadow-sm'
-                  : 'border-stone-200 bg-white hover:border-stone-300'
+                  ? 'border-teal-500 bg-teal-50/90 shadow-[0_0_0_1px_rgba(20,184,166,0.15)]'
+                  : 'border-stone-200/90 bg-white hover:border-stone-300 hover:bg-stone-50/80'
               }`}
             >
-              <div className="flex items-start gap-4">
-                <div className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                  formType === 'ar1' ? 'border-teal-500 bg-teal-500' : 'border-stone-300'
+              <div className="flex items-start gap-3">
+                <div className={`w-4 h-4 rounded-full border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
+                  formType === 'ar1' ? 'border-teal-500 bg-teal-500' : 'border-stone-300 bg-white'
                 }`}>
-                  {formType === 'ar1' && <div className="w-2 h-2 rounded-full bg-white" />}
+                  {formType === 'ar1' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-bold text-stone-900 text-base">AR1 review form</p>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">Change of circumstances</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-semibold text-stone-900 text-sm">AR1 review form</span>
+                    <span className="text-[9px] font-semibold leading-tight px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
+                      Change of circumstances
+                    </span>
                   </div>
-                  <p className="text-sm text-stone-600 leading-relaxed">
-                    The review form DWP sends when your award is being checked. You mainly need to describe what has <span className="font-semibold">changed</span> since your last assessment — not repeat everything.
+                  <p className="text-[13px] text-stone-600 leading-snug">
+                    Shorter mid-award review — focus on what&apos;s <span className="font-medium text-stone-800">changed</span>, not your whole story again.
                   </p>
-                  <p className="text-xs text-stone-400 mt-2">Sent mid-award when DWP wants to know if your condition or circumstances have changed.</p>
                 </div>
               </div>
             </button>
@@ -894,7 +927,7 @@ export function ChangeOfCircumstancesScreen() {
             type="button"
             onClick={next}
             disabled={!formType}
-            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
+            className="w-full py-3.5 rounded-xl font-bold text-sm bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
           >
             Continue <ArrowRight className="w-5 h-5" />
           </button>
@@ -1034,7 +1067,7 @@ export function ChangeOfCircumstancesScreen() {
             <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
               <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
               <p className="text-sm text-blue-800 leading-relaxed">
-                You're entitled to copies of your PIP2, PA4 report, and decision paperwork. Call DWP and ask — they usually arrive within a few days.
+                You&apos;re entitled to copies of your PIP2, PA4 report, and decision paperwork. Call the PIP helpline on <span className="font-bold text-blue-950">0800 917 2222</span> (freephone) and ask — copies usually arrive within a few days.
               </p>
               <div className="bg-white rounded-xl border border-blue-200 p-4">
                 <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
