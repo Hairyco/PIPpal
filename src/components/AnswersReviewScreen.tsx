@@ -94,6 +94,9 @@ export function buildAnswersPlainText(opts: {
       lines.push('');
       lines.push(`Activity ${q.num}: ${q.title}`);
       lines.push(q.pipFormRef);
+      lines.push('Question:');
+      lines.push(q.headline);
+      if (q.subtext?.trim()) lines.push(q.subtext);
       if (!has) {
         lines.push('(Not answered yet in PIPpal)');
         continue;
@@ -187,6 +190,13 @@ export function AnswersReviewScreen() {
           </p>
           <h2 className="font-bold text-stone-900 text-sm leading-snug">{q.shortTitle}</h2>
           <p className="text-[11px] text-stone-500 mt-1">{q.pipFormRef}</p>
+        </div>
+        <div className="px-4 py-3 border-b border-stone-100 bg-white">
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">The question</p>
+          <p className="text-sm font-semibold text-stone-900 leading-snug">{q.headline}</p>
+          {q.subtext?.trim() ? (
+            <p className="text-xs text-stone-600 leading-relaxed mt-2">{q.subtext}</p>
+          ) : null}
         </div>
         <div className="px-4 py-4 space-y-3">
           {!has ? (
