@@ -123,7 +123,7 @@ export function QuestionFlow() {
   // Expanded by default on mobile, collapsed on desktop
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
-  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(!cocMode);
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(true);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -196,9 +196,8 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
   });
 
   useEffect(() => {
-    if (cocMode) setQuestionExplainedOpen(false);
-    else setQuestionExplainedOpen(true);
-  }, [questionId, cocMode]);
+    setQuestionExplainedOpen(true);
+  }, [questionId]);
 
   if (!config) {
     return (
@@ -414,18 +413,8 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
 
   const stepTitle = ['', "Let's begin", "What's hard for you?", 'How often?', 'Do you need support?', 'Day-to-day impact'][step];
 
-  // Live score — uses calculateDescriptor when enough data, otherwise estimates from difficulties
   const liveDescriptor = config.calculateDescriptor(answers);
   const livePoints = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.points ?? 0;
-  const liveDescriptorText = pipQ?.descriptors.find(d => d.code === liveDescriptor)?.text ?? '';
-
-  // On step 2, estimate pts based on number of difficulties selected (preview only)
-  const estimatedPts = step === 2
-    ? answers.selectedDifficulties.length === 0 ? 0
-      : answers.selectedDifficulties.length >= 4 ? 8
-      : answers.selectedDifficulties.length >= 2 ? 4
-      : 2
-    : livePoints;
 
   function Header() {
     return (
@@ -439,11 +428,6 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             <p className="font-bold text-stone-900 text-sm truncate">{stepTitle}</p>
           </div>
           <div className="shrink-0 flex items-center gap-2">
-            {step > 1 && (
-              <span className={`text-sm font-black ${estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
-                {estimatedPts}pts
-              </span>
-            )}
             <button
               onClick={() => {
                 sessionStorage.setItem('pippal_resume', JSON.stringify({ questionId, step, title: config!.title }));
@@ -457,22 +441,6 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
             </button>
           </div>
         </div>
-        {/* Live score bar */}
-        {step > 1 && (
-          <div className="px-5 pb-2.5">
-            <div className="flex items-center justify-end mb-1">
-              <span className={`text-[10px] font-bold ${estimatedPts >= 2 ? 'text-teal-600' : 'text-stone-400'}`}>
-                {estimatedPts === 0 ? 'No award yet' : estimatedPts >= 8 ? 'Enhanced rate' : 'Standard rate'}
-              </span>
-            </div>
-            <div className="w-full h-2 bg-stone-100 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${estimatedPts >= 2 ? 'bg-teal-600' : 'bg-stone-200'}`}
-                style={{ width: `${Math.min((estimatedPts / 12) * 100, 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
       </div>
     );
   }
@@ -501,7 +469,7 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-5 space-y-4 pb-4">
             <QuestionCard />
 
-            {/* This question explained — expanded by default; collapsed by default in change of circumstances */}
+            {/* This question explained — expanded by default (CoC can collapse to focus on documents) */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
               <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50 gap-2">
                 {cocMode ? (
@@ -555,8 +523,8 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
               <AskMoreHelpSection pipQ={pipQ} medProfile={medProfile} />
             )}
 
-            {/* Previous answer (CoC mode) OR example answer (new claim) */}
-            {cocMode ? (
+            {/* Previous answer (CoC mode); example answer shown for everyone */}
+            {cocMode && (
               <div className="space-y-2">
                 {/* PIP2 — claimant's own words (shown unless pa4_only) */}
                 {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
@@ -628,62 +596,61 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                      <span className="text-teal-700 text-xs font-bold">
-                        {personalExample
-                          ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
-                          : config.exampleAnswer.name[0]}
-                      </span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
-                        {personalExample ? 'Example based on your conditions' : 'Example answer'}
-                      </p>
-                      <p className="text-xs font-semibold text-stone-600 mt-0.5 truncate">
-                        {personalExample
-                          ? medProfile.conditions.map((c: any) => c.name).join(' · ')
-                          : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={rePersonalise}
-                    disabled={isPersonalising}
-                    className={`flex items-center gap-1 text-[10px] font-bold bg-white border px-2 py-1 rounded-full transition-all disabled:opacity-50 shrink-0 ${
-                      !isPersonalising && (personalExample || personalisedJustNow)
-                        ? 'text-teal-600 border-teal-300 hover:bg-teal-50'
-                        : 'text-stone-400 hover:text-teal-600 border-teal-200 hover:border-teal-300'
-                    }`}
-                  >
-                    {isPersonalising ? (
-                      <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                    ) : (personalExample || personalisedJustNow) ? (
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                    ) : (
-                      <Sparkles className="w-2.5 h-2.5" />
-                    )}
-                    {isPersonalising ? 'Personalising...' : (personalExample || personalisedJustNow) ? 'Personalised' : 'Personalise'}
-                  </button>
-                </div>
-                <div className="border-l-4 border-teal-300 pl-3">
-                  {loadingExample ? (
-                    <div className="space-y-1.5">
-                      <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
-                      <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
-                      <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
-                    </div>
-                  ) : (
-                    <p className="text-sm text-stone-600 leading-relaxed italic">
-                      "{personalExample ?? config.exampleAnswer.quote}"
-                    </p>
-                  )}
-                </div>
-              </div>
             )}
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                    <span className="text-teal-700 text-xs font-bold">
+                      {personalExample
+                        ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
+                        : config.exampleAnswer.name[0]}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
+                      {personalExample ? 'Example based on your conditions' : 'Example answer'}
+                    </p>
+                    <p className="text-xs font-semibold text-stone-600 mt-0.5 truncate">
+                      {personalExample
+                        ? medProfile.conditions.map((c: any) => c.name).join(' · ')
+                        : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={rePersonalise}
+                  disabled={isPersonalising}
+                  className={`flex items-center gap-1 text-[10px] font-bold bg-white border px-2 py-1 rounded-full transition-all disabled:opacity-50 shrink-0 ${
+                    !isPersonalising && (personalExample || personalisedJustNow)
+                      ? 'text-teal-600 border-teal-300 hover:bg-teal-50'
+                      : 'text-stone-400 hover:text-teal-600 border-teal-200 hover:border-teal-300'
+                  }`}
+                >
+                  {isPersonalising ? (
+                    <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (personalExample || personalisedJustNow) ? (
+                    <CheckCircle2 className="w-2.5 h-2.5" />
+                  ) : (
+                    <Sparkles className="w-2.5 h-2.5" />
+                  )}
+                  {isPersonalising ? 'Personalising...' : (personalExample || personalisedJustNow) ? 'Personalised' : 'Personalise'}
+                </button>
+              </div>
+              <div className="border-l-4 border-teal-300 pl-3">
+                {loadingExample ? (
+                  <div className="space-y-1.5">
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
+                    <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-stone-600 leading-relaxed italic">
+                    "{personalExample ?? config.exampleAnswer.quote}"
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

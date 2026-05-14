@@ -1,5 +1,11 @@
 import React, { useState, createContext, useContext, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
+import {
+  COC_POST_MEDICAL_SNAPSHOT_KEY,
+  COC_MEDICAL_EXPECTED_KEY,
+  computeCocSessionFromSnapshot,
+  type CocMedicalSnapshot,
+} from '../cocMedicalSnapshot';
 
 export type Screen =
   | 'landing'
@@ -15,6 +21,7 @@ export type Screen =
   | 'q1_chat'
   | 'q1_result'
   | 'question_index'
+  | 'answers_review'
   | 'assessment_prep'
   | 'pip_diary'
   | 'downloads'
@@ -125,6 +132,8 @@ interface AppContextType {
   /** During CoC, questions counted here when the user saves an answer — avoids treating old saved answers as “done” */
   cocWalkthroughAnsweredIds: Record<string, boolean>;
   resetCocWalkthroughProgress: () => void;
+  /** Consumes CoC snapshot after Medical Profile save → question hub + coc mode */
+  tryFinishCocAfterMedicalSave: () => boolean;
   hasCompletedEligibility: boolean;
   setHasCompletedEligibility: (completed: boolean) => void;
   hasPaid: boolean;
@@ -505,6 +514,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('pippal_eligibility');
     setCurrentScreen('landing');
     setNavigationHistory([]);
+    try {
+      sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+      sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+    } catch {
+      /* ignore */
+    }
     // Sign out from Supabase then clear flag
     supabase.auth.signOut().finally(() => {
       localStorage.removeItem('pippal_logging_out');
@@ -522,6 +537,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         sessionStorage.removeItem('coc_flow_step');
         sessionStorage.removeItem('coc_return_step');
+        sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+        sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
       } catch {
         /* ignore */
       }
@@ -541,6 +558,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       return newHistory;
     });
+  };
+
+  const tryFinishCocAfterMedicalSave = (): boolean => {
+    try {
+      const raw = sessionStorage.getItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw) as CocMedicalSnapshot;
+      const session = computeCocSessionFromSnapshot(parsed);
+      sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+      sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+      resetCocWalkthroughProgress();
+      setCocMode(true);
+      setCocFormType(parsed.formType ?? null);
+      setCocDocumentType(session.derivedDocType);
+      setCocPreviousAnswers(session.primary);
+      setCocPreviousPoints(session.cocPreviousPoints);
+      setCocAssessorNotes(session.pa4Answers);
+      navigateTo('question_index');
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const saveAnswer = (questionId: string, answer: string) => {
@@ -649,6 +688,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocPreviousPoints,
         cocWalkthroughAnsweredIds,
         resetCocWalkthroughProgress,
+        tryFinishCocAfterMedicalSave,
         hasCompletedEligibility,
         setHasCompletedEligibility,
         hasPaid,

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,14 +15,19 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
+import {
+  computeCocSessionFromSnapshot,
+  type CocMedicalSnapshot,
+  COC_POST_MEDICAL_SNAPSHOT_KEY,
+  COC_MEDICAL_EXPECTED_KEY,
+} from '../cocMedicalSnapshot';
 
 // ── Steps ────────────────────────────────────────────────────────────────────
 // 1  Intro + step guide
 // 2  Form type selector (PIP2 vs AR1)
 // 3  Upload (+ show extracted answers in accordions)
-// 4  Opens Medical Profile (same screen as elsewhere); return lands on step 5
-// 5  How this works + Start  → navigates to question_index with cocMode on
-const TOTAL_STEPS = 5;
+// 4  Opens Medical Profile — save there applies snapshot & navigates to questions (no separate “how this works” step)
+const TOTAL_STEPS = 4;
 
 /** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
 const COC_FLOW_STEP_KEY = 'coc_flow_step';
@@ -32,7 +37,9 @@ function readStoredCocStep(): number {
     const raw = sessionStorage.getItem(COC_FLOW_STEP_KEY);
     if (!raw) return 1;
     const n = parseInt(raw, 10);
-    if (Number.isNaN(n) || n < 1 || n > TOTAL_STEPS) return 1;
+    if (Number.isNaN(n) || n < 1) return 1;
+    if (n === 5) return 3;
+    if (n > TOTAL_STEPS) return 1;
     return n;
   } catch {
     return 1;
@@ -71,37 +78,6 @@ function normalizeExtractedAnswers(raw: Record<string, unknown>): Record<string,
     };
   }
   return out;
-}
-
-function mergeCocPreviousPoints(
-  pip2: Record<string, CocExtractedEntry>,
-  pa4: Record<string, CocExtractedEntry>,
-  award: Record<string, CocExtractedEntry>,
-  manualRaw: Record<string, string>,
-): Record<string, number | null> {
-  const merged: Record<string, number | null> = {};
-  for (const id of ALL_ACTIVITY_IDS) {
-    const typed = manualRaw[id]?.trim();
-    if (typed) {
-      const m = normalizeActivityPoints(typed);
-      if (m != null) {
-        merged[id] = m;
-        continue;
-      }
-    }
-    const fromAward = normalizeActivityPoints(award[id]?.pointsAwarded);
-    if (fromAward != null) {
-      merged[id] = fromAward;
-      continue;
-    }
-    const fromP2 = normalizeActivityPoints(pip2[id]?.pointsAwarded);
-    if (fromP2 != null) {
-      merged[id] = fromP2;
-      continue;
-    }
-    merged[id] = normalizeActivityPoints(pa4[id]?.pointsAwarded);
-  }
-  return merged;
 }
 
 /** Keeps JSON body under Vercel's ~4.5 MB serverless limit after base64 encoding overhead */
@@ -386,10 +362,31 @@ export function ChangeOfCircumstancesScreen() {
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
   const [cocManualPoints, setCocManualPoints] = useState<Record<string, string>>({});
 
-  // Step 4 opens Medical Profile; step 5 restore uses COC_FLOW_STEP_KEY after medical (survives Strict Mode remount)
+  const writeCocMedicalSnapshotToSession = useCallback(() => {
+    try {
+      const snapshot: CocMedicalSnapshot = {
+        formType,
+        hasPip2: pip2Labels.length > 0,
+        hasPa4: pa4Labels.length > 0,
+        hasAward: awardLabels.length > 0,
+        pip2Extracted,
+        pa4Extracted,
+        awardExtracted,
+        activityFallbackNotes,
+        cocManualPoints,
+      };
+      sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify(snapshot));
+      sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
+      sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  }, [formType, pip2Labels.length, pa4Labels.length, awardLabels.length, pip2Extracted, pa4Extracted, awardExtracted, activityFallbackNotes, cocManualPoints]);
+
+  // Step 4 opens Medical Profile; saving there consumes snapshot → question_index
   const next = () => {
     if (step === 3) {
-      sessionStorage.setItem(COC_FLOW_STEP_KEY, '5');
+      writeCocMedicalSnapshotToSession();
       navigateTo('medical_profile');
       return;
     }
@@ -397,15 +394,15 @@ export function ChangeOfCircumstancesScreen() {
   };
   const back = () => {
     if (step === 1) goBack();
-    else if (step === 5) setStep(3);
+    else if (step === 4) setStep(3);
     else setStep(s => s - 1);
   };
 
   useLayoutEffect(() => {
     if (step !== 4) return;
-    sessionStorage.setItem(COC_FLOW_STEP_KEY, '5');
+    writeCocMedicalSnapshotToSession();
     navigateTo('medical_profile');
-  }, [step, navigateTo]);
+  }, [step, navigateTo, writeCocMedicalSnapshotToSession]);
 
   // Extraction helper
   async function runExtraction(
@@ -605,51 +602,25 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const startQuestions = () => {
-    const hasPip2 = pip2Labels.length > 0;
-    const hasPa4 = pa4Labels.length > 0;
-    const hasAward = awardLabels.length > 0;
-
-    let derivedDocType: 'pip2_only' | 'pa4_only' | 'both' | 'award_only';
-    if (hasPip2 && hasPa4) derivedDocType = 'both';
-    else if (hasPa4) derivedDocType = 'pa4_only';
-    else if (hasAward && !hasPip2 && !hasPa4) derivedDocType = 'award_only';
-    else derivedDocType = 'pip2_only';
-
-    // PIP2 answers = primary (claimant's words)
-    const pip2Answers: Record<string, string> = {};
-    for (const [k, v] of Object.entries(pip2Extracted)) pip2Answers[k] = v.answer ?? '';
-
-    // PA4 answers = assessor notes stored separately
-    const pa4Answers: Record<string, string> = {};
-    for (const [k, v] of Object.entries(pa4Extracted)) pa4Answers[k] = v.answer ?? '';
-
-    const awardAnswers: Record<string, string> = {};
-    for (const [k, v] of Object.entries(awardExtracted)) awardAnswers[k] = v.answer ?? '';
-
-    // What goes into wizard as "previous answer": pip2 if available, pa4 fills gaps
-    const primary = { ...pa4Answers };
-    for (const [k, v] of Object.entries(pip2Answers)) { if (v) primary[k] = v; }
-
-    // Award letter fills gaps where PIP2/PA4 have no text (e.g. points lines only, or award-only upload)
-    for (const id of ALL_ACTIVITY_IDS) {
-      if (primary[id]?.trim()) continue;
-      const fromAward = awardAnswers[id]?.trim();
-      if (fromAward) primary[id] = fromAward;
-    }
-
-    // Optional typing: fills gaps, or replaces automatic read when you correct a box
-    for (const [k, v] of Object.entries(activityFallbackNotes)) {
-      const t = v?.trim();
-      if (t) primary[k] = t;
-    }
-
+    const snapshot: CocMedicalSnapshot = {
+      formType,
+      hasPip2: pip2Labels.length > 0,
+      hasPa4: pa4Labels.length > 0,
+      hasAward: awardLabels.length > 0,
+      pip2Extracted,
+      pa4Extracted,
+      awardExtracted,
+      activityFallbackNotes,
+      cocManualPoints,
+    };
+    const session = computeCocSessionFromSnapshot(snapshot);
     resetCocWalkthroughProgress();
     setCocMode(true);
     setCocFormType(formType);
-    setCocDocumentType(derivedDocType);
-    setCocPreviousAnswers(primary);
-    setCocPreviousPoints(mergeCocPreviousPoints(pip2Extracted, pa4Extracted, awardExtracted, cocManualPoints));
-    setCocAssessorNotes(pa4Answers);
+    setCocDocumentType(session.derivedDocType);
+    setCocPreviousAnswers(session.primary);
+    setCocPreviousPoints(session.cocPreviousPoints);
+    setCocAssessorNotes(session.pa4Answers);
     navigateTo('question_index');
   };
 
@@ -658,7 +629,6 @@ export function ChangeOfCircumstancesScreen() {
     'Which form are you completing?',
     'Upload your documents',
     'Medical profile',
-    'How this works',
   ];
 
   const renderActivityAccordion = (qid: string) => {
@@ -796,7 +766,7 @@ export function ChangeOfCircumstancesScreen() {
             "Use your completed PIP2, PA4 assessor report, and DWP award or decision letter when you have them — they carry your previous wording and official points. If you do not have copies yet, contact DWP and ask for those three items — many arrive within a few days. You can still continue without uploading: use \"I don't have these documents yet\" on the next step and fill gaps when prompted.",
         },
         { title: 'Medical profile', body: 'Next you’ll open your Medical Profile (same screen as the rest of the app) to confirm conditions and notes — PIPpal uses them to tailor every question.' },
-        { title: 'Start the 12 activities', body: 'See how it works, then work through each activity with your old answers beside you.' },
+        { title: 'My Questions', body: 'When you save your Medical Profile, My Questions opens straight away — no extra screen. Work through all 12 activities with your previous answers beside each one.' },
       ];
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
@@ -1156,12 +1126,10 @@ export function ChangeOfCircumstancesScreen() {
                 Load mock PIP2 + PA4 + award letter
               </button>
               <div className="flex gap-2 flex-wrap">
-                {[4, 5].map(s => (
-                  <button key={s} type="button" onClick={() => setStep(s)}
-                    className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
-                    → Step {s}
-                  </button>
-                ))}
+                <button type="button" onClick={() => setStep(4)}
+                  className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
+                  → Step 4 (Medical redirect)
+                </button>
                 <button type="button" onClick={startQuestions}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
                   → Questions
@@ -1191,61 +1159,6 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 5: How this works ───────────────────────────────────────────────
-    if (step === 5) {
-      return (
-        <div className="space-y-4 px-5 pt-5 pb-28">
-          <div className="bg-teal-700 rounded-2xl p-5 text-white">
-            <h2 className="font-bold text-xl mb-2">Now let's build your answers</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">
-              You'll go through all 12 activities — the same questions as your original form. For each one, we show what you wrote before so you can write something stronger.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
-            <h3 className="font-bold text-stone-900">How this works</h3>
-            {(formType === 'ar1' ? [
-              { title: 'Your previous answer is shown first', body: 'For every activity you\'ll see what you wrote last time — so you know exactly what DWP already has on file.' },
-              { title: 'Focus on what\'s changed', body: 'The AR1 is about updating your record. You can stick to what\'s got worse, more frequent, or harder — there\'s no need to repeat everything DWP already has.' },
-              { title: 'We write the change for you', body: 'PIPpal builds a concise update in the language assessors need — explaining the deterioration clearly and with the right detail.' },
-              { title: 'You can improve it', body: 'Once built, you can tweak every answer before you submit. It\'s your claim — we do the heavy lifting.' },
-              { title: 'Save and come back', body: 'Your answers are saved automatically. One activity at a time is fine if that suits you better.' },
-            ] : [
-              { title: 'Your previous answer is shown first', body: 'For every activity, you\'ll see exactly what was on your original form. This is your starting point.' },
-              { title: 'Tap-through questions', body: 'Simple tap-to-select questions for each activity — no blank boxes to fill in. When you choose, it helps to think about harder days — that\'s what DWP needs to understand.' },
-              { title: 'We write a stronger answer', body: 'PIPpal builds a new answer using your selections — in the language DWP assessors need to see. Better than last time.' },
-              { title: 'You can improve it', body: 'Once built, you can tweak every answer before you submit. It\'s your claim — we do the heavy lifting.' },
-              { title: 'Save and come back', body: 'Your answers are saved automatically. One activity at a time is fine if that suits you better.' },
-            ]).map((tip, i) => (
-              <div key={i} className="flex gap-3">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-black text-white ${formType === 'ar1' ? 'bg-purple-500' : 'bg-teal-600'}`}>{i + 1}</span>
-                <div>
-                  <p className="text-sm font-semibold text-stone-900">{tip.title}</p>
-                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{tip.body}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {formType === 'ar1' && (
-            <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
-              <p className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-1">AR1 tip</p>
-              <p className="text-sm text-purple-900 leading-relaxed">
-                DWP already has your previous answers. Rewriting everything isn&apos;t necessary — a clear explanation of what has changed and why your needs are greater now is enough.
-              </p>
-            </div>
-          )}
-
-          <button type="button" onClick={startQuestions}
-            className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-4 rounded-xl font-bold text-base hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm">
-            Start the 12 activities
-            <ArrowRight className="w-5 h-5" />
-          </button>
-          <p className="text-xs text-stone-400 text-center">You can come back to any activity at any time</p>
-        </div>
-      );
-    }
-
     return null;
   };
 
@@ -1263,7 +1176,7 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Steps 1–3 & 5: inline buttons in content; step 4 redirects to Medical Profile */}
+      {/* Steps 1–3: inline buttons; step 4 spinner then Medical Profile */}
     </div>
   );
 }

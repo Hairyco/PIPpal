@@ -26,6 +26,7 @@ import {
   Shield,
   Newspaper,
   Rss,
+  ScrollText,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -50,6 +51,7 @@ import { QuestionChat } from './components/QuestionChat';
 import { QuestionFlow } from './components/QuestionFlow';
 import { ResultCard } from './components/ResultCard';
 import { QuestionIndex } from './components/QuestionIndex';
+import { AnswersReviewScreen } from './components/AnswersReviewScreen';
 import { NewClaimIntro } from './components/NewClaimIntro';
 import { ClaimProcess } from './components/ClaimProcess';
 import { DescriptorsGuide } from './components/DescriptorsGuide';
@@ -260,6 +262,7 @@ function AppContent() {
       case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
       case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
       case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
+      case 'answers_review': return hasPaid ? <AnswersReviewScreen /> : <UpsellScreen />;
       case 'new_claim_intro': return hasPaid ? <NewClaimIntro /> : <UpsellScreen />;
       case 'claim_process': return hasPaid ? <ClaimProcess /> : <UpsellScreen />;
       case 'descriptors_guide': return hasPaid ? <DescriptorsGuide /> : <UpsellScreen />;
@@ -424,6 +427,7 @@ function AppContent() {
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
                       <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} />
+                      <NavItem icon={ScrollText} label="Review answers" screen="answers_review" badge={!hasPaid ? "PRO" : undefined} />
                       {hasPaid && (
                         <>
                           <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />

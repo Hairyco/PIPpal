@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Plus, Check, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAppContext, Condition } from './AppContext';
 import { supabase } from '../supabaseClient';
+import { COC_POST_MEDICAL_SNAPSHOT_KEY, COC_MEDICAL_EXPECTED_KEY } from '../cocMedicalSnapshot';
 
 const PRESET_CONDITIONS = [
   'Anxiety disorder',
@@ -27,7 +28,7 @@ const PRESET_CONDITIONS = [
 ];
 
 export function MedicalProfile() {
-  const { medProfile, setMedProfile, navigateTo, goBack, user, showToast } = useAppContext();
+  const { medProfile, setMedProfile, goBack, user, showToast, tryFinishCocAfterMedicalSave } = useAppContext();
   const [conditions, setConditions] = useState<Condition[]>(medProfile.conditions);
   const [customCondition, setCustomCondition] = useState('');
   const [medications, setMedications] = useState(medProfile.medications);
@@ -89,13 +90,36 @@ export function MedicalProfile() {
     setConditions(conditions.map((c) => c.name === name ? { ...c, [field]: value } : c));
   };
 
+  // Drop stale CoC snapshot unless we arrived from that flow (avoids consuming wrong snapshot later)
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) !== '1') {
+        sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleBack = () => {
+    try {
+      sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+      sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+    } catch {
+      /* ignore */
+    }
+    goBack();
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     const profile = { conditions, medications, notes };
     setMedProfile(profile);
     showToast('Medical profile saved!', 'success');
-    // Return to wherever the user came from; save to Supabase in background
-    setTimeout(() => goBack(), 300);
+    setTimeout(() => {
+      if (tryFinishCocAfterMedicalSave()) return;
+      goBack();
+    }, 300);
     if (user?.id) {
       const saveAsync = async () => {
         try {
@@ -128,7 +152,7 @@ export function MedicalProfile() {
     <div className="flex flex-col h-full bg-stone-50">
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
         <button
-          onClick={goBack}
+          onClick={handleBack}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all"
         >
           <ArrowLeft className="w-5 h-5" />

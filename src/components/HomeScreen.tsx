@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
+import { questionHasStoredAnswer } from './AnswersReviewScreen';
 
 interface NavCardProps {
   title: string;
@@ -76,7 +77,7 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 }
 
 export function HomeScreen() {
-  const { medProfile, navigateTo, user, hasPaid, savedAnswers, setSelectedQuestionId } = useAppContext();
+  const { medProfile, navigateTo, user, hasPaid, savedAnswers, savedAnswerDetails, setSelectedQuestionId } = useAppContext();
   const [newsHeadlines, setNewsHeadlines] = useState<string[]>([]);
   const [tickerIndex, setTickerIndex] = useState(0);
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -104,6 +105,9 @@ export function HomeScreen() {
   const firstName = user?.name ? user.name.split(' ')[0] : '';
   const pipActivityIds = PIP_QUESTIONS.map(q => q.id);
   const answeredActivityCount = pipActivityIds.filter(id => !!savedAnswers[id]).length;
+  const hasExportableAnswers = PIP_QUESTIONS.some((q) =>
+    questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails),
+  );
 
   // Resume state — set when user navigates to dashboard mid-question
   const [resumeData, setResumeData] = useState<{ questionId: string; step: number | string; title: string } | null>(() => {
@@ -222,6 +226,16 @@ export function HomeScreen() {
             </div>
             <ChevronRight className="w-5 h-5 text-stone-400 shrink-0 ml-2" />
           </button>
+          {hasPaid && hasExportableAnswers && (
+            <button
+              type="button"
+              onClick={() => navigateTo('answers_review')}
+              className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-teal-100 bg-teal-50/80 text-teal-800 text-xs font-bold hover:bg-teal-50 transition-colors active:scale-[0.98]"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Review & download saved answers
+            </button>
+          )}
         </section>
 
         {/* Medical profile */}

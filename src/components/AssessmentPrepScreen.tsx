@@ -286,14 +286,23 @@ function SnapshotView({ onBack, navigateTo }: { onBack: () => void; navigateTo: 
         </div>
 
         {/* Expand all toggle */}
-        <div className="flex items-center justify-between px-1">
+        <div className="flex items-center justify-between px-1 gap-3 flex-wrap">
           <p className="text-xs font-bold text-stone-500 uppercase tracking-wide">Your activities</p>
-          <button
-            onClick={() => setExpandAll(e => !e)}
-            className="text-xs font-semibold text-teal-600 hover:text-teal-700"
-          >
-            {expandAll ? 'Collapse all' : 'Expand all'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigateTo('answers_review')}
+              className="text-xs font-semibold text-teal-600 hover:text-teal-700 whitespace-nowrap"
+            >
+              Answer pack · download
+            </button>
+            <button
+              onClick={() => setExpandAll(e => !e)}
+              className="text-xs font-semibold text-teal-600 hover:text-teal-700 whitespace-nowrap"
+            >
+              {expandAll ? 'Collapse all' : 'Expand all'}
+            </button>
+          </div>
         </div>
 
         {/* Daily Living */}

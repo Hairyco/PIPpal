@@ -8,9 +8,11 @@ import {
   TrendingUp,
   BookOpen,
   Mic,
+  Download,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
+import { questionHasStoredAnswer } from './AnswersReviewScreen';
 
 export function QuestionIndex() {
   const {
@@ -21,6 +23,7 @@ export function QuestionIndex() {
     setSelectedQuestionId,
     cocMode,
     cocWalkthroughAnsweredIds,
+    savedAnswerDetails,
   } = useAppContext();
 
   const totalQuestions = PIP_QUESTIONS.length;
@@ -30,6 +33,10 @@ export function QuestionIndex() {
   const allQuestionsComplete = cocMode ? cocWalkthroughCount >= totalQuestions : answeredCount >= totalQuestions;
 
   const totalPoints = getTotalPoints(savedAnswers);
+
+  const storedActivitiesCount = PIP_QUESTIONS.filter((q) =>
+    questionHasStoredAnswer(q, savedAnswers, savedAnswerDetails),
+  ).length;
 
   const dailyLiving = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
@@ -148,6 +155,26 @@ export function QuestionIndex() {
 
         <div className="px-5 md:px-8 py-6 space-y-6">
 
+          {/* Saved answers — review & export (partial or complete) */}
+          {storedActivitiesCount >= 1 && (
+            <button
+              type="button"
+              onClick={() => navigateTo('answers_review')}
+              className="w-full flex items-start gap-3 bg-white border border-teal-200 rounded-2xl p-4 text-left hover:bg-teal-50/50 hover:border-teal-300 active:scale-[0.98] transition-all shadow-sm"
+            >
+              <div className="w-9 h-9 bg-teal-600 rounded-xl flex items-center justify-center shrink-0">
+                <Download className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-teal-900 text-sm mb-0.5">Review & download your answers</p>
+                <p className="text-xs text-teal-800/90 leading-relaxed">
+                  See all {PIP_QUESTIONS.length} activities with saved wording underneath — works with partial progress. Export as a text file or copy everything.
+                </p>
+              </div>
+              <ChevronRight className="w-4 h-4 text-teal-400 shrink-0 mt-1" />
+            </button>
+          )}
+
           {/* Assessment Prep CTA — hidden in CoC mode */}
           {answeredCount >= 1 && !cocMode && (
             <button
@@ -172,18 +199,25 @@ export function QuestionIndex() {
               <div className="bg-emerald-600 rounded-2xl p-5 text-white shadow-sm">
                 <p className="font-bold text-base mb-1">All 12 questions complete!</p>
                 <p className="text-emerald-100 text-xs leading-relaxed mb-4">Well done. Your answers are saved. Takes 30 seconds — let us know how it went.</p>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={() => navigateTo('survey')}
                     className="flex-1 bg-white text-emerald-700 py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-50 transition-colors active:scale-[0.98]"
                   >
                     Leave feedback
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => navigateTo('answers_review')}
+                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98]"
+                  >
+                    View answer pack
+                  </button>
                   <a
                     href="https://uk.trustpilot.com/review/pippal.uk"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98] block"
+                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98] block sm:flex sm:items-center sm:justify-center"
                   >
                     ⭐ Trustpilot
                   </a>
