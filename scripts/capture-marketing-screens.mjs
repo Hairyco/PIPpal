@@ -67,12 +67,12 @@ try {
     ['screenshot=home', 'home-screen.png'],
     ['screenshot=answers_review', 'answers-prep-screen.png'],
     ['screenshot=draft_answer', 'draft-answer-screen.png'],
-    ['screenshot=coc_step3', 'coc-pip2-pa4-screen.png'],
+    // coc-pip2-pa4-screen.png — hand-curated (CoC compare UI); not auto-captured
   ];
 
   for (const [query, file] of shots) {
     await page.goto(`${base}/?${query}`, { waitUntil: 'load' });
-    await page.waitForTimeout(query.startsWith('screenshot=coc') ? 2000 : 1200);
+    await page.waitForTimeout(1200);
     await page.screenshot({ path: join(outDir, file), fullPage: true });
     console.log('Wrote', join('public/marketing', file));
   }
