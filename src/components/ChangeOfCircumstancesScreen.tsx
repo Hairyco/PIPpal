@@ -562,6 +562,20 @@ export function ChangeOfCircumstancesScreen() {
     setExpandedActivityId(null);
   };
 
+  useLayoutEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (new URLSearchParams(window.location.search).get('screenshot') !== 'coc_step3') return;
+    setStep(3);
+    setFormType('pip2');
+    loadMockForm();
+    setDocumentsUploadOpen(false);
+    setNoForm(false);
+    setExpandedSection('daily');
+    setExpandedActivityId('q1');
+    sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot marketing capture via ?screenshot=coc_step3
+  }, []);
+
   async function readFilesToBase64List(files: File[]): Promise<{ name: string; base64: string; mimeType: string; size: number }[]> {
     return Promise.all(files.map(file =>
       new Promise<{ name: string; base64: string; mimeType: string; size: number }>(resolve => {

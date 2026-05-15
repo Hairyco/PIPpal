@@ -3,6 +3,8 @@
  * Usage: node scripts/capture-marketing-screens.mjs
  *
  * Requires: npm install (playwright). Run once: npx playwright install chromium
+ *
+ * Env: CAPTURE_PORT (default 5930). If the port is busy, set CAPTURE_PORT to another value.
  */
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
@@ -65,11 +67,12 @@ try {
     ['screenshot=home', 'home-screen.png'],
     ['screenshot=answers_review', 'answers-prep-screen.png'],
     ['screenshot=draft_answer', 'draft-answer-screen.png'],
+    ['screenshot=coc_step3', 'coc-pip2-pa4-screen.png'],
   ];
 
   for (const [query, file] of shots) {
     await page.goto(`${base}/?${query}`, { waitUntil: 'load' });
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(query.startsWith('screenshot=coc') ? 2000 : 1200);
     await page.screenshot({ path: join(outDir, file), fullPage: true });
     console.log('Wrote', join('public/marketing', file));
   }

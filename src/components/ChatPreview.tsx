@@ -24,6 +24,11 @@ const SLIDES = [
     headerLabel: 'Draft answer',
     caption: 'Draft answer',
   },
+  {
+    src: '/marketing/coc-pip2-pa4-screen.png',
+    headerLabel: 'Answers & documents',
+    caption: 'Change of circumstances · PIP2 & assessor',
+  },
 ] as const;
 
 export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
