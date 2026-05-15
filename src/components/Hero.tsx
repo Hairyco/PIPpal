@@ -15,6 +15,7 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
+    { text: 'Built from patterns in previously awarded PIP claims' },
     { text: 'Guides you through all 12 PIP questions' },
     { text: 'Answers original & unique — every time' },
     { text: 'Complete in 15–30 minutes' },

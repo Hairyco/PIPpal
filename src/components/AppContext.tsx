@@ -6,6 +6,7 @@ import {
   computeCocSessionFromSnapshot,
   type CocMedicalSnapshot,
 } from '../cocMedicalSnapshot';
+import { PIP_QUESTIONS } from '../pipQuestions';
 
 export type Screen =
   | 'landing'
@@ -52,6 +53,34 @@ export type Screen =
   | 'pip_benefits'
   | 'assessment_mock'
   | 'survey';
+
+/** Dev-only: `/?screenshot=…` for marketing captures (see `scripts/capture-marketing-screens.mjs`). */
+type DevScreenshot = { screen: Screen; seedReviewAnswers: boolean; seedDraftAnswer: boolean };
+
+function readDevScreenshot(): DevScreenshot | null {
+  if (!import.meta.env.DEV) return null;
+  const v = new URLSearchParams(window.location.search).get('screenshot');
+  if (v === 'home') return { screen: 'home', seedReviewAnswers: false, seedDraftAnswer: false };
+  if (v === 'answers_review') return { screen: 'answers_review', seedReviewAnswers: true, seedDraftAnswer: false };
+  if (v === 'draft_answer' || v === 'q1_result')
+    return { screen: 'q1_result', seedReviewAnswers: false, seedDraftAnswer: true };
+  return null;
+}
+
+function buildDevScreenshotAnswerPacks(): {
+  savedAnswers: Record<string, string>;
+  savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }>;
+} {
+  const savedAnswers: Record<string, string> = {};
+  const savedAnswerDetails: Record<string, { difficulties: string[]; answerText?: string }> = {};
+  for (const q of PIP_QUESTIONS) {
+    savedAnswerDetails[q.id] = {
+      difficulties: ['Pain', 'Fatigue'],
+      answerText: `Example worst-day wording for ${q.shortTitle} — illustrative draft text only.`,
+    };
+  }
+  return { savedAnswers, savedAnswerDetails };
+}
 
 export interface User {
   name: string;
@@ -199,6 +228,25 @@ export function parseBlogPath(): BlogPathParse {
 
 export function AppProvider({ children }: { children: ReactNode }) {
 
+  const [{ devScreenshot, demoAnswers, draftAnswerSeed }] = useState(() => {
+    const shot = readDevScreenshot();
+    const draft =
+      shot?.seedDraftAnswer
+        ? {
+            descriptor: 'E',
+            points: 4,
+            label: 'Needs supervision or assistance',
+            text:
+              'I need someone with me when I cook because I often forget the hob is on and I cannot stand long enough to finish a meal without pain.',
+          }
+        : null;
+    return {
+      devScreenshot: shot,
+      demoAnswers: shot?.seedReviewAnswers ? buildDevScreenshotAnswerPacks() : null,
+      draftAnswerSeed: draft,
+    };
+  });
+
   // Read Supabase session from localStorage instantly — no network call needed
   const getInitialSession = () => {
     try {
@@ -213,12 +261,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return null;
     }
   };
-  const initialSessionUser = getInitialSession();
+  const initialSessionUser = devScreenshot ? null : getInitialSession();
   // If URL has a code param, Supabase needs to process it — show loading
   const hasAuthCode = window.location.search.includes('code=');
 
   const blogPath = !hasAuthCode ? parseBlogPath() : null;
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
+    if (devScreenshot) return devScreenshot.screen;
     if (blogPath?.type === 'blog') return 'blog';
     if (blogPath?.type === 'blog_post') return 'blog_post';
     return initialSessionUser && !hasAuthCode ? 'home' : 'landing';
@@ -226,15 +275,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
   const [isLoading, setIsLoading] = useState(hasAuthCode);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [user, setUser] = useState<User | null>(initialSessionUser ? {
-    name: initialSessionUser.user_metadata?.name || initialSessionUser.email?.split('@')[0] || '',
-    email: initialSessionUser.email || '',
-    id: initialSessionUser.id,
-  } : null);
+  const [user, setUser] = useState<User | null>(() => {
+    if (devScreenshot) return { name: 'Jamie', email: 'jamie@example.com', id: 'dev-screenshot' };
+    return initialSessionUser
+      ? {
+          name: initialSessionUser.user_metadata?.name || initialSessionUser.email?.split('@')[0] || '',
+          email: initialSessionUser.email || '',
+          id: initialSessionUser.id,
+        }
+      : null;
+  });
   const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
   const emailIsAdmin = (email: string) => email === ADMIN_EMAIL || email === 'daley_cutler@hotmail.co.uk';
 
-  const [hasPaid, setHasPaidState] = useState<boolean>(() => loadFromStorage('pippal_paid_cache', false));
+  const [hasPaid, setHasPaidState] = useState<boolean>(() => (devScreenshot ? true : loadFromStorage('pippal_paid_cache', false)));
 
   const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
     loadFromStorage('pippal_med_profile', {
@@ -246,7 +300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [badDayMode, setBadDayMode] = useState(false);
   const [descriptorHint, setDescriptorHint] = useState<string | null>(null);
-  const [q1Result, setQ1Result] = useState<any>(null);
+  const [q1Result, setQ1Result] = useState<any>(() => draftAnswerSeed);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string>('q1');
   const [assistantQuestion, setAssistantQuestion] = useState<string | null>(null);
   const [assistantContext, setAssistantContext] = useState<string | null>(null);
@@ -256,14 +310,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
-    loadFromStorage('pippal_answers', {})
+    demoAnswers ? demoAnswers.savedAnswers : loadFromStorage('pippal_answers', {}),
   );
 
   const [savedAnswerDetails, setSavedAnswerDetails] = useState<Record<string, { difficulties: string[]; answerText?: string }>>(() =>
-    loadFromStorage('pippal_answer_details', {}),
+    demoAnswers ? demoAnswers.savedAnswerDetails : loadFromStorage('pippal_answer_details', {}),
   );
 
   const [savedAnswersNewClaim, setSavedAnswersNewClaim] = useState<Record<string, string>>(() => {
+    if (demoAnswers) return { ...demoAnswers.savedAnswers };
     const bucket = loadFromStorage('pippal_answers_new_claim', {});
     if (Object.keys(bucket).length > 0) return bucket;
     return loadFromStorage('pippal_answers', {});
@@ -272,6 +327,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [savedAnswerDetailsNewClaim, setSavedAnswerDetailsNewClaim] = useState<
     Record<string, { difficulties: string[]; answerText?: string }>
   >(() => {
+    if (demoAnswers) return { ...demoAnswers.savedAnswerDetails };
     const bucket = loadFromStorage('pippal_answer_details_new_claim', {});
     if (Object.keys(bucket).length > 0) return bucket;
     return loadFromStorage('pippal_answer_details', {});
@@ -340,6 +396,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => { saveToStorage('pippal_paid_cache', hasPaid); }, [hasPaid]);
 
   useEffect(() => {
+    if (devScreenshot) {
+      setIsLoading(false);
+      return;
+    }
+
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -538,7 +599,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [devScreenshot]);
 
   const setHasPaid = async (paid: boolean) => {
     setHasPaidState(paid);

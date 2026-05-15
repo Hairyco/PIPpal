@@ -1,103 +1,153 @@
-import React from 'react';
-import { ArrowRight, MessageSquare, HeartHandshake } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { ArrowRight, MessageSquare, HeartHandshake, Star } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+
 interface ChatPreviewProps {
   onStart: () => void;
 }
+
+const SLIDES = [
+  {
+    src: '/marketing/home-screen.png',
+    headerLabel: 'Home',
+    caption: 'Home',
+  },
+  {
+    src: '/marketing/answers-prep-screen.png',
+    headerLabel: 'Your answers',
+    caption: 'Your answers prep',
+  },
+  {
+    src: '/marketing/draft-answer-screen.png',
+    headerLabel: 'Draft answer',
+    caption: 'Draft answer',
+  },
+] as const;
+
 export function ChatPreview({ onStart }: ChatPreviewProps) {
+  const [index, setIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % SLIDES.length);
+    }, 5500);
+    return () => window.clearInterval(id);
+  }, [reduceMotion]);
+
+  const slide = SLIDES[index];
+
   return (
     <section className="px-5 md:px-8 py-8">
-      <div className="text-center mb-5">
-        <h2 className="text-xl font-bold text-stone-900 mb-1">
-          See PIPpal in action
-        </h2>
-        <p className="text-stone-500 text-sm">
-          Tap your answers. We write your PIP form responses.
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-bold text-stone-900 mb-1">See PIPpal in action</h2>
+        <p className="text-stone-500 text-sm max-w-md mx-auto">
+          Tap your answers. We write your PIP form responses — then review and export when you&apos;re ready.
         </p>
       </div>
 
-      {/* Chat Mockup */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden mb-5">
-        {/* Mini Header */}
-        <div className="bg-teal-700 px-4 py-2.5 flex items-center gap-2">
-          <HeartHandshake className="w-4 h-4 text-white" />
-          <span className="text-white text-xs font-bold">PIPpal Assistant</span>
-          <span className="text-teal-200 text-[10px] ml-auto">
-            Q11: Planning Journeys
-          </span>
-        </div>
+      {/* Device frame + gallery */}
+      <div className="max-w-sm mx-auto mb-6">
+        <div className="rounded-[2rem] border-[6px] border-stone-800/95 bg-stone-900 p-1 shadow-2xl ring-1 ring-black/10">
+          <div className="rounded-[1.5rem] overflow-hidden bg-stone-100">
+            {/* Mini app bar — echoes the original chat mock */}
+            <div className="bg-teal-700 px-3 py-2.5 flex items-center gap-2 text-white">
+              <HeartHandshake className="w-4 h-4 shrink-0" />
+              <span className="text-xs font-bold tracking-tight">PIPpal</span>
+              <span className="text-[10px] text-teal-100 ml-auto truncate max-w-[10rem]">{slide.headerLabel}</span>
+            </div>
 
-        {/* Chat Messages */}
-        <div className="p-4 space-y-3 bg-stone-50">
-          {/* Bot message */}
-          <div className="flex justify-start">
-            <div className="max-w-[80%] bg-white rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs text-stone-800 leading-relaxed border border-stone-100 shadow-sm">
-              Let's talk about planning and following journeys. Can you plan a
-              route to somewhere on your own?
-            </div>
-          </div>
-
-          {/* User response */}
-          <div className="flex justify-end">
-            <div className="max-w-[75%] bg-teal-700 rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-xs text-white leading-relaxed">
-              Sometimes, but I struggle
-            </div>
-          </div>
-
-          {/* Bot follow-up */}
-          <div className="flex justify-start">
-            <div className="max-w-[80%] bg-white rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs text-stone-800 leading-relaxed border border-stone-100 shadow-sm">
-              What mainly causes you to struggle? Is it anxiety/distress, or
-              physical difficulties?
-            </div>
-          </div>
-
-          {/* Tap options */}
-          <div className="space-y-1.5 pl-1">
-            <div className="bg-white rounded-lg px-3 py-2 text-xs font-medium text-stone-700 border border-stone-200 shadow-sm inline-block">
-              Mainly anxiety or distress
-            </div>
-            <div className="bg-white rounded-lg px-3 py-2 text-xs font-medium text-stone-700 border border-stone-200 shadow-sm inline-block">
-              Mainly physical or cognitive
-            </div>
-          </div>
-        </div>
-
-        {/* Result Preview Strip */}
-        <div className="bg-emerald-50 border-t border-emerald-100 px-4 py-3 flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-emerald-700 font-black text-xs">10</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-              Your generated answer
-            </div>
-            <div className="text-[10px] text-emerald-700 truncate">
-              Tailored to your condition, using DWP language...
+            <div className="relative h-[min(58vh,440px)] sm:h-[440px] overflow-hidden bg-stone-200/80">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={slide.src}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0, x: reduceMotion ? 0 : 28 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: reduceMotion ? 0 : -28 }}
+                  transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {reduceMotion ? (
+                    <img
+                      src={slide.src}
+                      alt={slide.caption}
+                      className="w-full min-h-[112%] object-cover object-top select-none pointer-events-none block"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                    />
+                  ) : (
+                    <motion.img
+                      src={slide.src}
+                      alt={slide.caption}
+                      className="w-full min-h-[112%] object-cover object-top select-none pointer-events-none block"
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      animate={{
+                        y: [0, -36, 0],
+                      }}
+                      transition={{
+                        duration: 14,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
+
+        <div className="flex justify-center items-center gap-2 mt-4">
+          {SLIDES.map((s, i) => (
+            <button
+              key={s.src}
+              type="button"
+              onClick={() => setIndex(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === index ? 'w-7 bg-teal-600' : 'w-2 bg-stone-300 hover:bg-stone-400'
+              }`}
+              aria-label={`Show ${s.caption}`}
+              aria-current={i === index ? 'true' : undefined}
+            />
+          ))}
+        </div>
+        <p className="text-center text-[11px] text-stone-500 mt-2 font-medium">{slide.caption}</p>
       </div>
 
-      {/* Caption + CTA */}
-      <div className="bg-stone-100 rounded-2xl p-4 flex items-center gap-3">
+      {/* Info strip */}
+      <div className="bg-stone-100 rounded-2xl p-4 flex items-center gap-3 mb-4">
         <div className="w-10 h-10 bg-teal-50 rounded-full flex items-center justify-center shrink-0">
           <MessageSquare className="w-5 h-5 text-teal-600" />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="text-xs text-stone-700 font-medium leading-relaxed">
-            Just tap your answers — we generate form-ready responses written in
-            the exact format the DWP scores against.
+            Just tap your answers — we generate form-ready responses written in the format the DWP scores
+            against. Polish each draft, then keep everything in Your answers prep.
           </p>
         </div>
       </div>
 
-      <button
-        onClick={onStart}
-        className="w-full mt-4 bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm">
-        
-        Try it yourself
-        <ArrowRight className="w-4 h-4" />
-      </button>
-    </section>);
-
+      <div className="relative">
+        <button
+          type="button"
+          onClick={onStart}
+          className="relative z-10 w-full bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm pr-12"
+        >
+          Try it yourself
+          <ArrowRight className="w-4 h-4" />
+        </button>
+        <div
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg ring-2 ring-white"
+          aria-hidden
+        >
+          <MessageSquare className="w-5 h-5" />
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-sm">
+            <Star className="w-2.5 h-2.5 fill-amber-600 text-amber-600" strokeWidth={1.5} />
+          </span>
+        </div>
+      </div>
+    </section>
+  );
 }
