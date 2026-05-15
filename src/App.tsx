@@ -310,11 +310,11 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
+              <ChatPreview onStart={() => handleNavigate('home')} />
               <ClaimSelector onSelect={handleNavigate} />
 
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               <HowItWorks />
-              <ChatPreview onStart={() => handleNavigate('home')} />
               <section
                 id="free-tools"
                 className="px-5 md:px-8 py-8 bg-stone-100/50 border-y border-stone-200/50 my-4"
