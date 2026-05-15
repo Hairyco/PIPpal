@@ -4,6 +4,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface ChatPreviewProps {
   onStart: () => void;
+  /** When nested inside another padded section (e.g. What is PIP), skip outer horizontal padding */
+  embedded?: boolean;
 }
 
 const SLIDES = [
@@ -24,7 +26,7 @@ const SLIDES = [
   },
 ] as const;
 
-export function ChatPreview({ onStart }: ChatPreviewProps) {
+export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
   const [index, setIndex] = useState(0);
   const reduceMotion = useReducedMotion();
 
@@ -38,8 +40,13 @@ export function ChatPreview({ onStart }: ChatPreviewProps) {
 
   const slide = SLIDES[index];
 
+  const Shell = embedded ? 'div' : 'section';
+
   return (
-    <section className="px-5 md:px-8 py-8">
+    <Shell
+      className={embedded ? 'py-8' : 'px-5 md:px-8 py-8'}
+      {...(embedded ? ({ role: 'region', 'aria-label': 'See PIPpal in action' } as const) : {})}
+    >
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-stone-900 mb-1">See PIPpal in action</h2>
         <p className="text-stone-500 text-sm max-w-md mx-auto">
@@ -148,6 +155,6 @@ export function ChatPreview({ onStart }: ChatPreviewProps) {
           </span>
         </div>
       </div>
-    </section>
+    </Shell>
   );
 }

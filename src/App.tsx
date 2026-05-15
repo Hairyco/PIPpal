@@ -32,7 +32,6 @@ import { Hero } from './components/Hero';
 import { WhatIsPIP } from './components/WhatIsPIP';
 import { ClaimSelector } from './components/ClaimSelector';
 import { EligibilityBanner } from './components/EligibilityBanner';
-import { ChatPreview } from './components/ChatPreview';
 import { ValueProp } from './components/ValueProp';
 import { TimelineCalculator } from './components/TimelineCalculator';
 import { PaymentCalculator } from './components/PaymentCalculator';
@@ -309,8 +308,10 @@ function AppContent() {
             <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
-              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
-              <ChatPreview onStart={() => handleNavigate('home')} />
+              <WhatIsPIP
+                onEligibility={() => handleNavigate('eligibility')}
+                onStart={() => handleNavigate('home')}
+              />
               <ClaimSelector onSelect={handleNavigate} />
 
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
