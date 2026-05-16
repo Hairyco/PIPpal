@@ -56,37 +56,17 @@ export function Hero({ onStart }: HeroProps) {
         style={{ transitionDelay: '160ms' }}
       >
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
-          {/* Green strip — social proof */}
-          <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-3 text-center">
+          {/* Green strip */}
+          <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-4 text-center">
             <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims · 1,200+ applicants this month</p>
           </div>
 
-          {/* Avatar row + stars */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[
-                  { bg: 'bg-[#c68642]', initials: 'SK' },
-                  { bg: 'bg-[#f1c27d]', initials: 'LM' },
-                  { bg: 'bg-[#8d5524]', initials: 'AJ' },
-                  { bg: 'bg-[#e8b89a]', initials: 'RK' },
-                  { bg: 'bg-[#a0522d]', initials: 'TH' },
-                ].map((a,i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[9px] font-bold shrink-0`}>
-                    {a.initials}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-stone-500">1,200+ this month</p>
-            </div>
-            <div className="flex items-center gap-0.5">
-              {'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-base leading-none">{s}</span>)}
-            </div>
-          </div>
           <div className="space-y-3 mb-5 text-left">
             {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
                 <span className="text-sm text-stone-700">{check.text}</span>
               </div>
             ))}
