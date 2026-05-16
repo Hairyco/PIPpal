@@ -595,15 +595,31 @@ export function EligibilityChecker() {
             </div>
 
             <p className="text-sm text-stone-600 leading-relaxed">
-              PIP is a tax-free benefit for people aged 16–66 with a long-term
-              health condition or disability that affects daily life. Over 3.9
-              million people in the UK currently claim it. It's not means-tested
-              — you can claim whether you're employed, self-employed, or not
-              working. Your income and savings do not affect it.
+              <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a long-term health condition or disability makes everyday tasks or getting about harder. It&apos;s for people aged{' '}
+              <strong className="text-stone-900">16 or over</strong> and under{' '}
+              <strong className="text-stone-900">State Pension age</strong>. You can receive up to{' '}
+              <strong className="text-stone-900">£843 a month</strong>, and it is{' '}
+              <strong className="text-stone-900">not means-tested</strong> — your income or job doesn&apos;t decide whether you qualify.
             </p>
             <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5">
-              <p className="text-xs text-teal-900 leading-relaxed"><strong>You don't need to be physically disabled or severely ill to qualify.</strong> Mental health conditions, chronic pain, fatigue, anxiety and hidden conditions all count — it's about how your condition affects your daily life, not your diagnosis.</p>
+              <p className="text-xs text-teal-900 leading-relaxed">
+                <strong>You don&apos;t need a formal diagnosis.</strong> Mental health conditions, chronic pain, fatigue and other hidden difficulties count — assessors look at{' '}
+                <strong>how you are affected day to day</strong>. Official figures suggest roughly{' '}
+                <strong>one in three</strong> new claims are awarded, so describing a typical difficult day clearly and honestly really matters.
+              </p>
             </div>
+            <p className="text-[11px] text-stone-500 mt-2 leading-relaxed">
+              Numbers change each quarter — see DWP{' '}
+              <a
+                href="https://www.gov.uk/government/collections/personal-independence-payment-statistics"
+                className="text-teal-700 font-semibold underline underline-offset-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Personal Independence Payment statistics
+              </a>{' '}
+              on GOV.UK.
+            </p>
           </div>
 
           {/* Did You Know */}
@@ -662,9 +678,7 @@ export function EligibilityChecker() {
               It's not just for physical conditions
             </h3>
             <p className="text-xs text-indigo-800 leading-relaxed mb-3">
-              <strong>39% of all PIP claims</strong> are for psychiatric or
-              neurodivergent conditions. If your condition affects your daily
-              life, you may qualify — even without a formal diagnosis.
+              <strong>39% of all PIP claims</strong> are for psychiatric or neurodivergent conditions. If your condition substantially affects everyday life, you may qualify — explore below.
             </p>
             <div className="flex flex-wrap gap-1.5">
               {[

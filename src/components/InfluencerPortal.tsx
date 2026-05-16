@@ -104,6 +104,7 @@ export function InfluencerPortal() {
             <p>2. Send them this URL: <span className="font-mono bg-white px-2 py-0.5 rounded font-bold">pippal.uk?partner=true</span></p>
             <p>3. They enter their unique code to see their stats</p>
             <p>4. Their referral link is: <span className="font-mono bg-white px-2 py-0.5 rounded font-bold">pippal.uk?promo=THEIRCODE</span></p>
+            <p>5. PIPpal will ask for UK bank details separately — <span className="font-bold">in private</span> — before paying commission.</p>
           </div>
         </div>
 

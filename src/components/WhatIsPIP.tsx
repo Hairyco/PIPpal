@@ -47,25 +47,22 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          Personal Independence Payment is a tax-free government benefit for people whose health condition or disability affects their daily life. It&apos;s worth up to <strong className="text-stone-900">£843 a month</strong> and is not means-tested — it doesn&apos;t matter how much you earn or whether you work.
+          <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">£843 a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — your income or job doesn&apos;t decide whether you qualify.
         </p>
-        <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          It helps many people with long-term conditions get extra support — but <strong className="text-stone-900">DWP figures are stark</strong>: for the quarter to January 2026 only <strong className="text-stone-900">35%</strong> of new claims were awarded, down from <strong className="text-stone-900">43%</strong> a year earlier, with <strong className="text-stone-900">most applications still unsuccessful</strong>. <strong className="text-stone-900">How clearly you describe day-to-day difficulties on the form</strong> helps assessors award fairly.
-        </p>
-        <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          <strong className="text-stone-900">You do not need a formal diagnosis to apply for PIP.</strong> PIP looks at how your condition or symptoms affect you day-to-day.
+        <p className="text-sm text-stone-600 leading-relaxed mb-4">
+          <strong className="text-stone-900">You don&apos;t need a formal diagnosis:</strong> what matters is how you are affected day to day. Official statistics show roughly <strong className="text-stone-900">one in three</strong> new claims are awarded — so explaining a typical difficult day thoroughly and honestly on the form really counts.
         </p>
         <p className="text-[11px] text-stone-500 leading-relaxed mb-4">
-          Official figures change each quarter — see the latest DWP statistical summaries on{' '}
+          Numbers change each quarter. See DWP{' '}
           <a
             href="https://www.gov.uk/government/collections/personal-independence-payment-statistics"
             className="text-teal-700 font-semibold hover:text-teal-800 underline underline-offset-2"
             target="_blank"
             rel="noopener noreferrer"
           >
-            gov.uk
-          </a>
-          .
+            Personal Independence Payment statistics
+          </a>{' '}
+          on GOV.UK.
         </p>
         <div className="bg-stone-50 rounded-xl px-4 py-3">
           <p className="text-xs font-semibold text-stone-500 mb-2">Conditions that often qualify</p>
@@ -81,8 +78,8 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
       </div>
 
       {/* Why PIPpal */}
-      <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>
-      <p className="text-stone-500 text-sm mb-4">PIPpal is built around the things people find hardest.</p>
+      <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first-time applicants</h2>
+      <p className="text-stone-500 text-sm mb-4">Focused on what people find hardest.</p>
       <div className="space-y-3">
         {points.map((p, i) => (
           <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">

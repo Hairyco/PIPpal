@@ -34,6 +34,9 @@ interface InfluencerCode {
   created_at: string;
   commission_rate: number;
   email: string;
+  payout_account_name?: string | null;
+  payout_sort_code?: string | null;
+  payout_account_number?: string | null;
 }
 
 interface UserRow {
@@ -148,6 +151,9 @@ export function AdminDashboard() {
         gross: gross.toFixed(2),
         rate,
         commission: commission.toFixed(2),
+        payout_account_name: influencer?.payout_account_name || '',
+        payout_sort_code: influencer?.payout_sort_code || '',
+        payout_account_number: influencer?.payout_account_number || '',
       };
     });
 
@@ -158,9 +164,19 @@ export function AdminDashboard() {
   const [newInfluencerName, setNewInfluencerName] = useState('');
   const [newInfluencerCode, setNewInfluencerCode] = useState('');
   const [newInfluencerEmail, setNewInfluencerEmail] = useState('');
+  /** Optional — add when they supply BACS details securely */
+  const [newPayoutAccountName, setNewPayoutAccountName] = useState('');
+  const [newPayoutSortCode, setNewPayoutSortCode] = useState('');
+  const [newPayoutAccountNumber, setNewPayoutAccountNumber] = useState('');
   const [newCommissionRate, setNewCommissionRate] = useState('20');
   const [addingInfluencer, setAddingInfluencer] = useState(false);
   const [addError, setAddError] = useState('');
+  const [expandedPayoutInfId, setExpandedPayoutInfId] = useState<string | null>(null);
+  const [savingPayoutFields, setSavingPayoutFields] = useState(false);
+  /** Draft while editing payout row ([id] keyed not needed — single expanding row) */
+  const [editPayoutName, setEditPayoutName] = useState('');
+  const [editPayoutSort, setEditPayoutSort] = useState('');
+  const [editPayoutAcct, setEditPayoutAcct] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
@@ -576,6 +592,9 @@ export function AdminDashboard() {
         email: newInfluencerEmail.trim(),
         commission_rate: parseFloat(newCommissionRate) || 20,
         active: true,
+        payout_account_name: newPayoutAccountName.trim() || null,
+        payout_sort_code: newPayoutSortCode.trim() || null,
+        payout_account_number: newPayoutAccountNumber.replace(/\s/g, '').trim() || null,
       });
       if (error) {
         setAddError(error.code === '23505' ? 'That code already exists.' : 'Something went wrong.');
@@ -584,6 +603,9 @@ export function AdminDashboard() {
       setNewInfluencerName('');
       setNewInfluencerCode('');
       setNewInfluencerEmail('');
+      setNewPayoutAccountName('');
+      setNewPayoutSortCode('');
+      setNewPayoutAccountNumber('');
       setNewCommissionRate('20');
       await loadInfluencerCodes();
     } catch {
@@ -592,6 +614,37 @@ export function AdminDashboard() {
       setAddingInfluencer(false);
     }
   };
+
+  const togglePayoutEdit = (inf: InfluencerCode) => {
+    if (expandedPayoutInfId === inf.id) {
+      setExpandedPayoutInfId(null);
+      return;
+    }
+    setExpandedPayoutInfId(inf.id);
+    setEditPayoutName(inf.payout_account_name?.trim() || '');
+    setEditPayoutSort(inf.payout_sort_code?.trim() || '');
+    setEditPayoutAcct(inf.payout_account_number?.trim() || '');
+  };
+
+  const saveInfluencerPayoutFields = async (id: string) => {
+    setSavingPayoutFields(true);
+    try {
+      await supabase.from('influencer_codes').update({
+        payout_account_name: editPayoutName.trim() || null,
+        payout_sort_code: editPayoutSort.trim() || null,
+        payout_account_number: editPayoutAcct.replace(/\s/g, '').trim() || null,
+      }).eq('id', id);
+      await loadInfluencerCodes();
+      setExpandedPayoutInfId(null);
+    } catch {
+      /* ignore */
+    } finally {
+      setSavingPayoutFields(false);
+    }
+  };
+
+  const influencerPayoutComplete = (inf: InfluencerCode) =>
+    !!(inf.payout_account_name?.trim() && inf.payout_sort_code?.trim() && inf.payout_account_number?.trim());
 
   const toggleInfluencerCode = async (id: string, active: boolean) => {
     try {
@@ -1406,14 +1459,25 @@ export function AdminDashboard() {
           {/* Partner Portal Info */}
           <section>
             <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4">
-              <p className="font-bold text-purple-900 text-sm mb-2">🔗 Influencer Stats Portal</p>
+              <p className="font-bold text-purple-900 text-sm mb-2">🔗 Influencer onboarding</p>
               <div className="space-y-1.5 text-xs text-purple-800">
-                <p>Send each influencer these two links:</p>
+                <p className="font-semibold text-purple-900">1. Links to send them</p>
                 <div className="bg-white rounded-xl p-3 space-y-2 font-mono text-[11px]">
                   <p><span className="text-purple-500 font-sans font-bold">Their referral link:</span><br/>pippal.uk?promo=<span className="text-purple-700">THEIRCODE</span></p>
-                  <p><span className="text-purple-500 font-sans font-bold">Their unique stats portal:</span><br/>pippal.uk?partner=true&code=<span className="text-purple-700">THEIRCODE</span></p>
+                  <p><span className="text-purple-500 font-sans font-bold">Their stats portal:</span><br/>pippal.uk?partner=true&code=<span className="text-purple-700">THEIRCODE</span></p>
                 </div>
-                <p className="text-[10px] text-purple-600">Replace THEIRCODE with their actual code. The stats link takes them straight to their dashboard — no typing needed.</p>
+                <p className="text-[10px] text-purple-600 leading-relaxed">Replace THEIRCODE with their actual code — the portal link skips manual entry.</p>
+                <div className="pt-2 border-t border-purple-100 mt-3">
+                  <p className="font-semibold text-purple-900 mb-1">2. Ask for payout (BACS) details</p>
+                  <p className="text-[11px] text-purple-800 leading-relaxed">
+                    When you onboard them (same message/email as their links), ask them to send their <strong className="text-purple-900">UK bank details</strong>{' '}
+                    for commissions: account holder name <strong>exactly</strong> as on the statement, sort code (6 digits), and account number (8 digits).
+                    Prefer <strong className="text-purple-900">private channels</strong> (email/DM — not comments or screenshots in public chats).
+                  </p>
+                  <p className="text-[11px] text-purple-700 mt-1.5">
+                    Record details in <span className="font-bold">Add influencer</span> below (if you already have them) or tap <strong className="text-purple-900">Payout bank</strong> beside their row after they reply — they&apos;re stored only here for when you settle commission.
+                  </p>
+                </div>
               </div>
             </div>
           </section>
@@ -1448,6 +1512,19 @@ export function AdminDashboard() {
                       <span className="text-xs text-stone-600">Revenue: <span className="font-bold text-stone-900">£{p.gross}</span></span>
                       <span className="text-xs text-stone-600">Rate: <span className="font-bold text-stone-900">{p.rate}%</span></span>
                     </div>
+                    {(p.payout_account_name || p.payout_sort_code || p.payout_account_number) ? (
+                      <div className="mt-3 pt-3 border-t border-dashed border-stone-100 bg-emerald-50/60 rounded-xl px-3 py-2.5">
+                        <p className="text-[10px] font-bold text-emerald-900 uppercase tracking-wide mb-1">BACS (for payouts)</p>
+                        <p className="text-xs text-stone-800 font-medium">{p.payout_account_name || '—'}</p>
+                        <p className="text-xs font-mono text-stone-700 mt-0.5">
+                          Sort {p.payout_sort_code || '—'} · Acct {p.payout_account_number || '—'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-3 pt-3 border-t border-dashed border-amber-100 bg-amber-50/80 rounded-xl px-3 py-2">
+                        <p className="text-[11px] text-amber-900"><strong>No bank details on file</strong> — add under Your Influencers → Payout bank for this code.</p>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div className="bg-stone-900 rounded-2xl p-4 text-center">
@@ -1460,7 +1537,7 @@ export function AdminDashboard() {
           <section>
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
               <p className="text-xs font-bold text-teal-900">How influencer links work</p>
-              <p className="text-xs text-teal-700 leading-relaxed">1. Add an influencer below and give them their unique link.</p>
+              <p className="text-xs text-teal-700 leading-relaxed">1. Add an influencer and send them both links plus a request for BACS details (see purple box).</p>
               <p className="text-xs text-teal-700 leading-relaxed">2. Anyone who signs up via their link gets Pro access automatically and is tracked here.</p>
               <p className="text-xs text-teal-700 leading-relaxed">3. The check only applies to new signups — existing free users will not get Pro via the link.</p>
               <p className="text-xs text-teal-700 leading-relaxed">4. You can deactivate any code instantly — anyone using it after deactivation gets no Pro access.</p>
@@ -1483,10 +1560,44 @@ export function AdminDashboard() {
                   className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 font-mono" />
               </div>
               <div>
-                <label className="text-xs font-medium text-stone-600 mb-1 block">Their email (for payout)</label>
+                <label className="text-xs font-medium text-stone-600 mb-1 block">Their email</label>
                 <input type="email" value={newInfluencerEmail} onChange={(e) => setNewInfluencerEmail(e.target.value)}
                   placeholder="e.g. sarah@example.com"
                   className="w-full border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
+              </div>
+              <div className="rounded-xl border border-stone-200 bg-stone-50/90 p-3 space-y-2">
+                <p className="text-xs font-semibold text-stone-800">UK bank details (BACS)</p>
+                <p className="text-[10px] text-stone-500 leading-relaxed">
+                  Ask them privately when you send their links — or leave blank and add later via <strong className="text-stone-700">Payout bank</strong> on their row.
+                </p>
+                <input
+                  type="text"
+                  autoComplete="off"
+                  value={newPayoutAccountName}
+                  onChange={(e) => setNewPayoutAccountName(e.target.value)}
+                  placeholder="Account holder name (as on statement)"
+                  className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={newPayoutSortCode}
+                    onChange={(e) => setNewPayoutSortCode(e.target.value)}
+                    placeholder="Sort code"
+                    className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    value={newPayoutAccountNumber}
+                    onChange={(e) => setNewPayoutAccountNumber(e.target.value)}
+                    placeholder="Account no."
+                    className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white font-mono focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium text-stone-600 mb-1 block">Commission rate (%)</label>
@@ -1548,6 +1659,61 @@ export function AdminDashboard() {
                         <Link className="w-3 h-3 text-stone-400 shrink-0" />
                         <p className="text-[10px] font-mono text-stone-500 truncate">https://www.pippal.uk?promo={inf.code}</p>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${influencerPayoutComplete(inf) ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}`}
+                        >
+                          {influencerPayoutComplete(inf) ? 'BACS on file' : 'Bank details missing'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => togglePayoutEdit(inf)}
+                          className="text-[10px] font-bold text-teal-700 hover:text-teal-900"
+                        >
+                          {expandedPayoutInfId === inf.id ? 'Close' : 'Payout bank'}
+                        </button>
+                      </div>
+                      {expandedPayoutInfId === inf.id && (
+                        <div className="rounded-xl border border-teal-100 bg-teal-50/50 p-3 space-y-2">
+                          <p className="text-[10px] text-stone-600">Sensitive — avoid sharing screenshots; keep DB access restricted.</p>
+                          <input
+                            type="text"
+                            autoComplete="off"
+                            value={editPayoutName}
+                            onChange={(e) => setEditPayoutName(e.target.value)}
+                            placeholder="Account holder name"
+                            className="w-full border border-stone-200 rounded-lg px-2.5 py-2 text-xs bg-white"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              autoComplete="off"
+                              value={editPayoutSort}
+                              onChange={(e) => setEditPayoutSort(e.target.value)}
+                              placeholder="Sort code"
+                              className="border border-stone-200 rounded-lg px-2.5 py-2 text-xs font-mono bg-white"
+                            />
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              autoComplete="off"
+                              value={editPayoutAcct}
+                              onChange={(e) => setEditPayoutAcct(e.target.value)}
+                              placeholder="Account no."
+                              className="border border-stone-200 rounded-lg px-2.5 py-2 text-xs font-mono bg-white"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            disabled={savingPayoutFields}
+                            onClick={() => saveInfluencerPayoutFields(inf.id)}
+                            className="w-full bg-teal-700 text-white text-xs font-semibold py-2 rounded-lg hover:bg-teal-800 disabled:opacity-60"
+                          >
+                            {savingPayoutFields ? 'Saving…' : 'Save bank details'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
