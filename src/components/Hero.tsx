@@ -55,14 +55,17 @@ export function Hero({ onStart }: HeroProps) {
         className={`w-full md:max-w-xl transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         style={{ transitionDelay: '160ms' }}
       >
-        <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
-          {/* Teal strip — sits on top of card, flush */}
-          <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-4 text-center">
-            <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims</p>
+        <div className="bg-white rounded-2xl shadow-md border border-stone-100 mb-5 overflow-hidden">
+          {/* Full-width teal header — rounded top matches card (flush sides, no inset pill) */}
+          <div className="bg-teal-700 px-4 py-3 text-center">
+            <p className="text-white text-[11px] sm:text-xs font-medium leading-relaxed">
+              Built on 1,000s of successful claims
+            </p>
           </div>
 
+          <div className="p-5 md:p-6">
           {/* Avatar row below strip */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-start gap-4 mb-4 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="flex -space-x-2">
                 {[
@@ -77,7 +80,7 @@ export function Hero({ onStart }: HeroProps) {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-stone-500 font-medium">1,200+ applications</p>
+              <p className="text-xs text-stone-500 font-medium whitespace-nowrap">1,200+ applicants</p>
             </div>
             <div className="flex">{'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}</div>
           </div>
@@ -103,6 +106,7 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">
             🔒 100% Secure &amp; Confidential
           </p>
+          </div>
         </div>
       </div>
 
