@@ -3,6 +3,87 @@
 export const COC_POST_MEDICAL_SNAPSHOT_KEY = 'coc_post_medical_snapshot';
 export const COC_MEDICAL_EXPECTED_KEY = 'coc_medical_expected';
 
+/** Persists CoC wizard step (1–4) — see ChangeOfCircumstancesScreen */
+export const COC_FLOW_STEP_KEY = 'coc_flow_step';
+/** Step 1: whether user still has their completed PIP2 copy */
+export const COC_HAS_ORIGINAL_PIP2_KEY = 'coc_has_original_pip2';
+export const COC_RETURN_STEP_KEY = 'coc_return_step';
+
+export const COC_WIZARD_TOTAL_STEPS = 4;
+
+/** Remove wizard / handoff keys after CoC successfully hands off to the question hub (or explicit reset). */
+export function clearCocWizardSessionKeys(): void {
+  try {
+    sessionStorage.removeItem(COC_FLOW_STEP_KEY);
+    sessionStorage.removeItem(COC_RETURN_STEP_KEY);
+    sessionStorage.removeItem(COC_HAS_ORIGINAL_PIP2_KEY);
+    sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+    sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function parseStoredCocFlowStep(raw: string | null): number {
+  if (!raw) return 1;
+  const n = parseInt(raw, 10);
+  if (Number.isNaN(n) || n < 1) return 1;
+  return Math.min(n, COC_WIZARD_TOTAL_STEPS);
+}
+
+/**
+ * Dashboard “resume CoC” detection (sessionStorage).
+ *
+ * Resumable when:
+ * - Medical handoff is pending: COC_MEDICAL_EXPECTED_KEY + a JSON snapshot (user left on / before medical save).
+ * - Wizard steps 2–3: uploads or per-activity checklist.
+ * - Step 1 only if they committed the PIP2 question (coc_has_original_pip2 true/false) — bare step 1 with no key is treated as not started.
+ *
+ * Not resumable:
+ * - Step 4 with no medical expected: snapshot was consumed finishing to questions, or keys are stale (avoids false “continue” after completion).
+ */
+export function getCocDashboardResumeInfo(): { title: string; subtitle: string } | null {
+  try {
+    const medicalExpected = sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) === '1';
+    const rawSnap = sessionStorage.getItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
+    const hasSnapshot = Boolean(rawSnap && rawSnap.trim().startsWith('{'));
+
+    const step = parseStoredCocFlowStep(sessionStorage.getItem(COC_FLOW_STEP_KEY));
+    const step1Committed =
+      sessionStorage.getItem(COC_HAS_ORIGINAL_PIP2_KEY) === 'true' ||
+      sessionStorage.getItem(COC_HAS_ORIGINAL_PIP2_KEY) === 'false';
+
+    if (medicalExpected && hasSnapshot) {
+      return {
+        title: 'Continue change of circumstances',
+        subtitle: 'Finish medical profile to continue your review.',
+      };
+    }
+
+    if (step >= 4 && !medicalExpected) {
+      return null;
+    }
+
+    if (step >= 2) {
+      return {
+        title: 'Continue change of circumstances',
+        subtitle: `Step ${step} of ${COC_WIZARD_TOTAL_STEPS} · documents & activity review`,
+      };
+    }
+
+    if (step === 1 && step1Committed) {
+      return {
+        title: 'Continue change of circumstances',
+        subtitle: `Step 1 of ${COC_WIZARD_TOTAL_STEPS}`,
+      };
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export type CocSnapshotExtractedEntry = {
   answer: string;
   confidence: 'high' | 'medium' | 'low';
@@ -21,8 +102,6 @@ export type CocMedicalSnapshot = {
   platformWorkbookAnswers?: Record<string, string>;
   activityFallbackNotes: Record<string, string>;
   cocManualPoints: Record<string, string>;
-  /** Free text from Medical Profile (CoC path): overall deterioration / what got worse since last contact */
-  circumstancesChangeSummary?: string;
 };
 
 const ALL_ACTIVITY_IDS = [

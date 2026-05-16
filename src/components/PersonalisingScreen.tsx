@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 import { getQuestionFlow } from '../data/questionFlowData';
+import { PIP_QUESTIONS } from '../pipQuestions';
 
 // Normalise conditions to a consistent cache key
 function buildCacheKey(conditions: string[], questionId: string): string {
@@ -13,7 +14,8 @@ function buildCacheKey(conditions: string[], questionId: string): string {
 }
 
 export function PersonalisingScreen() {
-  const { navigateTo, selectedQuestionId, medProfile, savedAnswers } = useAppContext();
+  const { navigateTo, selectedQuestionId, medProfile, savedAnswers, cocMode, cocWalkthroughAnsweredIds } =
+    useAppContext();
   const questionId = selectedQuestionId || 'q1';
 
   useEffect(() => {
@@ -143,8 +145,10 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     };
   }, []);
 
-  const completedCount = Object.keys(savedAnswers).length;
-  const totalQuestions = 12;
+  const cocWalkthroughCount = Object.keys(cocWalkthroughAnsweredIds).length;
+  const savedAnswerActivityCount = Object.keys(savedAnswers).length;
+  const completedCount = cocMode ? cocWalkthroughCount : savedAnswerActivityCount;
+  const totalQuestions = PIP_QUESTIONS.length;
   const currentQuestionNum = parseInt(questionId.replace('q', '')) || 1;
   const progressPct = Math.round((completedCount / totalQuestions) * 100);
   const flowPreview = getQuestionFlow(questionId);

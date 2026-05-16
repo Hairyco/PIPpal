@@ -16,9 +16,13 @@ import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import {
   computeCocSessionFromSnapshot,
+  clearCocWizardSessionKeys,
   type CocMedicalSnapshot,
   COC_POST_MEDICAL_SNAPSHOT_KEY,
   COC_MEDICAL_EXPECTED_KEY,
+  COC_FLOW_STEP_KEY,
+  COC_HAS_ORIGINAL_PIP2_KEY,
+  COC_WIZARD_TOTAL_STEPS,
 } from '../cocMedicalSnapshot';
 
 // ── Steps (AR1 branching archived — see ../archive/coc-step2-form-type-picker.tsx)
@@ -26,13 +30,6 @@ import {
 // 2  Answers & documents — uploads (+ DWP / previous answers); Continue → activity review
 // 3  Per-activity checklist (prior wording / optional tweaks)
 // 4  Opens Medical Profile — saves snapshot → questions
-const TOTAL_STEPS = 4;
-
-/** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
-const COC_FLOW_STEP_KEY = 'coc_flow_step';
-
-/** Whether user still has their completed PIP2 — cleared with CoC session */
-const COC_HAS_ORIGINAL_PIP2_KEY = 'coc_has_original_pip2';
 
 function readStoredHasOriginalPip2(): boolean | null {
   try {
@@ -51,10 +48,9 @@ function readStoredCocStep(): number {
     if (!raw) return 1;
     const n = parseInt(raw, 10);
     if (Number.isNaN(n) || n < 1) return 1;
-    // Cap to current wizard length (older persisted values may reference removed steps).
-    const capped = Math.min(n, TOTAL_STEPS);
+    const capped = Math.min(n, COC_WIZARD_TOTAL_STEPS);
     if (capped <= 3) return capped;
-    return 4;
+    return COC_WIZARD_TOTAL_STEPS;
   } catch {
     return 1;
   }
@@ -268,7 +264,7 @@ export function ChangeOfCircumstancesScreen() {
       setStep(3);
       return;
     }
-    setStep(s => Math.min(s + 1, TOTAL_STEPS));
+    setStep(s => Math.min(s + 1, COC_WIZARD_TOTAL_STEPS));
   };
   const back = () => {
     if (step === 1) {
@@ -401,29 +397,139 @@ export function ChangeOfCircumstancesScreen() {
     },
   };
 
-  const loadMockForm = () => {
-    setPip2Labels(['mock_pip2_form.jpg']);
-    setPip2Extracted(MOCK_DATA.pip2);
-
-    setPa4Labels(['mock_pa4_assessor_report.pdf']);
-    setPa4Extracted(MOCK_DATA.pa4);
-
-    setAwardLabels(['mock_dwp_award_letter.pdf']);
-    setAwardExtracted(MOCK_DATA.award);
-
-    setPip2Busy(false); setPip2Error(null);
-    setPa4Busy(false); setPa4Error(null);
-    setAwardBusy(false); setAwardError(null);
+  function seedMockDocBuckets(opts: { pip2: boolean; pa4: boolean; award: boolean }) {
+    if (opts.pip2) {
+      setPip2Labels(['mock_pip2_form.jpg']);
+      setPip2Extracted(MOCK_DATA.pip2);
+    } else {
+      setPip2Labels([]);
+      setPip2Files([]);
+      setPip2Extracted({});
+    }
+    if (opts.pa4) {
+      setPa4Labels(['mock_pa4_assessor_report.pdf']);
+      setPa4Extracted(MOCK_DATA.pa4);
+    } else {
+      setPa4Labels([]);
+      setPa4Files([]);
+      setPa4Extracted({});
+    }
+    if (opts.award) {
+      setAwardLabels(['mock_dwp_award_letter.pdf']);
+      setAwardExtracted(MOCK_DATA.award);
+    } else {
+      setAwardLabels([]);
+      setAwardFiles([]);
+      setAwardExtracted({});
+    }
+    setPip2Busy(false);
+    setPa4Busy(false);
+    setAwardBusy(false);
+    setPip2Error(null);
+    setPa4Error(null);
+    setAwardError(null);
     setPip2UploadError(null);
     setPa4UploadError(null);
     setAwardUploadError(null);
-    setActivityFallbackNotes({});
-    setCocManualPoints({});
     setCombinedPickError(null);
     setDocKindModal(null);
+    setClassifyBusy(false);
+  }
+
+  type CocStep3DevPreviewPreset =
+    | 'all'
+    | 'pip2'
+    | 'pip2_pa4'
+    | 'pip2_award'
+    | 'pa4'
+    | 'award'
+    | 'pa4_award'
+    | 'no_docs';
+
+  function applyDevCocStep3PreviewPreset(preset: CocStep3DevPreviewPreset) {
+    setActivityFallbackNotes({});
+    setCocManualPoints({});
+    try {
+      sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
+    } catch {
+      /* ignore */
+    }
+
+    setExpandedSection('daily');
+    setExpandedActivityId('q1');
+
+    if (preset === 'no_docs') {
+      seedMockDocBuckets({ pip2: false, pa4: false, award: false });
+      setNoForm(true);
+      setStep(3);
+      return;
+    }
+
+    setNoForm(false);
+
+    switch (preset) {
+      case 'all':
+        seedMockDocBuckets({ pip2: true, pa4: true, award: true });
+        break;
+      case 'pip2':
+        seedMockDocBuckets({ pip2: true, pa4: false, award: false });
+        break;
+      case 'pip2_pa4':
+        seedMockDocBuckets({ pip2: true, pa4: true, award: false });
+        break;
+      case 'pip2_award':
+        seedMockDocBuckets({ pip2: true, pa4: false, award: true });
+        break;
+      case 'pa4':
+        seedMockDocBuckets({ pip2: false, pa4: true, award: false });
+        break;
+      case 'award':
+        seedMockDocBuckets({ pip2: false, pa4: false, award: true });
+        break;
+      case 'pa4_award':
+        seedMockDocBuckets({ pip2: false, pa4: true, award: true });
+        break;
+      default:
+        seedMockDocBuckets({ pip2: true, pa4: true, award: true });
+    }
+
+    setStep(3);
+  }
+
+  const loadMockForm = () => {
+    seedMockDocBuckets({ pip2: true, pa4: true, award: true });
+    setActivityFallbackNotes({});
+    setCocManualPoints({});
+    setNoForm(false);
+
     setExpandedSection('daily');
     setExpandedActivityId(null);
   };
+
+  /** Dev-only CoC Step 3 with mock uploads — see collapsible DEV note on Change of Circumstances screen */
+  useLayoutEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const v = new URLSearchParams(window.location.search).get('screenshot');
+    if (!v) return;
+
+    const SHOT_PREVIEW: Partial<Record<string, CocStep3DevPreviewPreset>> = {
+      coc_step3: 'all',
+      coc_step3_all: 'all',
+      coc_step3_pip2_only: 'pip2',
+      coc_step3_pip2_pa4: 'pip2_pa4',
+      coc_step3_pip2_award: 'pip2_award',
+      coc_step3_pa4_only: 'pa4',
+      coc_step3_award_only: 'award',
+      coc_step3_pa4_award: 'pa4_award',
+      coc_step3_no_docs: 'no_docs',
+    };
+
+    const preset = SHOT_PREVIEW[v];
+    if (preset === undefined) return;
+
+    applyDevCocStep3PreviewPreset(preset);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot dev URL seeding via ?screenshot=
+  }, []);
 
   useLayoutEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -566,6 +672,7 @@ export function ChangeOfCircumstancesScreen() {
       cocManualPoints,
     };
     const session = computeCocSessionFromSnapshot(snapshot);
+    clearCocWizardSessionKeys();
     resetCocWalkthroughProgress();
     setCocMode(true);
     setCocFormType(formType);
@@ -592,6 +699,9 @@ export function ChangeOfCircumstancesScreen() {
     const pa4Pts = normalizeActivityPoints(extractedPa4?.pointsAwarded);
     const awardPts = normalizeActivityPoints(extractedAward?.pointsAwarded);
     const manualPtsStr = cocManualPoints[qid] ?? '';
+    const hasPip2Docs = pip2Labels.length > 0;
+    const hasPa4Docs = pa4Labels.length > 0;
+    const hasAwardDocs = awardLabels.length > 0;
     const isOpen = expandedActivityId === qid;
     const hasScoreHints = pip2Pts != null || pa4Pts != null || awardPts != null || manualPtsStr.trim() !== '';
     const hasAnswer = Boolean(pip2Text || pa4Text || awardText || manual.trim() || hasScoreHints);
@@ -613,33 +723,85 @@ export function ChangeOfCircumstancesScreen() {
         {isOpen && (
           <div className="px-4 pb-4 space-y-2">
             <p className="text-xs text-stone-500 italic leading-relaxed">{q.headline}</p>
-            {pip2Text || pa4Text || awardText ? (
-              <div className="space-y-2">
-                {pip2Text ? (
-                  <div className="rounded-xl border border-teal-100 bg-teal-50/60 px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-teal-600 mb-1">From your PIP2</p>
-                    <p className="text-xs text-stone-700 leading-relaxed">"{pip2Text}"</p>
-                  </div>
-                ) : null}
-                {pa4Text ? (
-                  <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">From assessor report (PA4)</p>
-                    <p className="text-xs text-stone-700 leading-relaxed">"{pa4Text}"</p>
-                  </div>
-                ) : null}
-                {awardText ? (
-                  <div className="rounded-xl border border-indigo-100 bg-indigo-50/80 px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">From your award / decision letter</p>
-                    <p className="text-xs text-stone-700 leading-relaxed">"{awardText}"</p>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <p className="text-xs text-stone-400 leading-relaxed">
-                Nothing was read automatically for this activity from your uploads — add a reminder in the box below if
-                you wish.
-              </p>
-            )}
+            <div className="space-y-2">
+              {/* PIP2 */}
+              {pip2Text ? (
+                <div className="rounded-xl border border-teal-100 bg-teal-50/60 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-teal-600 mb-1">From your PIP2</p>
+                  <p className="text-xs text-stone-700 leading-relaxed">"{pip2Text}"</p>
+                </div>
+              ) : hasPip2Docs ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">From your PIP2</p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    Nothing was read for this activity from your PIP2 upload — add a correction below if you remember
+                    what you wrote.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/60 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">From your PIP2</p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    No PIP2 uploaded — go back a step to add one if you want prior wording pulled in automatically.
+                  </p>
+                </div>
+              )}
+              {/* PA4 */}
+              {pa4Text ? (
+                <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">
+                    From assessor report (PA4)
+                  </p>
+                  <p className="text-xs text-stone-700 leading-relaxed">"{pa4Text}"</p>
+                </div>
+              ) : hasPa4Docs ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                    From assessor report (PA4)
+                  </p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    Nothing was read for this activity from your PA4 — add a correction below if needed.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-stone-200 bg-amber-50/30 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800/70 mb-1">
+                    From assessor report (PA4)
+                  </p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    No PA4 uploaded — add one on the previous step if you want assessor wording shown here.
+                  </p>
+                </div>
+              )}
+              {/* Award */}
+              {awardText ? (
+                <div className="rounded-xl border border-indigo-100 bg-indigo-50/80 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-700 mb-1">
+                    From your award / decision letter
+                  </p>
+                  <p className="text-xs text-stone-700 leading-relaxed">"{awardText}"</p>
+                </div>
+              ) : hasAwardDocs ? (
+                <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                    From your award / decision letter
+                  </p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    Nothing was read for this activity from your decision letter — add a correction below if needed.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-stone-200 bg-indigo-50/30 px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-900/70 mb-1">
+                    From your award / decision letter
+                  </p>
+                  <p className="text-xs text-stone-500 leading-relaxed">
+                    No award or decision letter uploaded — add one on the previous step if you want scores and wording
+                    here.
+                  </p>
+                </div>
+              )}
+            </div>
 
             {(pip2Pts != null || pa4Pts != null || awardPts != null) && (
               <div className="flex flex-wrap gap-2">
@@ -1275,7 +1437,30 @@ export function ChangeOfCircumstancesScreen() {
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
-      <StepHeader step={step} title={stepTitles[step - 1]} total={TOTAL_STEPS} onBack={back} />
+      <StepHeader step={step} title={stepTitles[step - 1]} total={COC_WIZARD_TOTAL_STEPS} onBack={back} />
+
+      {import.meta.env.DEV && (
+        <details className="mx-5 mt-2 border border-amber-200 rounded-xl px-3 py-2 bg-amber-50/90 text-[11px] text-stone-700 leading-snug">
+          <summary className="cursor-pointer font-semibold text-amber-900">
+            DEV: preview Check activities (step 3) — missing uploads
+          </summary>
+          <div className="mt-2 space-y-2 text-stone-600">
+            <p>
+              Reload in dev while on this flow with{' '}
+              <code className="text-[10px] bg-white/80 px-1 py-px rounded border border-amber-200">?screenshot=…</code>{' '}
+              (logged-in + paid bypass as with other screenshot captures).
+            </p>
+            <ul className="list-disc pl-4 space-y-1 text-[10px] font-mono text-stone-800">
+              <li>coc_step3_pip2_only — PIP2 filled; PA4 + award &quot;not uploaded&quot; cards</li>
+              <li>coc_step3_pip2_pa4 — no award letter card</li>
+              <li>coc_step3_pip2_award — no PA4 card</li>
+              <li>coc_step3_pa4_only · coc_step3_award_only · coc_step3_pa4_award</li>
+              <li>coc_step3_no_docs — no scans (reminders-only path)</li>
+              <li>coc_step3_all or coc_step3 — full three excerpts (q1 expanded)</li>
+            </ul>
+          </div>
+        </details>
+      )}
 
       <div className="flex-1 overflow-y-auto">
         <AnimatePresence mode="wait">

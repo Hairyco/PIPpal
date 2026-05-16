@@ -153,7 +153,6 @@ export function QuestionWizard() {
     cocPreviousAnswers,
     cocAssessorNotes,
     cocPreviousPoints,
-    cocCircumstancesSummary,
   } = useAppContext();
   const qId = selectedQuestionId || 'q1';
   const question = getQuestion(qId);
@@ -309,7 +308,6 @@ Rules:
     const prevPts = cocPreviousPoints[qId];
     const prevAns = cocPreviousAnswers[qId]?.trim();
     const pa4Line = cocAssessorNotes[qId]?.trim();
-    const globalChange = cocCircumstancesSummary?.trim();
 
     let cocInstructions = '';
     if (cocMode) {
@@ -319,7 +317,6 @@ CHANGE OF CIRCUMSTANCES — mandatory content rules:
 ${prevPts != null ? `- Previous official points recorded for this activity on file: ${prevPts}. Draft descriptor carries ${descriptor.points} points (${code}). Frame the answer around deterioration or worsening needs since then, not improvement.` : '- Previous activity points were not read from documents — still write vs what appears on file below as "before", and emphasise worsening since then.'}
 ${prevAns ? `- Previous answer / wording on form or letter for this activity (address this directly — quote briefly or paraphrase accurately):\n"${prevAns.slice(0, 2400)}${prevAns.length > 2400 ? '…' : ''}"` : '- No previous answer text on file for this activity — reference assessor notes if present, otherwise focus on worsening since last award.'}
 ${pa4Line ? `- Assessor PA4 wording for this activity (respond to this where it is wrong, thin, or no longer true):\n"${pa4Line.slice(0, 2400)}${pa4Line.length > 2400 ? '…' : ''}"` : ''}
-${globalChange ? `- Overall change since DWP last had their information — tie this activity to this story where it fits; do not contradict it:\n"${globalChange.slice(0, 1600)}${globalChange.length > 1600 ? '…' : ''}"` : ''}
 
 You MUST:
 1. Start by tying to what was on file (previous answer and/or assessor wording above) — then state clearly what is harder, more frequent, or less safe NOW.

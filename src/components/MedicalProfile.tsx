@@ -3,9 +3,9 @@ import { ArrowLeft, Plus, Check, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAppContext, Condition } from './AppContext';
 import { supabase } from '../supabaseClient';
 import {
+  COC_FLOW_STEP_KEY,
   COC_POST_MEDICAL_SNAPSHOT_KEY,
   COC_MEDICAL_EXPECTED_KEY,
-  type CocMedicalSnapshot,
 } from '../cocMedicalSnapshot';
 
 const PRESET_CONDITIONS = [
@@ -37,14 +37,6 @@ export function MedicalProfile() {
   const [customCondition, setCustomCondition] = useState('');
   const [medications, setMedications] = useState(medProfile.medications);
   const [notes, setNotes] = useState(medProfile.notes);
-  const [circumstancesChangeSummary, setCircumstancesChangeSummary] = useState('');
-  const [cocExpectsMedical, setCocExpectsMedical] = useState(() => {
-    try {
-      return sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Only show spinner if no cached data
   const [saved, setSaved] = useState(false);
@@ -86,21 +78,6 @@ export function MedicalProfile() {
     loadProfile();
   }, [user?.id]);
 
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) !== '1') return;
-      setCocExpectsMedical(true);
-      const raw = sessionStorage.getItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as CocMedicalSnapshot;
-      if (typeof parsed.circumstancesChangeSummary === 'string') {
-        setCircumstancesChangeSummary(parsed.circumstancesChangeSummary);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const toggleCondition = (name: string) => {
     if (conditions.some((c) => c.name === name)) {
       setConditions(conditions.filter((c) => c.name !== name));
@@ -133,8 +110,13 @@ export function MedicalProfile() {
 
   const handleBack = () => {
     try {
+      const fromCocMedical = sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) === '1';
       sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
       sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+      // Avoid remounting CoC on step 4 (would immediately push medical again). Return to activity checklist.
+      if (fromCocMedical) {
+        sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
+      }
     } catch {
       /* ignore */
     }
@@ -145,19 +127,6 @@ export function MedicalProfile() {
     setIsSaving(true);
     const profile = { conditions, medications, notes };
     setMedProfile(profile);
-    try {
-      if (sessionStorage.getItem(COC_MEDICAL_EXPECTED_KEY) === '1') {
-        const raw = sessionStorage.getItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as CocMedicalSnapshot;
-          const t = circumstancesChangeSummary.trim();
-          parsed.circumstancesChangeSummary = t || undefined;
-          sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify(parsed));
-        }
-      }
-    } catch {
-      /* ignore */
-    }
     showToast('Medical profile saved!', 'success');
     setTimeout(() => {
       if (tryFinishCocAfterMedicalSave()) return;
@@ -279,23 +248,6 @@ export function MedicalProfile() {
                 </div>
               ))}
             </div>
-          </section>
-        )}
-
-        {cocExpectsMedical && (
-          <section className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
-            <h2 className="text-base font-bold text-stone-900 mb-1">What has changed or got worse?</h2>
-            <p className="text-sm text-stone-600 mb-3">
-              In a few sentences, explain how things are harder than when DWP last had your information. This is used
-              alongside your previous answers so drafts stay consistent with your overall story.
-            </p>
-            <textarea
-              rows={4}
-              placeholder="e.g. Since my last review I have more falls, fatigue stops me cooking most days, and I need prompting to take medication…"
-              value={circumstancesChangeSummary}
-              onChange={(e) => setCircumstancesChangeSummary(e.target.value)}
-              className="w-full bg-white border border-amber-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 resize-none text-stone-800 placeholder:text-stone-400"
-            />
           </section>
         )}
 

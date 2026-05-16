@@ -4,6 +4,7 @@ import {
   COC_POST_MEDICAL_SNAPSHOT_KEY,
   COC_MEDICAL_EXPECTED_KEY,
   computeCocSessionFromSnapshot,
+  clearCocWizardSessionKeys,
   type CocMedicalSnapshot,
 } from '../cocMedicalSnapshot';
 import { PIP_QUESTIONS } from '../pipQuestions';
@@ -78,8 +79,20 @@ function readDevScreenshot(): DevScreenshot | null {
   if (v === 'answers_review') return { screen: 'answers_review', seedReviewAnswers: true, seedDraftAnswer: false };
   if (v === 'draft_answer' || v === 'q1_result')
     return { screen: 'q1_result', seedReviewAnswers: false, seedDraftAnswer: true };
-  if (v === 'coc_step2' || v === 'coc_step3')
+  if (v === 'coc_step2') return { screen: 'change_of_circumstances', seedReviewAnswers: false, seedDraftAnswer: false };
+  if (
+    v === 'coc_step3' ||
+    v === 'coc_step3_all' ||
+    v === 'coc_step3_pip2_only' ||
+    v === 'coc_step3_pip2_pa4' ||
+    v === 'coc_step3_pip2_award' ||
+    v === 'coc_step3_pa4_only' ||
+    v === 'coc_step3_award_only' ||
+    v === 'coc_step3_pa4_award' ||
+    v === 'coc_step3_no_docs'
+  ) {
     return { screen: 'change_of_circumstances', seedReviewAnswers: false, seedDraftAnswer: false };
+  }
   if (v === 'coc_compare')
     return {
       screen: 'q1_intro',
@@ -216,8 +229,6 @@ interface AppContextType {
   /** During CoC, questions counted here when the user saves an answer — avoids treating old saved answers as “done” */
   cocWalkthroughAnsweredIds: Record<string, boolean>;
   resetCocWalkthroughProgress: () => void;
-  /** Overall “what got worse” text from Medical Profile on the CoC path — fed into draft prompts */
-  cocCircumstancesSummary: string;
   /** Consumes CoC snapshot after Medical Profile save → question hub + coc mode */
   tryFinishCocAfterMedicalSave: () => boolean;
   hasCompletedEligibility: boolean;
@@ -438,7 +449,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [cocPreviousPoints, setCocPreviousPoints] = useState<Record<string, number | null>>({});
   const [cocWalkthroughAnsweredIds, setCocWalkthroughAnsweredIds] = useState<Record<string, boolean>>({});
-  const [cocCircumstancesSummary, setCocCircumstancesSummary] = useState('');
 
   const resetCocWalkthroughProgress = useCallback(() => {
     setCocWalkthroughAnsweredIds({});
@@ -736,7 +746,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCocDocumentType(null);
     setCocAssessorNotes({});
     setCocPreviousPoints({});
-    setCocCircumstancesSummary('');
     setMedProfileState({ conditions: [], medications: '', notes: '' });
     setHasCompletedEligibilityState(false);
     localStorage.removeItem('pippal_med_profile');
@@ -752,8 +761,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCurrentScreen('landing');
     setNavigationHistory([]);
     try {
-      sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
-      sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+      clearCocWizardSessionKeys();
     } catch {
       /* ignore */
     }
@@ -770,18 +778,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const navigateTo = (screen: Screen) => {
-    if (screen === 'change_of_circumstances') {
-      setCocCircumstancesSummary('');
-      try {
-        sessionStorage.removeItem('coc_flow_step');
-        sessionStorage.removeItem('coc_return_step');
-        sessionStorage.removeItem('coc_has_original_pip2');
-        sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
-        sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
-      } catch {
-        /* ignore */
-      }
-    }
     setNavigationHistory((prev) => [...prev, currentScreen]);
     setCurrentScreen(screen);
     scrollToTop();
@@ -805,8 +801,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (!raw) return false;
       const parsed = JSON.parse(raw) as CocMedicalSnapshot;
       const session = computeCocSessionFromSnapshot(parsed);
-      sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
-      sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
+      clearCocWizardSessionKeys();
       resetCocWalkthroughProgress();
       setCocMode(true);
       setCocFormType(parsed.formType ?? null);
@@ -814,7 +809,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCocPreviousAnswers(session.primary);
       setCocPreviousPoints(session.cocPreviousPoints);
       setCocAssessorNotes(session.pa4Answers);
-      setCocCircumstancesSummary(parsed.circumstancesChangeSummary?.trim() ?? '');
       setSavedAnswersCoC({ ...savedAnswersRef.current });
       setSavedAnswerDetailsCoC({ ...savedAnswerDetailsRef.current });
       navigateTo('question_index');
@@ -948,7 +942,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocPreviousPoints,
         cocWalkthroughAnsweredIds,
         resetCocWalkthroughProgress,
-        cocCircumstancesSummary,
         tryFinishCocAfterMedicalSave,
         hasCompletedEligibility,
         setHasCompletedEligibility,

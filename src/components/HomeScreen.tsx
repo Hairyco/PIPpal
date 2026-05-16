@@ -25,6 +25,7 @@ import {
   ListChecks,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
+import { getCocDashboardResumeInfo } from '../cocMedicalSnapshot';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import { allPipActivitiesComplete } from '../utils/pipAnswersPack';
 import { decodeHtmlEntities } from '../utils/htmlEntities';
@@ -80,6 +81,24 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 
 export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers, savedAnswerDetails, setSelectedQuestionId } = useAppContext();
+
+  const [cocResume, setCocResume] = useState(() =>
+    typeof window !== 'undefined' ? getCocDashboardResumeInfo() : null
+  );
+
+  useEffect(() => {
+    const sync = () => setCocResume(getCocDashboardResumeInfo());
+    sync();
+    const onVis = () => {
+      if (document.visibilityState === 'visible') sync();
+    };
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      window.removeEventListener('focus', sync);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+  }, []);
   const [newsHeadlines, setNewsHeadlines] = useState<string[]>([]);
   const [tickerIndex, setTickerIndex] = useState(0);
   const tickerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -193,6 +212,23 @@ export function HomeScreen() {
                 Resume →
               </button>
             </div>
+          </div>
+        )}
+
+        {hasPaid && cocResume && (
+          <div className="bg-teal-700 rounded-2xl px-4 py-3.5 flex items-center gap-3 shadow-sm">
+            <RefreshCw className="w-8 h-8 text-teal-200 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-bold text-sm leading-snug">{cocResume.title}</p>
+              <p className="text-teal-200 text-xs mt-0.5 leading-snug">{cocResume.subtitle}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigateTo('change_of_circumstances')}
+              className="shrink-0 bg-white text-teal-700 text-xs font-bold px-3 py-2 rounded-xl hover:bg-teal-50 active:scale-95 transition-all"
+            >
+              Continue →
+            </button>
           </div>
         )}
 
