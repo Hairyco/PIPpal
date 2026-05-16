@@ -25,3 +25,6 @@ dist-ssr
 
 .vercel
 .env*.local
+
+# Claude Code worktrees — local only; never commit as gitlinks (breaks Vercel submodule clone)
+.claude/worktrees/
