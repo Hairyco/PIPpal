@@ -122,6 +122,8 @@ export function QuestionFlow() {
   const [step, setStep] = useState<Step>(1);
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
+  const [cocSummary, setCocSummary] = useState<string | null>(null);
+  const [loadingCocSummary, setLoadingCocSummary] = useState(false);
   const [questionExplainedOpen, setQuestionExplainedOpen] = useState(false);
   const [loadingExample] = useState(false);
 
@@ -200,6 +202,41 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
   useEffect(() => {
     setQuestionExplainedOpen(false);
   }, [questionId]);
+
+  // Generate CoC summary when in CoC mode and previous data exists
+  useEffect(() => {
+    if (!cocMode || !pipQ) return;
+    const prevAns = cocPreviousAnswers[questionId]?.trim();
+    const pa4 = cocAssessorNotes[questionId]?.trim();
+    if (!prevAns && !pa4) return;
+
+    setCocSummary(null);
+    setLoadingCocSummary(true);
+
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `You are helping a UK PIP claimant preparing a Change of Circumstances claim for "${pipQ.title}".
+
+${prevAns ? `Their previous answer on file: "${prevAns}"` : ''}
+${pa4 ? `Assessor PA4 notes: "${pa4}"` : ''}
+
+Write a SHORT summary (3-4 sentences max) that:
+1. In ONE sentence, summarises what was previously on file in plain English
+2. In ONE sentence, explains what the assessor recorded (if PA4 available)  
+3. In ONE or TWO sentences, tells the claimant specifically what they would need to show to score higher — what additional evidence or wording would move them up a descriptor
+
+Be direct, warm and specific. No jargon. Return ONLY the summary text.`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile.conditions },
+      }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.reply) setCocSummary(d.reply.trim()); })
+      .catch(() => {})
+      .finally(() => setLoadingCocSummary(false));
+  }, [questionId, cocMode]);
 
   if (!config) {
     return (
@@ -767,69 +804,22 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
               }
 
               return (
-                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 space-y-2">
-                  <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest leading-snug">Breaking down what&apos;s on file</p>
-                  {body}
+                <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 space-y-2">
+                  <p className="text-[11px] font-bold text-teal-700 uppercase tracking-widest">Summary</p>
+                  {loadingCocSummary ? (
+                    <div className="space-y-2">
+                      <div className="h-3 bg-teal-200 rounded animate-pulse w-full" />
+                      <div className="h-3 bg-teal-200 rounded animate-pulse w-4/5" />
+                      <div className="h-3 bg-teal-200 rounded animate-pulse w-3/5" />
+                    </div>
+                  ) : cocSummary ? (
+                    <p className="text-sm text-teal-900 leading-relaxed">{cocSummary}</p>
+                  ) : (
+                    <p className="text-sm text-teal-800 leading-relaxed">{body}</p>
+                  )}
                 </div>
               );
             })()}
-
-            {/* Previous answer reference — CoC mode only */}
-            {cocMode && (
-              <div className="space-y-2">
-                {/* PIP2 reference (not shown when pa4_only) */}
-                {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
-                  <div className={`rounded-2xl p-4 border ${cocFormType === 'ar1' ? 'bg-purple-50 border-purple-200' : 'bg-blue-50 border-blue-200'}`}>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <p className={`text-[10px] font-bold uppercase tracking-widest ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>{prevAnswerLabel}</p>
-                      {cocFormType === 'ar1' && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-200 text-purple-800">only describe the change</span>}
-                    </div>
-                    {hasPip2Answer(questionId) ? (
-                      <p className={`text-sm leading-relaxed italic line-clamp-3 ${cocFormType === 'ar1' ? 'text-purple-900' : 'text-blue-900'}`}>"{cocPreviousAnswers[questionId]}"</p>
-                    ) : (
-                      <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found — select what applies now.</p>
-                    )}
-                  </div>
-                )}
-                {cocDocumentType === 'award_only' && (
-                  <div className="rounded-2xl p-4 border bg-indigo-50 border-indigo-200">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">{prevAnswerLabel}</p>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">DWP decision</span>
-                    </div>
-                    {cocPreviousAnswers[questionId] ? (
-                      <p className="text-sm leading-relaxed italic line-clamp-3 text-indigo-950">"{cocPreviousAnswers[questionId]}"</p>
-                    ) : (
-                      <p className="text-sm italic text-indigo-400">Nothing read from your letter — select what applies now.</p>
-                    )}
-                  </div>
-                )}
-                {/* PA4-only primary reference */}
-                {cocDocumentType === 'pa4_only' && (
-                  <div className="rounded-2xl p-4 border bg-amber-50 border-amber-200">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">What the assessor noted</p>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">assessor's view</span>
-                    </div>
-                    {cocPreviousAnswers[questionId] ? (
-                      <p className="text-sm leading-relaxed italic line-clamp-3 text-amber-900">"{cocPreviousAnswers[questionId]}"</p>
-                    ) : (
-                      <p className="text-sm italic text-amber-400">No assessor observation — select what applies now.</p>
-                    )}
-                  </div>
-                )}
-                {/* PA4 secondary reference when both uploaded */}
-                {hasAssessorNote(questionId) && (
-                  <div className="rounded-2xl p-3 border bg-amber-50 border-amber-200">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Assessor's view</p>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">PA4</span>
-                    </div>
-                    <p className="text-xs leading-relaxed italic line-clamp-2 text-amber-900">"{cocAssessorNotes[questionId]}"</p>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* What you are scored on — highlights live matching descriptor */}
             {pipQ && (
