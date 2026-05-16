@@ -1,4 +1,4 @@
-// api/blog-daily.js — Vercel cron: pick a fresh PIP topic, generate draft via Claude, save to Supabase
+// api/blog-daily.js — Vercel cron: generate up to 2 drafts per UTC day (single free Hobby cron run).
 // Schedule in vercel.json. Set CRON_SECRET; Vercel sends Authorization: Bearer <CRON_SECRET>.
 
 import {
@@ -7,6 +7,8 @@ import {
   generatePost,
   DAILY_CRON_TAG,
 } from '../lib/blog-generate-core.js';
+
+const DAILY_CRON_POSTS_TARGET = 2;
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -41,13 +43,15 @@ function startOfUtcDayIso() {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0, 0)).toISOString();
 }
 
-function alreadyRanTodayUtc(rows) {
+function countDailyCronPostsTodayUtc(rows) {
   const start = startOfUtcDayIso();
-  return (rows || []).some((r) => {
-    if (!r.created_at || r.created_at < start) return false;
+  let n = 0;
+  for (const r of rows || []) {
+    if (!r.created_at || r.created_at < start) continue;
     const tags = r.tags;
-    return Array.isArray(tags) && tags.includes(DAILY_CRON_TAG);
-  });
+    if (Array.isArray(tags) && tags.includes(DAILY_CRON_TAG)) n++;
+  }
+  return n;
 }
 
 async function slugTaken(slug) {
@@ -109,51 +113,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    const recent = await fetchRecentPosts();
+    let recent = await fetchRecentPosts();
+    const existingToday = countDailyCronPostsTodayUtc(recent);
 
-    if (alreadyRanTodayUtc(recent)) {
+    if (existingToday >= DAILY_CRON_POSTS_TARGET) {
       return res.status(200).json({
         skipped: true,
-        reason: 'daily_cron_already_ran_utc_today',
+        reason: 'daily_cron_quota_reached',
+        daily_cron_posts_today: existingToday,
+        target_per_day: DAILY_CRON_POSTS_TARGET,
       });
     }
 
-    const seedTopic = pickSeedTopicForAutomation(recent);
-    const contextTopics = pickContextTopics(seedTopic);
-    console.log('Daily blog: generating for seed:', seedTopic);
+    const toCreate = DAILY_CRON_POSTS_TARGET - existingToday;
+    const drafts = [];
 
-    const post = await generatePost(seedTopic, contextTopics);
-    if (!post) {
-      return res.status(500).json({ error: 'Failed to parse generated post' });
-    }
+    for (let i = 0; i < toCreate; i++) {
+      recent = await fetchRecentPosts();
+      const seedTopic = pickSeedTopicForAutomation(recent);
+      const contextTopics = pickContextTopics(seedTopic);
+      console.log(`Daily blog (${i + 1}/${toCreate}): generating for seed:`, seedTopic);
 
-    const baseSlug = (post.slug || '').trim() || 'pip-post';
-    const slug = await ensureUniqueSlug(baseSlug);
-    const tags = Array.isArray(post.tags) ? [...new Set([...post.tags, DAILY_CRON_TAG])] : [DAILY_CRON_TAG];
+      const post = await generatePost(seedTopic, contextTopics);
+      if (!post) {
+        return res.status(500).json({
+          error: 'Failed to parse generated post',
+          drafts_created: drafts,
+        });
+      }
 
-    const row = {
-      title: post.title || 'PIP guide',
-      slug,
-      excerpt: post.excerpt || '',
-      body: post.body || '',
-      category: post.category || 'Tips',
-      tags,
-      published: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+      const baseSlug = (post.slug || '').trim() || 'pip-post';
+      const slug = await ensureUniqueSlug(baseSlug);
+      const tags = Array.isArray(post.tags) ? [...new Set([...post.tags, DAILY_CRON_TAG])] : [DAILY_CRON_TAG];
 
-    const inserted = await insertDraft(row);
-    const saved = Array.isArray(inserted) ? inserted[0] : inserted;
+      const row = {
+        title: post.title || 'PIP guide',
+        slug,
+        excerpt: post.excerpt || '',
+        body: post.body || '',
+        category: post.category || 'Tips',
+        tags,
+        published: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-    return res.status(200).json({
-      ok: true,
-      draft: {
+      const inserted = await insertDraft(row);
+      const saved = Array.isArray(inserted) ? inserted[0] : inserted;
+
+      drafts.push({
         id: saved?.id,
         title: row.title,
         slug: row.slug,
         seed_topic: seedTopic,
-      },
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      drafts,
+      draft: drafts[drafts.length - 1],
     });
   } catch (err) {
     console.error('blog-daily:', err);

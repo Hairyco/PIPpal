@@ -49,5 +49,10 @@
       "path": "/api/blog-daily",
       "schedule": "0 7 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "api/blog-daily.js": {
+      "maxDuration": 60
+    }
+  }
 }
