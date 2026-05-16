@@ -50,7 +50,9 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">£843 a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — you can claim if you are employed or unemployed.
         </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
-          <strong className="text-stone-900">You don&apos;t need a formal diagnosis:</strong> what matters is how you are affected day to day. Official statistics show roughly <strong className="text-stone-900">one in three</strong> new claims are awarded — so explaining a typical difficult day thoroughly and honestly on the form really counts.
+          <p className="text-sm text-stone-600 leading-relaxed">You don't need a formal diagnosis — PIP looks at how your condition affects you day to day.</p>
+          <p className="text-sm text-stone-600 leading-relaxed">Official figures show roughly one in three new claims are awarded, and the average decision takes 6 months.</p>
+          <p className="text-sm text-stone-600 leading-relaxed">We help you explain your typical difficult days clearly and honestly so the DWP fully understands your needs.</p>
         </p>
         <p className="text-[11px] text-stone-500 leading-relaxed mb-4">
           Numbers change each quarter. See DWP{' '}
