@@ -15,7 +15,7 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: '65% of claims fail — we help you get it right' },
+    { text: '65% of claims fail — we help you succeed' },
     { text: '100% personalised. No templates' },
     { text: 'Finish in just 15 minutes' },
     { text: 'Get a faster decision' },
