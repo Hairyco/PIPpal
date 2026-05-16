@@ -124,7 +124,7 @@ export function QuestionIndex() {
                 <p className="text-teal-200 text-sm mb-1">Total score so far</p>
                 <div className="flex items-end gap-2">
                   <span className="text-4xl font-bold">{totalPoints}</span>
-                  <span className="text-teal-200 text-sm mb-1">pts total</span>
+                  <span className="text-teal-200 text-sm mb-1">/ 118 pts</span>
                 </div>
               </div>
               <div className="text-right">
