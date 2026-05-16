@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,7 +10,6 @@ import {
   Phone,
   ChevronDown,
   ChevronUp,
-  ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -148,7 +147,6 @@ export function ChangeOfCircumstancesScreen() {
     goBack,
     navigateTo,
     isAdmin,
-    savedAnswersNewClaim,
     setCocPreviousAnswers,
     setCocPreviousPoints,
     setCocMode,
@@ -213,13 +211,10 @@ export function ChangeOfCircumstancesScreen() {
   const [classifyBusy, setClassifyBusy] = useState(false);
   const [docKindModal, setDocKindModal] = useState<null | { files: CocFileItem[]; suggested: CocDocSlot | null }>(null);
   const [draftDocKindPick, setDraftDocKindPick] = useState<CocDocSlot>('pip2');
-  const [reuseWorkbookModalOpen, setReuseWorkbookModalOpen] = useState(false);
 
-  const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
+  const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>(null);
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
   const [noForm, setNoForm] = useState(false);
-  /** Seed “previous” wording from answers saved during the normal new-claim walkthrough — for users who never kept a paper PIP2 */
-  const [usePlatformWorkbookAnswers, setUsePlatformWorkbookAnswers] = useState(false);
   /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
@@ -227,10 +222,11 @@ export function ChangeOfCircumstancesScreen() {
   /** After “I don't have my PIP2”, show paperwork guide before step 2 */
   const [missingOriginalPip2Guide, setMissingOriginalPip2Guide] = useState(false);
 
-  const newClaimAnswerCount = useMemo(
-    () => Object.keys(savedAnswersNewClaim ?? {}).filter(k => savedAnswersNewClaim[k]?.trim()).length,
-    [savedAnswersNewClaim],
-  );
+  useEffect(() => {
+    if (step !== 3) return;
+    setExpandedSection(null);
+    setExpandedActivityId(null);
+  }, [step]);
 
   const writeCocMedicalSnapshotToSession = useCallback(() => {
     try {
@@ -242,8 +238,6 @@ export function ChangeOfCircumstancesScreen() {
         pip2Extracted,
         pa4Extracted,
         awardExtracted,
-        platformWorkbookAnswers:
-          usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? { ...savedAnswersNewClaim } : undefined,
         activityFallbackNotes,
         cocManualPoints,
       };
@@ -260,9 +254,6 @@ export function ChangeOfCircumstancesScreen() {
     pip2Extracted,
     pa4Extracted,
     awardExtracted,
-    usePlatformWorkbookAnswers,
-    newClaimAnswerCount,
-    savedAnswersNewClaim,
     activityFallbackNotes,
     cocManualPoints,
   ]);
@@ -301,13 +292,6 @@ export function ChangeOfCircumstancesScreen() {
       setStep(3);
     }
   };
-
-  /** Goes to activity review (step 3); workbook answers prefill accordions — no hub navigation */
-  const confirmReuseWorkbookOnActivities = useCallback(() => {
-    setReuseWorkbookModalOpen(false);
-    setUsePlatformWorkbookAnswers(true);
-    setStep(3);
-  }, []);
 
   useLayoutEffect(() => {
     if (step !== 4) return;
@@ -578,8 +562,6 @@ export function ChangeOfCircumstancesScreen() {
       pip2Extracted,
       pa4Extracted,
       awardExtracted,
-      platformWorkbookAnswers:
-        usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? { ...savedAnswersNewClaim } : undefined,
       activityFallbackNotes,
       cocManualPoints,
     };
@@ -610,10 +592,9 @@ export function ChangeOfCircumstancesScreen() {
     const pa4Pts = normalizeActivityPoints(extractedPa4?.pointsAwarded);
     const awardPts = normalizeActivityPoints(extractedAward?.pointsAwarded);
     const manualPtsStr = cocManualPoints[qid] ?? '';
-    const platformWorkbookPreview = usePlatformWorkbookAnswers ? (savedAnswersNewClaim[qid]?.trim() ?? '') : '';
     const isOpen = expandedActivityId === qid;
     const hasScoreHints = pip2Pts != null || pa4Pts != null || awardPts != null || manualPtsStr.trim() !== '';
-    const hasAnswer = Boolean(pip2Text || pa4Text || awardText || platformWorkbookPreview || manual.trim() || hasScoreHints);
+    const hasAnswer = Boolean(pip2Text || pa4Text || awardText || manual.trim() || hasScoreHints);
     const confidence = (extractedPip2 ?? extractedPa4 ?? extractedAward)?.confidence ?? 'low';
     return (
       <div key={qid} className="border-b border-stone-100 last:border-0">
@@ -640,14 +621,6 @@ export function ChangeOfCircumstancesScreen() {
                     <p className="text-xs text-stone-700 leading-relaxed">"{pip2Text}"</p>
                   </div>
                 ) : null}
-                {platformWorkbookPreview ? (
-                  <div className="rounded-xl border border-teal-200 bg-white px-3 py-2 shadow-sm">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-1">
-                      From My Questions (PIPpal workbook)
-                    </p>
-                    <p className="text-xs text-stone-700 leading-relaxed">"{platformWorkbookPreview}"</p>
-                  </div>
-                ) : null}
                 {pa4Text ? (
                   <div className="rounded-xl border border-amber-100 bg-amber-50/80 px-3 py-2">
                     <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 mb-1">From assessor report (PA4)</p>
@@ -661,16 +634,10 @@ export function ChangeOfCircumstancesScreen() {
                   </div>
                 ) : null}
               </div>
-            ) : platformWorkbookPreview ? (
-              <div className="rounded-xl border border-teal-200 bg-white px-3 py-2 shadow-sm">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-teal-700 mb-1">
-                  From My Questions (PIPpal workbook)
-                </p>
-                <p className="text-xs text-stone-700 leading-relaxed">"{platformWorkbookPreview}"</p>
-              </div>
             ) : (
               <p className="text-xs text-stone-400 leading-relaxed">
-                Nothing uploaded or saved from your workbook yet for this activity — you can add a reminder in the box below if you wish.
+                Nothing was read automatically for this activity from your uploads — add a reminder in the box below if
+                you wish.
               </p>
             )}
 
@@ -696,7 +663,7 @@ export function ChangeOfCircumstancesScreen() {
 
             <div className="rounded-xl border border-stone-200 bg-stone-50/90 px-3 py-3 space-y-2">
               <p className="text-[11px] text-stone-600 leading-relaxed">
-                {pip2Text || pa4Text || awardText || platformWorkbookPreview ? (
+                {pip2Text || pa4Text || awardText ? (
                   <>
                     <span className="font-semibold text-stone-700">Optional.</span> If anything above doesn&apos;t match your papers or the reader missed words, type what should count as your previous answer for this activity. We&apos;ll use what you type in the walkthrough instead of the automatic text. Leave blank if it looks right.
                   </>
@@ -711,7 +678,7 @@ export function ChangeOfCircumstancesScreen() {
                 onChange={ev => setActivityFallbackNotes(prev => ({ ...prev, [qid]: ev.target.value }))}
                 rows={3}
                 placeholder={
-                  pip2Text || pa4Text || awardText || platformWorkbookPreview
+                  pip2Text || pa4Text || awardText
                     ? 'Optional — correct wording only if needed'
                     : 'Optional — only if you remember what was on the form'
                 }
@@ -763,9 +730,8 @@ export function ChangeOfCircumstancesScreen() {
           <p className="text-sm text-teal-950 leading-snug">
             No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>,{' '}
             <strong className="font-semibold">PA4</strong>, and{' '}
-            <strong className="font-semibold">decision letter</strong> from DWP — reuse your{' '}
-            <strong className="font-semibold">My Questions</strong> answers from a past new-claim workbook — or carry on
-            without files in the next steps.
+            <strong className="font-semibold">decision letter</strong> from DWP, or carry on without files in the next
+            steps.
           </p>
           <a
             href="tel:08009172222"
@@ -847,8 +813,7 @@ export function ChangeOfCircumstancesScreen() {
       const hasAward = awardLabels.length > 0;
       const busy = pip2Busy || pa4Busy || awardBusy || classifyBusy;
       const hasAny = hasPip2 || hasPa4 || hasAward;
-      const workbookPathOk = usePlatformWorkbookAnswers && newClaimAnswerCount > 0;
-      const canContinue = !busy && (hasAny || noForm || workbookPathOk);
+      const canContinue = !busy && (hasAny || noForm);
 
       const docSlotLabels = [hasPip2 && 'PIP2', hasPa4 && 'PA4', hasAward && 'Award'].filter(Boolean) as string[];
 
@@ -857,8 +822,9 @@ export function ChangeOfCircumstancesScreen() {
           {hasOriginalPip2Copy === false && (
             <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
               <p className="text-sm text-teal-950 leading-snug">
-                You&apos;re continuing <strong className="font-semibold">without a paper PIP2</strong>. Use PA4 or your decision letter if you have them, reuse{' '}
-                <strong className="font-semibold">My Questions</strong> answers on this screen, or carry on with reminders only on the following step — same flow either way.
+                You&apos;re continuing <strong className="font-semibold">without a paper PIP2</strong>. Use PA4 or your
+                decision letter if you have them, or carry on with reminders only on the following step — same flow either
+                way.
               </p>
             </div>
           )}
@@ -1056,17 +1022,6 @@ export function ChangeOfCircumstancesScreen() {
             Auto-reading works best on clear scans; whenever we&apos;re unsure, we&apos;ll ask you to pick what you uploaded — your new answers always come from the questionnaire.
           </p>
 
-          <div className="space-y-3">
-            <button
-              type="button"
-              onClick={() => setReuseWorkbookModalOpen(true)}
-              className="w-full py-3.5 rounded-xl text-sm font-semibold border border-teal-600 text-teal-800 bg-white hover:bg-teal-50 active:scale-[0.99] transition-all flex items-center justify-center gap-1"
-            >
-              Use previous answers
-              <ChevronRight className="w-4 h-4 text-teal-600 shrink-0" aria-hidden />
-            </button>
-          </div>
-
           <div className="space-y-2">
             <button
               type="button"
@@ -1078,7 +1033,7 @@ export function ChangeOfCircumstancesScreen() {
             </button>
             {!canContinue && !busy && (
               <p className="text-xs text-stone-500 text-center leading-relaxed px-1">
-                Add paperwork, reuse My Questions, or continue without uploads from the shaded box — then Continue to review each activity.
+                Add paperwork or continue without uploads from the shaded box — then Continue to review each activity.
               </p>
             )}
           </div>
@@ -1158,68 +1113,6 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {reuseWorkbookModalOpen && (
-            <div
-              className="fixed inset-0 z-[71] flex items-end sm:items-center justify-center sm:p-6 bg-black/45"
-              onClick={(e) => {
-                if (e.target === e.currentTarget) setReuseWorkbookModalOpen(false);
-              }}
-              role="presentation"
-            >
-              <div
-                className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-stone-100 p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby="coc-reuse-workbook-heading"
-              >
-                <h3 id="coc-reuse-workbook-heading" className="font-bold text-stone-900 text-base leading-snug">
-                  Use answers from My Questions?
-                </h3>
-                {newClaimAnswerCount > 0 ? (
-                  <>
-                    <p className="text-sm text-stone-600 leading-relaxed">
-                      You&apos;re opting to reuse answers saved during your{' '}
-                      <span className="font-semibold text-stone-800">new claim</span> workbook from My Questions. They
-                      will appear as prior wording next to each activity on the checklist — no need to open the hub. You can
-                      still edit wording when you reach the questionnaire.
-                    </p>
-                    <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">
-                      Saved from new claim:&nbsp;
-                      <span className="font-semibold">
-                        {newClaimAnswerCount} activit
-                        {newClaimAnswerCount === 1 ? 'y' : 'ies'}
-                      </span>
-                      .
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-stone-600 leading-relaxed">
-                    You don&apos;t have workbook answers saved from a new claim in My Questions yet. Continuing opens the{' '}
-                    activity checklist anyway so you can add optional reminders — or{' '}
-                    <span className="font-semibold text-stone-800">Cancel</span> and use the main{' '}
-                    <span className="font-semibold text-stone-800">Continue</span> button to move on without this option.
-                  </p>
-                )}
-                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
-                  <button
-                    type="button"
-                    className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 hover:bg-stone-50 transition-colors"
-                    onClick={() => setReuseWorkbookModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full py-3 rounded-xl text-sm font-bold bg-teal-700 text-white hover:bg-teal-800 transition-colors"
-                    onClick={confirmReuseWorkbookOnActivities}
-                  >
-                    Show activity checklist
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Admin preview panel */}
           {isAdmin && (
             <div className="rounded-2xl border-2 border-dashed border-amber-400 bg-amber-50/60 p-4 space-y-3">
@@ -1249,7 +1142,7 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 3: Per-activity review (PIP2 / PA4 / workbook / reminders) ───────
+    // ── STEP 3: Per-activity review (PIP2 / PA4 / uploads / reminders) ───────
     if (step === 3) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
@@ -1263,10 +1156,7 @@ export function ChangeOfCircumstancesScreen() {
       const extractionFailedSomewhere =
         (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
       const uploadReviewReady = hasAny && (hasExtracted || extractionFailedSomewhere);
-      const reuseWorkbookForPrevious = usePlatformWorkbookAnswers;
-      const workbookHasSavedAnswers = reuseWorkbookForPrevious && newClaimAnswerCount > 0;
-      const showActivityReview =
-        !busy && (uploadReviewReady || reuseWorkbookForPrevious || (noForm && !hasAny));
+      const showActivityReview = !busy && (uploadReviewReady || (noForm && !hasAny));
       const canContinueMedical = !busy;
 
       const extractedFromDocLabels = [
@@ -1281,8 +1171,8 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Answers & documents</p>
             <h2 className="font-bold text-lg leading-snug mb-2">Check each activity</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
-              Expand Daily Living and Mobility below — anything pulled from uploads or{' '}
-              <span className="font-semibold text-white">My Questions</span> shows under each activity. Use the optional boxes to correct or add wording, then continue.
+              Expand Daily Living and Mobility below — anything read from uploads shows under each activity. Use the
+              optional boxes to correct or add wording, then continue.
             </p>
           </div>
 
@@ -1299,7 +1189,7 @@ export function ChangeOfCircumstancesScreen() {
             </p>
           )}
 
-          {/* Checklist — uploads, workbook seeds, manual reminders, no-doc route */}
+          {/* Checklist — uploads / manual reminders / no-doc route */}
           {showActivityReview && (
             <div className="space-y-2">
               {extractionFailedSomewhere && (
@@ -1317,13 +1207,9 @@ export function ChangeOfCircumstancesScreen() {
                     : extractedFromDocLabels.length > 0
                       ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
                       : 'Open each activity below.'
-                  : workbookHasSavedAnswers
-                    ? 'Your saved answers from My Questions appear under each activity. Adjust optional notes or scores before continuing — handwritten overrides take priority when you finish Medical Profile.'
-                    : reuseWorkbookForPrevious && !workbookHasSavedAnswers
-                      ? 'You opted to reuse My Questions wording, but none are saved yet — add optional reminders below, or pick another step to attach scans.'
-                    : noForm && !hasAny
-                      ? 'No scans attached — jot quick reminders below if helpful, then continue.'
-                      : 'Open each activity below.'}
+                  : noForm && !hasAny
+                    ? 'No scans attached — jot quick reminders below if helpful, then continue.'
+                    : 'Open each activity below.'}
               </p>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
                 <button type="button"
