@@ -312,6 +312,23 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <ChatPreview onStart={() => handleNavigate('home')} />
+
+              {/* Feature strip */}
+              <div className="px-5 md:px-8 py-4 space-y-3">
+                {[
+                  { icon: '✨', title: 'Get instant inspiration', body: 'See high-quality examples tailored to your specific conditions.' },
+                  { icon: '🆓', title: 'Test it 100% free', body: 'Try the tool and build your draft before spending a penny.' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-start gap-3">
+                    <span className="text-2xl shrink-0">{item.icon}</span>
+                    <div>
+                      <p className="font-bold text-stone-900 text-sm">{item.title}</p>
+                      <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
 
