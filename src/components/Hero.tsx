@@ -16,7 +16,7 @@ export function Hero({ onStart }: HeroProps) {
 
   const checks = [
     { text: 'Built from thousands of successful PIP claims' },
-    { text: 'Creates 100% unique answers — never a template' },
+    { text: '100% custom, zero templates' },
     { text: 'Complete in just 15 minutes' },
     { text: 'Get your PIP decision up to 6 weeks faster' },
     { text: 'Handwritten form service available' },
