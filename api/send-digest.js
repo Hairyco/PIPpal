@@ -289,8 +289,10 @@ export default async function handler(req, res) {
 
   try {
     const body = req.method === 'POST' ? (req.body || {}) : {};
-    const isCronTest = req.query?.cron === 'test';
-    const testOnly = body.testOnly === true || isCronTest;
+    // Cron invokes GET with Bearer CRON_SECRET — preview-only (no query string in vercel.json cron paths).
+    // Admin dashboard uses POST with explicit testOnly / articles / blogPosts.
+    const testOnly =
+      req.method === 'POST' ? body.testOnly === true : true;
     const blogPosts = body.blogPosts || [];
 
     // Accept pre-fetched articles from client (since Vercel blocks outbound RSS fetches)
