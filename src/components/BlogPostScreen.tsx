@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Clock, Tag, Share2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Clock, Tag, Share2 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 
@@ -103,23 +103,7 @@ export function BlogPostScreen() {
         elements.push(<div key={i} className="h-2" />);
       } else {
         flushList(i);
-        // Check if line is a PIPpal CTA
-        const isPIPpalCTA = line.toLowerCase().includes('pippal') && (line.toLowerCase().includes('try') || line.toLowerCase().includes('start') || line.toLowerCase().includes('get') || line.toLowerCase().includes('help'));
-        if (isPIPpalCTA) {
-          elements.push(
-            <div key={i} className="my-4">
-              <p className="text-sm text-stone-600 leading-relaxed mb-3">{renderInline(line, i)}</p>
-              <button
-                onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
-                className="bg-orange-500 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
-              >
-                {hasPaid ? '→ Continue my PIP claim' : '→ Try PIPpal — £6.99 one-time'}
-              </button>
-            </div>
-          );
-        } else {
-          elements.push(<p key={i} className="text-sm text-stone-600 leading-relaxed">{renderInline(line, i)}</p>);
-        }
+        elements.push(<p key={i} className="text-sm text-stone-600 leading-relaxed">{renderInline(line, i)}</p>);
       }
     });
     flushList(lines.length);
@@ -206,7 +190,7 @@ export function BlogPostScreen() {
                 }}
                 className="w-full bg-orange-500 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
               >
-                {hasPaid ? '→ Continue my PIP claim' : '→ Start my PIP claim — £6.99'}
+                {hasPaid ? '→ Start my PIP claim' : '→ Start my PIP claim — £6.99'}
               </button>
             </div>
           </div>

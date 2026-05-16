@@ -17,13 +17,19 @@ const SOURCES = [
   { url: 'https://www.disabilityrightsuk.org/feed', name: 'Disability Rights UK', showSource: false, format: 'rss' },
 ];
 
-// Broad first-pass filter — catch anything that MIGHT be PIP related
-// Claude will then decide properly
+// Broad first-pass filter — must also mention PIP (see mentionsPipBenefit)
 const BROAD_KEYWORDS = [
   'pip', 'personal independence payment', 'disability benefit', 'disability payment',
   'dwp', 'welfare', 'benefit', 'disabled', 'incapacity', 'universal credit',
   'claimant', 'assessment', 'social security', 'dla', 'attendance allowance'
 ];
+
+/** Title + summary/body must reference PIP or spell it out — stops generic benefits/UC noise */
+function mentionsPipBenefit(title, summary) {
+  const combined = `${title || ''} ${summary || ''}`;
+  if (/\bpip\b/i.test(combined)) return true;
+  return combined.toLowerCase().includes('personal independence payment');
+}
 
 // Hard reject — clearly nothing to do with benefits
 const HARD_REJECT = [
@@ -44,6 +50,7 @@ const TAG_RULES = [
 function firstPassFilter(title, summary) {
   const text = (title + ' ' + (summary || '')).toLowerCase();
   if (HARD_REJECT.some(t => title.toLowerCase().includes(t))) return false;
+  if (!mentionsPipBenefit(title, summary)) return false;
   return BROAD_KEYWORDS.some(k => text.includes(k));
 }
 
@@ -119,7 +126,7 @@ async function rewriteWithClaude(title, summary, sourceName) {
           role: 'user',
           content: `You write news for PIPpal, a UK service helping people claim PIP disability benefit.
 
-First decide: is this article relevant to PIP claimants? Relevant = covers PIP, DWP benefits, disability payments, welfare reform, or benefit assessments. NOT relevant = sports events, entertainment, charity fun runs, or unrelated topics.
+First decide: is this article primarily about PIP (Personal Independence Payment) for UK claimants? Relevant ONLY if it clearly concerns PIP, not merely generic UC or unrelated benefits news. NOT relevant = sports events, entertainment, charity fun runs, or articles that mention DWP/disability payments but not PIP.
 
 If NOT relevant, respond with exactly: NOT_RELEVANT
 
@@ -226,7 +233,7 @@ export default async function handler(req, res) {
       if (seen.has(a.title)) return false;
       seen.add(a.title);
       return true;
-    }).slice(0, 30);
+    }).filter(a => mentionsPipBenefit(a.title, a.body || '')).slice(0, 30);
 
     // Format stored articles (they may have array tags)
     const articles = merged.map(a => ({

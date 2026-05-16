@@ -8,50 +8,61 @@ interface ChatPreviewProps {
   embedded?: boolean;
 }
 
-const SLIDES = [
+interface CarouselSlide {
+  src: string;
+  headerLabel: string;
+  caption: string;
+  imageFit: 'cover' | 'contain';
+  panScreenshot: boolean;
+  /** Extra image height + travel so tall full-page shots scroll meaningfully */
+  panDepth?: 'deep';
+}
+
+const SLIDES: CarouselSlide[] = [
   {
     src: '/marketing/home-screen.png',
     headerLabel: 'Home',
     caption: 'Home',
-    imageFit: 'cover' as const,
+    imageFit: 'cover',
     panScreenshot: true,
   },
   {
     src: '/marketing/medical-profile-screen.png',
     headerLabel: 'Medical Profile',
     caption: 'Conditions, meds & notes',
-    imageFit: 'cover' as const,
+    imageFit: 'cover',
     panScreenshot: true,
   },
   {
     src: '/marketing/answers-prep-screen.png',
     headerLabel: 'Your answers',
     caption: 'Your answers prep',
-    imageFit: 'cover' as const,
+    imageFit: 'cover',
     panScreenshot: true,
   },
   {
     src: '/marketing/draft-answer-screen.png',
     headerLabel: 'Draft answer',
     caption: 'Draft answer',
-    imageFit: 'cover' as const,
+    imageFit: 'cover',
     panScreenshot: true,
   },
   {
     src: '/marketing/pip-diary-screen.png',
     headerLabel: 'PIP Diary',
     caption: 'Weekly diary evidence',
-    imageFit: 'cover' as const,
+    imageFit: 'cover',
     panScreenshot: true,
   },
   {
     src: '/marketing/coc-pip2-pa4-screen.png',
     headerLabel: 'CoC walkthrough',
     caption: 'Your answer, PA4 assessor notes & example',
-    imageFit: 'contain' as const,
-    panScreenshot: false,
+    imageFit: 'cover',
+    panScreenshot: true,
+    panDepth: 'deep',
   },
-] as const;
+];
 
 export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
   const [index, setIndex] = useState(0);
@@ -68,12 +79,19 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
 
   const slide = SLIDES[index];
 
+  const deepPan = slide.panDepth === 'deep';
+  const panMinHClass = slide.panScreenshot ? (deepPan ? 'min-h-[175%]' : 'min-h-[112%]') : '';
+
   const imageClassName =
     slide.imageFit === 'contain'
       ? 'w-full h-full max-h-full object-contain object-top select-none pointer-events-none block'
-      : 'w-full min-h-[112%] object-cover object-top select-none pointer-events-none block';
+      : slide.panScreenshot
+        ? `${panMinHClass} w-full object-cover object-top select-none pointer-events-none block`
+        : 'w-full h-full object-cover object-top select-none pointer-events-none block';
 
   const slidePanMotion = slide.panScreenshot && !reduceMotion;
+  const panYKeyframes = deepPan ? [0, -110, 0] : [0, -36, 0];
+  const panDurationSec = deepPan ? 22 : 14;
 
   const go = (direction: -1 | 1) => {
     setManualNav(true);
@@ -138,9 +156,9 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
                           className={imageClassName}
                           loading={index === 0 ? 'eager' : 'lazy'}
                           decoding="async"
-                          animate={{ y: [0, -36, 0] }}
+                          animate={{ y: panYKeyframes }}
                           transition={{
-                            duration: 14,
+                            duration: panDurationSec,
                             repeat: Infinity,
                             ease: 'easeInOut',
                           }}
