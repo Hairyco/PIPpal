@@ -956,9 +956,6 @@ export function ChangeOfCircumstancesScreen() {
               className="w-full rounded-xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-teal-400 hover:bg-teal-50/40 active:scale-[0.99]"
             >
               <span className="font-semibold text-stone-900 text-base leading-snug">I have my original PIP2 form</span>
-              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">
-                Photos or scans are fine — we&apos;ll read your wording next.
-              </span>
             </button>
             <button
               type="button"
@@ -967,9 +964,6 @@ export function ChangeOfCircumstancesScreen() {
             >
               <span className="font-semibold text-stone-900 text-base leading-snug">
                 I don&apos;t have my original PIP2 form
-              </span>
-              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">
-                Next: how to replace it with DWP paperwork or saved answers before you upload anything.
               </span>
             </button>
           </div>
