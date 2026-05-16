@@ -15,9 +15,9 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
+    { text: 'Beat the system: 60% of new claims fail' },
     { text: '100% custom. No templates' },
     { text: 'No stress — complete in just 15 minutes' },
-    { text: '65% of new claims are rejected — we get it right' },
     { text: 'Get your PIP decision up to 6 weeks faster' },
     { text: 'Handwritten form service available' },
   ];
