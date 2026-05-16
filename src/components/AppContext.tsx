@@ -78,7 +78,7 @@ function readDevScreenshot(): DevScreenshot | null {
   if (v === 'answers_review') return { screen: 'answers_review', seedReviewAnswers: true, seedDraftAnswer: false };
   if (v === 'draft_answer' || v === 'q1_result')
     return { screen: 'q1_result', seedReviewAnswers: false, seedDraftAnswer: true };
-  if (v === 'coc_step3')
+  if (v === 'coc_step2' || v === 'coc_step3')
     return { screen: 'change_of_circumstances', seedReviewAnswers: false, seedDraftAnswer: false };
   if (v === 'coc_compare')
     return {

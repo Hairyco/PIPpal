@@ -1,7 +1,7 @@
 // api/generate.js
 // Merged generator — replaces generate-mr-letter.js, generate-sscs1.js, generate-coc-answers.js
 // Reduces serverless function count from 14 → 12 (Vercel Hobby plan limit)
-// Pass { type: 'mr-letter' | 'sscs1' | 'coc-answers' | 'coc-walkthrough-copy' | 'coc-document-analysis', ...data } in the request body
+// Pass { type: 'mr-letter' | 'sscs1' | 'coc-answers' | 'coc-walkthrough-copy' | 'coc-document-classify' | 'coc-document-analysis', ...data } in the request body
 
 async function openaiChat(system, user, { jsonObject = false, maxTokens = 2000 } = {}) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
@@ -274,6 +274,55 @@ ${JSON.stringify(baseCopy)}`;
     } catch (err) {
       console.error('coc-walkthrough-copy:', err.message);
       return res.status(500).json({ error: err.message, walkthroughCopy: null });
+    }
+
+  // ── COC DOCUMENT CLASSIFY — quick vision guess before full extraction ─────
+  } else if (type === 'coc-document-classify') {
+    const { files } = req.body || {};
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ error: 'files array is required' });
+    }
+    const imageObjects = files
+      .filter(f => f && f.base64 && f.mimeType)
+      .slice(0, 2)
+      .map(f => ({ base64: f.base64, mimeType: f.mimeType }));
+    if (imageObjects.length === 0) {
+      return res.status(400).json({ error: 'No valid files provided' });
+    }
+
+    const system = `You look at uploads for UK Personal Independence Payment (PIP) paperwork.
+Decide which ONE category best matches the MAIN document visible:
+- pip2 — the claimant-completed how-your-disability-affects-you form ("PIP2"), application or review form sections in their own words, tick boxes and free text written by claimant.
+- pa4 — health professional assessment report (PA4, assessor commentary, descriptors recommended, clinical observations — often says "report" / "health professional").
+- award_letter — DWP decision letter, award notice, or outcome letter listing points/descriptors/scores.
+
+If multiple types appear equally or text is unreadable or not PIP paperwork, favour "pip2" ONLY if ambiguous between form types; otherwise return confidence "low".
+
+Return ONLY valid JSON: {"documentKind":"pip2"|"pa4"|"award_letter","confidence":"high"|"medium"|"low"}
+No markdown, no other keys.`;
+
+    const userText = 'Identify the document type from these pages. JSON only.';
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(200).json({ documentKind: null, confidence: 'low', skipped: true });
+      }
+      const raw = await openaiVision(system, userText, imageObjects, { maxTokens: 350 });
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        const match = raw.match(/\{[\s\S]*\}/);
+        parsed = match ? JSON.parse(match[0]) : null;
+      }
+      const k = parsed?.documentKind;
+      const c = parsed?.confidence;
+      const documentKind =
+        k === 'pa4' ? 'pa4' : k === 'award_letter' ? 'award_letter' : k === 'pip2' ? 'pip2' : null;
+      const confidence = c === 'high' || c === 'medium' || c === 'low' ? c : 'low';
+      return res.status(200).json({ documentKind, confidence });
+    } catch (err) {
+      console.error('coc-document-classify:', err.message);
+      return res.status(200).json({ documentKind: null, confidence: 'low' });
     }
 
   // ── COC DOCUMENT ANALYSIS — extract previous answers from scanned document ─

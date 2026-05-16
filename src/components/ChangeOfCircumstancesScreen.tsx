@@ -22,12 +22,11 @@ import {
   COC_MEDICAL_EXPECTED_KEY,
 } from '../cocMedicalSnapshot';
 
-// ── Steps ────────────────────────────────────────────────────────────────────
-// 1  Original completed PIP2 copy — yes / no
-// 2  Form type selector (PIP2 vs AR1)
-// 3  Upload (+ show extracted answers in accordions)
-// 4  Opens Medical Profile — save there applies snapshot & navigates to questions (no separate “how this works” step)
-const TOTAL_STEPS = 4;
+// ── Steps (AR1 branching archived — see ../archive/coc-step2-form-type-picker.tsx)
+// 1  Original completed PIP2 copy — yes / no (+ guide without PIP2)
+// 2  Upload (+ extracted answers checklist)
+// 3  Opens Medical Profile — saves snapshot → questions
+const TOTAL_STEPS = 3;
 
 /** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
 const COC_FLOW_STEP_KEY = 'coc_flow_step';
@@ -52,9 +51,11 @@ function readStoredCocStep(): number {
     if (!raw) return 1;
     const n = parseInt(raw, 10);
     if (Number.isNaN(n) || n < 1) return 1;
-    if (n === 5) return 3;
-    if (n > TOTAL_STEPS) return 1;
-    return n;
+    // Migrate legacy 4-step flow (included PIP2 vs AR1): 4→3, 3→2, 2→2, 1→1
+    if (n >= 4) return 3;
+    if (n === 3) return 2;
+    if (n === 2) return 2;
+    return 1;
   } catch {
     return 1;
   }
@@ -69,6 +70,10 @@ type CocExtractedEntry = {
   confidence: 'high' | 'medium' | 'low';
   pointsAwarded?: number | null;
 };
+
+/** Unified CoC uploads — routed to extraction bucket after classify / user pick */
+type CocDocSlot = 'pip2' | 'pa4' | 'award_letter';
+type CocFileItem = { name: string; base64: string; mimeType: string; size: number };
 
 function normalizeActivityPoints(raw: unknown): number | null {
   if (raw === null || raw === undefined || raw === '') return null;
@@ -125,8 +130,8 @@ function StepHeader({ step, title, total, onBack }: { step: number; title: strin
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">Step {step} of {total}</p>
-          <h1 className="font-bold text-stone-900 text-base leading-tight truncate">{title}</h1>
+          <h1 className="font-bold text-stone-900 text-base leading-tight truncate">Step {step} of {total}</h1>
+          <p className="text-xs text-stone-500 mt-0.5 truncate">{title}</p>
         </div>
       </div>
       <div className="w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
@@ -137,195 +142,6 @@ function StepHeader({ step, title, total, onBack }: { step: number; title: strin
   );
 }
 
-type CocUploadZoneProps = {
-  label: string;
-  sublabel: string;
-  badge?: string;
-  badgeColour?: string;
-  labels: string[];
-  busy: boolean;
-  error: string | null;
-  extracted: Record<string, CocExtractedEntry>;
-  inputRef: React.RefObject<HTMLInputElement>;
-  onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onRemove: () => void;
-  isOptional?: boolean;
-  /** Shown on the dashed pick button when `isOptional` and nothing uploaded yet */
-  optionalPickLabel?: string;
-  fileCount: number;
-  totalBytes: number;
-  maxFiles: number;
-  maxTotalBytes: number;
-  pickError: string | null;
-  /** When true, skip the compact summary row — use inside a parent "Your documents" accordion */
-  embedInDocumentsGroup?: boolean;
-};
-
-/** Upload card: after successful extraction, defaults to a compact row; tap to expand full details */
-function CocUploadZone({
-  label, sublabel, badge, badgeColour, labels,
-  busy: zoneBusy, error, extracted,
-  inputRef, onPick, onRemove, isOptional, optionalPickLabel,
-  fileCount, totalBytes, maxFiles, maxTotalBytes, pickError,
-  embedInDocumentsGroup = false,
-}: CocUploadZoneProps) {
-  const [expanded, setExpanded] = useState(true);
-  const uploaded = labels.length > 0;
-  const done = Object.keys(extracted).length > 0;
-  const overRecommendedSize = totalBytes > maxTotalBytes * 0.9;
-  const canCollapse = uploaded && done && !zoneBusy && !error;
-  const allowCompact = canCollapse && !embedInDocumentsGroup;
-
-  useEffect(() => {
-    if (allowCompact) setExpanded(false);
-    else setExpanded(true);
-  }, [allowCompact]);
-
-  if (!uploaded) {
-    return (
-      <div className={`${embedInDocumentsGroup ? 'rounded-xl border border-stone-200' : 'rounded-2xl border-2 border-stone-200'} p-4 space-y-3 bg-white`}>
-        {pickError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
-            <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
-          </div>
-        )}
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-bold text-stone-900 text-sm">{label}</p>
-              {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
-              {isOptional && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">optional</span>}
-            </div>
-            <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
-          </div>
-        </div>
-        <input ref={inputRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onPick} />
-        <button type="button" onClick={() => inputRef.current?.click()}
-          className={`w-full py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.99] ${isOptional ? 'border-2 border-dashed border-stone-200 text-stone-600 hover:border-teal-300 hover:text-teal-700' : 'bg-teal-700 text-white hover:bg-teal-800 shadow-sm'}`}>
-          <Upload className="w-4 h-4" />
-          {isOptional ? (optionalPickLabel ?? 'Add file (optional)') : 'Take a photo or upload pages'}
-        </button>
-        <p className={`text-[10px] leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
-          <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
-          {totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
-          {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
-        </p>
-      </div>
-    );
-  }
-
-  if (allowCompact && !expanded) {
-    return (
-      <div className="rounded-2xl border-2 border-teal-200 bg-teal-50/30 p-3 shadow-sm">
-        {pickError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 mb-2">
-            <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
-          </div>
-        )}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            className="flex-1 flex items-center gap-2 min-w-0 text-left rounded-xl py-1 pr-1 hover:bg-white/60 transition-colors"
-          >
-            <ChevronRight className="w-4 h-4 shrink-0 text-stone-400" />
-            <FileText className="w-4 h-4 text-teal-600 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-bold text-stone-900 text-sm">{label}</span>
-                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
-              </div>
-              <p className="text-[11px] text-teal-800 font-medium mt-0.5">
-                Answers extracted · {fileCount} file{fileCount !== 1 ? 's' : ''}
-                {totalBytes > 0 ? <> · {formatFileSize(totalBytes)}</> : null}
-              </p>
-            </div>
-            <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-          </button>
-          <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0 px-1 py-2">
-            Remove
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`${embedInDocumentsGroup ? 'rounded-xl border border-stone-200 bg-stone-50/40' : 'rounded-2xl border-2 border-teal-200 bg-teal-50/30'} p-4 space-y-3`}>
-      {pickError && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
-          <p className="text-xs text-red-800 leading-relaxed">{pickError}</p>
-        </div>
-      )}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          {allowCompact ? (
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              className="w-full text-left rounded-xl -mx-1 px-1 py-0.5 hover:bg-white/50 transition-colors"
-            >
-              <div className="flex items-center gap-2 flex-wrap">
-                <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" />
-                <p className="font-bold text-stone-900 text-sm">{label}</p>
-                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
-              </div>
-              <p className="text-[11px] text-stone-500 mt-1 pl-6">Tap to hide details</p>
-            </button>
-          ) : (
-            <>
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-bold text-stone-900 text-sm">{label}</p>
-                {badge && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColour}`}>{badge}</span>}
-              </div>
-              <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{sublabel}</p>
-            </>
-          )}
-        </div>
-        {uploaded && (
-          <button type="button" onClick={onRemove} className="text-xs text-stone-400 hover:text-red-500 underline shrink-0">Remove</button>
-        )}
-      </div>
-
-      {(!allowCompact || expanded) && (
-        <>
-          {allowCompact && <p className="text-xs text-stone-500 leading-relaxed pl-6 -mt-1">{sublabel}</p>}
-          <div className="space-y-1.5">
-            {labels.map(name => (
-              <div key={name} className="flex items-center gap-2 text-sm text-stone-700">
-                <FileText className="w-4 h-4 text-teal-600 shrink-0" />
-                <span className="break-all text-xs">{name}</span>
-              </div>
-            ))}
-            {zoneBusy && (
-              <div className="flex items-center gap-2 pt-1">
-                <Loader2 className="w-3.5 h-3.5 text-teal-600 animate-spin shrink-0" />
-                <p className="text-xs text-stone-500">Reading document…</p>
-              </div>
-            )}
-            {!zoneBusy && done && (
-              <div className="flex items-center gap-2 pt-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                <p className="text-xs text-teal-700 font-semibold">Answers extracted</p>
-              </div>
-            )}
-            {!zoneBusy && error && (
-              <div className="flex items-start gap-2 pt-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-800">Couldn&apos;t read automatically — answers will be blank; add manually.</p>
-              </div>
-            )}
-            <p className={`text-[10px] pt-1 leading-snug ${overRecommendedSize ? 'text-amber-700 font-medium' : 'text-stone-500'}`}>
-              <span className="font-semibold text-stone-600">{fileCount}</span> file{fileCount !== 1 ? 's' : ''} selected
-              {uploaded && totalBytes > 0 ? <> · <span className="font-semibold text-stone-600">{formatFileSize(totalBytes)}</span> total</> : null}
-              {' '}(max <span className="font-semibold">{maxFiles}</span> files and ~<span className="font-semibold">{formatFileSize(maxTotalBytes)}</span> per upload)
-            </p>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export function ChangeOfCircumstancesScreen() {
@@ -365,11 +181,9 @@ export function ChangeOfCircumstancesScreen() {
       /* ignore */
     }
   }, [hasOriginalPip2Copy]);
-  const [formType, setFormType] = useState<'pip2' | 'ar1' | null>(null);
+  const [formType] = useState<'pip2' | 'ar1'>('pip2');
   const [notReportedOpen, setNotReportedOpen] = useState(false);
-  const pip2InputRef = useRef<HTMLInputElement>(null);
-  const pa4InputRef = useRef<HTMLInputElement>(null);
-  const awardInputRef = useRef<HTMLInputElement>(null);
+  const combinedDocsInputRef = useRef<HTMLInputElement>(null);
 
   // PIP2 upload state
   const [pip2Labels, setPip2Labels] = useState<string[]>([]);
@@ -395,10 +209,14 @@ export function ChangeOfCircumstancesScreen() {
   const [awardUploadError, setAwardUploadError] = useState<string | null>(null);
   const [awardExtracted, setAwardExtracted] = useState<Record<string, CocExtractedEntry>>({});
 
+  /** Single unified picker errors + classify step before extraction */
+  const [combinedPickError, setCombinedPickError] = useState<string | null>(null);
+  const [classifyBusy, setClassifyBusy] = useState(false);
+  const [docKindModal, setDocKindModal] = useState<null | { files: CocFileItem[]; suggested: CocDocSlot | null }>(null);
+  const [draftDocKindPick, setDraftDocKindPick] = useState<CocDocSlot>('pip2');
+
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
-  /** Single accordion on step 3 wrapping PIP2 / PA4 / award uploads */
-  const [documentsUploadOpen, setDocumentsUploadOpen] = useState(true);
   const [noForm, setNoForm] = useState(false);
   /** Seed “previous” wording from answers saved during the normal new-claim walkthrough — for users who never kept a paper PIP2 */
   const [usePlatformWorkbookAnswers, setUsePlatformWorkbookAnswers] = useState(false);
@@ -430,7 +248,7 @@ export function ChangeOfCircumstancesScreen() {
         cocManualPoints,
       };
       sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify(snapshot));
-      sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
+      sessionStorage.setItem(COC_FLOW_STEP_KEY, '2');
       sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
     } catch {
       /* ignore */
@@ -450,9 +268,9 @@ export function ChangeOfCircumstancesScreen() {
     cocManualPoints,
   ]);
 
-  // Step 4 opens Medical Profile; saving there consumes snapshot → question_index
+  // Continuing from uploads opens Medical Profile; saving there consumes snapshot → question_index
   const next = () => {
-    if (step === 3) {
+    if (step === 2) {
       writeCocMedicalSnapshotToSession();
       navigateTo('medical_profile');
       return;
@@ -473,11 +291,10 @@ export function ChangeOfCircumstancesScreen() {
       setStep(1);
       return;
     }
-    if (step === 4) {
-      setStep(3);
+    if (step === 3) {
+      setStep(2);
       return;
     }
-    setStep(s => s - 1);
   };
 
   /** Opens My Questions; opts into reusing workbook answers when any exist */
@@ -487,7 +304,7 @@ export function ChangeOfCircumstancesScreen() {
   }, [newClaimAnswerCount, navigateTo]);
 
   useLayoutEffect(() => {
-    if (step !== 4) return;
+    if (step !== 3) return;
     writeCocMedicalSnapshotToSession();
     navigateTo('medical_profile');
   }, [step, navigateTo, writeCocMedicalSnapshotToSession]);
@@ -612,22 +429,22 @@ export function ChangeOfCircumstancesScreen() {
     setAwardUploadError(null);
     setActivityFallbackNotes({});
     setCocManualPoints({});
+    setCombinedPickError(null);
+    setDocKindModal(null);
     setExpandedSection('daily');
     setExpandedActivityId(null);
   };
 
   useLayoutEffect(() => {
     if (!import.meta.env.DEV) return;
-    if (new URLSearchParams(window.location.search).get('screenshot') !== 'coc_step3') return;
-    setStep(3);
-    setFormType('pip2');
+    if (new URLSearchParams(window.location.search).get('screenshot') !== 'coc_step2') return;
+    setStep(2);
     loadMockForm();
-    setDocumentsUploadOpen(false);
     setNoForm(false);
     setExpandedSection('daily');
     setExpandedActivityId('q1');
-    sessionStorage.setItem(COC_FLOW_STEP_KEY, '3');
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot marketing capture via ?screenshot=coc_step3
+    sessionStorage.setItem(COC_FLOW_STEP_KEY, '2');
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot marketing capture via ?screenshot=coc_step2
   }, []);
 
   async function readFilesToBase64List(files: File[]): Promise<{ name: string; base64: string; mimeType: string; size: number }[]> {
@@ -648,60 +465,103 @@ export function ChangeOfCircumstancesScreen() {
     ));
   }
 
-  const onPip2Pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Array.from(e.target.files ?? []);
-    e.target.value = '';
-    if (!raw.length) return;
-    const bad = validateCocFileSelection(raw);
-    if (bad) {
-      setPip2UploadError(bad);
-      return;
-    }
-    setPip2UploadError(null);
-    const results = await readFilesToBase64List(raw);
-    setPip2Labels(results.map(f => f.name));
-    setPip2Files(results);
-    setPip2Extracted({});
-    setPip2Error(null);
+  function mergeBatchIntoBucket(slot: CocDocSlot, batch: CocFileItem[]) {
+    setNoForm(false);
     setActivityFallbackNotes({});
     setCocManualPoints({});
-  };
+    if (slot === 'pip2') {
+      setPip2Labels(prev => [...prev, ...batch.map(b => b.name)]);
+      setPip2Files(prev => [...prev, ...batch]);
+      setPip2Extracted({});
+      setPip2Error(null);
+      setPip2UploadError(null);
+    } else if (slot === 'pa4') {
+      setPa4Labels(prev => [...prev, ...batch.map(b => b.name)]);
+      setPa4Files(prev => [...prev, ...batch]);
+      setPa4Extracted({});
+      setPa4Error(null);
+      setPa4UploadError(null);
+    } else {
+      setAwardLabels(prev => [...prev, ...batch.map(b => b.name)]);
+      setAwardFiles(prev => [...prev, ...batch]);
+      setAwardExtracted({});
+      setAwardError(null);
+      setAwardUploadError(null);
+    }
+  }
 
-  const onPa4Pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function classifyAndMergeBatch(batch: CocFileItem[]) {
+    setClassifyBusy(true);
+    setCombinedPickError(null);
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'coc-document-classify',
+          files: batch.map(f => ({ base64: f.base64, mimeType: f.mimeType })),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        documentKind?: string | null;
+        confidence?: string | null;
+      };
+      const k = data.documentKind;
+      const conf = typeof data.confidence === 'string' ? data.confidence : 'low';
+      const recognised: CocDocSlot | null =
+        k === 'pa4' ? 'pa4' : k === 'award_letter' ? 'award_letter' : k === 'pip2' ? 'pip2' : null;
+      if (recognised && conf === 'high') {
+        mergeBatchIntoBucket(recognised, batch);
+        return;
+      }
+      setDraftDocKindPick(recognised ?? 'pip2');
+      setDocKindModal({ files: batch, suggested: recognised });
+    } catch {
+      setDraftDocKindPick('pip2');
+      setDocKindModal({ files: batch, suggested: null });
+    } finally {
+      setClassifyBusy(false);
+    }
+  }
+
+  const onCombinedDocsPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = Array.from(e.target.files ?? []);
     e.target.value = '';
     if (!raw.length) return;
+    if (pip2Busy || pa4Busy || awardBusy || classifyBusy) return;
     const bad = validateCocFileSelection(raw);
     if (bad) {
-      setPa4UploadError(bad);
+      setCombinedPickError(bad);
       return;
     }
-    setPa4UploadError(null);
+    setCombinedPickError(null);
     const results = await readFilesToBase64List(raw);
-    setPa4Labels(results.map(f => f.name));
-    setPa4Files(results);
-    setPa4Extracted({});
-    setPa4Error(null);
+    await classifyAndMergeBatch(results);
+  };
+
+  function removeBucket(slot: CocDocSlot) {
     setActivityFallbackNotes({});
     setCocManualPoints({});
-  };
-
-  const onAwardPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = Array.from(e.target.files ?? []);
-    e.target.value = '';
-    if (!raw.length) return;
-    const bad = validateCocFileSelection(raw);
-    if (bad) {
-      setAwardUploadError(bad);
-      return;
+    if (slot === 'pip2') {
+      setPip2Labels([]);
+      setPip2Files([]);
+      setPip2Extracted({});
+      setPip2Error(null);
+      setPip2UploadError(null);
+    } else if (slot === 'pa4') {
+      setPa4Labels([]);
+      setPa4Files([]);
+      setPa4Extracted({});
+      setPa4Error(null);
+      setPa4UploadError(null);
+    } else {
+      setAwardLabels([]);
+      setAwardFiles([]);
+      setAwardExtracted({});
+      setAwardError(null);
+      setAwardUploadError(null);
     }
-    setAwardUploadError(null);
-    const results = await readFilesToBase64List(raw);
-    setAwardLabels(results.map(f => f.name));
-    setAwardFiles(results);
-    setAwardExtracted({});
-    setAwardError(null);
-  };
+  }
 
   const startQuestions = () => {
     const snapshot: CocMedicalSnapshot = {
@@ -728,12 +588,7 @@ export function ChangeOfCircumstancesScreen() {
     navigateTo('question_index');
   };
 
-  const stepTitles = [
-    'Change of circumstances',
-    'Which form are you completing?',
-    'Answers & documents',
-    'Medical profile',
-  ];
+  const stepTitles = ['Change of circumstances', 'Answers & documents', 'Medical profile'];
 
   const renderActivityAccordion = (qid: string) => {
     const q = PIP_QUESTIONS.find(x => x.id === qid);
@@ -980,91 +835,12 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 2: Form type selector (PIP2 vs AR1) ─────────────────────────────
+    // ── STEP 2: Upload PIP2 + optional PA4 + optional award letter ────────────────────
     if (step === 2) {
-      return (
-        <div className="space-y-4 px-5 pt-5 pb-32">
-
-          <div className="space-y-2">
-            {/* PIP2 option */}
-            <button
-              type="button"
-              onClick={() => setFormType('pip2')}
-              className={`w-full text-left rounded-xl border p-3.5 transition-all active:scale-[0.99] ${
-                formType === 'pip2'
-                  ? 'border-teal-500 bg-teal-50/90 shadow-[0_0_0_1px_rgba(20,184,166,0.15)]'
-                  : 'border-stone-200/90 bg-white hover:border-stone-300 hover:bg-stone-50/80'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`w-4 h-4 rounded-full border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                  formType === 'pip2' ? 'border-teal-500 bg-teal-500' : 'border-stone-300 bg-white'
-                }`}>
-                  {formType === 'pip2' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-semibold text-stone-900 text-sm">PIP2 form</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-800">
-                      Full reassessment
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-stone-600 leading-snug">
-                    The main form covering all activities — including after you&apos;ve told DWP your circumstances changed.
-                  </p>
-                </div>
-              </div>
-            </button>
-
-            {/* AR1 option */}
-            <button
-              type="button"
-              onClick={() => setFormType('ar1')}
-              className={`w-full text-left rounded-xl border p-3.5 transition-all active:scale-[0.99] ${
-                formType === 'ar1'
-                  ? 'border-teal-500 bg-teal-50/90 shadow-[0_0_0_1px_rgba(20,184,166,0.15)]'
-                  : 'border-stone-200/90 bg-white hover:border-stone-300 hover:bg-stone-50/80'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`w-4 h-4 rounded-full border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-colors ${
-                  formType === 'ar1' ? 'border-teal-500 bg-teal-500' : 'border-stone-300 bg-white'
-                }`}>
-                  {formType === 'ar1' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-semibold text-stone-900 text-sm">AR1 review form</span>
-                    <span className="text-[9px] font-semibold leading-tight px-1.5 py-0.5 rounded-md bg-purple-100 text-purple-800">
-                      Change of circumstances
-                    </span>
-                  </div>
-                  <p className="text-[13px] text-stone-600 leading-snug">
-                    Shorter mid-award review — focus on what&apos;s <span className="font-medium text-stone-800">changed</span>, not your whole story again.
-                  </p>
-                </div>
-              </div>
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={next}
-            disabled={!formType}
-            className="w-full py-3.5 rounded-xl font-bold text-sm bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
-          >
-            Continue <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
-      );
-    }
-
-    // ── STEP 3: Upload PIP2 + optional PA4 + optional award letter ────────────────────
-    if (step === 3) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
       const hasAward = awardLabels.length > 0;
-      const busy = pip2Busy || pa4Busy || awardBusy;
+      const busy = pip2Busy || pa4Busy || awardBusy || classifyBusy;
       const hasAny = hasPip2 || hasPa4 || hasAward;
       const hasExtracted =
         Object.keys(pip2Extracted).length > 0 ||
@@ -1097,109 +873,198 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-            <button
-              type="button"
-              aria-expanded={documentsUploadOpen}
-              onClick={() => setDocumentsUploadOpen(o => !o)}
-              className="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-stone-50 transition-colors"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-stone-900 text-sm">Your documents</p>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  Original PIP2 optional — PA4 / award helpful if you still have scans
+          {/* What we need + how to strengthen evidence */}
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <FileText className="w-5 h-5 text-teal-200 shrink-0" aria-hidden />
+              <h2 className="font-bold text-base">What we need here</h2>
+            </div>
+            <p className="text-teal-100 text-sm leading-relaxed">
+              Add photos or PDFs of your PIP paperwork if you have them.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm space-y-2">
+            <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Strongest claim</p>
+            <p className="text-sm text-stone-700 leading-snug">
+              Don&apos;t have everything to hand? Call DWP free on{' '}
+              <a href="tel:08009172222" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 917 2222</a>
+              {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly — uploading them here helps us align your previous wording and create a stronger claim for your change of circumstances.
+            </p>
+            {!noForm && !hasAny && (
+              <button
+                type="button"
+                onClick={() => setNoForm(true)}
+                className="w-full mt-2 py-2.5 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-stone-50 hover:bg-stone-100 active:scale-[0.99] transition-all"
+              >
+                I&apos;ll add paperwork later — continue without uploads
+              </button>
+            )}
+          </div>
+
+          <input
+            ref={combinedDocsInputRef}
+            type="file"
+            accept="image/*,.pdf"
+            multiple
+            className="hidden"
+            onChange={onCombinedDocsPick}
+          />
+
+          <div className="space-y-4">
+            {classifyBusy && (
+              <div className="flex items-center gap-2 text-sm text-teal-800 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2">
+                <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+                <span>Working out document type…</span>
+              </div>
+            )}
+            {busy && !classifyBusy && docSlotLabels.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-teal-800 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2">
+                <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+                <span>Reading {docSlotLabels.join(' · ')}…</span>
+              </div>
+            )}
+            {combinedPickError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+                <p className="text-xs text-red-800 leading-relaxed">{combinedPickError}</p>
+              </div>
+            )}
+
+            {!hasAny ? (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => combinedDocsInputRef.current?.click()}
+                className="w-full rounded-2xl border-2 border-dashed border-stone-200 bg-white hover:border-teal-300 disabled:opacity-45 transition-all p-6 text-left active:scale-[0.99]"
+              >
+                <Upload className="w-8 h-8 text-stone-300 mb-3" aria-hidden />
+                <p className="font-semibold text-stone-700 text-base mb-1">Upload your PIP paperwork</p>
+                <p className="text-xs text-stone-500 leading-relaxed mb-2">
+                  Add scans or PDFs here: your PIP2 form, PA4 assessor report, or DWP award / decision letter.
                 </p>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {busy && <Loader2 className="w-4 h-4 text-teal-600 animate-spin" aria-hidden />}
-                {docSlotLabels.length > 0 && !busy && (
-                  <span className="text-[11px] font-semibold text-teal-800 bg-teal-50 px-2 py-1 rounded-lg max-w-[11rem] truncate">
-                    {docSlotLabels.join(' · ')}
-                  </span>
+                <p className="text-[11px] text-stone-400">
+                  Tap to upload · photos or PDF · up to {COC_UPLOAD_MAX_FILES} files (~{formatFileSize(COC_UPLOAD_MAX_TOTAL_BYTES)} maximum)
+                </p>
+              </button>
+            ) : (
+              <div className="space-y-3">
+                {hasPip2 && (
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 flex gap-3 items-start shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-teal-700" aria-hidden />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-900 text-sm">PIP2 form <span className="text-teal-700 font-semibold text-xs ml-1">your words</span></p>
+                      <p className="text-[11px] text-stone-500 mt-0.5 line-clamp-2">{pip2Labels.join(', ')}</p>
+                      {pip2Busy && (
+                        <p className="text-xs text-teal-700 flex items-center gap-1 mt-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden /> Reading…
+                        </p>
+                      )}
+                      {pip2Error && (
+                        <p className="text-xs text-amber-800 mt-2 flex gap-1.5 items-start">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />{pip2Error}
+                        </p>
+                      )}
+                      {!pip2Busy && Object.keys(pip2Extracted).length > 0 && (
+                        <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeBucket('pip2')}
+                      disabled={pip2Busy}
+                      className="text-xs font-semibold text-stone-400 hover:text-red-600 shrink-0 disabled:opacity-40"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
-                {documentsUploadOpen ? (
-                  <ChevronUp className="w-4 h-4 text-stone-400 shrink-0" aria-hidden />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-stone-400 shrink-0" aria-hidden />
+                {hasPa4 && (
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 flex gap-3 items-start shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-amber-700" aria-hidden />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-900 text-sm">PA4 report <span className="text-amber-700 font-semibold text-xs ml-1">assessor&apos;s view</span></p>
+                      <p className="text-[11px] text-stone-500 mt-0.5 line-clamp-2">{pa4Labels.join(', ')}</p>
+                      {pa4Busy && (
+                        <p className="text-xs text-teal-700 flex items-center gap-1 mt-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden /> Reading…
+                        </p>
+                      )}
+                      {pa4Error && (
+                        <p className="text-xs text-amber-800 mt-2 flex gap-1.5 items-start">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />{pa4Error}
+                        </p>
+                      )}
+                      {!pa4Busy && Object.keys(pa4Extracted).length > 0 && (
+                        <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeBucket('pa4')}
+                      disabled={pa4Busy}
+                      className="text-xs font-semibold text-stone-400 hover:text-red-600 shrink-0 disabled:opacity-40"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 )}
-              </div>
-            </button>
-            {documentsUploadOpen && (
-              <div className="border-t border-stone-100 px-3 py-3 space-y-3 bg-stone-50/40">
-                <CocUploadZone
-                  label="Original PIP2 form"
-                  sublabel="You can upload photos or scans of your completed PIP2 form here."
-                  badge="Your words"
-                  badgeColour="bg-teal-100 text-teal-700"
-                  labels={pip2Labels}
-                  busy={pip2Busy}
-                  error={pip2Error}
-                  extracted={pip2Extracted}
-                  inputRef={pip2InputRef}
-                  onPick={onPip2Pick}
-                  embedInDocumentsGroup
-                  onRemove={() => {
-                    setPip2Labels([]); setPip2Files([]); setPip2Extracted({}); setPip2UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
-                  }}
-                  isOptional
-                  optionalPickLabel="Upload PIP2 (optional)"
-                  fileCount={pip2Labels.length}
-                  totalBytes={pip2Files.reduce((s, f) => s + f.size, 0)}
-                  maxFiles={COC_UPLOAD_MAX_FILES}
-                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-                  pickError={pip2UploadError}
-                />
-
-                <CocUploadZone
-                  label="PA4 assessor report"
-                  sublabel="The report written by the health professional — shows what they observed for each activity and why they scored you as they did."
-                  badge="Assessor's view"
-                  badgeColour="bg-amber-100 text-amber-700"
-                  labels={pa4Labels}
-                  busy={pa4Busy}
-                  error={pa4Error}
-                  extracted={pa4Extracted}
-                  inputRef={pa4InputRef}
-                  onPick={onPa4Pick}
-                  embedInDocumentsGroup
-                  onRemove={() => {
-                    setPa4Labels([]); setPa4Files([]); setPa4Extracted({}); setPa4UploadError(null); setActivityFallbackNotes({}); setCocManualPoints({});
-                  }}
-                  isOptional
-                  optionalPickLabel="Add PA4 report (optional)"
-                  fileCount={pa4Labels.length}
-                  totalBytes={pa4Files.reduce((s, f) => s + f.size, 0)}
-                  maxFiles={COC_UPLOAD_MAX_FILES}
-                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-                  pickError={pa4UploadError}
-                />
-
-                <CocUploadZone
-                  label="PIP award or decision letter"
-                  sublabel="DWP decision notice or award letter showing points for each activity — we read the scoring table to fill your previous points."
-                  badge="Official scores"
-                  badgeColour="bg-indigo-100 text-indigo-800"
-                  labels={awardLabels}
-                  busy={awardBusy}
-                  error={awardError}
-                  extracted={awardExtracted}
-                  inputRef={awardInputRef}
-                  onPick={onAwardPick}
-                  embedInDocumentsGroup
-                  onRemove={() => {
-                    setAwardLabels([]); setAwardFiles([]); setAwardExtracted({}); setAwardUploadError(null);
-                  }}
-                  isOptional
-                  optionalPickLabel="Add award or decision letter (optional)"
-                  fileCount={awardLabels.length}
-                  totalBytes={awardFiles.reduce((s, f) => s + f.size, 0)}
-                  maxFiles={COC_UPLOAD_MAX_FILES}
-                  maxTotalBytes={COC_UPLOAD_MAX_TOTAL_BYTES}
-                  pickError={awardUploadError}
-                />
+                {hasAward && (
+                  <div className="rounded-2xl border border-stone-200 bg-white p-4 flex gap-3 items-start shadow-sm">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5 text-indigo-800" aria-hidden />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-stone-900 text-sm">Award / decision letter <span className="text-indigo-700 font-semibold text-xs ml-1">scores</span></p>
+                      <p className="text-[11px] text-stone-500 mt-0.5 line-clamp-2">{awardLabels.join(', ')}</p>
+                      {awardBusy && (
+                        <p className="text-xs text-teal-700 flex items-center gap-1 mt-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden /> Reading…
+                        </p>
+                      )}
+                      {awardError && (
+                        <p className="text-xs text-amber-800 mt-2 flex gap-1.5 items-start">
+                          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" aria-hidden />{awardError}
+                        </p>
+                      )}
+                      {!awardBusy && Object.keys(awardExtracted).length > 0 && (
+                        <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeBucket('award_letter')}
+                      disabled={awardBusy}
+                      className="text-xs font-semibold text-stone-400 hover:text-red-600 shrink-0 disabled:opacity-40"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => combinedDocsInputRef.current?.click()}
+                  className="w-full py-3 rounded-xl border-2 border-dashed border-stone-200 text-sm font-semibold text-stone-600 hover:border-teal-300 hover:bg-teal-50/40 transition-all disabled:opacity-45"
+                >
+                  + Add more paperwork
+                </button>
               </div>
             )}
           </div>
+
+          <p className="text-xs text-stone-400 text-center leading-relaxed px-1">
+            Auto-reading works best on clear scans; whenever we&apos;re unsure, we&apos;ll ask you to pick what you uploaded — your new answers always come from the questionnaire.
+          </p>
 
           <div className="space-y-3">
             <button
@@ -1210,14 +1075,21 @@ export function ChangeOfCircumstancesScreen() {
               Use previous answers
               <ChevronRight className="w-4 h-4 text-teal-600 shrink-0" aria-hidden />
             </button>
-            {!noForm && !hasAny && (
-              <button
-                type="button"
-                onClick={() => setNoForm(true)}
-                className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all"
-              >
-                I don&apos;t have these documents yet
-              </button>
+          </div>
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={next}
+              disabled={!canContinue || busy}
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
+            >
+              Continue <ArrowRight className="w-5 h-5" aria-hidden />
+            </button>
+            {!canContinue && !busy && (
+              <p className="text-xs text-stone-500 text-center leading-relaxed px-1">
+                Add paperwork above, reuse My Questions, or choose continue without uploads in the shaded box — then tap Continue here.
+              </p>
             )}
           </div>
 
@@ -1282,27 +1154,85 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {/* No document guidance */}
           {noForm && !hasAny && (
-            <div className="rounded-2xl border-2 border-blue-300 bg-blue-50 p-5 space-y-4">
-              <p className="font-bold text-blue-900 text-base">Request your documents from DWP</p>
-              <p className="text-sm text-blue-800 leading-relaxed">
-                You&apos;re entitled to copies of your PIP2, PA4 report, and decision paperwork. Call the PIP helpline on <span className="font-bold text-blue-950">0800 917 2222</span> (freephone) and ask — copies usually arrive within a few days.
-              </p>
-              <div className="bg-white rounded-xl border border-blue-200 p-4">
-                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">What to say when you call</p>
-                <p className="text-sm text-blue-900 italic leading-relaxed">
-                  "I'd like a copy of my PIP2, PA4 assessor report, and my decision letter with my scores please."
+            <p className="text-xs text-center text-stone-600 bg-stone-100/90 border border-stone-200 rounded-xl px-4 py-3">
+              Continuing without uploads. You can request copies anytime from DWP (see above). Reuse{' '}
+              <span className="font-semibold">My Questions</span> below if that helps fill gaps.
+            </p>
+          )}
+
+          {docKindModal && (
+            <div
+              className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-6 bg-black/45"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setDocKindModal(null);
+              }}
+              role="presentation"
+            >
+              <div
+                className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-stone-100 p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="coc-doc-kind-heading"
+              >
+                <h3 id="coc-doc-kind-heading" className="font-bold text-stone-900 text-base leading-snug">
+                  Which paperwork is in this upload?
+                </h3>
+                <p className="text-xs text-stone-500 leading-relaxed">
+                  We weren&apos;t sure from the scan alone. Pick what you&apos;re uploading — you can{' '}
+                  <span className="font-semibold text-stone-700">Add more paperwork</span> afterwards for another type.
                 </p>
+                {docKindModal.suggested ? (
+                  <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">
+                    Likely suggestion:{' '}
+                    <span className="font-semibold">
+                      {docKindModal.suggested === 'pip2'
+                        ? 'PIP2'
+                        : docKindModal.suggested === 'pa4'
+                          ? 'PA4'
+                          : 'Award letter'}
+                    </span>
+                  </p>
+                ) : null}
+                <div className="space-y-2">
+                  {(
+                    [
+                      { id: 'pip2' as const, title: 'My PIP2 form', hint: 'What you wrote — tick boxes / free text' },
+                      { id: 'pa4' as const, title: 'PA4 assessor report', hint: 'Health professional observations' },
+                      { id: 'award_letter' as const, title: 'Award / decision letter', hint: 'DWP notice with scores' },
+                    ] satisfies { id: CocDocSlot; title: string; hint: string }[]
+                  ).map(opt => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setDraftDocKindPick(opt.id)}
+                      className={`w-full text-left rounded-xl border px-3 py-3 transition-all ${draftDocKindPick === opt.id ? 'border-teal-600 bg-teal-50 shadow-[inset_0_0_0_1px_rgba(13,148,136,0.2)]' : 'border-stone-200 hover:border-stone-300 bg-white'}`}
+                    >
+                      <p className="font-semibold text-stone-900 text-sm">{opt.title}</p>
+                      <p className="text-[11px] text-stone-500 mt-0.5">{opt.hint}</p>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                  <button
+                    type="button"
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 hover:bg-stone-50 transition-colors"
+                    onClick={() => setDocKindModal(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full py-3 rounded-xl text-sm font-bold bg-teal-700 text-white hover:bg-teal-800 transition-colors"
+                    onClick={() => {
+                      mergeBatchIntoBucket(draftDocKindPick, docKindModal.files);
+                      setDocKindModal(null);
+                    }}
+                  >
+                    Use this upload
+                  </button>
+                </div>
               </div>
-              <a href="tel:08009172222"
-                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99] transition-all shadow-sm">
-                <Phone className="w-4 h-4" />Call DWP — 0800 917 2222
-              </a>
-              <button type="button" onClick={next}
-                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-blue-300 text-blue-800 bg-white hover:bg-blue-50 active:scale-[0.99] transition-all">
-                Continue without documents for now
-              </button>
             </div>
           )}
 
@@ -1315,9 +1245,9 @@ export function ChangeOfCircumstancesScreen() {
                 Load mock PIP2 + PA4 + award letter
               </button>
               <div className="flex gap-2 flex-wrap">
-                <button type="button" onClick={() => setStep(4)}
+                <button type="button" onClick={() => setStep(3)}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
-                  → Step 4 (Medical redirect)
+                  → Step 3 (Medical redirect)
                 </button>
                 <button type="button" onClick={startQuestions}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
@@ -1327,19 +1257,12 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {/* Continue */}
-          {canContinue && (
-            <button type="button" onClick={next}
-              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
-              Continue <ArrowRight className="w-5 h-5" />
-            </button>
-          )}
         </div>
       );
     }
 
-    // ── STEP 4: Redirect-only — Medical Profile (see useLayoutEffect) ───────
-    if (step === 4) {
+    // ── STEP 3: Redirect-only — Medical Profile (see useLayoutEffect) ───────
+    if (step === 3) {
       return (
         <div className="flex flex-col flex-1 items-center justify-center px-5 py-20 gap-3 min-h-[40vh]">
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
@@ -1365,7 +1288,7 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Steps 1–3: inline buttons; step 4 spinner then Medical Profile */}
+      {/* Steps 1–2: inline; step 3 spinner then Medical Profile */}
     </div>
   );
 }
