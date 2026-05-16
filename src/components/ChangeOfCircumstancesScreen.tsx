@@ -24,9 +24,10 @@ import {
 
 // ── Steps (AR1 branching archived — see ../archive/coc-step2-form-type-picker.tsx)
 // 1  Original completed PIP2 copy — yes / no (+ guide without PIP2)
-// 2  Upload (+ extracted answers checklist)
-// 3  Opens Medical Profile — saves snapshot → questions
-const TOTAL_STEPS = 3;
+// 2  Answers & documents — uploads (+ DWP / previous answers); Continue → activity review
+// 3  Per-activity checklist (prior wording / optional tweaks)
+// 4  Opens Medical Profile — saves snapshot → questions
+const TOTAL_STEPS = 4;
 
 /** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
 const COC_FLOW_STEP_KEY = 'coc_flow_step';
@@ -51,11 +52,10 @@ function readStoredCocStep(): number {
     if (!raw) return 1;
     const n = parseInt(raw, 10);
     if (Number.isNaN(n) || n < 1) return 1;
-    // Migrate legacy 4-step flow (included PIP2 vs AR1): 4→3, 3→2, 2→2, 1→1
-    if (n >= 4) return 3;
-    if (n === 3) return 2;
-    if (n === 2) return 2;
-    return 1;
+    // Cap to current wizard length (older persisted values may reference removed steps).
+    const capped = Math.min(n, TOTAL_STEPS);
+    if (capped <= 3) return capped;
+    return 4;
   } catch {
     return 1;
   }
@@ -63,9 +63,7 @@ function readStoredCocStep(): number {
 
 const DAILY_LIVING_IDS = ['q1','q2','q3','q4','q5','q6','q7','q8','q9','q10'];
 const MOBILITY_IDS = ['q11','q12'];
-const ALL_ACTIVITY_IDS = [...DAILY_LIVING_IDS, ...MOBILITY_IDS];
-
-type CocExtractedEntry = {
+ = {
   answer: string;
   confidence: 'high' | 'medium' | 'low';
   pointsAwarded?: number | null;
@@ -248,7 +246,6 @@ export function ChangeOfCircumstancesScreen() {
         cocManualPoints,
       };
       sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify(snapshot));
-      sessionStorage.setItem(COC_FLOW_STEP_KEY, '2');
       sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
     } catch {
       /* ignore */
@@ -270,9 +267,12 @@ export function ChangeOfCircumstancesScreen() {
 
   // Continuing from uploads opens Medical Profile; saving there consumes snapshot → question_index
   const next = () => {
+    if (step === 3) {
+      setStep(4);
+      return;
+    }
     if (step === 2) {
-      writeCocMedicalSnapshotToSession();
-      navigateTo('medical_profile');
+      setStep(3);
       return;
     }
     setStep(s => Math.min(s + 1, TOTAL_STEPS));
@@ -295,6 +295,9 @@ export function ChangeOfCircumstancesScreen() {
       setStep(2);
       return;
     }
+    if (step === 4) {
+      setStep(3);
+    }
   };
 
   /** Opens My Questions; opts into reusing workbook answers when any exist */
@@ -304,7 +307,7 @@ export function ChangeOfCircumstancesScreen() {
   }, [newClaimAnswerCount, navigateTo]);
 
   useLayoutEffect(() => {
-    if (step !== 3) return;
+    if (step !== 4) return;
     writeCocMedicalSnapshotToSession();
     navigateTo('medical_profile');
   }, [step, navigateTo, writeCocMedicalSnapshotToSession]);
@@ -588,7 +591,7 @@ export function ChangeOfCircumstancesScreen() {
     navigateTo('question_index');
   };
 
-  const stepTitles = ['Change of circumstances', 'Answers & documents', 'Medical profile'];
+  const stepTitles = ['Change of circumstances', 'Answers & documents', 'Check activities', 'Medical profile'];
 
   const renderActivityAccordion = (qid: string) => {
     const q = PIP_QUESTIONS.find(x => x.id === qid);
@@ -842,23 +845,8 @@ export function ChangeOfCircumstancesScreen() {
       const hasAward = awardLabels.length > 0;
       const busy = pip2Busy || pa4Busy || awardBusy || classifyBusy;
       const hasAny = hasPip2 || hasPa4 || hasAward;
-      const hasExtracted =
-        Object.keys(pip2Extracted).length > 0 ||
-        Object.keys(pa4Extracted).length > 0 ||
-        Object.keys(awardExtracted).length > 0;
-      const extractionFailedSomewhere =
-        (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
-      const uploadReviewReady = hasAny && (hasExtracted || extractionFailedSomewhere);
       const workbookPathOk = usePlatformWorkbookAnswers && newClaimAnswerCount > 0;
-      const showActivityReview =
-        !busy && (uploadReviewReady || workbookPathOk || (noForm && !hasAny));
       const canContinue = !busy && (hasAny || noForm || workbookPathOk);
-
-      const extractedFromDocLabels = [
-        Object.keys(pip2Extracted).length > 0 && 'PIP2',
-        Object.keys(pa4Extracted).length > 0 && 'PA4',
-        Object.keys(awardExtracted).length > 0 && 'award letter',
-      ].filter(Boolean) as string[];
 
       const docSlotLabels = [hasPip2 && 'PIP2', hasPa4 && 'PA4', hasAward && 'Award'].filter(Boolean) as string[];
 
@@ -868,7 +856,7 @@ export function ChangeOfCircumstancesScreen() {
             <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
               <p className="text-sm text-teal-950 leading-snug">
                 You&apos;re continuing <strong className="font-semibold">without a paper PIP2</strong>. Use PA4 or your decision letter if you have them, reuse{' '}
-                <strong className="font-semibold">My Questions</strong> answers below, or carry on with reminders only — same screen works either way.
+                <strong className="font-semibold">My Questions</strong> answers on this screen, or carry on with reminders only on the following step — same flow either way.
               </p>
             </div>
           )}
@@ -968,7 +956,7 @@ export function ChangeOfCircumstancesScreen() {
                       )}
                       {!pip2Busy && Object.keys(pip2Extracted).length > 0 && (
                         <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Next: check beside each activity
                         </p>
                       )}
                     </div>
@@ -1002,7 +990,7 @@ export function ChangeOfCircumstancesScreen() {
                       )}
                       {!pa4Busy && Object.keys(pa4Extracted).length > 0 && (
                         <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Next: check beside each activity
                         </p>
                       )}
                     </div>
@@ -1036,7 +1024,7 @@ export function ChangeOfCircumstancesScreen() {
                       )}
                       {!awardBusy && Object.keys(awardExtracted).length > 0 && (
                         <p className="text-xs text-teal-700 font-medium mt-2 flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Ready to review below
+                          <CheckCircle2 className="w-3.5 h-3.5" aria-hidden /> Next: check beside each activity
                         </p>
                       )}
                     </div>
@@ -1088,78 +1076,10 @@ export function ChangeOfCircumstancesScreen() {
             </button>
             {!canContinue && !busy && (
               <p className="text-xs text-stone-500 text-center leading-relaxed px-1">
-                Add paperwork above, reuse My Questions, or choose continue without uploads in the shaded box — then tap Continue here.
+                Add paperwork, reuse My Questions, or continue without uploads from the shaded box — then Continue to review each activity.
               </p>
             )}
           </div>
-
-          {/* Checklist — uploads, workbook seeds, manual reminders, no-doc route */}
-          {showActivityReview && (
-            <div className="space-y-2">
-              {extractionFailedSomewhere && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 space-y-1.5">
-                  <p className="text-xs font-semibold text-amber-900">We couldn&apos;t read one of your uploads automatically</p>
-                  <p className="text-[11px] text-amber-900/90 leading-relaxed">
-                    That usually means a blurry photo, a glare on the page, handwriting the scanner couldn&apos;t make out, or a short connection problem — not something you did wrong. Optional boxes appear below for each activity where nothing came through: add what you remember if you want it next to that question, or leave them blank and continue. Your new answers are still built properly in the walkthrough.
-                  </p>
-                </div>
-              )}
-              <p className="text-xs text-stone-500 px-1">
-                {uploadReviewReady
-                  ? !hasExtracted
-                    ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
-                    : extractedFromDocLabels.length > 0
-                      ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
-                      : 'Open each activity below.'
-                  : workbookPathOk
-                    ? 'Your saved answers from My Questions appear under each activity. Adjust optional notes or scores before continuing — handwritten overrides take priority when you finish Medical Profile.'
-                    : noForm && !hasAny
-                      ? 'No scans attached — jot quick reminders below if helpful, then continue.'
-                      : 'Open each activity below.'}
-              </p>
-              {/* Daily Living */}
-              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                <button type="button"
-                  onClick={() => setExpandedSection(expandedSection === 'daily' ? null : 'daily')}
-                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
-                  <div>
-                    <p className="font-bold text-stone-900 text-sm">Daily Living activities</p>
-                    <p className="text-xs text-stone-400 mt-0.5">Activities 1–10</p>
-                  </div>
-                  {expandedSection === 'daily' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                </button>
-                {expandedSection === 'daily' && (
-                  <div className="border-t border-stone-100">
-                    {DAILY_LIVING_IDS.map(renderActivityAccordion)}
-                  </div>
-                )}
-              </div>
-              {/* Mobility */}
-              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
-                <button type="button"
-                  onClick={() => setExpandedSection(expandedSection === 'mobility' ? null : 'mobility')}
-                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
-                  <div>
-                    <p className="font-bold text-stone-900 text-sm">Mobility activities</p>
-                    <p className="text-xs text-stone-400 mt-0.5">Activities 11–12</p>
-                  </div>
-                  {expandedSection === 'mobility' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-                </button>
-                {expandedSection === 'mobility' && (
-                  <div className="border-t border-stone-100">
-                    {MOBILITY_IDS.map(renderActivityAccordion)}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {noForm && !hasAny && (
-            <p className="text-xs text-center text-stone-600 bg-stone-100/90 border border-stone-200 rounded-xl px-4 py-3">
-              Continuing without uploads. You can request copies anytime from DWP (see above). Reuse{' '}
-              <span className="font-semibold">My Questions</span> below if that helps fill gaps.
-            </p>
-          )}
 
           {docKindModal && (
             <div
@@ -1247,7 +1167,11 @@ export function ChangeOfCircumstancesScreen() {
               <div className="flex gap-2 flex-wrap">
                 <button type="button" onClick={() => setStep(3)}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
-                  → Step 3 (Medical redirect)
+                  → Step 3 (Activity review)
+                </button>
+                <button type="button" onClick={() => setStep(4)}
+                  className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
+                  → Step 4 (Medical redirect)
                 </button>
                 <button type="button" onClick={startQuestions}
                   className="flex-1 py-2 rounded-xl text-xs font-semibold border border-amber-400 text-amber-900 hover:bg-amber-100 transition-all">
@@ -1261,8 +1185,130 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 3: Redirect-only — Medical Profile (see useLayoutEffect) ───────
+    // ── STEP 3: Per-activity review (PIP2 / PA4 / workbook / reminders) ───────
     if (step === 3) {
+      const hasPip2 = pip2Labels.length > 0;
+      const hasPa4 = pa4Labels.length > 0;
+      const hasAward = awardLabels.length > 0;
+      const busy = pip2Busy || pa4Busy || awardBusy || classifyBusy;
+      const hasAny = hasPip2 || hasPa4 || hasAward;
+      const hasExtracted =
+        Object.keys(pip2Extracted).length > 0 ||
+        Object.keys(pa4Extracted).length > 0 ||
+        Object.keys(awardExtracted).length > 0;
+      const extractionFailedSomewhere =
+        (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
+      const uploadReviewReady = hasAny && (hasExtracted || extractionFailedSomewhere);
+      const workbookPathOk = usePlatformWorkbookAnswers && newClaimAnswerCount > 0;
+      const showActivityReview =
+        !busy && (uploadReviewReady || workbookPathOk || (noForm && !hasAny));
+      const canContinueMedical = !busy;
+
+      const extractedFromDocLabels = [
+        Object.keys(pip2Extracted).length > 0 && 'PIP2',
+        Object.keys(pa4Extracted).length > 0 && 'PA4',
+        Object.keys(awardExtracted).length > 0 && 'award letter',
+      ].filter(Boolean) as string[];
+
+      return (
+        <div className="space-y-5 px-5 pt-5 pb-32">
+          <div className="bg-teal-800 rounded-2xl p-5 text-white shadow-sm">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Answers & documents</p>
+            <h2 className="font-bold text-lg leading-snug mb-2">Check each activity</h2>
+            <p className="text-teal-50 text-sm leading-relaxed">
+              Expand Daily Living and Mobility below — anything pulled from uploads or{' '}
+              <span className="font-semibold text-white">My Questions</span> shows under each activity. Use the optional boxes to correct or add wording, then continue.
+            </p>
+          </div>
+
+          {busy && (
+            <div className="flex items-center gap-2 text-sm text-teal-800 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2">
+              <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />
+              <span>Still reading uploads from the previous step…</span>
+            </div>
+          )}
+
+          {noForm && !hasAny && (
+            <p className="text-xs text-center text-stone-600 bg-stone-100/90 border border-stone-200 rounded-xl px-4 py-3">
+              Continuing without uploads — use the reminders under each activity if helpful. You can go back one step to add scans anytime.
+            </p>
+          )}
+
+          {/* Checklist — uploads, workbook seeds, manual reminders, no-doc route */}
+          {showActivityReview && (
+            <div className="space-y-2">
+              {extractionFailedSomewhere && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 space-y-1.5">
+                  <p className="text-xs font-semibold text-amber-900">We couldn&apos;t read one of your uploads automatically</p>
+                  <p className="text-[11px] text-amber-900/90 leading-relaxed">
+                    That usually means a blurry photo, a glare on the page, handwriting the scanner couldn&apos;t make out, or a short connection problem — not something you did wrong. Optional boxes appear below for each activity where nothing came through: add what you remember if you want it next to that question, or leave them blank and continue. Your new answers are still built properly in the walkthrough.
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-stone-500 px-1">
+                {uploadReviewReady
+                  ? !hasExtracted
+                    ? 'Open each activity below. Each one has an optional box — add what you remember if reading failed, or leave blank and go to the questions.'
+                    : extractedFromDocLabels.length > 0
+                      ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
+                      : 'Open each activity below.'
+                  : workbookPathOk
+                    ? 'Your saved answers from My Questions appear under each activity. Adjust optional notes or scores before continuing — handwritten overrides take priority when you finish Medical Profile.'
+                    : noForm && !hasAny
+                      ? 'No scans attached — jot quick reminders below if helpful, then continue.'
+                      : 'Open each activity below.'}
+              </p>
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <button type="button"
+                  onClick={() => setExpandedSection(expandedSection === 'daily' ? null : 'daily')}
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">Daily Living activities</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Activities 1–10</p>
+                  </div>
+                  {expandedSection === 'daily' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+                {expandedSection === 'daily' && (
+                  <div className="border-t border-stone-100">
+                    {DAILY_LIVING_IDS.map(renderActivityAccordion)}
+                  </div>
+                )}
+              </div>
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+                <button type="button"
+                  onClick={() => setExpandedSection(expandedSection === 'mobility' ? null : 'mobility')}
+                  className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-stone-50">
+                  <div>
+                    <p className="font-bold text-stone-900 text-sm">Mobility activities</p>
+                    <p className="text-xs text-stone-400 mt-0.5">Activities 11–12</p>
+                  </div>
+                  {expandedSection === 'mobility' ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+                </button>
+                {expandedSection === 'mobility' && (
+                  <div className="border-t border-stone-100">
+                    {MOBILITY_IDS.map(renderActivityAccordion)}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={next}
+              disabled={!canContinueMedical}
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
+            >
+              Continue <ArrowRight className="w-5 h-5" aria-hidden />
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── STEP 4: Redirect-only — Medical Profile (see useLayoutEffect) ───────
+    if (step === 4) {
       return (
         <div className="flex flex-col flex-1 items-center justify-center px-5 py-20 gap-3 min-h-[40vh]">
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
@@ -1288,7 +1334,7 @@ export function ChangeOfCircumstancesScreen() {
         </AnimatePresence>
       </div>
 
-      {/* Steps 1–2: inline; step 3 spinner then Medical Profile */}
+      {/* Steps 1–3 scroll; step 4 hands off to Medical Profile */}
     </div>
   );
 }
