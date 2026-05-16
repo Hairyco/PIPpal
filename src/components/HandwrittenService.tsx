@@ -120,7 +120,7 @@ export function HandwrittenService() {
             <h2 className="font-bold text-base">Can't write it out yourself?</h2>
           </div>
           <p className="text-teal-100 text-sm leading-relaxed">
-            We take your completed PIPpal answers and write them out onto your official PIP2 form by hand, then post it directly to DWP on your behalf. All you need to do is sign it.
+            We take your completed PIPpal answers and write them out onto your official PIP2 form by hand and post the completed form back to you. You then sign it and send it to DWP yourself.
           </p>
         </div>
 
@@ -131,8 +131,8 @@ export function HandwrittenService() {
             'Your PIPpal answers transferred onto the official PIP2 form',
             'Handwritten clearly in black ink — DWP compliant',
             'Checked for completeness before posting',
-            'Posted recorded delivery to DWP',
-            'Confirmation email once posted',
+            'Posted recorded delivery back to your address',
+            'Confirmation email when your form has been posted back to you',
           ].map((item, i) => (
             <div key={i} className="flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0 mt-0.5" />

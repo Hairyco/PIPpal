@@ -642,7 +642,7 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             </div>
             <div className="flex-1">
               <p className="text-sm font-bold text-purple-900">Can't write it out yourself?</p>
-              <p className="text-xs text-purple-700 mt-0.5 leading-relaxed">We'll handwrite your completed answers onto the PIP2 form and post it to DWP for you. From £19.99.</p>
+              <p className="text-xs text-purple-700 mt-0.5 leading-relaxed">We'll handwrite your completed answers onto your PIP2 form and post it back to you. From £19.99.</p>
               <button
                 onClick={() => navigateTo('handwritten_service')}
                 className="mt-2 text-xs font-bold text-purple-700 bg-white border border-purple-200 px-3 py-1.5 rounded-full hover:bg-purple-50 active:scale-95 transition-all"
