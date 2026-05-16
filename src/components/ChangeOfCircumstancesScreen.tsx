@@ -406,6 +406,8 @@ export function ChangeOfCircumstancesScreen() {
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
   const [cocManualPoints, setCocManualPoints] = useState<Record<string, string>>({});
+  /** After “I don't have my PIP2”, show paperwork guide before step 2 */
+  const [missingOriginalPip2Guide, setMissingOriginalPip2Guide] = useState(false);
 
   const newClaimAnswerCount = useMemo(
     () => Object.keys(savedAnswersNewClaim ?? {}).filter(k => savedAnswersNewClaim[k]?.trim()).length,
@@ -458,7 +460,15 @@ export function ChangeOfCircumstancesScreen() {
     setStep(s => Math.min(s + 1, TOTAL_STEPS));
   };
   const back = () => {
-    if (step === 1) goBack();
+    if (step === 1) {
+      if (missingOriginalPip2Guide) {
+        setMissingOriginalPip2Guide(false);
+        return;
+      }
+      goBack();
+      return;
+    }
+    if (step === 2) setMissingOriginalPip2Guide(false);
     else if (step === 4) setStep(3);
     else setStep(s => s - 1);
   };
@@ -860,10 +870,70 @@ export function ChangeOfCircumstancesScreen() {
   const renderStep = () => {
     // ── STEP 1: Original PIP2 copy — yes / no ─────────────────────────────────
     if (step === 1) {
-      const choose = (hasOriginal: boolean) => {
-        setHasOriginalPip2Copy(hasOriginal);
+      const chooseHave = () => {
+        setHasOriginalPip2Copy(true);
+        setMissingOriginalPip2Guide(false);
         setStep(2);
       };
+      const chooseMissing = () => {
+        setHasOriginalPip2Copy(false);
+        setMissingOriginalPip2Guide(true);
+      };
+      const continueFromMissingGuide = () => {
+        setMissingOriginalPip2Guide(false);
+        setStep(2);
+      };
+
+      const beforeYouContinuePanel = (
+        <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you continue</p>
+          <p className="text-sm text-teal-950 leading-snug">
+            No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>,{' '}
+            <strong className="font-semibold">PA4</strong>, and{' '}
+            <strong className="font-semibold">decision letter</strong> from DWP — reuse your{' '}
+            <strong className="font-semibold">My Questions</strong> answers from a past new-claim workbook — or carry on
+            without files in the next steps.
+          </p>
+          <a
+            href="tel:08009172222"
+            className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
+          >
+            <Phone className="w-4 h-4 shrink-0" aria-hidden />
+            Call 0800 917 2222 — PIP enquiries
+          </a>
+        </div>
+      );
+
+      if (missingOriginalPip2Guide) {
+        return (
+          <div className="space-y-5 px-5 pt-5 pb-32">
+            <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
+              <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
+              <h2 className="font-bold text-2xl leading-tight mb-3">Without your PIP2</h2>
+              <p className="text-teal-50 text-sm leading-relaxed">
+                Here&apos;s how you can still line up wording for DWP — then we&apos;ll ask which form you&apos;re on and
+                what you can upload.
+              </p>
+            </div>
+            {beforeYouContinuePanel}
+            <button
+              type="button"
+              onClick={continueFromMissingGuide}
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+            >
+              Continue <ArrowRight className="w-5 h-5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMissingOriginalPip2Guide(false)}
+              className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all"
+            >
+              Choose a different answer
+            </button>
+          </div>
+        );
+      }
+
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
           <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
@@ -875,23 +945,6 @@ export function ChangeOfCircumstancesScreen() {
             </p>
           </div>
 
-          <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you continue</p>
-            <p className="text-sm text-teal-950 leading-snug">
-              No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>,{' '}
-              <strong className="font-semibold">PA4</strong>, and <strong className="font-semibold">decision letter</strong>{' '}
-              from DWP — reuse your <strong className="font-semibold">My Questions</strong> answers from a past new-claim
-              workbook — or carry on without files below.
-            </p>
-            <a
-              href="tel:08009172222"
-              className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
-            >
-              <Phone className="w-4 h-4 shrink-0" aria-hidden />
-              Call 0800 917 2222 — PIP enquiries
-            </a>
-          </div>
-
           <p className="text-sm text-stone-600 leading-relaxed">
             Do you still have your <span className="font-semibold text-stone-800">completed</span> &quot;How your
             disability affects you&quot; form (PIP2) from your last claim or review?
@@ -899,19 +952,25 @@ export function ChangeOfCircumstancesScreen() {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={() => choose(true)}
+              onClick={chooseHave}
               className="w-full rounded-xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-teal-400 hover:bg-teal-50/40 active:scale-[0.99]"
             >
               <span className="font-semibold text-stone-900 text-base leading-snug">I have my original PIP2 form</span>
-              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">Photos or scans are fine — we&apos;ll read your wording next.</span>
+              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">
+                Photos or scans are fine — we&apos;ll read your wording next.
+              </span>
             </button>
             <button
               type="button"
-              onClick={() => choose(false)}
+              onClick={chooseMissing}
               className="w-full rounded-xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-teal-400 hover:bg-teal-50/40 active:scale-[0.99]"
             >
-              <span className="font-semibold text-stone-900 text-base leading-snug">I don&apos;t have my original PIP2 form</span>
-              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">We&apos;ll use PA4, your decision letter, saved My Questions answers, or short reminders.</span>
+              <span className="font-semibold text-stone-900 text-base leading-snug">
+                I don&apos;t have my original PIP2 form
+              </span>
+              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">
+                Next: how to replace it with DWP paperwork or saved answers before you upload anything.
+              </span>
             </button>
           </div>
         </div>
