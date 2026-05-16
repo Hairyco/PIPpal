@@ -57,7 +57,7 @@ export function Hero({ onStart }: HeroProps) {
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
           {/* Teal strip — sits on top of card, flush */}
           <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-4 text-center">
-            <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims · 1,200+ applicants this month</p>
+            <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims</p>
           </div>
 
           {/* Avatar row below strip */}
