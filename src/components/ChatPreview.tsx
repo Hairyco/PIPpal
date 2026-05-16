@@ -13,21 +13,43 @@ const SLIDES = [
     src: '/marketing/home-screen.png',
     headerLabel: 'Home',
     caption: 'Home',
+    imageFit: 'cover' as const,
+    panScreenshot: true,
+  },
+  {
+    src: '/marketing/medical-profile-screen.png',
+    headerLabel: 'Medical Profile',
+    caption: 'Conditions, meds & notes',
+    imageFit: 'cover' as const,
+    panScreenshot: true,
   },
   {
     src: '/marketing/answers-prep-screen.png',
     headerLabel: 'Your answers',
     caption: 'Your answers prep',
+    imageFit: 'cover' as const,
+    panScreenshot: true,
   },
   {
     src: '/marketing/draft-answer-screen.png',
     headerLabel: 'Draft answer',
     caption: 'Draft answer',
+    imageFit: 'cover' as const,
+    panScreenshot: true,
+  },
+  {
+    src: '/marketing/pip-diary-screen.png',
+    headerLabel: 'PIP Diary',
+    caption: 'Weekly diary evidence',
+    imageFit: 'cover' as const,
+    panScreenshot: true,
   },
   {
     src: '/marketing/coc-pip2-pa4-screen.png',
     headerLabel: 'CoC walkthrough',
     caption: 'Your answer, PA4 assessor notes & example',
+    imageFit: 'contain' as const,
+    panScreenshot: false,
   },
 ] as const;
 
@@ -45,6 +67,13 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
   }, [reduceMotion, manualNav]);
 
   const slide = SLIDES[index];
+
+  const imageClassName =
+    slide.imageFit === 'contain'
+      ? 'w-full h-full max-h-full object-contain object-top select-none pointer-events-none block'
+      : 'w-full min-h-[112%] object-cover object-top select-none pointer-events-none block';
+
+  const slidePanMotion = slide.panScreenshot && !reduceMotion;
 
   const go = (direction: -1 | 1) => {
     setManualNav(true);
@@ -96,35 +125,33 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.div
                       key={slide.src}
-                      className="absolute inset-0"
+                      className="absolute inset-0 flex items-start justify-center"
                       initial={{ opacity: 0, x: reduceMotion ? 0 : 28 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: reduceMotion ? 0 : -28 }}
                       transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      {reduceMotion ? (
-                        <img
-                          src={slide.src}
-                          alt={slide.caption}
-                          className="w-full min-h-[112%] object-cover object-top select-none pointer-events-none block"
-                          loading={index === 0 ? 'eager' : 'lazy'}
-                          decoding="async"
-                        />
-                      ) : (
+                      {slidePanMotion ? (
                         <motion.img
                           src={slide.src}
                           alt={slide.caption}
-                          className="w-full min-h-[112%] object-cover object-top select-none pointer-events-none block"
+                          className={imageClassName}
                           loading={index === 0 ? 'eager' : 'lazy'}
                           decoding="async"
-                          animate={{
-                            y: [0, -36, 0],
-                          }}
+                          animate={{ y: [0, -36, 0] }}
                           transition={{
                             duration: 14,
                             repeat: Infinity,
                             ease: 'easeInOut',
                           }}
+                        />
+                      ) : (
+                        <img
+                          src={slide.src}
+                          alt={slide.caption}
+                          className={imageClassName}
+                          loading={index === 0 ? 'eager' : 'lazy'}
+                          decoding="async"
                         />
                       )}
                     </motion.div>

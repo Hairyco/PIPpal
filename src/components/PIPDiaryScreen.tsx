@@ -52,6 +52,46 @@ const emptyWeek = (): WeekEntry => ({
   notes: {},
 });
 
+const PIP_DIARY_MARKETING_WEEK_ID = 'pip-diary-market-week';
+
+/** Dev-only: sample week for marketing capture (`/?screenshot=pip_diary`). */
+function readPipDiaryMarketingSeed(): WeekEntry | null {
+  if (!import.meta.env.DEV) return null;
+  try {
+    if (new URLSearchParams(window.location.search).get('screenshot') !== 'pip_diary') return null;
+  } catch {
+    return null;
+  }
+  return {
+    id: PIP_DIARY_MARKETING_WEEK_ID,
+    weekStart: getMonday(),
+    notes: {
+      Monday: {
+        food:
+          'Bad day: only managed a few minutes at the hob before pain forced me to sit. Partner finished the meal — microwave soup later.',
+        eating:
+          'Tremor with a full mug; breakfast took well over 45 minutes with lots of breaks.',
+        washing: 'Used the shower stool; felt dizzy stepping out — had to lie down twenty minutes before I could dress.',
+      },
+      Tuesday: {
+        food: 'No energy to cook — cereal only. Partner made cups of tea all day.',
+      },
+    },
+  };
+}
+
+/** First render only — aligns weeks, current week selection, and an expanded activity for hero capture. */
+function initDiaryScreenshotState(): {
+  weeks: WeekEntry[];
+  currentWeekId: string;
+  expandedActivity: string | null;
+} {
+  const seed = readPipDiaryMarketingSeed();
+  if (!seed)
+    return { weeks: [emptyWeek()], currentWeekId: '', expandedActivity: null };
+  return { weeks: [seed], currentWeekId: seed.id, expandedActivity: 'food' };
+}
+
 const formatWeekLabel = (weekStart: string) => {
   const start = new Date(weekStart + 'T00:00:00');
   const end = new Date(start);
@@ -67,10 +107,11 @@ const getDayDate = (weekStart: string, dayIndex: number) => {
 
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const { goBack, user, showToast, navigateTo, savedAnswers, medProfile } = useAppContext();
-  const [weeks, setWeeks] = useState<WeekEntry[]>([emptyWeek()]);
-  const [currentWeekId, setCurrentWeekId] = useState<string>('');
+  const [boot] = useState(() => initDiaryScreenshotState());
+  const [weeks, setWeeks] = useState<WeekEntry[]>(() => boot.weeks);
+  const [currentWeekId, setCurrentWeekId] = useState(() => boot.currentWeekId);
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
-  const [expandedActivity, setExpandedActivity] = useState<string | null>(null);
+  const [expandedActivity, setExpandedActivity] = useState<string | null>(() => boot.expandedActivity);
   const [showDescPanel, setShowDescPanel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -78,6 +119,7 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const [showWeekPicker, setShowWeekPicker] = useState(false);
 
   useEffect(() => {
+    if (readPipDiaryMarketingSeed()) return;
     if (!user?.id) return;
     const load = async () => {
       setIsLoading(true);

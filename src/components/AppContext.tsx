@@ -55,7 +55,20 @@ export type Screen =
   | 'survey';
 
 /** Dev-only: `/?screenshot=…` for marketing captures (see `scripts/capture-marketing-screens.mjs`). */
-type DevScreenshot = { screen: Screen; seedReviewAnswers: boolean; seedDraftAnswer: boolean };
+type DevScreenshot = {
+  screen: Screen;
+  seedReviewAnswers: boolean;
+  seedDraftAnswer: boolean;
+  /** QuestionFlow CoC compare (PIP2 + PA4 + example) — `q1_intro` */
+  seedCocQuestionFlow?: boolean;
+  /** Rich sample profile for marketing capture (`medical_profile` screen) */
+  seedMedicalProfileMarketing?: boolean;
+};
+
+const COC_MARKET_FLOW_Q1_PREV =
+  'I can prepare a simple meal but I need to sit down regularly due to pain. I use the microwave most days as standing at the hob is too difficult. My partner helps with anything involving heavy pans or the oven.';
+const COC_MARKET_FLOW_Q1_PA4 =
+  'Claimant states they use a microwave only and cannot use the hob due to pain and fatigue. A perching stool is used at the kitchen counter. Partner reported to assist with preparing hot food daily. Observed reduced grip strength on examination. Recommended descriptor: E (supervision required). 4 points.';
 
 function readDevScreenshot(): DevScreenshot | null {
   if (!import.meta.env.DEV) return null;
@@ -66,6 +79,21 @@ function readDevScreenshot(): DevScreenshot | null {
     return { screen: 'q1_result', seedReviewAnswers: false, seedDraftAnswer: true };
   if (v === 'coc_step3')
     return { screen: 'change_of_circumstances', seedReviewAnswers: false, seedDraftAnswer: false };
+  if (v === 'coc_compare')
+    return {
+      screen: 'q1_intro',
+      seedReviewAnswers: false,
+      seedDraftAnswer: false,
+      seedCocQuestionFlow: true,
+    };
+  if (v === 'pip_diary') return { screen: 'pip_diary', seedReviewAnswers: false, seedDraftAnswer: false };
+  if (v === 'medical_profile')
+    return {
+      screen: 'medical_profile',
+      seedReviewAnswers: false,
+      seedDraftAnswer: false,
+      seedMedicalProfileMarketing: true,
+    };
   return null;
 }
 
@@ -102,6 +130,18 @@ export interface MedProfile {
   medications: string;
   notes: string;
 }
+
+/** Dev-only: `/?screenshot=medical_profile` — aligns with presets in MedicalProfile.tsx */
+const MED_PROFILE_MARKETING: MedProfile = {
+  conditions: [
+    { name: 'Fibromyalgia', durationNum: '6', durationUnit: 'years' },
+    { name: 'Chronic pain', durationNum: '6', durationUnit: 'years' },
+    { name: 'Anxiety disorder', durationNum: '4', durationUnit: 'years' },
+    { name: 'Depression', durationNum: '4', durationUnit: 'years' },
+  ],
+  medications: 'Amitriptyline 10mg at night, Sertraline 50mg daily, Ibuprofen 400mg when needed',
+  notes: 'Flare-ups are worse in cold, damp weather. I need a rest day after physio or long outings.',
+};
 
 export interface Toast {
   id: string;
@@ -230,7 +270,7 @@ export function parseBlogPath(): BlogPathParse {
 
 export function AppProvider({ children }: { children: ReactNode }) {
 
-  const [{ devScreenshot, demoAnswers, draftAnswerSeed }] = useState(() => {
+  const [{ devScreenshot, demoAnswers, draftAnswerSeed, cocFlowMarketing }] = useState(() => {
     const shot = readDevScreenshot();
     const draft =
       shot?.seedDraftAnswer
@@ -242,10 +282,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
               'I need someone with me when I cook because I often forget the hob is on and I cannot stand long enough to finish a meal without pain.',
           }
         : null;
+
+    const cocFlowMarketing =
+      shot?.seedCocQuestionFlow === true
+        ? {
+            cocPreviousAnswers: { q1: COC_MARKET_FLOW_Q1_PREV },
+            cocAssessorNotes: { q1: COC_MARKET_FLOW_Q1_PA4 },
+          }
+        : null;
+
     return {
       devScreenshot: shot,
       demoAnswers: shot?.seedReviewAnswers ? buildDevScreenshotAnswerPacks() : null,
       draftAnswerSeed: draft,
+      cocFlowMarketing,
     };
   });
 
@@ -292,13 +342,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [hasPaid, setHasPaidState] = useState<boolean>(() => (devScreenshot ? true : loadFromStorage('pippal_paid_cache', false)));
 
-  const [medProfile, setMedProfileState] = useState<MedProfile>(() =>
-    loadFromStorage('pippal_med_profile', {
+  const [medProfile, setMedProfileState] = useState<MedProfile>(() => {
+    if (devScreenshot?.seedMedicalProfileMarketing) return { ...MED_PROFILE_MARKETING };
+    return loadFromStorage('pippal_med_profile', {
       conditions: [],
       medications: '',
       notes: '',
-    })
-  );
+    });
+  });
 
   const [badDayMode, setBadDayMode] = useState(false);
   const [descriptorHint, setDescriptorHint] = useState<string | null>(null);
@@ -353,11 +404,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const savedAnswerDetailsRef = useRef(savedAnswerDetails);
   savedAnswerDetailsRef.current = savedAnswerDetails;
 
-  const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>({});
-  const [cocMode, setCocMode] = useState(false);
-  const [cocFormType, setCocFormType] = useState<'pip2' | 'ar1' | null>(null);
-  const [cocDocumentType, setCocDocumentType] = useState<'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null>(null);
-  const [cocAssessorNotes, setCocAssessorNotes] = useState<Record<string, string>>({});
+  const [cocPreviousAnswers, setCocPreviousAnswers] = useState<Record<string, string>>(() =>
+    cocFlowMarketing ? { ...cocFlowMarketing.cocPreviousAnswers } : {},
+  );
+  const [cocMode, setCocMode] = useState(() => cocFlowMarketing !== null);
+  const [cocFormType, setCocFormType] = useState<'pip2' | 'ar1' | null>(() =>
+    cocFlowMarketing ? 'pip2' : null,
+  );
+  const [cocDocumentType, setCocDocumentType] = useState<
+    'pip2_only' | 'pa4_only' | 'both' | 'award_only' | null
+  >(() => (cocFlowMarketing ? 'both' : null));
+  const [cocAssessorNotes, setCocAssessorNotes] = useState<Record<string, string>>(() =>
+    cocFlowMarketing ? { ...cocFlowMarketing.cocAssessorNotes } : {},
+  );
   const [cocPreviousPoints, setCocPreviousPoints] = useState<Record<string, number | null>>({});
   const [cocWalkthroughAnsweredIds, setCocWalkthroughAnsweredIds] = useState<Record<string, boolean>>({});
 

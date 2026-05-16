@@ -123,7 +123,16 @@ export function QuestionFlow() {
   // Expanded by default on mobile, collapsed on desktop
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
-  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(true);
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(() => {
+    try {
+      return !(
+        import.meta.env.DEV &&
+        new URLSearchParams(window.location.search).get('screenshot') === 'coc_compare'
+      );
+    } catch {
+      return true;
+    }
+  });
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -195,7 +204,15 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
     additionalDetail: '',
   });
 
+  const [generating, setGenerating] = useState(false);
+
   useEffect(() => {
+    if (
+      import.meta.env.DEV &&
+      new URLSearchParams(window.location.search).get('screenshot') === 'coc_compare'
+    ) {
+      return;
+    }
     setQuestionExplainedOpen(true);
   }, [questionId]);
 
@@ -221,8 +238,6 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
     if (step === 1) goBack();
     else goToStep((step - 1) as Step);
   }
-
-  const [generating, setGenerating] = useState(false);
 
   function handleContinue() {
     if (step === 5) {

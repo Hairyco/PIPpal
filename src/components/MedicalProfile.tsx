@@ -39,6 +39,9 @@ export function MedicalProfile() {
 
   // Load from Supabase on mount
   useEffect(() => {
+    if (import.meta.env.DEV && new URLSearchParams(window.location.search).get('screenshot') === 'medical_profile') {
+      return;
+    }
     if (!user?.id) return;
     const loadProfile = async () => {
       // Only show spinner if no conditions already loaded from cache

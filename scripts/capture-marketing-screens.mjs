@@ -64,15 +64,18 @@ try {
   page.setDefaultTimeout(60000);
 
   const shots = [
-    ['screenshot=home', 'home-screen.png'],
-    ['screenshot=answers_review', 'answers-prep-screen.png'],
-    ['screenshot=draft_answer', 'draft-answer-screen.png'],
-    // coc-pip2-pa4-screen.png — hand-curated (CoC compare UI); not auto-captured
+    ['screenshot=home', 'home-screen.png', 1200],
+    ['screenshot=medical_profile', 'medical-profile-screen.png', 1200],
+    ['screenshot=answers_review', 'answers-prep-screen.png', 1200],
+    ['screenshot=draft_answer', 'draft-answer-screen.png', 1200],
+    ['screenshot=pip_diary', 'pip-diary-screen.png', 1800],
+    // CoC compare (PIP2 + PA4 + example) — QuestionFlow q1_intro with seeded coc state
+    ['screenshot=coc_compare', 'coc-pip2-pa4-screen.png', 2200],
   ];
 
-  for (const [query, file] of shots) {
+  for (const [query, file, settleMs] of shots) {
     await page.goto(`${base}/?${query}`, { waitUntil: 'load' });
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(settleMs);
     await page.screenshot({ path: join(outDir, file), fullPage: true });
     console.log('Wrote', join('public/marketing', file));
   }
