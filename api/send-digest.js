@@ -5,6 +5,30 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+/** Preview (cron) + always copied on subscriber sends — deduped against profiles */
+const DIGEST_OWNER_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
+
+function mergeDigestRecipients(subscribers, ownerEmails) {
+  const seen = new Set();
+  const out = [];
+  for (const p of subscribers || []) {
+    const email = (p.email || '').trim();
+    if (!email) continue;
+    const key = email.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ email, name: p.name || '' });
+  }
+  for (const email of ownerEmails) {
+    const e = email.trim();
+    const key = e.toLowerCase();
+    if (!e || seen.has(key)) continue;
+    seen.add(key);
+    out.push({ email: e, name: 'PIPpal' });
+  }
+  return out;
+}
+
 async function getSubscribers() {
   // Get all profiles with email notifications enabled
   const res = await fetch(
@@ -283,14 +307,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ sent: 0, message: 'No PIP articles found across all sources' });
     }
 
-    // Test mode — always send to admin emails regardless of Supabase
-    const ADMIN_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
     const recipients = testOnly
-      ? ADMIN_EMAILS.map(email => ({ email, name: 'Daley' }))
-      : subscribers;
+      ? DIGEST_OWNER_EMAILS.map(email => ({ email, name: 'Daley' }))
+      : mergeDigestRecipients(subscribers, DIGEST_OWNER_EMAILS);
 
     if (recipients.length === 0) {
-      return res.status(200).json({ sent: 0, message: 'No subscribers found' });
+      return res.status(200).json({ sent: 0, message: 'No recipients (check DIGEST_OWNER_EMAILS / subscribers)' });
     }
 
     let sent = 0;

@@ -65,9 +65,9 @@ export function Hero({ onStart }: HeroProps) {
 
           <div className="p-5 md:p-6">
           {/* Avatar row below strip */}
-          <div className="flex items-center justify-start gap-4 mb-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
+          <div className="flex items-center justify-between gap-2 sm:justify-start sm:gap-4 mb-4 min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <div className="flex -space-x-2 shrink-0">
                 {[
                   { bg: 'bg-teal-400', initials: 'SK' },
                   { bg: 'bg-purple-400', initials: 'LM' },
@@ -75,14 +75,18 @@ export function Hero({ onStart }: HeroProps) {
                   { bg: 'bg-rose-400', initials: 'RK' },
                   { bg: 'bg-blue-400', initials: 'TH' },
                 ].map((a,i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[9px] font-bold shrink-0`}>
+                  <div key={i} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[8px] sm:text-[9px] font-bold shrink-0`}>
                     {a.initials}
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-stone-500 font-medium whitespace-nowrap">1,200+ applicants</p>
+              <p className="text-[11px] sm:text-xs text-stone-500 font-medium truncate">1,200+ applicants</p>
             </div>
-            <div className="flex">{'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}</div>
+            <div className="flex shrink-0 whitespace-nowrap leading-none">
+              {'★★★★★'.split('').map((s,i) => (
+                <span key={i} className="text-amber-400 text-xs sm:text-sm">{s}</span>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-3 mb-5 text-left">

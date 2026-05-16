@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Loader2, Newspaper, ExternalLink, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 interface Article {
   title: string;
@@ -80,7 +81,12 @@ export function NewsScreen() {
       const res = await fetch('/api/news');
       const data = await res.json();
       if (data.articles && data.articles.length > 0) {
-        setArticles(data.articles);
+        const normalized: Article[] = data.articles.map((a: Article) => ({
+          ...a,
+          title: decodeHtmlEntities(String(a.title ?? '')),
+          body: decodeHtmlEntities(String(a.body ?? '')),
+        }));
+        setArticles(normalized);
         setLastUpdated(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
       } else {
         setError(true);
@@ -273,7 +279,7 @@ export function NewsScreen() {
                                     </span>
                                   )}
                                 </div>
-                                <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title.replace(/&amp;/g,'&').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>')}</h3>
+                                <h3 className={`font-bold text-sm leading-snug ${isFeatured ? 'text-white' : 'text-stone-900'}`}>{article.title}</h3>
                                 {!isExpanded && (
                                   <p className={`text-xs mt-1 line-clamp-2 leading-relaxed mb-3 ${isFeatured ? 'text-teal-100' : 'text-stone-500'}`}>{article.body}</p>
                                 )}

@@ -17,6 +17,23 @@ const SOURCES = [
   { url: 'https://www.disabilityrightsuk.org/feed', name: 'Disability Rights UK', showSource: false, format: 'rss' },
 ];
 
+/** Decode XML/HTML entities from RSS titles and summaries */
+function decodeHtmlEntities(input) {
+  if (!input || typeof input !== 'string') return '';
+  let s = input.replace(/\u00a0/g, ' ');
+  s = s.replace(/&#x([0-9a-f]{1,6});/gi, (_, hex) => {
+    const n = parseInt(hex, 16);
+    return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : `&#x${hex};`;
+  });
+  s = s.replace(/&#(\d{1,7});/g, (_, dec) => {
+    const n = parseInt(dec, 10);
+    return Number.isFinite(n) && n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : `&#${dec};`;
+  });
+  s = s.replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  s = s.replace(/&amp;/g, '&');
+  return s;
+}
+
 // Broad first-pass filter — must also mention PIP (see mentionsPipBenefit)
 const BROAD_KEYWORDS = [
   'pip', 'personal independence payment', 'disability benefit', 'disability payment',
@@ -69,13 +86,14 @@ function parseAtom(xml) {
   let match;
   while ((match = regex.exec(xml)) !== null) {
     const e = match[1];
-    const title = (e.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
-    const summary = ((e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
+    const titleRaw = (e.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
+    const summaryRaw = ((e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
+    const title = decodeHtmlEntities(titleRaw.trim());
+    const summary = decodeHtmlEntities(summaryRaw);
     const link = (e.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
     const date = (e.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
     if (title && firstPassFilter(title, summary)) {
-      const cleanTitle = title.trim().replace(/&amp;/g,'&').replace(/&apos;/g,"'").replace(/&#39;/g,"'").replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-      items.push({ title: cleanTitle, summary: summary.slice(0, 400), link, date });
+      items.push({ title, summary: summary.slice(0, 400), link, date });
     }
   }
   return items;
@@ -87,12 +105,14 @@ function parseRSS(xml) {
   let match;
   while ((match = regex.exec(xml)) !== null) {
     const item = match[1];
-    const title = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
-    const desc = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
+    const titleRaw = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
+    const descRaw = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
+    const title = decodeHtmlEntities(titleRaw.trim());
+    const desc = decodeHtmlEntities(descRaw);
     const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
     const date = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
     if (title && firstPassFilter(title, desc)) {
-      items.push({ title: title.trim(), summary: desc.slice(0, 400), link, date });
+      items.push({ title, summary: desc.slice(0, 400), link, date });
     }
   }
   return items;
@@ -211,8 +231,8 @@ export default async function handler(req, res) {
         const tags = autoTag(item.title, item.summary);
         const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
         return {
-          title: item.title,
-          body,
+          title: decodeHtmlEntities(String(item.title || '')),
+          body: decodeHtmlEntities(String(body || '')),
           link: item.showSource ? item.link : null,
           source: item.showSource ? item.sourceName : 'PIPpal News',
           date: dateStr,
@@ -237,8 +257,8 @@ export default async function handler(req, res) {
 
     // Format stored articles (they may have array tags)
     const articles = merged.map(a => ({
-      title: a.title,
-      body: a.body,
+      title: decodeHtmlEntities(String(a.title || '')),
+      body: decodeHtmlEntities(String(a.body || '')),
       link: a.link,
       source: a.source,
       date: a.date,

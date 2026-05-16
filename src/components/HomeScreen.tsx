@@ -27,6 +27,7 @@ import {
 import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import { allPipActivitiesComplete } from '../utils/pipAnswersPack';
+import { decodeHtmlEntities } from '../utils/htmlEntities';
 
 interface NavCardProps {
   title: string;
@@ -88,7 +89,7 @@ export function HomeScreen() {
       .then(r => r.json())
       .then(d => {
         if (d.articles?.length > 0) {
-          setNewsHeadlines(d.articles.slice(0, 8).map((a: any) => a.title));
+          setNewsHeadlines(d.articles.slice(0, 8).map((a: { title?: string }) => decodeHtmlEntities(String(a.title ?? ''))));
         }
       })
       .catch(() => {});
