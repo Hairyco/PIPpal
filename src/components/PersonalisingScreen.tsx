@@ -221,19 +221,6 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
           </div>
         </div>
 
-        {medProfile?.conditions && medProfile.conditions.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center max-w-xs">
-            {medProfile.conditions.map((c: any, i: number) => (
-              <span
-                key={i}
-                className="text-[11px] font-medium text-teal-800/90 bg-teal-50/80 border border-teal-100/80 px-2.5 py-1 rounded-full"
-              >
-                {c.name}
-              </span>
-            ))}
-          </div>
-        )}
-
         <p className="text-xs text-stone-400">Usually just a moment</p>
 
         {showStuck && (

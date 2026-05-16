@@ -160,7 +160,7 @@ export function QuestionWizard() {
   const [step, setStep] = useState(1);
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [explainerOpen] = useState(true);
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(false);
   const [openHelpPill, setOpenHelpPill] = useState<number | null>(null);
   const [personalisedExplainer, setPersonalisedExplainer] = useState<string | null>(null);
   const [loadingExplainer, setLoadingExplainer] = useState(false);
@@ -209,6 +209,10 @@ Rules:
     .catch(() => undefined)
     .finally(() => setLoadingExplainer(false));
   }, [qId, conditions, question, medProfile.conditions]);
+
+  React.useEffect(() => {
+    setQuestionExplainedOpen(false);
+  }, [qId]);
 
   if (!question) return null;
 
@@ -418,32 +422,46 @@ Be specific and use the claimant's own information. No preamble. Return ONLY the
                   <p className="text-teal-100 text-sm leading-relaxed">{question.subtext}</p>
                 </div>
 
-                {/* Explained — always expanded, personalised if conditions saved */}
+                {/* Explained — starts collapsed; expands on tap */}
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-amber-100">
-                    <div className="flex items-center gap-2">
-                      <span className="text-amber-600 text-sm">ⓘ</span>
+                  <div
+                    className={`flex items-center justify-between px-4 py-3 gap-2 ${questionExplainedOpen ? 'border-b border-amber-100' : ''}`}
+                  >
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg -mx-1 px-1 py-0.5 hover:bg-amber-100/60 transition-colors"
+                      aria-expanded={questionExplainedOpen}
+                      onClick={() => setQuestionExplainedOpen(o => !o)}
+                    >
+                      <span className="text-amber-600 text-sm shrink-0">ⓘ</span>
                       <h3 className="font-bold text-amber-900 text-sm">This question explained</h3>
-                    </div>
+                      {questionExplainedOpen ? (
+                        <ChevronUp className="w-4 h-4 text-amber-600 shrink-0 ml-auto" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-amber-600 shrink-0 ml-auto" />
+                      )}
+                    </button>
                     {conditions && (
-                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full shrink-0">
                         {loadingExplainer ? 'Personalising…' : 'Personalised for you'}
                       </span>
                     )}
                   </div>
-                  <div className="px-4 py-4">
-                    {loadingExplainer ? (
-                      <div className="space-y-2">
-                        <div className="h-3 bg-amber-200 rounded animate-pulse w-full" />
-                        <div className="h-3 bg-amber-200 rounded animate-pulse w-4/5" />
-                        <div className="h-3 bg-amber-200 rounded animate-pulse w-3/5" />
-                      </div>
-                    ) : (
-                      <p className="text-sm text-amber-800 leading-relaxed">
-                        {personalisedExplainer || question.defaultExplainer}
-                      </p>
-                    )}
-                  </div>
+                  {questionExplainedOpen && (
+                    <div className="px-4 py-4">
+                      {loadingExplainer ? (
+                        <div className="space-y-2">
+                          <div className="h-3 bg-amber-200 rounded animate-pulse w-full" />
+                          <div className="h-3 bg-amber-200 rounded animate-pulse w-4/5" />
+                          <div className="h-3 bg-amber-200 rounded animate-pulse w-3/5" />
+                        </div>
+                      ) : (
+                        <p className="text-sm text-amber-800 leading-relaxed">
+                          {personalisedExplainer || question.defaultExplainer}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Ask for more help pills — inline expand, prioritised by user conditions */}

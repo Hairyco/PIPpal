@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   Info,
   Shield,
   Lock,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useAppContext, Screen } from './AppContext';
 import { PIP_QUESTIONS, getQuestion } from '../pipQuestions';
@@ -14,6 +16,12 @@ export function QuestionIntro() {
   const [showDisclaimer, setShowDisclaimer] = useState(false);
 
   const questionId = selectedQuestionId || 'q1';
+  const [explainOpen, setExplainOpen] = useState(false);
+
+  useEffect(() => {
+    setExplainOpen(false);
+  }, [questionId]);
+
   const question = getQuestion(questionId)!;
 
   const conditions = medProfile.conditions.map((c) => c.name.toLowerCase());
@@ -69,17 +77,31 @@ export function QuestionIntro() {
 
 
 
-        {/* Condition-specific explainer */}
-        <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100">
-          <div className="flex items-center gap-2 mb-3">
-            <Info className="w-5 h-5 text-amber-700" />
-            <h3 className="font-bold text-amber-900">This question explained</h3>
-          </div>
-          <p className="text-sm text-amber-800 leading-relaxed">{explainerText}</p>
-          {explainerExample && (
-            <div className="mt-3 bg-white rounded-xl p-3 border border-amber-200">
-              <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1.5">Example answer</p>
-              <p className="text-xs text-amber-900 leading-relaxed italic">"{explainerExample}"</p>
+        {/* Condition-specific explainer — starts collapsed */}
+        <div className="bg-amber-50 rounded-2xl border border-amber-100 overflow-hidden">
+          <button
+            type="button"
+            aria-expanded={explainOpen}
+            onClick={() => setExplainOpen((o) => !o)}
+            className={`w-full flex items-center gap-2 px-5 py-3 text-left hover:bg-amber-100/50 transition-colors ${explainOpen ? 'border-b border-amber-200' : ''}`}
+          >
+            <Info className="w-5 h-5 text-amber-700 shrink-0" />
+            <h3 className="font-bold text-amber-900 flex-1">This question explained</h3>
+            {explainOpen ? (
+              <ChevronUp className="w-5 h-5 text-amber-700 shrink-0" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-amber-700 shrink-0" />
+            )}
+          </button>
+          {explainOpen && (
+            <div className="px-5 pb-5 pt-0">
+              <p className="text-sm text-amber-800 leading-relaxed">{explainerText}</p>
+              {explainerExample && (
+                <div className="mt-3 bg-white rounded-xl p-3 border border-amber-200">
+                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1.5">Example answer</p>
+                  <p className="text-xs text-amber-900 leading-relaxed italic">"{explainerExample}"</p>
+                </div>
+              )}
             </div>
           )}
         </div>

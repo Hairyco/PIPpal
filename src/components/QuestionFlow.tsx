@@ -120,19 +120,9 @@ export function QuestionFlow() {
   const pipQ = PIP_QUESTIONS.find(q => q.id === questionId);
 
   const [step, setStep] = useState<Step>(1);
-  // Expanded by default on mobile, collapsed on desktop
   const [showDescriptors, setShowDescriptors] = useState(false);
   const [showFullExample, setShowFullExample] = useState(true);
-  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(() => {
-    try {
-      return !(
-        import.meta.env.DEV &&
-        new URLSearchParams(window.location.search).get('screenshot') === 'coc_compare'
-      );
-    } catch {
-      return true;
-    }
-  });
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(false);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -206,14 +196,9 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
 
   const [generating, setGenerating] = useState(false);
 
+  /** Each activity opens with explainer folded — avoids wall of text before documents / actions */
   useEffect(() => {
-    if (
-      import.meta.env.DEV &&
-      new URLSearchParams(window.location.search).get('screenshot') === 'coc_compare'
-    ) {
-      return;
-    }
-    setQuestionExplainedOpen(true);
+    setQuestionExplainedOpen(false);
   }, [questionId]);
 
   if (!config) {
@@ -501,29 +486,25 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
           <div className="px-5 py-5 space-y-4 pb-4">
             <QuestionCard />
 
-            {/* This question explained — expanded by default (CoC can collapse to focus on documents) */}
+            {/* This question explained — starts collapsed */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-stone-50 gap-2">
-                {cocMode ? (
-                  <button
-                    type="button"
-                    onClick={() => setQuestionExplainedOpen(o => !o)}
-                    className="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg -mx-1 px-1 py-0.5 hover:bg-stone-50 transition-colors"
-                  >
-                    <Info className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span className="font-bold text-stone-900 text-sm">This question explained</span>
-                    {questionExplainedOpen ? (
-                      <ChevronUp className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
-                    )}
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 min-w-0 flex-1">
-                    <Info className="w-4 h-4 text-teal-600 shrink-0" />
-                    <span className="font-bold text-stone-900 text-sm">This question explained</span>
-                  </div>
-                )}
+              <div
+                className={`flex items-center justify-between px-4 py-3 gap-2 ${questionExplainedOpen ? 'border-b border-stone-50' : ''}`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setQuestionExplainedOpen(o => !o)}
+                  className="flex items-center gap-2 min-w-0 flex-1 text-left rounded-lg -mx-1 px-1 py-0.5 hover:bg-stone-50 transition-colors"
+                  aria-expanded={questionExplainedOpen}
+                >
+                  <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                  <span className="font-bold text-stone-900 text-sm">This question explained</span>
+                  {questionExplainedOpen ? (
+                    <ChevronUp className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-stone-400 shrink-0 ml-auto" />
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={rePersonalise}
@@ -544,7 +525,7 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                   {isPersonalising ? 'Personalising...' : (personalExplainer || personalisedJustNow) ? 'Personalised' : 'Personalise'}
                 </button>
               </div>
-              {(!cocMode || questionExplainedOpen) && (
+              {questionExplainedOpen && (
                 <p className="px-4 py-4 text-sm text-stone-700 leading-relaxed">
                   {personalExplainer || config.explained}
                 </p>
@@ -629,60 +610,62 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                 )}
               </div>
             )}
-            <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
-                    <span className="text-teal-700 text-xs font-bold">
-                      {personalExample
-                        ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
-                        : config.exampleAnswer.name[0]}
-                    </span>
+            {!cocMode && (
+              <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+                      <span className="text-teal-700 text-xs font-bold">
+                        {personalExample
+                          ? medProfile?.conditions?.[0]?.name?.[0]?.toUpperCase() || 'Y'
+                          : config.exampleAnswer.name[0]}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
+                        {personalExample ? 'Example based on your conditions' : 'Example answer'}
+                      </p>
+                      <p className="text-xs font-semibold text-stone-600 mt-0.5 truncate">
+                        {personalExample
+                          ? medProfile.conditions.map((c: any) => c.name).join(' · ')
+                          : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest leading-none">
-                      {personalExample ? 'Example based on your conditions' : 'Example answer'}
-                    </p>
-                    <p className="text-xs font-semibold text-stone-600 mt-0.5 truncate">
-                      {personalExample
-                        ? medProfile.conditions.map((c: any) => c.name).join(' · ')
-                        : `${config.exampleAnswer.name}, ${config.exampleAnswer.age} · ${config.exampleAnswer.label}`}
-                    </p>
-                  </div>
+                  <button
+                    onClick={rePersonalise}
+                    disabled={isPersonalising}
+                    className={`flex items-center gap-1 text-[10px] font-bold bg-white border px-2 py-1 rounded-full transition-all disabled:opacity-50 shrink-0 ${
+                      !isPersonalising && (personalExample || personalisedJustNow)
+                        ? 'text-teal-600 border-teal-300 hover:bg-teal-50'
+                        : 'text-stone-400 hover:text-teal-600 border-teal-200 hover:border-teal-300'
+                    }`}
+                  >
+                    {isPersonalising ? (
+                      <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (personalExample || personalisedJustNow) ? (
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                    ) : (
+                      <Sparkles className="w-2.5 h-2.5" />
+                    )}
+                    {isPersonalising ? 'Personalising...' : (personalExample || personalisedJustNow) ? 'Personalised' : 'Personalise'}
+                  </button>
                 </div>
-                <button
-                  onClick={rePersonalise}
-                  disabled={isPersonalising}
-                  className={`flex items-center gap-1 text-[10px] font-bold bg-white border px-2 py-1 rounded-full transition-all disabled:opacity-50 shrink-0 ${
-                    !isPersonalising && (personalExample || personalisedJustNow)
-                      ? 'text-teal-600 border-teal-300 hover:bg-teal-50'
-                      : 'text-stone-400 hover:text-teal-600 border-teal-200 hover:border-teal-300'
-                  }`}
-                >
-                  {isPersonalising ? (
-                    <div className="w-2.5 h-2.5 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                  ) : (personalExample || personalisedJustNow) ? (
-                    <CheckCircle2 className="w-2.5 h-2.5" />
+                <div className="border-l-4 border-teal-300 pl-3">
+                  {loadingExample ? (
+                    <div className="space-y-1.5">
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
+                      <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
+                    </div>
                   ) : (
-                    <Sparkles className="w-2.5 h-2.5" />
+                    <p className="text-sm text-stone-600 leading-relaxed italic">
+                      "{personalExample ?? config.exampleAnswer.quote}"
+                    </p>
                   )}
-                  {isPersonalising ? 'Personalising...' : (personalExample || personalisedJustNow) ? 'Personalised' : 'Personalise'}
-                </button>
+                </div>
               </div>
-              <div className="border-l-4 border-teal-300 pl-3">
-                {loadingExample ? (
-                  <div className="space-y-1.5">
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-full" />
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-4/5" />
-                    <div className="h-3 bg-teal-100 rounded animate-pulse w-3/5" />
-                  </div>
-                ) : (
-                  <p className="text-sm text-stone-600 leading-relaxed italic">
-                    "{personalExample ?? config.exampleAnswer.quote}"
-                  </p>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -720,6 +703,78 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
                     : 'Select everything that applies now — even if it was true before. Focus on what\'s got worse or more frequent since your last assessment.'}
               </p>
             </div>
+
+            {cocMode && (() => {
+              const cocHasPip2 = cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && hasPip2Answer(questionId);
+              const cocHasPa4 = hasAssessorNote(questionId);
+
+              let body: React.ReactNode;
+              if (cocDocumentType === 'award_only') {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    The excerpts on the previous screen are wording from DWP&apos;s decision — condensed outcome language rather than everything you explained. Tick only difficulties true for you <strong className="font-semibold text-stone-800">today</strong>. Anything you tick should support a clearer story about what is{' '}
+                    <strong className="font-semibold text-stone-800">harder, more frequent, less safe</strong>{' '}now than implied there.
+                  </p>
+                );
+              } else if (cocDocumentType === 'pa4_only') {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    The amber box is how the assessor <strong className="font-semibold text-stone-800">summarised</strong> the appointment — tighter and more clinical than your lived experience usually sounds. Scan it line by line against your reality:{' '}
+                    what was skimmed over, toned down, or never written down?
+                    Tick every difficulty that genuinely applies now, so your drafted answer later can show{' '}
+                    <strong className="font-semibold text-stone-800">what has changed, worsened, or was understated</strong> compared with that framing.
+                  </p>
+                );
+              } else if (cocDocumentType === 'both' && cocHasPip2 && cocHasPa4) {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    You&apos;re comparing <strong className="font-semibold text-stone-800">your own</strong> PIP2 wording with{' '}
+                    <strong className="font-semibold text-stone-800">what the PA4 stresses</strong>. Look for gaps: details you gave that shrunk on the PA4, or interpretations that landed milder than you meant.
+                    Each tick here should back up a simple story: your refreshed answer will show{' '}
+                    <strong className="font-semibold text-stone-800">deterioration, new limits, or facts that never made it cleanly onto DWP paperwork</strong>.
+                  </p>
+                );
+              } else if (cocDocumentType === 'both' && cocHasPa4 && !cocHasPip2) {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    DWP primarily has assessor wording for this activity rather than matching text from your PIP2 answers. Tick what reflects your{' '}
+                    <strong className="font-semibold text-stone-800">truth now</strong>, and mentally note where PA4 shorthand feels thin or blunt —{' '}
+                    your final answer fills that in while showing{' '}
+                    <strong className="font-semibold text-stone-800">what has changed since assessment</strong>.
+                  </p>
+                );
+              } else if (cocDocumentType === 'both' && cocHasPip2 && !cocHasPa4) {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    Your archived PIP2 wording is summarised below. Tick only what mirrors life <strong className="font-semibold text-stone-800">today</strong> — frequencies, safeguards, fatigue, reliance on someone else —
+                    especially where things are noticeably <strong className="font-semibold text-stone-800">harder since you sent that text</strong>.
+                  </p>
+                );
+              } else if (cocFormType === 'ar1') {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    Tick <strong className="font-semibold text-stone-800">only</strong> difficulties that{' '}
+                    <strong className="font-semibold text-stone-800">started, worsened or became unavoidable</strong> since your earlier form landed with DWP. Leave repeated problems that genuinely haven&apos;t changed — they already hold that baseline.
+                  </p>
+                );
+              } else {
+                body = (
+                  <p className="text-sm text-stone-700 leading-relaxed">
+                    The blue box echoes what you filed before — not a quota to copy. Tick every difficulty that is genuinely true{' '}
+                    <strong className="font-semibold text-stone-800">now</strong>, especially where severity, pacing, forgetting, pain or needing help stepped up.
+                    The answer you draft later contrasts this wording with clearer, sharper detail so DWP can see{' '}
+                    <strong className="font-semibold text-stone-800">what has slid backwards</strong>.
+                  </p>
+                );
+              }
+
+              return (
+                <div className="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 space-y-2">
+                  <p className="text-[11px] font-bold text-stone-500 uppercase tracking-widest leading-snug">Breaking down what&apos;s on file</p>
+                  {body}
+                </div>
+              );
+            })()}
 
             {/* Previous answer reference — CoC mode only */}
             {cocMode && (
