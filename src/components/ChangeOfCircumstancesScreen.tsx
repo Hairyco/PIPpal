@@ -865,9 +865,36 @@ export function ChangeOfCircumstancesScreen() {
         setStep(2);
       };
       return (
-        <div className="space-y-5 px-5 pt-6 pb-32">
+        <div className="space-y-5 px-5 pt-5 pb-32">
+          <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
+            <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
+            <p className="text-teal-50 text-sm leading-relaxed">
+              A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP
+              that something important has changed since your last claim or review.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you continue</p>
+            <p className="text-sm text-teal-950 leading-snug">
+              No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>,{' '}
+              <strong className="font-semibold">PA4</strong>, and <strong className="font-semibold">decision letter</strong>{' '}
+              from DWP — reuse your <strong className="font-semibold">My Questions</strong> answers from a past new-claim
+              workbook — or carry on without files below.
+            </p>
+            <a
+              href="tel:08009172222"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
+            >
+              <Phone className="w-4 h-4 shrink-0" aria-hidden />
+              Call 0800 917 2222 — PIP enquiries
+            </a>
+          </div>
+
           <p className="text-sm text-stone-600 leading-relaxed">
-            Do you still have your <span className="font-semibold text-stone-800">completed</span> &quot;How your disability affects you&quot; form (PIP2) from your last claim or review?
+            Do you still have your <span className="font-semibold text-stone-800">completed</span> &quot;How your
+            disability affects you&quot; form (PIP2) from your last claim or review?
           </p>
           <div className="space-y-3">
             <button
