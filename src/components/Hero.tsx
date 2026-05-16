@@ -15,10 +15,10 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: 'Built using patterns from thousands of awarded PIP claims' },
+    { text: 'Built from thousands of successful PIP claims' },
     { text: 'Guided support through all 12 overwhelming PIP questions' },
     { text: 'Generates 100% unique, personalised answers — never a template' },
-    { text: 'Complete your entire application in just 15 minutes' },
+    { text: 'Complete your application in just 15 minutes' },
     { text: "Can't write it out? We offer a handwritten form service" },
     { text: 'Submit a flawless form to get your decision up to 6 weeks faster' },
   ];
