@@ -297,10 +297,16 @@ export function AdminDashboard() {
     setGeneratingTiktok(post.id);
     setTiktokScript(null);
     try {
-      const res = await fetch('/api/generate-tiktok', {
+      const res = await fetch('/api/generate-blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: post.title, excerpt: post.excerpt, body: post.body, category: post.category }),
+        body: JSON.stringify({
+          action: 'tiktok',
+          title: post.title,
+          excerpt: post.excerpt,
+          body: post.body,
+          category: post.category,
+        }),
       });
       const data = await res.json();
       if (data.script) setTiktokScript({ postId: post.id, script: data.script });
