@@ -43,12 +43,7 @@ export function Hero({ onStart }: HeroProps) {
       >
         <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-4">
           Get your PIP application right —{' '}
-          <span className="text-teal-700 relative inline-block">
-            first time
-            <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 120 12" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2 8 Q30 2 60 8 Q90 14 118 8" stroke="#0d9488" strokeWidth="3" fill="none" strokeLinecap="round"/>
-            </svg>
-          </span>
+          <span className="text-teal-700">first time</span>
         </h1>
         <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-8 max-w-2xl mx-auto px-2">
           We guide you through every question and provide high quality personalised answers the DWP needs to see.
