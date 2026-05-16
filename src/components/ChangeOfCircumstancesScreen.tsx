@@ -473,6 +473,12 @@ export function ChangeOfCircumstancesScreen() {
     else setStep(s => s - 1);
   };
 
+  /** Opens My Questions; opts into reusing workbook answers when any exist */
+  const goToMyQuestionsForReuse = useCallback(() => {
+    if (newClaimAnswerCount > 0) setUsePlatformWorkbookAnswers(true);
+    navigateTo('question_index');
+  }, [newClaimAnswerCount, navigateTo]);
+
   useLayoutEffect(() => {
     if (step !== 4) return;
     writeCocMedicalSnapshotToSession();
@@ -1084,39 +1090,6 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3">
-            <label
-              className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? 'border-teal-400 bg-teal-50/50' : 'border-stone-200 bg-stone-50/70 hover:bg-stone-50'}`}
-            >
-              <input
-                type="checkbox"
-                checked={usePlatformWorkbookAnswers}
-                disabled={newClaimAnswerCount === 0}
-                onChange={ev => setUsePlatformWorkbookAnswers(ev.target.checked)}
-                className="mt-1 w-4 h-4 rounded border-stone-300 text-teal-700 focus:ring-teal-500 disabled:opacity-40"
-              />
-              <span className="min-w-0">
-                <span className="text-sm font-semibold text-stone-900 leading-snug">Use answers from My Questions (new claim on PIPpal)</span>
-                <span className="block text-[11px] text-stone-600 leading-snug mt-1">
-                  {newClaimAnswerCount > 0
-                    ? `${newClaimAnswerCount} activit${newClaimAnswerCount !== 1 ? 'ies have' : 'y has'} saved wording — we show it beside each activity in the checklist below before you refresh your medical profile and continue in CoC mode.`
-                    : 'Nothing saved yet. Open My Questions from Home (outside this flow), complete answers for how things were last time as best you can, then come back here and tick again.'}
-                </span>
-              </span>
-            </label>
-            <button
-              type="button"
-              onClick={() => navigateTo('question_index')}
-              className="w-full py-3 rounded-xl text-sm font-semibold border border-stone-300 text-stone-800 hover:bg-stone-100 active:scale-[0.99] transition-all"
-            >
-              Open My Questions to add answers
-              <ChevronRight className="inline w-4 h-4 mb-px ml-1 text-stone-500" aria-hidden />
-            </button>
-            <p className="text-[10px] text-stone-500 leading-snug">
-              That leaves this flow briefly — reopen Change of circumstances from Home when finished. Uploaded documents are not preserved if you reload the screen.
-            </p>
-          </div>
-
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
             <button
               type="button"
@@ -1221,6 +1194,26 @@ export function ChangeOfCircumstancesScreen() {
             )}
           </div>
 
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={goToMyQuestionsForReuse}
+              className="w-full py-3.5 rounded-xl text-sm font-semibold border border-teal-600 text-teal-800 bg-white hover:bg-teal-50 active:scale-[0.99] transition-all flex items-center justify-center gap-1"
+            >
+              Use previous answers
+              <ChevronRight className="w-4 h-4 text-teal-600 shrink-0" aria-hidden />
+            </button>
+            {!noForm && !hasAny && (
+              <button
+                type="button"
+                onClick={() => setNoForm(true)}
+                className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all"
+              >
+                I don&apos;t have these documents yet
+              </button>
+            )}
+          </div>
+
           {/* Checklist — uploads, workbook seeds, manual reminders, no-doc route */}
           {showActivityReview && (
             <div className="space-y-2">
@@ -1280,13 +1273,6 @@ export function ChangeOfCircumstancesScreen() {
                 )}
               </div>
             </div>
-          )}
-
-          {!noForm && !hasAny && (
-            <button type="button" onClick={() => setNoForm(true)}
-              className="w-full py-3.5 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 hover:bg-stone-50 active:scale-[0.99] transition-all">
-              I don't have these documents yet
-            </button>
           )}
 
           {/* No document guidance */}
