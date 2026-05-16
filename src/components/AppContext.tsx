@@ -269,6 +269,22 @@ export function parseBlogPath(): BlogPathParse {
   return null;
 }
 
+/** Supabase PKCE redirect uses a real `code` query param — avoid substring false positives from URLs like `?promocode=`. */
+function readOAuthAuthCodePresent(): boolean {
+  try {
+    const q = new URLSearchParams(window.location.search);
+    if (q.has('code')) return true;
+    const rawHash = window.location.hash?.replace(/^#/, '');
+    if (rawHash?.includes('=')) {
+      const h = new URLSearchParams(rawHash);
+      if (h.has('code')) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
 
   const [{ devScreenshot, demoAnswers, draftAnswerSeed, cocFlowMarketing }] = useState(() => {
@@ -315,8 +331,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
   const initialSessionUser = devScreenshot ? null : getInitialSession();
-  // If URL has a code param, Supabase needs to process it — show loading
-  const hasAuthCode = window.location.search.includes('code=');
+  // If URL has OAuth `code`, Supabase needs to exchange it — show loading overlay
+  const hasAuthCode = readOAuthAuthCodePresent();
 
   const blogPath = !hasAuthCode ? parseBlogPath() : null;
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
@@ -463,6 +479,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    let oauthFailsafe: ReturnType<typeof setTimeout> | undefined;
+    const oauthCallbackPending = new URLSearchParams(window.location.search).has('code');
+    const clearOAuthFailsafe = () => {
+      if (oauthFailsafe !== undefined) {
+        clearTimeout(oauthFailsafe);
+        oauthFailsafe = undefined;
+      }
+    };
+    if (oauthCallbackPending) {
+      oauthFailsafe = setTimeout(() => setIsLoading(false), 25000);
+    }
+
     // Check for promo code in URL on load
     const PROMO_CODES = ['PIPPAL2026', 'PIPPALFRIEND', 'PIPPALVIP'];
     const urlParams = new URLSearchParams(window.location.search);
@@ -481,6 +509,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      clearOAuthFailsafe();
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const userEmail = session.user.email || '';
@@ -600,6 +629,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       setIsLoading(false);
     }).catch(() => {
+      clearOAuthFailsafe();
       setIsLoading(false);
     });
 
@@ -608,6 +638,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // Skip if we are in the middle of logging out
       if (localStorage.getItem('pippal_logging_out') === 'true') return;
       // Always clear loading when auth state changes
+      clearOAuthFailsafe();
       setIsLoading(false);
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
@@ -659,6 +690,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
+      clearOAuthFailsafe();
       subscription.unsubscribe();
     };
   }, [devScreenshot]);
@@ -847,17 +879,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
-
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-white flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-teal-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-stone-500 font-medium">Loading PIPpal…</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <AppContext.Provider
