@@ -32,7 +32,7 @@ export function Hero({ onStart }: HeroProps) {
       >
         <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-6">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
-          Plain-English PIP guidance and answers
+          UK's #1 PIP Application Assistant
         </div>
       </div>
 
