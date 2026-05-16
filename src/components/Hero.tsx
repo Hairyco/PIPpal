@@ -30,7 +30,7 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   return (
-    <section className="px-5 md:px-8 pt-10 md:pt-20 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
+    <section className="px-5 md:px-8 pt-10 md:pt-8 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
 
       {/* Badge */}
       <div
