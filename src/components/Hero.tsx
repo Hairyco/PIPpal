@@ -15,12 +15,12 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: 'Proven Success: Built using patterns from thousands of awarded PIP claims' },
-    { text: 'Step-by-Step: Guided support through all 12 overwhelming PIP questions' },
-    { text: 'DWP Safe: Generates 100% unique, personalised answers — never template-flagged' },
-    { text: 'Fast & Easy: Complete your entire application in just 15 minutes' },
+    { text: 'Built using patterns from thousands of awarded PIP claims' },
+    { text: 'Guided support through all 12 overwhelming PIP questions' },
+    { text: 'Generates 100% unique, personalised answers — never template-flagged' },
+    { text: 'Complete your entire application in just 15 minutes' },
     { text: "Can't write it out? We offer a handwritten form service" },
-    { text: 'Avoid Delays: Submit a flawless form to get your decision up to 6 weeks faster' },
+    { text: 'Submit a flawless form to get your decision up to 6 weeks faster' },
   ];
 
   return (
