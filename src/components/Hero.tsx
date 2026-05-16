@@ -16,7 +16,7 @@ export function Hero({ onStart }: HeroProps) {
 
   const checks = [
     { text: '100% custom. No templates' },
-    { text: 'Complete in just 15 minutes' },
+    { text: 'No stress — complete in just 15 minutes' },
     { text: 'Get your PIP decision up to 6 weeks faster' },
     { text: 'Handwritten form service available' },
   ];
