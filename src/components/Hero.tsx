@@ -77,6 +77,9 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">
             🔒 100% Secure &amp; Confidential
           </p>
+          <p className="text-center text-xs text-stone-500 mt-2 font-medium">
+            Join 1,200+ UK applicants who used PIPpal for inspiration this month
+          </p>
         </div>
       </div>
 
