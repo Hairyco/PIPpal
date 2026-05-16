@@ -54,7 +54,7 @@ export function PersonalisingScreen() {
             supabase.from('condition_content_cache')
               .update({ hit_count: cached.hit_count + 1, updated_at: new Date().toISOString() })
               .eq('cache_key', cacheKey)
-              .then(() => {});
+              .then(() => undefined);
             return;
           }
         } catch {
@@ -131,7 +131,7 @@ Tone: like a knowledgeable friend giving them a cheat code before a test. Warm, 
     // Wait for BOTH the work and the minimum display time before navigating
     const minWait = new Promise<void>(resolve => setTimeout(resolve, 3000));
     Promise.all([run(), minWait])
-      .catch(() => {})
+      .catch(() => undefined)
       .finally(() => {
         clearTimeout(safetyTimer);
         safeNavigate();

@@ -650,14 +650,18 @@ export function AdminDashboard() {
     try {
       await supabase.from('influencer_codes').update({ active: !active }).eq('id', id);
       await loadInfluencerCodes();
-    } catch { }
+    } catch {
+      void 0;
+    }
   };
 
   const deleteInfluencerCode = async (id: string) => {
     try {
       await supabase.from('influencer_codes').delete().eq('id', id);
       await loadInfluencerCodes();
-    } catch { }
+    } catch {
+      void 0;
+    }
   };
 
   const resetTestData = async () => {

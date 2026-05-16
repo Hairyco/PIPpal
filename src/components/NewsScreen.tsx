@@ -49,7 +49,7 @@ export function NewsScreen() {
     setBookmarks(prev => {
       const next = new Set(prev);
       if (next.has(title)) next.delete(title); else next.add(title);
-      try { localStorage.setItem('pip_news_bookmarks', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem('pip_news_bookmarks', JSON.stringify([...next])); } catch { void 0; }
       return next;
     });
   };

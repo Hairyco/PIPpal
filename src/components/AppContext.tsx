@@ -568,7 +568,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ influencerCode: pendingInfluencer }),
-                  }).catch(() => {});
+                  }).catch(() => undefined);
                 } catch { /* Fail silently */ }
               }
             } catch { /* Not a valid influencer code */ }
@@ -833,7 +833,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               },
               { onConflict: 'user_id,question_id' },
             )
-            .then(() => {});
+            .then(() => undefined);
         }
       });
       return updated;

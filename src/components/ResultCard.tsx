@@ -58,7 +58,7 @@ function addHighlightsToPlain(text: string): string {
     '<span class="bg-blue-100 text-blue-900 px-1 rounded">$1</span>'
   );
   out = out.replace(
-    /\b(pain|exhausted|exhaustion|fatigue|anxious|anxiety|distress|overwhelmed|unsafe|danger|risk|unable|cannot|can\'t|struggle|difficult|impossible|burns?|accidents?)\b/gi,
+    /\b(pain|exhausted|exhaustion|fatigue|anxious|anxiety|distress|overwhelmed|unsafe|danger|risk|unable|cannot|can't|struggle|difficult|impossible|burns?|accidents?)\b/gi,
     '<span class="bg-purple-100 text-purple-900 px-1 rounded">$1</span>'
   );
   const firstSentenceEnd = out.indexOf('. ');
@@ -371,7 +371,7 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           if (Array.isArray(parsed)) setDetailSuggestions(parsed.slice(0, 8));
         } catch { /* use fallback */ }
       })
-      .catch(() => {})
+      .catch(() => undefined)
       .finally(() => setLoadingSuggestions(false));
   }, [qId]);
 

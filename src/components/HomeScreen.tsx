@@ -92,7 +92,7 @@ export function HomeScreen() {
           setNewsHeadlines(d.articles.slice(0, 8).map((a: { title?: string }) => decodeHtmlEntities(String(a.title ?? ''))));
         }
       })
-      .catch(() => {});
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {

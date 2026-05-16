@@ -156,14 +156,6 @@ export function QuestionWizard() {
   } = useAppContext();
   const qId = selectedQuestionId || 'q1';
   const question = getQuestion(qId);
-  if (!question) return null;
-
-  const isQ1 = qId === 'q1';
-  const qNum = isQ1 ? 3 : (question.num + 2);
-
-  const difficultyOptions = DIFFICULTY_OPTIONS[qId] || DIFFICULTY_OPTIONS.default;
-  const supportOpts = SUPPORT_OPTIONS[qId] || SUPPORT_OPTIONS.default;
-  const realLifeOpts = REAL_LIFE_OPTIONS[qId] || REAL_LIFE_OPTIONS.default;
 
   const [step, setStep] = useState(1);
   const [showDescriptors, setShowDescriptors] = useState(false);
@@ -172,6 +164,14 @@ export function QuestionWizard() {
   const [openHelpPill, setOpenHelpPill] = useState<number | null>(null);
   const [personalisedExplainer, setPersonalisedExplainer] = useState<string | null>(null);
   const [loadingExplainer, setLoadingExplainer] = useState(false);
+  const [customDifficulty, setCustomDifficulty] = useState('');
+  const [answers, setAnswers] = useState<WizardAnswer>({
+    difficulties: [],
+    frequencies: {},
+    supportNeeded: [],
+    realLifeImpact: [],
+    extraDetail: '',
+  });
 
   const conditions = medProfile.conditions.map((c: any) => c.name).join(', ');
 
@@ -206,17 +206,18 @@ Rules:
       const text = (d.reply || d.generated || '').trim();
       if (text) setPersonalisedExplainer(text);
     })
-    .catch(() => {})
+    .catch(() => undefined)
     .finally(() => setLoadingExplainer(false));
-  }, [qId, conditions]);
-  const [customDifficulty, setCustomDifficulty] = useState('');
-  const [answers, setAnswers] = useState<WizardAnswer>({
-    difficulties: [],
-    frequencies: {},
-    supportNeeded: [],
-    realLifeImpact: [],
-    extraDetail: '',
-  });
+  }, [qId, conditions, question, medProfile.conditions]);
+
+  if (!question) return null;
+
+  const isQ1 = qId === 'q1';
+  const qNum = isQ1 ? 3 : (question.num + 2);
+
+  const difficultyOptions = DIFFICULTY_OPTIONS[qId] || DIFFICULTY_OPTIONS.default;
+  const supportOpts = SUPPORT_OPTIONS[qId] || SUPPORT_OPTIONS.default;
+  const realLifeOpts = REAL_LIFE_OPTIONS[qId] || REAL_LIFE_OPTIONS.default;
 
   const totalSteps = 6;
 

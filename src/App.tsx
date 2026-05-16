@@ -160,7 +160,7 @@ function AppContent() {
       supabase.from('page_views').insert({
         path: currentScreen,
         session_id: sessionStorage.getItem('pippal_session_id') || Math.random().toString(36).slice(2),
-      }).then(() => {});
+      }).then(() => undefined);
     }
   }, [currentScreen]);
 

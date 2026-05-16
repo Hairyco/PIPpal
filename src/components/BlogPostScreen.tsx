@@ -20,7 +20,7 @@ export function BlogPostScreen() {
   // Track blog view
   React.useEffect(() => {
     if (selectedBlogSlug) {
-      supabase.from('blog_clicks').insert({ slug: selectedBlogSlug, type: 'view' }).then(() => {});
+      supabase.from('blog_clicks').insert({ slug: selectedBlogSlug, type: 'view' }).then(() => undefined);
     }
   }, [selectedBlogSlug]);
 
@@ -185,7 +185,7 @@ export function BlogPostScreen() {
               <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15–30 minutes. Full access from £6.99 one-time.</p>
               <button
                 onClick={() => {
-                  supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => {});
+                  supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => undefined);
                   navigateTo(hasPaid ? 'question_index' : 'upsell');
                 }}
                 className="w-full bg-orange-500 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"

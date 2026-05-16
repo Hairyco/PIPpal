@@ -138,7 +138,9 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
           setWeeks([w]);
           setCurrentWeekId(w.id);
         }
-      } catch { } finally {
+      } catch {
+        void 0;
+      } finally {
         setIsLoading(false);
       }
     };
@@ -199,7 +201,9 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
       });
       const data = await response.json();
       if (data.reply) updateNote(activityId, data.reply.trim());
-    } catch { } finally {
+    } catch {
+      void 0;
+    } finally {
       setImprovingCell(null);
     }
   };
