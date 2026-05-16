@@ -770,6 +770,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         sessionStorage.removeItem('coc_flow_step');
         sessionStorage.removeItem('coc_return_step');
+        sessionStorage.removeItem('coc_has_original_pip2');
         sessionStorage.removeItem(COC_POST_MEDICAL_SNAPSHOT_KEY);
         sessionStorage.removeItem(COC_MEDICAL_EXPECTED_KEY);
       } catch {

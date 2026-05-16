@@ -72,31 +72,31 @@ export function Hero({ onStart }: HeroProps) {
 
           <div className="px-4 py-5 sm:p-5 md:p-6">
           {/* Avatar row below strip — single line on narrow screens */}
-          <div className="flex flex-nowrap items-center justify-start gap-2 sm:gap-3 mb-4 min-w-0">
-            <div className="-space-x-1.5 flex shrink-0 sm:-space-x-2">
+          <div className="flex flex-nowrap items-center justify-start gap-2.5 sm:gap-4 mb-5 min-w-0">
+            <div className="-space-x-2 flex shrink-0">
               {INITIAL_AVATARS.map((a, i) => (
                 <div
                   key={i}
-                  className={`h-6 w-6 shrink-0 rounded-full border-2 border-white ${a.bg} flex items-center justify-center text-[7px] font-bold text-white sm:h-7 sm:w-7 sm:text-[8px] md:h-8 md:w-8 md:text-[9px]`}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-white ${a.bg} text-[9px] font-bold text-white sm:h-9 sm:w-9 sm:text-[10px] md:h-10 md:w-10 md:text-[11px]`}
                   aria-hidden
                 >
                   {a.initials}
                 </div>
               ))}
             </div>
-            <div className="flex min-w-0 items-center gap-1 sm:gap-1.5">
-              <p className="whitespace-nowrap text-[11px] leading-tight text-stone-800 sm:text-[13px] sm:leading-snug md:text-sm">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+              <p className="whitespace-nowrap text-sm leading-snug text-stone-800 sm:text-[15px] sm:leading-snug md:text-base">
                 <span className="font-bold text-stone-900 tabular-nums">4.9</span>
                 <span className="font-normal">/5 from </span>
                 <span className="font-bold text-stone-900 tabular-nums">1,784</span>
                 <span className="font-normal"> applicants</span>
               </p>
               <span
-                className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-600 shadow-sm sm:h-5 sm:w-5"
+                className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-600 shadow-sm sm:h-6 sm:w-6"
                 aria-label="Verified"
                 title="Verified"
               >
-                <Check className="h-2.5 w-2.5 text-white sm:h-3 sm:w-3" strokeWidth={3} aria-hidden />
+                <Check className="h-3 w-3 text-white sm:h-3.5 sm:w-3.5" strokeWidth={3} aria-hidden />
               </span>
             </div>
           </div>

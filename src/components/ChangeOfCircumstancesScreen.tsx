@@ -23,7 +23,7 @@ import {
 } from '../cocMedicalSnapshot';
 
 // ── Steps ────────────────────────────────────────────────────────────────────
-// 1  Intro + step guide
+// 1  Original completed PIP2 copy — yes / no
 // 2  Form type selector (PIP2 vs AR1)
 // 3  Upload (+ show extracted answers in accordions)
 // 4  Opens Medical Profile — save there applies snapshot & navigates to questions (no separate “how this works” step)
@@ -31,6 +31,20 @@ const TOTAL_STEPS = 4;
 
 /** Persists CoC wizard step across unmount (medical profile) — survives React Strict Mode remounts; cleared when entering CoC fresh via navigateTo */
 const COC_FLOW_STEP_KEY = 'coc_flow_step';
+
+/** Whether user still has their completed PIP2 — cleared with CoC session */
+const COC_HAS_ORIGINAL_PIP2_KEY = 'coc_has_original_pip2';
+
+function readStoredHasOriginalPip2(): boolean | null {
+  try {
+    const v = sessionStorage.getItem(COC_HAS_ORIGINAL_PIP2_KEY);
+    if (v === 'true') return true;
+    if (v === 'false') return false;
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 function readStoredCocStep(): number {
   try {
@@ -330,10 +344,27 @@ export function ChangeOfCircumstancesScreen() {
   } = useAppContext();
 
   const [step, setStep] = useState(readStoredCocStep);
+  const [hasOriginalPip2Copy, setHasOriginalPip2Copy] = useState<boolean | null>(() => readStoredHasOriginalPip2());
 
   useEffect(() => {
     sessionStorage.setItem(COC_FLOW_STEP_KEY, String(step));
   }, [step]);
+
+  useEffect(() => {
+    if (hasOriginalPip2Copy === null) {
+      try {
+        sessionStorage.removeItem(COC_HAS_ORIGINAL_PIP2_KEY);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    try {
+      sessionStorage.setItem(COC_HAS_ORIGINAL_PIP2_KEY, hasOriginalPip2Copy ? 'true' : 'false');
+    } catch {
+      /* ignore */
+    }
+  }, [hasOriginalPip2Copy]);
   const [formType, setFormType] = useState<'pip2' | 'ar1' | null>(null);
   const [notReportedOpen, setNotReportedOpen] = useState(false);
   const pip2InputRef = useRef<HTMLInputElement>(null);
@@ -827,68 +858,35 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   const renderStep = () => {
-    // ── STEP 1: Intro + step guide ───────────────────────────────────────────
+    // ── STEP 1: Original PIP2 copy — yes / no ─────────────────────────────────
     if (step === 1) {
-      const guideSteps = [
-        { title: 'Choose your form', body: 'Confirm whether DWP sent you the full PIP2 or the AR1 review form — we tailor the walkthrough to match.' },
-        {
-          title: 'Previous answers — upload or reuse',
-          body:
-            'If you still have it, photographs of your completed PIP2, PA4, or award letter help us mirror DWP wording. Have not kept the form? Tick to reuse answers you already saved under My Questions (new claim) on PIPpal, upload other papers only, or continue without documents and type short reminders per activity when you wish.',
-        },
-        { title: 'Medical profile', body: 'Next you’ll open your Medical Profile (same screen as the rest of the app) to confirm conditions and notes — PIPpal uses them to tailor every question.' },
-        { title: 'My Questions', body: 'When you save your Medical Profile, My Questions opens straight away — no extra screen. Work through all 12 activities with your previous answers beside each one.' },
-      ];
+      const choose = (hasOriginal: boolean) => {
+        setHasOriginalPip2Copy(hasOriginal);
+        setStep(2);
+      };
       return (
-        <div className="space-y-5 px-5 pt-5 pb-32">
-          <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
-            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
-            <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
-            <p className="text-teal-50 text-sm leading-relaxed">
-              A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP that something important has changed since your last claim or review.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border-2 border-teal-300 bg-teal-50 px-4 py-3 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-teal-800 mb-1">Before you upload</p>
-            <p className="text-sm text-teal-950 leading-snug">
-              No paperwork to hand? Request your <strong className="font-semibold">PIP2</strong>, <strong className="font-semibold">PA4</strong>, and{' '}
-              <strong className="font-semibold">decision letter</strong> from DWP — reuse your <strong className="font-semibold">My Questions</strong> answers from a past new-claim workbook on this app — or carry on without files.
-            </p>
-            <a
-              href="tel:08009172222"
-              className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
+        <div className="space-y-5 px-5 pt-6 pb-32">
+          <p className="text-sm text-stone-600 leading-relaxed">
+            Do you still have your <span className="font-semibold text-stone-800">completed</span> &quot;How your disability affects you&quot; form (PIP2) from your last claim or review?
+          </p>
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => choose(true)}
+              className="w-full rounded-xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-teal-400 hover:bg-teal-50/40 active:scale-[0.99]"
             >
-              <Phone className="w-4 h-4 shrink-0" aria-hidden />
-              Call 0800 917 2222 — PIP enquiries
-            </a>
+              <span className="font-semibold text-stone-900 text-base leading-snug">I have my original PIP2 form</span>
+              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">Photos or scans are fine — we&apos;ll read your wording next.</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => choose(false)}
+              className="w-full rounded-xl border-2 border-stone-200 bg-white p-4 text-left shadow-sm transition-all hover:border-teal-400 hover:bg-teal-50/40 active:scale-[0.99]"
+            >
+              <span className="font-semibold text-stone-900 text-base leading-snug">I don&apos;t have my original PIP2 form</span>
+              <span className="mt-1 block text-[13px] text-stone-500 leading-snug">We&apos;ll use PA4, your decision letter, saved My Questions answers, or short reminders.</span>
+            </button>
           </div>
-
-          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5 space-y-4">
-            <div>
-              <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider mb-1">Step guide</p>
-              <h3 className="font-semibold text-stone-900 text-base leading-snug">What you&apos;ll do in this walkthrough</h3>
-            </div>
-            <ol className="space-y-3.5">
-              {guideSteps.map((item, i) => (
-                <li key={item.title} className="flex gap-3">
-                  <span className="w-7 h-7 rounded-full bg-teal-100 text-teal-800 text-xs font-bold flex items-center justify-center shrink-0 tabular-nums">{i + 1}</span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-stone-900">{item.title}</p>
-                    <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          <button
-            type="button"
-            onClick={next}
-            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
-          >
-            Continue <ArrowRight className="w-5 h-5" />
-          </button>
         </div>
       );
     }
@@ -1005,6 +1003,15 @@ export function ChangeOfCircumstancesScreen() {
 
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
+          {hasOriginalPip2Copy === false && (
+            <div className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
+              <p className="text-sm text-teal-950 leading-snug">
+                You&apos;re continuing <strong className="font-semibold">without a paper PIP2</strong>. Use PA4 or your decision letter if you have them, reuse{' '}
+                <strong className="font-semibold">My Questions</strong> answers below, or carry on with reminders only — same screen works either way.
+              </p>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3">
             <div className="flex items-start gap-2">
               <FileText className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
