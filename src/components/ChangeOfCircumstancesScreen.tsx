@@ -971,10 +971,6 @@ export function ChangeOfCircumstancesScreen() {
     if (step === 2) {
       return (
         <div className="space-y-4 px-5 pt-5 pb-32">
-          <p className="text-xs text-stone-600 leading-snug">
-            <span className="font-semibold text-stone-800">Which paperwork did DWP send?</span>{' '}
-            We match the walkthrough to the form type — tap one option.
-          </p>
 
           <div className="space-y-2">
             {/* PIP2 option */}
