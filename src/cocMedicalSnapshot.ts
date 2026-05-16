@@ -21,6 +21,8 @@ export type CocMedicalSnapshot = {
   platformWorkbookAnswers?: Record<string, string>;
   activityFallbackNotes: Record<string, string>;
   cocManualPoints: Record<string, string>;
+  /** Free text from Medical Profile (CoC path): overall deterioration / what got worse since last contact */
+  circumstancesChangeSummary?: string;
 };
 
 const ALL_ACTIVITY_IDS = [

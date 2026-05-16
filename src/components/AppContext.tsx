@@ -216,6 +216,8 @@ interface AppContextType {
   /** During CoC, questions counted here when the user saves an answer — avoids treating old saved answers as “done” */
   cocWalkthroughAnsweredIds: Record<string, boolean>;
   resetCocWalkthroughProgress: () => void;
+  /** Overall “what got worse” text from Medical Profile on the CoC path — fed into draft prompts */
+  cocCircumstancesSummary: string;
   /** Consumes CoC snapshot after Medical Profile save → question hub + coc mode */
   tryFinishCocAfterMedicalSave: () => boolean;
   hasCompletedEligibility: boolean;
@@ -436,6 +438,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [cocPreviousPoints, setCocPreviousPoints] = useState<Record<string, number | null>>({});
   const [cocWalkthroughAnsweredIds, setCocWalkthroughAnsweredIds] = useState<Record<string, boolean>>({});
+  const [cocCircumstancesSummary, setCocCircumstancesSummary] = useState('');
 
   const resetCocWalkthroughProgress = useCallback(() => {
     setCocWalkthroughAnsweredIds({});
@@ -733,6 +736,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCocDocumentType(null);
     setCocAssessorNotes({});
     setCocPreviousPoints({});
+    setCocCircumstancesSummary('');
     setMedProfileState({ conditions: [], medications: '', notes: '' });
     setHasCompletedEligibilityState(false);
     localStorage.removeItem('pippal_med_profile');
@@ -767,6 +771,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const navigateTo = (screen: Screen) => {
     if (screen === 'change_of_circumstances') {
+      setCocCircumstancesSummary('');
       try {
         sessionStorage.removeItem('coc_flow_step');
         sessionStorage.removeItem('coc_return_step');
@@ -809,6 +814,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setCocPreviousAnswers(session.primary);
       setCocPreviousPoints(session.cocPreviousPoints);
       setCocAssessorNotes(session.pa4Answers);
+      setCocCircumstancesSummary(parsed.circumstancesChangeSummary?.trim() ?? '');
       setSavedAnswersCoC({ ...savedAnswersRef.current });
       setSavedAnswerDetailsCoC({ ...savedAnswerDetailsRef.current });
       navigateTo('question_index');
@@ -942,6 +948,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setCocPreviousPoints,
         cocWalkthroughAnsweredIds,
         resetCocWalkthroughProgress,
+        cocCircumstancesSummary,
         tryFinishCocAfterMedicalSave,
         hasCompletedEligibility,
         setHasCompletedEligibility,

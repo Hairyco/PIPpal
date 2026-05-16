@@ -95,7 +95,7 @@ function GeneratingOverlay({ onSkip }: { onSkip: () => void }) {
 }
 
 export function QuestionFlow() {
-  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes, cocPreviousPoints } = useAppContext();
+  const { selectedQuestionId, navigateTo, goBack, saveAnswer, saveAnswerDetails, setQ1Result, medProfile, cocMode, cocPreviousAnswers, cocFormType, cocDocumentType, cocAssessorNotes, cocPreviousPoints, cocCircumstancesSummary } = useAppContext();
 
   const hasPip2Answer = (qid: string) => !!(cocPreviousAnswers[qid] && (cocDocumentType === 'pip2_only' || cocDocumentType === 'both'));
   const hasAssessorNote = (qid: string) => !!(cocAssessorNotes[qid] && (cocDocumentType === 'pa4_only' || cocDocumentType === 'both'));
@@ -276,6 +276,7 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
       const prevPts = cocPreviousPoints[questionId];
       const prevAns = cocPreviousAnswers[questionId]?.trim();
       const pa4Line = cocAssessorNotes[questionId]?.trim();
+      const globalChange = cocCircumstancesSummary?.trim();
       const cocBlock =
         cocMode === true
           ? `
@@ -284,6 +285,7 @@ CHANGE OF CIRCUMSTANCES — mandatory:
 ${prevPts != null ? `- Previous recorded points for this activity: ${prevPts}. Descriptor now: ${descriptor} (${d?.points ?? '?'} pts). Explain worsening since then.` : '- Previous activity points unknown — contrast honestly with prior wording below.'}
 ${prevAns ? `- On-file wording: "${prevAns.slice(0, 2400)}${prevAns.length > 2400 ? '…' : ''}"` : ''}
 ${pa4Line ? `- Assessor PA4 wording: "${pa4Line.slice(0, 2400)}${pa4Line.length > 2400 ? '…' : ''}" — correct or extend where their notes were thin or outdated.` : ''}
+${globalChange ? `- Overall deterioration / what got worse since DWP last had their information — weave in where relevant; do not contradict:\n"${globalChange.slice(0, 1600)}${globalChange.length > 1600 ? '…' : ''}"` : ''}
 
 You MUST briefly reference what was on file before, then show what is harder, less reliable, or less safe NOW. Never imply improvement overall.
 `
@@ -500,6 +502,15 @@ Return ONLY the final answer text — no preamble, no labels, no explanation.`,
         <div className="flex-1 overflow-y-auto scrollbar-hide">
           <div className="px-5 py-5 space-y-4 pb-4">
             <QuestionCard />
+
+            {cocMode && cocCircumstancesSummary.trim() && (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-900/80 mb-1.5">
+                  What you said has changed overall
+                </p>
+                <p className="text-sm text-stone-800 leading-relaxed whitespace-pre-wrap">{cocCircumstancesSummary.trim()}</p>
+              </div>
+            )}
 
             {/* This question explained — expanded by default (CoC can collapse to focus on documents) */}
             <div className="bg-white border border-stone-100 rounded-2xl overflow-hidden shadow-sm">
