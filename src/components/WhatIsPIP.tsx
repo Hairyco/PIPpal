@@ -1,6 +1,5 @@
 import React from 'react';
 import { PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
-import { ChatPreview } from './ChatPreview';
 
 const conditions = [
   { emoji: '😰', label: 'Anxiety' },
@@ -35,9 +34,7 @@ const points = [
   },
 ];
 
-export function WhatIsPIP(_props?: { onEligibility?: () => void; onStart?: () => void }) {
-  const onStart = _props?.onStart;
-
+export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
   return (
     <section id="what-is-pip" className="px-5 md:px-8 py-8">
 
@@ -82,8 +79,6 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void; onStart?: () =>
           </div>
         </div>
       </div>
-
-      {onStart ? <ChatPreview onStart={onStart} embedded /> : null}
 
       {/* Why PIPpal */}
       <h2 className="font-bold text-stone-900 text-lg mb-1">Built for first time applicants</h2>

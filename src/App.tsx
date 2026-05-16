@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
+import { ChatPreview } from './components/ChatPreview';
 import { WhatIsPIP } from './components/WhatIsPIP';
 import { ClaimSelector } from './components/ClaimSelector';
 import { EligibilityBanner } from './components/EligibilityBanner';
@@ -308,10 +309,8 @@ function AppContent() {
             <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
-              <WhatIsPIP
-                onEligibility={() => handleNavigate('eligibility')}
-                onStart={() => handleNavigate('home')}
-              />
+              <ChatPreview onStart={() => handleNavigate('home')} />
+              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
 
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
