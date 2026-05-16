@@ -635,21 +635,23 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
         )}
 
         {/* Handwritten service upsell */}
-        <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex items-start gap-3">
-          <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
-            <span className="text-lg">✍️</span>
+        {qId === 'q12' && (
+          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-4 flex items-start gap-3">
+            <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+              <span className="text-lg">✍️</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-purple-900">Can't write it out yourself?</p>
+              <p className="text-xs text-purple-700 mt-0.5 leading-relaxed">We'll handwrite your completed answers onto the PIP2 form and post it to DWP for you. From £19.99.</p>
+              <button
+                onClick={() => navigateTo('handwritten_service')}
+                className="mt-2 text-xs font-bold text-purple-700 bg-white border border-purple-200 px-3 py-1.5 rounded-full hover:bg-purple-50 active:scale-95 transition-all"
+              >
+                Find out more →
+              </button>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-purple-900">Can't write it out yourself?</p>
-            <p className="text-xs text-purple-700 mt-0.5 leading-relaxed">We'll handwrite your completed answers onto the PIP2 form and post it to DWP for you. From £19.99.</p>
-            <button
-              onClick={() => navigateTo('handwritten_service')}
-              className="mt-2 text-xs font-bold text-purple-700 bg-white border border-purple-200 px-3 py-1.5 rounded-full hover:bg-purple-50 active:scale-95 transition-all"
-            >
-              Find out more →
-            </button>
-          </div>
-        </div>
+        )}
 
         {/* Why this counts / What has changed */}
         <div className={`rounded-2xl border shadow-sm px-4 py-4 ${cocMode ? (cocFormType === 'ar1' ? 'bg-purple-50 border-purple-100' : 'bg-blue-50 border-blue-100') : 'bg-white border-stone-100'}`}>
