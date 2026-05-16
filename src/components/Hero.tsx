@@ -15,7 +15,7 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: 'Beat the system: 60% of new claims fail' },
+    { text: '65% of new claims fail — we help you get it right' },
     { text: '100% custom. No templates' },
     { text: 'No stress — complete in just 15 minutes' },
     { text: 'Avoid DWP delays: Get a faster decision' },
