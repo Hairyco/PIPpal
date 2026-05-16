@@ -1085,17 +1085,6 @@ export function ChangeOfCircumstancesScreen() {
           )}
 
           <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm space-y-3">
-            <div className="flex items-start gap-2">
-              <FileText className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-stone-900 text-sm">No paper PIP2 to photograph?</p>
-                <p className="text-xs text-stone-600 leading-relaxed mt-1">
-                  That is fine. Upload a PA4 or decision letter instead if you have one, reuse answers from a previous{' '}
-                  <strong className="text-stone-800">new claim</strong> walkthrough saved in My Questions, or tap &quot;I don&apos;t have these
-                  documents yet&quot; — then add short reminders per activity if you want DWP wording on screen before you rewrite it.
-                </p>
-              </div>
-            </div>
             <label
               className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? 'border-teal-400 bg-teal-50/50' : 'border-stone-200 bg-stone-50/70 hover:bg-stone-50'}`}
             >
