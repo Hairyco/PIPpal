@@ -107,7 +107,7 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
 
   return (
     <Shell
-      className={embedded ? 'py-8' : 'px-5 md:px-8 py-8'}
+      className={embedded ? 'py-4' : 'px-5 md:px-8 py-4'}
       {...(embedded ? ({ role: 'region', 'aria-label': 'See PIPpal in action' } as const) : {})}
     >
       <div className="text-center mb-6">
