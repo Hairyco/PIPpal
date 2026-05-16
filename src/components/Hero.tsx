@@ -18,8 +18,8 @@ export function Hero({ onStart }: HeroProps) {
     { text: 'Built from thousands of successful PIP claims' },
     { text: 'Creates 100% unique answers — never a template' },
     { text: 'Complete in just 15 minutes' },
-    { text: "Can't write it out? We offer a handwritten form service" },
-    { text: 'Submit a flawless form to get your decision up to 6 weeks faster' },
+    { text: 'We offer a handwritten form service' },
+    { text: 'Get your PIP decision up to 6 weeks faster' },
   ];
 
   return (
