@@ -279,27 +279,25 @@ You MUST briefly reference what was on file before, then show what is harder, le
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: `You are helping a UK PIP claimant write one section of their PIP2 form. Rewrite the structured notes below as a natural first-person answer — how a real person would describe their life, not a form.
+            message: `You are helping a UK PIP claimant write one section of their PIP2 form. Turn the structured notes below into a natural, human first-person answer.
 
-Activity being assessed: "${config!.title}"
-Claimant's conditions: ${conditions}
-Structured notes (do NOT copy these word-for-word): ${rawDraft}
-Qualifying descriptor: ${descriptor} — "${d?.text}"
+Activity: "${config!.title}"
+Conditions: ${conditions}
+Notes: ${rawDraft}
+Descriptor: ${descriptor} — "${d?.text}"
 ${cocBlock}
-Requirements:
-- 3–5 sentences, written in first person
-- Start with a specific, concrete example of what happens (e.g. "Most mornings I..." or "When I try to...")
-- Use plain everyday British English — no jargon, no formal phrases
-- Describe their worst or typical bad days, not their best
-- Include how often the difficulties happen
-- Mention any help, supervision, or aids they need
-- Include real-life impact (e.g. relying on ready meals, needing someone present)
-- Sound like the person wrote it themselves — honest, human, specific
-${cocMode ? '- Tie explicitly to earlier on-file or assessor wording where provided, then show deterioration clearly.' : ''}
-
-Do NOT start with "I experience difficulties", "I am unable to", or the activity name.
-Do NOT invent anything not in the notes above.
-Return ONLY the final answer text — no preamble, no labels, no explanation.`,
+Rules:
+- Write 3–5 sentences in natural first-person British English
+- Start with a vivid concrete example ("Most mornings I...", "When I try to...", "On a bad day...")
+- Each sentence must add NEW information — never repeat the same difficulty twice in different words
+- Cover: what they struggle with, how often, what help or supervision they need, the real-life impact
+- Sound like a real person wrote it — honest, specific, human
+- Worst or typical bad days — never best days
+${cocMode ? '- Briefly reference what was previously recorded, then clearly show what is harder or less safe NOW. The deterioration must be explicit.' : ''}
+- NEVER repeat a difficulty already mentioned
+- NEVER use: "I experience difficulties", "I am unable to", "I struggle with [activity name]"
+- NEVER invent anything not in the notes
+- Return ONLY the answer — no preamble, no labels`,
             conversationHistory: [],
             medProfile: { conditions: medProfile.conditions },
           }),
