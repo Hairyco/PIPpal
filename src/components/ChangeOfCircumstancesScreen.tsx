@@ -945,10 +945,6 @@ export function ChangeOfCircumstancesScreen() {
             </p>
           </div>
 
-          <p className="text-sm text-stone-600 leading-relaxed">
-            Do you still have your <span className="font-semibold text-stone-800">completed</span> &quot;How your
-            disability affects you&quot; form (PIP2) from your last claim or review?
-          </p>
           <div className="space-y-3">
             <button
               type="button"
