@@ -15,7 +15,6 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: 'Built on 1,000s of successful claims' },
     { text: '100% custom. Zero templates' },
     { text: 'Complete in just 15 minutes' },
     { text: 'Get your PIP decision up to 6 weeks faster' },
@@ -76,6 +75,7 @@ export function Hero({ onStart }: HeroProps) {
                 </div>
               ))}
             </div>
+            <p className="text-xs text-stone-500 font-medium">1,200+ this month</p>
             <div className="flex items-center gap-1">
               <div className="flex">{'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}</div>
             </div>
