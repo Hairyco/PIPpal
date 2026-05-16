@@ -56,26 +56,21 @@ export function Hero({ onStart }: HeroProps) {
         style={{ transitionDelay: '160ms' }}
       >
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
-          {/* Social proof bar */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {['bg-teal-400','bg-purple-400','bg-amber-400','bg-rose-400'].map((c,i) => (
-                  <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-white flex items-center justify-center text-white text-[10px] font-bold`}>
-                    {['S','K','A','J'][i]}
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-stone-600 font-medium">Join <strong>1,200+</strong> this month</p>
+          {/* Green strip — social proof */}
+          <div className="bg-teal-700 rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
+            <div className="flex -space-x-2 shrink-0">
+              {['bg-teal-300','bg-purple-300','bg-amber-300','bg-rose-300'].map((c,i) => (
+                <div key={i} className={`w-7 h-7 rounded-full ${c} border-2 border-teal-700 flex items-center justify-center text-white text-[9px] font-bold`}>
+                  {['S','K','A','J'][i]}
+                </div>
+              ))}
             </div>
-            <div className="flex items-center gap-1">
-              {'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}
+            <p className="text-white text-[11px] font-semibold text-center flex-1 leading-snug">
+              Built on 1,000s of successful claims · 1,200+ applicants this month
+            </p>
+            <div className="flex shrink-0">
+              {'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-300 text-sm">{s}</span>)}
             </div>
-          </div>
-
-          {/* Green strip */}
-          <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-4 text-center">
-            <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims · 1,200+ applicants this month</p>
           </div>
           <div className="space-y-3 mb-5 text-left">
             {checks.map((check, i) => (
