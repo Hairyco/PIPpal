@@ -56,17 +56,35 @@ export function Hero({ onStart }: HeroProps) {
         style={{ transitionDelay: '160ms' }}
       >
         <div className="bg-white rounded-2xl p-5 md:p-6 shadow-md border border-stone-100 mb-5">
-          {/* Green strip */}
+          {/* Teal strip — sits on top of card, flush */}
           <div className="bg-teal-700 rounded-xl px-4 py-2.5 mb-4 text-center">
             <p className="text-white text-xs font-semibold">Built on 1,000s of successful claims · 1,200+ applicants this month</p>
+          </div>
+
+          {/* Avatar row below strip */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex -space-x-2">
+              {[
+                { bg: 'bg-teal-400', initials: 'SK' },
+                { bg: 'bg-purple-400', initials: 'LM' },
+                { bg: 'bg-amber-400', initials: 'AJ' },
+                { bg: 'bg-rose-400', initials: 'RK' },
+                { bg: 'bg-blue-400', initials: 'TH' },
+              ].map((a,i) => (
+                <div key={i} className={`w-8 h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[9px] font-bold shrink-0`}>
+                  {a.initials}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">{'★★★★★'.split('').map((s,i) => <span key={i} className="text-amber-400 text-sm">{s}</span>)}</div>
+            </div>
           </div>
 
           <div className="space-y-3 mb-5 text-left">
             {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
-                <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
-                  <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
+                <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
                 <span className="text-sm text-stone-700">{check.text}</span>
               </div>
             ))}
