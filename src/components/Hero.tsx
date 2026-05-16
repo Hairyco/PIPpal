@@ -114,7 +114,7 @@ export function Hero({ onStart }: HeroProps) {
           <button
             type="button"
             onClick={onStart}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            className="w-full rounded-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 hover:from-orange-500 hover:via-orange-600 hover:to-orange-700 text-white py-4 font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all duration-300 shadow-[0_0_40px_-10px_rgba(251,146,60,0.65),0_14px_44px_-12px_rgba(249,115,22,0.45),0_8px_28px_-14px_rgba(234,88,12,0.35)] hover:shadow-[0_0_52px_-8px_rgba(251,146,60,0.78),0_18px_52px_-10px_rgba(249,115,22,0.52),0_10px_32px_-12px_rgba(234,88,12,0.4)] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
           >
             Start Now — It&apos;s Free
             <ArrowRight className="w-5 h-5" />
