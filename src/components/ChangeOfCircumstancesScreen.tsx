@@ -213,6 +213,7 @@ export function ChangeOfCircumstancesScreen() {
   const [classifyBusy, setClassifyBusy] = useState(false);
   const [docKindModal, setDocKindModal] = useState<null | { files: CocFileItem[]; suggested: CocDocSlot | null }>(null);
   const [draftDocKindPick, setDraftDocKindPick] = useState<CocDocSlot>('pip2');
+  const [reuseWorkbookModalOpen, setReuseWorkbookModalOpen] = useState(false);
 
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>('daily');
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
@@ -302,7 +303,8 @@ export function ChangeOfCircumstancesScreen() {
   };
 
   /** Opens My Questions; opts into reusing workbook answers when any exist */
-  const goToMyQuestionsForReuse = useCallback(() => {
+  const confirmGoToMyQuestionsForReuse = useCallback(() => {
+    setReuseWorkbookModalOpen(false);
     if (newClaimAnswerCount > 0) setUsePlatformWorkbookAnswers(true);
     navigateTo('question_index');
   }, [newClaimAnswerCount, navigateTo]);
@@ -1058,7 +1060,7 @@ export function ChangeOfCircumstancesScreen() {
           <div className="space-y-3">
             <button
               type="button"
-              onClick={goToMyQuestionsForReuse}
+              onClick={() => setReuseWorkbookModalOpen(true)}
               className="w-full py-3.5 rounded-xl text-sm font-semibold border border-teal-600 text-teal-800 bg-white hover:bg-teal-50 active:scale-[0.99] transition-all flex items-center justify-center gap-1"
             >
               Use previous answers
@@ -1151,6 +1153,69 @@ export function ChangeOfCircumstancesScreen() {
                     }}
                   >
                     Use this upload
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {reuseWorkbookModalOpen && (
+            <div
+              className="fixed inset-0 z-[71] flex items-end sm:items-center justify-center sm:p-6 bg-black/45"
+              onClick={(e) => {
+                if (e.target === e.currentTarget) setReuseWorkbookModalOpen(false);
+              }}
+              role="presentation"
+            >
+              <div
+                className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-stone-100 p-5 sm:p-6 space-y-4 max-h-[92vh] overflow-y-auto pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="coc-reuse-workbook-heading"
+              >
+                <h3 id="coc-reuse-workbook-heading" className="font-bold text-stone-900 text-base leading-snug">
+                  Use answers from My Questions?
+                </h3>
+                {newClaimAnswerCount > 0 ? (
+                  <>
+                    <p className="text-sm text-stone-600 leading-relaxed">
+                      You are choosing answers you already saved during your{' '}
+                      <span className="font-semibold text-stone-800">new claim</span> workbook in My Questions.
+                      Those will count as what you said before — we&apos;ll compare them section by section as you refresh
+                      your change of circumstances. You can still edit every activity first.
+                    </p>
+                    <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">
+                      Saved from new claim:&nbsp;
+                      <span className="font-semibold">
+                        {newClaimAnswerCount} activit
+                        {newClaimAnswerCount === 1 ? 'y' : 'ies'}
+                      </span>
+                      .
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-stone-600 leading-relaxed">
+                    You don&apos;t have any answers saved yet from your new claim workbook in My Questions. Continuing
+                    will open the hub so you can answer each activity. Alternatively, choose{' '}
+                    <span className="font-semibold text-stone-800">Cancel</span> and use the main{' '}
+                    <span className="font-semibold text-stone-800">Continue</span> button to move on with uploads or
+                    reminders here.
+                  </p>
+                )}
+                <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
+                  <button
+                    type="button"
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 hover:bg-stone-50 transition-colors"
+                    onClick={() => setReuseWorkbookModalOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full py-3 rounded-xl text-sm font-bold bg-teal-700 text-white hover:bg-teal-800 transition-colors"
+                    onClick={confirmGoToMyQuestionsForReuse}
+                  >
+                    Continue to My Questions
                   </button>
                 </div>
               </div>
