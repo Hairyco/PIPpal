@@ -47,7 +47,7 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">£843 a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — your income or job doesn&apos;t decide whether you qualify.
+          <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">£843 a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — you can claim if you are employed or unemployed.
         </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
           <strong className="text-stone-900">You don&apos;t need a formal diagnosis:</strong> what matters is how you are affected day to day. Official statistics show roughly <strong className="text-stone-900">one in three</strong> new claims are awarded — so explaining a typical difficult day thoroughly and honestly on the form really counts.
