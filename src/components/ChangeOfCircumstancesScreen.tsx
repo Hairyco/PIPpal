@@ -468,9 +468,16 @@ export function ChangeOfCircumstancesScreen() {
       goBack();
       return;
     }
-    if (step === 2) setMissingOriginalPip2Guide(false);
-    else if (step === 4) setStep(3);
-    else setStep(s => s - 1);
+    if (step === 2) {
+      setMissingOriginalPip2Guide(false);
+      setStep(1);
+      return;
+    }
+    if (step === 4) {
+      setStep(3);
+      return;
+    }
+    setStep(s => s - 1);
   };
 
   /** Opens My Questions; opts into reusing workbook answers when any exist */
