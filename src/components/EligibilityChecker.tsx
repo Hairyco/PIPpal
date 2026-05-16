@@ -604,8 +604,8 @@ export function EligibilityChecker() {
             <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5">
               <p className="text-xs text-teal-900 leading-relaxed">
                 <strong>You don&apos;t need a formal diagnosis.</strong> Mental health conditions, chronic pain, fatigue and other hidden difficulties count — assessors look at{' '}
-                <strong>how you are affected day to day</strong>. Official figures suggest roughly{' '}
-                <strong>one in three</strong> new claims are awarded, so describing a typical difficult day clearly and honestly really matters.
+                <strong>how you are affected day to day</strong>. Official figures suggest{' '}
+                <strong>65% of claims fail</strong>, so describing a typical difficult day clearly and honestly really matters.
               </p>
             </div>
             <p className="text-[11px] text-stone-500 mt-2 leading-relaxed">

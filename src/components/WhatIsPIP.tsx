@@ -51,7 +51,7 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
         </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
           <p className="text-sm text-stone-600 leading-relaxed">You don't need a formal diagnosis — PIP looks at <strong className="text-stone-900">how your condition affects you</strong> day to day.</p>
-          <p className="text-sm text-stone-600 leading-relaxed mt-3">Official figures show roughly <strong className="text-stone-900">one in three new claims are awarded</strong>, and the average decision takes <strong className="text-stone-900">6 months</strong>.</p>
+          <p className="text-sm text-stone-600 leading-relaxed mt-3">Official figures show roughly <strong className="text-stone-900">65% of claims fail</strong>, and the average decision takes <strong className="text-stone-900">6 months</strong>.</p>
           <p className="text-sm text-stone-600 leading-relaxed mt-3">We help you explain your typical difficult days clearly and honestly so the DWP fully understands your needs.</p>
         </p>
         <p className="text-[11px] text-stone-500 leading-relaxed mb-4">

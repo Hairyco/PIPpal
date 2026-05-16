@@ -23,7 +23,6 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: '65% of claims fail — we help you succeed' },
     { text: '100% personalised. No templates' },
     { text: 'Finish in just 15 minutes' },
     { text: 'Get a faster decision' },
@@ -73,7 +72,7 @@ export function Hero({ onStart }: HeroProps) {
 
           <div className="p-5 md:p-6">
           {/* Avatar row below strip */}
-          <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-4 min-w-0 flex-wrap">
+          <div className="flex items-center justify-start gap-2.5 sm:gap-3 mb-4 min-w-0 flex-wrap">
             <div className="flex -space-x-2 shrink-0">
               {INITIAL_AVATARS.map((a, i) => (
                 <div
