@@ -302,12 +302,12 @@ export function ChangeOfCircumstancesScreen() {
     }
   };
 
-  /** Opens My Questions; opts into reusing workbook answers when any exist */
-  const confirmGoToMyQuestionsForReuse = useCallback(() => {
+  /** Goes to activity review (step 3); workbook answers prefill accordions — no hub navigation */
+  const confirmReuseWorkbookOnActivities = useCallback(() => {
     setReuseWorkbookModalOpen(false);
-    if (newClaimAnswerCount > 0) setUsePlatformWorkbookAnswers(true);
-    navigateTo('question_index');
-  }, [newClaimAnswerCount, navigateTo]);
+    setUsePlatformWorkbookAnswers(true);
+    setStep(3);
+  }, []);
 
   useLayoutEffect(() => {
     if (step !== 4) return;
@@ -610,8 +610,7 @@ export function ChangeOfCircumstancesScreen() {
     const pa4Pts = normalizeActivityPoints(extractedPa4?.pointsAwarded);
     const awardPts = normalizeActivityPoints(extractedAward?.pointsAwarded);
     const manualPtsStr = cocManualPoints[qid] ?? '';
-    const platformWorkbookPreview =
-      usePlatformWorkbookAnswers && newClaimAnswerCount > 0 ? (savedAnswersNewClaim[qid]?.trim() ?? '') : '';
+    const platformWorkbookPreview = usePlatformWorkbookAnswers ? (savedAnswersNewClaim[qid]?.trim() ?? '') : '';
     const isOpen = expandedActivityId === qid;
     const hasScoreHints = pip2Pts != null || pa4Pts != null || awardPts != null || manualPtsStr.trim() !== '';
     const hasAnswer = Boolean(pip2Text || pa4Text || awardText || platformWorkbookPreview || manual.trim() || hasScoreHints);
@@ -1179,10 +1178,10 @@ export function ChangeOfCircumstancesScreen() {
                 {newClaimAnswerCount > 0 ? (
                   <>
                     <p className="text-sm text-stone-600 leading-relaxed">
-                      You are choosing answers you already saved during your{' '}
-                      <span className="font-semibold text-stone-800">new claim</span> workbook in My Questions.
-                      Those will count as what you said before — we&apos;ll compare them section by section as you refresh
-                      your change of circumstances. You can still edit every activity first.
+                      You&apos;re opting to reuse answers saved during your{' '}
+                      <span className="font-semibold text-stone-800">new claim</span> workbook from My Questions. They
+                      will appear as prior wording next to each activity on the checklist — no need to open the hub. You can
+                      still edit wording when you reach the questionnaire.
                     </p>
                     <p className="text-[11px] text-teal-800 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">
                       Saved from new claim:&nbsp;
@@ -1195,11 +1194,10 @@ export function ChangeOfCircumstancesScreen() {
                   </>
                 ) : (
                   <p className="text-sm text-stone-600 leading-relaxed">
-                    You don&apos;t have any answers saved yet from your new claim workbook in My Questions. Continuing
-                    will open the hub so you can answer each activity. Alternatively, choose{' '}
+                    You don&apos;t have workbook answers saved from a new claim in My Questions yet. Continuing opens the{' '}
+                    activity checklist anyway so you can add optional reminders — or{' '}
                     <span className="font-semibold text-stone-800">Cancel</span> and use the main{' '}
-                    <span className="font-semibold text-stone-800">Continue</span> button to move on with uploads or
-                    reminders here.
+                    <span className="font-semibold text-stone-800">Continue</span> button to move on without this option.
                   </p>
                 )}
                 <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
@@ -1213,9 +1211,9 @@ export function ChangeOfCircumstancesScreen() {
                   <button
                     type="button"
                     className="w-full py-3 rounded-xl text-sm font-bold bg-teal-700 text-white hover:bg-teal-800 transition-colors"
-                    onClick={confirmGoToMyQuestionsForReuse}
+                    onClick={confirmReuseWorkbookOnActivities}
                   >
-                    Continue to My Questions
+                    Show activity checklist
                   </button>
                 </div>
               </div>
@@ -1265,9 +1263,10 @@ export function ChangeOfCircumstancesScreen() {
       const extractionFailedSomewhere =
         (hasPip2 && !!pip2Error) || (hasPa4 && !!pa4Error) || (hasAward && !!awardError);
       const uploadReviewReady = hasAny && (hasExtracted || extractionFailedSomewhere);
-      const workbookPathOk = usePlatformWorkbookAnswers && newClaimAnswerCount > 0;
+      const reuseWorkbookForPrevious = usePlatformWorkbookAnswers;
+      const workbookHasSavedAnswers = reuseWorkbookForPrevious && newClaimAnswerCount > 0;
       const showActivityReview =
-        !busy && (uploadReviewReady || workbookPathOk || (noForm && !hasAny));
+        !busy && (uploadReviewReady || reuseWorkbookForPrevious || (noForm && !hasAny));
       const canContinueMedical = !busy;
 
       const extractedFromDocLabels = [
@@ -1318,8 +1317,10 @@ export function ChangeOfCircumstancesScreen() {
                     : extractedFromDocLabels.length > 0
                       ? `Content read from your ${extractedFromDocLabels.join(', ')} — open each activity to check the text and points. Use the optional boxes if anything needs correcting.`
                       : 'Open each activity below.'
-                  : workbookPathOk
+                  : workbookHasSavedAnswers
                     ? 'Your saved answers from My Questions appear under each activity. Adjust optional notes or scores before continuing — handwritten overrides take priority when you finish Medical Profile.'
+                    : reuseWorkbookForPrevious && !workbookHasSavedAnswers
+                      ? 'You opted to reuse My Questions wording, but none are saved yet — add optional reminders below, or pick another step to attach scans.'
                     : noForm && !hasAny
                       ? 'No scans attached — jot quick reminders below if helpful, then continue.'
                       : 'Open each activity below.'}
