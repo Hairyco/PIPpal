@@ -15,11 +15,12 @@ export function Hero({ onStart }: HeroProps) {
   }, []);
 
   const checks = [
-    { text: 'Built from patterns in previously awarded PIP claims' },
-    { text: 'Guides you through all 12 PIP questions' },
-    { text: 'Answers original & unique — every time' },
-    { text: 'Complete in 15–30 minutes' },
-    { text: 'Get your PIP decision 3–6 weeks earlier' },
+    { text: 'Proven Success: Built using patterns from thousands of awarded PIP claims' },
+    { text: 'Step-by-Step: Guided support through all 12 overwhelming PIP questions' },
+    { text: 'DWP Safe: Generates 100% unique, personalised answers — never template-flagged' },
+    { text: 'Fast & Easy: Complete your entire application in just 15 minutes' },
+    { text: "Can't write it out? We offer a handwritten form service" },
+    { text: 'Avoid Delays: Submit a flawless form to get your decision up to 6 weeks faster' },
   ];
 
   return (
@@ -80,7 +81,7 @@ export function Hero({ onStart }: HeroProps) {
           </button>
 
           <p className="text-center text-xs text-stone-400 mt-3">
-            Free tools available · Full access £6.99 — limited time
+            🔒 100% Secure &amp; Confidential
           </p>
         </div>
       </div>
