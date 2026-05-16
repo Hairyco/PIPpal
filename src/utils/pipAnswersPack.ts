@@ -1,4 +1,3 @@
-import type { Paragraph as DocxParagraph } from 'docx';
 import { PIP_QUESTIONS, type PIPQuestion } from '../pipQuestions';
 
 export function stripHtmlForExport(s: string): string {
@@ -167,7 +166,7 @@ export async function buildAnswersDocxBlob(opts: AnswersPackOpts): Promise<Blob>
 
   const { savedAnswers, savedAnswerDetails, cocMode, packSectionLabel, userLabel } = opts;
   const now = new Date();
-  const children: DocxParagraph[] = [];
+  const children: any[] = [];
 
   children.push(
     new Paragraph({
