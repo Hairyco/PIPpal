@@ -1121,7 +1121,7 @@ export function ChangeOfCircumstancesScreen() {
               <div className="border-t border-stone-100 px-3 py-3 space-y-3 bg-stone-50/40">
                 <CocUploadZone
                   label="Original PIP2 form"
-                  sublabel="Handy if you kept a scan — skip if you reuse My Questions wording above instead."
+                  sublabel="You can upload photos or scans of your completed PIP2 form here."
                   badge="Your words"
                   badgeColour="bg-teal-100 text-teal-700"
                   labels={pip2Labels}
