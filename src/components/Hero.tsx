@@ -18,7 +18,7 @@ export function Hero({ onStart }: HeroProps) {
     { text: 'Beat the system: 60% of new claims fail' },
     { text: '100% custom. No templates' },
     { text: 'No stress — complete in just 15 minutes' },
-    { text: 'Get your PIP decision up to 6 weeks faster' },
+    { text: 'Avoid DWP delays: Get a faster decision' },
     { text: 'Handwritten form service available' },
   ];
 
