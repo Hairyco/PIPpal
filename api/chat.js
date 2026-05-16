@@ -5,6 +5,44 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // ── Handwritten service submission ─────────────────────────────────────────
+  const body2 = req.body;
+  if (body2?.action === 'handwritten_service') {
+    const { tier, name, email, address, postcode, notes } = body2;
+    const price = tier === 'fasttrack' ? '£24.99' : '£19.99';
+    const days = tier === 'fasttrack' ? '1–3 working days' : '7–10 working days';
+    try {
+      // Store in Supabase
+      const { createClient } = require('@supabase/supabase-js');
+      const supabase = createClient(process.env.VITE_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      await supabase.from('handwritten_requests').insert({ tier, name, email, address, postcode, notes, price, created_at: new Date().toISOString() });
+      
+      // Email Daley
+      const RESEND_API_KEY = process.env.RESEND_API_KEY;
+      if (RESEND_API_KEY) {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${RESEND_API_KEY}` },
+          body: JSON.stringify({
+            from: 'PIPpal <noreply@pippal.uk>',
+            to: ['daley_cutler@hotmail.co.uk'],
+            subject: `New Handwritten Service Request — ${price} (${tier})`,
+            html: `<h2>New handwritten form request</h2>
+<p><strong>Tier:</strong> ${tier === 'fasttrack' ? 'Fast Track' : 'Standard'} — ${price} (${days})</p>
+<p><strong>Name:</strong> ${name}</p>
+<p><strong>Email:</strong> ${email}</p>
+<p><strong>Address:</strong> ${address}, ${postcode}</p>
+<p><strong>Notes:</strong> ${notes || 'None'}</p>`,
+          }),
+        });
+      }
+      return res.status(200).json({ success: true });
+    } catch (e) {
+      console.error('Handwritten service error:', e);
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   try {
     const { message, medProfile, conversationHistory, questionSystemPrompt, buttonMode, questionData, systemOverride } = req.body;
     const conditions = medProfile?.conditions?.map(c => c.name).join(', ') || 'not specified';

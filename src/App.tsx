@@ -54,6 +54,7 @@ import { AnswersReviewScreen } from './components/AnswersReviewScreen';
 import { NewClaimIntro } from './components/NewClaimIntro';
 import { ClaimProcess } from './components/ClaimProcess';
 import { DescriptorsGuide } from './components/DescriptorsGuide';
+import { HandwrittenService } from './components/HandwrittenService';
 import { PersonalisingScreen } from './components/PersonalisingScreen';
 import { ClaimFlow } from './components/ClaimFlow';
 import { PointsEstimatorUpload } from './components/PointsEstimatorUpload';
@@ -253,6 +254,7 @@ function AppContent() {
       case 'home': return <HomeScreen />;
       case 'eligibility': return <EligibilityChecker />;
       case 'medical_profile': return <MedicalProfile />;
+      case 'handwritten_service': return <HandwrittenService />;
       case 'personalising': return <PersonalisingScreen />;
       case 'claim_flow': return hasPaid ? <ClaimFlow /> : <UpsellScreen />;
       case 'points_estimator': return <PointsEstimatorUpload />;

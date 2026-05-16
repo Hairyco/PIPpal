@@ -14,6 +14,7 @@ export type Screen =
   | 'home'
   | 'eligibility'
   | 'medical_profile'
+  | 'handwritten_service'
   | 'personalising'
   | 'claim_flow'
   | 'points_estimator'

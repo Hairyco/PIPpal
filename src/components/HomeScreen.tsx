@@ -12,6 +12,7 @@ import {
   Download,
   Shield,
   TrendingUp,
+  PenLine,
   ChevronRight,
   Calculator,
   Clock,
@@ -411,6 +412,14 @@ export function HomeScreen() {
               color="text-teal-600"
               bg="bg-teal-50"
               target="descriptors_guide"
+            />
+            <NavCard
+              title="Handwritten Service"
+              desc="We complete & post your PIP2 form for you"
+              icon={PenLine}
+              color="text-purple-600"
+              bg="bg-purple-50"
+              target="handwritten_service"
             />
             <NavCard
               title="Points Estimator"
