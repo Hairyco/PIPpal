@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   Lock,
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
+import { supabase } from '../supabaseClient';
 
 export function QuestionIndex() {
   const {
@@ -22,6 +23,7 @@ export function QuestionIndex() {
     cocMode,
     cocWalkthroughAnsweredIds,
     savedAnswerDetails,
+    user,
   } = useAppContext();
 
   const totalQuestions = PIP_QUESTIONS.length;
@@ -29,6 +31,20 @@ export function QuestionIndex() {
   const cocWalkthroughCount = Object.keys(cocWalkthroughAnsweredIds).length;
   const headerDoneCount = cocMode ? cocWalkthroughCount : answeredCount;
   const allQuestionsComplete = cocMode ? cocWalkthroughCount >= totalQuestions : answeredCount >= totalQuestions;
+
+  // Track claim completion once when all questions answered
+  const trackedRef = useRef(false);
+  useEffect(() => {
+    if (!allQuestionsComplete || trackedRef.current) return;
+    trackedRef.current = true;
+    const type = cocMode ? 'change_of_circumstances' : 'new_claim';
+    supabase.from('claim_events').insert({
+      user_id: user?.id || null,
+      event_type: type,
+      total_points: totalPoints,
+      created_at: new Date().toISOString(),
+    }).then(() => {});
+  }, [allQuestionsComplete]);
 
   const totalPoints = getTotalPoints(savedAnswers);
 

@@ -20,6 +20,8 @@ import {
   Eye,
   BarChart2,
   Clock,
+  Scale,
+  FileText,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
@@ -71,6 +73,9 @@ interface Stats {
   todayViews: number;
   weekViews: number;
   monthViews: number;
+  newClaimCount: number;
+  cocCount: number;
+  appealCount: number;
 }
 
 type PeriodFilter = 'all' | 'today' | 'week' | 'month' | 'year';
@@ -537,6 +542,11 @@ export function AdminDashboard() {
       const { count: weekViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString());
       const { count: monthViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString());
 
+      // Claim completions
+      const { count: newClaimCount } = await supabase.from('claim_events').select('*', { count: 'exact', head: true }).eq('event_type', 'new_claim');
+      const { count: cocCount } = await supabase.from('claim_events').select('*', { count: 'exact', head: true }).eq('event_type', 'change_of_circumstances');
+      const { count: appealCount } = await supabase.from('claim_events').select('*', { count: 'exact', head: true }).eq('event_type', 'appeal');
+
       const total = totalUsers || 0;
       const paid = paidUsers || 0;
       setStats({
@@ -549,6 +559,9 @@ export function AdminDashboard() {
         monthSignups: monthSignups || 0,
         totalDiaryEntries: totalDiaryEntries || 0,
         allUsers: allUsers || [],
+        newClaimCount: newClaimCount || 0,
+        cocCount: cocCount || 0,
+        appealCount: appealCount || 0,
         influencerStats: (() => {
           const map: Record<string, { count: number; paid: number }> = {};
           (influencerData || []).forEach((u: any) => {
@@ -863,6 +876,16 @@ export function AdminDashboard() {
                 <StatCard icon={CreditCard} label="Paid Users" value={stats.paidUsers} sub={`£${(stats.paidUsers * 6.99).toFixed(2)} revenue`} color="bg-emerald-600" />
                 <StatCard icon={UserX} label="Free Users" value={stats.freeUsers} color="bg-stone-500" />
                 <StatCard icon={TrendingUp} label="Conversion" value={`${stats.conversionRate}%`} sub="Free → Paid" color="bg-amber-500" />
+              </div>
+            </section>
+
+            {/* Claim completions */}
+            <section>
+              <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">Claim completions</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <StatCard icon={FileText} label="New Claims" value={stats.newClaimCount} sub="All 12 answered" color="bg-teal-600" />
+                <StatCard icon={RefreshCw} label="Change of Circ." value={stats.cocCount} sub="CoC completed" color="bg-purple-600" />
+                <StatCard icon={Scale} label="Appeals" value={stats.appealCount} sub="Appeal started" color="bg-rose-500" />
               </div>
             </section>
 
