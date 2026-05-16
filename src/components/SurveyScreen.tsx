@@ -9,6 +9,8 @@ interface SurveyData {
   helpfulness: Rating;
   recommend: Rating;
   openFeedback: string;
+  /** 1–5 stars, overall satisfaction */
+  overallRating: number | null;
 }
 
 const EASE_OPTIONS = [
@@ -60,6 +62,43 @@ function OptionButton({
   );
 }
 
+function OverallStarRating({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center justify-center gap-1 flex-nowrap" role="group" aria-label="Overall rating out of 5 stars">
+        {[1, 2, 3, 4, 5].map((n) => {
+          const filled = value != null && n <= value;
+          return (
+            <button
+              key={n}
+              type="button"
+              aria-label={`Rate ${n} out of 5 stars`}
+              onClick={() => onChange(n)}
+              className="p-1.5 rounded-xl hover:bg-amber-50 transition-colors active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+            >
+              <Star
+                className={`w-9 h-9 sm:w-10 sm:h-10 transition-colors ${
+                  filled ? 'text-amber-400 fill-amber-400' : 'text-stone-300 fill-transparent'
+                }`}
+                strokeWidth={filled ? 0 : 1.75}
+              />
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-xs text-stone-400 tabular-nums min-h-[1rem]">
+        {value != null ? `${value} / 5` : 'Tap to rate'}
+      </p>
+    </div>
+  );
+}
+
 export function SurveyScreen() {
   const { goBack, navigateTo } = useAppContext();
   const [survey, setSurvey] = useState<SurveyData>({
@@ -67,6 +106,7 @@ export function SurveyScreen() {
     helpfulness: null,
     recommend: null,
     openFeedback: '',
+    overallRating: null,
   });
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -74,7 +114,12 @@ export function SurveyScreen() {
   const set = (key: keyof SurveyData, val: string) =>
     setSurvey(prev => ({ ...prev, [key]: val }));
 
-  const anyAnswered = survey.easeOfUse || survey.helpfulness || survey.recommend || survey.openFeedback.trim();
+  const anyAnswered =
+    survey.easeOfUse ||
+    survey.helpfulness ||
+    survey.recommend ||
+    survey.openFeedback.trim() ||
+    survey.overallRating != null;
 
   async function handleSubmit() {
     // Fire and forget — we don't want this to block anything
@@ -86,6 +131,7 @@ export function SurveyScreen() {
           easeOfUse: survey.easeOfUse,
           helpfulness: survey.helpfulness,
           recommend: survey.recommend,
+          overallRating: survey.overallRating,
           feedback: survey.openFeedback.trim() || null,
           submittedAt: new Date().toISOString(),
         }),
@@ -227,6 +273,16 @@ export function SurveyScreen() {
               className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none"
             />
             <p className="text-right text-xs text-stone-400 mt-1">{survey.openFeedback.length}/500</p>
+          </div>
+
+          {/* Overall star rating */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-5">
+            <p className="font-bold text-stone-900 text-sm mb-1 text-center">Overall, how would you rate PIPpal?</p>
+            <p className="text-xs text-stone-400 mb-5 text-center">1 star = poor · 5 stars = excellent</p>
+            <OverallStarRating
+              value={survey.overallRating}
+              onChange={(n) => setSurvey((prev) => ({ ...prev, overallRating: n }))}
+            />
           </div>
 
           {/* Submit */}

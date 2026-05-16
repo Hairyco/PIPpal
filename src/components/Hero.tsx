@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, CheckCircle2, ArrowRight, ChevronDown } from 'lucide-react';
+import { Trophy, CheckCircle2, ArrowRight, ChevronDown, Check } from 'lucide-react';
 
 interface HeroProps {
   onStart?: () => void;
   onEligibility?: () => void;
 }
+
+const INITIAL_AVATARS = [
+  { bg: 'bg-teal-400', initials: 'SK' },
+  { bg: 'bg-purple-400', initials: 'LM' },
+  { bg: 'bg-amber-400', initials: 'AJ' },
+  { bg: 'bg-rose-400', initials: 'RK' },
+  { bg: 'bg-blue-400', initials: 'TH' },
+] as const;
 
 export function Hero({ onStart }: HeroProps) {
   const [visible, setVisible] = useState(false);
@@ -65,25 +73,32 @@ export function Hero({ onStart }: HeroProps) {
 
           <div className="p-5 md:p-6">
           {/* Avatar row below strip */}
-          <div className="flex items-center gap-2 sm:gap-3 mb-4 min-w-0 flex-nowrap">
+          <div className="flex items-center justify-center gap-2.5 sm:gap-3 mb-4 min-w-0 flex-wrap">
             <div className="flex -space-x-2 shrink-0">
-              {[
-                { bg: 'bg-teal-400', initials: 'SK' },
-                { bg: 'bg-purple-400', initials: 'LM' },
-                { bg: 'bg-amber-400', initials: 'AJ' },
-                { bg: 'bg-rose-400', initials: 'RK' },
-                { bg: 'bg-blue-400', initials: 'TH' },
-              ].map((a,i) => (
-                <div key={i} className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[8px] sm:text-[9px] font-bold shrink-0`}>
+              {INITIAL_AVATARS.map((a, i) => (
+                <div
+                  key={i}
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${a.bg} border-2 border-white flex items-center justify-center text-white text-[8px] sm:text-[9px] font-bold shrink-0`}
+                  aria-hidden
+                >
                   {a.initials}
                 </div>
               ))}
             </div>
-            <p className="text-[11px] sm:text-xs text-stone-500 font-medium whitespace-nowrap shrink-0">1,200+ applicants</p>
-            <div className="flex shrink-0 whitespace-nowrap leading-none">
-              {'★★★★★'.split('').map((s,i) => (
-                <span key={i} className="text-amber-400 text-xs sm:text-sm">{s}</span>
-              ))}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <p className="text-[13px] sm:text-sm text-stone-800 leading-snug whitespace-nowrap">
+                <span className="font-bold text-stone-900 tabular-nums">4.9</span>
+                <span className="font-normal">/5 from </span>
+                <span className="font-bold text-stone-900 tabular-nums">1,784</span>
+                <span className="font-normal"> applicants</span>
+              </p>
+              <span
+                className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 shrink-0 shadow-sm"
+                aria-label="Verified"
+                title="Verified"
+              >
+                <Check className="w-3 h-3 text-white" strokeWidth={3} aria-hidden />
+              </span>
             </div>
           </div>
 
