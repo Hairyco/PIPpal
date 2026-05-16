@@ -102,7 +102,6 @@ export function Hero({ onStart }: HeroProps) {
           <p className="text-center text-xs text-stone-400 mt-3">
             🔒 100% Secure &amp; Confidential
           </p>
-          </p>
         </div>
       </div>
 
