@@ -49,7 +49,7 @@ export function Hero({ onStart }: HeroProps) {
         style={{ transitionDelay: '80ms' }}
       >
         <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-4">
-          Get your PIP application right —{' '}
+          We get your PIP application right —{' '}
           <span className="text-teal-700">first time</span>
         </h1>
         <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-4 max-w-2xl mx-auto px-2">
