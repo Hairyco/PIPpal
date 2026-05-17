@@ -182,7 +182,7 @@ export function BlogPostScreen() {
             {/* CTA */}
             <div className="mx-5 mb-8 bg-stone-900 rounded-2xl p-5">
               <p className="font-bold text-white text-base mb-1">Ready to claim PIP?</p>
-              <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15–30 minutes. Full access from £6.99 one-time.</p>
+              <p className="text-xs text-stone-300 leading-relaxed mb-4">Complete your form with plain-English guidance in about 15 minutes.</p>
               <button
                 onClick={() => {
                   supabase.from('blog_clicks').insert({ slug: selectedBlogSlug || '', type: 'cta_click' }).then(() => undefined);
@@ -190,7 +190,7 @@ export function BlogPostScreen() {
                 }}
                 className="w-full bg-orange-500 text-white text-sm font-bold py-3.5 rounded-xl hover:bg-orange-600 transition-colors shadow-sm"
               >
-                {hasPaid ? '→ Start my PIP claim' : '→ Start my PIP claim — £6.99'}
+                → Start my PIP claim
               </button>
             </div>
           </div>
