@@ -997,16 +997,11 @@ export function ChangeOfCircumstancesScreen() {
         <div className="space-y-4 px-5 pt-5 pb-28">
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
-            <h2 className="font-bold text-xl mb-2">How DWP scores your claim</h2>
-            <p className="text-teal-100 text-sm leading-relaxed">Since your circumstances have changed, it's worth understanding how DWP will reassess you — even if you've been through this before.</p>
+            <h2 className="font-bold text-xl mb-2">What DWP looks for</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">DWP won't just take your word that things have changed — they need to understand how your circumstances have got worse. Here's what they focus on:</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">🔑</span>
-              <h3 className="font-bold text-stone-900 text-sm">What DWP looks for in a CoC</h3>
-            </div>
-            <p className="text-sm text-stone-600 leading-relaxed mb-3">DWP won't just take your word that things have changed — they need to see <strong className="text-stone-900">evidence of deterioration</strong>. Here's what they focus on:</p>
             <div className="space-y-2.5">
               {[
                 { title: 'Has it got more frequent?', body: 'Activities you could do 3 days a week but now struggle with every day carry more weight.' },
