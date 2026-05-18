@@ -904,7 +904,7 @@ export function ChangeOfCircumstancesScreen() {
             className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-teal-800 underline decoration-teal-500/60 underline-offset-2 hover:text-teal-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 rounded-sm"
           >
             <Phone className="w-4 h-4 shrink-0" aria-hidden />
-            Call 0800 917 2222 — PIP enquiries
+            Call 0800 121 4433 — PIP enquiries
           </a>
         </div>
       );
@@ -945,7 +945,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
             <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
-              A change of circumstances means you want to tell the DWP that your condition has got worse, or something important has changed since your last claim or review. This is an opportunity to receive a <strong className="text-white">higher award</strong> and increased payments.
+              A change of circumstances means you want to tell the DWP that your condition has got worse, or something important has changed since your last claim or review. This is an opportunity to receive a <strong className="text-white">higher award</strong> and increased payments. If you would like to apply, call <strong className="text-white">0800 121 4433</strong> and request the AR1 form.
             </p>
           </div>
 
@@ -1375,7 +1375,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Get the strongest claim</p>
             <p className="text-sm text-stone-700 leading-snug">
               Don&apos;t have everything to hand? Call DWP free on{' '}
-              <a href="tel:08009172222" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 917 2222</a>
+              <a href="tel:08001214433" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 121 4433</a>
               {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly.
             </p>
           </div>
