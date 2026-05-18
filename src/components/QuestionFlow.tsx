@@ -749,6 +749,9 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
               const cocHasPip2 = cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && hasPip2Answer(questionId);
               const cocHasPa4 = hasAssessorNote(questionId);
 
+              // No-form path — no previous data to summarise, skip this card
+              if (!cocHasPip2 && !cocHasPa4 && !loadingCocSummary && !cocSummary) return null;
+
               let body: React.ReactNode;
               if (cocDocumentType === 'award_only') {
                 body = (
