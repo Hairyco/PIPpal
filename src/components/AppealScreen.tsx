@@ -1,19 +1,69 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
-  ArrowLeft, Scale, Users, FileText, Phone, CheckCircle2,
-  Clock, Briefcase, HeartHandshake, CalendarCheck, Download,
-  MessageSquare, ExternalLink,
+  ArrowLeft, ArrowRight, Upload, FileText, Loader2,
+  AlertTriangle, Phone, CheckCircle2, ExternalLink, Download,
+  HeartHandshake, Briefcase, CalendarCheck,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
-import { useState } from 'react';
 
 export function AppealScreen() {
   const { goBack, navigateTo, savedAnswers, medProfile, setAppealDraftReasons } = useAppContext();
+
+  const [step, setStep] = useState(1);
   const [mrOutcome, setMrOutcome] = useState('');
   const [generating, setGenerating] = useState(false);
   const [appealReasons, setAppealReasons] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const hasAnswers = Object.keys(savedAnswers || {}).length > 0;
+
+  const letterRef = useRef<HTMLInputElement>(null);
+  const [letterLabels, setLetterLabels] = useState<string[]>([]);
+  const [letterFiles, setLetterFiles] = useState<{ name: string; base64: string; mimeType: string }[]>([]);
+  const [letterBusy, setLetterBusy] = useState(false);
+  const [letterError, setLetterError] = useState<string | null>(null);
+  const [letterSummary, setLetterSummary] = useState<string | null>(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+
+  const onLetterPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    if (!raw.length) return;
+    setLetterError(null);
+    setLetterSummary(null);
+    const results = await Promise.all(raw.map(f => new Promise<{ name: string; base64: string; mimeType: string }>(resolve => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ name: f.name, base64: (reader.result as string).split(',')[1], mimeType: f.type });
+      reader.readAsDataURL(f);
+    })));
+    setLetterLabels(results.map(r => r.name));
+    setLetterFiles(results);
+  };
+
+  const clearLetter = () => {
+    setLetterLabels([]);
+    setLetterFiles([]);
+    setLetterError(null);
+    setLetterSummary(null);
+  };
+
+  useEffect(() => {
+    if (letterFiles.length === 0 || letterSummary || generatingSummary) return;
+    setGeneratingSummary(true);
+    setLetterBusy(true);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `This is a PIP Mandatory Reconsideration decision letter. Summarise in 3-4 plain English sentences: what DWP decided, which activities they scored and how many points, and the key reason for the outcome. Be factual and clear.\n\nFiles: ${letterFiles.map(f => f.name).join(', ')}`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile?.conditions || [] },
+      }),
+    })
+      .then(r => r.json())
+      .then(d => { if (d.reply) setLetterSummary(d.reply.trim()); })
+      .catch(() => setLetterError('Could not read the letter automatically.'))
+      .finally(() => { setGeneratingSummary(false); setLetterBusy(false); });
+  }, [letterFiles]);
 
   const generateReasons = async () => {
     setGenerating(true);
@@ -22,12 +72,7 @@ export function AppealScreen() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'sscs1',
-          savedAnswers,
-          medProfile,
-          mrOutcome,
-        }),
+        body: JSON.stringify({ type: 'sscs1', savedAnswers, medProfile, mrOutcome }),
       });
       const data = await res.json();
       const reasons = data.reasons || 'Could not generate. Please try again.';
@@ -51,224 +96,274 @@ export function AppealScreen() {
 
   return (
     <div className="flex flex-col h-full bg-stone-50">
-      <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
+
+      <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10 shrink-0">
+        <button type="button" onClick={step === 1 ? goBack : () => setStep(s => s - 1)}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-bold text-stone-900 text-lg">Appeal to Tribunal</h1>
+        <div className="flex-1">
+          <h1 className="font-bold text-stone-900 text-base leading-tight">Appeal to Tribunal</h1>
+          <p className="text-[11px] text-stone-400 font-medium">Step {step} of 4</p>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-4">
-
-        {/* Hero */}
-        <div className="bg-rose-700 rounded-2xl p-5 text-white">
-          <h2 className="text-xl font-bold mb-1">Take your case to tribunal</h2>
-          <p className="text-rose-100 text-sm leading-relaxed">If your Mandatory Reconsideration was unsuccessful, you can appeal to an independent tribunal — completely separate from DWP.</p>
-        </div>
-
-        {/* Success rate */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-center gap-4">
-          <div className="text-3xl font-black text-rose-600 shrink-0">60%</div>
-          <p className="text-sm text-stone-600 leading-relaxed">of PIP appeals succeed at tribunal. Don't be put off by a refusal — the tribunal is genuinely independent.</p>
-        </div>
-
-        {/* Step 1 — Always choose oral */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 bg-rose-700 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">1</span>
-            </div>
-            <div>
-              <p className="font-bold text-stone-900 text-sm mb-1">Choose an oral hearing — always</p>
-              <p className="text-xs text-stone-500 leading-relaxed">You'll be offered a paper-based or oral (in person/video/phone) hearing. Always choose oral. Success rates are significantly higher — the panel can ask questions and hear your full story.</p>
-            </div>
+      {step === 1 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-rose-700 rounded-2xl p-5 text-white">
+            <h2 className="font-bold text-xl mb-3">Take your case to an independent tribunal</h2>
+            <p className="text-rose-100 text-sm leading-relaxed mb-2">If your Mandatory Reconsideration was unsuccessful, you have the right to appeal to an independent tribunal — completely separate from DWP. The tribunal makes its own decision based on the evidence.</p>
+            <p className="text-rose-100 text-sm leading-relaxed">You must complete an MR first. You have <strong className="text-white">1 month</strong> from your MR decision letter to submit your appeal.</p>
           </div>
-        </div>
 
-        {/* Step 2 — Submit SSCS1 */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 bg-rose-700 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">2</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-stone-900 text-sm mb-1">Submit the SSCS1 form</p>
-              <p className="text-xs text-stone-500 leading-relaxed mb-3">You have 1 month from your MR decision letter to appeal. Use the SSCS1 form — state which activities you're challenging and why.</p>
-              <div className="space-y-2">
-                <a href="https://www.gov.uk/appeal-benefit-decision" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-rose-50 rounded-xl p-3 border border-rose-100 hover:bg-rose-100 transition-colors">
-                  <FileText className="w-4 h-4 text-rose-700 shrink-0" />
-                  <div>
-                    <p className="text-xs font-bold text-stone-900">Appeal online — GOV.UK</p>
-                    <p className="text-[10px] text-stone-500">Fastest way to submit your appeal</p>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-rose-400 ml-auto shrink-0" />
-                </a>
-                <a href="https://www.gov.uk/government/publications/appeal-a-social-security-benefits-decision-form-sscs1"
-                  target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-3 bg-stone-50 rounded-xl p-3 border border-stone-200 hover:bg-stone-100 transition-colors">
-                  <Download className="w-4 h-4 text-stone-600 shrink-0" />
-                  <div>
-                    <p className="text-xs font-bold text-stone-900">Download SSCS1 form</p>
-                    <p className="text-[10px] text-stone-500">Fill in by hand and post</p>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-stone-400 ml-auto shrink-0" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* SSCS1 Reasons Generator */}
-        <div className="bg-rose-700 rounded-2xl overflow-hidden">
-          <div className="p-5">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-white text-base">PIPpal writes your appeal reasons</p>
-                <p className="text-rose-100 text-xs leading-relaxed mt-0.5">
-                  {hasAnswers
-                    ? 'We use your saved PIP answers to write structured SSCS1 appeal reasons — activity by activity, using the SAFES rule.'
-                    : 'Complete your PIP questions first so we can write personalised appeal reasons.'}
-                </p>
-              </div>
-            </div>
-
-            {!hasAnswers ? (
-              <button onClick={() => navigateTo('question_index')}
-                className="w-full bg-white text-rose-700 py-3 rounded-xl font-bold text-sm hover:bg-rose-50 transition-all">
-                Complete my PIP answers first →
-              </button>
-            ) : !appealReasons ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs font-bold text-rose-100 mb-1.5 block">What was the MR outcome? (paste key lines from your MR letter)</label>
-                  <textarea
-                    value={mrOutcome}
-                    onChange={e => setMrOutcome(e.target.value)}
-                    placeholder="e.g. 'DWP maintained their decision. They scored me 4 points for preparing food but I believe I need supervision to cook safely due to seizures...'"
-                    rows={3}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-rose-300 focus:outline-none focus:border-white/40 resize-none"
-                  />
-                </div>
-                <button onClick={generateReasons} disabled={generating}
-                  className="w-full bg-white text-rose-700 py-3.5 rounded-xl font-bold text-base hover:bg-rose-50 active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2">
-                  {generating ? <><span className="animate-spin">✨</span> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
-                </button>
-                <p className="text-rose-200 text-[10px] text-center">Takes about 10 seconds · Uses your saved answers</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="bg-white/10 rounded-xl p-4 max-h-72 overflow-y-auto">
-                  <pre className="text-xs text-rose-50 leading-relaxed whitespace-pre-wrap font-sans">{appealReasons}</pre>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={copyReasons}
-                    className="flex-1 bg-white text-rose-700 py-3 rounded-xl font-bold text-sm hover:bg-rose-50 transition-all flex items-center justify-center gap-2">
-                    {copied ? '✓ Copied!' : '📋 Copy reasons'}
-                  </button>
-                  <button onClick={() => setAppealReasons(null)}
-                    className="px-4 py-3 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all">
-                    Regenerate
-                  </button>
-                </div>
-                <p className="text-rose-200 text-[10px] text-center">Paste these into Section 5 of your SSCS1 form. Review before submitting.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Step 3 — Prepare */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 bg-rose-700 rounded-full flex items-center justify-center shrink-0">
-              <span className="text-white text-xs font-bold">3</span>
-            </div>
-            <div>
-              <p className="font-bold text-stone-900 text-sm mb-2">Prepare for your hearing</p>
-              <div className="space-y-2">
-                {[
-                  ['Bring your documents', 'PA4 report, MR letter, all medical evidence, PIP diary, medication list'],
-                  ['Bring support', 'You can bring a friend, family member or carer'],
-                  ['Prepare your arguments', 'For each disputed activity: what the assessor said vs what actually happens on your worst days'],
-                  ['Practice out loud', "Don't minimize — describe reality. Say things like \"on bad days I can't...\""],
-                ].map(([title, desc], i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-                    <p className="text-xs text-stone-600 leading-relaxed"><strong>{title}</strong> — {desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* What to expect at tribunal */}
-        <div className="bg-stone-50 rounded-2xl border border-stone-200 p-4">
-          <p className="font-bold text-stone-900 text-sm mb-3">What happens at tribunal</p>
-          <div className="space-y-2">
-            {[
-              'A panel of 3 — an independent judge, a doctor, and a disability expert',
-              'They are not DWP — they genuinely want to understand your situation',
-              'They ask about your daily life and how your condition affects you',
-              'Usually takes 30–60 minutes',
-              'Decision usually arrives by post within 1–2 weeks (sometimes same day)',
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-2 shrink-0" />
-                <span className="text-xs text-stone-600">{item}</span>
+          <div className="grid grid-cols-3 gap-3">
+            {[{ stat: '68%', sub: 'of oral appeals succeed' },{ stat: '1 month', sub: 'to appeal after MR' },{ stat: 'Free', sub: 'to appeal' }].map((s, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-3 text-center">
+                <p className="font-black text-rose-600 text-lg">{s.stat}</p>
+                <p className="text-[10px] text-stone-500 mt-0.5 leading-snug">{s.sub}</p>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* DWP presenting officer */}
-        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3">
-          <Briefcase className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-800 leading-relaxed">
-            <strong>DWP may send a presenting officer</strong> to argue their case — don't be intimidated. The tribunal panel often challenges the DWP's position. If they don't send one (which is common), that's actually a good sign.
-          </p>
-        </div>
-
-        {/* Free representation */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <HeartHandshake className="w-4 h-4 text-blue-600" />
-            <p className="font-bold text-stone-900 text-sm">Free help is available</p>
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-900 leading-relaxed"><strong>Always choose an oral hearing</strong> — not a paper review. Success rates are significantly higher when the panel can hear your story directly.</p>
           </div>
-          <p className="text-xs text-stone-500 leading-relaxed mb-3">You don't have to do this alone. Citizens Advice, local welfare rights services, and disability charities can sometimes provide free tribunal representation.</p>
-          <a href="tel:08001448848" className="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-700 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-100 transition-colors border border-blue-100">
-            <Phone className="w-4 h-4" />
-            Citizens Advice: 0800 144 8848
-          </a>
-        </div>
 
-        {/* After the hearing */}
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <CalendarCheck className="w-4 h-4 text-teal-600" />
-            <p className="font-bold text-stone-900 text-sm">After the hearing</p>
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">How it works</p>
+            {[
+              { n: '1', title: 'Upload your MR letter', body: 'We read it, summarise what DWP decided, and identify what to challenge.' },
+              { n: '2', title: 'We write your SSCS1 reasons', body: 'PIPpal drafts your appeal reasons activity by activity using your saved answers.' },
+              { n: '3', title: 'Submit the SSCS1 form', body: 'Online via GOV.UK or by post. PIPpal gives you the wording to paste in.' },
+              { n: '4', title: 'Prepare for your hearing', body: 'We guide you through what to expect and how to present your case.' },
+            ].map(item => (
+              <div key={item.n} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+                <div className="w-6 h-6 rounded-full bg-rose-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-white text-[11px] font-bold">{item.n}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="space-y-2 text-xs text-stone-600">
-            <p><strong>If successful</strong> — payments are backdated to when you first claimed. DWP must implement the decision.</p>
-            <p><strong>If unsuccessful</strong> — you can request permission to appeal to the Upper Tribunal on a point of law (complex — seek legal advice).</p>
-          </div>
-        </div>
 
-        {/* PIPpal Assistant CTA */}
-        <div className="bg-stone-900 rounded-2xl p-4 text-white">
-          <p className="font-bold text-sm mb-1">Need help writing your appeal reasons?</p>
-          <p className="text-stone-400 text-xs leading-relaxed mb-3">PIPpal Assistant can help you structure your SSCS1 reasons for each disputed descriptor.</p>
-          <button onClick={() => navigateTo('home')}
-            className="w-full bg-white text-stone-900 py-2.5 rounded-xl font-bold text-sm hover:bg-stone-100 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            Open PIPpal Assistant
+          <button type="button" onClick={() => setStep(2)}
+            className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
+            Start my appeal <ArrowRight className="w-5 h-5" />
           </button>
         </div>
+      )}
 
-      </div>
+      {step === 2 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-rose-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 2 of 4</p>
+            <h2 className="font-bold text-xl mb-2">Upload your MR decision letter</h2>
+            <p className="text-rose-100 text-sm leading-relaxed">We'll read it, summarise what DWP decided, and use it to build your appeal case.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-1">Don't have your MR letter?</p>
+            <p className="text-sm text-stone-600 leading-relaxed">Call DWP on <a href="tel:08001214433" className="font-semibold text-rose-700 underline">0800 121 4433</a> and ask for a copy. They must provide it.</p>
+          </div>
+
+          <input ref={letterRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onLetterPick} />
+
+          {letterLabels.length === 0 ? (
+            <button type="button" onClick={() => letterRef.current?.click()}
+              className="w-full border-2 border-dashed border-stone-200 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-rose-400 hover:bg-rose-50 transition-colors active:scale-[0.99]">
+              <Upload className="w-6 h-6 text-stone-400" />
+              <span className="text-sm font-medium text-stone-600">Tap to upload your MR letter</span>
+              <span className="text-xs text-stone-400">Photo or PDF</span>
+            </button>
+          ) : (
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+              <div className="flex flex-wrap gap-2 items-center">
+                {letterLabels.map((name, i) => (
+                  <span key={i} className="text-[11px] bg-rose-50 text-rose-700 border border-rose-100 px-2 py-1 rounded-lg truncate">{name}</span>
+                ))}
+                <button type="button" onClick={clearLetter} className="text-[11px] font-semibold text-rose-600 hover:text-rose-800">Remove</button>
+              </div>
+              {letterBusy && (
+                <div className="flex items-center gap-2 text-xs text-stone-600">
+                  <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                  Reading your letter...
+                </div>
+              )}
+              {letterError && <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>}
+              {letterSummary && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                  <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-1">What your letter says</p>
+                  <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <button type="button" onClick={() => setStep(3)} disabled={letterBusy}
+            className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
+            {letterLabels.length > 0 && !letterBusy ? 'Continue with letter' : 'Skip — continue without'} <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-rose-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 3 of 4</p>
+            <h2 className="font-bold text-xl mb-2">Build your SSCS1 appeal reasons</h2>
+            <p className="text-rose-100 text-sm leading-relaxed">PIPpal writes your appeal reasons activity by activity — showing the tribunal exactly why the DWP decision is wrong.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-2">
+            <p className="text-sm font-bold text-stone-900 mb-2">Where to submit your SSCS1</p>
+            <a href="https://www.gov.uk/appeal-benefit-decision" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-rose-50 rounded-xl p-3 border border-rose-100 hover:bg-rose-100 transition-colors">
+              <FileText className="w-4 h-4 text-rose-700 shrink-0" />
+              <div className="flex-1"><p className="text-xs font-bold text-stone-900">Appeal online — GOV.UK</p><p className="text-[10px] text-stone-500">Fastest way to submit</p></div>
+              <ExternalLink className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            </a>
+            <a href="https://www.gov.uk/government/publications/appeal-a-social-security-benefits-decision-form-sscs1" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-stone-50 rounded-xl p-3 border border-stone-200 hover:bg-stone-100 transition-colors">
+              <Download className="w-4 h-4 text-stone-600 shrink-0" />
+              <div className="flex-1"><p className="text-xs font-bold text-stone-900">Download SSCS1 form</p><p className="text-[10px] text-stone-500">Fill in and post</p></div>
+              <ExternalLink className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+            </a>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-1">What did DWP say in your MR? <span className="font-normal text-stone-400">(optional)</span></p>
+            <p className="text-xs text-stone-500 mb-3">Paste key lines from your MR letter so we can tailor your appeal reasons.</p>
+            <textarea value={mrOutcome} onChange={e => setMrOutcome(e.target.value)}
+              placeholder="e.g. DWP maintained their decision. They scored me 4 points for preparing food but I believe I need supervision..."
+              rows={3} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 text-sm focus:ring-1 focus:ring-rose-400 focus:border-rose-400 resize-none" />
+          </div>
+
+          {!hasAnswers ? (
+            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 text-center space-y-3">
+              <p className="text-sm text-stone-600">Complete your PIP questions first so we can write personalised appeal reasons.</p>
+              <button onClick={() => navigateTo('question_index')} className="w-full bg-teal-700 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-800 transition-all">Complete my PIP answers →</button>
+            </div>
+          ) : !appealReasons ? (
+            <button type="button" onClick={generateReasons} disabled={generating}
+              className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
+              {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your SSCS1 appeal reasons</p>
+                <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{appealReasons}</p>
+              </div>
+              <p className="text-xs text-stone-400 text-center">Paste into Section 5 of your SSCS1 form. Review before submitting.</p>
+              <div className="flex gap-2">
+                <button type="button" onClick={copyReasons} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 active:scale-[0.99] transition-all">
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+                <button type="button" onClick={() => setAppealReasons(null)} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                  Regenerate
+                </button>
+              </div>
+              <button type="button" onClick={() => setStep(4)} className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
+                Prepare for my hearing <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-10">
+          <div className="bg-rose-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 4 of 4</p>
+            <h2 className="font-bold text-xl mb-2">Prepare for your hearing</h2>
+            <p className="text-rose-100 text-sm leading-relaxed">The tribunal is independent of DWP. The panel genuinely wants to understand your situation and will make their own decision.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-3">What to bring</p>
+            <div className="space-y-2">
+              {[
+                { title: 'Your documents', body: 'PA4 report, MR letter, medical evidence, PIP diary, medication list' },
+                { title: 'Support', body: 'You can bring a friend, family member or carer' },
+                { title: 'Your arguments', body: 'For each disputed activity: what the assessor said vs what actually happens on your worst days' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-stone-600 leading-relaxed"><strong>{item.title}</strong> — {item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-3">What to say</p>
+            <div className="space-y-2.5">
+              {[
+                'Describe your worst days — not your average days',
+                'Say things like "I can\'t safely..." or "on bad days I need someone to..."',
+                'Don\'t minimise — be honest about the full impact',
+                'If a question confuses you, ask for it to be repeated',
+                'Mention all your conditions, not just the main one',
+              ].map((tip, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-2 shrink-0" />
+                  <span className="text-sm text-stone-600">{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-stone-50 rounded-2xl border border-stone-200 p-4">
+            <p className="text-sm font-bold text-stone-900 mb-3">What happens at tribunal</p>
+            <div className="space-y-2">
+              {[
+                'A panel of 3 — an independent judge, a doctor, and a disability expert',
+                'They are not DWP — they genuinely want to understand your situation',
+                'Usually takes 30–60 minutes',
+                'Decision usually arrives by post within 1–2 weeks',
+              ].map((item, i) => (
+                <div key={i} className="flex items-start gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-stone-400 mt-2 shrink-0" />
+                  <span className="text-sm text-stone-600">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex gap-3">
+            <Briefcase className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-800 leading-relaxed"><strong>DWP may send a presenting officer</strong> to argue their case. Don't be intimidated — the tribunal panel often challenges DWP's position.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <CalendarCheck className="w-4 h-4 text-teal-600" />
+              <p className="text-sm font-bold text-stone-900">After the hearing</p>
+            </div>
+            <div className="space-y-2 text-sm text-stone-600">
+              <p><strong>If successful</strong> — payments are backdated to when you first claimed. DWP must implement the decision.</p>
+              <p><strong>If unsuccessful</strong> — you can request permission to appeal to the Upper Tribunal on a point of law. Seek advice first.</p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <HeartHandshake className="w-4 h-4 text-blue-600" />
+              <p className="text-sm font-bold text-stone-900">Free help is available</p>
+            </div>
+            <p className="text-sm text-stone-500 leading-relaxed mb-3">Citizens Advice and local welfare rights services can sometimes provide free tribunal representation.</p>
+            <a href="tel:08001448848" className="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-700 py-3 rounded-xl font-bold text-sm hover:bg-blue-100 transition-colors border border-blue-100">
+              <Phone className="w-4 h-4" />
+              Citizens Advice: 0800 144 8848
+            </a>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
