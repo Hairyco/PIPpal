@@ -909,35 +909,7 @@ export function ChangeOfCircumstancesScreen() {
         </div>
       );
 
-      if (missingOriginalPip2Guide) {
-        return (
-          <div className="space-y-5 px-5 pt-5 pb-32">
-            <div className="bg-teal-800 rounded-2xl p-6 text-white shadow-sm">
-              <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
-              <h2 className="font-bold text-2xl leading-tight mb-3">Without your PIP2</h2>
-              <p className="text-teal-50 text-sm leading-relaxed">
-                Here&apos;s how you can still line up wording for DWP — then we&apos;ll ask which form you&apos;re on and
-                what you can upload.
-              </p>
-            </div>
-            {beforeYouContinuePanel}
-            <button
-              type="button"
-              onClick={continueFromMissingGuide}
-              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
-            >
-              Continue <ArrowRight className="w-5 h-5" aria-hidden />
-            </button>
-            <button
-              type="button"
-              onClick={() => setMissingOriginalPip2Guide(false)}
-              className="w-full py-3 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all"
-            >
-              Choose a different answer
-            </button>
-          </div>
-        );
-      }
+
 
       return (
         <div className="space-y-5 px-5 pt-5 pb-32">
