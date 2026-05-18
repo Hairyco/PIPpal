@@ -12,6 +12,7 @@ import {
   ChevronUp,
   ChevronRight,
 } from 'lucide-react';
+import { BackpayCalculator } from './BackpayCalculator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS } from '../pipQuestions';
@@ -982,7 +983,15 @@ export function ChangeOfCircumstancesScreen() {
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Important — reassessment covers everything</p>
-            <p className="text-sm text-amber-800 leading-relaxed">When you report a change, DWP reassesses your <strong>entire claim</strong> — not just what's changed. Your award could go up, stay the same, or go down. Make sure your answers reflect your current situation accurately.</p>
+            <p className="text-sm text-amber-800 leading-relaxed">When you report a change, DWP reassesses your <strong>entire claim</strong> — not just what's changed. Your award could go up, stay the same, or go down.</p>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {[{stat:'65%',sub:'of new claims\nrejected'},{stat:'33%',sub:'of CoC claims\nawarded more'},{stat:'6 months',sub:'average time\nfor a decision'}].map((s,i)=>(
+                <div key={i} className="bg-amber-100 rounded-xl p-2 text-center">
+                  <p className="font-black text-amber-900 text-base">{s.stat}</p>
+                  <p className="text-[10px] text-amber-800 leading-snug whitespace-pre-line">{s.sub}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
@@ -1005,21 +1014,10 @@ export function ChangeOfCircumstancesScreen() {
                 </div>
               ))}
             </div>
-            <p className="text-xs text-stone-500 mt-3 leading-relaxed">If things have got worse since your last assessment — more frequent, less safe, needing more help — your answers need to show that clearly.</p>
+            <p className="text-xs text-stone-500 mt-3 leading-relaxed">If things have got worse since your last assessment — more frequent, less safe, needing more help — we will help you describe this clearly to the DWP.</p>
           </div>
 
-          <div className="space-y-2">
-            {[
-              { pts: 'Below 8 points', label: 'No award', bg: 'bg-stone-50', border: 'border-stone-200', text: 'text-stone-500' },
-              { pts: '8–11 points', label: 'Standard rate', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
-              { pts: '12+ points', label: 'Enhanced rate', bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700' },
-            ].map(t => (
-              <div key={t.pts} className={`rounded-xl px-4 py-3 border ${t.bg} ${t.border} flex items-center justify-between`}>
-                <span className={`text-sm font-semibold ${t.text}`}>{t.pts}</span>
-                <span className={`text-sm font-bold ${t.text}`}>{t.label}</span>
-              </div>
-            ))}
-          </div>
+          <BackpayCalculator />
 
           <button
             type="button"
