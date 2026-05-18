@@ -1204,20 +1204,10 @@ export function ChangeOfCircumstancesScreen() {
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-5 h-5 text-teal-200 shrink-0" aria-hidden />
-              <h2 className="font-bold text-base">Upload your paperwork</h2>
+              <h2 className="font-bold text-base">What we need here</h2>
             </div>
             <p className="text-teal-100 text-sm leading-relaxed">
-              Add photos or PDFs of your PIP2 form, PA4 assessor report, or decision letter. The more you upload, the stronger your change of circumstances will be.
-            </p>
-          </div>
-
-          {/* Strongest claim — below uploads, no paperwork later button */}
-          <div className="rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm space-y-2">
-            <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Get the strongest claim</p>
-            <p className="text-sm text-stone-700 leading-snug">
-              Don&apos;t have everything to hand? Call DWP free on{' '}
-              <a href="tel:08009172222" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 917 2222</a>
-              {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly.
+              Add photos or PDFs of your PIP paperwork if you have them.
             </p>
           </div>
 
@@ -1384,6 +1374,16 @@ export function ChangeOfCircumstancesScreen() {
           <p className="text-xs text-stone-400 text-center leading-relaxed px-1">
             Auto-reading works best on clear scans; whenever we&apos;re unsure, we&apos;ll ask you to pick what you uploaded — your new answers always come from the questionnaire.
           </p>
+
+          {/* Get the strongest claim — below upload slots */}
+          <div className="rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm space-y-2">
+            <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Get the strongest claim</p>
+            <p className="text-sm text-stone-700 leading-snug">
+              Don&apos;t have everything to hand? Call DWP free on{' '}
+              <a href="tel:08009172222" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 917 2222</a>
+              {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <button
