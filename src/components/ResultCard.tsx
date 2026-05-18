@@ -429,6 +429,16 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             <span className={`text-xl font-bold ${pointsColor}`}>pts</span>
           </div>
           <p className={`font-bold text-base ${pointsColor}`}>{displayHeading}</p>
+          {cocMode && previousAwardPoints != null && (
+            <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-amber-200">
+              <span className="text-xs text-amber-700">Previous award:</span>
+              <span className="text-sm font-black text-amber-800">{previousAwardPoints} pts</span>
+              <span className="text-amber-400">→</span>
+              <span className={`text-sm font-black ${displayPoints > previousAwardPoints ? 'text-teal-700' : displayPoints < previousAwardPoints ? 'text-rose-600' : 'text-amber-700'}`}>
+                {displayPoints} pts {displayPoints > previousAwardPoints ? '↑' : displayPoints < previousAwardPoints ? '↓' : '—'}
+              </span>
+            </div>
+          )}
         </motion.div>
 
         {/* Previous answer — CoC mode only, only shown when there's actual data */}
