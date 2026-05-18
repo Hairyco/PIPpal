@@ -197,7 +197,7 @@ function ActivityAccordionBlock({
 }
 
 export function MandatoryReconsiderationScreen() {
-  const { goBack, navigateTo, savedAnswers, medProfile, setMrDraftLetter } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile, setMrDraftLetter, isAdmin } = useAppContext();
 
   const [generatingLetter, setGeneratingLetter] = useState(false);
   const [mrLetter, setMrLetter] = useState<string | null>(null);
@@ -319,6 +319,7 @@ export function MandatoryReconsiderationScreen() {
   const [mrRoute, setMrRoute] = useState<'form' | 'letter' | null>(null);
   const [mrSummary, setMrSummary] = useState<string | null>(null);
   const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [letterSummary, setLetterSummary] = useState<string | null>(null);
 
   // Auto-generate summary when letter is extracted
   useEffect(() => {
@@ -460,6 +461,29 @@ export function MandatoryReconsiderationScreen() {
           {letterUploadError && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
               <p className="text-xs text-red-800 leading-relaxed">{letterUploadError}</p>
+            </div>
+          )}
+
+          {/* Admin preview panel */}
+          {isAdmin && (
+            <div className="rounded-2xl border-2 border-dashed border-amber-400 bg-amber-50/60 p-4 space-y-3">
+              <p className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Admin preview</p>
+              <div className="flex gap-2 flex-wrap">
+                {[1, 2, 3, 4].map(s => (
+                  <button key={s} type="button" onClick={() => setStep(s)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${step === s ? 'bg-amber-700 text-white border-amber-700' : 'border-amber-400 text-amber-900 hover:bg-amber-100'}`}>
+                    Step {s}
+                  </button>
+                ))}
+              </div>
+              <button type="button" onClick={() => {
+                setLetterLabels(['mock_mr_decision_letter.pdf']);
+                setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf', size: 0 }]);
+                setLetterSummary('DWP maintained their original decision. They awarded 4 points for preparing food (Descriptor B) and 0 points for managing therapy. The key reason given was that the assessor observed the claimant could use a microwave independently and no supervision was noted during the assessment.');
+              }}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
+                Load mock MR letter + summary
+              </button>
             </div>
           )}
 
