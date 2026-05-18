@@ -1049,7 +1049,23 @@ export function ChangeOfCircumstancesScreen() {
 
           <button
             type="button"
-            onClick={() => navigateTo('medical_profile')}
+            onClick={() => {
+              // They explicitly chose to update — go to medical profile, then questions
+              sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
+              sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify({
+                formType: 'pip2',
+                pip2Labels: [],
+                pa4Labels: [],
+                awardLabels: [],
+                pip2Extracted: {},
+                pa4Extracted: {},
+                awardExtracted: {},
+                activityFallbackNotes: {},
+                cocManualPoints: {},
+              }));
+              setCocMode(true);
+              navigateTo('medical_profile');
+            }}
             className="w-full flex items-center justify-between bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm hover:border-teal-300 hover:bg-teal-50/30 active:scale-[0.99] transition-all"
           >
             <div className="flex items-center gap-3">
@@ -1066,7 +1082,23 @@ export function ChangeOfCircumstancesScreen() {
 
           <button
             type="button"
-            onClick={next}
+            onClick={() => {
+              // They skipped — still send through medical profile first, then to questions
+              sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
+              sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify({
+                formType: 'pip2',
+                pip2Labels: [],
+                pa4Labels: [],
+                awardLabels: [],
+                pip2Extracted: {},
+                pa4Extracted: {},
+                awardExtracted: {},
+                activityFallbackNotes: {},
+                cocManualPoints: {},
+              }));
+              setCocMode(true);
+              navigateTo('medical_profile');
+            }}
             className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
           >
             Continue <ArrowRight className="w-5 h-5" aria-hidden />
@@ -1103,6 +1135,12 @@ export function ChangeOfCircumstancesScreen() {
           <button
             type="button"
             onClick={() => {
+              sessionStorage.setItem(COC_MEDICAL_EXPECTED_KEY, '1');
+              sessionStorage.setItem(COC_POST_MEDICAL_SNAPSHOT_KEY, JSON.stringify({
+                formType: 'pip2', pip2Labels: [], pa4Labels: [], awardLabels: [],
+                pip2Extracted: {}, pa4Extracted: {}, awardExtracted: {},
+                activityFallbackNotes: {}, cocManualPoints: {},
+              }));
               setCocMode(true);
               navigateTo('question_index');
             }}
