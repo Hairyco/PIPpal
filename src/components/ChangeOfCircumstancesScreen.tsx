@@ -991,6 +991,67 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
+    // ── STEP 2 (BOTH PATHS): What DWP looks for ──────────────────────────────
+    if (step === 2) {
+      return (
+        <div className="space-y-4 px-5 pt-5 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
+            <h2 className="font-bold text-xl mb-2">What DWP looks for</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">DWP won't just take your word that things have changed — they need to understand how your circumstances have got worse. Here's what they focus on:</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="space-y-2.5">
+              {[
+                { title: 'Has it got more frequent?', body: 'Activities you could do 3 days a week but now struggle with every day carry more weight.' },
+                { title: 'Do you need more help now?', body: 'If you previously managed alone but now need prompting, supervision, or someone present — that matters.' },
+                { title: 'Has it become less safe?', body: 'Increased risk of falls, accidents, or injury since your last award is a strong indicator of change.' },
+                { title: 'Are you taking significantly longer?', body: 'Tasks that now take much longer than before, or leave you exhausted afterwards, count.' },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-3 py-2.5 border-b border-stone-50 last:border-0">
+                  <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-teal-700 text-[10px] font-black">{i + 1}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                    <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-teal-700 font-medium mt-3 bg-teal-50 rounded-xl px-3 py-2">PIPpal will help you describe all of this clearly — using the language DWP assessors are trained to look for.</p>
+          </div>
+
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl shrink-0 mt-0.5">⚠️</span>
+              <div>
+                <p className="text-sm font-bold text-stone-900">Reassessment covers your whole claim</p>
+                <p className="text-sm text-stone-600 mt-1 leading-relaxed">When you report a change, DWP reassesses <strong>everything</strong> — not just what's changed. Your award could go up, stay the same, or go down.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[{stat:'65%',sub:'of new claims rejected'},{stat:'33%',sub:'of CoC claims get more'},{stat:'6 months',sub:'average decision time'}].map((s,i)=>(
+                <div key={i} className="bg-white rounded-xl p-2.5 text-center border border-stone-200">
+                  <p className="font-black text-teal-700 text-base">{s.stat}</p>
+                  <p className="text-[10px] text-stone-500 mt-0.5 leading-snug">{s.sub}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setStep(3)}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Continue <ArrowRight className="w-5 h-5" aria-hidden />
+          </button>
+        </div>
+      );
+    }
+
         // ── STEP 3 (NO FORM PATH): Your conditions ───────────────────────────────
     if (step === 3 && hasOriginalPip2Copy === false) {
       return (
@@ -1111,14 +1172,14 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 2 (HAS FORM PATH): Upload PIP2 + optional PA4 + optional award letter ──────────────────
-    if (step === 2) {
+    // ── STEP 3 (HAS FORM PATH): Upload PIP2 + optional PA4 + optional award letter ──────────────────
+    if (step === 3 && hasOriginalPip2Copy === true) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
       const hasAward = awardLabels.length > 0;
       const busy = pip2Busy || pa4Busy || awardBusy || classifyBusy;
       const hasAny = hasPip2 || hasPa4 || hasAward;
-      const canContinue = !busy && (hasAny || noForm || hasOriginalPip2Copy === false);
+      const canContinue = !busy && (hasAny || noForm);
 
       const docSlotLabels = [hasPip2 && 'PIP2', hasPa4 && 'PA4', hasAward && 'Award'].filter(Boolean) as string[];
 
