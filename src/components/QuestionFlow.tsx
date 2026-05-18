@@ -124,7 +124,7 @@ export function QuestionFlow() {
   const [showFullExample, setShowFullExample] = useState(true);
   const [cocSummary, setCocSummary] = useState<string | null>(null);
   const [loadingCocSummary, setLoadingCocSummary] = useState(false);
-  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(false);
+  const [questionExplainedOpen, setQuestionExplainedOpen] = useState(cocMode);
   const [loadingExample] = useState(false);
 
   // Read pre-generated content from sessionStorage (set by PersonalisingScreen)
@@ -200,7 +200,7 @@ Tone: warm, plain British English, encouraging. Under 80 words. Return ONLY the 
 
   /** Each activity opens with explainer folded — avoids wall of text before documents / actions */
   useEffect(() => {
-    setQuestionExplainedOpen(false);
+    setQuestionExplainedOpen(cocMode);
   }, [questionId]);
 
   // Generate CoC summary when in CoC mode and previous data exists
@@ -589,7 +589,14 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
                         <p className={`text-[11px] font-semibold mt-2 ${cocFormType === 'ar1' ? 'text-purple-700' : 'text-blue-600'}`}>{prevAnswerGoal}</p>
                       </>
                     ) : (
-                      <p className={`text-sm italic ${cocFormType === 'ar1' ? 'text-purple-400' : 'text-blue-400'}`}>No previous answer found for this activity — build a fresh one below.</p>
+                      <div className="space-y-2">
+                        <p className={`text-sm font-semibold ${cocFormType === 'ar1' ? 'text-purple-700' : 'text-blue-700'}`}>No previous answers found</p>
+                        <p className={`text-xs ${cocFormType === 'ar1' ? 'text-purple-500' : 'text-blue-500'}`}>You can attach your original PIP2 form if you find it.</p>
+                        <label className={`inline-flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-full border cursor-pointer active:scale-95 transition-all ${cocFormType === 'ar1' ? 'text-purple-700 bg-white border-purple-200 hover:bg-purple-50' : 'text-blue-700 bg-white border-blue-200 hover:bg-blue-50'}`}>
+                          📎 Attach form
+                          <input type="file" accept="image/*,.pdf" className="hidden" onChange={() => navigateTo('change_of_circumstances')} />
+                        </label>
+                      </div>
                     )}
                   </div>
                 )}
@@ -645,8 +652,8 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
                 )}
               </div>
             )}
-            {!cocMode && (
-              <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
+            {/* Example answer — shown for all users including CoC */}
+            <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-6 h-6 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
@@ -700,7 +707,6 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
                   )}
                 </div>
               </div>
-            )}
           </div>
         </div>
 
