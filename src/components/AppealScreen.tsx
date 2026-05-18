@@ -110,16 +110,16 @@ export function AppealScreen() {
 
       {step === 1 && (
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
-          <div className="bg-rose-700 rounded-2xl p-5 text-white">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <h2 className="font-bold text-xl mb-3">Take your case to an independent tribunal</h2>
-            <p className="text-rose-100 text-sm leading-relaxed mb-2">If your Mandatory Reconsideration was unsuccessful, you have the right to appeal to an independent tribunal — completely separate from DWP. The tribunal makes its own decision based on the evidence.</p>
-            <p className="text-rose-100 text-sm leading-relaxed">You must complete an MR first. You have <strong className="text-white">1 month</strong> from your MR decision letter to submit your appeal.</p>
+            <p className="text-teal-100 text-sm leading-relaxed mb-2">If your Mandatory Reconsideration was unsuccessful, you have the right to appeal to an independent tribunal — completely separate from DWP. The tribunal makes its own decision based on the evidence.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">You must complete an MR first. You have <strong className="text-white">1 month</strong> from your MR decision letter to submit your appeal.</p>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {[{ stat: '68%', sub: 'of oral appeals succeed' },{ stat: '1 month', sub: 'to appeal after MR' },{ stat: 'Free', sub: 'to appeal' }].map((s, i) => (
               <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-3 text-center">
-                <p className="font-black text-rose-600 text-lg">{s.stat}</p>
+                <p className="font-black text-teal-600 text-lg">{s.stat}</p>
                 <p className="text-[10px] text-stone-500 mt-0.5 leading-snug">{s.sub}</p>
               </div>
             ))}
@@ -139,7 +139,7 @@ export function AppealScreen() {
               { n: '4', title: 'Prepare for your hearing', body: 'We guide you through what to expect and how to present your case.' },
             ].map(item => (
               <div key={item.n} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
-                <div className="w-6 h-6 rounded-full bg-rose-700 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-6 h-6 rounded-full bg-teal-700 flex items-center justify-center shrink-0 mt-0.5">
                   <span className="text-white text-[11px] font-bold">{item.n}</span>
                 </div>
                 <div>
@@ -151,7 +151,7 @@ export function AppealScreen() {
           </div>
 
           <button type="button" onClick={() => setStep(2)}
-            className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
             Start my appeal <ArrowRight className="w-5 h-5" />
           </button>
         </div>
@@ -159,22 +159,22 @@ export function AppealScreen() {
 
       {step === 2 && (
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
-          <div className="bg-rose-700 rounded-2xl p-5 text-white">
-            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 2 of 4</p>
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 2 of 4</p>
             <h2 className="font-bold text-xl mb-2">Upload your MR decision letter</h2>
-            <p className="text-rose-100 text-sm leading-relaxed">We'll read it, summarise what DWP decided, and use it to build your appeal case.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">We'll read it, summarise what DWP decided, and use it to build your appeal case.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
             <p className="text-sm font-bold text-stone-900 mb-1">Don't have your MR letter?</p>
-            <p className="text-sm text-stone-600 leading-relaxed">Call DWP on <a href="tel:08001214433" className="font-semibold text-rose-700 underline">0800 121 4433</a> and ask for a copy. They must provide it.</p>
+            <p className="text-sm text-stone-600 leading-relaxed">Call DWP on <a href="tel:08001214433" className="font-semibold text-teal-700 underline">0800 121 4433</a> and ask for a copy. They must provide it.</p>
           </div>
 
           <input ref={letterRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onLetterPick} />
 
           {letterLabels.length === 0 ? (
             <button type="button" onClick={() => letterRef.current?.click()}
-              className="w-full border-2 border-dashed border-stone-200 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-rose-400 hover:bg-rose-50 transition-colors active:scale-[0.99]">
+              className="w-full border-2 border-dashed border-stone-200 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-teal-400 hover:bg-teal-50 transition-colors active:scale-[0.99]">
               <Upload className="w-6 h-6 text-stone-400" />
               <span className="text-sm font-medium text-stone-600">Tap to upload your MR letter</span>
               <span className="text-xs text-stone-400">Photo or PDF</span>
@@ -183,13 +183,13 @@ export function AppealScreen() {
             <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
               <div className="flex flex-wrap gap-2 items-center">
                 {letterLabels.map((name, i) => (
-                  <span key={i} className="text-[11px] bg-rose-50 text-rose-700 border border-rose-100 px-2 py-1 rounded-lg truncate">{name}</span>
+                  <span key={i} className="text-[11px] bg-teal-50 text-teal-700 border border-teal-100 px-2 py-1 rounded-lg truncate">{name}</span>
                 ))}
-                <button type="button" onClick={clearLetter} className="text-[11px] font-semibold text-rose-600 hover:text-rose-800">Remove</button>
+                <button type="button" onClick={clearLetter} className="text-[11px] font-semibold text-teal-600 hover:text-rose-800">Remove</button>
               </div>
               {letterBusy && (
                 <div className="flex items-center gap-2 text-xs text-stone-600">
-                  <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                  <Loader2 className="w-4 h-4 animate-spin text-teal-600" />
                   Reading your letter...
                 </div>
               )}
@@ -204,7 +204,7 @@ export function AppealScreen() {
           )}
 
           <button type="button" onClick={() => setStep(3)} disabled={letterBusy}
-            className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
             {letterLabels.length > 0 && !letterBusy ? 'Continue with letter' : 'Skip — continue without'} <ArrowRight className="w-5 h-5" />
           </button>
         </div>
@@ -212,19 +212,19 @@ export function AppealScreen() {
 
       {step === 3 && (
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
-          <div className="bg-rose-700 rounded-2xl p-5 text-white">
-            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 3 of 4</p>
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 3 of 4</p>
             <h2 className="font-bold text-xl mb-2">Build your SSCS1 appeal reasons</h2>
-            <p className="text-rose-100 text-sm leading-relaxed">PIPpal writes your appeal reasons activity by activity — showing the tribunal exactly why the DWP decision is wrong.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">PIPpal writes your appeal reasons activity by activity — showing the tribunal exactly why the DWP decision is wrong.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-2">
             <p className="text-sm font-bold text-stone-900 mb-2">Where to submit your SSCS1</p>
             <a href="https://www.gov.uk/appeal-benefit-decision" target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-3 bg-rose-50 rounded-xl p-3 border border-rose-100 hover:bg-rose-100 transition-colors">
-              <FileText className="w-4 h-4 text-rose-700 shrink-0" />
+              className="flex items-center gap-3 bg-teal-50 rounded-xl p-3 border border-teal-100 hover:bg-teal-100 transition-colors">
+              <FileText className="w-4 h-4 text-teal-700 shrink-0" />
               <div className="flex-1"><p className="text-xs font-bold text-stone-900">Appeal online — GOV.UK</p><p className="text-[10px] text-stone-500">Fastest way to submit</p></div>
-              <ExternalLink className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <ExternalLink className="w-3.5 h-3.5 text-teal-400 shrink-0" />
             </a>
             <a href="https://www.gov.uk/government/publications/appeal-a-social-security-benefits-decision-form-sscs1" target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-3 bg-stone-50 rounded-xl p-3 border border-stone-200 hover:bg-stone-100 transition-colors">
@@ -239,7 +239,7 @@ export function AppealScreen() {
             <p className="text-xs text-stone-500 mb-3">Paste key lines from your MR letter so we can tailor your appeal reasons.</p>
             <textarea value={mrOutcome} onChange={e => setMrOutcome(e.target.value)}
               placeholder="e.g. DWP maintained their decision. They scored me 4 points for preparing food but I believe I need supervision..."
-              rows={3} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 text-sm focus:ring-1 focus:ring-rose-400 focus:border-rose-400 resize-none" />
+              rows={3} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none" />
           </div>
 
           {!hasAnswers ? (
@@ -249,7 +249,7 @@ export function AppealScreen() {
             </div>
           ) : !appealReasons ? (
             <button type="button" onClick={generateReasons} disabled={generating}
-              className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
               {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
             </button>
           ) : (
@@ -260,14 +260,14 @@ export function AppealScreen() {
               </div>
               <p className="text-xs text-stone-400 text-center">Paste into Section 5 of your SSCS1 form. Review before submitting.</p>
               <div className="flex gap-2">
-                <button type="button" onClick={copyReasons} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 active:scale-[0.99] transition-all">
+                <button type="button" onClick={copyReasons} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
                   {copied ? '✓ Copied' : 'Copy'}
                 </button>
                 <button type="button" onClick={() => setAppealReasons(null)} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
                   Regenerate
                 </button>
               </div>
-              <button type="button" onClick={() => setStep(4)} className="w-full py-4 rounded-xl font-bold text-base bg-rose-700 text-white hover:bg-rose-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
+              <button type="button" onClick={() => setStep(4)} className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
                 Prepare for my hearing <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -277,10 +277,10 @@ export function AppealScreen() {
 
       {step === 4 && (
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-10">
-          <div className="bg-rose-700 rounded-2xl p-5 text-white">
-            <p className="text-[11px] font-bold text-rose-200 uppercase tracking-widest mb-1">Step 4 of 4</p>
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 4 of 4</p>
             <h2 className="font-bold text-xl mb-2">Prepare for your hearing</h2>
-            <p className="text-rose-100 text-sm leading-relaxed">The tribunal is independent of DWP. The panel genuinely wants to understand your situation and will make their own decision.</p>
+            <p className="text-teal-100 text-sm leading-relaxed">The tribunal is independent of DWP. The panel genuinely wants to understand your situation and will make their own decision.</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
