@@ -1366,10 +1366,6 @@ export function ChangeOfCircumstancesScreen() {
             )}
           </div>
 
-          <p className="text-xs text-stone-400 text-center leading-relaxed px-1">
-            Auto-reading works best on clear scans; whenever we&apos;re unsure, we&apos;ll ask you to pick what you uploaded — your new answers always come from the questionnaire.
-          </p>
-
           {/* Get the strongest claim — below upload slots */}
           <div className="rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm space-y-2">
             <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Get the strongest claim</p>
