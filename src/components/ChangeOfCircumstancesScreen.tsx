@@ -10,6 +10,7 @@ import {
   Phone,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from './AppContext';
@@ -968,7 +969,124 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
-    // ── STEP 2: Upload PIP2 + optional PA4 + optional award letter ────────────────────
+    // ── STEP 2 (NO FORM PATH): How scoring works ─────────────────────────────
+    if (step === 2 && hasOriginalPip2Copy === false) {
+      return (
+        <div className="space-y-4 px-5 pt-5 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
+            <h2 className="font-bold text-xl mb-2">How DWP scores your claim</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">Since your circumstances have changed, it's worth understanding how DWP will reassess you — even if you've been through this before.</p>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Important — reassessment covers everything</p>
+            <p className="text-sm text-amber-800 leading-relaxed">When you report a change, DWP reassesses your <strong>entire claim</strong> — not just what's changed. Your award could go up, stay the same, or go down. Make sure your answers reflect your current situation accurately.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">🔑</span>
+              <h3 className="font-bold text-stone-900 text-sm">What DWP actually looks at</h3>
+            </div>
+            <p className="text-sm text-stone-700 leading-relaxed mb-3">Your diagnosis alone won't decide your award. What matters is <strong>how your condition affects you now</strong> — day in, day out.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { icon: '🛡️', label: 'Safely', sub: 'Without risk of harm to yourself' },
+                { icon: '🔁', label: 'Repeatedly', sub: 'Not just once on a good day' },
+                { icon: '✅', label: 'Properly', sub: 'To an acceptable standard' },
+                { icon: '⏱️', label: 'In time', sub: 'Not taking much longer than normal' },
+              ].map((item, i) => (
+                <div key={i} className="bg-teal-50 rounded-xl p-3">
+                  <span className="text-base">{item.icon}</span>
+                  <p className="font-bold text-teal-900 text-xs mt-1">{item.label}</p>
+                  <p className="text-[10px] text-teal-700 mt-0.5 leading-snug">{item.sub}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-stone-500 mt-3 leading-relaxed">If things have got worse since your last assessment — more frequent, less safe, needing more help — your answers need to show that clearly.</p>
+          </div>
+
+          <div className="space-y-2">
+            {[
+              { pts: 'Below 8 points', label: 'No award', bg: 'bg-stone-50', border: 'border-stone-200', text: 'text-stone-500' },
+              { pts: '8–11 points', label: 'Standard rate', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+              { pts: '12+ points', label: 'Enhanced rate', bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700' },
+            ].map(t => (
+              <div key={t.pts} className={`rounded-xl px-4 py-3 border ${t.bg} ${t.border} flex items-center justify-between`}>
+                <span className={`text-sm font-semibold ${t.text}`}>{t.pts}</span>
+                <span className={`text-sm font-bold ${t.text}`}>{t.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // ── STEP 3 (NO FORM PATH): Your conditions ───────────────────────────────
+    if (step === 3 && hasOriginalPip2Copy === false) {
+      return (
+        <div className="space-y-4 px-5 pt-5 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
+            <h2 className="font-bold text-xl mb-2">Your conditions</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">Make sure your medical profile is up to date — PIPpal uses this to personalise every question and write answers that reflect your current situation.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-1">Why this matters for CoC</p>
+            <p className="text-sm text-stone-600 leading-relaxed">If your conditions have changed — new diagnosis, worsening symptoms, new medication — update your profile now. Your answers will be built around what you tell us here.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigateTo('medical_profile')}
+            className="w-full flex items-center justify-between bg-white border border-stone-200 rounded-2xl px-4 py-4 shadow-sm hover:border-teal-300 hover:bg-teal-50/30 active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-teal-100 rounded-xl flex items-center justify-center shrink-0">
+                <span className="text-lg">🏥</span>
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold text-stone-900">Update medical profile</p>
+                <p className="text-xs text-stone-500">Conditions, medications, notes</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-stone-400" />
+          </button>
+        </div>
+      );
+    }
+
+    // ── STEP 4 (NO FORM PATH): How PIPpal writes your answers ───────────────
+    if (step === 4 && hasOriginalPip2Copy === false) {
+      return (
+        <div className="space-y-4 px-5 pt-5 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
+            <h2 className="font-bold text-xl mb-2">How this works</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">PIPpal asks simple questions and builds your change of circumstances answers for you.</p>
+          </div>
+
+          {[
+            { icon: '💬', title: 'We ask, you tap', body: 'For each of the 12 activities, we ask simple questions about how things are now. You just tap the options that apply.' },
+            { icon: '✍️', title: 'We show what has changed', body: 'PIPpal builds answers that clearly show your situation has worsened — using the language DWP assessors need to see.' },
+            { icon: '✏️', title: 'You can improve it', body: "Once we've built your answer, you can tweak or strengthen it. It's your claim — we just do the hard work." },
+            { icon: '⚠️', title: 'Be honest about now', body: 'Describe your situation as it is today — on your worst or typical bad days. Not how it was before.' },
+          ].map((item, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+              <span className="text-xl shrink-0">{item.icon}</span>
+              <div>
+                <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // ── STEP 2 (HAS FORM PATH): Upload PIP2 + optional PA4 + optional award letter ──────────────────
     if (step === 2) {
       const hasPip2 = pip2Labels.length > 0;
       const hasPa4 = pa4Labels.length > 0;
