@@ -880,7 +880,8 @@ export function ChangeOfCircumstancesScreen() {
       };
       const chooseMissing = () => {
         setHasOriginalPip2Copy(false);
-        setMissingOriginalPip2Guide(true);
+        setMissingOriginalPip2Guide(false);
+        setStep(2);
       };
       const continueFromMissingGuide = () => {
         setMissingOriginalPip2Guide(false);
