@@ -124,13 +124,21 @@ export function QuestionIndex() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-bold text-stone-900 text-lg">My Questions</h1>
-        <span className="ml-auto text-xs font-bold bg-teal-100 text-teal-700 px-2 py-1 rounded-full">
-          {headerDoneCount}/{totalQuestions} done
+        <h1 className="font-bold text-stone-900 text-lg">{cocMode ? 'Change of Circumstances' : 'My PIP Questions'}</h1>
+        <span className={`ml-auto text-xs font-bold px-2 py-1 rounded-full ${cocMode ? 'bg-purple-100 text-purple-700' : 'bg-teal-100 text-teal-700'}`}>
+          {cocMode ? `${headerDoneCount}/${totalQuestions} updated` : `${headerDoneCount}/${totalQuestions} done`}
         </span>
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-10">
+
+        {/* CoC context banner */}
+        {cocMode && (
+          <div className="bg-purple-50 border-b border-purple-100 px-5 py-3 flex items-center gap-2">
+            <span className="text-purple-600 text-sm">🔄</span>
+            <p className="text-xs text-purple-800 font-medium">Change of circumstances — describe how things are <strong>now</strong>, not before</p>
+          </div>
+        )}
 
         {/* Score summary — hidden in Change of circumstances walkthrough */}
         {!cocMode && (
