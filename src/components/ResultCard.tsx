@@ -429,25 +429,10 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             <span className={`text-xl font-bold ${pointsColor}`}>pts</span>
           </div>
           <p className={`font-bold text-base ${pointsColor}`}>{displayHeading}</p>
-          {cocMode && (
-            <p className="text-sm text-amber-900/90 font-semibold mt-3 leading-snug">
-              {previousAwardPoints != null ? (
-                <>
-                  Last award: <span className="tabular-nums">{previousAwardPoints}</span> pts → this draft:{' '}
-                  <span className="tabular-nums">{displayPoints}</span> pts
-                </>
-              ) : (
-                <>
-                  Previous score not recorded for this activity — this draft:{' '}
-                  <span className="tabular-nums">{displayPoints}</span> pts
-                </>
-              )}
-            </p>
-          )}
         </motion.div>
 
-        {/* Previous answer — CoC mode only */}
-        {cocMode && (
+        {/* Previous answer — CoC mode only, only shown when there's actual data */}
+        {cocMode && (cocPreviousAnswers[qId] || Object.values(cocAssessorNotes).some(v => v)) && (
           <div className="space-y-2">
             {/* PIP2 card (your own words) */}
             {cocDocumentType !== 'pa4_only' && cocDocumentType !== 'award_only' && (
@@ -653,7 +638,8 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
           </div>
         )}
 
-        {/* Why this counts / What has changed */}
+        {/* Why this counts / What has changed — hidden for no-form CoC path */}
+        {(!cocMode || cocPreviousAnswers[qId] || Object.values(cocAssessorNotes).some(v => v)) && (
         <div className={`rounded-2xl border shadow-sm px-4 py-4 ${cocMode ? (cocFormType === 'ar1' ? 'bg-purple-50 border-purple-100' : 'bg-blue-50 border-blue-100') : 'bg-white border-stone-100'}`}>
           <h3 className="font-bold text-stone-900 text-sm mb-2">
             {cocMode
@@ -752,6 +738,7 @@ Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phr
             <p className="text-sm text-stone-600 leading-relaxed">{data.why}</p>
           )}
         </div>
+        )}
 
         {/* Helpful details to include */}
         <div className="bg-white rounded-2xl border border-stone-100 shadow-sm px-4 py-4">

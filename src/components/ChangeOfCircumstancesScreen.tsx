@@ -213,6 +213,7 @@ export function ChangeOfCircumstancesScreen() {
   const [expandedSection, setExpandedSection] = useState<'daily' | 'mobility' | null>(null);
   const [expandedActivityId, setExpandedActivityId] = useState<string | null>(null);
   const [noForm, setNoForm] = useState(false);
+  const [showUploadLoading, setShowUploadLoading] = useState(false);
   /** Optional per-activity typing: gap-fill when empty, or overrides automatic read when filled */
   const [activityFallbackNotes, setActivityFallbackNotes] = useState<Record<string, string>>({});
   /** Optional per-activity points from decision letter — overrides extracted scores when filled */
@@ -944,8 +945,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
             <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
-              A <span className="font-semibold text-white">change of circumstances</span> means you want to tell the DWP
-              that something important has changed since your last claim or review.
+              A change of circumstances means you want to tell the DWP that your condition has got worse, or something important has changed since your last claim or review. This is an opportunity to receive a <strong className="text-white">higher award</strong> and increased payments.
             </p>
           </div>
 
@@ -971,6 +971,26 @@ export function ChangeOfCircumstancesScreen() {
       );
     }
 
+    // ── UPLOAD LOADING SCREEN ──────────────────────────────────────────────────
+    if (showUploadLoading) {
+      return (
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-stone-50 z-50 px-8">
+          <div className="flex flex-col items-center gap-6 max-w-xs text-center">
+            <div className="w-16 h-16 bg-teal-700 rounded-2xl flex items-center justify-center shadow-lg">
+              <div className="flex gap-1">
+                {[0,1,2].map(i => <div key={i} className="w-2.5 h-2.5 bg-white rounded-full animate-bounce" style={{animationDelay:`${i*150}ms`}} />)}
+              </div>
+            </div>
+            <div>
+              <h2 className="font-bold text-stone-900 text-xl mb-2">Reading your documents...</h2>
+              <p className="text-sm text-stone-500 leading-relaxed">We're extracting your previous answers and assessor notes so we can show you exactly what changed.</p>
+            </div>
+            <p className="text-[11px] text-stone-400">This takes a few seconds</p>
+          </div>
+        </div>
+      );
+    }
+
     // ── STEP 2 (NO FORM PATH): How scoring works ─────────────────────────────
     if (step === 2 && hasOriginalPip2Copy === false) {
       return (
@@ -979,19 +999,6 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Change of circumstances</p>
             <h2 className="font-bold text-xl mb-2">How DWP scores your claim</h2>
             <p className="text-teal-100 text-sm leading-relaxed">Since your circumstances have changed, it's worth understanding how DWP will reassess you — even if you've been through this before.</p>
-          </div>
-
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">⚠️ Important — reassessment covers everything</p>
-            <p className="text-sm text-amber-800 leading-relaxed">When you report a change, DWP reassesses your <strong>entire claim</strong> — not just what's changed. Your award could go up, stay the same, or go down.</p>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {[{stat:'65%',sub:'of new claims\nrejected'},{stat:'33%',sub:'of CoC claims\nawarded more'},{stat:'6 months',sub:'average time\nfor a decision'}].map((s,i)=>(
-                <div key={i} className="bg-amber-100 rounded-xl p-2 text-center">
-                  <p className="font-black text-amber-900 text-base">{s.stat}</p>
-                  <p className="text-[10px] text-amber-800 leading-snug whitespace-pre-line">{s.sub}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
@@ -1019,6 +1026,24 @@ export function ChangeOfCircumstancesScreen() {
               ))}
             </div>
             <p className="text-xs text-teal-700 font-medium mt-3 bg-teal-50 rounded-xl px-3 py-2">PIPpal will help you describe all of this clearly — using the language DWP assessors are trained to look for.</p>
+          </div>
+
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <span className="text-xl shrink-0 mt-0.5">⚠️</span>
+              <div>
+                <p className="text-sm font-bold text-stone-900">Reassessment covers your whole claim</p>
+                <p className="text-sm text-stone-600 mt-1 leading-relaxed">When you report a change, DWP reassesses <strong>everything</strong> — not just what's changed. Your award could go up, stay the same, or go down.</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[{stat:'65%',sub:'of new claims rejected'},{stat:'33%',sub:'of CoC claims get more'},{stat:'6 months',sub:'average decision time'}].map((s,i)=>(
+                <div key={i} className="bg-white rounded-xl p-2.5 text-center border border-stone-200">
+                  <p className="font-black text-teal-700 text-base">{s.stat}</p>
+                  <p className="text-[10px] text-stone-500 mt-0.5 leading-snug">{s.sub}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <button
@@ -1175,33 +1200,25 @@ export function ChangeOfCircumstancesScreen() {
             </div>
           )}
 
-          {/* What we need + how to strengthen evidence */}
+          {/* Upload first */}
           <div className="bg-teal-700 rounded-2xl p-5 text-white">
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-5 h-5 text-teal-200 shrink-0" aria-hidden />
-              <h2 className="font-bold text-base">What we need here</h2>
+              <h2 className="font-bold text-base">Upload your paperwork</h2>
             </div>
             <p className="text-teal-100 text-sm leading-relaxed">
-              Add photos or PDFs of your PIP paperwork if you have them.
+              Add photos or PDFs of your PIP2 form, PA4 assessor report, or decision letter. The more you upload, the stronger your change of circumstances will be.
             </p>
           </div>
 
+          {/* Strongest claim — below uploads, no paperwork later button */}
           <div className="rounded-2xl border border-teal-200/80 bg-white p-4 shadow-sm space-y-2">
-            <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Strongest claim</p>
+            <p className="text-[11px] font-bold text-teal-800 uppercase tracking-wider">Get the strongest claim</p>
             <p className="text-sm text-stone-700 leading-snug">
               Don&apos;t have everything to hand? Call DWP free on{' '}
               <a href="tel:08009172222" className="font-semibold text-teal-700 underline decoration-teal-400/70 underline-offset-2">0800 917 2222</a>
-              {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly — uploading them here helps us align your previous wording and create a stronger claim for your change of circumstances.
+              {' '}and ask for your PIP2, PA4 assessor report, and decision letter (with scores). Official copies usually arrive quickly.
             </p>
-            {!noForm && !hasAny && (
-              <button
-                type="button"
-                onClick={() => setNoForm(true)}
-                className="w-full mt-2 py-2.5 rounded-xl text-sm font-semibold text-stone-600 border border-stone-200 bg-stone-50 hover:bg-stone-100 active:scale-[0.99] transition-all"
-              >
-                I&apos;ll add paperwork later — continue without uploads
-              </button>
-            )}
           </div>
 
           <input
@@ -1371,7 +1388,17 @@ export function ChangeOfCircumstancesScreen() {
           <div className="space-y-2">
             <button
               type="button"
-              onClick={next}
+              onClick={() => {
+                if (hasAny) {
+                  setShowUploadLoading(true);
+                  setTimeout(() => {
+                    setShowUploadLoading(false);
+                    next();
+                  }, 3000);
+                } else {
+                  next();
+                }
+              }}
               disabled={!canContinue || busy}
               className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-40"
             >
@@ -1379,7 +1406,7 @@ export function ChangeOfCircumstancesScreen() {
             </button>
             {!canContinue && !busy && (
               <p className="text-xs text-stone-500 text-center leading-relaxed px-1">
-                Add paperwork or continue without uploads from the shaded box — then Continue to review each activity.
+                Upload your paperwork above to continue.
               </p>
             )}
           </div>

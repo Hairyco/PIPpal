@@ -652,7 +652,8 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
                 )}
               </div>
             )}
-            {/* Example answer — shown for all users including CoC */}
+            {/* Example answer — shown for all users except has-form CoC (they have previous answers to compare) */}
+            {!cocMode || !Object.values(cocPreviousAnswers).some(v => v) ? (
             <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-4">
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2 min-w-0">
@@ -707,6 +708,7 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
                   )}
                 </div>
               </div>
+            ) : null}
           </div>
         </div>
 
