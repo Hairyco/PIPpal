@@ -997,24 +997,28 @@ export function ChangeOfCircumstancesScreen() {
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-lg">🔑</span>
-              <h3 className="font-bold text-stone-900 text-sm">What DWP actually looks at</h3>
+              <h3 className="font-bold text-stone-900 text-sm">What DWP looks for in a CoC</h3>
             </div>
-            <p className="text-sm text-stone-700 leading-relaxed mb-3">Your diagnosis alone won't decide your award. What matters is <strong>how your condition affects you now</strong> — day in, day out.</p>
-            <div className="grid grid-cols-2 gap-2">
+            <p className="text-sm text-stone-600 leading-relaxed mb-3">DWP won't just take your word that things have changed — they need to see <strong className="text-stone-900">evidence of deterioration</strong>. Here's what they focus on:</p>
+            <div className="space-y-2.5">
               {[
-                { icon: '🛡️', label: 'Safely', sub: 'Without risk of harm to yourself' },
-                { icon: '🔁', label: 'Repeatedly', sub: 'Not just once on a good day' },
-                { icon: '✅', label: 'Properly', sub: 'To an acceptable standard' },
-                { icon: '⏱️', label: 'In time', sub: 'Not taking much longer than normal' },
+                { title: 'Has it got more frequent?', body: 'Activities you could do 3 days a week but now struggle with every day carry more weight.' },
+                { title: 'Do you need more help now?', body: 'If you previously managed alone but now need prompting, supervision, or someone present — that matters.' },
+                { title: 'Has it become less safe?', body: 'Increased risk of falls, accidents, or injury since your last award is a strong indicator of change.' },
+                { title: 'Are you taking significantly longer?', body: 'Tasks that now take much longer than before, or leave you exhausted afterwards, count.' },
               ].map((item, i) => (
-                <div key={i} className="bg-teal-50 rounded-xl p-3">
-                  <span className="text-base">{item.icon}</span>
-                  <p className="font-bold text-teal-900 text-xs mt-1">{item.label}</p>
-                  <p className="text-[10px] text-teal-700 mt-0.5 leading-snug">{item.sub}</p>
+                <div key={i} className="flex gap-3 py-2.5 border-b border-stone-50 last:border-0">
+                  <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-teal-700 text-[10px] font-black">{i + 1}</span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                    <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                  </div>
                 </div>
               ))}
             </div>
-            <p className="text-xs text-stone-500 mt-3 leading-relaxed">If things have got worse since your last assessment — more frequent, less safe, needing more help — we will help you describe this clearly to the DWP.</p>
+            <p className="text-xs text-teal-700 font-medium mt-3 bg-teal-50 rounded-xl px-3 py-2">PIPpal will help you describe all of this clearly — using the language DWP assessors are trained to look for.</p>
           </div>
 
           <BackpayCalculator />
