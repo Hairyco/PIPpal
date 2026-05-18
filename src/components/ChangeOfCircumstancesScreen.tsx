@@ -1021,8 +1021,6 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-xs text-teal-700 font-medium mt-3 bg-teal-50 rounded-xl px-3 py-2">PIPpal will help you describe all of this clearly — using the language DWP assessors are trained to look for.</p>
           </div>
 
-          <BackpayCalculator />
-
           <button
             type="button"
             onClick={next}
