@@ -315,49 +315,146 @@ export function MandatoryReconsiderationScreen() {
     setMrLetter(null);
   };
 
+  const [step, setStep] = useState(1);
+  const [mrRoute, setMrRoute] = useState<'form' | 'letter' | null>(null);
+  const [mrSummary, setMrSummary] = useState<string | null>(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+
+  // Auto-generate summary when letter is extracted
+  useEffect(() => {
+    if (!hasExtraction || mrSummary || generatingSummary) return;
+    setGeneratingSummary(true);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Summarise this PIP decision letter in plain English for the claimant. Focus on: what they were awarded (or denied), the points given per activity, and the key reasons DWP gave. Keep it to 3-4 sentences. Be clear and factual.\n\nDecision letter content:\n${extractionText}`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile?.conditions || [] },
+      }),
+    }).then(r => r.json()).then(d => { if (d.reply) setMrSummary(d.reply.trim()); }).catch(() => {}).finally(() => setGeneratingSummary(false));
+  }, [hasExtraction]);
+
   return (
     <div className="flex flex-col h-full bg-stone-50">
+      {/* Header */}
       <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10 shrink-0">
         <button
           type="button"
-          onClick={goBack}
+          onClick={step === 1 ? goBack : () => setStep(s => s - 1)}
           className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="font-bold text-stone-900 text-lg leading-tight">Mandatory Reconsideration</h1>
+        <div className="flex-1">
+          <h1 className="font-bold text-stone-900 text-base leading-tight">Mandatory Reconsideration</h1>
+          <p className="text-[11px] text-stone-400 font-medium">Step {step} of 4</p>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-4 pb-10">
-        <div className="bg-teal-700 rounded-2xl p-5 text-white">
-          <h2 className="font-bold text-lg mb-3">Explain why the decision is wrong — and gather evidence</h2>
-          <p className="text-teal-100 text-sm leading-relaxed mb-3">
-            A Mandatory Reconsideration (MR) is the essential first step if you disagree with a Personal Independence Payment (PIP) decision. It effectively asks the Department for Work and Pensions (DWP) to look at your claim again.
-          </p>
-          <p className="text-teal-100 text-sm leading-relaxed">
-            You can request an MR if you were denied PIP entirely, awarded a lower rate than expected, or given an award for a shorter period than you think is fair.
-          </p>
-        </div>
+      {/* ── STEP 1: What is MR + deadline ────────────────────────────────────── */}
+      {step === 1 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <h2 className="font-bold text-lg mb-3">Explain why the decision is wrong — and gather evidence</h2>
+            <p className="text-teal-100 text-sm leading-relaxed mb-3">
+              A Mandatory Reconsideration (MR) is the essential first step if you disagree with a Personal Independence Payment (PIP) decision. It effectively asks the Department for Work and Pensions (DWP) to look at your claim again.
+            </p>
+            <p className="text-teal-100 text-sm leading-relaxed">
+              You can request an MR if you were denied PIP entirely, awarded a lower rate than expected, or given an award for a shorter period than you think is fair.
+            </p>
+          </div>
 
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
-          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-900 leading-relaxed">
-            Ask for a Mandatory Reconsideration within <strong>one month</strong> from the{' '}
-            <strong>date on your letter</strong> (refusal or award you disagree with). If that date passes, seek advice —
-            you may still have options in some circumstances.
-          </p>
-        </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex gap-3">
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-1" />
+            <p className="text-sm text-amber-900 leading-relaxed">
+              Ask for a Mandatory Reconsideration within <strong>one month</strong> from the <strong>date on your letter</strong> (refusal or award you disagree with). If that date passes, seek advice — you may still have options in some circumstances.
+            </p>
+          </div>
 
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
-          <div className="flex items-start gap-2">
-            <Upload className="w-5 h-5 text-teal-700 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-bold text-stone-900 text-sm">1. Upload your PIP decision letter</p>
-              <p className="text-xs text-stone-500 leading-relaxed mt-1">
-                Refusal letter or award you are challenging — we read DWP&apos;s scoring table when it&apos;s visible. Clear
-                photos or PDF pages work best.
-              </p>
+          <div className="space-y-3">
+            <p className="text-xs font-bold text-stone-400 uppercase tracking-widest">How it works</p>
+            {[
+              { n: '1', title: 'Choose your method', body: 'You can complete the official CRMR1 form, or write a letter — both are valid.' },
+              { n: '2', title: 'Upload your decision letter', body: 'We read it, summarise it, and identify what DWP got wrong.' },
+              { n: '3', title: 'We build your case', body: 'PIPpal drafts your arguments activity by activity using your saved answers.' },
+              { n: '4', title: 'Review and submit', body: 'Check your MR, copy it, and send to DWP by post or online.' },
+            ].map(item => (
+              <div key={item.n} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex gap-3">
+                <div className="w-6 h-6 rounded-full bg-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                  <span className="text-white text-[11px] font-bold">{item.n}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-900">{item.title}</p>
+                  <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setStep(2)}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Start my MR <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* ── STEP 2: Choose route ─────────────────────────────────────────────── */}
+      {step === 2 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 2 of 4</p>
+            <h2 className="font-bold text-xl mb-2">How do you want to submit?</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">Both options are equally valid. Choose whichever feels easier — PIPpal helps with both.</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { setMrRoute('form'); setStep(3); }}
+            className="w-full bg-white border-2 border-stone-200 rounded-2xl p-5 text-left hover:border-teal-400 hover:bg-teal-50/30 active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">📋</span>
+              <div>
+                <p className="font-bold text-stone-900 text-base">Fill out Form CRMR1</p>
+                <p className="text-sm text-stone-500 mt-1 leading-relaxed">The official DWP form. We help you complete each field with the right information. Recommended if you prefer a structured approach.</p>
+                <span className="inline-block mt-2 text-[11px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">We generate your answers</span>
+              </div>
             </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setMrRoute('letter'); setStep(3); }}
+            className="w-full bg-white border-2 border-stone-200 rounded-2xl p-5 text-left hover:border-teal-400 hover:bg-teal-50/30 active:scale-[0.99] transition-all"
+          >
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">✉️</span>
+              <div>
+                <p className="font-bold text-stone-900 text-base">Write a letter</p>
+                <p className="text-sm text-stone-500 mt-1 leading-relaxed">A clear, personal letter to DWP challenging the decision. We draft it for you based on your PIP answers and the decision letter.</p>
+                <span className="inline-block mt-2 text-[11px] font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">We draft the full letter</span>
+              </div>
+            </div>
+          </button>
+        </div>
+      )}
+
+      {/* ── STEP 3: Upload decision letter ───────────────────────────────────── */}
+      {step === 3 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 3 of 4</p>
+            <h2 className="font-bold text-xl mb-2">Upload your decision letter</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">We'll read it, summarise it, and use it to build a stronger case. Clear photos or PDF work best.</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-1">Don't have your letter?</p>
+            <p className="text-sm text-stone-600 leading-relaxed">Call DWP on <a href="tel:08001214433" className="font-semibold text-teal-700 underline">0800 121 4433</a> and ask them to send you a copy of your decision letter. They must provide it on request.</p>
           </div>
 
           {letterUploadError && (
@@ -366,277 +463,132 @@ export function MandatoryReconsiderationScreen() {
             </div>
           )}
 
-          <input
-            ref={letterFileRef}
-            type="file"
-            accept="image/*,.pdf"
-            multiple
-            className="hidden"
-            onChange={onLetterPick}
-          />
+          <input ref={letterFileRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={onLetterPick} />
 
           {letterLabels.length === 0 ? (
             <button
               type="button"
               onClick={() => letterFileRef.current?.click()}
-              className="w-full border-2 border-dashed border-stone-200 rounded-xl py-4 flex flex-col items-center gap-2 hover:border-teal-400 hover:bg-teal-50 transition-colors active:scale-[0.99]"
+              className="w-full border-2 border-dashed border-stone-200 rounded-xl py-8 flex flex-col items-center gap-2 hover:border-teal-400 hover:bg-teal-50 transition-colors active:scale-[0.99]"
             >
-              <Upload className="w-5 h-5 text-stone-400" />
-              <span className="text-xs font-medium text-stone-600">Tap to add photos or files</span>
+              <Upload className="w-6 h-6 text-stone-400" />
+              <span className="text-sm font-medium text-stone-600">Tap to upload your decision letter</span>
+              <span className="text-xs text-stone-400">Photo or PDF · up to 10 pages</span>
             </button>
           ) : (
-            <>
+            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-2">
               <div className="flex flex-wrap gap-2 items-center">
                 {letterLabels.map((name, i) => (
-                  <span
-                    key={`${name}-${i}`}
-                    className="text-[11px] bg-stone-100 text-stone-700 px-2 py-1 rounded-lg max-w-full truncate"
-                  >
-                    {name}
-                  </span>
+                  <span key={`${name}-${i}`} className="text-[11px] bg-teal-50 text-teal-700 border border-teal-100 px-2 py-1 rounded-lg max-w-full truncate">{name}</span>
                 ))}
-                <button
-                  type="button"
-                  onClick={clearLetterUpload}
-                  className="text-[11px] font-semibold text-teal-700 hover:text-teal-900"
-                >
-                  Remove all
-                </button>
+                <button type="button" onClick={clearLetterUpload} className="text-[11px] font-semibold text-rose-600 hover:text-rose-800">Remove</button>
               </div>
               {letterBusy && (
-                <div className="flex items-center gap-2 text-xs text-stone-600">
+                <div className="flex items-center gap-2 text-xs text-stone-600 pt-1">
                   <Loader2 className="w-4 h-4 animate-spin text-teal-600" />
-                  Reading your letter…
+                  Reading your letter...
                 </div>
               )}
-              {letterError && (
-                <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>
-              )}
-            </>
+              {letterError && <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>}
+            </div>
           )}
-        </div>
 
-        {!letterBusy && hasExtraction && (
-          <div className="space-y-2">
-            <ActivityAccordionBlock
-              ids={DAILY_LIVING_IDS}
-              extracted={letterExtracted}
-              title="Scores we read — daily living"
-              defaultOpen
-            />
-            <ActivityAccordionBlock
-              ids={MOBILITY_IDS}
-              extracted={letterExtracted}
-              title="Scores we read — mobility"
-              defaultOpen={false}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setStep(4)}
+              disabled={letterBusy}
+              className="flex-1 py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+            >
+              {letterLabels.length > 0 && !letterBusy ? 'Continue with letter' : 'Skip — continue without'} <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── STEP 4: Summary + generate ──────────────────────────────────────── */}
+      {step === 4 && (
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 pb-28">
+          <div className="bg-teal-700 rounded-2xl p-5 text-white">
+            <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-1">Step 4 of 4</p>
+            <h2 className="font-bold text-xl mb-2">{mrRoute === 'form' ? 'Build your CRMR1 answers' : 'Build your MR letter'}</h2>
+            <p className="text-teal-100 text-sm leading-relaxed">PIPpal will use your saved answers and decision letter to draft your {mrRoute === 'form' ? 'form responses' : 'letter'} — showing DWP exactly why the decision is wrong.</p>
+          </div>
+
+          {/* Decision letter summary */}
+          {hasExtraction && (
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">What your letter says</p>
+              {generatingSummary ? (
+                <div className="space-y-2">
+                  <div className="h-3 bg-blue-200 rounded animate-pulse w-full" />
+                  <div className="h-3 bg-blue-200 rounded animate-pulse w-4/5" />
+                  <div className="h-3 bg-blue-200 rounded animate-pulse w-3/5" />
+                </div>
+              ) : mrSummary ? (
+                <p className="text-sm text-blue-900 leading-relaxed">{mrSummary}</p>
+              ) : (
+                <p className="text-sm text-blue-700 italic">Reading your letter...</p>
+              )}
+            </div>
+          )}
+
+          {/* Add notes */}
+          <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+            <p className="text-sm font-bold text-stone-900 mb-1">Anything to add? <span className="font-normal text-stone-400">(optional)</span></p>
+            <p className="text-xs text-stone-500 mb-3">Tell us what you think DWP got wrong, or any important details not in your saved answers.</p>
+            <textarea
+              value={userNotes}
+              onChange={e => setUserNotes(e.target.value)}
+              placeholder="e.g. They gave me 0 points for preparing food but I can't use the hob safely and my partner does all cooking..."
+              rows={4}
+              className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none"
             />
           </div>
-        )}
 
-        <div className="bg-teal-700 rounded-2xl overflow-hidden">
-          <div className="p-5">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-white text-base">2. Create your MR response</p>
-                <p className="text-teal-100 text-xs leading-relaxed mt-0.5">
-                  Draft wording you can paste into a letter or form for DWP. We use your uploaded letter (
-                  {hasExtraction ? 'points extracted' : 'upload for best results'}), optional notes below, and your My
-                  Questions answers when you have them.
-                </p>
-              </div>
-            </div>
-
-            {!hasAnswers && (
-              <button
-                type="button"
-                onClick={() => navigateTo('question_index')}
-                className="w-full mb-3 py-2.5 rounded-xl border border-white/40 text-white text-sm font-semibold hover:bg-white/10 active:scale-[0.98] transition-all"
-              >
-                Build answers in My Questions (recommended)
-                <ArrowRight className="w-4 h-4 inline-block ml-1 -mt-0.5" />
-              </button>
-            )}
-
+          {!mrLetter ? (
+            <button
+              type="button"
+              onClick={generateLetter}
+              disabled={generatingLetter || !canGenerateLetter}
+              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+            >
+              {generatingLetter ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Building your {mrRoute === 'form' ? 'answers' : 'letter'}...</>
+              ) : (
+                <>✨ Generate my {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</>
+              )}
+            </button>
+          ) : (
             <div className="space-y-3">
-              <div>
-                <label className="text-xs font-bold text-teal-100 mb-1.5 block">
-                  Which points feel wrong — and real examples (optional but helpful)
-                </label>
-                <textarea
-                  value={userNotes}
-                  onChange={e => setUserNotes(e.target.value)}
-                  placeholder="e.g. preparing food scored too low — I leave pans on the hob when anxious, several days a week, not just on flare-ups..."
-                  rows={4}
-                  className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-teal-300/80 focus:outline-none focus:border-white/40 resize-none"
-                />
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
+                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</p>
+                <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{mrLetter}</p>
               </div>
-
-              {!mrLetter ? (
+              <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={generateLetter}
-                  disabled={generatingLetter || !canGenerateLetter}
-                  className="w-full bg-white text-teal-700 py-3.5 rounded-xl font-bold text-base hover:bg-teal-50 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  onClick={copyLetter}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all"
                 >
-                  {generatingLetter ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Creating your MR response…
-                    </>
-                  ) : (
-                    <>Create my MR response</>
-                  )}
+                  {letterCopied ? '✓ Copied' : 'Copy'}
                 </button>
-              ) : (
-                <div className="space-y-3">
-                  <div className="bg-white/10 rounded-xl p-4 max-h-96 overflow-y-auto">
-                    <pre className="text-xs text-teal-50 leading-relaxed whitespace-pre-wrap font-sans">{mrLetter}</pre>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={copyLetter}
-                      className="flex-1 bg-white text-teal-700 py-3 rounded-xl font-bold text-sm hover:bg-teal-50 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
-                    >
-                      {letterCopied ? 'Copied' : 'Copy wording'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setMrLetter(null)}
-                      className="px-4 py-3 bg-white/20 text-white rounded-xl text-sm font-bold hover:bg-white/30 transition-all active:scale-[0.98]"
-                    >
-                      Regenerate
-                    </button>
-                  </div>
-                </div>
-              )}
-              {!canGenerateLetter && !mrLetter && (
-                <p className="text-teal-200 text-[10px] text-center leading-relaxed">
-                  Upload your decision letter above, write a short note, or save answers under My Questions to enable this
-                  button.
-                </p>
-              )}
-              {mrLetter && (
-                <p className="text-teal-200 text-[10px] text-center leading-relaxed">
-                  Fill in bracket placeholders, then read everything once before you send. Evidence is listed below — attach
-                  copies and refer to them in your letter if you use them.
-                </p>
-              )}
+                <button
+                  type="button"
+                  onClick={() => { setMrLetter(null); setGeneratingLetter(false); }}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all"
+                >
+                  Regenerate
+                </button>
+              </div>
             </div>
-          </div>
+          )}
+
+          {!canGenerateLetter && !mrLetter && (
+            <p className="text-xs text-stone-400 text-center leading-relaxed">Upload your decision letter or complete your PIP questions first — or add notes above — to generate your {mrRoute === 'form' ? 'answers' : 'letter'}.</p>
+          )}
         </div>
-
-        <Collapse title="Common things to put in your case" defaultOpen={false}>
-          <ul className="space-y-2 text-xs text-stone-700 leading-relaxed">
-            <li className="flex gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              Your PIP decision letter (you can upload it here)
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              The points or activities you believe are incorrect
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              Real examples from daily life — not only a list of diagnoses
-            </li>
-            <li className="flex gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-              Detail where it fits: pain, fatigue, anxiety, prompting or supervision, accidents or risk, how often problems
-              happen
-            </li>
-          </ul>
-        </Collapse>
-
-        <Collapse title="Supporting evidence you can attach" defaultOpen={false}>
-          <ul className="space-y-1.5 text-xs text-stone-700">
-            {[
-              'Letters from your GP',
-              'Specialist or consultant letters',
-              'Medication lists',
-              'Care plans',
-              'Occupational therapy reports',
-              'Mental health support letters',
-              'Hospital records',
-              'Symptom diaries',
-              'Statements from carers, friends, or family',
-            ].map(item => (
-              <li key={item} className="flex gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-teal-600 shrink-0 mt-0.5" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </Collapse>
-
-        <Collapse title="What a strong MR usually does" defaultOpen>
-          <p className="text-xs text-stone-600 leading-relaxed mb-3">
-            Tie each issue to{' '}
-            <strong className="text-stone-800">which descriptor or activity</strong> should apply,{' '}
-            <strong className="text-stone-800">why</strong>, and{' '}
-            <strong className="text-stone-800">short real-world examples</strong> rather than diagnoses alone.
-          </p>
-          <blockquote className="border-l-4 border-teal-300 pl-3 text-xs italic text-stone-700 leading-relaxed bg-stone-50 py-3 rounded-r-lg mb-3">
-            &quot;I cannot cook safely without prompting because I forget pans on the hob due to anxiety and poor concentration.
-            This happens most days.&quot;
-          </blockquote>
-          <p className="text-[11px] text-stone-500 leading-relaxed">
-            Strong supporting evidence helps, but your own clear examples still matter — especially when they match the
-            reliability rules (safely, often enough, in reasonable time, without wiping you out on bad days).
-          </p>
-        </Collapse>
-
-        <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
-          <p className="font-bold text-stone-900 text-sm">Send your MR to DWP</p>
-          <p className="text-xs text-stone-600 leading-relaxed">
-            Include your wording and numbered copies of evidence. Keep what you send. Phone first if you prefer, then confirm
-            in writing if they ask you to.
-          </p>
-          <div className="flex gap-2 items-start text-xs text-stone-600">
-            <Phone className="w-4 h-4 text-teal-700 shrink-0 mt-0.5" />
-            <span>
-              PIP enquiries:{' '}
-              <span className="font-mono font-semibold">{PIP_TEL}</span> (textphone 0800 917 7777)
-            </span>
-          </div>
-          <a
-            href={CRMR1_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 bg-teal-50 rounded-xl p-3 border border-teal-100 hover:bg-teal-100 transition-colors active:scale-[0.99]"
-          >
-            <Download className="w-4 h-4 text-teal-700 shrink-0" />
-            <span className="flex-1 text-xs font-bold text-stone-900">Official MR pack on GOV.UK (includes CRMR1)</span>
-            <ExternalLink className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-          </a>
-        </div>
-
-        <Collapse title="Need your PA4 assessor report?" defaultOpen={false}>
-          <p className="text-xs text-stone-600 leading-relaxed mb-3">
-            The PA4 is what the contractor sent DWP before the decision. Useful if DWP relied on wording you disagree with.
-            Request it separately (for example via SAR) — it is not the same document as your MR letter.
-          </p>
-          <SAREmailGenerator context="pa4" />
-        </Collapse>
-
-        <ContextualAssistantBar
-          label="Want help sharpening this?"
-          sublabel="Paste your draft or say what DWP refused"
-          prompt="I'm challenging my PIP decision with a Mandatory Reconsideration. Here's what DWP awarded and what's wrong..."
-        />
-
-        <button
-          type="button"
-          onClick={() => navigateTo('appeal')}
-          className="w-full py-3 rounded-xl border border-stone-200 bg-white text-stone-700 font-semibold text-sm hover:bg-stone-50 active:scale-[0.98] transition-all"
-        >
-          If MR finishes and you still disagree — appeals
-          <ArrowRight className="w-4 h-4 inline-block ml-1 -mt-0.5 text-stone-500" />
-        </button>
-      </div>
+      )}
     </div>
   );
 }
