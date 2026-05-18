@@ -945,7 +945,7 @@ export function ChangeOfCircumstancesScreen() {
             <p className="text-[11px] font-bold text-teal-200 uppercase tracking-widest mb-2">Change of circumstances</p>
             <h2 className="font-bold text-2xl leading-tight mb-3">Report a change</h2>
             <p className="text-teal-50 text-sm leading-relaxed">
-              A change of circumstances means you want to tell the DWP that your condition has got worse, or something important has changed since your last claim or review. This is an opportunity to receive a <strong className="text-white">higher award</strong> and increased payments. If you would like to apply, call <strong className="text-white">0800 121 4433</strong> and request the AR1 form.
+              A change of circumstances means you want to tell the DWP that your condition has got worse, or something important has changed since your last claim or review. This is an opportunity to receive a <strong className="text-white">higher award</strong> and increased payments. If you would like to apply, call <strong className="text-white">0800 121 4433</strong> to request a form and to make your case stronger — request your original PIP2 form, your assessor report and your award letter, if required.
             </p>
           </div>
 
