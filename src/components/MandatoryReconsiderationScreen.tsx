@@ -330,11 +330,12 @@ export function MandatoryReconsiderationScreen() {
 
       <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-4 pb-10">
         <div className="bg-teal-700 rounded-2xl p-5 text-white">
-          <h2 className="font-bold text-lg mb-2">Explain why the decision is wrong — and gather evidence</h2>
+          <h2 className="font-bold text-lg mb-3">Explain why the decision is wrong — and gather evidence</h2>
+          <p className="text-teal-100 text-sm leading-relaxed mb-3">
+            A Mandatory Reconsideration (MR) is the essential first step if you disagree with a Personal Independence Payment (PIP) decision. It effectively asks the Department for Work and Pensions (DWP) to look at your claim again.
+          </p>
           <p className="text-teal-100 text-sm leading-relaxed">
-            For an MR you mainly need two things: a clear explanation of why DWP got the decision wrong, and proof that
-            backs up how your condition affects you day to day. You do not always need brand-new medical paperwork, but it
-            can help when it matches your examples.
+            You can request an MR if you were denied PIP entirely, awarded a lower rate than expected, or given an award for a shorter period than you think is fair.
           </p>
         </div>
 
