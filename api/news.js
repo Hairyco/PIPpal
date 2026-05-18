@@ -172,7 +172,7 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 async function loadStoredArticles() {
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/news_articles?order=created_at.desc&limit=40`,
+      `${SUPABASE_URL}/rest/v1/news_articles?order=created_at.desc&limit=40&is_relevant=neq.false`,
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } }
     );
     const data = await res.json();
@@ -237,6 +237,7 @@ export default async function handler(req, res) {
           source: item.showSource ? item.sourceName : 'PIPpal News',
           date: dateStr,
           tags,
+          is_relevant: true,
         };
       }));
       freshArticles.push(...processed.filter(Boolean));
@@ -253,7 +254,7 @@ export default async function handler(req, res) {
       if (seen.has(a.title)) return false;
       seen.add(a.title);
       return true;
-    }).filter(a => mentionsPipBenefit(a.title, a.body || '')).slice(0, 30);
+    }).filter(a => mentionsPipBenefit(a.title, a.body || '') && a.is_relevant !== false).slice(0, 30);
 
     // Format stored articles (they may have array tags)
     const articles = merged.map(a => ({
