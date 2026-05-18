@@ -324,6 +324,7 @@ export function MandatoryReconsiderationScreen() {
   // Auto-generate summary when letter is extracted
   useEffect(() => {
     if (!hasExtraction || mrSummary || generatingSummary) return;
+    if (letterLabels[0] === 'mock_mr_decision_letter.pdf') return; // mock — summary already set
     setGeneratingSummary(true);
     fetch('/api/chat', {
       method: 'POST',
@@ -514,6 +515,12 @@ export function MandatoryReconsiderationScreen() {
                 </div>
               )}
               {letterError && <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>}
+              {letterSummary && (
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
+                  <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-1">What your letter says</p>
+                  <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -540,7 +547,7 @@ export function MandatoryReconsiderationScreen() {
           </div>
 
           {/* Decision letter summary */}
-          {hasExtraction && (
+          {(hasExtraction || letterSummary) && (
             <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
               <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">What your letter says</p>
               {generatingSummary ? (
@@ -549,8 +556,8 @@ export function MandatoryReconsiderationScreen() {
                   <div className="h-3 bg-blue-200 rounded animate-pulse w-4/5" />
                   <div className="h-3 bg-blue-200 rounded animate-pulse w-3/5" />
                 </div>
-              ) : mrSummary ? (
-                <p className="text-sm text-blue-900 leading-relaxed">{mrSummary}</p>
+              ) : (letterSummary || mrSummary) ? (
+                <p className="text-sm text-blue-900 leading-relaxed">{letterSummary || mrSummary}</p>
               ) : (
                 <p className="text-sm text-blue-700 italic">Reading your letter...</p>
               )}

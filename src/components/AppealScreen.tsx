@@ -48,6 +48,7 @@ export function AppealScreen() {
 
   useEffect(() => {
     if (letterFiles.length === 0 || letterSummary || generatingSummary) return;
+    if (!letterFiles[0].base64) return; // mock data — summary already set
     setGeneratingSummary(true);
     setLetterBusy(true);
     fetch('/api/chat', {
