@@ -1020,6 +1020,14 @@ export function ChangeOfCircumstancesScreen() {
               </div>
             ))}
           </div>
+
+          <button
+            type="button"
+            onClick={next}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Continue <ArrowRight className="w-5 h-5" aria-hidden />
+          </button>
         </div>
       );
     }
@@ -1055,6 +1063,14 @@ export function ChangeOfCircumstancesScreen() {
             </div>
             <ChevronRight className="w-5 h-5 text-stone-400" />
           </button>
+
+          <button
+            type="button"
+            onClick={next}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Continue <ArrowRight className="w-5 h-5" aria-hidden />
+          </button>
         </div>
       );
     }
@@ -1083,6 +1099,17 @@ export function ChangeOfCircumstancesScreen() {
               </div>
             </div>
           ))}
+
+          <button
+            type="button"
+            onClick={() => {
+              setCocMode(true);
+              navigateTo('question_index');
+            }}
+            className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm"
+          >
+            Start my change of circumstances <ArrowRight className="w-5 h-5" aria-hidden />
+          </button>
         </div>
       );
     }
