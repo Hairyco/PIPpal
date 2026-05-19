@@ -209,18 +209,6 @@ export function AppealScreen() {
                 </div>
               )}
               {letterError && <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>}
-              {letterSummary && (
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                  <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-1">What your letter says</p>
-                  <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
-                </div>
-              )}
-              {letterAdvice && (
-                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
-                  <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-1">How you should appeal</p>
-                  <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
-                </div>
-              )}
             </div>
           )}
 
@@ -327,6 +315,20 @@ export function AppealScreen() {
             <h2 className="font-bold text-xl mb-2">Prepare for your hearing</h2>
             <p className="text-teal-100 text-sm leading-relaxed">The tribunal is independent of DWP. The panel genuinely wants to understand your situation and will make their own decision.</p>
           </div>
+
+          {letterSummary && (
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">What your letter says</p>
+              <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
+            </div>
+          )}
+
+          {letterAdvice && (
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4">
+              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-2">How you should appeal</p>
+              <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+            </div>
+          )}
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
             <p className="text-sm font-bold text-stone-900 mb-3">What to bring</p>

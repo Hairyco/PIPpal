@@ -494,18 +494,6 @@ export function MandatoryReconsiderationScreen() {
                 </div>
               )}
               {letterError && <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{letterError}</p>}
-              {letterSummary && (
-                <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
-                  <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-1">What your letter says</p>
-                  <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
-                </div>
-              )}
-              {letterAdvice && (
-                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
-                  <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-1">How you should challenge this</p>
-                  <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
-                </div>
-              )}
             </div>
           )}
 
@@ -570,6 +558,13 @@ export function MandatoryReconsiderationScreen() {
               ) : (
                 <p className="text-sm text-blue-700 italic">Reading your letter...</p>
               )}
+            </div>
+          )}
+
+          {letterAdvice && (
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4">
+              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-2">How you should challenge this</p>
+              <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
             </div>
           )}
 
