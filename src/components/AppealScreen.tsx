@@ -29,6 +29,9 @@ export function AppealScreen() {
   const [activePill, setActivePill] = useState<string | null>(null);
   const [pillResponse, setPillResponse] = useState<string | null>(null);
   const [pillLoading, setPillLoading] = useState(false);
+  const [activePill, setActivePill] = useState<string | null>(null);
+  const [pillResponse, setPillResponse] = useState<string | null>(null);
+  const [pillLoading, setPillLoading] = useState(false);
   const [improvementNote, setImprovementNote] = useState('');
   const [improving, setImproving] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
@@ -396,10 +399,44 @@ export function AppealScreen() {
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
               <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should appeal</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
-              <button type="button" onClick={() => navigateTo('home')}
-                className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
-                💬 Open PIPpal Assistant for further help
-              </button>
+              {letterPills.length > 0 && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {letterPills.map((pill, i) => (
+                    <button key={i} type="button"
+                      onClick={() => {
+                        if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
+                        setActivePill(pill);
+                        setPillResponse(null);
+                        setPillLoading(true);
+                        fetch('/api/chat', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            message: `For a PIP tribunal appeal, give a 2-3 sentence practical answer to: "${pill}". Be specific and actionable. Plain English.`,
+                            conversationHistory: [],
+                            medProfile: { conditions: medProfile?.conditions || [] },
+                          }),
+                        }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); }).finally(() => setPillLoading(false));
+                      }}
+                      className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${activePill === pill ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
+                      {pill}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {(pillLoading || pillResponse) && (
+                <div className="bg-white border border-teal-100 rounded-xl p-3">
+                  {pillLoading ? (
+                    <div className="flex items-center gap-2 text-xs text-teal-600">
+                      <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                      Thinking...
+                    </div>
+                  ) : (
+                    <p className="text-sm text-stone-700 leading-relaxed">{pillResponse}</p>
+                  )}
+                </div>
+              )}
+              <p className="text-xs text-teal-600 leading-relaxed">You can also explore any of these points further with the PIPpal Assistant.</p>
             </div>
           )}
 
