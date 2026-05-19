@@ -48,11 +48,11 @@ export function Hero({ onStart }: HeroProps) {
         className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         style={{ transitionDelay: '80ms' }}
       >
-        <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-4">
+        <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-2">
           We get your PIP application{' '}
           <span className="whitespace-nowrap">right — <span className="text-teal-700">first time</span></span>
         </h1>
-        <div className="text-stone-600 text-base md:text-lg leading-relaxed mb-4 max-w-2xl mx-auto px-2 space-y-2">
+        <div className="text-stone-600 text-base md:text-lg leading-relaxed mb-3 max-w-2xl mx-auto px-2 space-y-1">
           <p className="font-semibold text-stone-800">PIP decisions take up to 6 months. Do not rely on generic templates.</p>
           <p>We guide you to describe your real daily challenges clearly and accurately so the DWP fully understands your needs.</p>
         </div>
@@ -71,9 +71,9 @@ export function Hero({ onStart }: HeroProps) {
             </p>
           </div>
 
-          <div className="px-4 py-5 sm:p-5 md:p-6">
+          <div className="px-4 py-3 sm:p-4 md:p-5">
           {/* Avatar row below strip — single line on narrow screens */}
-          <div className="flex flex-nowrap items-center justify-start gap-2.5 sm:gap-4 mb-5 min-w-0">
+          <div className="flex flex-nowrap items-center justify-start gap-2.5 sm:gap-4 mb-3 min-w-0">
             <div className="-space-x-2 flex shrink-0">
               {INITIAL_AVATARS.map((a, i) => (
                 <div
@@ -102,7 +102,7 @@ export function Hero({ onStart }: HeroProps) {
             </div>
           </div>
 
-          <div className="space-y-3 mb-5 text-left">
+          <div className="space-y-2 mb-3 text-left">
             {checks.map((check, i) => (
               <div key={i} className="flex items-center gap-2.5">
                 <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
@@ -114,7 +114,7 @@ export function Hero({ onStart }: HeroProps) {
           <button
             type="button"
             onClick={onStart}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
           >
             Start Now
             <ArrowRight className="w-5 h-5" />
