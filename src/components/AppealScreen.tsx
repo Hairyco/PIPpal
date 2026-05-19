@@ -290,6 +290,54 @@ export function AppealScreen() {
             <p className="text-teal-100 text-sm leading-relaxed">PIPpal writes your appeal reasons activity by activity — showing the tribunal exactly why the DWP decision is wrong.</p>
           </div>
 
+          {/* Letter summary + how to appeal — only if letter was uploaded */}
+          {letterSummary && (
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest">What your letter says</p>
+              <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
+            </div>
+          )}
+
+          {letterAdvice && (
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
+              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should appeal</p>
+              <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+              {letterPills.length > 0 && (
+                <>
+                  <p className="text-xs text-teal-700 font-medium">Tap anything that's true for you — we'll add it to your case:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {letterPills.map((pill, i) => {
+                      const added = addedPills.has(pill);
+                      return (
+                        <button key={i} type="button"
+                          onClick={() => {
+                            setAddedPills(prev => {
+                              const next = new Set(prev);
+                              if (next.has(pill)) {
+                                next.delete(pill);
+                                setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
+                              } else {
+                                next.add(pill);
+                                setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
+                              }
+                              return next;
+                            });
+                          }}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${added ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
+                          {added ? '✓ ' : '+ '}{pill}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {addedPills.size > 0 && (
+                    <p className="text-xs text-teal-600">{addedPills.size} fact{addedPills.size > 1 ? 's' : ''} added. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
+                  )}
+                </>
+              )}
+              <p className="text-xs text-teal-600 leading-relaxed">You can also explore this further with the PIPpal Assistant.</p>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-2">
             <p className="text-sm font-bold text-stone-900 mb-2">Where to submit your SSCS1</p>
             <a href="https://www.gov.uk/appeal-benefit-decision" target="_blank" rel="noopener noreferrer"
@@ -434,53 +482,6 @@ export function AppealScreen() {
             <h2 className="font-bold text-xl mb-2">Prepare for your hearing</h2>
             <p className="text-teal-100 text-sm leading-relaxed">The tribunal is independent of DWP. The panel genuinely wants to understand your situation and will make their own decision.</p>
           </div>
-
-          {letterSummary && (
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
-              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest">What your letter says</p>
-              <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
-            </div>
-          )}
-
-          {letterAdvice && (
-            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
-              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should appeal</p>
-              <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
-              {letterPills.length > 0 && (
-                <>
-                  <p className="text-xs text-teal-700 font-medium">Tap anything that's true for you — we'll add it to your case:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {letterPills.map((pill, i) => {
-                      const added = addedPills.has(pill);
-                      return (
-                        <button key={i} type="button"
-                          onClick={() => {
-                            setAddedPills(prev => {
-                              const next = new Set(prev);
-                              if (next.has(pill)) {
-                                next.delete(pill);
-                                setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
-                              } else {
-                                next.add(pill);
-                                setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
-                              }
-                              return next;
-                            });
-                          }}
-                          className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${added ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
-                          {added ? '✓ ' : '+ '}{pill}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {addedPills.size > 0 && (
-                    <p className="text-xs text-teal-600">{addedPills.size} fact{addedPills.size > 1 ? 's' : ''} added. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
-                  )}
-                </>
-              )}
-              <p className="text-xs text-teal-600 leading-relaxed">You can also explore this further with the PIPpal Assistant.</p>
-            </div>
-          )}
 
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
             <p className="text-sm font-bold text-stone-900 mb-3">What to bring</p>
