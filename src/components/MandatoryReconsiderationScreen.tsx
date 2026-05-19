@@ -451,6 +451,35 @@ export function MandatoryReconsiderationScreen() {
             ))}
           </div>
 
+          {/* Medical profile status */}
+          {(() => {
+            const conditions = medProfile?.conditions?.filter((c: any) => c.name?.trim()) || [];
+            return (
+              <div className={`rounded-2xl border p-4 ${conditions.length > 0 ? 'bg-teal-50 border-teal-200' : 'bg-amber-50 border-amber-200'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <p className={`text-[11px] font-bold uppercase tracking-widest mb-1 ${conditions.length > 0 ? 'text-teal-600' : 'text-amber-700'}`}>
+                      {conditions.length > 0 ? '✓ Medical profile' : '⚠️ Medical profile incomplete'}
+                    </p>
+                    {conditions.length > 0 ? (
+                      <p className="text-sm text-teal-800 leading-relaxed">
+                        <strong>{conditions.map((c: any) => c.name).join(', ')}</strong> — your MR will be personalised to these conditions.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-amber-800 leading-relaxed">
+                        Add your conditions so PIPpal can write a personalised mr. Without this your case will be generic.
+                      </p>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => navigateTo('medical_profile')}
+                    className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full border transition-all active:scale-95 ${conditions.length > 0 ? 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100' : 'text-amber-800 bg-white border-amber-300 hover:bg-amber-100'}`}>
+                    {conditions.length > 0 ? 'Update' : 'Add now'}
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
           <button
             type="button"
             onClick={() => setStep(2)}
