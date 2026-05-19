@@ -342,7 +342,7 @@ export function MandatoryReconsiderationScreen() {
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
   const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
   const [letterPills, setLetterPills] = useState<string[]>([]);
-  const [activePill, setActivePill] = useState<string | null>(null);
+  const [addedPills, setAddedPills] = useState<Set<string>>(new Set());
   const [pillResponse, setPillResponse] = useState<string | null>(null);
   const [pillLoading, setPillLoading] = useState(false);
   const [improvementNote, setImprovementNote] = useState('');
@@ -622,17 +622,21 @@ export function MandatoryReconsiderationScreen() {
                   <p className="text-xs text-teal-700 font-medium">Tap anything that's true for you — we'll add it to your case:</p>
                   <div className="flex flex-wrap gap-2">
                     {letterPills.map((pill, i) => {
-                      const added = activePill === pill;
+                      const added = addedPills.has(pill);
                       return (
                         <button key={i} type="button"
                           onClick={() => {
-                            if (added) {
-                              setActivePill(null);
-                              setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
-                            } else {
-                              setActivePill(pill);
-                              setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
-                            }
+                            setAddedPills(prev => {
+                              const next = new Set(prev);
+                              if (next.has(pill)) {
+                                next.delete(pill);
+                                setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
+                              } else {
+                                next.add(pill);
+                                setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
+                              }
+                              return next;
+                            });
                           }}
                           className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${added ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
                           {added ? '✓ ' : '+ '}{pill}
@@ -640,8 +644,8 @@ export function MandatoryReconsiderationScreen() {
                       );
                     })}
                   </div>
-                  {activePill && (
-                    <p className="text-xs text-teal-600">Added to your case. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
+                  {addedPills.size > 0 && (
+                    <p className="text-xs text-teal-600">{addedPills.size} fact{addedPills.size > 1 ? 's' : ''} added. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
                   )}
                 </>
               )}
