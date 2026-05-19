@@ -14,6 +14,7 @@ export function AppealScreen() {
   const [generating, setGenerating] = useState(false);
   const [appealReasons, setAppealReasons] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [answerAnalysis, setAnswerAnalysis] = useState<string | null>(null);
   const hasAnswers = Object.keys(savedAnswers || {}).length > 0;
 
   const letterRef = useRef<HTMLInputElement>(null);
@@ -94,6 +95,15 @@ export function AppealScreen() {
       setAppealReasons(reasons);
       if (res.ok && typeof data.reasons === 'string' && data.reasons.trim()) {
         setAppealDraftReasons(data.reasons.trim());
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `You are reviewing PIP tribunal appeal reasons for an SSCS1 form. Give an objective 2-3 sentence analysis of why this is a stronger case than the original DWP decision. Be honest — note what the argument does well (specific descriptors challenged, evidence referenced, reliability criteria used) and flag anything that could still be strengthened. Do not be sycophantic.\n\nAppeal reasons:\n${reasons}`,
+            conversationHistory: [],
+            medProfile: { conditions: medProfile?.conditions || [] },
+          }),
+        }).then(r => r.json()).then(d => { if (d.reply) setAnswerAnalysis(d.reply.trim()); }).catch(() => {});
       }
     } catch {
       setAppealReasons('Something went wrong. Please try again.');
@@ -298,10 +308,16 @@ export function AppealScreen() {
                 <button type="button" onClick={copyReasons} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
                   {copied ? '✓ Copied' : 'Copy'}
                 </button>
-                <button type="button" onClick={() => setAppealReasons(null)} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                <button type="button" onClick={() => { setAppealReasons(null); setAnswerAnalysis(null); }} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
                   Regenerate
                 </button>
               </div>
+              {answerAnalysis && (
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest mb-2">Why this works</p>
+                  <p className="text-sm text-amber-900 leading-relaxed">{answerAnalysis}</p>
+                </div>
+              )}
               <button type="button" onClick={() => setStep(4)} className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
                 Prepare for my hearing <ArrowRight className="w-5 h-5" />
               </button>

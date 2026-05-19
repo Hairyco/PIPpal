@@ -203,6 +203,7 @@ export function MandatoryReconsiderationScreen() {
   const [mrLetter, setMrLetter] = useState<string | null>(null);
   const [letterCopied, setLetterCopied] = useState(false);
   const [userNotes, setUserNotes] = useState('');
+  const [answerAnalysis, setAnswerAnalysis] = useState<string | null>(null);
 
   const letterFileRef = useRef<HTMLInputElement>(null);
   const [letterLabels, setLetterLabels] = useState<string[]>([]);
@@ -242,6 +243,16 @@ export function MandatoryReconsiderationScreen() {
       setMrLetter(letterText);
       if (res.ok && typeof data.letter === 'string' && data.letter.trim()) {
         setMrDraftLetter(data.letter.trim());
+        // Generate objective analysis
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: `You are reviewing a PIP Mandatory Reconsideration draft. Give an objective 2-3 sentence analysis of why this answer is stronger than the original claim. Be honest — mention what it does well (specific language, descriptor-focused, evidence referenced) and if anything is still weak, note it briefly without being negative. Do not be sycophantic.\n\nDraft:\n${letterText}`,
+            conversationHistory: [],
+            medProfile: { conditions: medProfile?.conditions || [] },
+          }),
+        }).then(r => r.json()).then(d => { if (d.reply) setAnswerAnalysis(d.reply.trim()); }).catch(() => {});
       }
     } catch {
       setMrLetter('Something went wrong. Please try again.');
@@ -630,12 +641,18 @@ export function MandatoryReconsiderationScreen() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setMrLetter(null); setGeneratingLetter(false); }}
+                  onClick={() => { setMrLetter(null); setAnswerAnalysis(null); setGeneratingLetter(false); }}
                   className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all"
                 >
                   Regenerate
                 </button>
               </div>
+              {answerAnalysis && (
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest mb-2">Why this works</p>
+                  <p className="text-sm text-amber-900 leading-relaxed">{answerAnalysis}</p>
+                </div>
+              )}
             </div>
           )}
 
