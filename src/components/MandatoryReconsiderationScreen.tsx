@@ -342,9 +342,8 @@ export function MandatoryReconsiderationScreen() {
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
   const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
   const [letterPills, setLetterPills] = useState<string[]>([]);
-  const [activePill, setActivePill] = useState<string | null>(null);
-  const [pillResponse, setPillResponse] = useState<string | null>(null);
-  const [pillLoading, setPillLoading] = useState(false);
+  const [improvementNote, setImprovementNote] = useState('');
+  const [improving, setImproving] = useState(false);
 
   // Auto-generate summary when letter is extracted
   useEffect(() => {
@@ -590,50 +589,10 @@ export function MandatoryReconsiderationScreen() {
             <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
               <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should challenge this</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
-              {letterPills.length > 0 && (
-                <>
-                  <p className="text-xs text-teal-700 font-medium">Ask PIPpal Assistant:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {letterPills.map((pill, i) => (
-                      <button key={i} type="button"
-                        onClick={() => {
-                          if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
-                          setActivePill(pill);
-                          setPillResponse(null);
-                          setPillLoading(true);
-                          fetch('/api/chat', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              message: `${pill}. Give a short, practical 2-3 sentence answer specific to a PIP ${filepath.includes('Appeal') ? 'tribunal appeal' : 'Mandatory Reconsideration'}. Be direct and actionable. Plain English.`,
-                              conversationHistory: [],
-                              medProfile: { conditions: medProfile?.conditions || [] },
-                            }),
-                          }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); }).catch(() => setPillResponse('Could not load — try the PIPpal Assistant.')).finally(() => setPillLoading(false));
-                        }}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${activePill === pill ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
-                        {pill}
-                      </button>
-                    ))}
-                  </div>
-                  {(pillLoading || pillResponse) && (
-                    <div className="bg-white border border-teal-100 rounded-xl p-3">
-                      {pillLoading ? (
-                        <div className="flex items-center gap-2 text-xs text-stone-500">
-                          <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                          Thinking...
-                        </div>
-                      ) : (
-                        <p className="text-sm text-stone-700 leading-relaxed">{pillResponse}</p>
-                      )}
-                    </div>
-                  )}
-                  <button type="button" onClick={() => navigateTo('home')}
-                    className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
-                    💬 Open PIPpal Assistant for more help
-                  </button>
-                </>
-              )}
+              <button type="button" onClick={() => navigateTo('home')}
+                className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
+                💬 Open PIPpal Assistant for further help
+              </button>
             </div>
           )}
 
@@ -669,22 +628,10 @@ export function MandatoryReconsiderationScreen() {
                 <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</p>
                 <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{mrLetter}</p>
               </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={copyLetter}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all"
-                >
-                  {letterCopied ? '✓ Copied' : 'Copy'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMrLetter(null); setAnswerAnalysis(null); setAnswerScore(null); setAnswerScore(null); setGeneratingLetter(false); }}
-                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all"
-                >
-                  Regenerate
-                </button>
-              </div>
+              <button type="button" onClick={copyLetter}
+                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
+                {letterCopied ? '✓ Copied' : 'Copy'}
+              </button>
               {(answerAnalysis || answerScore !== null) && (
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
                   <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Why this works</p>
@@ -697,16 +644,42 @@ export function MandatoryReconsiderationScreen() {
                         </span>
                       </div>
                       <div className="w-full h-2.5 bg-amber-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-700 ${answerScore >= 8 ? 'bg-teal-500' : answerScore >= 5 ? 'bg-amber-500' : 'bg-rose-500'}`}
-                          style={{ width: `${(answerScore / 10) * 100}%` }}
-                        />
+                        <div className={`h-full rounded-full transition-all duration-700 ${answerScore >= 8 ? 'bg-teal-500' : answerScore >= 5 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                          style={{ width: `${(answerScore / 10) * 100}%` }} />
                       </div>
                     </div>
                   )}
                   {answerAnalysis && <p className="text-sm text-amber-900 leading-relaxed">{answerAnalysis}</p>}
                 </div>
               )}
+              <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+                <p className="text-sm font-bold text-stone-900">Want to strengthen it?</p>
+                <p className="text-xs text-stone-500 leading-relaxed">Tell us what to add or change — a specific incident, extra evidence, a point DWP missed — and we'll rewrite it.</p>
+                <textarea value={improvementNote} onChange={e => setImprovementNote(e.target.value)}
+                  placeholder="e.g. Add that I burned myself twice last month. Include that my GP confirmed I need supervision when cooking."
+                  rows={3} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 text-sm focus:ring-1 focus:ring-teal-400 focus:border-teal-400 resize-none" />
+                <div className="flex gap-2">
+                  <button type="button" disabled={!improvementNote.trim() || improving}
+                    onClick={async () => {
+                      setImproving(true);
+                      try {
+                        const res = await fetch('/api/chat', {
+                          method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ message: `Improve this PIP ${mrRoute === 'form' ? 'CRMR1 form answer' : 'Mandatory Reconsideration letter'} by incorporating the following note. Keep the same structure. Make it stronger without adding anything not mentioned.\n\nCurrent draft:\n${mrLetter}\n\nWhat to add/change:\n${improvementNote}`, conversationHistory: [], medProfile: { conditions: medProfile?.conditions || [] } }),
+                        });
+                        const data = await res.json();
+                        if (data.reply) { setMrLetter(data.reply.trim()); setImprovementNote(''); setAnswerAnalysis(null); setAnswerScore(null); }
+                      } catch {} finally { setImproving(false); }
+                    }}
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 active:scale-[0.99] transition-all disabled:opacity-40 flex items-center justify-center gap-1.5">
+                    {improving ? <><div className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" /> Improving...</> : <>✨ Improve</>}
+                  </button>
+                  <button type="button" onClick={() => { setMrLetter(null); setAnswerAnalysis(null); setAnswerScore(null); setImprovementNote(''); setGeneratingLetter(false); }}
+                    className="px-4 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                    Start over
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
