@@ -167,7 +167,7 @@ export function HomeScreen() {
       {/* New user guide overlay — fades everything except New Claim button */}
       {showNewUserGuide && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[1px] flex flex-col items-center justify-start pt-[52%] px-6 gap-4 animate-in fade-in duration-500"
+          className="fixed inset-0 z-40 bg-black/60 flex flex-col items-center justify-start pt-[52%] px-6 gap-4"
           onClick={() => setShowNewUserGuide(false)}
         >
           <div className="bg-white rounded-2xl px-5 py-4 max-w-xs text-center shadow-xl">
