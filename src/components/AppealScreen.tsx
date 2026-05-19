@@ -76,11 +76,24 @@ export function AppealScreen() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `Based on this PIP MR decision letter, give 2-3 plain English sentences of specific advice on how to challenge it at tribunal. What activities should they focus on? What evidence would help? What should they argue? Be direct and practical.\n\nFiles: ${letterFiles.map(f => f.name).join(', ')}`,
+        message: `Based on this PIP MR decision letter, write 2-3 plain English sentences about which activities to appeal and why DWP got it wrong. Be direct. Do NOT tell the claimant what to say — PIPpal will write the case for them.\n\nThen on a new line, return a JSON array of 4-5 short first-person statements (5-8 words each) the claimant can tap to confirm are true — real facts about their experience that strengthen the appeal, specific to the activities scored in this letter. Things claimants forget to mention. Format exactly: ADVICE: <text>\nPILLS: ["statement 1", "statement 2"]\n\nFiles: ${letterFiles.map(f => f.name).join(', ')}`,
         conversationHistory: [],
         medProfile: { conditions: medProfile?.conditions || [] },
       }),
-    }).then(r => r.json()).then(d => { if (d.reply) setLetterAdvice(d.reply.trim()); });
+    }).then(r => r.json()).then(d => {
+      if (d.reply) {
+        const adviceMatch = d.reply.match(/ADVICE:\s*(.+?)(?:\nPILLS:|$)/s);
+        const pillsMatch = d.reply.match(/PILLS:\s*(\[[\s\S]+\])/);
+        if (adviceMatch) setLetterAdvice(adviceMatch[1].trim());
+        else setLetterAdvice(d.reply.trim());
+        if (pillsMatch) {
+          try {
+            const pills = JSON.parse(pillsMatch[1]);
+            if (Array.isArray(pills)) setLetterPills(pills.slice(0, 5));
+          } catch {}
+        }
+      }
+    });
 
     Promise.all([summaryPromise, advicePromise])
       .catch(() => setLetterError('Could not read the letter automatically.'))
@@ -254,7 +267,7 @@ export function AppealScreen() {
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf' }]);
                 setLetterSummary('DWP maintained their original decision at MR. They awarded 4 points for preparing food and 0 points for planning a journey. The assessor noted the claimant could use a microwave and plan familiar routes. DWP concluded the claimant did not meet the threshold for enhanced Daily Living or any Mobility award.');
                 setLetterAdvice('Focus your appeal on the preparing food and planning a journey activities — these are where DWP scored lowest and there is most room to challenge. Bring a GP letter or carer statement confirming you cannot cook safely unsupervised. At tribunal, describe your worst days in detail and emphasise how often you need help, not just whether you can do it at all.');
-                setLetterPills(['Help me argue preparing food', 'Help me argue planning a journey', 'What evidence should I bring?', 'How do I describe my worst days?', 'Write my SSCS1 appeal reasons']);
+                setLetterPills(['I cannot travel alone safely', 'I need someone to come with me', 'I only manage familiar short routes', 'My condition has got worse since the assessment', 'I have medical evidence to support this']);
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary
@@ -397,43 +410,34 @@ export function AppealScreen() {
               <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should appeal</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
               {letterPills.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {letterPills.map((pill, i) => (
-                    <button key={i} type="button"
-                      onClick={() => {
-                        if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
-                        setActivePill(pill);
-                        setPillResponse(null);
-                        setPillLoading(true);
-                        fetch('/api/chat', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            message: `For a PIP tribunal appeal, give a 2-3 sentence practical answer to: "${pill}". Be specific and actionable. Plain English.`,
-                            conversationHistory: [],
-                            medProfile: { conditions: medProfile?.conditions || [] },
-                          }),
-                        }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); }).finally(() => setPillLoading(false));
-                      }}
-                      className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${activePill === pill ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
-                      {pill}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {(pillLoading || pillResponse) && (
-                <div className="bg-white border border-teal-100 rounded-xl p-3">
-                  {pillLoading ? (
-                    <div className="flex items-center gap-2 text-xs text-teal-600">
-                      <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                      Thinking...
-                    </div>
-                  ) : (
-                    <p className="text-sm text-stone-700 leading-relaxed">{pillResponse}</p>
+                <>
+                  <p className="text-xs text-teal-700 font-medium">Tap anything that's true for you — we'll add it to your case:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {letterPills.map((pill, i) => {
+                      const added = activePill === pill;
+                      return (
+                        <button key={i} type="button"
+                          onClick={() => {
+                            if (added) {
+                              setActivePill(null);
+                              setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
+                            } else {
+                              setActivePill(pill);
+                              setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
+                            }
+                          }}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${added ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
+                          {added ? '✓ ' : '+ '}{pill}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activePill && (
+                    <p className="text-xs text-teal-600">Added to your case. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
                   )}
-                </div>
+                </>
               )}
-              <p className="text-xs text-teal-600 leading-relaxed">You can also explore any of these points further with the PIPpal Assistant.</p>
+              <p className="text-xs text-teal-600 leading-relaxed">You can also explore this further with the PIPpal Assistant.</p>
             </div>
           )}
 

@@ -353,7 +353,8 @@ export function MandatoryReconsiderationScreen() {
     if (!hasExtraction || mrSummary || generatingSummary) return;
     if (letterLabels[0] === 'mock_mr_decision_letter.pdf') return; // mock — summary already set
     setGeneratingSummary(true);
-    fetch('/api/chat', {
+
+    const summaryCall = fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -361,7 +362,31 @@ export function MandatoryReconsiderationScreen() {
         conversationHistory: [],
         medProfile: { conditions: medProfile?.conditions || [] },
       }),
-    }).then(r => r.json()).then(d => { if (d.reply) setMrSummary(d.reply.trim()); }).catch(() => {}).finally(() => setGeneratingSummary(false));
+    }).then(r => r.json()).then(d => { if (d.reply) setMrSummary(d.reply.trim()); }).catch(() => {});
+
+    const adviceCall = fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Based on this PIP decision letter, write 2-3 plain English sentences about which activities to challenge and why. Be direct — tell the claimant what DWP got wrong and what to focus on. Do NOT give them instructions on what to say. PIPpal will write the case for them.\n\nThen on a new line, return a JSON array of 4-5 short first-person statements (5-8 words each) that the claimant can tap to confirm are true — facts about their real experience that would strengthen the challenge. These should be things claimants often forget to mention, specific to the activities scored in this letter. Format: ADVICE: <text>\nPILLS: ["statement 1", "statement 2"]\n\nDecision letter:\n${extractionText}`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile?.conditions || [] },
+      }),
+    }).then(r => r.json()).then(d => {
+      if (d.reply) {
+        const adviceMatch = d.reply.match(/ADVICE:\s*(.+?)(?:\nPILLS:|$)/s);
+        const pillsMatch = d.reply.match(/PILLS:\s*(\[[\s\S]+\])/);
+        if (adviceMatch) setLetterAdvice(adviceMatch[1].trim());
+        if (pillsMatch) {
+          try {
+            const pills = JSON.parse(pillsMatch[1]);
+            if (Array.isArray(pills)) setLetterPills(pills.slice(0, 5));
+          } catch {}
+        }
+      }
+    }).catch(() => {});
+
+    Promise.all([summaryCall, adviceCall]).finally(() => setGeneratingSummary(false));
   }, [hasExtraction]);
 
   return (
@@ -540,7 +565,7 @@ export function MandatoryReconsiderationScreen() {
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf', size: 0 }]);
                 setLetterSummary('DWP maintained their original decision. They awarded 4 points for preparing food (Descriptor B) and 0 points for managing therapy. The key reason given was that the assessor observed the claimant could use a microwave independently and no supervision was noted during the assessment.');
                 setLetterAdvice('Challenge the preparing food score by showing you cannot cook safely on most days — not just occasionally. For managing therapy, provide a letter from your GP confirming the frequency and complexity of your treatment. Focus on the reliability and safety criteria: can you do it safely, repeatedly, and to an acceptable standard?');
-                setLetterPills(['Help me argue preparing food', 'Help me argue managing therapy', 'What evidence do I need?', 'How do I show I need supervision?', 'Write my MR argument']);
+                setLetterPills(['I need someone present when I cook', 'I\'ve burned myself or left the hob on', 'I can only manage ready meals', 'My GP knows about my difficulties', 'I take much longer than a healthy person']);
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary
@@ -593,43 +618,34 @@ export function MandatoryReconsiderationScreen() {
               <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should challenge this</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
               {letterPills.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {letterPills.map((pill, i) => (
-                    <button key={i} type="button"
-                      onClick={() => {
-                        if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
-                        setActivePill(pill);
-                        setPillResponse(null);
-                        setPillLoading(true);
-                        fetch('/api/chat', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({
-                            message: `For a PIP Mandatory Reconsideration, give a 2-3 sentence practical answer to: "${pill}". Be specific and actionable. Plain English.`,
-                            conversationHistory: [],
-                            medProfile: { conditions: medProfile?.conditions || [] },
-                          }),
-                        }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); }).finally(() => setPillLoading(false));
-                      }}
-                      className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${activePill === pill ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
-                      {pill}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {(pillLoading || pillResponse) && (
-                <div className="bg-white border border-teal-100 rounded-xl p-3">
-                  {pillLoading ? (
-                    <div className="flex items-center gap-2 text-xs text-teal-600">
-                      <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                      Thinking...
-                    </div>
-                  ) : (
-                    <p className="text-sm text-stone-700 leading-relaxed">{pillResponse}</p>
+                <>
+                  <p className="text-xs text-teal-700 font-medium">Tap anything that's true for you — we'll add it to your case:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {letterPills.map((pill, i) => {
+                      const added = activePill === pill;
+                      return (
+                        <button key={i} type="button"
+                          onClick={() => {
+                            if (added) {
+                              setActivePill(null);
+                              setImprovementNote(prev => prev.replace(pill + '. ', '').replace(pill, '').trim());
+                            } else {
+                              setActivePill(pill);
+                              setImprovementNote(prev => prev ? prev + ' ' + pill + '.' : pill + '.');
+                            }
+                          }}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${added ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
+                          {added ? '✓ ' : '+ '}{pill}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {activePill && (
+                    <p className="text-xs text-teal-600">Added to your case. Use <strong>✨ Improve</strong> below to strengthen your draft.</p>
                   )}
-                </div>
+                </>
               )}
-              <p className="text-xs text-teal-600 leading-relaxed">You can also raise any of these points with the PIPpal Assistant.</p>
+              <p className="text-xs text-teal-600 leading-relaxed">You can also explore this further with the PIPpal Assistant.</p>
             </div>
           )}
 
