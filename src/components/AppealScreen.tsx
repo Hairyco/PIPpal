@@ -15,6 +15,7 @@ export function AppealScreen() {
   const [appealReasons, setAppealReasons] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [answerAnalysis, setAnswerAnalysis] = useState<string | null>(null);
+  const [answerScore, setAnswerScore] = useState<number | null>(null);
   const hasAnswers = Object.keys(savedAnswers || {}).length > 0;
 
   const letterRef = useRef<HTMLInputElement>(null);
@@ -99,11 +100,19 @@ export function AppealScreen() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: `You are reviewing PIP tribunal appeal reasons for an SSCS1 form. Give an objective 2-3 sentence analysis of why this is a stronger case than the original DWP decision. Be honest — note what the argument does well (specific descriptors challenged, evidence referenced, reliability criteria used) and flag anything that could still be strengthened. Do not be sycophantic.\n\nAppeal reasons:\n${reasons}`,
+            message: `You are reviewing PIP tribunal appeal reasons for an SSCS1 form. Return ONLY valid JSON: {"score": <number 1-10>, "analysis": "<2-3 sentences>"}. Score 1-10 for how strong this appeal case is (8+ = very strong, 5-7 = solid, below 5 = needs work). Analysis: be honest and objective — what it does well (descriptors challenged, reliability/safety criteria, evidence cited) and what could still be stronger. No sycophancy.\n\nAppeal reasons:\n${reasons}`,
             conversationHistory: [],
             medProfile: { conditions: medProfile?.conditions || [] },
           }),
-        }).then(r => r.json()).then(d => { if (d.reply) setAnswerAnalysis(d.reply.trim()); }).catch(() => {});
+        }).then(r => r.json()).then(d => {
+          if (d.reply) {
+            try {
+              const parsed = JSON.parse(d.reply.replace(/```json|```/g, '').trim());
+              if (parsed.score) setAnswerScore(Number(parsed.score));
+              if (parsed.analysis) setAnswerAnalysis(parsed.analysis.trim());
+            } catch { setAnswerAnalysis(d.reply.trim()); }
+          }
+        }).catch(() => {});
       }
     } catch {
       setAppealReasons('Something went wrong. Please try again.');
@@ -308,14 +317,30 @@ export function AppealScreen() {
                 <button type="button" onClick={copyReasons} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
                   {copied ? '✓ Copied' : 'Copy'}
                 </button>
-                <button type="button" onClick={() => { setAppealReasons(null); setAnswerAnalysis(null); }} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                <button type="button" onClick={() => { setAppealReasons(null); setAnswerAnalysis(null); setAnswerScore(null); }} className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-600 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
                   Regenerate
                 </button>
               </div>
-              {answerAnalysis && (
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest mb-2">Why this works</p>
-                  <p className="text-sm text-amber-900 leading-relaxed">{answerAnalysis}</p>
+              {(answerAnalysis || answerScore !== null) && (
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
+                  <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Why this works</p>
+                  {answerScore !== null && (
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-amber-800">Strength score</span>
+                        <span className={`text-sm font-black ${answerScore >= 8 ? 'text-teal-700' : answerScore >= 5 ? 'text-amber-700' : 'text-rose-600'}`}>
+                          {answerScore}/10 — {answerScore >= 8 ? 'Very strong' : answerScore >= 5 ? 'Solid' : 'Needs work'}
+                        </span>
+                      </div>
+                      <div className="w-full h-2.5 bg-amber-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ${answerScore >= 8 ? 'bg-teal-500' : answerScore >= 5 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                          style={{ width: `${(answerScore / 10) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {answerAnalysis && <p className="text-sm text-amber-900 leading-relaxed">{answerAnalysis}</p>}
                 </div>
               )}
               <button type="button" onClick={() => setStep(4)} className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm">
