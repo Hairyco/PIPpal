@@ -708,11 +708,16 @@ export function MandatoryReconsiderationScreen() {
                   🔗 Share
                 </button>
                 <button type="button"
-                  onClick={() => {
-                    const blob = new Blob([mrLetter ?? ''], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
+                  onClick={async () => {
+                    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import('docx');
+                    const text = (mrLetter ?? '');
+                    const lines = text.split('\n');
+                    const docChildren = [new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun({ text: mrRoute === 'form' ? 'PIPpal CRMR1 Answers' : 'PIPpal Mandatory Reconsideration', bold: true, size: 32, font: 'Arial' })] }), ...lines.map(line => line.trim() === '' ? new Paragraph('') : new Paragraph({ children: [new TextRun({ text: line, size: 24, font: 'Arial' })] }))];
+                    const doc = new Document({ sections: [{ children: docChildren }] });
+                    const buf = await Packer.toBlob(doc);
+                    const url = URL.createObjectURL(buf);
                     const a = document.createElement('a');
-                    a.href = url; a.download = mrRoute === 'form' ? 'PIPpal-CRMR1.txt' : 'PIPpal-MR-Letter.txt'; a.click();
+                    a.href = url; a.download = mrRoute === 'form' ? 'PIPpal-CRMR1.docx' : 'PIPpal-MR-Letter.docx'; a.click();
                     URL.revokeObjectURL(url);
                   }}
                   className="py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
