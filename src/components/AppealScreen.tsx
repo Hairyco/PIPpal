@@ -23,6 +23,7 @@ export function AppealScreen() {
   const [letterError, setLetterError] = useState<string | null>(null);
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
   const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
+  const [letterPills, setLetterPills] = useState<string[]>([]);
   const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const onLetterPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,6 +230,7 @@ export function AppealScreen() {
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf' }]);
                 setLetterSummary('DWP maintained their original decision at MR. They awarded 4 points for preparing food and 0 points for planning a journey. The assessor noted the claimant could use a microwave and plan familiar routes. DWP concluded the claimant did not meet the threshold for enhanced Daily Living or any Mobility award.');
                 setLetterAdvice('Focus your appeal on the preparing food and planning a journey activities — these are where DWP scored lowest and there is most room to challenge. Bring a GP letter or carer statement confirming you cannot cook safely unsupervised. At tribunal, describe your worst days in detail and emphasise how often you need help, not just whether you can do it at all.');
+                setLetterPills(['Help me argue preparing food', 'Help me argue planning a journey', 'What evidence should I bring?', 'How do I describe my worst days?', 'Write my SSCS1 appeal reasons']);
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary
@@ -317,16 +319,34 @@ export function AppealScreen() {
           </div>
 
           {letterSummary && (
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">What your letter says</p>
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest">What your letter says</p>
               <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
             </div>
           )}
 
           {letterAdvice && (
-            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4">
-              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-2">How you should appeal</p>
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
+              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should appeal</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+              {letterPills.length > 0 && (
+                <>
+                  <p className="text-xs text-teal-700 font-medium">Ask PIPpal Assistant:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {letterPills.map((pill, i) => (
+                      <button key={i} type="button"
+                        onClick={() => navigateTo('home')}
+                        className="text-xs font-medium text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all">
+                        {pill}
+                      </button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => navigateTo('home')}
+                    className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
+                    💬 Open PIPpal Assistant for help
+                  </button>
+                </>
+              )}
             </div>
           )}
 

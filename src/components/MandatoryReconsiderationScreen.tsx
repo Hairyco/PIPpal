@@ -321,6 +321,7 @@ export function MandatoryReconsiderationScreen() {
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
   const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
+  const [letterPills, setLetterPills] = useState<string[]>([]);
 
   // Auto-generate summary when letter is extracted
   useEffect(() => {
@@ -514,6 +515,7 @@ export function MandatoryReconsiderationScreen() {
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf', size: 0 }]);
                 setLetterSummary('DWP maintained their original decision. They awarded 4 points for preparing food (Descriptor B) and 0 points for managing therapy. The key reason given was that the assessor observed the claimant could use a microwave independently and no supervision was noted during the assessment.');
                 setLetterAdvice('Challenge the preparing food score by showing you cannot cook safely on most days — not just occasionally. For managing therapy, provide a letter from your GP confirming the frequency and complexity of your treatment. Focus on the reliability and safety criteria: can you do it safely, repeatedly, and to an acceptable standard?');
+                setLetterPills(['Help me argue preparing food', 'Help me argue managing therapy', 'What evidence do I need?', 'How do I show I need supervision?', 'Write my MR argument']);
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary
@@ -545,8 +547,8 @@ export function MandatoryReconsiderationScreen() {
 
           {/* Decision letter summary */}
           {(hasExtraction || letterSummary) && (
-            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest mb-2">What your letter says</p>
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-3">
+              <p className="text-[11px] font-bold text-blue-600 uppercase tracking-widest">What your letter says</p>
               {generatingSummary ? (
                 <div className="space-y-2">
                   <div className="h-3 bg-blue-200 rounded animate-pulse w-full" />
@@ -562,9 +564,27 @@ export function MandatoryReconsiderationScreen() {
           )}
 
           {letterAdvice && (
-            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4">
-              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-2">How you should challenge this</p>
+            <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-3">
+              <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest">How you should challenge this</p>
               <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+              {letterPills.length > 0 && (
+                <>
+                  <p className="text-xs text-teal-700 font-medium">Ask PIPpal Assistant:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {letterPills.map((pill, i) => (
+                      <button key={i} type="button"
+                        onClick={() => navigateTo('home')}
+                        className="text-xs font-medium text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all">
+                        {pill}
+                      </button>
+                    ))}
+                  </div>
+                  <button type="button" onClick={() => navigateTo('home')}
+                    className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
+                    💬 Open PIPpal Assistant for help
+                  </button>
+                </>
+              )}
             </div>
           )}
 
