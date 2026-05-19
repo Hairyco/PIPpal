@@ -683,7 +683,12 @@ export function MandatoryReconsiderationScreen() {
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
                 <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</p>
-                <p className="text-sm text-stone-700 leading-relaxed whitespace-pre-wrap">{mrLetter}</p>
+                <textarea
+                  value={mrLetter ?? ''}
+                  onChange={e => setMrLetter(e.target.value)}
+                  rows={12}
+                  className="w-full text-sm text-stone-700 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 resize-none focus:ring-1 focus:ring-teal-400 focus:border-teal-400"
+                />
               </div>
               <button type="button" onClick={copyLetter}
                 className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
