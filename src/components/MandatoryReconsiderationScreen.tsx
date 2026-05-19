@@ -707,7 +707,19 @@ export function MandatoryReconsiderationScreen() {
                   className="py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
                   🔗 Share
                 </button>
-                
+                <button type="button"
+                  onClick={() => {
+                    const blob = new Blob([mrLetter ?? ''], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = mrRoute === 'form' ? 'PIPpal-CRMR1.txt' : 'PIPpal-MR-Letter.txt'; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                  ⬇️ Save
+                </button>
+              </div>
+
               {(answerAnalysis || answerScore !== null) && (
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
                   <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Why this works</p>
