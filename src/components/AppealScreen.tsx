@@ -26,6 +26,9 @@ export function AppealScreen() {
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
   const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
   const [letterPills, setLetterPills] = useState<string[]>([]);
+  const [activePill, setActivePill] = useState<string | null>(null);
+  const [pillResponse, setPillResponse] = useState<string | null>(null);
+  const [pillLoading, setPillLoading] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const onLetterPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -376,15 +379,41 @@ export function AppealScreen() {
                   <div className="flex flex-wrap gap-2">
                     {letterPills.map((pill, i) => (
                       <button key={i} type="button"
-                        onClick={() => navigateTo('home')}
-                        className="text-xs font-medium text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-100 active:scale-95 transition-all">
+                        onClick={() => {
+                          if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
+                          setActivePill(pill);
+                          setPillResponse(null);
+                          setPillLoading(true);
+                          fetch('/api/chat', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              message: `${pill}. Give a short, practical 2-3 sentence answer specific to a PIP ${filepath.includes('Appeal') ? 'tribunal appeal' : 'Mandatory Reconsideration'}. Be direct and actionable. Plain English.`,
+                              conversationHistory: [],
+                              medProfile: { conditions: medProfile?.conditions || [] },
+                            }),
+                          }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); }).catch(() => setPillResponse('Could not load — try the PIPpal Assistant.')).finally(() => setPillLoading(false));
+                        }}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 ${activePill === pill ? 'bg-teal-700 text-white border-teal-700' : 'text-teal-700 bg-white border-teal-200 hover:bg-teal-100'}`}>
                         {pill}
                       </button>
                     ))}
                   </div>
+                  {(pillLoading || pillResponse) && (
+                    <div className="bg-white border border-teal-100 rounded-xl p-3">
+                      {pillLoading ? (
+                        <div className="flex items-center gap-2 text-xs text-stone-500">
+                          <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                          Thinking...
+                        </div>
+                      ) : (
+                        <p className="text-sm text-stone-700 leading-relaxed">{pillResponse}</p>
+                      )}
+                    </div>
+                  )}
                   <button type="button" onClick={() => navigateTo('home')}
                     className="w-full flex items-center justify-center gap-2 bg-teal-700 text-white py-3 rounded-xl font-semibold text-sm hover:bg-teal-800 active:scale-[0.99] transition-all">
-                    💬 Open PIPpal Assistant for help
+                    💬 Open PIPpal Assistant for more help
                   </button>
                 </>
               )}
