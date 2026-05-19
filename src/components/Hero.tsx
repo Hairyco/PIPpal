@@ -26,7 +26,7 @@ export function Hero({ onStart }: HeroProps) {
     { text: '100% personalised. No templates' },
     { text: 'Finish in just 15 minutes' },
     { text: 'Get a faster decision' },
-    { text: 'Handwritten form service available' },
+    { text: 'Apply with confidence' },
   ];
 
   return (
