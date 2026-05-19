@@ -29,9 +29,6 @@ export function AppealScreen() {
   const [activePill, setActivePill] = useState<string | null>(null);
   const [pillResponse, setPillResponse] = useState<string | null>(null);
   const [pillLoading, setPillLoading] = useState(false);
-  const [activePill, setActivePill] = useState<string | null>(null);
-  const [pillResponse, setPillResponse] = useState<string | null>(null);
-  const [pillLoading, setPillLoading] = useState(false);
   const [improvementNote, setImprovementNote] = useState('');
   const [improving, setImproving] = useState(false);
   const [generatingSummary, setGeneratingSummary] = useState(false);
