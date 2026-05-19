@@ -37,7 +37,7 @@ export function Hero({ onStart }: HeroProps) {
         className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
         style={{ transitionDelay: '0ms' }}
       >
-        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-6">
+        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-3">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
           UK's #1 PIP Application Assistant
         </div>
