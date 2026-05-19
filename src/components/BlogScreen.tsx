@@ -174,7 +174,7 @@ export function BlogScreen() {
                 </div>
                 <h2 className="font-bold text-stone-900 text-sm leading-snug mb-1.5">{post.title}</h2>
                 {post.excerpt && (
-                  <p className="text-xs text-stone-500 leading-relaxed line-clamp-2">{post.excerpt}</p>
+                  <p className="text-xs text-stone-500 leading-relaxed line-clamp-2">{post.excerpt.replace(/£[\d.]+[^.]*\./g, '.').replace(/\s{2,}/g, ' ')}</p>
                 )}
                 <div className="flex items-center justify-between mt-3">
                   {post.tags?.length > 0 && (

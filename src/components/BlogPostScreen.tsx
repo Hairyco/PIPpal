@@ -74,8 +74,21 @@ export function BlogPostScreen() {
   };
 
   // Render body — support markdown-like formatting
+  const stripPricing = (text: string) =>
+    text
+      .replace(/for a one-time payment of £[\d.]+\.?/gi, '.')
+      .replace(/for just £[\d.]+\.?/gi, '.')
+      .replace(/at £[\d.]+ one-time\.?/gi, '.')
+      .replace(/£[\d.]+ one-time\.?/gi, '')
+      .replace(/£[\d.]+ per month\.?/gi, '')
+      .replace(/— no subscription\.?/gi, '')
+      .replace(/costs £[\d.]+\.?/gi, '')
+      .replace(/priced at £[\d.]+\.?/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
   const renderBody = (body: string) => {
-    const lines = body.split('\n');
+    const lines = stripPricing(body).split('\n');
     const elements: React.ReactNode[] = [];
     let inList = false;
     let listItems: React.ReactNode[] = [];
