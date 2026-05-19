@@ -44,7 +44,7 @@ export function BlogPostScreen() {
       .from('blog_posts')
       .select('*')
       .eq('slug', selectedBlogSlug)
-      .eq('published', true)
+      .neq('published', false)
       .single();
     setPost(data);
     setIsLoading(false);

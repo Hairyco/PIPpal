@@ -57,7 +57,7 @@ export function BlogScreen() {
       const { data, error } = await supabase
         .from('blog_posts')
         .select('id, title, slug, excerpt, category, tags, created_at')
-        .eq('published', true)
+        .neq('published', false)
         .order('created_at', { ascending: false });
       if (error) {
         console.error('Blog fetch:', error);
