@@ -54,54 +54,6 @@ export function NewsScreen() {
     });
   };
 
-  // Generate contextual questions from article title/body
-  const getContextualQuestions = (article: Article): string[] => {
-    const text = (article.title + ' ' + article.body).toLowerCase();
-    const questions: string[] = [];
-
-    // Think like a claimant reading this article — what are they actually worried about?
-    // Priority: immediate personal impact first, then what to do, then what it means
-
-    if (text.includes('cut') || text.includes('reduc') || text.includes('loss') || text.includes('remov') || text.includes('scrap')) {
-      questions.push('Could my current award be affected?');
-      questions.push('What should I do to protect my claim?');
-    }
-    if (text.includes('reassess') || text.includes('review') || text.includes('migrat')) {
-      questions.push('Will I be called for a reassessment?');
-      questions.push('How do I prepare if I get a review letter?');
-    }
-    if (text.includes('appeal') || text.includes('tribunal') || text.includes('reconsider')) {
-      questions.push('Is it worth appealing my decision?');
-      questions.push('What are my chances at tribunal?');
-    }
-    if (text.includes('rate') || text.includes('payment') || text.includes('increase') || text.includes('uprat') || text.includes('£')) {
-      questions.push('When will I see the payment change?');
-      questions.push('How much more will I actually get?');
-    }
-    if (text.includes('reform') || text.includes('change') || text.includes('new rule') || text.includes('legislat') || text.includes('bill') || text.includes('policy')) {
-      questions.push('Does this affect my current award?');
-      questions.push('When does this come into effect?');
-      questions.push('Should I do anything now?');
-    }
-    if (text.includes('work') || text.includes('employ') || text.includes('job')) {
-      questions.push('Can I work and still keep my PIP?');
-    }
-    if (text.includes('assessment') || text.includes('face to face') || text.includes('telephone') || text.includes('video')) {
-      questions.push('What happens if I disagree with my assessment?');
-      questions.push('How do I prepare for my assessment?');
-    }
-    if (text.includes('backdat') || text.includes('arrear') || text.includes('owed')) {
-      questions.push('Am I owed any backdated payments?');
-    }
-
-    // Always include a forward-looking action question if we have space
-    if (questions.length < 3) {
-      questions.push('What should I do about this right now?');
-    }
-
-    return questions.slice(0, 3);
-  };
-
   const fetchNews = async () => {
     setIsLoading(true);
     setError(false);
@@ -332,24 +284,6 @@ export function NewsScreen() {
                             {isExpanded && (
                               <div className={`px-4 pb-4 border-t ${isFeatured ? 'border-teal-600' : 'border-stone-50'}`}>
                                 <p className={`text-sm leading-relaxed pt-3 ${isFeatured ? 'text-teal-100' : 'text-stone-600'}`}>{article.body}</p>
-                                <div className={`mt-3 rounded-xl p-3 border ${isFeatured ? 'bg-white/10 border-teal-500' : 'bg-teal-50 border-teal-100'}`}>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <p className={`text-[10px] font-bold uppercase tracking-wider ${isFeatured ? 'text-teal-200' : 'text-teal-800'}`}>Dig deeper</p>
-                                    {!hasPaid && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFeatured ? 'bg-white/20 text-teal-200' : 'bg-amber-100 text-amber-700'}`}>Pro only</span>}
-                                  </div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {getContextualQuestions(article).map(q => (
-                                      <button key={q}
-                                        onClick={() => {
-                                          if (!hasPaid) { navigateTo('upsell'); return; }
-                                          setAssistantQuestion(q);
-                                          setAssistantContext(article.title);
-                                        }}
-                                        className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-colors active:scale-95 ${isFeatured ? 'bg-white/20 text-white border-teal-400 hover:bg-white/30' : 'bg-white text-teal-700 border-teal-200 hover:bg-teal-100'}`}
-                                      >{q}</button>
-                                    ))}
-                                  </div>
-                                </div>
                                 <div className="flex items-center justify-between mt-3">
                                   <span className={`text-[11px] font-medium ${isFeatured ? 'text-teal-300' : 'text-stone-400'}`}>{article.source}</span>
                                   {article.link && (
