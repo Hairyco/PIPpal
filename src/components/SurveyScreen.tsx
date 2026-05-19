@@ -334,22 +334,6 @@ function ShareSection({
         </button>
       </div>
 
-      <a
-        href="https://uk.trustpilot.com/review/pippal.uk"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-full flex items-center gap-3 bg-white border border-stone-100 rounded-2xl p-4 hover:border-amber-200 hover:bg-amber-50/30 active:scale-[0.98] transition-all"
-      >
-        <div className="flex gap-0.5 shrink-0">
-          {[0,1,2,3,4].map(i => <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-stone-900 text-sm">Leave a review on Trustpilot</p>
-          <p className="text-xs text-stone-400">Takes 2 minutes — really helps us grow</p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-stone-300 shrink-0" />
-      </a>
-
       <button
         onClick={() => navigateTo('question_index')}
         className="w-full text-sm font-medium text-stone-400 hover:text-stone-600 py-2 transition-colors"

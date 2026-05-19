@@ -213,14 +213,6 @@ export function QuestionIndex() {
                   >
                     Go to Home to review answers
                   </button>
-                  <a
-                    href="https://uk.trustpilot.com/review/pippal.uk"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-sm text-center hover:bg-emerald-400 transition-colors active:scale-[0.98] block sm:flex sm:items-center sm:justify-center"
-                  >
-                    ⭐ Trustpilot
-                  </a>
                 </div>
               </div>
               <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm">
