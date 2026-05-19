@@ -159,7 +159,7 @@ Summary: ${summary}`
     });
     const data = await response.json();
     const text = data.content?.[0]?.text?.trim() || summary;
-    if (text === 'NOT_RELEVANT') return { body: summary, relevant: false };
+    if (text.startsWith('NOT_RELEVANT')) return { body: summary, relevant: false };
     return { body: text, relevant: true };
   } catch {
     return { body: summary, relevant: true };
@@ -248,13 +248,23 @@ export default async function handler(req, res) {
     // Load all stored articles (includes today + historical)
     const stored = await loadStoredArticles();
 
+    // Archive any stored articles whose body leaked NOT_RELEVANT reasoning
+    const leakedIds = stored.filter(a => String(a.body || '').startsWith('NOT_RELEVANT') && a.id).map(a => a.id);
+    if (leakedIds.length > 0) {
+      await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=in.(${leakedIds.join(',')})`, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_relevant: false }),
+      }).catch(() => {});
+    }
+
     // Merge: fresh first, then stored (deduplicated by title)
     const seen = new Set();
     const merged = [...freshArticles, ...stored].filter(a => {
       if (seen.has(a.title)) return false;
       seen.add(a.title);
       return true;
-    }).filter(a => mentionsPipBenefit(a.title, a.body || '') && a.is_relevant !== false).slice(0, 30);
+    }).filter(a => mentionsPipBenefit(a.title, a.body || '') && a.is_relevant !== false && !String(a.body || '').startsWith('NOT_RELEVANT')).slice(0, 30);
 
     // Format stored articles (they may have array tags)
     const articles = merged.map(a => ({
