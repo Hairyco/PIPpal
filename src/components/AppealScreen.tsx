@@ -327,7 +327,10 @@ export function AppealScreen() {
           ) : (
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your SSCS1 appeal reasons</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">Your SSCS1 appeal reasons</p>
+                  <span className="text-[10px] font-semibold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">✏️ Tap to edit</span>
+                </div>
                 <textarea
                   value={appealReasons ?? ''}
                   onChange={e => setAppealReasons(e.target.value)}

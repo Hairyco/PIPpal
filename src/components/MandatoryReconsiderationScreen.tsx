@@ -682,7 +682,10 @@ export function MandatoryReconsiderationScreen() {
           ) : (
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-                <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest mb-3">Your {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[11px] font-bold text-stone-400 uppercase tracking-widest">Your {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</p>
+                  <span className="text-[10px] font-semibold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full">✏️ Tap to edit</span>
+                </div>
                 <textarea
                   value={mrLetter ?? ''}
                   onChange={e => setMrLetter(e.target.value)}
