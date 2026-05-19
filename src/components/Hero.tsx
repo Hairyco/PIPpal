@@ -77,7 +77,7 @@ export function Hero({ onStart }: HeroProps) {
               {INITIAL_AVATARS.map((a, i) => (
                 <div
                   key={i}
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-white ${a.bg} text-[9px] font-bold text-white sm:h-9 sm:w-9 sm:text-[10px] md:h-10 md:w-10 md:text-[11px]`}
+                  className={`${i >= 3 ? 'hidden sm:flex' : 'flex'} h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-white ${a.bg} text-[8px] font-bold text-white sm:h-9 sm:w-9 sm:text-[10px] md:h-10 md:w-10 md:text-[11px]`}
                   aria-hidden
                 >
                   {a.initials}
@@ -85,7 +85,7 @@ export function Hero({ onStart }: HeroProps) {
               ))}
             </div>
             <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-              <p className="whitespace-nowrap text-sm leading-snug text-stone-800 sm:text-[15px] sm:leading-snug md:text-base">
+              <p className="whitespace-nowrap text-xs leading-snug text-stone-800 sm:text-[15px] sm:leading-snug md:text-base">
                 <span className="font-bold text-stone-900 tabular-nums">4.9</span>
                 <span className="font-normal">/5 from </span>
                 <span className="font-bold text-stone-900 tabular-nums">1,784</span>
