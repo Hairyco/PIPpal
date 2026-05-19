@@ -329,7 +329,7 @@ export function AppealScreen() {
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-xs font-semibold text-amber-800">Strength score</span>
                         <span className={`text-sm font-black ${answerScore >= 8 ? 'text-teal-700' : answerScore >= 5 ? 'text-amber-700' : 'text-rose-600'}`}>
-                          {answerScore}/10 — {answerScore >= 8 ? 'Very strong' : answerScore >= 5 ? 'Solid' : 'Needs work'}
+                          {answerScore}/10 — {answerScore >= 8 ? 'Very strong' : answerScore >= 6 ? 'Strong' : answerScore >= 4 ? 'Building strength' : 'Could be stronger'}
                         </span>
                       </div>
                       <div className="w-full h-2.5 bg-amber-200 rounded-full overflow-hidden">
