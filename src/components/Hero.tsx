@@ -52,10 +52,10 @@ export function Hero({ onStart }: HeroProps) {
           We get your PIP application{' '}
           <span className="whitespace-nowrap">right — <span className="text-teal-700">first time</span></span>
         </h1>
-        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-4 max-w-2xl mx-auto px-2">
-          PIP decisions take up to 6 months. Do not leave to chance.<br className="hidden sm:block" />{' '}
-          We guide you to describe your real daily challenges clearly and accurately so the DWP fully understands your needs.
-        </p>
+        <div className="text-stone-600 text-base md:text-lg leading-relaxed mb-4 max-w-2xl mx-auto px-2 space-y-2">
+          <p className="font-semibold text-stone-800">PIP decisions take up to 6 months. Do not leave to chance.</p>
+          <p>We guide you to describe your real daily challenges clearly and accurately so the DWP fully understands your needs.</p>
+        </div>
       </div>
 
       {/* Main card */}
