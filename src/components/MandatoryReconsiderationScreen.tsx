@@ -320,6 +320,7 @@ export function MandatoryReconsiderationScreen() {
   const [mrSummary, setMrSummary] = useState<string | null>(null);
   const [generatingSummary, setGeneratingSummary] = useState(false);
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
+  const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
 
   // Auto-generate summary when letter is extracted
   useEffect(() => {
@@ -499,6 +500,12 @@ export function MandatoryReconsiderationScreen() {
                   <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
                 </div>
               )}
+              {letterAdvice && (
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                  <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-1">How you should challenge this</p>
+                  <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -518,6 +525,7 @@ export function MandatoryReconsiderationScreen() {
                 setLetterLabels(['mock_mr_decision_letter.pdf']);
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf', size: 0 }]);
                 setLetterSummary('DWP maintained their original decision. They awarded 4 points for preparing food (Descriptor B) and 0 points for managing therapy. The key reason given was that the assessor observed the claimant could use a microwave independently and no supervision was noted during the assessment.');
+                setLetterAdvice('Challenge the preparing food score by showing you cannot cook safely on most days — not just occasionally. For managing therapy, provide a letter from your GP confirming the frequency and complexity of your treatment. Focus on the reliability and safety criteria: can you do it safely, repeatedly, and to an acceptable standard?');
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary

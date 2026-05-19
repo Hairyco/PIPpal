@@ -22,6 +22,7 @@ export function AppealScreen() {
   const [letterBusy, setLetterBusy] = useState(false);
   const [letterError, setLetterError] = useState<string | null>(null);
   const [letterSummary, setLetterSummary] = useState<string | null>(null);
+  const [letterAdvice, setLetterAdvice] = useState<string | null>(null);
   const [generatingSummary, setGeneratingSummary] = useState(false);
 
   const onLetterPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,6 +45,7 @@ export function AppealScreen() {
     setLetterFiles([]);
     setLetterError(null);
     setLetterSummary(null);
+    setLetterAdvice(null);
   };
 
   useEffect(() => {
@@ -51,7 +53,8 @@ export function AppealScreen() {
     if (!letterFiles[0].base64) return; // mock data — summary already set
     setGeneratingSummary(true);
     setLetterBusy(true);
-    fetch('/api/chat', {
+
+    const summaryPromise = fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -59,9 +62,19 @@ export function AppealScreen() {
         conversationHistory: [],
         medProfile: { conditions: medProfile?.conditions || [] },
       }),
-    })
-      .then(r => r.json())
-      .then(d => { if (d.reply) setLetterSummary(d.reply.trim()); })
+    }).then(r => r.json()).then(d => { if (d.reply) setLetterSummary(d.reply.trim()); });
+
+    const advicePromise = fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Based on this PIP MR decision letter, give 2-3 plain English sentences of specific advice on how to challenge it at tribunal. What activities should they focus on? What evidence would help? What should they argue? Be direct and practical.\n\nFiles: ${letterFiles.map(f => f.name).join(', ')}`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile?.conditions || [] },
+      }),
+    }).then(r => r.json()).then(d => { if (d.reply) setLetterAdvice(d.reply.trim()); });
+
+    Promise.all([summaryPromise, advicePromise])
       .catch(() => setLetterError('Could not read the letter automatically.'))
       .finally(() => { setGeneratingSummary(false); setLetterBusy(false); });
   }, [letterFiles]);
@@ -202,6 +215,12 @@ export function AppealScreen() {
                   <p className="text-sm text-blue-900 leading-relaxed">{letterSummary}</p>
                 </div>
               )}
+              {letterAdvice && (
+                <div className="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                  <p className="text-[11px] font-bold text-teal-600 uppercase tracking-widest mb-1">How you should appeal</p>
+                  <p className="text-sm text-teal-900 leading-relaxed">{letterAdvice}</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -221,6 +240,7 @@ export function AppealScreen() {
                 setLetterLabels(['mock_mr_decision_letter.pdf']);
                 setLetterFiles([{ name: 'mock_mr_decision_letter.pdf', base64: '', mimeType: 'application/pdf' }]);
                 setLetterSummary('DWP maintained their original decision at MR. They awarded 4 points for preparing food and 0 points for planning a journey. The assessor noted the claimant could use a microwave and plan familiar routes. DWP concluded the claimant did not meet the threshold for enhanced Daily Living or any Mobility award.');
+                setLetterAdvice('Focus your appeal on the preparing food and planning a journey activities — these are where DWP scored lowest and there is most room to challenge. Bring a GP letter or carer statement confirming you cannot cook safely unsupervised. At tribunal, describe your worst days in detail and emphasise how often you need help, not just whether you can do it at all.');
               }}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold bg-amber-700 text-white hover:bg-amber-800 active:scale-[0.99] transition-all">
                 Load mock MR letter + summary
