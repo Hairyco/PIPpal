@@ -465,6 +465,7 @@ export function HomeScreen() {
               color="text-purple-600"
               bg="bg-purple-50"
               target="points_estimator"
+              locked={!hasPaid}
             />
             <NavCard
               title="Export Answers"

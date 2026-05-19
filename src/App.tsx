@@ -257,12 +257,12 @@ function AppContent() {
       case 'handwritten_service': return <HandwrittenService />;
       case 'personalising': return <PersonalisingScreen />;
       case 'claim_flow': return hasPaid ? <ClaimFlow /> : <UpsellScreen />;
-      case 'points_estimator': return <PointsEstimatorUpload />;
+      case 'points_estimator': return hasPaid ? <PointsEstimatorUpload /> : <UpsellScreen />;
       case 'question_wizard': return hasPaid ? <QuestionWizard /> : <UpsellScreen />;
-      case 'q1_intro': return hasPaid ? <QuestionFlow key={`flow-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
-      case 'q1_chat': return hasPaid ? <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} /> : <UpsellScreen />;
-      case 'q1_result': return hasPaid ? <ResultCard /> : <UpsellScreen />;
-      case 'question_index': return hasPaid ? <QuestionIndex /> : <UpsellScreen />;
+      case 'q1_intro': return <QuestionFlow key={`flow-${selectedQuestionId}-${animKey}`} />;
+      case 'q1_chat': return <QuestionChat key={`chat-${selectedQuestionId}-${animKey}`} />;
+      case 'q1_result': return <ResultCard />;
+      case 'question_index': return <QuestionIndex />;
       case 'answers_review': return hasPaid ? <AnswersReviewScreen /> : <UpsellScreen />;
       case 'new_claim_intro': return hasPaid ? <NewClaimIntro /> : <UpsellScreen />;
       case 'claim_process': return hasPaid ? <ClaimProcess /> : <UpsellScreen />;
