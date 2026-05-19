@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  ArrowLeft, ArrowRight, Upload, FileText, Loader2,
+  ArrowLeft,
+  Home, ArrowRight, Upload, FileText, Loader2,
   AlertTriangle, Phone, CheckCircle2, ExternalLink, Download,
   HeartHandshake, Briefcase, CalendarCheck,
 } from 'lucide-react';
@@ -158,6 +159,10 @@ export function AppealScreen() {
           <h1 className="font-bold text-stone-900 text-base leading-tight">Appeal to Tribunal</h1>
           <p className="text-[11px] text-stone-400 font-medium">Step {step} of 4</p>
         </div>
+        <button type="button" onClick={() => navigateTo('home')}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
+          <Home className="w-4 h-4" />
+        </button>
       </div>
 
       {step === 1 && (

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
+  Home,
   ArrowRight,
   FileText,
   CheckCircle2,
@@ -404,6 +405,10 @@ export function MandatoryReconsiderationScreen() {
           <h1 className="font-bold text-stone-900 text-base leading-tight">Mandatory Reconsideration</h1>
           <p className="text-[11px] text-stone-400 font-medium">Step {step} of 4</p>
         </div>
+        <button type="button" onClick={() => navigateTo('home')}
+          className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
+          <Home className="w-4 h-4" />
+        </button>
       </div>
 
       {/* ── STEP 1: What is MR + deadline ────────────────────────────────────── */}
