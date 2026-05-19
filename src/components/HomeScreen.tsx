@@ -82,16 +82,6 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 export function HomeScreen() {
   const { medProfile, navigateTo, user, hasPaid, savedAnswers, savedAnswerDetails, setSelectedQuestionId } = useAppContext();
 
-  const [showNewUserGuide, setShowNewUserGuide] = useState(false);
-
-  // Fade overlay for new users — appears after 1.5s, dismissed on click
-  useEffect(() => {
-    if (!hasPaid && answeredActivityCount === 0 && user) {
-      const timer = setTimeout(() => setShowNewUserGuide(true), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [hasPaid, answeredActivityCount, user]);
-
   const [cocResume, setCocResume] = useState(() =>
     typeof window !== 'undefined' ? getCocDashboardResumeInfo() : null
   );
@@ -163,23 +153,6 @@ export function HomeScreen() {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto scrollbar-hide pb-24">
-
-      {/* New user guide overlay — fades everything except New Claim button */}
-      {showNewUserGuide && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-[1px] flex flex-col items-center justify-start pt-[52%] px-6 gap-4 animate-in fade-in duration-500"
-          onClick={() => setShowNewUserGuide(false)}
-        >
-          <div className="bg-white rounded-2xl px-5 py-4 max-w-xs text-center shadow-xl">
-            <p className="text-base font-bold text-stone-900 mb-1">Start here 👆</p>
-            <p className="text-sm text-stone-500 leading-relaxed">Tap <strong>New Claim</strong> to begin your free PIP assessment. Your first question is completely free.</p>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-            <span className="text-white text-lg">↑</span>
-          </div>
-          <p className="text-xs text-white/60 mt-2">Tap anywhere to dismiss</p>
-        </div>
-      )}
 
       {/* News ticker */}
       {newsHeadlines.length > 0 && (
@@ -342,16 +315,14 @@ export function HomeScreen() {
         <section>
           <h2 className="text-sm font-bold text-stone-900 mb-3">Your claim</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className={showNewUserGuide ? 'relative z-50 ring-4 ring-teal-400 ring-offset-2 rounded-2xl scale-105 shadow-2xl' : ''}>
-              <NavCard
-                title="New Claim"
-                desc="Start a fresh PIP application"
-                icon={PlusCircle}
-                color="text-teal-600"
-                bg="bg-teal-50"
-                target="claim_flow"
-              />
-            </div>
+            <NavCard
+              title="New Claim"
+              desc="Start a fresh PIP application"
+              icon={PlusCircle}
+              color="text-teal-600"
+              bg="bg-teal-50"
+              target="claim_flow"
+            />
             <NavCard
               title={'Change of\nCircumstances'}
               desc="Update an existing award"
