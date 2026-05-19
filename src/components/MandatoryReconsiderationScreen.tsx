@@ -693,10 +693,30 @@ export function MandatoryReconsiderationScreen() {
                   className="w-full text-sm text-stone-700 leading-relaxed bg-stone-50 border border-stone-200 rounded-xl px-3 py-3 resize-none focus:ring-1 focus:ring-teal-400 focus:border-teal-400"
                 />
               </div>
-              <button type="button" onClick={copyLetter}
-                className="w-full py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
-                {letterCopied ? '✓ Copied' : 'Copy'}
-              </button>
+              <div className="flex gap-2">
+                <button type="button" onClick={copyLetter}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 active:scale-[0.99] transition-all">
+                  {letterCopied ? '✓ Copied' : '📋 Copy'}
+                </button>
+                <button type="button"
+                  onClick={() => {
+                    const blob = new Blob([mrLetter ?? ''], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = 'pip-mr-letter.txt'; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                  ⬇️ Download
+                </button>
+                {typeof navigator.share === 'function' && (
+                  <button type="button"
+                    onClick={() => navigator.share({ title: 'My PIP MR Letter', text: mrLetter ?? '' }).catch(() => {})}
+                    className="flex-1 py-3 rounded-xl font-semibold text-sm border-2 border-stone-200 text-stone-700 bg-white hover:bg-stone-50 active:scale-[0.99] transition-all">
+                    ↗️ Share
+                  </button>
+                )}
+              </div>
               {(answerAnalysis || answerScore !== null) && (
                 <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-3">
                   <p className="text-[11px] font-bold text-amber-700 uppercase tracking-widest">Why this works</p>
