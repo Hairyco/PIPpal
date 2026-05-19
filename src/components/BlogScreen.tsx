@@ -28,7 +28,7 @@ function getCategoryStyle(category: string) {
 }
 
 function normalizeBlogTags(tags: unknown): string[] {
-  if (Array.isArray(tags)) return tags.filter((t): t is string => typeof t === 'string');
+  if (Array.isArray(tags)) return tags.filter((t): t is string => typeof t === 'string').slice(0, 3);
   if (typeof tags === 'string' && tags.trim()) return [tags.trim()];
   return [];
 }

@@ -183,7 +183,7 @@ export function BlogPostScreen() {
             {post.tags?.length > 0 && (
               <div className="px-5 pb-4 flex items-center gap-2 flex-wrap">
                 <Tag className="w-3.5 h-3.5 text-stone-400" />
-                {post.tags.map(tag => (
+                {post.tags.slice(0, 3).map(tag => (
                   <button key={tag} onClick={() => openTagFilter(tag)}
                     className="text-[11px] text-teal-700 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-full hover:bg-teal-100 transition-colors font-medium">
                     #{tag}
