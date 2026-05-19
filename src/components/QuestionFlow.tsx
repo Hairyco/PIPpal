@@ -21,40 +21,132 @@ const FREQ_GRID_TEMPLATE = 'minmax(0,1fr) repeat(5, minmax(2.75rem, 1fr))' as co
 /** Set `true` to restore "Ask for more help" on question intro (step 1). */
 const SHOW_ASK_MORE_HELP_SECTION = false;
 
-function AskMoreHelpSection({ pipQ, medProfile }: { pipQ: PIPQuestion; medProfile: MedProfile }) {
-  const [openHelpIdx, setOpenHelpIdx] = useState<number | null>(null);
-  const userConditions = medProfile.conditions.map((c: any) => c.name.toLowerCase());
-  const explainers = pipQ.conditionExplainers || [];
-  const sorted = [...explainers].sort((a, b) => {
-    const aMatch = a.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-    const bMatch = b.conditions.some((c: string) => userConditions.some((u: string) => u.includes(c.toLowerCase()) || c.toLowerCase().includes(u)));
-    return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
-  });
+function AskMoreHelpSection({ pipQ, medProfile, onAddToAnswer }: { pipQ: PIPQuestion; medProfile: MedProfile; onAddToAnswer?: (text: string) => void }) {
+  const conditions = medProfile.conditions.map((c: any) => c.name).join(', ') || 'not specified';
+
+  // Intelligent claimant-anxiety pills — pre-defined per the question's scoring logic
+  // These anticipate what claimants worry about but don't ask
+  const getIntelligentPills = (): string[] => {
+    const title = pipQ.title.toLowerCase();
+    if (title.includes('preparing food') || title.includes('cooking')) return [
+      'What if I can only use a microwave?',
+      'Does needing supervision count?',
+      'What if I can cook but it exhausts me?',
+      'What about burning myself or leaving the hob on?',
+      'Can I mention I only do it on good days?',
+    ];
+    if (title.includes('eating')) return [
+      'What if I need reminders to eat?',
+      'Does eating slowly count?',
+      'What if I can feed myself but only certain foods?',
+      'Does needing someone to cut food up count?',
+    ];
+    if (title.includes('managing treatments') || title.includes('therapy')) return [
+      'What if I forget to take medication?',
+      'Does needing prompting count?',
+      'What about side effects making it hard?',
+      'Does this cover mental health medication?',
+    ];
+    if (title.includes('washing') || title.includes('bathing')) return [
+      'What if I can shower but not safely?',
+      'Does needing someone nearby count?',
+      'What if I can only wash partially?',
+      'Does exhaustion afterwards count?',
+    ];
+    if (title.includes('dressing')) return [
+      'What if I can dress but it takes ages?',
+      'Does needing help with buttons or zips count?',
+      'What if I can only dress on good days?',
+      'Does pain while dressing count?',
+    ];
+    if (title.includes('communicating') || title.includes('reading')) return [
+      'Does needing things repeated count?',
+      'What if I can read but can\'t understand it?',
+      'Does anxiety stopping me calling count?',
+      'What about needing an interpreter or aide?',
+    ];
+    if (title.includes('planning') || title.includes('journey')) return [
+      'What if I can only do familiar routes?',
+      'Does panic or anxiety on transport count?',
+      'What if I need someone to come with me?',
+      'Does not being able to drive count?',
+    ];
+    if (title.includes('moving around') || title.includes('walking')) return [
+      'Does pain when walking count?',
+      'What if I can walk but need to stop and rest?',
+      'Does needing a walking aid count?',
+      'What about bad days when I can\'t walk at all?',
+    ];
+    if (title.includes('social') || title.includes('engaging')) return [
+      'Does anxiety in public places count?',
+      'What if I can talk to people I know but not strangers?',
+      'Does needing someone with me count?',
+      'What about meltdowns or shutdowns?',
+    ];
+    // Generic fallback
+    return [
+      'Does this count if I can only do it sometimes?',
+      'What if I need help from another person?',
+      'Does taking much longer than normal count?',
+      'What if it causes me pain or exhaustion?',
+      'Do bad days count even if good days are okay?',
+    ];
+  };
+
+  const pills = getIntelligentPills();
+  const [activePill, setActivePill] = useState<string | null>(null);
+  const [pillResponse, setPillResponse] = useState<string | null>(null);
+  const [pillLoading, setPillLoading] = useState(false);
+
+  const handlePill = (pill: string) => {
+    if (activePill === pill) { setActivePill(null); setPillResponse(null); return; }
+    setActivePill(pill);
+    setPillResponse(null);
+    setPillLoading(true);
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `A PIP claimant is answering the activity "${pipQ.title}" and asks: "${pill}". Their conditions: ${conditions}.\n\nAnswer in 2-3 plain English sentences. Be direct and specific to PIP scoring. If relevant, explain what descriptor or points this might apply to. End with one actionable tip for what to include in their answer.`,
+        conversationHistory: [],
+        medProfile: { conditions: medProfile.conditions },
+      }),
+    }).then(r => r.json()).then(d => { if (d.reply) setPillResponse(d.reply.trim()); })
+      .catch(() => setPillResponse('Could not load — try the PIPpal Assistant for this.'))
+      .finally(() => setPillLoading(false));
+  };
 
   return (
-    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
-      <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-3">Ask for more help</p>
+    <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
+      <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest">Common questions about this activity</p>
       <div className="flex flex-wrap gap-2">
-        {sorted.slice(0, 4).map((ce, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => setOpenHelpIdx(openHelpIdx === i ? null : i)}
-            className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 ${openHelpIdx === i ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}
-          >
-            How does this affect {ce.conditions[0]}?
+        {pills.map((pill, i) => (
+          <button key={i} type="button" onClick={() => handlePill(pill)}
+            className={`text-xs font-medium rounded-full px-3 py-1.5 border transition-all active:scale-95 text-left ${activePill === pill ? 'bg-teal-600 text-white border-teal-600' : 'text-teal-700 bg-teal-50 border-teal-100 hover:bg-teal-100'}`}>
+            {pill}
           </button>
         ))}
       </div>
-      {openHelpIdx !== null && (() => {
-        const ce = sorted[openHelpIdx];
-        return ce ? (
-          <div className="mt-3 pt-3 border-t border-stone-100">
-            <p className="text-sm text-stone-700 leading-relaxed">{ce.text}</p>
-            {ce.example && <p className="text-xs text-stone-400 italic mt-1">&quot;{ce.example}&quot;</p>}
-          </div>
-        ) : null;
-      })()}
+      {(pillLoading || pillResponse) && (
+        <div className="bg-teal-50 border border-teal-100 rounded-xl p-3 space-y-2">
+          {pillLoading ? (
+            <div className="flex items-center gap-2 text-xs text-teal-600">
+              <div className="w-3 h-3 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+              Thinking...
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-teal-900 leading-relaxed">{pillResponse}</p>
+              {onAddToAnswer && pillResponse && (
+                <button type="button" onClick={() => onAddToAnswer(pillResponse!)}
+                  className="text-xs font-bold text-teal-700 bg-white border border-teal-200 px-3 py-1.5 rounded-full hover:bg-teal-50 active:scale-95 transition-all">
+                  + Add this context to my answer
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -568,7 +660,12 @@ ${cocMode ? '- Briefly reference what was previously recorded, then clearly show
             </div>
 
             {SHOW_ASK_MORE_HELP_SECTION && pipQ && (
-              <AskMoreHelpSection pipQ={pipQ} medProfile={medProfile} />
+              <AskMoreHelpSection pipQ={pipQ} medProfile={medProfile}
+                onAddToAnswer={(text) => setAnswers(prev => ({
+                  ...prev,
+                  additionalDetail: prev.additionalDetail ? prev.additionalDetail + ' ' + text : text
+                }))}
+              />
             )}
 
             {/* Previous answer (CoC mode); example answer shown for everyone */}

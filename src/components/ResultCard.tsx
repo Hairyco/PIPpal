@@ -350,15 +350,15 @@ Return ONLY the rewritten answer — no preamble, no quotation marks.`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message: `Generate 6-8 short, specific detail suggestions for a PIP claim answer about "${question.title}" for someone with: ${conditions}.
+        message: `You are helping a PIP claimant add detail to their answer for activity: "${question.title}". Conditions: ${conditions}.
 
-Each suggestion should be a brief phrase (3-7 words) describing a real-life difficulty that could strengthen their answer.
+Generate 6-8 short pill labels (3-7 words each) representing specific details they could tap to add if true. Think like a DWP assessor — what evidence of difficulty, risk, need for help, or frequency would push this activity to a higher descriptor score?
 
-Examples for "Preparing food": "Leaving the hob on", "Burning food regularly", "Only managing ready meals", "Forgetting to eat", "Needing reminders to cook", "Panic attacks in the kitchen"
+Focus on: safety risks, needing another person present, only managing on bad days, taking far longer than normal, consequences when it goes wrong (injury, exhaustion, not eating, falls), needing aids or equipment. Be specific to ${conditions} and ${question.title}.
 
-Make them specific to ${conditions} and directly relevant to ${question.title}.
+Think ahead — include things claimants forget to mention but assessors specifically look for.
 
-Return ONLY a JSON array of strings, no markdown, no explanation. Example: ["Phrase one", "Phrase two"]`,
+Return ONLY a JSON array of strings. No markdown. Example: ["Need someone present", "Burned myself recently", "Can only do this on good days"]`,
         conversationHistory: [],
         medProfile: { conditions: medProfile.conditions },
       }),
