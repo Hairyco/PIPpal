@@ -48,7 +48,7 @@ export function Hero({ onStart }: HeroProps) {
         className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
         style={{ transitionDelay: '80ms' }}
       >
-        <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-2">
+        <h1 className="text-3xl md:text-5xl font-bold text-stone-900 leading-tight mb-6">
           We get your PIP application{' '}
           <span className="whitespace-nowrap">right — <span className="text-teal-700">first time</span></span>
         </h1>
