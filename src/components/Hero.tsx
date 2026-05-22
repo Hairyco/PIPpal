@@ -116,7 +116,7 @@ export function Hero({ onStart }: HeroProps) {
             onClick={onStart}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
           >
-            Start Now
+            Start now — only £6.99
             <ArrowRight className="w-5 h-5" />
           </button>
 
