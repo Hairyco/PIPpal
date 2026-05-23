@@ -30,14 +30,14 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   return (
-    <section className="px-5 md:px-8 pt-10 md:pt-8 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
+    <section className="px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
 
       {/* Badge */}
       <div
         className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
         style={{ transitionDelay: '0ms' }}
       >
-        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-3">
+        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-1">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
           UK's #1 PIP Application Assistant
         </div>
