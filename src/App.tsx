@@ -313,21 +313,58 @@ function AppContent() {
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <ChatPreview onStart={() => handleNavigate('home')} />
 
-              {/* Feature strip */}
-              <div className="px-5 md:px-8 py-4 space-y-3">
-                {[
-                  { icon: '✨', title: 'Get instant inspiration', body: 'See high-quality examples tailored to your specific conditions.' },
-                  { icon: '🆓', title: 'Test it 100% free', body: 'Try the tool and build your draft before spending a penny.' },
-                ].map((item, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-start gap-3">
-                    <span className="text-2xl shrink-0">{item.icon}</span>
-                    <div>
-                      <p className="font-bold text-stone-900 text-sm">{item.title}</p>
-                      <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+              {/* Why most PIP claims fail */}
+              <section className="px-5 md:px-8 py-10 text-center max-w-2xl mx-auto">
+                <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-4 leading-tight">Why most PIP claims fail</h2>
+                <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
+                  {['Apply for PIP', 'Receive PIP form', 'Handwritten application'].map((step, i, arr) => (
+                    <React.Fragment key={i}>
+                      <span className="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-full">{i + 1}. {step}</span>
+                      {i < arr.length - 1 && <span className="text-stone-300 font-bold">—</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
+                <p className="text-stone-600 leading-relaxed mb-4">Generic templates, overwhelming jargon, and missing medical evidence deliver disappointing rejections. <strong className="text-stone-900">65% of independent claims fail</strong> on the first attempt, forcing applicants into a painful <strong className="text-stone-900">6-month wait</strong> just to hear back from the DWP.</p>
+                <p className="text-stone-600 leading-relaxed mb-4">Worse yet, using copied-and-pasted internet templates risks immediate rejection by DWP handlers who spot identical answers.</p>
+                <p className="text-stone-600 leading-relaxed mb-8">Our service provides the ultimate blueprint. We give you fully personalised inspiration tailored to your exact life in just 15 minutes, which you can confidently write into your official form yourself. No risk of "getting caught" — just your real story, perfectly framed.</p>
+                <button onClick={() => handleNavigate('home')} className="inline-flex items-center gap-2 bg-teal-700 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm mb-8">⬇️ Download PIP form</button>
+                <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
+                <div className="grid grid-cols-2 gap-6 text-center max-w-sm mx-auto">
+                  {[{icon:'🎯',label:'100% personalised'},{icon:'✍️',label:'Handwritten copy blueprint'},{icon:'💪',label:'Apply with confidence'},{icon:'⏱️',label:'Skip the 6-month wait risk'}].map((item, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 bg-teal-50 border border-teal-100 rounded-2xl flex items-center justify-center text-2xl">{item.icon}</div>
+                      <p className="text-sm font-semibold text-stone-800 leading-snug">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* What it will cost to get your PIP claim right */}
+              <section className="px-5 md:px-8 pb-10">
+                <div className="bg-teal-800 rounded-3xl p-6 max-w-md mx-auto text-center">
+                  <h2 className="text-xl font-bold text-white mb-6 leading-snug">What it will cost to get your PIP claim right</h2>
+                  <div className="bg-teal-700/60 border border-teal-500/40 rounded-2xl p-5 mb-3">
+                    <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-2">What you stand to gain</p>
+                    <p className="text-4xl font-black text-amber-400 mb-1">£10,120</p>
+                    <p className="text-sm text-teal-200 mb-3">Enhanced rate per year (2026 rates)</p>
+                    <p className="text-sm font-semibold text-amber-400/80">£60,720 over 6 years</p>
+                  </div>
+                  <div className="flex items-center justify-center -my-1 relative z-10">
+                    <div className="w-10 h-10 rounded-full bg-teal-600 border-2 border-teal-800 flex items-center justify-center">
+                      <span className="text-xs font-black text-white">VS</span>
                     </div>
                   </div>
-                ))}
-              </div>
+                  <div className="bg-teal-700/40 border border-teal-500/30 rounded-2xl p-5 mt-3 mb-5">
+                    <p className="text-[11px] font-bold text-teal-400 uppercase tracking-widest mb-2">What it costs</p>
+                    <p className="text-3xl font-black text-white mb-1">only £6.99</p>
+                    <p className="text-sm text-teal-300 mb-3">One-off, no subscription</p>
+                    <p className="text-sm font-bold text-white/80">8,686x return on investment</p>
+                  </div>
+                  <p className="text-sm text-teal-100 leading-relaxed mb-5">A single PIP award is worth <strong className="text-amber-400">hundreds of times</strong> the cost. Don't lose thousands because of wrong wording on the form.</p>
+                  <button onClick={async () => { try { const res = await fetch('/api/create-checkout', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email:'',userId:''}) }); const {url} = await res.json(); if (url) window.location.href = url; } catch { handleNavigate('home'); } }} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg">Start now →</button>
+                  <p className="text-xs text-teal-400 mt-2">🔒 Secure payment · One-off · No subscription</p>
+                </div>
+              </section>
 
               <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
