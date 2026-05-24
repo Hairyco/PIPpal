@@ -89,7 +89,7 @@ export function Hero({ onStart }: HeroProps) {
               <p className="whitespace-nowrap text-sm leading-snug text-stone-800 sm:text-[15px] sm:leading-snug md:text-base">
                 <span className="font-bold text-stone-900 tabular-nums">4.9</span>
                 <span className="font-normal">/5 from </span>
-                <span className="font-bold text-stone-900 tabular-nums">1,784</span>
+                <span className="font-bold text-stone-900 tabular-nums">865</span>
                 <span className="font-normal"> applicants</span>
               </p>
               <span
@@ -111,14 +111,23 @@ export function Hero({ onStart }: HeroProps) {
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={onStart}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
-          >
-            Start now — only £6.99
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onStart}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            >
+              Start now
+              <ArrowRight className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={onEligibility}
+              className="flex-1 bg-white border-2 border-teal-600 text-teal-700 py-3 rounded-xl font-bold text-base flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all hover:bg-teal-50"
+            >
+              Check eligibility
+            </button>
+          </div>
 
           <p className="text-center text-xs text-stone-400 mt-3">
             🔒 100% Secure &amp; Confidential
