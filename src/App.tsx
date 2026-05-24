@@ -342,24 +342,14 @@ function AppContent() {
                   Our service provides the ultimate blueprint. We give you fully personalised inspiration tailored to your exact life in just 15 minutes, which you can confidently write into your official form yourself. No risk of "getting caught" — just your real story, perfectly framed.
                 </p>
 
-                <div className="mb-8">
-                  <p className="text-sm font-bold text-teal-700 uppercase tracking-widest mb-3 text-center">Get your PIP decision 3–6 weeks earlier</p>
-                  {/* PIP2 form embed */}
-                  <div className="w-full rounded-2xl overflow-hidden border border-stone-200 shadow-sm" style={{ height: '500px' }}>
-                    <iframe
-                      src="https://assets.publishing.service.gov.uk/media/64dfbd3c13ae1500116afa31/PIP2-0623.pdf"
-                      className="w-full h-full"
-                      title="PIP2 Application Form"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleNavigate('home')}
+                <a
+                  href="https://www.gov.uk/government/publications/personal-independence-payment-claim-form-and-notes"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-teal-700 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm mb-8"
                 >
-                  ⬇️ Download PIP form
-                </button>
+                  ⬇️ Download PIP application form
+                </a>
 
                 <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
 
@@ -383,7 +373,7 @@ function AppContent() {
               {/* How much is PIP worth to you */}
               <section className="px-5 md:px-8 pb-10">
                 <div className="bg-teal-800 rounded-3xl p-6 max-w-md mx-auto text-center">
-                  <h2 className="text-xl font-bold text-white mb-6 leading-snug">What it will cost to get your PIP claim right</h2>
+                  <h2 className="text-xl font-bold text-white mb-6 leading-snug">How much is PIP actually worth to you?</h2>
 
                   {/* What you stand to gain */}
                   <div className="bg-teal-700/60 border border-teal-500/40 rounded-2xl p-5 mb-3">
@@ -433,6 +423,21 @@ function AppContent() {
                 </div>
               </section>
 
+              {/* Feature strip */}
+              <div className="px-5 md:px-8 py-4 space-y-3">
+                {[
+                  { icon: '✨', title: 'Get instant inspiration', body: 'See high-quality examples tailored to your specific conditions.' },
+                  { icon: '🆓', title: 'Test it 100% free', body: 'Try the tool and build your draft before spending a penny.' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-start gap-3">
+                    <span className="text-2xl shrink-0">{item.icon}</span>
+                    <div>
+                      <p className="font-bold text-stone-900 text-sm">{item.title}</p>
+                      <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <ClaimSelector onSelect={handleNavigate} />
 
