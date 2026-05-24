@@ -323,19 +323,21 @@ function AppContent() {
                   <strong className="text-stone-900">65% of independent claims fail</strong> on the first attempt, forcing applicants into a painful{' '}
                   <strong className="text-stone-900">6-month wait</strong> just to hear back from the DWP.
                 </p>
+                <p className="text-stone-600 leading-relaxed mb-4">
+                  Worse yet, using copied-and-pasted internet templates risks immediate rejection by DWP handlers who spot identical answers.
+                </p>
                 <p className="text-stone-600 leading-relaxed mb-8">
-                  PIPpal turns the tables — guiding you to complete a fully{' '}
-                  <strong className="text-stone-900">personalised application in just 15 minutes</strong>, for results you can bank on.
+                  Our service provides the ultimate blueprint. We give you fully personalised inspiration tailored to your exact life in just 15 minutes, which you can confidently write into your official form yourself. No risk of "getting caught" — just your real story, perfectly framed.
                 </p>
 
                 <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
 
                 <div className="grid grid-cols-2 gap-6 text-center max-w-sm mx-auto">
                   {[
-                    { icon: '📋', label: '65% failure rate beaten' },
+                    { icon: '🎯', label: '100% personalised' },
+                    { icon: '✍️', label: 'Handwritten copy blueprint' },
+                    { icon: '💪', label: 'Apply with confidence' },
                     { icon: '⏱️', label: 'Skip the 6-month wait risk' },
-                    { icon: '⚡', label: 'Completed in 15 minutes' },
-                    { icon: '🎯', label: '100% personalised to you' },
                   ].map((item, i) => (
                     <div key={i} className="flex flex-col items-center gap-3">
                       <div className="w-14 h-14 bg-teal-50 border border-teal-100 rounded-2xl flex items-center justify-center text-2xl">
