@@ -369,9 +369,9 @@ function AppContent() {
                   {/* What you stand to gain */}
                   <div className="bg-teal-700/60 border border-teal-500/40 rounded-2xl p-5 mb-3">
                     <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-2">What you stand to gain</p>
-                    <p className="text-4xl font-black text-amber-400 mb-1">£10,100</p>
-                    <p className="text-sm text-teal-200 mb-3">Enhanced rate per year</p>
-                    <p className="text-sm font-semibold text-amber-400/80">£30,300 over 3 years</p>
+                    <p className="text-4xl font-black text-amber-400 mb-1">£10,120</p>
+                    <p className="text-sm text-teal-200 mb-3">Enhanced rate per year (2026 rates)</p>
+                    <p className="text-sm font-semibold text-amber-400/80">£60,720 over 6 years</p>
                   </div>
 
                   {/* VS badge */}
@@ -386,7 +386,7 @@ function AppContent() {
                     <p className="text-[11px] font-bold text-teal-400 uppercase tracking-widest mb-2">What it costs</p>
                     <p className="text-3xl font-black text-white mb-1">only £6.99</p>
                     <p className="text-sm text-teal-300 mb-3">One-off, no subscription</p>
-                    <p className="text-sm font-bold text-white/80">1,443x return on investment</p>
+                    <p className="text-sm font-bold text-white/80">8,686x return on investment</p>
                   </div>
 
                   <p className="text-sm text-teal-100 leading-relaxed mb-5">
