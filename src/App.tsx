@@ -313,6 +313,40 @@ function AppContent() {
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <ChatPreview onStart={() => handleNavigate('home')} />
 
+              {/* Why most PIP claims fail section */}
+              <section className="px-5 md:px-8 py-10 text-center max-w-2xl mx-auto">
+                <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-5 leading-tight">
+                  Why most PIP claims fail
+                </h2>
+                <p className="text-stone-600 leading-relaxed mb-4">
+                  Generic templates, overwhelming jargon, and missing medical evidence deliver disappointing rejections.{' '}
+                  <strong className="text-stone-900">65% of independent claims fail</strong> on the first attempt, forcing applicants into a painful{' '}
+                  <strong className="text-stone-900">6-month wait</strong> just to hear back from the DWP.
+                </p>
+                <p className="text-stone-600 leading-relaxed mb-8">
+                  PIPpal turns the tables — guiding you to complete a fully{' '}
+                  <strong className="text-stone-900">personalised application in just 15 minutes</strong>, for results you can bank on.
+                </p>
+
+                <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
+
+                <div className="grid grid-cols-2 gap-6 text-center max-w-sm mx-auto">
+                  {[
+                    { icon: '📋', label: '65% failure rate beaten' },
+                    { icon: '⏱️', label: 'Skip the 6-month wait risk' },
+                    { icon: '⚡', label: 'Completed in 15 minutes' },
+                    { icon: '🎯', label: '100% personalised to you' },
+                  ].map((item, i) => (
+                    <div key={i} className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 bg-teal-50 border border-teal-100 rounded-2xl flex items-center justify-center text-2xl">
+                        {item.icon}
+                      </div>
+                      <p className="text-sm font-semibold text-stone-800 leading-snug">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
               {/* Feature strip */}
               <div className="px-5 md:px-8 py-4 space-y-3">
                 {[
