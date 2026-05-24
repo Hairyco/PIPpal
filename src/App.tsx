@@ -375,11 +375,28 @@ function AppContent() {
                     <p className="text-sm font-bold text-white/80">1,443x return on investment</p>
                   </div>
 
-                  <p className="text-sm text-teal-100 leading-relaxed">
+                  <p className="text-sm text-teal-100 leading-relaxed mb-5">
                     A single PIP award is worth{' '}
                     <strong className="text-amber-400">hundreds of times</strong>{' '}
                     the cost. Don't lose thousands because of wrong wording on the form.
                   </p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch('/api/create-checkout', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email: '', userId: '' }),
+                        });
+                        const { url } = await res.json();
+                        if (url) window.location.href = url;
+                      } catch { handleNavigate('home'); }
+                    }}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg"
+                  >
+                    Start now — only £6.99 →
+                  </button>
+                  <p className="text-xs text-teal-400 mt-2">🔒 Secure payment · One-off · No subscription</p>
                 </div>
               </section>
 
