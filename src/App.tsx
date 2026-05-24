@@ -347,6 +347,42 @@ function AppContent() {
                 </div>
               </section>
 
+              {/* How much is PIP worth to you */}
+              <section className="px-5 md:px-8 pb-10">
+                <div className="bg-teal-800 rounded-3xl p-6 max-w-md mx-auto text-center">
+                  <h2 className="text-xl font-bold text-white mb-6 leading-snug">How much is PIP actually worth to you?</h2>
+
+                  {/* What you stand to gain */}
+                  <div className="bg-teal-700/60 border border-teal-500/40 rounded-2xl p-5 mb-3">
+                    <p className="text-[11px] font-bold text-teal-300 uppercase tracking-widest mb-2">What you stand to gain</p>
+                    <p className="text-4xl font-black text-amber-400 mb-1">£10,100</p>
+                    <p className="text-sm text-teal-200 mb-3">Enhanced rate per year</p>
+                    <p className="text-sm font-semibold text-amber-400/80">£30,300 over 3 years</p>
+                  </div>
+
+                  {/* VS badge */}
+                  <div className="flex items-center justify-center -my-1 relative z-10">
+                    <div className="w-10 h-10 rounded-full bg-teal-600 border-2 border-teal-800 flex items-center justify-center">
+                      <span className="text-xs font-black text-white">VS</span>
+                    </div>
+                  </div>
+
+                  {/* What it costs */}
+                  <div className="bg-teal-700/40 border border-teal-500/30 rounded-2xl p-5 mt-3 mb-5">
+                    <p className="text-[11px] font-bold text-teal-400 uppercase tracking-widest mb-2">What it costs</p>
+                    <p className="text-3xl font-black text-white mb-1">only £6.99</p>
+                    <p className="text-sm text-teal-300 mb-3">One-off, no subscription</p>
+                    <p className="text-sm font-bold text-white/80">1,443x return on investment</p>
+                  </div>
+
+                  <p className="text-sm text-teal-100 leading-relaxed">
+                    A single PIP award is worth{' '}
+                    <strong className="text-amber-400">hundreds of times</strong>{' '}
+                    the cost. Don't lose thousands because of wrong wording on the form.
+                  </p>
+                </div>
+              </section>
+
               {/* Feature strip */}
               <div className="px-5 md:px-8 py-4 space-y-3">
                 {[
