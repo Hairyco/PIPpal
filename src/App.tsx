@@ -342,6 +342,15 @@ function AppContent() {
                   Our service provides the ultimate blueprint. We give you fully personalised inspiration tailored to your exact life in just 15 minutes, which you can confidently write into your official form yourself. No risk of "getting caught" — just your real story, perfectly framed.
                 </p>
 
+                <a
+                  href="https://www.gov.uk/government/publications/personal-independence-payment-claim-form-and-notes"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-teal-700 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm mb-8"
+                >
+                  ⬇️ Download PIP application form
+                </a>
+
                 <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
 
                 <div className="grid grid-cols-2 gap-6 text-center max-w-sm mx-auto">
