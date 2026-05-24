@@ -318,6 +318,18 @@ function AppContent() {
                 <h2 className="text-2xl md:text-3xl font-bold text-stone-900 mb-5 leading-tight">
                   Why most PIP claims fail
                 </h2>
+
+                {/* How to claim steps */}
+                <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
+                  {['Apply for PIP', 'Receive PIP form', 'Handwritten application'].map((step, i) => (
+                    <React.Fragment key={i}>
+                      <span className="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-full">
+                        {i + 1}. {step}
+                      </span>
+                      {i < 2 && <span className="text-stone-300 font-bold text-sm">—</span>}
+                    </React.Fragment>
+                  ))}
+                </div>
                 <p className="text-stone-600 leading-relaxed mb-4">
                   Generic templates, overwhelming jargon, and missing medical evidence deliver disappointing rejections.{' '}
                   <strong className="text-stone-900">65% of independent claims fail</strong> on the first attempt, forcing applicants into a painful{' '}
