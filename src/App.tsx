@@ -394,7 +394,7 @@ function AppContent() {
                     }}
                     className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-lg"
                   >
-                    Start now — only £6.99 →
+                    Start now →
                   </button>
                   <p className="text-xs text-teal-400 mt-2">🔒 Secure payment · One-off · No subscription</p>
                 </div>
