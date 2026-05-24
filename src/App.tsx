@@ -399,7 +399,6 @@ function AppContent() {
                 ))}
               </div>
 
-              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
 
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
