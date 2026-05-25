@@ -327,6 +327,12 @@ function AppContent() {
                 <p className="text-stone-600 leading-relaxed mb-4">Generic templates, overwhelming jargon, and missing medical evidence deliver disappointing rejections. <strong className="text-stone-900">65% of independent claims fail</strong> on the first attempt, forcing applicants into a painful <strong className="text-stone-900">6-month wait</strong> just to hear back from the DWP.</p>
                 <p className="text-stone-600 leading-relaxed mb-4">Worse yet, using copied-and-pasted internet templates risks immediate rejection by DWP handlers who spot identical answers.</p>
                 <p className="text-stone-600 leading-relaxed mb-8">Our service provides the ultimate blueprint. We give you fully personalised inspiration tailored to your exact life in just 15 minutes, which you can confidently write into your official form yourself. No risk of "getting caught" — just your real story, perfectly framed.</p>
+                <p className="text-sm font-bold text-teal-700 uppercase tracking-widest mb-3 text-center">Get your PIP decision 3–6 weeks earlier</p>
+                <div className="w-full rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/40 flex flex-col items-center justify-center gap-3 py-12 mb-6">
+                  <span className="text-4xl">📋</span>
+                  <p className="text-sm font-bold text-teal-700">PIP2 Application Form</p>
+                  <p className="text-xs text-teal-500">Interactive form coming soon</p>
+                </div>
                 <button onClick={() => handleNavigate('home')} className="inline-flex items-center gap-2 bg-teal-700 text-white text-sm font-semibold px-5 py-3 rounded-xl hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm mb-8">⬇️ Download PIP form</button>
                 <p className="text-sm font-bold text-stone-400 uppercase tracking-widest mb-6">We're different</p>
                 <div className="grid grid-cols-2 gap-6 text-center max-w-sm mx-auto">
