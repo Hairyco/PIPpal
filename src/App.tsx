@@ -318,8 +318,6 @@ function AppContent() {
 
               <ClaimSelector onSelect={handleNavigate} />
 
-              <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
-              
               <section
                 id="free-tools"
                 className="px-5 md:px-8 py-8 bg-stone-100/50 border-y border-stone-200/50 my-4 scroll-mt-20"
