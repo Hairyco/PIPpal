@@ -26,6 +26,10 @@ import {
   Shield,
   Newspaper,
   Rss,
+  BarChart2,
+  Eye,
+  Mail,
+  Users,
 } from 'lucide-react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -211,6 +215,30 @@ function AppContent() {
     }
     setDrawerOpen(false);
   };
+
+  const drawerAdminNav = (tab: 'stats' | 'visitors' | 'blog' | 'email' | 'influencers') => {
+    sessionStorage.setItem('pippal_admin_tab', tab);
+    navigateTo('admin');
+    setDrawerOpen(false);
+  };
+
+  const AdminQuickLink = ({
+    icon: Icon,
+    label,
+    tab,
+  }: {
+    icon: React.ElementType;
+    label: string;
+    tab: 'stats' | 'visitors' | 'blog' | 'email' | 'influencers';
+  }) => (
+    <button
+      onClick={() => drawerAdminNav(tab)}
+      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-150 text-stone-600 hover:bg-stone-50 hover:text-stone-900 active:scale-[0.98]"
+    >
+      <Icon className="w-4 h-4 shrink-0 text-stone-400" />
+      <span className="flex-1 text-left">{label}</span>
+    </button>
+  );
 
   const NavItem = ({
     icon: Icon,
@@ -435,56 +463,69 @@ function AppContent() {
                       <NavItem icon={BookOpen} label="Blog" screen="blog" />
                     </div>
 
-                    <div>
-                      <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
-                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid && !isAdmin ? "PRO" : undefined} paidOnly />
-                      {hasPaid && (
-                        <>
-                          <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />
-                          <NavItem icon={Download} label="Downloads" screen="downloads" badge={!hasPaid ? "PRO" : undefined} />
-                          <NavItem icon={CheckSquare} label="Pre-Claim Checklist" screen="pre_claim_checklist" badge={!hasPaid ? "PRO" : undefined} />
-                        </>
-                      )}
-                    </div>
-
-                    <div>
-                      <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Tools & Prep</p>
-                      <NavItem icon={ClipboardCheck} label="Am I Eligible?" screen="eligibility" />
-                      <NavItem icon={Stethoscope} label="Medical Profile" screen="medical_profile" />
-                      <NavItem icon={BookOpen} label="How It Works" screen="claim_process" badge={!hasPaid ? "PRO" : undefined} />
-                      <NavItem icon={Scale} label="What Assessors Look For" screen="descriptors_guide" badge={!hasPaid ? "PRO" : undefined} />
-                    </div>
-
-                    <div>
-                      <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Free Calculators</p>
-                      <NavItem icon={Clock} label="Timeline Calculator" screen="timeline_calculator" badge="Free" />
-                      <NavItem icon={Calculator} label="Payment Calculator" screen="payment_calculator" badge="Free" />
-                      <NavItem icon={Coins} label="Backpay Calculator" screen="backpay_calculator" badge="Free" />
-                    </div>
-
-                    <div>
-                      <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">After Your Decision</p>
-                      <NavItem icon={FileText} label="Decision Received" screen="decision_received" />
-                      <NavItem icon={AlertTriangle} label="Mandatory Reconsideration" screen="mandatory_reconsideration" />
-                      <NavItem icon={Scale} label="Appeal" screen="appeal" />
-                      <NavItem icon={RefreshCw} label="Change of Circumstances" screen="change_of_circumstances" />
-                    </div>
-
-                    {!hasPaid && (
-                      <div className="mx-1">
-                        <button
-                          onClick={() => drawerNav('upsell')}
-                          className="w-full bg-orange-50 border border-orange-200 rounded-xl p-3.5 text-left hover:bg-orange-100 transition-colors active:scale-[0.98]"
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Sparkles className="w-4 h-4 text-orange-500" />
-                            <span className="text-sm font-bold text-orange-900">Unlock Full Access</span>
-                          </div>
-                          <p className="text-[11px] text-orange-700 leading-relaxed">
-                            All 12 questions, PIP Diary, downloads & more — {formatFullAccessPrice()} one-time
-                          </p>
-                        </button>
+                    {isAdmin ? (
+                      <div>
+                        <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Admin</p>
+                        <AdminQuickLink icon={BarChart2} label="Stats" tab="stats" />
+                        <AdminQuickLink icon={Eye} label="Visitors" tab="visitors" />
+                        <AdminQuickLink icon={BookOpen} label="Blog posts" tab="blog" />
+                        <AdminQuickLink icon={Mail} label="Email & digest" tab="email" />
+                        <AdminQuickLink icon={Users} label="Influencers" tab="influencers" />
                       </div>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
+                          <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? 'PRO' : undefined} paidOnly />
+                          {hasPaid && (
+                            <>
+                              <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? 'PRO' : undefined} />
+                              <NavItem icon={Download} label="Downloads" screen="downloads" badge={!hasPaid ? 'PRO' : undefined} />
+                              <NavItem icon={CheckSquare} label="Pre-Claim Checklist" screen="pre_claim_checklist" badge={!hasPaid ? 'PRO' : undefined} />
+                            </>
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Tools & Prep</p>
+                          <NavItem icon={ClipboardCheck} label="Am I Eligible?" screen="eligibility" />
+                          <NavItem icon={Stethoscope} label="Medical Profile" screen="medical_profile" />
+                          <NavItem icon={BookOpen} label="How It Works" screen="claim_process" badge={!hasPaid ? 'PRO' : undefined} />
+                          <NavItem icon={Scale} label="What Assessors Look For" screen="descriptors_guide" badge={!hasPaid ? 'PRO' : undefined} />
+                        </div>
+
+                        <div>
+                          <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Free Calculators</p>
+                          <NavItem icon={Clock} label="Timeline Calculator" screen="timeline_calculator" badge="Free" />
+                          <NavItem icon={Calculator} label="Payment Calculator" screen="payment_calculator" badge="Free" />
+                          <NavItem icon={Coins} label="Backpay Calculator" screen="backpay_calculator" badge="Free" />
+                        </div>
+
+                        <div>
+                          <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">After Your Decision</p>
+                          <NavItem icon={FileText} label="Decision Received" screen="decision_received" />
+                          <NavItem icon={AlertTriangle} label="Mandatory Reconsideration" screen="mandatory_reconsideration" />
+                          <NavItem icon={Scale} label="Appeal" screen="appeal" />
+                          <NavItem icon={RefreshCw} label="Change of Circumstances" screen="change_of_circumstances" />
+                        </div>
+
+                        {!hasPaid && (
+                          <div className="mx-1">
+                            <button
+                              onClick={() => drawerNav('upsell')}
+                              className="w-full bg-orange-50 border border-orange-200 rounded-xl p-3.5 text-left hover:bg-orange-100 transition-colors active:scale-[0.98]"
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <Sparkles className="w-4 h-4 text-orange-500" />
+                                <span className="text-sm font-bold text-orange-900">Unlock Full Access</span>
+                              </div>
+                              <p className="text-[11px] text-orange-700 leading-relaxed">
+                                All 12 questions, PIP Diary, downloads & more — {formatFullAccessPrice()} one-time
+                              </p>
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -519,11 +560,11 @@ function AppContent() {
                     </button>
                     {isAdmin && (
                       <button
-                        onClick={() => drawerNav('admin')}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-stone-500 rounded-lg hover:bg-stone-50 transition-colors"
+                        onClick={() => drawerAdminNav('stats')}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-teal-700 rounded-lg hover:bg-teal-50 transition-colors"
                       >
-                        <Settings className="w-4 h-4 text-stone-400" />
-                        Admin Dashboard
+                        <Settings className="w-4 h-4 text-teal-600" />
+                        Admin dashboard
                       </button>
                     )}
                     {isLoggedIn && (

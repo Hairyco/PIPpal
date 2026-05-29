@@ -708,6 +708,20 @@ export function AdminDashboard() {
     await supabase.from('blog_posts').update({ published: !published }).eq('id', id);
     fetchBlogPosts();
   };
+
+  const openAdminTab = (tab: TabType) => {
+    setActiveTab(tab);
+    if (tab === 'blog') {
+      void fetchBlogPosts();
+      void fetchBlogClicks();
+    }
+    if (tab === 'email') {
+      void fetchEmailHistory();
+      void fetchSubscriberCount();
+    }
+    if (tab === 'stats') void fetchAiCosts();
+  };
+
   const [digestResult, setDigestResult] = useState<string | null>(null);
 
   const sendDigest = async (testOnly = false) => {
@@ -1064,6 +1078,12 @@ export function AdminDashboard() {
     if (isAdmin) {
       loadStats();
       loadInfluencerCodes();
+      const pending = sessionStorage.getItem('pippal_admin_tab') as TabType | null;
+      const valid: TabType[] = ['stats', 'visitors', 'blog', 'email', 'influencers'];
+      if (pending && valid.includes(pending)) {
+        sessionStorage.removeItem('pippal_admin_tab');
+        openAdminTab(pending);
+      }
     } else {
       setStatsLoading(false);
       setInfluencerLoading(false);
@@ -1123,7 +1143,7 @@ export function AdminDashboard() {
         {(['stats', 'visitors', 'blog', 'email', 'influencers'] as TabType[]).map(tab => (
           <button
             key={tab}
-            onClick={() => { setActiveTab(tab as TabType); if (tab === 'blog') { fetchBlogPosts(); fetchBlogClicks(); } if (tab === 'email') { fetchEmailHistory(); fetchSubscriberCount(); } if (tab === 'stats') fetchAiCosts(); }}
+            onClick={() => openAdminTab(tab as TabType)}
             className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
