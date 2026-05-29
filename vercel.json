@@ -48,10 +48,17 @@
     {
       "path": "/api/blog-daily",
       "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/news",
+      "schedule": "0 8 * * *"
     }
   ],
   "functions": {
     "api/blog-daily.js": {
+      "maxDuration": 60
+    },
+    "api/news.js": {
       "maxDuration": 60
     }
   }

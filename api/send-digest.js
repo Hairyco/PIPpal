@@ -48,12 +48,9 @@ async function getSubscribers() {
 }
 
 const DIGEST_SOURCES = [
+  { url: 'https://news.google.com/rss/search?q=PIP+personal+independence+payment+UK&hl=en-GB&gl=GB&ceid=GB:en', name: 'Google News', showSource: false, format: 'rss', curated: true },
+  { url: 'https://news.google.com/rss/search?q=DWP+PIP+disability+benefit+UK&hl=en-GB&gl=GB&ceid=GB:en', name: 'Google News', showSource: false, format: 'rss', curated: true },
   { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment', name: 'GOV.UK', showSource: true, format: 'atom' },
-  { url: 'https://feeds.bbci.co.uk/news/uk/rss.xml', name: 'BBC', showSource: false, format: 'rss' },
-  { url: 'https://www.mirror.co.uk/money/benefits/rss.xml', name: 'Mirror', showSource: false, format: 'rss' },
-  { url: 'https://www.manchestereveningnews.co.uk/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
-  { url: 'https://www.birminghammail.co.uk/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
-  { url: 'https://www.liverpoolecho.co.uk/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
 ];
 
 // Strict PIP-only keywords — must include at least one
@@ -89,17 +86,23 @@ function parseDigestAtom(xml) {
   return items;
 }
 
-function parseDigestRSS(xml) {
+function cleanGoogleNewsTitle(title) {
+  return title.replace(/\s+-\s+[^-]+$/, '').trim();
+}
+
+function parseDigestRSS(xml, curated = false) {
   const items = [];
   const regex = /<item>([\s\S]*?)<\/item>/g;
   let match;
   while ((match = regex.exec(xml)) !== null) {
     const item = match[1];
-    const title = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
+    let title = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
+    title = title.replace(/<[^>]*>/g, '').trim();
+    if (curated) title = cleanGoogleNewsTitle(title);
     const desc = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim().slice(0, 400);
     const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
     const date = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
-    if (title && isPIPRelated(title, desc)) items.push({ title: title.trim(), body: desc, link, date });
+    if (title && isPIPRelated(title, desc)) items.push({ title, body: desc, link, date });
   }
   return items;
 }
@@ -113,7 +116,7 @@ async function fetchDigestFeed(source) {
     console.log(`Feed ${source.name}: status ${res.status}`);
     if (!res.ok) return [];
     const xml = await res.text();
-    const allItems = source.format === 'atom' ? parseDigestAtom(xml) : parseDigestRSS(xml);
+    const allItems = source.format === 'atom' ? parseDigestAtom(xml) : parseDigestRSS(xml, source.curated);
     console.log(`Feed ${source.name}: ${allItems.length} PIP articles`);
     return allItems.slice(0, 4).map(item => ({
       ...item,

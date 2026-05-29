@@ -1,20 +1,14 @@
+const GOOGLE_NEWS_PIP =
+  'https://news.google.com/rss/search?q=PIP+personal+independence+payment+UK&hl=en-GB&gl=GB&ceid=GB:en';
+const GOOGLE_NEWS_DWP =
+  'https://news.google.com/rss/search?q=DWP+PIP+disability+benefit+UK&hl=en-GB&gl=GB&ceid=GB:en';
+
 const SOURCES = [
-  // GOV.UK — official PIP and DWP news
+  // Google News — reliable PIP-specific syndication (replaces many dead regional RSS feeds)
+  { url: GOOGLE_NEWS_PIP, name: 'Google News', showSource: false, format: 'rss', curated: true },
+  { url: GOOGLE_NEWS_DWP, name: 'Google News', showSource: false, format: 'rss', curated: true },
+  // GOV.UK — official announcements when they mention PIP in the title
   { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=PIP+personal+independence+payment', name: 'GOV.UK', showSource: true, format: 'atom' },
-  { url: 'https://www.gov.uk/search/news-and-communications.atom?keywords=disability+benefit+dwp', name: 'GOV.UK DWP', showSource: true, format: 'atom' },
-  // Mirror — benefits-specific section
-  { url: 'https://www.mirror.co.uk/money/benefits/rss.xml', name: 'Mirror', showSource: false, format: 'rss' },
-  { url: 'https://www.mirror.co.uk/money/rss.xml', name: 'Mirror Money', showSource: false, format: 'rss' },
-  // Regional Reach PLC — money/benefits sections
-  { url: 'https://www.manchestereveningnews.co.uk/money/rss.xml', name: 'MEN', showSource: false, format: 'rss' },
-  { url: 'https://www.birminghammail.co.uk/money/rss.xml', name: 'Birmingham Live', showSource: false, format: 'rss' },
-  { url: 'https://www.liverpoolecho.co.uk/money/rss.xml', name: 'Liverpool Echo', showSource: false, format: 'rss' },
-  { url: 'https://www.leeds-live.co.uk/money/rss.xml', name: 'Leeds Live', showSource: false, format: 'rss' },
-  { url: 'https://www.chroniclelive.co.uk/money/rss.xml', name: 'Chronicle Live', showSource: false, format: 'rss' },
-  { url: 'https://www.walesonline.co.uk/money/rss.xml', name: 'Wales Online', showSource: false, format: 'rss' },
-  // National
-  { url: 'https://feeds.bbci.co.uk/news/uk/rss.xml', name: 'BBC', showSource: false, format: 'rss' },
-  { url: 'https://www.disabilityrightsuk.org/feed', name: 'Disability Rights UK', showSource: false, format: 'rss' },
 ];
 
 /** Decode XML/HTML entities from RSS titles and summaries */
@@ -64,9 +58,14 @@ const TAG_RULES = [
   { tag: 'Official', keywords: ['gov.uk', 'dwp', 'department for work', 'official'] },
 ];
 
-function firstPassFilter(title, summary) {
+function cleanGoogleNewsTitle(title) {
+  return title.replace(/\s+-\s+[^-]+$/, '').trim();
+}
+
+function firstPassFilter(title, summary, curated = false) {
   const text = (title + ' ' + (summary || '')).toLowerCase();
   if (HARD_REJECT.some(t => title.toLowerCase().includes(t))) return false;
+  if (curated) return mentionsPipBenefit(title, summary);
   if (!mentionsPipBenefit(title, summary)) return false;
   return BROAD_KEYWORDS.some(k => text.includes(k));
 }
@@ -99,7 +98,7 @@ function parseAtom(xml) {
   return items;
 }
 
-function parseRSS(xml) {
+function parseRSS(xml, curated = false) {
   const items = [];
   const regex = /<item>([\s\S]*?)<\/item>/g;
   let match;
@@ -107,12 +106,14 @@ function parseRSS(xml) {
     const item = match[1];
     const titleRaw = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
     const descRaw = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
-    const title = decodeHtmlEntities(titleRaw.trim());
+    let title = decodeHtmlEntities(titleRaw.trim());
     const desc = decodeHtmlEntities(descRaw);
     const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
     const date = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
-    if (title && firstPassFilter(title, desc)) {
-      items.push({ title, summary: desc.slice(0, 400), link, date });
+    const publisher = decodeHtmlEntities(((item.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1] || '').trim());
+    if (curated) title = cleanGoogleNewsTitle(title);
+    if (title && firstPassFilter(title, desc, curated)) {
+      items.push({ title, summary: desc.slice(0, 400), link, date, publisher });
     }
   }
   return items;
@@ -126,8 +127,12 @@ async function fetchFeed(source) {
     });
     if (!res.ok) return [];
     const xml = await res.text();
-    const items = source.format === 'atom' ? parseAtom(xml) : parseRSS(xml);
-    return items.slice(0, 8).map(item => ({ ...item, sourceName: source.name, showSource: source.showSource }));
+    const items = source.format === 'atom' ? parseAtom(xml) : parseRSS(xml, source.curated);
+    return items.slice(0, 10).map(item => ({
+      ...item,
+      sourceName: item.publisher || source.name,
+      showSource: source.showSource,
+    }));
   } catch {
     return [];
   }
