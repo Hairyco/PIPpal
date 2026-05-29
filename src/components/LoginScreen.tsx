@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
+import { isAdminEmail } from '../utils/adminAccess';
 
 type Mode = 'login' | 'signup' | 'forgot';
 
@@ -205,7 +206,7 @@ export function LoginScreen() {
               .select('has_paid')
               .eq('id', data.user.id)
               .single();
-            if (profile?.has_paid) setHasPaid(true);
+            if (profile?.has_paid || isAdminEmail(email)) setHasPaid(true);
           } catch { /* Fail silently */ }
           showToast('Welcome back!', 'success');
           navigateTo('home');

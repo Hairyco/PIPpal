@@ -606,10 +606,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid || emailIsAdmin(session.user.email || '')) {
+          if (profile?.has_paid || isAdminEmail(session.user.email || '')) {
             setHasPaidState(true);
           }
-        } catch { /* No profile yet */ }
+        } catch {
+          if (isAdminEmail(session.user.email || '')) setHasPaidState(true);
+        }
 
         // Load medical profile from Supabase
         try {
@@ -688,13 +690,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             .select('has_paid')
             .eq('id', session.user.id)
             .single();
-          if (profile?.has_paid || emailIsAdmin(session.user.email || '')) {
+          if (profile?.has_paid || isAdminEmail(session.user.email || '')) {
             setHasPaidState(true);
           } else {
             setHasPaidState(false);
           }
         } catch {
-          setHasPaidState(emailIsAdmin(session.user.email || ''));
+          setHasPaidState(isAdminEmail(session.user.email || ''));
         }
 
       } else {

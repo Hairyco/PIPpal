@@ -10,6 +10,7 @@ import {
   Mic,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { supabase } from '../supabaseClient';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
 import { formatFullAccessPrice } from '../constants/pricing';
 
@@ -18,6 +19,7 @@ export function QuestionIndex() {
     navigateTo,
     goBack,
     hasPaid,
+    isAdmin,
     savedAnswers,
     setSelectedQuestionId,
     cocMode,
@@ -25,6 +27,8 @@ export function QuestionIndex() {
     savedAnswerDetails,
     user,
   } = useAppContext();
+
+  const hasFullAccess = hasPaid || isAdmin;
 
   const totalQuestions = PIP_QUESTIONS.length;
   const answeredCount = Object.keys(savedAnswers).length;
@@ -61,7 +65,7 @@ export function QuestionIndex() {
   const QuestionCard = ({ q }: { q: typeof PIP_QUESTIONS[0] }) => {
     const isAnswered = cocMode ? !!cocWalkthroughAnsweredIds[q.id] : !!savedAnswers[q.id];
     const hasLegacyAnswer = !!savedAnswers[q.id];
-    const isLocked = !q.free && !hasPaid;
+    const isLocked = !q.free && !hasFullAccess;
     const answer = savedAnswers[q.id];
     const descriptorCode = answer?.match(/Descriptor\s+([A-Z])/i)?.[1]?.toUpperCase() ?? answer;
     const descriptor = descriptorCode ? q.descriptors.find((d) => d.code === descriptorCode) : null;
@@ -238,7 +242,7 @@ export function QuestionIndex() {
 
 
           {/* Upgrade banner for free users */}
-          {!hasPaid && (
+          {!hasFullAccess && (
             <button
               onClick={() => navigateTo('upsell')}
               className="w-full bg-orange-50 border border-orange-200 rounded-2xl p-4 text-left hover:bg-orange-100 transition-colors active:scale-[0.98]"

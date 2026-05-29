@@ -81,7 +81,8 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
 }
 
 export function HomeScreen() {
-  const { medProfile, navigateTo, user, hasPaid, savedAnswers, savedAnswerDetails, setSelectedQuestionId } = useAppContext();
+  const { medProfile, navigateTo, user, hasPaid, isAdmin, savedAnswers, savedAnswerDetails, setSelectedQuestionId } = useAppContext();
+  const hasFullAccess = hasPaid || isAdmin;
 
   const [cocResume, setCocResume] = useState(() =>
     typeof window !== 'undefined' ? getCocDashboardResumeInfo() : null
@@ -237,7 +238,7 @@ export function HomeScreen() {
         <section>
           <button
             type="button"
-            onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
+            onClick={() => navigateTo(hasFullAccess ? 'question_index' : 'upsell')}
             className="w-full relative bg-white rounded-2xl p-4 border border-stone-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all hover:border-teal-200 hover:shadow-md text-left"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -252,7 +253,7 @@ export function HomeScreen() {
                       {answeredActivityCount}/12
                     </span>
                   )}
-                  {!hasPaid && (
+                  {!hasFullAccess && (
                     <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">PRO</span>
                   )}
                 </h2>

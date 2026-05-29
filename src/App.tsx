@@ -96,8 +96,6 @@ import { PIPAssistant } from './components/PIPAssistant';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PromoDisclaimer } from './components/PromoDisclaimer';
 
-import { isAdminEmail } from './utils/adminAccess';
-
 function LoadingOverlay() {
   return (
     <div className="fixed inset-0 z-[9998] bg-white/80 backdrop-blur-sm flex items-center justify-center">
@@ -118,6 +116,7 @@ function AppContent() {
     user,
     logout,
     hasPaid,
+    isAdmin,
     emailNotifications,
     setEmailNotifications,
     assistantQuestion,
@@ -136,7 +135,6 @@ function AppContent() {
       sessionStorage.setItem('pippal_session_id', Math.random().toString(36).slice(2));
     }
   }, []);
-  const isAdmin = isAdminEmail(user?.email);
 
   // Hidden partner portal — ?partner=true
   useEffect(() => {
@@ -214,7 +212,7 @@ function AppContent() {
   }
 
   const drawerNav = (screen: any, options?: { paidOnly?: boolean }) => {
-    if (options?.paidOnly && !hasPaid) {
+    if (options?.paidOnly && !hasPaid && !isAdmin) {
       navigateTo('upsell');
     } else {
       navigateTo(screen);
@@ -257,12 +255,12 @@ function AppContent() {
   };
 
   const renderAppScreen = () => {
-    if (currentScreen === 'question_index' && !canAccessQuestionIndex(hasPaid)) {
+    if (currentScreen === 'question_index' && !canAccessQuestionIndex(hasPaid, isAdmin)) {
       return <UpsellScreen />;
     }
     if (
       ['personalising', 'q1_intro', 'q1_chat', 'q1_result'].includes(currentScreen) &&
-      !canAccessQuestion(selectedQuestionId, hasPaid)
+      !canAccessQuestion(selectedQuestionId, hasPaid, isAdmin)
     ) {
       return <UpsellScreen />;
     }
@@ -447,7 +445,7 @@ function AppContent() {
 
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
-                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} paidOnly />
+                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid && !isAdmin ? "PRO" : undefined} paidOnly />
                       {hasPaid && (
                         <>
                           <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />
