@@ -60,6 +60,7 @@ import { ClaimFlow } from './components/ClaimFlow';
 import { PointsEstimatorUpload } from './components/PointsEstimatorUpload';
 import { QuestionWizard } from './components/QuestionWizard';
 import { UpsellScreen } from './components/UpsellScreen';
+import { canAccessQuestion, canAccessQuestionIndex } from './utils/questionAccess';
 import { LoginScreen } from './components/LoginScreen';
 import { PostPaymentGuide } from './components/PostPaymentGuide';
 import {
@@ -211,8 +212,12 @@ function AppContent() {
     );
   }
 
-  const drawerNav = (screen: any) => {
-    navigateTo(screen);
+  const drawerNav = (screen: any, options?: { paidOnly?: boolean }) => {
+    if (options?.paidOnly && !hasPaid) {
+      navigateTo('upsell');
+    } else {
+      navigateTo(screen);
+    }
     setDrawerOpen(false);
   };
 
@@ -221,16 +226,18 @@ function AppContent() {
     label,
     screen,
     badge,
+    paidOnly,
   }: {
     icon: React.ElementType;
     label: string;
     screen: any;
     badge?: string;
+    paidOnly?: boolean;
   }) => {
     const isActive = currentScreen === screen;
     return (
       <button
-        onClick={() => drawerNav(screen)}
+        onClick={() => drawerNav(screen, { paidOnly })}
         className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium rounded-lg transition-all duration-150
           ${isActive
             ? 'bg-teal-50 text-teal-700'
@@ -249,6 +256,16 @@ function AppContent() {
   };
 
   const renderAppScreen = () => {
+    if (currentScreen === 'question_index' && !canAccessQuestionIndex(hasPaid)) {
+      return <UpsellScreen />;
+    }
+    if (
+      ['personalising', 'q1_intro', 'q1_chat', 'q1_result'].includes(currentScreen) &&
+      !canAccessQuestion(selectedQuestionId, hasPaid)
+    ) {
+      return <UpsellScreen />;
+    }
+
     switch (currentScreen) {
       case 'login': return <LoginScreen />;
       case 'home': return <HomeScreen />;
@@ -429,7 +446,7 @@ function AppContent() {
 
                     <div>
                       <p className="px-4 text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1.5">Your Claim</p>
-                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} />
+                      <NavItem icon={MessageSquare} label="My Questions" screen="question_index" badge={!hasPaid ? "PRO" : undefined} paidOnly />
                       {hasPaid && (
                         <>
                           <NavItem icon={FileText} label="PIP Diary" screen="pip_diary" badge={!hasPaid ? "PRO" : undefined} />

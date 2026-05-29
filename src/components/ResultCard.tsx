@@ -323,11 +323,16 @@ Return ONLY the rewritten answer — no preamble, no quotation marks.`,
     const currentIndex = allIds.indexOf(qId);
     const nextId = allIds[currentIndex + 1];
     if (nextId) {
+      const nextQuestion = PIP_QUESTIONS.find((q) => q.id === nextId);
+      if (!hasPaid && nextQuestion && !nextQuestion.free) {
+        navigateTo('upsell');
+        return;
+      }
       setSelectedQuestionId(nextId);
       setQ1Result(null);
       navigateTo('personalising'); // goes through loading screen → generates personalised content → q1_intro
     } else {
-      navigateTo('question_index');
+      navigateTo(hasPaid ? 'question_index' : 'upsell');
     }
   };
 

@@ -44,7 +44,7 @@ function NavCard({ title, desc, icon: Icon, color, bg, target, locked }: NavCard
   const { navigateTo } = useAppContext();
   return (
     <button
-      onClick={() => navigateTo(target)}
+      onClick={() => navigateTo(locked ? 'upsell' : target)}
       className={`flex flex-col text-left bg-white p-4 rounded-2xl border shadow-sm transition-all active:scale-95 group relative overflow-hidden
         ${locked
           ? 'border-stone-100 opacity-70 hover:border-stone-200'
@@ -236,7 +236,7 @@ export function HomeScreen() {
         <section>
           <button
             type="button"
-            onClick={() => navigateTo('question_index')}
+            onClick={() => navigateTo(hasPaid ? 'question_index' : 'upsell')}
             className="w-full relative bg-white rounded-2xl p-4 border border-stone-200 shadow-sm flex items-center justify-between active:scale-[0.98] transition-all hover:border-teal-200 hover:shadow-md text-left"
           >
             <div className="flex items-center gap-3 flex-1 min-w-0">
