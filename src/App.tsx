@@ -96,7 +96,7 @@ import { PIPAssistant } from './components/PIPAssistant';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PromoDisclaimer } from './components/PromoDisclaimer';
 
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
+import { isAdminEmail } from './utils/adminAccess';
 
 function LoadingOverlay() {
   return (
@@ -136,7 +136,7 @@ function AppContent() {
       sessionStorage.setItem('pippal_session_id', Math.random().toString(36).slice(2));
     }
   }, []);
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  const isAdmin = isAdminEmail(user?.email);
 
   // Hidden partner portal — ?partner=true
   useEffect(() => {
@@ -312,7 +312,7 @@ function AppContent() {
       case 'privacy': return <PrivacyScreen />;
       case 'accessibility': return <AccessibilityScreen />;
       case 'terms': return <TermsScreen />;
-      case 'admin' as any: return <AdminDashboard />;
+      case 'admin': return <AdminDashboard />;
       default: return null;
     }
   };

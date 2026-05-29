@@ -27,8 +27,6 @@ import {
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 
-const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
-
 interface InfluencerCode {
   id: string;
   name: string;
@@ -119,7 +117,7 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
 }
 
 export function AdminDashboard() {
-  const { user, goBack, navigateTo, setSelectedBlogSlug } = useAppContext();
+  const { user, goBack, navigateTo, setSelectedBlogSlug, isAdmin, isLoading } = useAppContext();
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>([]);
@@ -481,8 +479,6 @@ export function AdminDashboard() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
 
-  const isAdmin = user?.email === ADMIN_EMAIL;
-
   const getDateFilter = (period: PeriodFilter): Date | null => {
     switch (period) {
       case 'today': { const d = new Date(); d.setHours(0,0,0,0); return d; }
@@ -508,22 +504,36 @@ export function AdminDashboard() {
       const { data: allUsers } = await supabase.from('profiles').select('id, name, email, has_paid, created_at, influencer_source').order('created_at', { ascending: false });
       const { data: influencerData } = await supabase.from('profiles').select('influencer_source, has_paid').not('influencer_source', 'is', null);
 
-      // Chart data — last 14 days
-      const chartData: DayData[] = [];
-      for (let i = 13; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        d.setHours(0,0,0,0);
-        const next = new Date(d);
-        next.setDate(next.getDate() + 1);
-        const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', d.toISOString()).lt('created_at', next.toISOString());
-        const { count: paidCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('has_paid', true).gte('created_at', d.toISOString()).lt('created_at', next.toISOString());
-        chartData.push({
-          date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-          signups: count || 0,
-          revenue: (paidCount || 0) * FULL_ACCESS_PRICE_GBP,
-        });
-      }
+      // Chart data — last 14 days (parallel queries so the dashboard loads promptly)
+      const chartData: DayData[] = await Promise.all(
+        Array.from({ length: 14 }, (_, index) => {
+          const dayOffset = 13 - index;
+          const d = new Date();
+          d.setDate(d.getDate() - dayOffset);
+          d.setHours(0, 0, 0, 0);
+          const next = new Date(d);
+          next.setDate(next.getDate() + 1);
+          const from = d.toISOString();
+          const to = next.toISOString();
+          return Promise.all([
+            supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .gte('created_at', from)
+              .lt('created_at', to),
+            supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .eq('has_paid', true)
+              .gte('created_at', from)
+              .lt('created_at', to),
+          ]).then(([signupsRes, paidRes]) => ({
+            date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
+            signups: signupsRes.count || 0,
+            revenue: (paidRes.count || 0) * FULL_ACCESS_PRICE_GBP,
+          }));
+        }),
+      );
 
       // Avg time to payment
       const { data: paidProfiles } = await supabase.from('profiles').select('created_at').eq('has_paid', true).not('influencer_source', 'is', null).is('influencer_source', null);
@@ -743,7 +753,15 @@ export function AdminDashboard() {
       setStatsLoading(false);
       setInfluencerLoading(false);
     }
-  }, [isAdmin]);
+  }, [isAdmin, user?.email]);
+
+  if (isLoading || (user && !user.email)) {
+    return (
+      <div className="flex flex-col h-full bg-stone-50 items-center justify-center">
+        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

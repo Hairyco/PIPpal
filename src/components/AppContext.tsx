@@ -8,6 +8,7 @@ import {
   type CocMedicalSnapshot,
 } from '../cocMedicalSnapshot';
 import { PIP_QUESTIONS } from '../pipQuestions';
+import { isAdminEmail } from '../utils/adminAccess';
 
 export type Screen =
   | 'landing'
@@ -54,7 +55,8 @@ export type Screen =
   | 'influencer_portal'
   | 'pip_benefits'
   | 'assessment_mock'
-  | 'survey';
+  | 'survey'
+  | 'admin';
 
 /** Dev-only: `/?screenshot=…` for marketing captures (see `scripts/capture-marketing-screens.mjs`). */
 type DevScreenshot = {
@@ -367,8 +369,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       : null;
   });
-  const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL;
-  const emailIsAdmin = (email: string) => email === ADMIN_EMAIL || email === 'daley_cutler@hotmail.co.uk';
 
   const [hasPaid, setHasPaidState] = useState<boolean>(() => (devScreenshot ? true : loadFromStorage('pippal_paid_cache', false)));
 
@@ -523,6 +523,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       clearOAuthFailsafe();
+      try {
       if (session?.user) {
         const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || '';
         const userEmail = session.user.email || '';
@@ -637,10 +638,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             setSavedAnswers(prev => ({ ...remoteAnswers, ...prev })); // local takes priority if both exist
           }
         } catch { /* pip_answers table may not exist yet */ }
-      } else {
+      }
+      } finally {
         setIsLoading(false);
       }
-      setIsLoading(false);
     }).catch(() => {
       clearOAuthFailsafe();
       setIsLoading(false);
@@ -947,7 +948,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setHasCompletedEligibility,
         hasPaid,
         setHasPaid,
-        isAdmin: !!(user?.email && emailIsAdmin(user.email)),
+        isAdmin: isAdminEmail(user?.email),
         isLoading,
         setIsLoading,
         toasts,
