@@ -58,6 +58,8 @@ export type Screen =
   | 'survey'
   | 'admin';
 
+export type AdminTab = 'stats' | 'visitors' | 'blog' | 'email' | 'influencers';
+
 /** Dev-only: `/?screenshot=…` for marketing captures (see `scripts/capture-marketing-screens.mjs`). */
 type DevScreenshot = {
   screen: Screen;
@@ -239,6 +241,9 @@ interface AppContextType {
   setHasPaid: (paid: boolean) => void;
   /** True when the signed-in user's email matches admin (env or owner fallback). Used for previews / dashboards. */
   isAdmin: boolean;
+  /** Active tab on the admin dashboard (drawer quick links and in-dashboard tabs). */
+  adminTab: AdminTab;
+  setAdminTab: (tab: AdminTab) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   toasts: Toast[];
@@ -397,6 +402,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     blogPath?.type === 'blog_post' ? blogPath.slug : null,
   );
   const [emailNotifications, setEmailNotificationsState] = useState<boolean>(true);
+  const [adminTab, setAdminTab] = useState<AdminTab>('stats');
 
   const [savedAnswers, setSavedAnswers] = useState<Record<string, string>>(() =>
     demoAnswers ? demoAnswers.savedAnswers : loadFromStorage('pippal_answers', {}),
@@ -960,6 +966,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         hasPaid,
         setHasPaid,
         isAdmin: isAdminEmail(user?.email),
+        adminTab,
+        setAdminTab,
         isLoading,
         setIsLoading,
         toasts,

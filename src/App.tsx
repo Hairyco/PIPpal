@@ -121,6 +121,7 @@ function AppContent() {
     logout,
     hasPaid,
     isAdmin,
+    setAdminTab,
     emailNotifications,
     setEmailNotifications,
     assistantQuestion,
@@ -217,7 +218,7 @@ function AppContent() {
   };
 
   const drawerAdminNav = (tab: 'stats' | 'visitors' | 'blog' | 'email' | 'influencers') => {
-    sessionStorage.setItem('pippal_admin_tab', tab);
+    setAdminTab(tab);
     navigateTo('admin');
     setDrawerOpen(false);
   };

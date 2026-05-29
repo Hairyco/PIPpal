@@ -161,7 +161,7 @@ function countUniqueVisitors(
 }
 
 export function AdminDashboard() {
-  const { user, goBack, navigateTo, setSelectedBlogSlug, isAdmin, isLoading } = useAppContext();
+  const { user, goBack, navigateTo, setSelectedBlogSlug, isAdmin, isLoading, adminTab, setAdminTab } = useAppContext();
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [influencerCodes, setInfluencerCodes] = useState<InfluencerCode[]>([]);
@@ -225,7 +225,6 @@ export function AdminDashboard() {
   const [editPayoutName, setEditPayoutName] = useState('');
   const [editPayoutSort, setEditPayoutSort] = useState('');
   const [editPayoutAcct, setEditPayoutAcct] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('stats');
   const [sendingDigest, setSendingDigest] = useState(false);
   const [emailHistory, setEmailHistory] = useState<any[]>([]);
   const [aiCosts, setAiCosts] = useState<{total: number, byUser: any[], thisMonth: number}>({ total: 0, byUser: [], thisMonth: 0 });
@@ -311,14 +310,14 @@ export function AdminDashboard() {
   );
 
   useEffect(() => {
-    if (activeTab !== 'blog') return;
+    if (adminTab !== 'blog') return;
     try {
       const raw = sessionStorage.getItem(BLOG_DRAFT_BACKUP_KEY);
       setDraftBackup(raw ? JSON.parse(raw) : null);
     } catch {
       setDraftBackup(null);
     }
-  }, [activeTab]);
+  }, [adminTab]);
 
   const savePostViaApi = async (
     post: any,
@@ -732,18 +731,20 @@ export function AdminDashboard() {
     fetchBlogPosts();
   };
 
-  const openAdminTab = (tab: TabType) => {
-    setActiveTab(tab);
-    if (tab === 'blog') {
+  const openAdminTab = (tab: TabType) => setAdminTab(tab);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    if (adminTab === 'blog') {
       void fetchBlogPosts();
       void fetchBlogClicks();
     }
-    if (tab === 'email') {
+    if (adminTab === 'email') {
       void fetchEmailHistory();
       void fetchSubscriberCount();
     }
-    if (tab === 'stats') void fetchAiCosts();
-  };
+    if (adminTab === 'stats') void fetchAiCosts();
+  }, [adminTab, isAdmin]);
 
   const [digestResult, setDigestResult] = useState<string | null>(null);
 
@@ -1101,12 +1102,6 @@ export function AdminDashboard() {
     if (isAdmin) {
       loadStats();
       loadInfluencerCodes();
-      const pending = sessionStorage.getItem('pippal_admin_tab') as TabType | null;
-      const valid: TabType[] = ['stats', 'visitors', 'blog', 'email', 'influencers'];
-      if (pending && valid.includes(pending)) {
-        sessionStorage.removeItem('pippal_admin_tab');
-        openAdminTab(pending);
-      }
     } else {
       setStatsLoading(false);
       setInfluencerLoading(false);
@@ -1167,7 +1162,7 @@ export function AdminDashboard() {
           <button
             key={tab}
             onClick={() => openAdminTab(tab as TabType)}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${activeTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
+            className={`flex-1 py-3 text-sm font-semibold transition-colors capitalize ${adminTab === tab ? 'text-teal-700 border-b-2 border-teal-700' : 'text-stone-500'}`}
           >
             {tab}
           </button>
@@ -1177,7 +1172,7 @@ export function AdminDashboard() {
       {/* Stats Tab */}
 
 
-      {activeTab === 'stats' && (
+      {adminTab === 'stats' && (
         statsLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
@@ -1481,7 +1476,7 @@ export function AdminDashboard() {
       )}
 
       {/* Visitors Tab */}
-      {activeTab === 'visitors' && (
+      {adminTab === 'visitors' && (
         statsLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
@@ -1634,7 +1629,7 @@ export function AdminDashboard() {
       )}
 
       {/* Influencers Tab */}
-      {activeTab === 'blog' && (
+      {adminTab === 'blog' && (
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-stone-900 text-sm">Blog Posts</h2>
@@ -2030,7 +2025,7 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'email' && (
+      {adminTab === 'email' && (
         <div className="px-4 py-4 space-y-4">
           <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
             <div className="flex items-center justify-between mb-1">
@@ -2085,7 +2080,7 @@ export function AdminDashboard() {
         </div>
       )}
 
-      {activeTab === 'influencers' && (
+      {adminTab === 'influencers' && (
         <div className="flex-1 overflow-y-auto scrollbar-hide px-5 md:px-8 py-6 space-y-6 pb-10">
 
           {/* Partner Portal Info */}
