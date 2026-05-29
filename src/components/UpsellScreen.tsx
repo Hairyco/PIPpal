@@ -23,6 +23,7 @@ const features = [
   { label: 'Assessment preparation guide' },
   { label: 'Mandatory Reconsideration letter generator' },
   { label: 'Download all your answers as a PDF' },
+  { label: 'PIP Diary — log daily challenges' },
   { label: 'Pre-claim checklist' },
 ];
 
@@ -114,7 +115,7 @@ export function UpsellScreen() {
             {[
               { icon: ClipboardList, bg: 'bg-teal-50', color: 'text-teal-600', value: '12', label: 'Questions guided' },
               { icon: Clock, bg: 'bg-blue-50', color: 'text-blue-600', value: '15–30', label: 'Mins to complete' },
-              { icon: TrendingUp, bg: 'bg-amber-50', color: 'text-amber-600', value: '60%', label: 'Appeals overturned' },
+              { icon: Sparkles, bg: 'bg-amber-50', color: 'text-amber-600', value: 'Unlimited', label: 'Improve answers' },
             ].map((stat, i) => (
               <motion.div
                 key={i}
@@ -143,13 +144,6 @@ export function UpsellScreen() {
               <CheckCircle2 className="w-4 h-4 text-teal-600" />
               Everything included in Full Access
             </h3>
-            <div className="flex items-start gap-3 bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 mb-3">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-sm font-bold text-emerald-900 block mb-0.5">PIP Diary — log daily challenges</span>
-                <span className="text-xs text-emerald-700 leading-relaxed">Build powerful evidence for your claim and appeals</span>
-              </div>
-            </div>
             <div className="space-y-2.5">
               {features.map((feat) => (
                 <div key={feat.label} className="flex items-start gap-2.5 px-1">
