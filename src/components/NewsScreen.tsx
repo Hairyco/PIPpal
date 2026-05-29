@@ -2,7 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Loader2, Newspaper, ExternalLink, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { decodeHtmlEntities, plainTextFromHtml } from '../utils/htmlEntities';
+import { plainTextFromHtml } from '../utils/htmlEntities';
+
+function isBrokenNewsBody(body: string): boolean {
+  const b = plainTextFromHtml(body);
+  if (!b || b.length < 50) return true;
+  if (/<\s*a\s+href|news\.google\.com\/rss/i.test(b)) return true;
+  if (/&nbsp;|&#160;/i.test(body)) return true;
+  if (/^this article is|^it directly concerns|relevant to pippal|however, i cannot write/i.test(b)) return true;
+  return false;
+}
+
+function isIrrelevantNewsTitle(title: string): boolean {
+  return /\b(barrow|cumbria)\b.*\b(guide|universal credit|benefits)\b/i.test(title)
+    || /\byour guide to\b.*\b(universal credit|pip|benefits)\b/i.test(title)
+    || /\bwhich uk areas qualify\b/i.test(title)
+    || /\btop \d+ conditions\b.*\beligible\b/i.test(title)
+    || /\bnew rules for universal credit, pip and esa\b/i.test(title);
+}
 
 interface Article {
   title: string;

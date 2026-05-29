@@ -55,8 +55,49 @@ function mentionsPipBenefit(title, summary) {
 const HARD_REJECT = [
   'marathon', 'fun run', 'triathlon', 'athletics', 'olympic', 'football match',
   'rugby match', 'cricket match', 'premier league', 'champions league', 'transfer',
-  'recipe', 'weather forecast', 'traffic', 'celebrity', 'tv show', 'film review'
+  'recipe', 'weather forecast', 'traffic', 'celebrity', 'tv show', 'film review',
 ];
+
+/** Regional SEO roundups and generic multi-benefit guides — not PIP news for claimants */
+const IRRELEVANT_TITLE_PATTERNS = [
+  /\b(barrow|cumbria)\b.*\b(guide|universal credit|benefits)\b/i,
+  /\byour guide to\b.*\b(universal credit|pip|benefits)\b/i,
+  /\bwhich uk areas qualify\b/i,
+  /\btop \d+ conditions\b.*\beligible\b/i,
+  /\bnew rules for universal credit, pip and esa\b/i,
+];
+
+const META_BODY_PATTERNS = [
+  /^this article is/i,
+  /^it directly concerns/i,
+  /relevant to pippal/i,
+  /however, i cannot write/i,
+  /you have only provided/i,
+  /^not_relevant/i,
+];
+
+function titleIsLikelyIrrelevant(title) {
+  const t = String(title || '');
+  return IRRELEVANT_TITLE_PATTERNS.some(p => p.test(t));
+}
+
+function bodyLooksLikeHtmlLeak(body) {
+  return /<\s*a\s+href|<\s*\/?\w+|news\.google\.com\/rss/i.test(String(body || ''));
+}
+
+function bodyIsBroken(body) {
+  const b = plainTextFromHtml(String(body || ''));
+  if (!b || b.length < 50) return true;
+  if (bodyLooksLikeHtmlLeak(b)) return true;
+  if (/&nbsp;|&#160;/i.test(String(body || ''))) return true;
+  if (META_BODY_PATTERNS.some(p => p.test(b))) return true;
+  if (b.split(/[.!?]+/).filter(s => s.trim().length > 12).length < 2) return true;
+  return false;
+}
+
+function bodyIsValidNewsBody(body) {
+  return !bodyIsBroken(body);
+}
 
 const TAG_RULES = [
   { tag: 'Legislation', keywords: ['law', 'legislation', 'parliament', 'bill', 'reform', 'policy', 'budget', 'government', 'conservative', 'labour', 'minister'] },
@@ -73,6 +114,7 @@ function cleanGoogleNewsTitle(title) {
 
 function firstPassFilter(title, summary, curated = false) {
   const text = (title + ' ' + (summary || '')).toLowerCase();
+  if (titleIsLikelyIrrelevant(title)) return false;
   if (HARD_REJECT.some(t => title.toLowerCase().includes(t))) return false;
   if (curated) return mentionsPipBenefit(title, summary);
   if (!mentionsPipBenefit(title, summary)) return false;
@@ -147,11 +189,15 @@ async function fetchFeed(source) {
   }
 }
 
-async function rewriteWithClaude(title, summary, sourceName) {
+async function rewriteWithClaude(title, summary) {
   const cleanSummary = plainTextFromHtml(summary);
   const cleanTitle = plainTextFromHtml(title);
-  if (!cleanSummary || cleanSummary.length < 20) {
-    return { body: cleanSummary || cleanTitle, relevant: true };
+  if (titleIsLikelyIrrelevant(cleanTitle)) {
+    return { body: '', relevant: false };
+  }
+  const sourceText = cleanSummary && cleanSummary.length >= 15 ? cleanSummary : cleanTitle;
+  if (!sourceText || sourceText.length < 15) {
+    return { body: '', relevant: false };
   }
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -159,28 +205,39 @@ async function rewriteWithClaude(title, summary, sourceName) {
       headers: { 'Content-Type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 200,
+        max_tokens: 220,
         messages: [{
           role: 'user',
           content: `You write news for PIPpal, a UK service helping people claim PIP disability benefit.
 
-First decide: is this article primarily about PIP (Personal Independence Payment) for UK claimants? Relevant ONLY if it clearly concerns PIP, not merely generic UC or unrelated benefits news. NOT relevant = sports events, entertainment, charity fun runs, or articles that mention DWP/disability payments but not PIP.
+Step 1 — decide relevance. NOT relevant if the story is mainly about: Universal Credit or ESA without a clear PIP angle; local/regional benefits guides (e.g. one town or county); generic listicles ("top 5 conditions"); sports or entertainment; or anything that only mentions PIP in passing alongside other benefits.
 
 If NOT relevant, respond with exactly: NOT_RELEVANT
 
-If relevant, write 3 sentences starting directly with what happened. Second sentence: what it means for PIP claimants. Third: what they should know or do. No opening phrase like "This article". No greetings. No sign-off. No ** or !!.
+Step 2 — if relevant, write ONLY three plain sentences (no labels, no reasoning, no preamble):
+- Sentence 1: what happened
+- Sentence 2: what it means for PIP claimants
+- Sentence 3: what they should know or do
+
+Never write "This article is about…", never mention PIPpal, never explain your decision. No ** or !!.
 
 Title: ${cleanTitle}
-Summary: ${cleanSummary}`
+Source summary: ${sourceText}`
         }],
       }),
     });
     const data = await response.json();
-    const text = plainTextFromHtml(data.content?.[0]?.text?.trim() || cleanSummary);
-    if (text.startsWith('NOT_RELEVANT')) return { body: cleanSummary, relevant: false };
+    const raw = data.content?.[0]?.text?.trim() || '';
+    if (!raw || raw.startsWith('NOT_RELEVANT')) {
+      return { body: '', relevant: false };
+    }
+    const text = plainTextFromHtml(raw);
+    if (!bodyIsValidNewsBody(text)) {
+      return { body: '', relevant: false };
+    }
     return { body: text, relevant: true };
   } catch {
-    return { body: cleanSummary, relevant: true };
+    return { body: '', relevant: false };
   }
 }
 
@@ -237,9 +294,13 @@ async function ingestFreshArticles() {
   if (candidates.length === 0) return freshArticles;
 
   for (const item of candidates) {
-    const { body, relevant } = await rewriteWithClaude(item.title, item.summary, item.sourceName);
-    if (!relevant) {
-      console.log(`NOT_RELEVANT: ${item.title}`);
+    if (titleIsLikelyIrrelevant(item.title)) {
+      console.log(`SKIPPED irrelevant title: ${item.title}`);
+      continue;
+    }
+    const { body, relevant } = await rewriteWithClaude(item.title, item.summary);
+    if (!relevant || !bodyIsValidNewsBody(body)) {
+      console.log(`NOT_RELEVANT or bad body: ${item.title}`);
       continue;
     }
     const tags = autoTag(item.title, item.summary);
@@ -271,41 +332,89 @@ function mergeArticles(freshArticles, stored) {
     })
     .filter(
       a =>
+        !titleIsLikelyIrrelevant(a.title) &&
         mentionsPipBenefit(a.title, a.body || '') &&
         a.is_relevant !== false &&
-        !String(a.body || '').startsWith('NOT_RELEVANT'),
+        !String(a.body || '').startsWith('NOT_RELEVANT') &&
+        bodyIsValidNewsBody(a.body),
     )
     .slice(0, 30);
 }
 
 function formatArticles(merged) {
-  return merged.map(a => ({
-    title: plainTextFromHtml(String(a.title || '')),
-    body: plainTextFromHtml(String(a.body || '')),
-    link: a.link,
-    source: a.source,
-    date: a.date,
-    tags: Array.isArray(a.tags) ? a.tags : [a.tags || 'News'],
-  }));
+  return merged
+    .map(a => ({
+      title: plainTextFromHtml(String(a.title || '')),
+      body: plainTextFromHtml(String(a.body || '')),
+      link: a.link,
+      source: a.source,
+      date: a.date,
+      tags: Array.isArray(a.tags) ? a.tags : [a.tags || 'News'],
+    }))
+    .filter(a => !titleIsLikelyIrrelevant(a.title) && bodyIsValidNewsBody(a.body));
 }
 
-function bodyLooksLikeHtmlLeak(body) {
-  return /<\s*a\s+href|<\s*\/?\w+/i.test(String(body || ''));
+async function patchArticle(id, fields) {
+  await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...fields, updated_at: new Date().toISOString() }),
+  }).catch(() => {});
 }
 
-async function repairStoredHtmlBodies(stored) {
-  const toFix = (stored || []).filter(a => a.id && bodyLooksLikeHtmlLeak(a.body));
-  for (const row of toFix) {
-    const cleaned = plainTextFromHtml(row.body);
-    if (!cleaned || cleaned === row.body) continue;
-    await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=eq.${row.id}`, {
-      method: 'PATCH',
-      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: cleaned, updated_at: new Date().toISOString() }),
-    }).catch(() => {});
-    row.body = cleaned;
+/** Re-rewrite or archive stored articles with HTML leaks, RSS snippets, or AI meta-text */
+async function repairStoredArticles(stored, { rewriteLimit = 6 } = {}) {
+  let archived = 0;
+  let rewritten = 0;
+  let rewritesDone = 0;
+
+  for (const row of stored || []) {
+    if (!row.id) continue;
+
+    if (titleIsLikelyIrrelevant(row.title)) {
+      await patchArticle(row.id, { is_relevant: false });
+      row.is_relevant = false;
+      archived++;
+      continue;
+    }
+
+    if (!bodyIsBroken(row.body)) continue;
+
+    if (rewritesDone >= rewriteLimit || !process.env.ANTHROPIC_API_KEY) {
+      await patchArticle(row.id, { is_relevant: false });
+      row.is_relevant = false;
+      archived++;
+      continue;
+    }
+
+    rewritesDone++;
+    const sourceSummary = plainTextFromHtml(row.body) || row.title;
+    const { body, relevant } = await rewriteWithClaude(row.title, sourceSummary);
+    if (!relevant || !bodyIsValidNewsBody(body)) {
+      await patchArticle(row.id, { is_relevant: false });
+      row.is_relevant = false;
+      archived++;
+      continue;
+    }
+
+    await patchArticle(row.id, { body: plainTextFromHtml(body), is_relevant: true });
+    row.body = body;
+    row.is_relevant = true;
+    rewritten++;
   }
-  if (toFix.length > 0) console.log(`Repaired ${toFix.length} news article bodies with HTML leaks`);
+
+  if (archived || rewritten) {
+    console.log(`News repair: ${rewritten} rewritten, ${archived} archived`);
+  }
+}
+
+async function archiveIrrelevantTitles(stored) {
+  for (const row of stored || []) {
+    if (!row.id || row.is_relevant === false) continue;
+    if (!titleIsLikelyIrrelevant(row.title)) continue;
+    await patchArticle(row.id, { is_relevant: false });
+    row.is_relevant = false;
+  }
 }
 
 function isCronRequest(req) {
@@ -337,7 +446,10 @@ export default async function handler(req, res) {
     }
 
     const stored = await loadStoredArticles();
-    await repairStoredHtmlBodies(stored);
+    await archiveIrrelevantTitles(stored);
+    if (isCronRequest(req)) {
+      await repairStoredArticles(stored, { rewriteLimit: 8 });
+    }
     await archiveLeakedArticles(stored);
 
     const articles = formatArticles(mergeArticles(freshArticles, stored));
