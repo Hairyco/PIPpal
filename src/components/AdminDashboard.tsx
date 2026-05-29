@@ -1657,7 +1657,7 @@ export function AdminDashboard() {
                     {fetchingUrl ? 'Fetching…' : 'Fetch'}
                   </button>
                 </div>
-                <p className="text-[10px] text-purple-500 mt-1.5">Or skip Fetch — Generate will read the link automatically.</p>
+                <p className="text-[10px] text-purple-500 mt-1.5">Reddit links work best. Other sites use a reader fallback if blocked. Or skip Fetch — Generate will try automatically.</p>
                 {extractedUrlText && (
                   <div className="mt-2">
                     <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1">Page content preview</p>
