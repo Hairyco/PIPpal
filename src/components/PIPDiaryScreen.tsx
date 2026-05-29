@@ -14,6 +14,7 @@ import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import { formatFullAccessPrice } from '../constants/pricing';
+import { buildPipDiaryDocxBlob, type PipDiaryExportWeek } from '../utils/pipDiaryExport';
 
 const ACTIVITIES = [
   { id: 'food', label: 'Preparing food', qId: 'q1' },
@@ -158,14 +159,6 @@ function dedupeAndSortWeeks(entries: WeekEntry[], createdAtById?: Map<string, st
   );
 }
 
-const escapeHtml = (value: string) =>
-  String(value || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const { goBack, user, showToast, navigateTo, savedAnswers, medProfile } = useAppContext();
   const [boot] = useState(() => initDiaryScreenshotState());
@@ -178,6 +171,7 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const [isSaving, setIsSaving] = useState(false);
   const [improvingCell, setImprovingCell] = useState<string | null>(null);
   const [showWeekPicker, setShowWeekPicker] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (readPipDiaryMarketingSeed()) return;
@@ -362,109 +356,65 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     return dayNotes[activityId];
   };
 
-  const exportDiary = () => {
+  const buildExportWeeks = (): PipDiaryExportWeek[] => {
     const sortedWeeks = [...weeks].sort(
       (a, b) => new Date(a.weekStart).getTime() - new Date(b.weekStart).getTime(),
     );
 
-    const weeksHtml = sortedWeeks.map((week) => {
-      const daysHtml = DAYS.map((day, di) => {
-        const rowsHtml = ACTIVITIES.map((act) => {
-          const note = getSavedDiaryNote(week, day, act.id).trim();
-          if (!note) return '';
-          return `<tr>
-            <td class="act-cell"><strong>${escapeHtml(act.label)}</strong></td>
-            <td class="note-cell">${escapeHtml(note).replace(/\n/g, '<br/>')}</td>
-          </tr>`;
-        }).filter(Boolean).join('');
+    return sortedWeeks
+      .map((week) => {
+        const days = DAYS.map((day, di) => {
+          const entries = ACTIVITIES.map((act) => {
+            const note = getSavedDiaryNote(week, day, act.id).trim();
+            if (!note) return null;
+            return { activityLabel: act.label, note };
+          }).filter((entry): entry is { activityLabel: string; note: string } => entry != null);
 
-        if (!rowsHtml) return '';
+          if (entries.length === 0) return null;
 
-        const date = getDayDate(week.weekStart, di);
-        return `<div class="day-section">
-          <div class="day-header">
-            <span class="day-name">${day}</span>
-            <span class="day-date">${date}</span>
-          </div>
-          <table>
-            <thead><tr><th class="act-header">Activity</th><th>What happened</th></tr></thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-        </div>`;
-      }).filter(Boolean).join('');
+          return {
+            dayName: day,
+            dateLabel: getDayDate(week.weekStart, di),
+            entries,
+          };
+        }).filter((dayEntry): dayEntry is NonNullable<typeof dayEntry> => dayEntry != null);
 
-      if (!daysHtml) return '';
+        if (days.length === 0) return null;
 
-      return `<div class="week-section">
-        <div class="week-label">Week of ${formatWeekLabel(week.weekStart)}</div>
-        ${daysHtml}
-      </div>`;
-    }).filter(Boolean).join('');
+        return {
+          weekLabel: formatWeekLabel(week.weekStart),
+          days,
+        };
+      })
+      .filter((weekEntry): weekEntry is PipDiaryExportWeek => weekEntry != null);
+  };
 
-    if (!weeksHtml) {
+  const exportDiary = async () => {
+    const exportWeeks = buildExportWeeks();
+    if (exportWeeks.length === 0) {
       showToast('Nothing to export yet — add diary entries on specific days first.', 'info');
       return;
     }
 
-    const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>PIP Weekly Diary</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 15mm; color: #000; font-size: 10px; }
-  .doc-header { margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-  .doc-header h1 { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; }
-  .field-row { display: flex; gap: 30px; margin-bottom: 8px; }
-  .field { display: flex; align-items: center; gap: 6px; }
-  .field label { font-weight: bold; font-size: 10px; white-space: nowrap; }
-  .field .line { border-bottom: 1px solid #000; min-width: 160px; height: 16px; }
-  .instructions { font-size: 10px; margin-bottom: 14px; line-height: 1.5; border-bottom: 1px solid #000; padding-bottom: 8px; }
-  .week-section { margin-bottom: 20px; }
-  .week-label { font-size: 12px; font-weight: bold; margin-bottom: 10px; background: #f5f5f5; padding: 4px 8px; border: 1px solid #000; }
-  .day-section { margin-bottom: 16px; page-break-inside: avoid; }
-  .day-header { display: flex; justify-content: space-between; border: 1px solid #000; background: #fff; padding: 5px 8px; font-weight: bold; font-size: 11px; }
-  .day-date { font-weight: normal; font-size: 10px; }
-  table { width: 100%; border-collapse: collapse; margin-top: 0; }
-  th { border: 1px solid #000; border-top: none; padding: 4px 6px; text-align: left; font-size: 10px; font-weight: bold; background: #fff; }
-  th.act-header { width: 35%; }
-  td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; font-size: 10px; }
-  td.act-cell { width: 35%; font-weight: bold; background: #fff; }
-  td.note-cell { min-height: 30px; height: 40px; }
-  @media print {
-    body { margin: 10mm; }
-    .day-section { page-break-inside: avoid; }
-  }
-</style>
-</head>
-<body>
-<div class="doc-header">
-  <h1>PIP Weekly Diary</h1>
-  <div class="field-row">
-    <div class="field"><label>Full name:</label><div class="line"></div></div>
-    <div class="field"><label>National Insurance number:</label><div class="line" style="min-width:130px"></div></div>
-  </div>
-  <div class="field-row">
-    <div class="field"><label>Date of birth:</label><div class="line" style="min-width:100px"></div></div>
-    <div class="field"><label>PIP reference (if known):</label><div class="line" style="min-width:130px"></div></div>
-  </div>
-</div>
-<p class="instructions">Use this diary to record how your condition affects you each day. For each activity describe what happened — whether you could do it safely, if you needed help, or if you used any aids. Focus on your worst days. This diary can be submitted as supporting evidence with your PIP claim.</p>
-${weeksHtml}
-</body>
-</html>`;
-
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const opened = window.open(url, '_blank', 'noopener,noreferrer');
-    if (!opened) {
+    setIsExporting(true);
+    try {
+      const blob = await buildPipDiaryDocxBlob({
+        weeks: exportWeeks,
+        userLabel: user?.name || user?.email,
+      });
+      const dateStamp = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `PIP-Weekly-Diary-${new Date().toISOString().slice(0, 10)}.html`;
+      link.download = `PIP-Weekly-Diary-${dateStamp}.docx`;
       link.click();
-      showToast('Export downloaded — open the file to print or save as PDF.', 'info');
+      URL.revokeObjectURL(url);
+      showToast('Word document downloaded.', 'success');
+    } catch {
+      showToast('Could not create Word document. Please try again.', 'error');
+    } finally {
+      setIsExporting(false);
     }
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   if (!hasPaid) {
@@ -507,7 +457,15 @@ ${weeksHtml}
             {currentWeek ? formatWeekLabel(currentWeek.weekStart) : 'Select week'} ▾
           </button>
         </div>
-        <button onClick={exportDiary} className="text-xs font-semibold text-stone-500 hover:text-teal-700 transition-colors flex items-center gap-1"><Download className="w-3.5 h-3.5" />Export</button>
+        <button
+          type="button"
+          onClick={() => void exportDiary()}
+          disabled={isExporting}
+          className="text-xs font-semibold text-stone-500 hover:text-teal-700 transition-colors flex items-center gap-1 disabled:opacity-50"
+        >
+          {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          {isExporting ? 'Exporting…' : 'Export'}
+        </button>
         <button onClick={saveWeek} disabled={isSaving} className="flex items-center gap-1.5 bg-teal-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-teal-800 transition-colors disabled:opacity-60">
           {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
           {isSaving ? 'Saving…' : 'Save'}
