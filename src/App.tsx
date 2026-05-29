@@ -31,7 +31,6 @@ import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ChatPreview } from './components/ChatPreview';
 import { ClaimSelector } from './components/ClaimSelector';
-import { EligibilityBanner } from './components/EligibilityBanner';
 import { LandingReportPreview } from './components/LandingReportPreview';
 import { PIPValueComparison } from './components/PIPValueComparison';
 import { PIPHelpComparison } from './components/PIPHelpComparison';
