@@ -30,7 +30,6 @@ import {
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ChatPreview } from './components/ChatPreview';
-import { ClaimSelector } from './components/ClaimSelector';
 import { LandingDeclinedSection } from './components/LandingDeclinedSection';
 import { LandingReportPreview } from './components/LandingReportPreview';
 import { PIPValueComparison } from './components/PIPValueComparison';
@@ -336,7 +335,6 @@ function AppContent() {
               <PIPHelpComparison />
 
               <LandingDeclinedSection onSelect={handleNavigate} />
-              <ClaimSelector onSelect={handleNavigate} />
 
               <section
                 id="free-tools"
