@@ -29,6 +29,7 @@ import {
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
 import { OWNER_EMAILS } from '../utils/adminAccess';
+import { extractRedditPostInBrowser, isRedditPostUrl } from '../utils/redditExtract';
 
 interface InfluencerCode {
   id: string;
@@ -365,6 +366,7 @@ export function AdminDashboard() {
   const [extractedUrlText, setExtractedUrlText] = useState('');
   const [fetchingUrl, setFetchingUrl] = useState(false);
   const [urlExtractError, setUrlExtractError] = useState('');
+  const [pastedLinkText, setPastedLinkText] = useState('');
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_IMAGE_FILE_BYTES = 3 * 1024 * 1024;
@@ -372,6 +374,7 @@ export function AdminDashboard() {
   const clearReferenceUrl = () => {
     setReferenceUrl('');
     setExtractedUrlText('');
+    setPastedLinkText('');
     setUrlExtractError('');
   };
 
@@ -437,6 +440,12 @@ export function AdminDashboard() {
     setExtractedUrlText('');
     setFetchingUrl(true);
     try {
+      if (isRedditPostUrl(url)) {
+        const text = await extractRedditPostInBrowser(url);
+        setExtractedUrlText(text);
+        return;
+      }
+
       const res = await fetch('/api/generate-blog', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -449,8 +458,8 @@ export function AdminDashboard() {
       }
       setExtractedUrlText(data.text || '');
       if (data.url) setReferenceUrl(data.url);
-    } catch {
-      setUrlExtractError('Failed to fetch URL. Check your connection.');
+    } catch (err: any) {
+      setUrlExtractError(err?.message || 'Failed to fetch URL. Try pasting the post text below.');
     } finally {
       setFetchingUrl(false);
     }
@@ -479,22 +488,24 @@ export function AdminDashboard() {
     }
   };
 
-  const requestBlogDraft = async (attempt: number) => {
+  const requestBlogDraft = async (attempt: number, urlTextOverride?: string) => {
+    const urlText = urlTextOverride ?? (extractedUrlText.trim() || pastedLinkText.trim() || undefined);
     const res = await fetch('/api/generate-blog', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         topic: generateTopic || undefined,
         imageText: extractedImageText || undefined,
-        url: referenceUrl.trim() || undefined,
-        urlText: extractedUrlText || undefined,
+        urlText,
+        // Only send url to server for non-Reddit (Reddit is blocked from Vercel)
+        url: referenceUrl.trim() && !isRedditPostUrl(referenceUrl) ? referenceUrl.trim() : undefined,
       }),
     });
     const retryable = res.status === 502 || res.status === 503 || res.status === 504;
     if (retryable && attempt === 1) {
       showBlogNotice('error', 'Server is waking up — retrying automatically…');
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      return requestBlogDraft(2);
+      return requestBlogDraft(2, urlTextOverride);
     }
     return res;
   };
@@ -503,10 +514,11 @@ export function AdminDashboard() {
     const hasUrl = referenceUrl.trim().length > 0;
     const hasTopic = generateTopic.trim().length > 0;
     const hasImageText = extractedImageText.trim().length > 0;
+    const hasPastedText = pastedLinkText.trim().length > 0;
     const hasUrlText = extractedUrlText.trim().length > 0;
 
-    if (!hasTopic && !hasImageText && !hasUrl && !hasUrlText) {
-      showBlogNotice('error', 'Enter a topic, paste a link, or upload a reference image.');
+    if (!hasTopic && !hasImageText && !hasUrl && !hasUrlText && !hasPastedText) {
+      showBlogNotice('error', 'Enter a topic, paste a link, paste post text, or upload a reference image.');
       return;
     }
     if (extractingImage || fetchingUrl) {
@@ -515,8 +527,19 @@ export function AdminDashboard() {
     }
     setGenerating(true);
     setBlogNotice(null);
+    let linkText = extractedUrlText.trim() || pastedLinkText.trim();
     try {
-      const res = await requestBlogDraft(1);
+      if (!linkText && hasUrl && isRedditPostUrl(referenceUrl)) {
+        try {
+          linkText = await extractRedditPostInBrowser(referenceUrl);
+          setExtractedUrlText(linkText);
+        } catch (err: any) {
+          showBlogNotice('error', err?.message || 'Could not read Reddit link. Paste the post text below.');
+          return;
+        }
+      }
+
+      const res = await requestBlogDraft(1, linkText || undefined);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         showBlogNotice('error', data.error || `Generation failed (${res.status}). Try again.`);
@@ -550,7 +573,7 @@ export function AdminDashboard() {
       try {
         showBlogNotice('error', 'Connection hiccup — retrying once…');
         await new Promise((resolve) => setTimeout(resolve, 2000));
-        const res = await requestBlogDraft(2);
+        const res = await requestBlogDraft(2, linkText || undefined);
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.post) {
           const post = { ...data.post, published: data.post.published ?? false };
@@ -1677,7 +1700,22 @@ export function AdminDashboard() {
                     {fetchingUrl ? 'Fetching…' : 'Fetch'}
                   </button>
                 </div>
-                <p className="text-[10px] text-purple-500 mt-1.5">Reddit links work best. Other sites use a reader fallback if blocked. Or skip Fetch — Generate will try automatically.</p>
+                <p className="text-[10px] text-purple-500 mt-1.5">Reddit is fetched in your browser (not the server). Use the full post URL with /comments/ in it.</p>
+                {(isRedditPostUrl(referenceUrl) || urlExtractError) && (
+                  <div className="mt-2">
+                    <p className="text-[10px] font-semibold text-purple-800 mb-1">Or paste Reddit post text</p>
+                    <textarea
+                      value={pastedLinkText}
+                      onChange={(e) => {
+                        setPastedLinkText(e.target.value);
+                        setUrlExtractError('');
+                      }}
+                      placeholder="Copy the post title and body from Reddit and paste here if Fetch fails"
+                      rows={4}
+                      className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white resize-y font-mono"
+                    />
+                  </div>
+                )}
                 {extractedUrlText && (
                   <div className="mt-2">
                     <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1">Page content preview</p>
@@ -1761,7 +1799,7 @@ export function AdminDashboard() {
                   generating
                   || extractingImage
                   || fetchingUrl
-                  || (!generateTopic.trim() && !extractedImageText.trim() && !referenceUrl.trim() && !extractedUrlText.trim())
+                  || (!generateTopic.trim() && !extractedImageText.trim() && !referenceUrl.trim() && !extractedUrlText.trim() && !pastedLinkText.trim())
                 }
                 className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50 active:scale-[0.98] transition-transform"
               >
