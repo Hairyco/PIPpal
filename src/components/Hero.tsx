@@ -32,7 +32,7 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
   ];
 
   return (
-    <section className="px-5 md:px-8 pt-10 md:pt-12 pb-4 md:pb-5 flex flex-col items-center text-center max-w-4xl mx-auto">
+    <section className="px-5 md:px-8 pt-5 md:pt-7 pb-4 md:pb-5 flex flex-col items-center text-center max-w-4xl mx-auto">
 
       {/* Badge */}
       <div
