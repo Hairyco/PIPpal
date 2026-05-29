@@ -223,7 +223,7 @@ function InlineEmailCapture({ onContinue }: { onContinue: () => void }) {
           disabled={isSubmitting}
           className="w-full bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3 rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
         >
-          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>See my full results <ArrowRight className="w-4 h-4" /></>}
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>See my score <ArrowRight className="w-4 h-4" /></>}
         </button>
       </form>
       <p className="text-center text-xs text-stone-400 mt-3">No spam. Unsubscribe any time.</p>
