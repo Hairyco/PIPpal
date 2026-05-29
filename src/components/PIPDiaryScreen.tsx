@@ -356,26 +356,31 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     setShowWeekPicker(false);
   };
 
-  const getExportNote = (week: WeekEntry, day: string, activityId: string, qId: string) => {
-    const saved = week.notes[day]?.[activityId];
-    if (saved !== undefined) return saved;
-    return getAutoNote(qId);
+  const getSavedDiaryNote = (week: WeekEntry, day: string, activityId: string) => {
+    const dayNotes = week.notes[day];
+    if (!dayNotes || dayNotes[activityId] === undefined) return '';
+    return dayNotes[activityId];
   };
 
   const exportDiary = () => {
     const sortedWeeks = [...weeks].sort(
       (a, b) => new Date(a.weekStart).getTime() - new Date(b.weekStart).getTime(),
     );
-    const weeksHtml = sortedWeeks.map(week => {
+
+    const weeksHtml = sortedWeeks.map((week) => {
       const daysHtml = DAYS.map((day, di) => {
-        const date = getDayDate(week.weekStart, di);
-        const rowsHtml = ACTIVITIES.map(act => {
-          const note = getExportNote(week, day, act.id, act.qId);
+        const rowsHtml = ACTIVITIES.map((act) => {
+          const note = getSavedDiaryNote(week, day, act.id).trim();
+          if (!note) return '';
           return `<tr>
             <td class="act-cell"><strong>${escapeHtml(act.label)}</strong></td>
             <td class="note-cell">${escapeHtml(note).replace(/\n/g, '<br/>')}</td>
           </tr>`;
-        }).join('');
+        }).filter(Boolean).join('');
+
+        if (!rowsHtml) return '';
+
+        const date = getDayDate(week.weekStart, di);
         return `<div class="day-section">
           <div class="day-header">
             <span class="day-name">${day}</span>
@@ -386,12 +391,20 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>`;
-      }).join('');
+      }).filter(Boolean).join('');
+
+      if (!daysHtml) return '';
+
       return `<div class="week-section">
         <div class="week-label">Week of ${formatWeekLabel(week.weekStart)}</div>
         ${daysHtml}
       </div>`;
-    }).join('');
+    }).filter(Boolean).join('');
+
+    if (!weeksHtml) {
+      showToast('Nothing to export yet — add diary entries on specific days first.', 'info');
+      return;
+    }
 
     const html = `<!DOCTYPE html>
 <html lang="en">
