@@ -85,6 +85,33 @@ type StatusFilter = 'all' | 'paid' | 'free';
 type SourceFilter = 'all' | 'organic' | 'influencer';
 type TabType = 'stats' | 'visitors' | 'influencers' | 'blog' | 'email';
 
+const ARCHIVED_FAILED_TAG = 'archived-failed-save';
+const BLOG_DRAFT_BACKUP_KEY = 'pippal_blog_draft_backup';
+
+function isArchivedBlogPost(post: { tags?: string[] | null }) {
+  return Array.isArray(post.tags) && post.tags.includes(ARCHIVED_FAILED_TAG);
+}
+
+function backupBlogDraft(post: Record<string, unknown>) {
+  try {
+    const { seo, ...rest } = post;
+    sessionStorage.setItem(
+      BLOG_DRAFT_BACKUP_KEY,
+      JSON.stringify({ ...rest, backed_up_at: new Date().toISOString() }),
+    );
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+function clearBlogDraftBackup() {
+  try {
+    sessionStorage.removeItem(BLOG_DRAFT_BACKUP_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
 function StatCard({
   icon: Icon,
   label,
@@ -259,6 +286,7 @@ export function AdminDashboard() {
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogSaving, setBlogSaving] = useState(false);
   const [recategorizing, setRecategorizing] = useState(false);
+  const [draftBackup, setDraftBackup] = useState<any | null>(null);
   const [blogNotice, setBlogNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const blogNoticeRef = useRef<HTMLDivElement>(null);
   const blogNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -280,6 +308,51 @@ export function AdminDashboard() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (activeTab !== 'blog') return;
+    try {
+      const raw = sessionStorage.getItem(BLOG_DRAFT_BACKUP_KEY);
+      setDraftBackup(raw ? JSON.parse(raw) : null);
+    } catch {
+      setDraftBackup(null);
+    }
+  }, [activeTab]);
+
+  const savePostViaApi = async (
+    post: any,
+    options: { archived?: boolean; attempt?: number } = {},
+  ): Promise<{ ok: boolean; post?: any; error?: string }> => {
+    const { archived = false, attempt = 1 } = options;
+    const { seo, ...rest } = post;
+    void seo;
+    const res = await fetch('/api/generate-blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save',
+        archived,
+        post: {
+          id: rest.id,
+          title: rest.title,
+          slug: rest.slug,
+          excerpt: rest.excerpt,
+          body: rest.body,
+          category: rest.category,
+          tags: rest.tags,
+          published: rest.published,
+        },
+      }),
+    });
+    const retryable = res.status === 502 || res.status === 503 || res.status === 504;
+    if (retryable && attempt === 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return savePostViaApi(post, { archived, attempt: 2 });
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: data.error || `Save failed (${res.status})` };
+    return { ok: true, post: data.post };
+  };
 
   const [generating, setGenerating] = useState(false);
   const [generateTopic, setGenerateTopic] = useState('');
@@ -404,11 +477,25 @@ export function AdminDashboard() {
         return;
       }
       if (data.post) {
-        setEditingPost({ ...data.post, published: false });
+        const post = { ...data.post, published: data.post.published ?? false };
+        setEditingPost(post);
         setShowGenerator(false);
         clearReferenceImage();
         setGenerateTopic('');
-        showBlogNotice('success', `Draft ready — topic: "${data.generated_from}". Review below, then save.`);
+        backupBlogDraft(post);
+        if (data.auto_saved) {
+          clearBlogDraftBackup();
+          showBlogNotice('success', `Draft saved — topic: "${data.generated_from}". Review below, then publish when ready.`);
+        } else {
+          const saved = await savePostViaApi(post);
+          if (saved.ok && saved.post) {
+            setEditingPost({ ...saved.post, seo: post.seo });
+            clearBlogDraftBackup();
+            showBlogNotice('success', `Draft saved — topic: "${data.generated_from}". Review below, then publish when ready.`);
+          } else {
+            showBlogNotice('error', saved.error || 'Draft generated but save failed. Click Save or recover from Archived drafts.');
+          }
+        }
       } else {
         showBlogNotice('error', data.error || 'Generation failed. Try again.');
       }
@@ -419,11 +506,19 @@ export function AdminDashboard() {
         const res = await requestBlogDraft(2);
         const data = await res.json().catch(() => ({}));
         if (res.ok && data.post) {
-          setEditingPost({ ...data.post, published: false });
+          const post = { ...data.post, published: data.post.published ?? false };
+          setEditingPost(post);
           setShowGenerator(false);
           clearReferenceImage();
           setGenerateTopic('');
-          showBlogNotice('success', `Draft ready — topic: "${data.generated_from}". Review below, then save.`);
+          backupBlogDraft(post);
+          if (data.auto_saved) {
+            clearBlogDraftBackup();
+          } else {
+            const saved = await savePostViaApi(post);
+            if (saved.ok && saved.post) setEditingPost({ ...saved.post, seo: post.seo });
+          }
+          showBlogNotice('success', `Draft saved — topic: "${data.generated_from}". Review below, then publish when ready.`);
           return;
         }
         showBlogNotice('error', data.error || `Generation failed (${res.status || 'network'}). Try again.`);
@@ -515,46 +610,43 @@ export function AdminDashboard() {
     }
     setBlogSaving(true);
     setBlogNotice(null);
+    backupBlogDraft(editingPost);
     try {
-      // Remove seo field — not in DB schema
-      const { id, seo, ...rest } = editingPost;
-      const payload = {
-        title: rest.title.trim(),
-        slug: rest.slug.trim(),
-        excerpt: rest.excerpt || '',
-        body: rest.body || '',
-        category: ['Tips', 'How To'].includes(rest.category) ? rest.category : 'Tips',
-        tags: Array.isArray(rest.tags) ? rest.tags : [],
-        published: rest.published || false,
-        updated_at: new Date().toISOString(),
-      };
-      if (id) {
-        const { data, error } = await supabase.from('blog_posts').update(payload).eq('id', id).select('id');
-        if (error) throw error;
-        if (!data?.length) {
-          showBlogNotice('error', 'Nothing was updated. Refresh the post list — this draft may be out of date.');
+      const result = await savePostViaApi(editingPost);
+      if (!result.ok) {
+        const archived = await savePostViaApi(editingPost, { archived: true });
+        if (archived.ok && archived.post) {
+          setEditingPost({ ...archived.post, seo: editingPost.seo });
+          showBlogNotice('success', 'Could not publish — draft archived below so you can restore and try again.');
+          void fetchBlogPosts();
           return;
         }
-      } else {
-        const { data, error } = await supabase
-          .from('blog_posts')
-          .insert({ ...payload, created_at: new Date().toISOString() })
-          .select('id');
-        if (error) throw error;
-        if (!data?.length) {
-          showBlogNotice('error', 'Save did not create a row. Check Supabase RLS and the blog_posts table in the dashboard.');
-          return;
-        }
+        showBlogNotice('error', result.error || 'Save failed. Check your connection and try again.');
+        return;
       }
-      showBlogNotice('success', 'Post saved.');
-      setEditingPost(null);
+      clearBlogDraftBackup();
+      setDraftBackup(null);
+      setEditingPost({ ...result.post, seo: editingPost.seo });
+      showBlogNotice('success', result.post?.published ? 'Post published.' : 'Draft saved.');
       void fetchBlogPosts();
     } catch (e: any) {
       console.error('savePost', e);
-      const msg = e?.message || e?.error_description || String(e);
+      const msg = e?.message || String(e);
       showBlogNotice('error', msg ? `Save failed: ${msg}` : 'Save failed. Check your connection and try again.');
     } finally {
       setBlogSaving(false);
+    }
+  };
+
+  const restoreArchivedPost = async (post: any) => {
+    const tags = (post.tags || []).filter((t: string) => t !== ARCHIVED_FAILED_TAG);
+    const result = await savePostViaApi({ ...post, tags, published: false }, { archived: false });
+    if (result.ok && result.post) {
+      setEditingPost(result.post);
+      showBlogNotice('success', 'Restored from archive — edit and publish when ready.');
+      void fetchBlogPosts();
+    } else {
+      showBlogNotice('error', result.error || 'Could not restore draft.');
     }
   };
 
@@ -1567,6 +1659,36 @@ export function AdminDashboard() {
             </div>
           )}
 
+          {draftBackup && !editingPost && (
+            <div className="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between gap-2">
+              <p className="text-xs text-amber-900">
+                Unsaved draft backup: <span className="font-semibold">{draftBackup.title || 'Untitled'}</span>
+              </p>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingPost(draftBackup);
+                    showBlogNotice('success', 'Recovered draft from backup.');
+                  }}
+                  className="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-600 text-white hover:bg-amber-700"
+                >
+                  Recover
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearBlogDraftBackup();
+                    setDraftBackup(null);
+                  }}
+                  className="text-[10px] font-bold px-2 py-1 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          )}
+
           {blogNotice && (
             <div
               ref={blogNoticeRef}
@@ -1684,8 +1806,10 @@ export function AdminDashboard() {
             <div className="text-center py-8 text-stone-400 text-sm">Loading...</div>
           ) : (
             <div className="space-y-3">
-              {blogPosts.length === 0 && !editingPost && <p className="text-center text-stone-400 text-sm py-8">No posts yet. Create your first post!</p>}
-              {blogPosts.map(post => (
+              {blogPosts.filter((p) => !isArchivedBlogPost(p)).length === 0 && !editingPost && (
+                <p className="text-center text-stone-400 text-sm py-8">No posts yet. Create your first post!</p>
+              )}
+              {blogPosts.filter((p) => !isArchivedBlogPost(p)).map(post => (
                 <div key={post.id} className="bg-white rounded-2xl border border-stone-100 p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -1725,6 +1849,32 @@ export function AdminDashboard() {
                   </div>
                 </div>
               ))}
+
+              {blogPosts.filter((p) => isArchivedBlogPost(p)).length > 0 && (
+                <div className="pt-4 mt-2 border-t border-stone-100">
+                  <h3 className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2">Archived drafts</h3>
+                  <p className="text-[11px] text-stone-400 mb-3">Failed saves are kept here so you can restore and publish without regenerating.</p>
+                  {blogPosts.filter((p) => isArchivedBlogPost(p)).map((post) => (
+                    <div key={post.id} className="bg-amber-50/60 rounded-2xl border border-amber-100 p-4 mb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">Archived</span>
+                            <span className="text-[10px] text-stone-400">{post.category}</span>
+                          </div>
+                          <p className="font-bold text-stone-900 text-sm truncate">{post.title}</p>
+                          <p className="text-[10px] text-stone-400 font-mono">{post.slug}</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0 flex-wrap justify-end">
+                          <button onClick={() => restoreArchivedPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-700 text-white hover:bg-teal-800">Restore</button>
+                          <button onClick={() => setEditingPost(post)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100">Edit</button>
+                          <button onClick={() => deletePost(post.id)} className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">Del</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

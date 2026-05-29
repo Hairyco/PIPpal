@@ -4,8 +4,10 @@ import {
   pickContextTopics,
   generatePost,
   normalizeBlogCategory,
+  normalizeBlogSaveTags,
   extractImageText,
   parseImageInput,
+  slugifyTitle,
   MAX_IMAGE_BASE64_LENGTH,
 } from '../lib/blog-generate-core.js';
 
@@ -19,6 +21,108 @@ function restHeaders(extra = {}) {
     'Content-Type': 'application/json',
     ...extra,
   };
+}
+
+async function slugTaken(slug, excludeId = null) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/blog_posts?select=id&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+    { headers: restHeaders() },
+  );
+  if (!res.ok) return true;
+  const rows = await res.json();
+  if (!Array.isArray(rows) || !rows.length) return false;
+  if (excludeId && rows[0].id === excludeId) return false;
+  return true;
+}
+
+async function ensureUniqueSlug(baseSlug, excludeId = null) {
+  let s = String(baseSlug || '')
+    .replace(/[^a-z0-9-]/gi, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+  if (!s) s = 'pip-guide';
+  let candidate = s;
+  for (let n = 0; n < 30; n++) {
+    if (!(await slugTaken(candidate, excludeId))) return candidate;
+    candidate = n === 0 ? `${s}-2` : `${s}-${n + 2}`;
+  }
+  return `${s}-${Date.now().toString(36)}`;
+}
+
+function buildBlogRow(input, { archived = false } = {}) {
+  const title = String(input.title || '').trim();
+  const slug = String(input.slug || slugifyTitle(title)).trim().toLowerCase();
+  const category = normalizeBlogCategory(input.category, {
+    title,
+    excerpt: input.excerpt,
+    body: input.body,
+  });
+  return {
+    title,
+    slug,
+    excerpt: input.excerpt || '',
+    body: input.body || '',
+    category: category === 'How To' || category === 'Tips' ? category : 'Tips',
+    tags: normalizeBlogSaveTags(input.tags, { archived }),
+    published: !!input.published,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function saveBlogPost(input, { archived = false } = {}) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error('Supabase env not configured');
+  }
+  if (!input?.title?.trim()) throw new Error('Title required');
+
+  const id = input.id || null;
+  const row = buildBlogRow(input, { archived });
+
+  if (id) {
+    if (await slugTaken(row.slug, id)) {
+      row.slug = await ensureUniqueSlug(row.slug, id);
+    }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: restHeaders({ Prefer: 'return=representation' }),
+      body: JSON.stringify(row),
+    });
+    const text = await res.text();
+    if (!res.ok) throw new Error(`Update failed: ${res.status} ${text.slice(0, 200)}`);
+    const rows = JSON.parse(text || '[]');
+    if (!rows.length) throw new Error('Update did not return a row');
+    return rows[0];
+  }
+
+  row.slug = await ensureUniqueSlug(row.slug);
+  row.created_at = new Date().toISOString();
+  row.published = row.published && !archived ? row.published : false;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/blog_posts`, {
+    method: 'POST',
+    headers: restHeaders({ Prefer: 'return=representation' }),
+    body: JSON.stringify(row),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Insert failed: ${res.status} ${text.slice(0, 200)}`);
+  const rows = JSON.parse(text || '[]');
+  if (!rows.length) throw new Error('Insert did not return a row');
+  return rows[0];
+}
+
+async function handleSave(body, res) {
+  try {
+    const { post, archived = false } = body;
+    if (!post?.title?.trim()) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+    const saved = await saveBlogPost(post, { archived: !!archived });
+    return res.status(200).json({ ok: true, post: saved });
+  } catch (err) {
+    console.error('Blog save error:', err.message);
+    return res.status(500).json({ error: err.message || 'Save failed' });
+  }
 }
 
 async function handleRecategorize(res, publishedOnly = true) {
@@ -126,6 +230,10 @@ export default async function handler(req, res) {
     return handleRecategorize(res, body.publishedOnly !== false);
   }
 
+  if (body.action === 'save') {
+    return handleSave(body, res);
+  }
+
   if (body.action === 'extract-image-text') {
     const { image } = body;
     if (!image) return res.status(400).json({ error: 'Image required' });
@@ -172,9 +280,33 @@ export default async function handler(req, res) {
 
     if (!post) return res.status(500).json({ error: 'Failed to parse generated post' });
 
-    res.status(200).json({
-      post,
+    let saved = null;
+    try {
+      saved = await saveBlogPost({ ...post, published: false });
+    } catch (saveErr) {
+      console.error('Auto-save draft failed:', saveErr.message);
+      try {
+        saved = await saveBlogPost({ ...post, published: false }, { archived: true });
+      } catch (archiveErr) {
+        console.error('Archive save failed:', archiveErr.message);
+      }
+    }
+
+    return res.status(200).json({
+      post: saved
+        ? {
+            title: saved.title,
+            slug: saved.slug,
+            excerpt: saved.excerpt,
+            body: saved.body,
+            category: saved.category,
+            tags: saved.tags,
+            published: saved.published,
+            id: saved.id,
+          }
+        : post,
       generated_from: targetTopic,
+      auto_saved: !!saved,
     });
   } catch (err) {
     console.log('Generate blog error:', err.message);

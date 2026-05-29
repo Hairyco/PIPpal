@@ -77,7 +77,9 @@ export function BlogScreen() {
         setPosts([]);
         return;
       }
-      const rows = (data || []).map((p) => ({ ...p, tags: normalizeBlogTags(p.tags) }));
+      const rows = (data || [])
+        .filter((p) => !normalizeBlogTags(p.tags).includes('archived-failed-save'))
+        .map((p) => ({ ...p, tags: normalizeBlogTags(p.tags) }));
       setPosts(rows);
     } catch (e) {
       console.error('Blog fetch:', e);
