@@ -106,6 +106,58 @@ const getDayDate = (weekStart: string, dayIndex: number) => {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+function mergeDayNotes(
+  target: Record<string, string>,
+  source: Record<string, string>,
+) {
+  for (const [key, value] of Object.entries(source)) {
+    if (value && (!target[key] || value.length > (target[key]?.length ?? 0))) {
+      target[key] = value;
+    }
+  }
+}
+
+function mergeWeekNotes(
+  target: Record<string, Record<string, string>>,
+  source: Record<string, Record<string, string>>,
+) {
+  for (const [day, activities] of Object.entries(source)) {
+    if (!target[day]) target[day] = {};
+    mergeDayNotes(target[day], activities);
+  }
+}
+
+/** One row per Monday — newest weeks first in the picker. */
+function dedupeAndSortWeeks(entries: WeekEntry[], createdAtById?: Map<string, string>): WeekEntry[] {
+  const byWeekStart = new Map<string, WeekEntry>();
+
+  for (const entry of entries) {
+    const existing = byWeekStart.get(entry.weekStart);
+    if (!existing) {
+      byWeekStart.set(entry.weekStart, {
+        id: entry.id,
+        weekStart: entry.weekStart,
+        notes: JSON.parse(JSON.stringify(entry.notes || {})),
+      });
+      continue;
+    }
+
+    mergeWeekNotes(existing.notes, entry.notes);
+
+    const existingTs = createdAtById?.get(existing.id) ?? '';
+    const entryTs = createdAtById?.get(entry.id) ?? '';
+    const preferEntry =
+      entryTs > existingTs ||
+      (/^[0-9a-f-]{36}$/i.test(entry.id) && !/^[0-9a-f-]{36}$/i.test(existing.id));
+
+    if (preferEntry) existing.id = entry.id;
+  }
+
+  return [...byWeekStart.values()].sort(
+    (a, b) => new Date(b.weekStart).getTime() - new Date(a.weekStart).getTime(),
+  );
+}
+
 const escapeHtml = (value: string) =>
   String(value || '')
     .replace(/&/g, '&amp;')
@@ -133,15 +185,24 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     const load = async () => {
       setIsLoading(true);
       try {
-        const { data } = await supabase.from('diary_entries').select('*').eq('user_id', user.id).order('date', { ascending: false });
+        const { data } = await supabase
+          .from('diary_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false });
         if (data && data.length > 0) {
-          const loaded: WeekEntry[] = data.map((row: any) => ({
+          const createdAtById = new Map<string, string>(
+            data.map((row: { id: string; created_at?: string }) => [row.id, row.created_at ?? '']),
+          );
+          const loaded: WeekEntry[] = data.map((row: { id: string; date: string; content?: { notes?: WeekEntry['notes'] } }) => ({
             id: row.id,
             weekStart: row.date,
             notes: row.content?.notes ?? {},
           }));
-          setWeeks(loaded);
-          setCurrentWeekId(loaded[0].id);
+          const normalized = dedupeAndSortWeeks(loaded, createdAtById);
+          setWeeks(normalized);
+          setCurrentWeekId(normalized[0]?.id ?? '');
         } else {
           const w = emptyWeek();
           setWeeks([w]);
@@ -223,18 +284,73 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     try {
       const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(currentWeek.id);
       if (isUUID) {
-        await supabase.from('diary_entries').update({ date: currentWeek.weekStart, content: { notes: currentWeek.notes } }).eq('id', currentWeek.id).eq('user_id', user.id);
+        await supabase
+          .from('diary_entries')
+          .update({ date: currentWeek.weekStart, content: { notes: currentWeek.notes } })
+          .eq('id', currentWeek.id)
+          .eq('user_id', user.id);
       } else {
-        const { data } = await supabase.from('diary_entries').insert({ user_id: user.id, date: currentWeek.weekStart, content: { notes: currentWeek.notes }, mood: '' }).select().single();
-        if (data) setWeeks(prev => prev.map(w => w.id === currentWeek.id ? { ...w, id: data.id } : w));
+        const { data: existing } = await supabase
+          .from('diary_entries')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('date', currentWeek.weekStart)
+          .maybeSingle();
+
+        if (existing?.id) {
+          await supabase
+            .from('diary_entries')
+            .update({ content: { notes: currentWeek.notes } })
+            .eq('id', existing.id)
+            .eq('user_id', user.id);
+          setWeeks((prev) => {
+            const merged = prev.map((w) =>
+              w.id === currentWeek.id ? { ...w, id: existing.id } : w,
+            );
+            return dedupeAndSortWeeks(merged);
+          });
+          setCurrentWeekId(existing.id);
+        } else {
+          const { data } = await supabase
+            .from('diary_entries')
+            .insert({
+              user_id: user.id,
+              date: currentWeek.weekStart,
+              content: { notes: currentWeek.notes },
+              mood: '',
+            })
+            .select()
+            .single();
+          if (data) {
+            setWeeks((prev) =>
+              dedupeAndSortWeeks(
+                prev.map((w) => (w.id === currentWeek.id ? { ...w, id: data.id } : w)),
+              ),
+            );
+            setCurrentWeekId(data.id);
+          }
+        }
       }
       showToast('Diary saved!', 'success');
-    } catch { showToast('Saved locally.', 'info'); } finally { setIsSaving(false); }
+    } catch {
+      showToast('Saved locally.', 'info');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addNewWeek = () => {
+    const monday = getMonday();
+    const existing = weeks.find((w) => w.weekStart === monday);
+    if (existing) {
+      setCurrentWeekId(existing.id);
+      setCurrentDayIndex(0);
+      setShowWeekPicker(false);
+      showToast('This week is already in your diary.', 'info');
+      return;
+    }
     const w = emptyWeek();
-    setWeeks(prev => [w, ...prev]);
+    setWeeks((prev) => dedupeAndSortWeeks([w, ...prev]));
     setCurrentWeekId(w.id);
     setCurrentDayIndex(0);
     setShowWeekPicker(false);
@@ -247,7 +363,10 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   };
 
   const exportDiary = () => {
-    const weeksHtml = weeks.map(week => {
+    const sortedWeeks = [...weeks].sort(
+      (a, b) => new Date(a.weekStart).getTime() - new Date(b.weekStart).getTime(),
+    );
+    const weeksHtml = sortedWeeks.map(week => {
       const daysHtml = DAYS.map((day, di) => {
         const date = getDayDate(week.weekStart, di);
         const rowsHtml = ACTIVITIES.map(act => {
