@@ -361,9 +361,19 @@ export function AdminDashboard() {
   const [extractedImageText, setExtractedImageText] = useState('');
   const [extractingImage, setExtractingImage] = useState(false);
   const [imageExtractError, setImageExtractError] = useState('');
+  const [referenceUrl, setReferenceUrl] = useState('');
+  const [extractedUrlText, setExtractedUrlText] = useState('');
+  const [fetchingUrl, setFetchingUrl] = useState(false);
+  const [urlExtractError, setUrlExtractError] = useState('');
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_IMAGE_FILE_BYTES = 3 * 1024 * 1024;
+
+  const clearReferenceUrl = () => {
+    setReferenceUrl('');
+    setExtractedUrlText('');
+    setUrlExtractError('');
+  };
 
   const clearReferenceImage = () => {
     setReferenceImage(null);
@@ -417,6 +427,35 @@ export function AdminDashboard() {
     reader.readAsDataURL(file);
   };
 
+  const fetchReferenceUrl = async () => {
+    const url = referenceUrl.trim();
+    if (!url) {
+      setUrlExtractError('Enter a URL first.');
+      return;
+    }
+    setUrlExtractError('');
+    setExtractedUrlText('');
+    setFetchingUrl(true);
+    try {
+      const res = await fetch('/api/generate-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'extract-url-text', url }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setUrlExtractError(data.error || 'Failed to fetch URL');
+        return;
+      }
+      setExtractedUrlText(data.text || '');
+      if (data.url) setReferenceUrl(data.url);
+    } catch {
+      setUrlExtractError('Failed to fetch URL. Check your connection.');
+    } finally {
+      setFetchingUrl(false);
+    }
+  };
+
   const recategorizePublished = async () => {
     setRecategorizing(true);
     setBlogNotice(null);
@@ -447,6 +486,8 @@ export function AdminDashboard() {
       body: JSON.stringify({
         topic: generateTopic || undefined,
         imageText: extractedImageText || undefined,
+        url: referenceUrl.trim() || undefined,
+        urlText: extractedUrlText || undefined,
       }),
     });
     const retryable = res.status === 502 || res.status === 503 || res.status === 504;
@@ -459,12 +500,17 @@ export function AdminDashboard() {
   };
 
   const generatePost = async () => {
-    if (!generateTopic.trim() && !extractedImageText.trim()) {
-      showBlogNotice('error', 'Enter a topic or upload a reference image with text.');
+    const hasUrl = referenceUrl.trim().length > 0;
+    const hasTopic = generateTopic.trim().length > 0;
+    const hasImageText = extractedImageText.trim().length > 0;
+    const hasUrlText = extractedUrlText.trim().length > 0;
+
+    if (!hasTopic && !hasImageText && !hasUrl && !hasUrlText) {
+      showBlogNotice('error', 'Enter a topic, paste a link, or upload a reference image.');
       return;
     }
-    if (extractingImage) {
-      showBlogNotice('error', 'Wait for text extraction to finish.');
+    if (extractingImage || fetchingUrl) {
+      showBlogNotice('error', 'Wait for content extraction to finish.');
       return;
     }
     setGenerating(true);
@@ -481,6 +527,7 @@ export function AdminDashboard() {
         setEditingPost(post);
         setShowGenerator(false);
         clearReferenceImage();
+        clearReferenceUrl();
         setGenerateTopic('');
         backupBlogDraft(post);
         if (data.auto_saved) {
@@ -510,6 +557,7 @@ export function AdminDashboard() {
           setEditingPost(post);
           setShowGenerator(false);
           clearReferenceImage();
+          clearReferenceUrl();
           setGenerateTopic('');
           backupBlogDraft(post);
           if (data.auto_saved) {
@@ -1576,13 +1624,52 @@ export function AdminDashboard() {
           {showGenerator && (
             <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4 mb-4">
               <p className="font-bold text-purple-900 text-sm mb-1">AI blog generator</p>
-              <p className="text-xs text-purple-700 mb-3">Writes an SEO-oriented draft from PIP topics or text extracted from a reference image. Edit before publishing.</p>
+              <p className="text-xs text-purple-700 mb-3">Writes an SEO draft from a topic, pasted link, or reference image. Edit before publishing.</p>
               <input
                 value={generateTopic}
                 onChange={e => setGenerateTopic(e.target.value)}
-                placeholder="Topic (optional if using image — supplements extracted text)"
+                placeholder="Topic (optional — focuses the draft)"
                 className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white mb-3"
               />
+
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-purple-800 mb-2">Paste article link</p>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Link className="w-4 h-4 text-purple-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      value={referenceUrl}
+                      onChange={(e) => {
+                        setReferenceUrl(e.target.value);
+                        setUrlExtractError('');
+                        setExtractedUrlText('');
+                      }}
+                      placeholder="https://example.com/pip-article"
+                      className="w-full border border-purple-200 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={fetchReferenceUrl}
+                    disabled={fetchingUrl || !referenceUrl.trim()}
+                    className="shrink-0 text-xs font-bold px-3 py-2 rounded-xl bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+                  >
+                    {fetchingUrl ? 'Fetching…' : 'Fetch'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-purple-500 mt-1.5">Or skip Fetch — Generate will read the link automatically.</p>
+                {extractedUrlText && (
+                  <div className="mt-2">
+                    <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1">Page content preview</p>
+                    <div className="text-[11px] text-stone-700 bg-purple-50/80 rounded-lg px-3 py-2 max-h-32 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                      {extractedUrlText.length > 500 ? `${extractedUrlText.slice(0, 500)}…` : extractedUrlText}
+                    </div>
+                  </div>
+                )}
+                {urlExtractError && (
+                  <p className="text-xs text-rose-600 mt-2">{urlExtractError}</p>
+                )}
+              </div>
 
               <div className="mb-3">
                 <p className="text-xs font-semibold text-purple-800 mb-2">Upload reference image</p>
@@ -1650,7 +1737,12 @@ export function AdminDashboard() {
 
               <button
                 onClick={generatePost}
-                disabled={generating || extractingImage || (!generateTopic.trim() && !extractedImageText.trim())}
+                disabled={
+                  generating
+                  || extractingImage
+                  || fetchingUrl
+                  || (!generateTopic.trim() && !extractedImageText.trim() && !referenceUrl.trim() && !extractedUrlText.trim())
+                }
                 className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50 active:scale-[0.98] transition-transform"
               >
                 {generating ? 'Generating…' : 'Generate draft'}

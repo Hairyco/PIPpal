@@ -6,6 +6,8 @@ import {
   normalizeBlogCategory,
   normalizeBlogSaveTags,
   extractImageText,
+  extractUrlText,
+  normalizeReferenceUrl,
   parseImageInput,
   slugifyTitle,
   MAX_IMAGE_BASE64_LENGTH,
@@ -250,19 +252,38 @@ export default async function handler(req, res) {
     }
   }
 
-  const { topic, imageText, image } = body;
+  if (body.action === 'extract-url-text') {
+    const { url } = body;
+    if (!url) return res.status(400).json({ error: 'URL required' });
+    try {
+      const text = await extractUrlText(url);
+      return res.status(200).json({ text, url: normalizeReferenceUrl(url) });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  const { topic, imageText, image, url, urlText } = body;
 
   try {
-    let referenceText = typeof imageText === 'string' ? imageText.trim() : '';
+    const referenceParts = [];
+    if (typeof imageText === 'string' && imageText.trim()) referenceParts.push(imageText.trim());
+    if (typeof urlText === 'string' && urlText.trim()) referenceParts.push(urlText.trim());
 
-    if (!referenceText && image) {
+    if (!referenceParts.length && image) {
       const parsed = parseImageInput(image);
       if (!parsed) return res.status(400).json({ error: 'Invalid image format' });
       if (parsed.base64.length > MAX_IMAGE_BASE64_LENGTH) {
         return res.status(400).json({ error: 'Image too large — use a file under 4MB' });
       }
-      referenceText = await extractImageText(image);
+      referenceParts.push(await extractImageText(image));
     }
+
+    if (!referenceParts.length && url) {
+      referenceParts.push(await extractUrlText(url));
+    }
+
+    const referenceText = referenceParts.join('\n\n---\n\n').slice(0, 8000);
 
     if (!topic && !referenceText) {
       return res.status(400).json({ error: 'Provide a topic, reference image, or both' });
