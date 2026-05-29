@@ -21,3 +21,10 @@ CREATE POLICY "Authenticated can read page views"
   ON page_views FOR SELECT
   TO authenticated
   USING (true);
+
+-- Authenticated users can clear visitor stats from admin.
+DROP POLICY IF EXISTS "Authenticated can delete page views" ON page_views;
+CREATE POLICY "Authenticated can delete page views"
+  ON page_views FOR DELETE
+  TO authenticated
+  USING (true);

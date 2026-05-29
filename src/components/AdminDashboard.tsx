@@ -621,6 +621,9 @@ export function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [showResetVisitorsConfirm, setShowResetVisitorsConfirm] = useState(false);
+  const [resettingVisitors, setResettingVisitors] = useState(false);
+  const [visitorResetNotice, setVisitorResetNotice] = useState<string | null>(null);
 
   const getDateFilter = (period: PeriodFilter): Date | null => {
     switch (period) {
@@ -856,6 +859,26 @@ export function AdminDashboard() {
       console.error('Reset failed:', err);
     } finally {
       setResetting(false);
+    }
+  };
+
+  const resetVisitorStats = async () => {
+    setResettingVisitors(true);
+    setVisitorResetNotice(null);
+    try {
+      const { error } = await supabase
+        .from('page_views')
+        .delete()
+        .gte('created_at', '1970-01-01T00:00:00Z');
+      if (error) throw error;
+      setShowResetVisitorsConfirm(false);
+      await loadStats();
+      setVisitorResetNotice('Visitor stats cleared.');
+    } catch (err) {
+      console.error('Reset visitor stats failed:', err);
+      setVisitorResetNotice('Could not reset — run sql/reset-page-views.sql in Supabase SQL editor.');
+    } finally {
+      setResettingVisitors(false);
     }
   };
 
@@ -1344,7 +1367,37 @@ export function AdminDashboard() {
             </div>
 
             <section>
-              <h2 className="text-sm font-bold text-stone-900 mb-3">Visitors</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-stone-900">Visitors</h2>
+                {showResetVisitorsConfirm ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-stone-500">Clear all visitor data?</span>
+                    <button
+                      onClick={resetVisitorStats}
+                      disabled={resettingVisitors}
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
+                    >
+                      {resettingVisitors ? 'Clearing…' : 'Confirm'}
+                    </button>
+                    <button
+                      onClick={() => setShowResetVisitorsConfirm(false)}
+                      className="text-[10px] font-bold px-2 py-1 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowResetVisitorsConfirm(true)}
+                    className="text-[10px] font-bold px-2.5 py-1.5 rounded-lg bg-stone-100 text-stone-600 hover:bg-stone-200"
+                  >
+                    Reset stats
+                  </button>
+                )}
+              </div>
+              {visitorResetNotice && (
+                <p className="text-xs text-stone-600 bg-stone-50 border border-stone-100 rounded-lg px-3 py-2 mb-3">{visitorResetNotice}</p>
+              )}
               <div className="grid grid-cols-3 gap-3">
                 <StatCard icon={Eye} label="Today" value={stats.todayVisitors} color="bg-teal-600" />
                 <StatCard icon={Eye} label="This Week" value={stats.weekVisitors} color="bg-indigo-500" />
