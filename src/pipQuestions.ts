@@ -564,3 +564,37 @@ export function getTotalPoints(answers: Record<string, string>): number {
   }
   return total;
 }
+
+export const PIP_STANDARD_THRESHOLD = 8;
+export const PIP_ENHANCED_THRESHOLD = 12;
+
+export function getCategoryPoints(
+  answers: Record<string, string>,
+  category: PIPQuestion['category'],
+): number {
+  let total = 0;
+  for (const question of PIP_QUESTIONS) {
+    if (question.category !== category) continue;
+    const answerStr = answers[question.id];
+    if (!answerStr) continue;
+    const match = answerStr.match(/Descriptor\s+([A-Z])/i);
+    const code = match ? match[1].toUpperCase() : answerStr;
+    const descriptor = question.descriptors.find((d) => d.code === code);
+    if (descriptor) total += descriptor.points;
+  }
+  return total;
+}
+
+export function getPipRateHint(category: PIPQuestion['category'], points: number): string | null {
+  if (points <= 0) return null;
+
+  if (points >= PIP_ENHANCED_THRESHOLD) {
+    return `✓ Enhanced ${category} may apply — keep going!`;
+  }
+  if (points >= PIP_STANDARD_THRESHOLD) {
+    const needed = PIP_ENHANCED_THRESHOLD - points;
+    return `✓ Standard ${category} likely — ${needed} more pt${needed === 1 ? '' : 's'} for Enhanced`;
+  }
+  const needed = PIP_STANDARD_THRESHOLD - points;
+  return `${needed} more pt${needed === 1 ? '' : 's'} needed for Standard ${category}`;
+}

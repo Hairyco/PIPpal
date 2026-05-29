@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
-import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
+import { PIP_QUESTIONS, getTotalPoints, getCategoryPoints, getPipRateHint } from '../pipQuestions';
 import { formatFullAccessPrice } from '../constants/pricing';
 
 export function QuestionIndex() {
@@ -51,6 +51,12 @@ export function QuestionIndex() {
   }, [allQuestionsComplete]);
 
   const totalPoints = getTotalPoints(savedAnswers);
+  const dailyLivingPoints = getCategoryPoints(savedAnswers, 'Daily Living');
+  const mobilityPoints = getCategoryPoints(savedAnswers, 'Mobility');
+  const rateHints = [
+    getPipRateHint('Daily Living', dailyLivingPoints),
+    getPipRateHint('Mobility', mobilityPoints),
+  ].filter((hint): hint is string => hint != null);
 
   const dailyLiving = PIP_QUESTIONS.filter((q) => q.category === 'Daily Living');
   const mobility = PIP_QUESTIONS.filter((q) => q.category === 'Mobility');
@@ -166,11 +172,12 @@ export function QuestionIndex() {
                 style={{ width: `${Math.min((totalPoints / 164) * 100, 100)}%` }}
               />
             </div>
-            {totalPoints >= 12 && (
-              <p className="text-teal-200 text-xs mt-2">
-                {totalPoints >= 12 && totalPoints < 24 ? '✓ Standard rate Daily Living likely' : ''}
-                {totalPoints >= 24 ? '✓ Enhanced rate may apply — keep going!' : ''}
-              </p>
+            {rateHints.length > 0 && (
+              <div className="text-teal-200 text-xs mt-2 space-y-0.5">
+                {rateHints.map((hint) => (
+                  <p key={hint}>{hint}</p>
+                ))}
+              </div>
             )}
           </div>
         )}
