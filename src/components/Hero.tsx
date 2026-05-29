@@ -28,7 +28,7 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
     { text: '100% personalised' },
     { text: 'Finish in just 15 minutes' },
     { text: 'Get a faster decision' },
-    { text: 'Apply with confidence' },
+    { text: '£8.99 one-time cost' },
   ];
 
   return (
