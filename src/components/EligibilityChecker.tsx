@@ -338,18 +338,10 @@ export function EligibilityChecker() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 md:px-8 py-8">
-          {resultsLocked && (
-            <div className="w-full max-w-sm mx-auto mb-6">
-              <InlineEmailCapture onContinue={() => setShowEmailGate(false)} />
-            </div>
-          )}
-
-          <div
-            className={
-              resultsLocked ? 'blur-md pointer-events-none select-none opacity-90' : ''
-            }
-          >
-          <div className="flex flex-col items-center text-center mb-8">
+          <div className="relative mb-8 max-w-sm mx-auto w-full">
+            <div
+              className={`flex flex-col items-center text-center ${resultsLocked ? 'blur-md pointer-events-none select-none opacity-90' : ''}`}
+            >
             <motion.div
               initial={{
                 scale: 0.8,
@@ -408,8 +400,22 @@ export function EligibilityChecker() {
             <p className="text-stone-500 text-xs leading-relaxed italic">
               {encouragement}
             </p>
+            </div>
+
+            {resultsLocked && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center px-1">
+                <div className="w-full shadow-lg">
+                  <InlineEmailCapture onContinue={() => setShowEmailGate(false)} />
+                </div>
+              </div>
+            )}
           </div>
 
+          <div
+            className={
+              resultsLocked ? 'blur-md pointer-events-none select-none opacity-90' : ''
+            }
+          >
           {/* Stats Row */}
           <div className="flex gap-2 mb-6">
             <div className="flex-1 bg-teal-50 rounded-xl p-3 border border-teal-100 flex flex-col items-center text-center justify-center gap-1">
