@@ -185,8 +185,16 @@ export function LoginScreen() {
                 if (Object.keys(updates).length > 0) {
                   await supabase.from('profiles').update(updates).eq('id', userId);
                 }
+                await fetch('/api/send-digest', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'activate_on_first_subscriber',
+                    email: email.toLowerCase().trim(),
+                  }),
+                });
               } catch { /* Fail silently */ }
-            }, 2000);
+            }, 3000);
           }
           showToast('Account created! Welcome to PIPpal.', 'success');
           navigateTo('home');

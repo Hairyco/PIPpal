@@ -1,33 +1,22 @@
 // api/send-digest.js — Weekly PIP news digest email
 // Called by Vercel cron or manually from Admin Dashboard
 
+import {
+  DIGEST_OWNER_EMAILS,
+  filterDigestSubscribers,
+  mergeDigestRecipients,
+  isDigestOwnerEmail,
+} from '../lib/digest-subscribers.js';
+import {
+  isWeeklyDigestActivated,
+  markWeeklyDigestActivated,
+  loadStoredNewsForDigest,
+  profileExistsForEmail,
+} from '../lib/digest-state.js';
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-/** Preview (cron) + always copied on subscriber sends — deduped against profiles */
-const DIGEST_OWNER_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
-
-function mergeDigestRecipients(subscribers, ownerEmails) {
-  const seen = new Set();
-  const out = [];
-  for (const p of subscribers || []) {
-    const email = (p.email || '').trim();
-    if (!email) continue;
-    const key = email.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ email, name: p.name || '' });
-  }
-  for (const email of ownerEmails) {
-    const e = email.trim();
-    const key = e.toLowerCase();
-    if (!e || seen.has(key)) continue;
-    seen.add(key);
-    out.push({ email: e, name: 'PIPpal' });
-  }
-  return out;
-}
 
 async function getSubscribers() {
   // Get all profiles with email notifications enabled
@@ -278,43 +267,90 @@ function buildEmailHtml(articles, unsubscribeUrl, approvalToken = null, blogPost
 }
 
 export default async function handler(req, res) {
-  // Allow GET from cron or POST from admin
+  // Allow GET from cron or POST from admin / first-subscriber activation
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Verify cron secret or admin call
+  const body = req.method === 'POST' ? (req.body || {}) : {};
   const authHeader = req.headers['authorization'];
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
+  const isPublicSignupActivation =
+    req.method === 'POST' && body.action === 'activate_on_first_subscriber';
+  const isAdminManualSend = req.method === 'POST' && !body.action;
+
+  if (cronSecret && !isCronAuth && !isPublicSignupActivation && !isAdminManualSend) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
   try {
-    const body = req.method === 'POST' ? (req.body || {}) : {};
-    // Cron invokes GET with Bearer CRON_SECRET — preview-only (no query string in vercel.json cron paths).
-    // Admin dashboard uses POST with explicit testOnly / articles / blogPosts.
-    const testOnly =
-      req.method === 'POST' ? body.testOnly === true : true;
+    // First real subscriber — enable weekly digest + send approval preview to owners
+    if (isPublicSignupActivation) {
+      const signupEmail = String(body.email || '').trim().toLowerCase();
+      if (!signupEmail || isDigestOwnerEmail(signupEmail)) {
+        return res.status(200).json({ activated: false, message: 'Owner signup ignored' });
+      }
+      if (!(await profileExistsForEmail(signupEmail))) {
+        return res.status(200).json({ activated: false, message: 'Profile not found yet' });
+      }
+
+      const subscribers = await getSubscribers();
+      const digestSubscribers = filterDigestSubscribers(subscribers);
+      if (digestSubscribers.length < 1) {
+        return res.status(200).json({ activated: false, message: 'No digest subscribers yet' });
+      }
+      if (await isWeeklyDigestActivated()) {
+        return res.status(200).json({ activated: false, message: 'Digest already active' });
+      }
+
+      await markWeeklyDigestActivated();
+      body.testOnly = true;
+      body.articles = body.articles || (await loadStoredNewsForDigest(5));
+      body.blogPosts = body.blogPosts || [];
+    }
+
+    // Cron invokes GET — preview-only approval email to owners
+    const testOnly = req.method === 'POST' ? body.testOnly === true : true;
     const blogPosts = body.blogPosts || [];
 
-    // Accept pre-fetched articles from client (since Vercel blocks outbound RSS fetches)
+    const subscribers = await getSubscribers();
+    const digestSubscribers = filterDigestSubscribers(subscribers);
+    const digestActivated = await isWeeklyDigestActivated();
+
+    // Weekly digest stays off until the first non-owner subscriber signs up
+    if (req.method === 'GET' && digestSubscribers.length < 1) {
+      return res.status(200).json({
+        skipped: true,
+        message: 'Weekly digest inactive — waiting for first subscriber',
+      });
+    }
+    if (req.method === 'GET' && !digestActivated) {
+      return res.status(200).json({
+        skipped: true,
+        message: 'Weekly digest not activated yet',
+      });
+    }
+
     const clientArticles = body.articles || null;
+    const serverArticles = clientArticles ? [] : await getNewsArticles();
+    let articles = clientArticles || serverArticles;
+    if (articles.length === 0) {
+      articles = await loadStoredNewsForDigest(5);
+    }
 
-    const [subscribers, serverArticles] = await Promise.all([getSubscribers(), clientArticles ? Promise.resolve([]) : getNewsArticles()]);
-    const articles = clientArticles || serverArticles;
-
-    console.log('Subscribers found:', subscribers.length);
+    console.log('Digest subscribers:', digestSubscribers.length);
     console.log('Articles found:', articles.length);
     console.log('Test only:', testOnly);
+    console.log('Digest activated:', digestActivated);
 
     if (articles.length === 0) {
       return res.status(200).json({ sent: 0, message: 'No PIP articles found across all sources' });
     }
 
     const recipients = testOnly
-      ? DIGEST_OWNER_EMAILS.map(email => ({ email, name: 'Daley' }))
-      : mergeDigestRecipients(subscribers, DIGEST_OWNER_EMAILS);
+      ? DIGEST_OWNER_EMAILS.map((email) => ({ email, name: 'PIPpal' }))
+      : mergeDigestRecipients(digestSubscribers, DIGEST_OWNER_EMAILS);
 
     if (recipients.length === 0) {
       return res.status(200).json({ sent: 0, message: 'No recipients (check DIGEST_OWNER_EMAILS / subscribers)' });
@@ -393,6 +429,15 @@ export default async function handler(req, res) {
         body: JSON.stringify({ type: 'digest', subject: `Weekly PIP digest — ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`, recipient_count: sent }),
       });
     }
+    if (isPublicSignupActivation) {
+      return res.status(200).json({
+        activated: true,
+        sent,
+        failed,
+        message: 'Weekly digest activated — approval preview sent to owners',
+      });
+    }
+
     res.status(200).json({ sent, failed, total: recipients.length, testEmail });
   } catch (err) {
     res.status(500).json({ error: err.message });

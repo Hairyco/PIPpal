@@ -221,9 +221,13 @@ export function AdminDashboard() {
   const fetchSubscriberCount = async () => {
     const { data } = await supabase
       .from('profiles')
-      .select('id', { count: 'exact' })
+      .select('email')
       .neq('email_notifications', false);
-    setSubscriberCount(data?.length || 0);
+    const ownerEmails = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'].map((e) => e.toLowerCase());
+    const count = (data || []).filter(
+      (p) => p.email && !ownerEmails.includes(String(p.email).toLowerCase()),
+    ).length;
+    setSubscriberCount(count);
   };
 
   const fetchEmailHistory = async () => {

@@ -1,32 +1,15 @@
 // api/approve-digest.js
 // Handles article approval/removal and final send
 
+import {
+  DIGEST_OWNER_EMAILS,
+  filterDigestSubscribers,
+  mergeDigestRecipients,
+} from '../lib/digest-subscribers.js';
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-
-const DIGEST_OWNER_EMAILS = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'];
-
-function mergeDigestRecipients(subscribers, ownerEmails) {
-  const seen = new Set();
-  const out = [];
-  for (const p of subscribers || []) {
-    const email = (p.email || '').trim();
-    if (!email) continue;
-    const key = email.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push({ email, name: p.name || '' });
-  }
-  for (const email of ownerEmails) {
-    const e = email.trim();
-    const key = e.toLowerCase();
-    if (!e || seen.has(key)) continue;
-    seen.add(key);
-    out.push({ email: e, name: 'PIPpal' });
-  }
-  return out;
-}
 
 async function getDigest(token) {
   const res = await fetch(
@@ -50,11 +33,11 @@ async function updateDigest(token, updates) {
 
 async function getSubscribers() {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/profiles?select=email,name`,
+    `${SUPABASE_URL}/rest/v1/profiles?select=email,name,email_notifications`,
     { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}` } }
   );
   const profiles = await res.json();
-  return (profiles || []).filter(p => p.email_notifications !== false && p.email);
+  return filterDigestSubscribers(profiles);
 }
 
 function buildFinalEmailHtml(articles, unsubscribeUrl) {
