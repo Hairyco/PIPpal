@@ -59,9 +59,10 @@ export function NewsScreen() {
     setError(false);
     try {
       const res = await fetch('/api/news');
-      const data = await res.json();
-      if (data.articles && data.articles.length > 0) {
-        const normalized: Article[] = data.articles.map((a: Article) => ({
+      const data = await res.json().catch(() => ({}));
+      const rows = Array.isArray(data.articles) ? data.articles : [];
+      if (rows.length > 0) {
+        const normalized: Article[] = rows.map((a: Article) => ({
           ...a,
           title: decodeHtmlEntities(String(a.title ?? '')),
           body: decodeHtmlEntities(String(a.body ?? '')),
@@ -184,7 +185,7 @@ export function NewsScreen() {
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
             <p className="text-sm text-stone-500">Fetching the latest PIP news…</p>
-            <p className="text-xs text-stone-400">This takes a few seconds</p>
+            <p className="text-xs text-stone-400">Loading saved articles…</p>
           </div>
         )}
 

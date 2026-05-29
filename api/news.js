@@ -211,78 +211,115 @@ async function saveArticles(articles) {
   }
 }
 
+async function ingestFreshArticles() {
+  const feedResults = await Promise.all(SOURCES.map(s => fetchFeed(s)));
+  const allItems = feedResults.flat();
+  allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const candidates = allItems.slice(0, 8);
+
+  console.log(`Total candidates from RSS: ${candidates.length}`);
+  candidates.slice(0, 5).forEach(c => console.log(`  - [${c.sourceName}] ${c.title}`));
+
+  const freshArticles = [];
+  if (candidates.length === 0) return freshArticles;
+
+  for (const item of candidates) {
+    const { body, relevant } = await rewriteWithClaude(item.title, item.summary, item.sourceName);
+    if (!relevant) {
+      console.log(`NOT_RELEVANT: ${item.title}`);
+      continue;
+    }
+    const tags = autoTag(item.title, item.summary);
+    const dateStr = item.date
+      ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '';
+    freshArticles.push({
+      title: decodeHtmlEntities(String(item.title || '')),
+      body: decodeHtmlEntities(String(body || '')),
+      link: item.showSource ? item.link : null,
+      source: item.showSource ? item.sourceName : 'PIPpal News',
+      date: dateStr,
+      tags,
+      is_relevant: true,
+    });
+  }
+
+  await saveArticles(freshArticles);
+  return freshArticles;
+}
+
+function mergeArticles(freshArticles, stored) {
+  const seen = new Set();
+  return [...freshArticles, ...stored]
+    .filter(a => {
+      if (seen.has(a.title)) return false;
+      seen.add(a.title);
+      return true;
+    })
+    .filter(
+      a =>
+        mentionsPipBenefit(a.title, a.body || '') &&
+        a.is_relevant !== false &&
+        !String(a.body || '').startsWith('NOT_RELEVANT'),
+    )
+    .slice(0, 30);
+}
+
+function formatArticles(merged) {
+  return merged.map(a => ({
+    title: decodeHtmlEntities(String(a.title || '')),
+    body: decodeHtmlEntities(String(a.body || '')),
+    link: a.link,
+    source: a.source,
+    date: a.date,
+    tags: Array.isArray(a.tags) ? a.tags : [a.tags || 'News'],
+  }));
+}
+
+function isCronRequest(req) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) return false;
+  return (req.headers.authorization || '') === `Bearer ${cronSecret}`;
+}
+
+async function archiveLeakedArticles(stored) {
+  const leakedIds = stored
+    .filter(a => String(a.body || '').startsWith('NOT_RELEVANT') && a.id)
+    .map(a => a.id);
+  if (leakedIds.length === 0) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=in.(${leakedIds.join(',')})`, {
+    method: 'PATCH',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ is_relevant: false }),
+  }).catch(() => {});
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 's-maxage=1800');
 
   try {
-    // Fetch fresh articles from RSS in background
-    const feedResults = await Promise.all(SOURCES.map(s => fetchFeed(s)));
-    const allItems = feedResults.flat();
-    allItems.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const candidates = allItems.slice(0, 25);
-
-    // Process new articles with Claude
-    console.log(`Total candidates from RSS: ${candidates.length}`);
-    candidates.slice(0, 5).forEach(c => console.log(`  - [${c.sourceName}] ${c.title}`));
-    const freshArticles = [];
-    if (candidates.length > 0) {
-      const processed = await Promise.all(candidates.map(async item => {
-        const { body, relevant } = await rewriteWithClaude(item.title, item.summary, item.sourceName);
-        if (!relevant) {
-          console.log(`NOT_RELEVANT: ${item.title}`);
-          return null;
-        }
-        const tags = autoTag(item.title, item.summary);
-        const dateStr = item.date ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-        return {
-          title: decodeHtmlEntities(String(item.title || '')),
-          body: decodeHtmlEntities(String(body || '')),
-          link: item.showSource ? item.link : null,
-          source: item.showSource ? item.sourceName : 'PIPpal News',
-          date: dateStr,
-          tags,
-          is_relevant: true,
-        };
-      }));
-      freshArticles.push(...processed.filter(Boolean));
-      // Save new articles to Supabase
-      await saveArticles(freshArticles);
+    let freshArticles = [];
+    if (isCronRequest(req)) {
+      freshArticles = await ingestFreshArticles();
     }
 
-    // Load all stored articles (includes today + historical)
     const stored = await loadStoredArticles();
+    await archiveLeakedArticles(stored);
 
-    // Archive any stored articles whose body leaked NOT_RELEVANT reasoning
-    const leakedIds = stored.filter(a => String(a.body || '').startsWith('NOT_RELEVANT') && a.id).map(a => a.id);
-    if (leakedIds.length > 0) {
-      await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=in.(${leakedIds.join(',')})`, {
-        method: 'PATCH',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_relevant: false }),
-      }).catch(() => {});
-    }
-
-    // Merge: fresh first, then stored (deduplicated by title)
-    const seen = new Set();
-    const merged = [...freshArticles, ...stored].filter(a => {
-      if (seen.has(a.title)) return false;
-      seen.add(a.title);
-      return true;
-    }).filter(a => mentionsPipBenefit(a.title, a.body || '') && a.is_relevant !== false && !String(a.body || '').startsWith('NOT_RELEVANT')).slice(0, 30);
-
-    // Format stored articles (they may have array tags)
-    const articles = merged.map(a => ({
-      title: decodeHtmlEntities(String(a.title || '')),
-      body: decodeHtmlEntities(String(a.body || '')),
-      link: a.link,
-      source: a.source,
-      date: a.date,
-      tags: Array.isArray(a.tags) ? a.tags : [a.tags || 'News'],
-    }));
-
+    const articles = formatArticles(mergeArticles(freshArticles, stored));
     res.status(200).json({ articles });
   } catch (err) {
+    console.error('news handler:', err.message);
+    try {
+      const stored = await loadStoredArticles();
+      const articles = formatArticles(mergeArticles([], stored));
+      if (articles.length > 0) {
+        return res.status(200).json({ articles, degraded: true });
+      }
+    } catch {
+      // fall through
+    }
     res.status(500).json({ error: err.message, articles: [] });
   }
 }
