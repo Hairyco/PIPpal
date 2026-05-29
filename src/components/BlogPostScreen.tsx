@@ -17,6 +17,11 @@ interface BlogPost {
 export function BlogPostScreen() {
   const { goBack, navigateTo, selectedBlogSlug, setSelectedBlogSlug, hasPaid } = useAppContext();
 
+  const handleBack = () => {
+    setSelectedBlogSlug(null);
+    goBack();
+  };
+
   // Track blog view
   React.useEffect(() => {
     if (selectedBlogSlug) {
@@ -34,7 +39,7 @@ export function BlogPostScreen() {
   const [shared, setShared] = useState(false);
 
   useEffect(() => {
-    if (!selectedBlogSlug) { goBack(); return; }
+    if (!selectedBlogSlug) { handleBack(); return; }
     fetchPost();
   }, [selectedBlogSlug]);
 
@@ -127,7 +132,7 @@ export function BlogPostScreen() {
     <div className="flex flex-col h-full bg-stone-50">
       {/* Header */}
       <div className="px-5 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-        <button onClick={goBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
+        <button onClick={handleBack} className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 transition-all active:scale-95">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <p className="flex-1 font-semibold text-stone-700 text-sm truncate">{post?.category || 'Blog'}</p>
@@ -147,7 +152,7 @@ export function BlogPostScreen() {
         {!isLoading && !post && (
           <div className="text-center py-20 px-8">
             <p className="font-semibold text-stone-500">Post not found</p>
-            <button onClick={goBack} className="mt-4 text-teal-700 text-sm font-bold">← Back to blog</button>
+            <button onClick={handleBack} className="mt-4 text-teal-700 text-sm font-bold">← Back to blog</button>
           </div>
         )}
 

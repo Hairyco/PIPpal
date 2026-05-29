@@ -350,13 +350,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const hasAuthCode = readOAuthAuthCodePresent();
 
   const blogPath = !hasAuthCode ? parseBlogPath() : null;
+  const defaultBackScreen = (): Screen =>
+    initialSessionUser && !hasAuthCode ? 'home' : 'landing';
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
     if (devScreenshot) return devScreenshot.screen;
     if (blogPath?.type === 'blog') return 'blog';
     if (blogPath?.type === 'blog_post') return 'blog_post';
     return initialSessionUser && !hasAuthCode ? 'home' : 'landing';
   });
-  const [navigationHistory, setNavigationHistory] = useState<Screen[]>([]);
+  const [navigationHistory, setNavigationHistory] = useState<Screen[]>(() => {
+    if (blogPath?.type === 'blog') return [defaultBackScreen()];
+    if (blogPath?.type === 'blog_post') return ['blog'];
+    return [];
+  });
   const [isLoading, setIsLoading] = useState(hasAuthCode);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [user, setUser] = useState<User | null>(() => {
@@ -792,6 +798,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const previousScreen = newHistory.pop();
       if (previousScreen) {
         setCurrentScreen(previousScreen);
+        scrollToTop();
+      } else {
+        setCurrentScreen(user ? 'home' : 'landing');
         scrollToTop();
       }
       return newHistory;
