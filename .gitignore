@@ -26,6 +26,8 @@ dist-ssr
 .vercel
 .env*.local
 social-poster/.env
+social-poster/.venv
+social-poster/reddit_queue.json
 
 # Claude Code worktrees — local only; never commit as gitlinks (breaks Vercel submodule clone)
 .claude/worktrees/
