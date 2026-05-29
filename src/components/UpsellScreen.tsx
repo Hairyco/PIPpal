@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion } from 'framer-motion';
+import { startStripeCheckout } from '../utils/startStripeCheckout';
+import { PIP_ENHANCED_MONTHLY_GBP, PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
 
 const features = [
   { label: 'All 12 PIP questions — fully guided' },
@@ -33,9 +35,9 @@ export function UpsellScreen() {
   const { goBack, navigateTo, setHasPaid, showToast, user } = useAppContext();
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const maxWeekly = 156.70;
-  const maxMonthly = maxWeekly * 52 / 12;
-  const maxYearly = maxWeekly * 52;
+  const maxMonthly = PIP_ENHANCED_MONTHLY_GBP;
+  const maxYearly = PIP_ENHANCED_YEARLY_GBP;
+  const maxWeekly = (maxMonthly * 12) / 52;
 
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 2 }).format(n);
@@ -58,27 +60,13 @@ export function UpsellScreen() {
   const handleUnlock = async () => {
     setIsProcessing(true);
     try {
-      const response = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: user?.email || '',
-          userId: user?.id || '',
-        }),
+      await startStripeCheckout({
+        email: user?.email,
+        userId: user?.id,
       });
-
-      if (!response.ok) throw new Error('Failed to create checkout session');
-
-      const { url } = await response.json();
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error('No checkout URL returned');
-      }
     } catch (err: any) {
       console.error('Payment error:', err);
       showToast('Something went wrong. Please try again.', 'error');
-    } finally {
       setIsProcessing(false);
     }
   };

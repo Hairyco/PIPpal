@@ -1,4 +1,5 @@
 import React, { useState, memo, Component } from 'react';
+import { formatPipEnhancedMonthly } from '../constants/pipDisplayRates';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -7,15 +8,11 @@ import {
   ArrowRight,
   Plus,
   HelpCircle,
-  Heart,
-  Footprints,
   PoundSterling,
   ChevronDown,
   TrendingUp,
   Users,
   BookOpen,
-  Download,
-  ExternalLink,
   Mail,
   Loader2 } from
 'lucide-react';
@@ -574,7 +571,13 @@ export function EligibilityChecker() {
             
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="font-bold text-stone-900 text-lg">Quick Assessment</h1>
+          <h1 className="font-bold text-stone-900 text-base sm:text-lg leading-snug">
+            <span className="text-stone-500 font-semibold">Free assessment</span>
+            <span className="text-stone-300 mx-1.5 font-normal" aria-hidden>
+              ›
+            </span>
+            What is PIP?
+          </h1>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
@@ -598,16 +601,9 @@ export function EligibilityChecker() {
               <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a long-term health condition or disability makes everyday tasks or getting about harder. It&apos;s for people aged{' '}
               <strong className="text-stone-900">16 or over</strong> and under{' '}
               <strong className="text-stone-900">State Pension age</strong>. You can receive up to{' '}
-              <strong className="text-stone-900">£843 a month</strong>, and it is{' '}
+              <strong className="text-stone-900">{formatPipEnhancedMonthly()} a month</strong>, and it is{' '}
               <strong className="text-stone-900">not means-tested</strong> — your income or job doesn&apos;t decide whether you qualify.
             </p>
-            <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5">
-              <p className="text-xs text-teal-900 leading-relaxed">
-                <strong>You don&apos;t need a formal diagnosis.</strong> Mental health conditions, chronic pain, fatigue and other hidden difficulties count — assessors look at{' '}
-                <strong>how you are affected day to day</strong>. Official figures suggest{' '}
-                <strong>65% of claims fail</strong>, so describing a typical difficult day clearly and honestly really matters.
-              </p>
-            </div>
             <p className="text-[11px] text-stone-500 mt-2 leading-relaxed">
               Numbers change each quarter — see DWP{' '}
               <a
@@ -622,95 +618,6 @@ export function EligibilityChecker() {
             </p>
           </div>
 
-          {/* Did You Know */}
-          <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-indigo-600 text-xs font-black">?</span>
-              </div>
-              <h3 className="font-bold text-indigo-900 text-sm">
-                Did you know?
-              </h3>
-            </div>
-            <div className="flex gap-3 items-start">
-              <div className="bg-indigo-100 rounded-lg px-2 py-1 shrink-0">
-                <span className="text-indigo-700 text-xs font-black">64k+</span>
-              </div>
-              <p className="text-xs text-indigo-800 leading-relaxed">
-                new PIP claims are made <strong>every month</strong>. Most
-                people don't realise they can apply — you're not alone, and
-                you're not unusual for considering it.
-              </p>
-            </div>
-          </div>
-
-          {/* Two components */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white rounded-xl p-4 border border-stone-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <Heart className="w-4 h-4 text-rose-500" />
-                <span className="text-xs font-semibold text-stone-800">
-                  Daily Living
-                </span>
-              </div>
-              <p className="text-[11px] text-stone-500 leading-relaxed">
-                Help with everyday tasks like cooking, washing, dressing &
-                managing medication
-              </p>
-            </div>
-            <div className="bg-white rounded-xl p-4 border border-stone-100 shadow-sm">
-              <div className="flex items-center gap-2 mb-2">
-                <Footprints className="w-4 h-4 text-blue-500" />
-                <span className="text-xs font-semibold text-stone-800">
-                  Mobility
-                </span>
-              </div>
-              <p className="text-[11px] text-stone-500 leading-relaxed">
-                Help with getting around, planning journeys & moving safely
-                outdoors
-              </p>
-            </div>
-          </div>
-
-          {/* Who qualifies */}
-          <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
-            <h3 className="font-bold text-indigo-900 text-sm mb-3">
-              It's not just for physical conditions
-            </h3>
-            <p className="text-xs text-indigo-800 leading-relaxed mb-3">
-              <strong>39% of all PIP claims</strong> are for psychiatric or neurodivergent conditions. If your condition substantially affects everyday life, you may qualify — explore below.
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-              'Anxiety',
-              'Panic attacks',
-              'Depression',
-              'ADHD',
-              'Autism',
-              'Dyslexia',
-              'PTSD',
-              'Bipolar',
-              'OCD',
-              'Chronic fatigue',
-              'Fibromyalgia',
-              'Chronic pain',
-              'Epilepsy',
-              'MS',
-              'Arthritis'].
-              map((c) =>
-              <span
-                key={c}
-                className="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-1 rounded-full font-medium">
-                
-                  {c}
-                </span>
-              )}
-              <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2.5 py-1 rounded-full font-medium">
-                + many more
-              </span>
-            </div>
-          </div>
-
           {/* Time warning */}
           <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-2.5">
             <span className="text-base mt-0.5">⏳</span>
@@ -719,25 +626,6 @@ export function EligibilityChecker() {
               claim is turned down, starting again means another long wait.
               Getting it right first time matters.
             </p>
-          </div>
-
-          {/* Proof of benefits */}
-          <div className="bg-teal-50 border border-teal-100 rounded-2xl p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4 text-teal-600 shrink-0" />
-              <p className="text-sm font-bold text-teal-900">Already receiving benefits?</p>
-            </div>
-            <p className="text-xs text-teal-700 leading-relaxed">
-              If you are already on a benefit and waiting for a PIP decision, you can download an official proof of benefits letter from GOV.UK. This is useful for Blue Badge applications, Council Tax reductions, and other entitlements while you wait.
-            </p>
-            <a
-              href="https://www.gov.uk/get-proof-benefits"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors mt-1">
-              Get proof of benefits on GOV.UK
-              <ExternalLink className="w-3 h-3" />
-            </a>
           </div>
         </div>
 
@@ -813,28 +701,6 @@ export function EligibilityChecker() {
               
               <Plus className="w-5 h-5" />
             </button>
-          </div>
-
-          {/* Did You Know */}
-          <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
-                <span className="text-indigo-600 text-xs font-black">?</span>
-              </div>
-              <h3 className="font-bold text-indigo-900 text-sm">
-                Did you know?
-              </h3>
-            </div>
-            <div className="flex gap-3 items-start">
-              <div className="bg-indigo-100 rounded-lg px-2 py-1 shrink-0">
-                <span className="text-indigo-700 text-xs font-black">64k+</span>
-              </div>
-              <p className="text-xs text-indigo-800 leading-relaxed">
-                new PIP claims are made <strong>every month</strong>. Most
-                people don't realise they can apply — you're not alone, and
-                you're not unusual for considering it.
-              </p>
-            </div>
           </div>
 
           {/* Encouragement card */}

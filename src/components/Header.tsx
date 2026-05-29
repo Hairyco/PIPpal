@@ -30,6 +30,11 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
       setMobileMenuOpen(false);
       return;
     }
+    if (id === 'eligibility') {
+      navigateTo('eligibility');
+      setMobileMenuOpen(false);
+      return;
+    }
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
   };
@@ -37,9 +42,9 @@ export function Header({ onGetStarted, isLoggedIn, onDashboard }: HeaderProps) {
   const navLinks = [
     { label: 'News', id: 'news' },
     { label: 'Blog', id: 'blog' },
-    { label: 'How it works', id: 'how-it-works' },
     { label: 'Calculators', id: 'free-tools' },
-    { label: 'Eligibility', id: 'what-is-pip' },
+    { label: 'Eligibility', id: 'eligibility' },
+    { label: 'FAQ', id: 'faq' },
   ];
 
   return (

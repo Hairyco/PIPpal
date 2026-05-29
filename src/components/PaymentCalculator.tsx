@@ -70,18 +70,18 @@ export function PaymentCalculator() {
       </div>
 
       <div className="p-5">
-        <div className="flex bg-stone-100 p-1 rounded-xl mb-6">
+        <div className="flex flex-col sm:flex-row bg-stone-100 p-1 rounded-xl mb-6 gap-1">
           <button
             onClick={() => setClaimType('new')}
-            className={`flex-1 text-sm py-2 rounded-lg font-medium transition-all ${!isChange ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+            className={`flex-1 text-sm py-2.5 px-2 rounded-lg font-medium transition-all ${!isChange ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
             
             New Claim
           </button>
           <button
             onClick={() => setClaimType('change')}
-            className={`flex-1 text-sm py-2 rounded-lg font-medium transition-all ${isChange ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
+            className={`flex-1 text-sm py-2.5 px-2 rounded-lg font-medium transition-all leading-snug ${isChange ? 'bg-white text-stone-900 shadow-sm' : 'text-stone-500 hover:text-stone-700'}`}>
             
-            Change of Circumstances
+            Change of circumstances
           </button>
         </div>
 

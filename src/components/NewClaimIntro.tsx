@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PIP_ENHANCED_MONTHLY_GBP } from '../constants/pipDisplayRates';
 import {
   ArrowLeft,
   ArrowRight,
@@ -75,7 +76,7 @@ export function NewClaimIntro() {
                   <div className="text-[10px] text-teal-600 uppercase tracking-wider font-medium mb-1">
                     Enhanced rate
                   </div>
-                  <div className="text-lg font-bold text-teal-700">£854</div>
+                  <div className="text-lg font-bold text-teal-700">£{PIP_ENHANCED_MONTHLY_GBP}</div>
                   <div className="text-[10px] text-teal-600">per month</div>
                 </div>
               </div>

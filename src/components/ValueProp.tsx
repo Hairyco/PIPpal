@@ -1,5 +1,10 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
+import { formatPipEnhancedYearly, PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
+
+const FULL_ACCESS_GBP = 6.99;
+const ROI_MULTIPLIER = Math.round(PIP_ENHANCED_YEARLY_GBP / FULL_ACCESS_GBP);
+
 export function ValueProp() {
   return (
     <section className="px-5 md:px-8 py-8">
@@ -10,7 +15,7 @@ export function ValueProp() {
               Enhanced PIP up to
             </div>
             <div className="text-3xl font-bold">
-              £10,246
+              {formatPipEnhancedYearly()}
               <span className="text-xl font-normal text-teal-200">/yr</span>
             </div>
           </div>
@@ -28,7 +33,7 @@ export function ValueProp() {
 
         <div className="space-y-3">
           <p className="font-semibold text-lg leading-tight">
-            That's a 788× return if it makes the difference.
+            That's a {ROI_MULTIPLIER.toLocaleString('en-GB')}× return if it makes the difference.
           </p>
           <p className="text-teal-100 text-sm leading-relaxed">
             Most claims fail because of how the form is filled in — not because

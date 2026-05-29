@@ -30,14 +30,15 @@ import {
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { ChatPreview } from './components/ChatPreview';
-import { WhatIsPIP } from './components/WhatIsPIP';
 import { ClaimSelector } from './components/ClaimSelector';
 import { EligibilityBanner } from './components/EligibilityBanner';
-import { ValueProp } from './components/ValueProp';
+import { LandingReportPreview } from './components/LandingReportPreview';
+import { PIPValueComparison } from './components/PIPValueComparison';
+import { PIPHelpComparison } from './components/PIPHelpComparison';
+import { LandingFAQ } from './components/LandingFAQ';
 import { TimelineCalculator } from './components/TimelineCalculator';
 import { PaymentCalculator } from './components/PaymentCalculator';
 import { BackpayCalculator } from './components/BackpayCalculator';
-import { HowItWorks } from './components/HowItWorks';
 import { WhyPIPpal } from './components/WhyPIPpal';
 import { FinalCTA } from './components/FinalCTA';
 import { AppProvider, useAppContext, Screen } from './components/AppContext';
@@ -311,43 +312,30 @@ function AppContent() {
             <Header onGetStarted={() => handleNavigate('home')} isLoggedIn={isLoggedIn} onDashboard={() => handleNavigate('home')} />
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
+              <LandingReportPreview />
               <ChatPreview onStart={() => handleNavigate('home')} />
+              <PIPValueComparison />
+              <PIPHelpComparison />
 
-              {/* Feature strip */}
-              <div className="px-5 md:px-8 py-4 space-y-3">
-                {[
-                  { icon: '✨', title: 'Get instant inspiration', body: 'See high-quality examples tailored to your specific conditions.' },
-                  { icon: '🆓', title: 'Test it 100% free', body: 'Try the tool and build your draft before spending a penny.' },
-                ].map((item, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 flex items-start gap-3">
-                    <span className="text-2xl shrink-0">{item.icon}</span>
-                    <div>
-                      <p className="font-bold text-stone-900 text-sm">{item.title}</p>
-                      <p className="text-xs text-stone-500 mt-0.5 leading-relaxed">{item.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <WhatIsPIP onEligibility={() => handleNavigate('eligibility')} />
               <ClaimSelector onSelect={handleNavigate} />
 
               <EligibilityBanner onStart={() => handleNavigate('eligibility')} />
               
               <section
                 id="free-tools"
-                className="px-5 md:px-8 py-8 bg-stone-100/50 border-y border-stone-200/50 my-4"
+                className="px-5 md:px-8 py-8 bg-stone-100/50 border-y border-stone-200/50 my-4 scroll-mt-20"
               >
-                <div className="mb-6 text-center">
+                <div className="mb-6 text-center max-w-2xl mx-auto">
                   <h2 className="text-xl font-bold text-stone-900 mb-1">Free tools — no sign-up needed</h2>
                   <p className="text-stone-500 text-sm">See what you could be owed before you start</p>
                 </div>
-                <div className="md:grid md:grid-cols-3 md:gap-6 space-y-4 md:space-y-0">
+                <div className="flex flex-col gap-6 max-w-2xl mx-auto w-full [&>div]:mb-0">
                   <TimelineCalculator />
                   <PaymentCalculator />
                   <BackpayCalculator />
                 </div>
               </section>
+              <LandingFAQ />
               <FinalCTA onStart={() => handleNavigate('home')} />
               <PIPAssistant
                 isVisible={showAssistant}

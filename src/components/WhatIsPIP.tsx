@@ -1,5 +1,6 @@
 import React from 'react';
 import { PoundSterling, ShieldCheck, HelpCircle, Clock } from 'lucide-react';
+import { formatPipEnhancedMonthly } from '../constants/pipDisplayRates';
 
 const conditions = [
   { emoji: '😰', label: 'Anxiety' },
@@ -47,7 +48,7 @@ export function WhatIsPIP(_props?: { onEligibility?: () => void }) {
           <h2 className="font-bold text-stone-900 text-base">What is PIP?</h2>
         </div>
         <p className="text-sm text-stone-600 leading-relaxed mb-3">
-          <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">£843 a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — you can claim if you are employed or unemployed.
+          <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a health condition or disability makes everyday tasks or getting about harder long term. You can receive up to <strong className="text-stone-900">{formatPipEnhancedMonthly()} a month</strong>, and it is <strong className="text-stone-900">not means-tested</strong> — you can claim if you are employed or unemployed.
         </p>
         <p className="text-sm text-stone-600 leading-relaxed mb-4">
           <p className="text-sm text-stone-600 leading-relaxed">You don't need a formal diagnosis — PIP looks at <strong className="text-stone-900">how your condition affects you</strong> day to day.</p>

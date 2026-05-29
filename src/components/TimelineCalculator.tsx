@@ -119,7 +119,7 @@ export function TimelineCalculator() {
           <label className="block text-sm font-medium text-stone-700 mb-2">
             Current Stage
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {stages.map((stage) =>
             <button
               key={stage.id}
@@ -127,7 +127,7 @@ export function TimelineCalculator() {
                 setCurrentStage(stage.id);
                 setShowResults(false);
               }}
-              className={`text-xs py-2 px-3 rounded-lg border transition-colors ${currentStage === stage.id ? 'bg-blue-50 border-blue-200 text-blue-700 font-semibold' : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'}`}>
+              className={`text-xs sm:text-sm py-2.5 px-3 rounded-lg border transition-colors text-left sm:text-center leading-snug ${currentStage === stage.id ? 'bg-blue-50 border-blue-200 text-blue-700 font-semibold' : 'bg-stone-50 border-stone-200 text-stone-600 hover:bg-stone-100'}`}>
               
                 {stage.label}
               </button>

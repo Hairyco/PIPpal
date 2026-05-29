@@ -1,5 +1,6 @@
 import React from 'react';
 import { ClipboardCheck, ArrowRight, Sparkles, Info, Share2 } from 'lucide-react';
+import { formatPipEnhancedMonthly } from '../constants/pipDisplayRates';
 
 interface EligibilityBannerProps {
   onStart: () => void;
@@ -9,7 +10,7 @@ export function EligibilityBanner({ onStart }: EligibilityBannerProps) {
   const handleShare = async () => {
     const shareData = {
       title: 'Am I eligible for PIP?',
-      text: 'Check if you might qualify for PIP — the free disability benefit worth up to £843/month. Takes 2 minutes.',
+      text: `Check if you might qualify for PIP — the free disability benefit worth up to ${formatPipEnhancedMonthly()}/month. Takes 2 minutes.`,
       url: 'https://www.pippal.uk',
     };
     try {

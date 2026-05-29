@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, CheckCircle2, ArrowRight, ChevronDown, Check } from 'lucide-react';
+import { formatApplicantCount, getApplicantCount } from '../utils/applicantCount';
 
 interface HeroProps {
   onStart?: () => void;
@@ -14,8 +15,9 @@ const INITIAL_AVATARS = [
   { bg: 'bg-blue-400', initials: 'TH' },
 ] as const;
 
-export function Hero({ onStart }: HeroProps) {
+export function Hero({ onStart, onEligibility }: HeroProps) {
   const [visible, setVisible] = useState(false);
+  const applicantCount = formatApplicantCount(getApplicantCount());
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80);
@@ -30,14 +32,14 @@ export function Hero({ onStart }: HeroProps) {
   ];
 
   return (
-    <section className="px-5 md:px-8 pt-4 md:pt-8 pb-8 md:pb-14 flex flex-col items-center text-center max-w-4xl mx-auto">
+    <section className="px-5 md:px-8 pt-10 md:pt-12 pb-4 md:pb-5 flex flex-col items-center text-center max-w-4xl mx-auto">
 
       {/* Badge */}
       <div
-        className={`transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
+        className={`mb-4 md:mb-5 transition-all duration-500 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'}`}
         style={{ transitionDelay: '0ms' }}
       >
-        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold mb-1">
+        <div className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full text-xs font-semibold">
           <Trophy className="w-3.5 h-3.5 text-amber-600" />
           UK's #1 PIP Application Assistant
         </div>
@@ -52,10 +54,9 @@ export function Hero({ onStart }: HeroProps) {
           We get your PIP application{' '}
           <span className="whitespace-nowrap">right — <span className="text-teal-700">first time</span></span>
         </h1>
-        <div className="text-stone-600 text-base md:text-lg leading-relaxed mb-3 max-w-2xl mx-auto px-2 space-y-1">
-          <p className="font-semibold text-stone-800">PIP decisions take up to 6 months. Don't leave it to chance.</p>
-          <p>We guide you to describe your real daily challenges clearly and accurately so the DWP fully understands your needs.</p>
-        </div>
+        <p className="text-stone-600 text-base md:text-lg leading-relaxed mb-3 max-w-2xl mx-auto px-2">
+          We guide you to describe your real daily challenges clearly and accurately so the DWP fully understands your needs.
+        </p>
       </div>
 
       {/* Main card */}
@@ -89,7 +90,7 @@ export function Hero({ onStart }: HeroProps) {
               <p className="whitespace-nowrap text-sm leading-snug text-stone-800 sm:text-[15px] sm:leading-snug md:text-base">
                 <span className="font-bold text-stone-900 tabular-nums">4.9</span>
                 <span className="font-normal">/5 from </span>
-                <span className="font-bold text-stone-900 tabular-nums">1,784</span>
+                <span className="font-bold text-stone-900 tabular-nums">{applicantCount}</span>
                 <span className="font-normal"> applicants</span>
               </p>
               <span
@@ -111,14 +112,23 @@ export function Hero({ onStart }: HeroProps) {
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={onStart}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
-          >
-            Start now — only £6.99
-            <ArrowRight className="w-5 h-5" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2.5">
+            <button
+              type="button"
+              onClick={onStart}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm"
+            >
+              Start now
+              <ArrowRight className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={onEligibility}
+              className="flex-1 bg-white border-2 border-teal-700 text-teal-700 hover:bg-teal-50 py-3 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center active:scale-[0.98] transition-all"
+            >
+              Check eligibility
+            </button>
+          </div>
 
           <p className="text-center text-xs text-stone-400 mt-3">
             🔒 100% Secure &amp; Confidential

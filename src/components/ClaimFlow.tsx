@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock, FileText, Users, AlertCircle, ChevronDown, ChevronUp, Stethoscope, BookOpen, ClipboardList, Shield, TrendingUp, Download } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { formatPipEnhancedMonthly } from '../constants/pipDisplayRates';
 import { PIP_QUESTIONS } from '../pipQuestions';
 
 const TOTAL_STEPS = 7;
@@ -138,7 +139,7 @@ export function ClaimFlow() {
               {[
                 { label: '3.9 million', sub: 'people currently claim' },
                 { label: '64k+ apply', sub: 'every month' },
-                { label: '£843/month', sub: 'maximum award' },
+                { label: `${formatPipEnhancedMonthly()}/month`, sub: 'maximum award' },
                 { label: 'Backdated', sub: 'to the day you call' },
               ].map((s, i) => (
                 <div key={i} className="bg-stone-50 rounded-xl p-3">
