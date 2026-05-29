@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, MessageSquare, HeartHandshake, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, HeartHandshake, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface ChatPreviewProps {
-  onStart: () => void;
   /** When nested inside another padded section (e.g. What is PIP), skip outer horizontal padding */
   embedded?: boolean;
 }
@@ -64,7 +63,7 @@ const SLIDES: CarouselSlide[] = [
   },
 ];
 
-export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
+export function ChatPreview({ embedded }: ChatPreviewProps) {
   const [index, setIndex] = useState(0);
   const [manualNav, setManualNav] = useState(false);
   const reduceMotion = useReducedMotion();
@@ -216,26 +215,6 @@ export function ChatPreview({ onStart, embedded }: ChatPreviewProps) {
             Just tap your answers — we generate form-ready responses written in the format the DWP scores
             against. Polish each draft, then keep everything in Your answers prep.
           </p>
-        </div>
-      </div>
-
-      <div className="relative">
-        <button
-          type="button"
-          onClick={onStart}
-          className="relative z-10 w-full bg-orange-500 text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm pr-12"
-        >
-          Try it yourself
-          <ArrowRight className="w-4 h-4" />
-        </button>
-        <div
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg ring-2 ring-white"
-          aria-hidden
-        >
-          <MessageSquare className="w-5 h-5" />
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-amber-950 shadow-sm">
-            <Star className="w-2.5 h-2.5 fill-amber-600 text-amber-600" strokeWidth={1.5} />
-          </span>
         </div>
       </div>
     </Shell>

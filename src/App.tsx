@@ -313,7 +313,7 @@ function AppContent() {
             <main className="pb-12 relative">
               <Hero onStart={() => handleNavigate('home')} onEligibility={() => handleNavigate('eligibility')} />
               <LandingReportPreview />
-              <ChatPreview onStart={() => handleNavigate('home')} />
+              <ChatPreview />
               <PIPValueComparison />
               <PIPHelpComparison />
 
