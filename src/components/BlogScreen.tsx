@@ -23,8 +23,17 @@ const CATEGORY_STYLES: Record<string, string> = {
   'Appeals': 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
-function getCategoryStyle(category: string) {
-  return CATEGORY_STYLES[category] || 'bg-stone-100 text-stone-600 border-stone-200';
+const BLOG_CATEGORY_ORDER = ['Tips', 'How To', 'News', 'Legislation', 'Appeals', 'Success Stories'];
+
+function sortBlogCategories(categories: string[]): string[] {
+  return [...categories].sort((a, b) => {
+    const ai = BLOG_CATEGORY_ORDER.indexOf(a);
+    const bi = BLOG_CATEGORY_ORDER.indexOf(b);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return a.localeCompare(b);
+  });
 }
 
 function normalizeBlogTags(tags: unknown): string[] {
@@ -74,9 +83,11 @@ export function BlogScreen() {
     }
   };
 
-  const categories = ['All', ...Array.from(new Set(posts.map(p => p.category).filter(Boolean)))];
-  const allTags = Array.from(new Set(posts.flatMap(p => normalizeBlogTags(p.tags)))).sort();
-  const allFilters = [...categories, ...allTags.filter(t => !categories.includes(t))];
+  const categoryFilters = [
+    'All',
+    ...sortBlogCategories(Array.from(new Set(posts.map((p) => p.category).filter(Boolean)))),
+  ];
+  const isTopicFilter = activeTag !== 'All' && !categoryFilters.includes(activeTag);
   const dateFiltered = dateRange === 'all' ? posts : posts.filter(p => {
     const days = parseInt(dateRange);
     const cutoff = new Date();
@@ -117,19 +128,37 @@ export function BlogScreen() {
         ))}
       </div>
 
-      {/* Category pills */}
-      {allFilters.length > 1 && (
-        <div className="bg-white border-b border-stone-100 px-5 py-3">
+      {/* Category filters — topics from posts use a single chip when active */}
+      {categoryFilters.length > 1 && (
+        <div className="bg-white border-b border-stone-100 px-5 py-3 space-y-2">
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {allFilters.map(cat => (
-              <button key={cat} onClick={() => setActiveTag(cat)}
+            {categoryFilters.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveTag(cat)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  activeTag === cat ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-stone-600 border-stone-200 hover:border-teal-300'
-                }`}>
+                  activeTag === cat
+                    ? 'bg-teal-700 text-white border-teal-700'
+                    : 'bg-white text-stone-600 border-stone-200 hover:border-teal-300'
+                }`}
+              >
                 {cat}
               </button>
             ))}
           </div>
+          {isTopicFilter && (
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-stone-400 shrink-0">Topic</span>
+              <button
+                type="button"
+                onClick={() => setActiveTag('All')}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200"
+              >
+                {activeTag}
+                <span aria-hidden className="text-teal-500">×</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
