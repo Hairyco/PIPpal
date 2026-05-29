@@ -13,21 +13,17 @@ export function parseRedditPostId(url: string): string | null {
   return null;
 }
 
-async function resolveRedditPostId(urlInput: string): Promise<string> {
-  let postId = parseRedditPostId(urlInput);
-  if (postId) return postId;
-
-  if (/redd\.it/i.test(urlInput)) {
-    const res = await fetch(urlInput.trim(), { redirect: 'follow' });
-    postId = parseRedditPostId(res.url);
-    if (postId) return postId;
-  }
-
-  throw new Error('Use a full Reddit post link (must include /comments/… in the URL).');
+function normalizeRedditInput(urlInput: string): string {
+  const raw = urlInput.trim();
+  if (!raw) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^redd\.it\//i.test(raw)) return `https://${raw}`;
+  if (/^www\.reddit\.com/i.test(raw)) return `https://${raw}`;
+  if (/^reddit\.com/i.test(raw)) return `https://${raw}`;
+  return raw;
 }
 
-export async function extractRedditPostInBrowser(urlInput: string): Promise<string> {
-  const postId = await resolveRedditPostId(urlInput);
+async function fetchRedditJson(postId: string): Promise<string> {
   const jsonUrl = `https://www.reddit.com/comments/${postId}.json?raw_json=1&limit=1`;
 
   const res = await fetch(jsonUrl, {
@@ -56,4 +52,59 @@ export async function extractRedditPostInBrowser(urlInput: string): Promise<stri
   }
 
   return text.slice(0, 12000);
+}
+
+/** Reader proxy — works in browser when Reddit JSON is blocked or share links won't redirect. */
+async function fetchRedditViaReader(url: string): Promise<string> {
+  const readerUrl = `https://r.jina.ai/${url}`;
+  const res = await fetch(readerUrl, { headers: { Accept: 'text/plain' } });
+  if (!res.ok) throw new Error(`Reader returned ${res.status}`);
+  let text = (await res.text()).trim();
+  const markdownIdx = text.indexOf('Markdown Content:');
+  if (markdownIdx !== -1) text = text.slice(markdownIdx + 'Markdown Content:'.length).trim();
+  if (text.length < 40) throw new Error('Reader returned too little text');
+  return text.slice(0, 12000);
+}
+
+/** Follow redirects until we land on a URL with a post id (works for /s/ share links). */
+async function resolveRedditPostId(urlInput: string): Promise<string> {
+  const normalized = normalizeRedditInput(urlInput);
+  let postId = parseRedditPostId(normalized);
+  if (postId) return postId;
+
+  // redd.it, /s/ share links — follow redirects in the browser (may fail CORS)
+  if (/reddit\.com|redd\.it/i.test(normalized)) {
+    try {
+      const res = await fetch(normalized, {
+        redirect: 'follow',
+        credentials: 'omit',
+      });
+      postId = parseRedditPostId(res.url);
+      if (postId) return postId;
+    } catch {
+      /* CORS or network — try reader below */
+    }
+  }
+
+  throw new Error('NEEDS_READER');
+}
+
+export async function extractRedditPostInBrowser(urlInput: string): Promise<string> {
+  const normalized = normalizeRedditInput(urlInput);
+
+  try {
+    const postId = await resolveRedditPostId(normalized);
+    return await fetchRedditJson(postId);
+  } catch (err: any) {
+    if (err?.message !== 'NEEDS_READER') throw err;
+  }
+
+  // Share links / short links when redirect fetch is blocked — reader proxy
+  try {
+    return await fetchRedditViaReader(normalized);
+  } catch {
+    throw new Error(
+      'Could not read that Reddit link. Open the post on Reddit, copy the address bar URL (contains /comments/), or paste the post text below.',
+    );
+  }
 }

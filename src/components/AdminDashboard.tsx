@@ -1695,7 +1695,10 @@ export function AdminDashboard() {
                     {fetchingUrl ? 'Fetching…' : 'Fetch'}
                   </button>
                 </div>
-                <p className="text-[10px] text-purple-500 mt-1.5">Reddit is fetched in your browser (not the server). Use the full post URL with /comments/ in it.</p>
+                <p className="text-[10px] text-purple-500 mt-1.5">
+                  Reddit loads in your browser. Paste the post link from the address bar, a redd.it short link, or a Share link — then Fetch. Example:{' '}
+                  <span className="font-mono">reddit.com/r/Benefits/comments/abc123/...</span>
+                </p>
                 {(isRedditPostUrl(referenceUrl) || urlExtractError) && (
                   <div className="mt-2">
                     <p className="text-[10px] font-semibold text-purple-800 mb-1">Or paste Reddit post text</p>
