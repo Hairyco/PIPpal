@@ -66,9 +66,10 @@ export function UpsellScreen() {
         email: user?.email,
         userId: user?.id,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Payment error:', err);
-      showToast('Something went wrong. Please try again.', 'error');
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      showToast(message.includes('inactive') ? 'Payment setup needs updating — please contact support.' : message, 'error');
       setIsProcessing(false);
     }
   };

@@ -12,7 +12,8 @@ export async function startStripeCheckout(params: {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to create checkout session');
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || 'Failed to create checkout session');
   }
 
   const { url } = await response.json();
