@@ -29,6 +29,7 @@ import { getCocDashboardResumeInfo } from '../cocMedicalSnapshot';
 import { PIP_QUESTIONS } from '../pipQuestions';
 import { allPipActivitiesComplete } from '../utils/pipAnswersPack';
 import { decodeHtmlEntities } from '../utils/htmlEntities';
+import { formatCompareAtPrice, formatFullAccessPrice } from '../constants/pricing';
 
 interface NavCardProps {
   title: string;
@@ -514,8 +515,8 @@ export function HomeScreen() {
                 <span className="text-[10px] font-black text-amber-300 bg-amber-300/20 border border-amber-300/30 px-2 py-0.5 rounded-full uppercase tracking-wide">Limited time</span>
               </div>
               <div className="flex items-baseline gap-2 mb-1.5">
-                <span className="text-2xl font-black text-white">£6.99</span>
-                <span className="text-teal-300 text-xs line-through">£8.99</span>
+                <span className="text-2xl font-black text-white">{formatFullAccessPrice()}</span>
+                <span className="text-teal-300 text-xs line-through">{formatCompareAtPrice()}</span>
                 <span className="text-teal-200 text-xs">one-time</span>
               </div>
               <p className="text-teal-100 text-xs leading-relaxed">

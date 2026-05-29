@@ -13,6 +13,7 @@ import {
   HeartHandshake,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { formatFullAccessPrice } from '../constants/pricing';
 
 interface PIPAssistantProps {
   isVisible: boolean;
@@ -254,7 +255,7 @@ export function PIPAssistant({
               onClick={() => { setShowUpsell(false); onUpgrade?.(); }}
               className="w-full bg-teal-700 text-white text-xs font-bold py-2.5 rounded-xl hover:bg-teal-800 transition-colors flex items-center justify-center gap-1.5"
             >
-              Unlock Full Access — £6.99
+              Unlock Full Access — {formatFullAccessPrice()}
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </motion.div>
@@ -268,7 +269,7 @@ export function PIPAssistant({
             <p className="font-bold text-stone-900 text-sm mb-1">You've used your free messages</p>
             <p className="text-xs text-stone-500 leading-relaxed mb-3">Upgrade to Full Access to continue chatting with PIPpal Assistant — plus all 12 PIP questions, Assessment Prep and more.</p>
             <div className="flex gap-2">
-              <button onClick={() => { if (onUpgrade) onUpgrade(); }} className="flex-1 bg-orange-500 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors">Upgrade — £6.99</button>
+              <button onClick={() => { if (onUpgrade) onUpgrade(); }} className="flex-1 bg-orange-500 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-orange-600 transition-colors">Upgrade — {formatFullAccessPrice()}</button>
               <button onClick={() => setFreeMessageCount(0)} className="px-3 py-2.5 bg-stone-100 text-stone-600 text-xs font-bold rounded-xl hover:bg-stone-200">Later</button>
             </div>
           </div>

@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     );
     const signups = await s.json();
     const count = signups?.length || 1;
-    const commission = (6.99 * (influencer.commission_rate || 20) / 100).toFixed(2);
+    const commission = (8.99 * (influencer.commission_rate || 20) / 100).toFixed(2);
     const totalEarned = (count * parseFloat(commission)).toFixed(2);
 
     const unsubUrl = `${SUPABASE_URL}/rest/v1/influencer_codes?id=eq.${influencer.id}`;

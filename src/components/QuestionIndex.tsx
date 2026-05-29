@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { PIP_QUESTIONS, getTotalPoints } from '../pipQuestions';
-import { supabase } from '../supabaseClient';
+import { formatFullAccessPrice } from '../constants/pricing';
 
 export function QuestionIndex() {
   const {
@@ -248,7 +248,7 @@ export function QuestionIndex() {
                 <span className="text-sm font-bold text-orange-900">Unlock questions 2–12</span>
               </div>
               <p className="text-xs text-orange-700 leading-relaxed">
-                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — £6.99 one-time.
+                Full Access unlocks all 12 questions, PIP Diary, Assessment Prep & more — {formatFullAccessPrice()} one-time.
               </p>
             </button>
           )}

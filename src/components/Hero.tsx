@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Trophy, CheckCircle2, ArrowRight, ChevronDown, Check } from 'lucide-react';
 import { formatApplicantCount, getApplicantCount } from '../utils/applicantCount';
+import { formatFullAccessPrice } from '../constants/pricing';
 
 interface HeroProps {
   onStart?: () => void;
@@ -28,7 +29,7 @@ export function Hero({ onStart, onEligibility }: HeroProps) {
     { text: '100% personalised' },
     { text: 'Finish in just 15 minutes' },
     { text: 'Get a faster decision' },
-    { text: '£8.99 one-time cost' },
+    { text: `${formatFullAccessPrice()} one-time cost` },
   ];
 
   return (

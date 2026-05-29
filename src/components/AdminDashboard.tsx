@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { FULL_ACCESS_PRICE_GBP } from '../constants/pricing';
 import {
   ArrowLeft,
   Users,
@@ -146,7 +147,7 @@ export function AdminDashboard() {
     const payouts = Object.entries(grouped).map(([code, count]) => {
       const influencer = influencerCodes.find(ic => ic.code === code);
       const rate = influencer?.commission_rate || 20;
-      const gross = count * 6.99;
+      const gross = count * FULL_ACCESS_PRICE_GBP;
       const commission = gross * (rate / 100);
       return {
         code,
@@ -520,7 +521,7 @@ export function AdminDashboard() {
         chartData.push({
           date: d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
           signups: count || 0,
-          revenue: (paidCount || 0) * 6.99,
+          revenue: (paidCount || 0) * FULL_ACCESS_PRICE_GBP,
         });
       }
 
@@ -816,7 +817,7 @@ export function AdminDashboard() {
               </div>
               <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="bg-teal-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 6.99).toFixed(2)}</p>
+                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * FULL_ACCESS_PRICE_GBP).toFixed(2)}</p>
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
                 </div>
                 <div className="bg-purple-50 rounded-xl p-3 text-center cursor-pointer" onClick={() => setEditingBalance(true)}>
@@ -841,7 +842,7 @@ export function AdminDashboard() {
                 </div>
                 <div className="bg-emerald-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-emerald-700">
-                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * 6.99) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
+                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * FULL_ACCESS_PRICE_GBP) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
                   </p>
                   <p className="text-[10px] text-emerald-600 font-medium">Margin</p>
                 </div>
@@ -873,7 +874,7 @@ export function AdminDashboard() {
               <h2 className="text-sm font-bold text-stone-900 mb-3">Overview</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <StatCard icon={Users} label="Total Users" value={stats.totalUsers} color="bg-teal-600" />
-                <StatCard icon={CreditCard} label="Paid Users" value={stats.paidUsers} sub={`£${(stats.paidUsers * 6.99).toFixed(2)} revenue`} color="bg-emerald-600" />
+                <StatCard icon={CreditCard} label="Paid Users" value={stats.paidUsers} sub={`£${(stats.paidUsers * FULL_ACCESS_PRICE_GBP).toFixed(2)} revenue`} color="bg-emerald-600" />
                 <StatCard icon={UserX} label="Free Users" value={stats.freeUsers} color="bg-stone-500" />
                 <StatCard icon={TrendingUp} label="Conversion" value={`${stats.conversionRate}%`} sub="Free → Paid" color="bg-amber-500" />
               </div>
@@ -936,7 +937,7 @@ export function AdminDashboard() {
               <h2 className="text-sm font-bold mb-4">Revenue Summary</h2>
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold">£{(stats.paidUsers * 6.99).toFixed(2)}</div>
+                  <div className="text-2xl font-bold">£{(stats.paidUsers * FULL_ACCESS_PRICE_GBP).toFixed(2)}</div>
                   <div className="text-teal-200 text-xs mt-0.5">Total revenue</div>
                 </div>
                 <div>
@@ -966,7 +967,7 @@ export function AdminDashboard() {
                           <p className="text-xs text-stone-400">{inf.count} signup{inf.count !== 1 ? 's' : ''} · {inf.paid} paid</p>
                         </div>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                          £{(inf.paid * 6.99).toFixed(2)}
+                          £{(inf.paid * FULL_ACCESS_PRICE_GBP).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -1120,7 +1121,7 @@ export function AdminDashboard() {
               </div>
               <div className="grid grid-cols-4 gap-3 mb-4">
                 <div className="bg-teal-50 rounded-xl p-3 text-center">
-                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * 6.99).toFixed(2)}</p>
+                  <p className="text-lg font-black text-teal-700">£{((stats?.paidUsers || 0) * FULL_ACCESS_PRICE_GBP).toFixed(2)}</p>
                   <p className="text-[10px] text-teal-600 font-medium">Revenue</p>
                 </div>
                 <div className="bg-purple-50 rounded-xl p-3 text-center cursor-pointer" onClick={() => setEditingBalance(true)}>
@@ -1145,7 +1146,7 @@ export function AdminDashboard() {
                 </div>
                 <div className="bg-emerald-50 rounded-xl p-3 text-center">
                   <p className="text-lg font-black text-emerald-700">
-                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * 6.99) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
+                    {aiCosts.thisMonth > 0 ? `${((((stats?.paidUsers || 0) * FULL_ACCESS_PRICE_GBP) / (aiCosts.thisMonth * 0.79)) * 100).toFixed(0)}%` : '—'}
                   </p>
                   <p className="text-[10px] text-emerald-600 font-medium">Margin</p>
                 </div>
@@ -1638,7 +1639,7 @@ export function AdminDashboard() {
                   <input type="number" value={newCommissionRate} onChange={(e) => setNewCommissionRate(e.target.value)}
                     min="1" max="50" step="1"
                     className="w-24 border border-stone-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500" />
-                  <span className="text-xs text-stone-500">% of £6.99 = <span className="font-bold text-emerald-600">£{((parseFloat(newCommissionRate || '0') / 100) * 6.99).toFixed(2)}</span> per signup</span>
+                  <span className="text-xs text-stone-500">% of £{FULL_ACCESS_PRICE_GBP.toFixed(2)} = <span className="font-bold text-emerald-600">£{((parseFloat(newCommissionRate || '0') / 100) * FULL_ACCESS_PRICE_GBP).toFixed(2)}</span> per signup</span>
                 </div>
               </div>
               {newInfluencerCode && (

@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   try {
     const { email, userId } = req.body;
 
-    // STRIPE_PRICE_ID must be a Stripe Price for £6.99 GBP (update in Dashboard if you change app copy)
+    // STRIPE_PRICE_ID must be a Stripe Price for £8.99 GBP (update in Dashboard if you change app copy)
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [

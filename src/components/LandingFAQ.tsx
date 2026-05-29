@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Minus } from 'lucide-react';
 import { useAppContext } from './AppContext';
+import { formatFullAccessPrice } from '../constants/pricing';
 
 const FAQ_ITEMS: { question: string; answer: React.ReactNode }[] = [
   {
@@ -75,7 +76,7 @@ const FAQ_ITEMS: { question: string; answer: React.ReactNode }[] = [
       <>
         <strong className="font-semibold text-stone-800">Free:</strong> eligibility checker, payment and
         backpay calculators, and trying the guided flow before you pay.{' '}
-        <strong className="font-semibold text-stone-800">Full Access (£8.99 one-off):</strong> all 12
+        <strong className="font-semibold text-stone-800">Full Access ({formatFullAccessPrice()} one-off):</strong> all 12
         questions, unlimited answer improvements, PIP diary, assessment prep, MR and appeal letter helpers,
         PDF export, and change-of-circumstances walkthrough — no subscription.
       </>

@@ -15,7 +15,7 @@ import {
 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
-import { ShareButton } from './ShareButton';
+import { formatFullAccessPrice } from '../constants/pricing';
 const CONDITIONS = [
 'Anxiety',
 'Depression',
@@ -456,7 +456,7 @@ export function EligibilityChecker() {
             <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-[11px] text-stone-400 text-center mb-4">
-            Free to start · Full access from £6.99 one-time
+            Free to start · Full access from {formatFullAccessPrice()} one-time
           </p>
           </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FULL_ACCESS_PRICE_GBP } from '../constants/pricing';
 import { supabase } from '../supabaseClient';
 import { Bell, BellOff } from 'lucide-react';
 import { HeartHandshake, Copy, Check, TrendingUp, Users, PoundSterling } from 'lucide-react';
@@ -60,7 +61,7 @@ export function InfluencerPortal() {
       .eq('has_paid', true);
 
     const count = signups?.length || 0;
-    const revenue = count * 6.99;
+    const revenue = count * FULL_ACCESS_PRICE_GBP;
     const rate = codeData.commission_rate || 20;
     const commission = revenue * (rate / 100);
 
@@ -168,7 +169,7 @@ export function InfluencerPortal() {
                   {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-stone-400" />}
                 </button>
               </div>
-              <p className="text-[10px] text-stone-400">Each signup earns you £{(6.99 * data.rate / 100).toFixed(2)}</p>
+              <p className="text-[10px] text-stone-400">Each signup earns you £{(FULL_ACCESS_PRICE_GBP * data.rate / 100).toFixed(2)}</p>
             </div>
 
             {/* Recent signups */}
@@ -180,7 +181,7 @@ export function InfluencerPortal() {
                     <div key={i} className="flex items-center justify-between py-1.5 border-b border-stone-50 last:border-0">
                       <span className="text-xs text-stone-600">Signup {i + 1}</span>
                       <span className="text-xs text-stone-400">{new Date(s.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                      <span className="text-xs font-bold text-emerald-600">+£{(6.99 * data.rate / 100).toFixed(2)}</span>
+                      <span className="text-xs font-bold text-emerald-600">+£{(FULL_ACCESS_PRICE_GBP * data.rate / 100).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>

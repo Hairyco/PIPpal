@@ -1,9 +1,9 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
 import { formatPipEnhancedYearly, PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
+import { FULL_ACCESS_PRICE_GBP, formatFullAccessPrice } from '../constants/pricing';
 
-const FULL_ACCESS_GBP = 6.99;
-const ROI_MULTIPLIER = Math.round(PIP_ENHANCED_YEARLY_GBP / FULL_ACCESS_GBP);
+const ROI_MULTIPLIER = Math.round(PIP_ENHANCED_YEARLY_GBP / FULL_ACCESS_PRICE_GBP);
 
 export function ValueProp() {
   return (
@@ -27,7 +27,7 @@ export function ValueProp() {
         <div className="bg-white/10 rounded-2xl p-4 mb-6 backdrop-blur-sm border border-white/10">
           <div className="flex justify-between items-center">
             <span className="text-teal-50 text-sm">Full Access cost</span>
-            <span className="font-bold text-xl">£6.99</span>
+            <span className="font-bold text-xl">{formatFullAccessPrice()}</span>
           </div>
         </div>
 

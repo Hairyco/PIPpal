@@ -4,8 +4,8 @@ import { useAppContext } from './AppContext';
 import { startStripeCheckout } from '../utils/startStripeCheckout';
 
 import { PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
+import { FULL_ACCESS_PRICE_GBP } from '../constants/pricing';
 
-const FULL_ACCESS_PRICE_GBP = 8.99;
 const SIX_YEAR_TOTAL_GBP = PIP_ENHANCED_YEARLY_GBP * 6;
 const ROI_MULTIPLIER = Math.round(SIX_YEAR_TOTAL_GBP / FULL_ACCESS_PRICE_GBP);
 

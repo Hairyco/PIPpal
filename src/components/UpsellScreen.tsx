@@ -14,6 +14,7 @@ import {
 import { useAppContext } from './AppContext';
 import { motion } from 'framer-motion';
 import { startStripeCheckout } from '../utils/startStripeCheckout';
+import { FULL_ACCESS_PRICE_GBP, formatCompareAtPrice, formatFullAccessPrice } from '../constants/pricing';
 import { PIP_ENHANCED_MONTHLY_GBP, PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
 
 const features = [
@@ -177,8 +178,8 @@ export function UpsellScreen() {
               </div>
               <div className="text-right">
                   <div className="flex items-baseline gap-1.5 justify-end">
-                    <span className="font-black text-2xl text-teal-700">£6.99</span>
-                    <span className="text-stone-400 text-sm line-through">£8.99</span>
+                    <span className="font-black text-2xl text-teal-700">{formatFullAccessPrice()}</span>
+                    <span className="text-stone-400 text-sm line-through">{formatCompareAtPrice()}</span>
                   </div>
                   <span className="text-[10px] font-black text-amber-600 uppercase tracking-wide">Limited time</span>
                 </div>
@@ -254,7 +255,7 @@ export function UpsellScreen() {
               </>
             ) : (
               <>
-                Unlock Full Access — £6.99
+                Unlock Full Access — {formatFullAccessPrice()}
                 <ArrowRight className="w-5 h-5" />
               </>
             )}

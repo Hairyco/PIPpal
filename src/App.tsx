@@ -35,6 +35,7 @@ import { LandingReportPreview } from './components/LandingReportPreview';
 import { PIPValueComparison } from './components/PIPValueComparison';
 import { PIPHelpComparison } from './components/PIPHelpComparison';
 import { LandingFAQ } from './components/LandingFAQ';
+import { formatFullAccessPrice } from './constants/pricing';
 import { TimelineCalculator } from './components/TimelineCalculator';
 import { PaymentCalculator } from './components/PaymentCalculator';
 import { BackpayCalculator } from './components/BackpayCalculator';
@@ -490,7 +491,7 @@ function AppContent() {
                             <span className="text-sm font-bold text-orange-900">Unlock Full Access</span>
                           </div>
                           <p className="text-[11px] text-orange-700 leading-relaxed">
-                            All 12 questions, PIP Diary, downloads & more — £6.99 one-time
+                            All 12 questions, PIP Diary, downloads & more — {formatFullAccessPrice()} one-time
                           </p>
                         </button>
                       </div>

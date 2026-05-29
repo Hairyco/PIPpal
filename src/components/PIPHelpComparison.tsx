@@ -4,8 +4,7 @@ import { useAppContext } from './AppContext';
 import { startStripeCheckout } from '../utils/startStripeCheckout';
 
 import { PIP_ENHANCED_YEARLY_GBP } from '../constants/pipDisplayRates';
-
-const FULL_ACCESS_GBP = 8.99;
+import { formatFullAccessPrice } from '../constants/pricing';
 
 type Cell =
   | { kind: 'text'; value: string; emphasis?: boolean }
@@ -19,7 +18,7 @@ const ROWS: Row[] = [
     label: 'Cost',
     diy: { kind: 'text', value: '£0 (but high risk of rejection)' },
     advisor: { kind: 'text', value: 'Free at Citizens Advice · £150–£500+ with a solicitor' },
-    pippal: { kind: 'text', value: `£${FULL_ACCESS_GBP.toFixed(2)} one-off`, emphasis: true },
+    pippal: { kind: 'text', value: `${formatFullAccessPrice()} one-off`, emphasis: true },
   },
   {
     label: 'Waiting time',
