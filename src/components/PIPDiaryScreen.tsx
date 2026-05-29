@@ -106,6 +106,14 @@ const getDayDate = (weekStart: string, dayIndex: number) => {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const escapeHtml = (value: string) =>
+  String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
   const { goBack, user, showToast, navigateTo, savedAnswers, medProfile } = useAppContext();
   const [boot] = useState(() => initDiaryScreenshotState());
@@ -232,15 +240,21 @@ export function PIPDiaryScreen({ hasPaid = false }: { hasPaid?: boolean }) {
     setShowWeekPicker(false);
   };
 
+  const getExportNote = (week: WeekEntry, day: string, activityId: string, qId: string) => {
+    const saved = week.notes[day]?.[activityId];
+    if (saved !== undefined) return saved;
+    return getAutoNote(qId);
+  };
+
   const exportDiary = () => {
     const weeksHtml = weeks.map(week => {
       const daysHtml = DAYS.map((day, di) => {
         const date = getDayDate(week.weekStart, di);
         const rowsHtml = ACTIVITIES.map(act => {
-          const note = week.notes[day]?.[act.id] || '';
+          const note = getExportNote(week, day, act.id, act.qId);
           return `<tr>
-            <td class="act-cell"><strong>${act.label}</strong></td>
-            <td class="note-cell">${note.replace(/\n/g, '<br/>')}</td>
+            <td class="act-cell"><strong>${escapeHtml(act.label)}</strong></td>
+            <td class="note-cell">${escapeHtml(note).replace(/\n/g, '<br/>')}</td>
           </tr>`;
         }).join('');
         return `<div class="day-section">
@@ -308,8 +322,17 @@ ${weeksHtml}
 </body>
 </html>`;
 
-    const newTab = window.open('', '_blank');
-    if (newTab) { newTab.document.write(html); newTab.document.close(); }
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const opened = window.open(url, '_blank', 'noopener,noreferrer');
+    if (!opened) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `PIP-Weekly-Diary-${new Date().toISOString().slice(0, 10)}.html`;
+      link.click();
+      showToast('Export downloaded — open the file to print or save as PDF.', 'info');
+    }
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   };
 
   if (!hasPaid) {
