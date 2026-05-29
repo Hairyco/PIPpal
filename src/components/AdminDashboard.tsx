@@ -238,6 +238,7 @@ export function AdminDashboard() {
   const [editingPost, setEditingPost] = useState<any | null>(null);
   const [blogLoading, setBlogLoading] = useState(false);
   const [blogSaving, setBlogSaving] = useState(false);
+  const [recategorizing, setRecategorizing] = useState(false);
   const [blogNotice, setBlogNotice] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const blogNoticeRef = useRef<HTMLDivElement>(null);
   const blogNoticeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -263,6 +264,29 @@ export function AdminDashboard() {
   const [generating, setGenerating] = useState(false);
   const [generateTopic, setGenerateTopic] = useState('');
   const [showGenerator, setShowGenerator] = useState(false);
+
+  const recategorizePublished = async () => {
+    setRecategorizing(true);
+    setBlogNotice(null);
+    try {
+      const res = await fetch('/api/generate-blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'recategorize', publishedOnly: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showBlogNotice('error', data.error || `Recategorize failed (${res.status})`);
+        return;
+      }
+      await fetchBlogPosts();
+      showBlogNotice('success', `Recategorized ${data.updated || 0} published post(s) as Tips or How To.`);
+    } catch {
+      showBlogNotice('error', 'Recategorize failed. Check your connection.');
+    } finally {
+      setRecategorizing(false);
+    }
+  };
 
   const generatePost = async () => {
     setGenerating(true);
@@ -380,7 +404,7 @@ export function AdminDashboard() {
         slug: rest.slug.trim(),
         excerpt: rest.excerpt || '',
         body: rest.body || '',
-        category: rest.category || 'Tips',
+        category: ['Tips', 'How To'].includes(rest.category) ? rest.category : 'Tips',
         tags: Array.isArray(rest.tags) ? rest.tags : [],
         published: rest.published || false,
         updated_at: new Date().toISOString(),
@@ -1251,6 +1275,13 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-stone-900 text-sm">Blog Posts</h2>
             <div className="flex gap-2">
+              <button
+                onClick={recategorizePublished}
+                disabled={recategorizing}
+                className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-2 rounded-lg hover:bg-amber-200 disabled:opacity-50"
+              >
+                {recategorizing ? 'Updating…' : 'Fix categories'}
+              </button>
               <button onClick={() => setShowGenerator(!showGenerator)}
                 className="bg-purple-600 text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-purple-700">
                 ✨ Generate
@@ -1312,7 +1343,7 @@ export function AdminDashboard() {
                 placeholder="slug-for-url" className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400 font-mono" />
               <select value={editingPost.category} onChange={e => setEditingPost({...editingPost, category: e.target.value})}
                 className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-teal-400">
-                {['Tips', 'News', 'Legislation', 'Success Stories', 'How To', 'Appeals'].map(c => <option key={c}>{c}</option>)}
+                {['Tips', 'How To'].map(c => <option key={c}>{c}</option>)}
               </select>
               <textarea value={editingPost.excerpt} onChange={e => setEditingPost({...editingPost, excerpt: e.target.value})}
                 placeholder="Short excerpt (shown on listing page)" rows={2}

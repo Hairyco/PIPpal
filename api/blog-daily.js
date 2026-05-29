@@ -5,6 +5,7 @@ import {
   pickContextTopics,
   pickSeedTopicForAutomation,
   generatePost,
+  normalizeBlogCategory,
   DAILY_CRON_TAG,
 } from '../lib/blog-generate-core.js';
 
@@ -151,7 +152,12 @@ export default async function handler(req, res) {
         slug,
         excerpt: post.excerpt || '',
         body: post.body || '',
-        category: post.category || 'Tips',
+        category: normalizeBlogCategory(post.category, {
+          title: post.title,
+          excerpt: post.excerpt,
+          body: post.body,
+          seedTopic: seedTopic,
+        }),
         tags,
         published: false,
         created_at: new Date().toISOString(),

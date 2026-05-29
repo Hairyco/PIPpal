@@ -23,7 +23,7 @@ const CATEGORY_STYLES: Record<string, string> = {
   'Appeals': 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
-const BLOG_CATEGORY_ORDER = ['Tips', 'How To', 'News', 'Legislation', 'Appeals', 'Success Stories'];
+const BLOG_CATEGORY_ORDER = ['Tips', 'How To'];
 
 function getCategoryStyle(category: string) {
   return CATEGORY_STYLES[category] || 'bg-stone-100 text-stone-600 border-stone-200';
