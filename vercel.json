@@ -58,6 +58,9 @@
     "api/blog-daily.js": {
       "maxDuration": 60
     },
+    "api/generate-blog.js": {
+      "maxDuration": 60
+    },
     "api/news.js": {
       "maxDuration": 60
     }

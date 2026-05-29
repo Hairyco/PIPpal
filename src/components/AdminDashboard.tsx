@@ -23,9 +23,12 @@ import {
   Clock,
   Scale,
   FileText,
+  ImageUp,
+  X,
 } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { supabase } from '../supabaseClient';
+import { OWNER_EMAILS } from '../utils/adminAccess';
 
 interface InfluencerCode {
   id: string;
@@ -69,9 +72,9 @@ interface Stats {
   chartData: DayData[];
   avgTimeToPayment: string;
   churnCount: number;
-  todayViews: number;
-  weekViews: number;
-  monthViews: number;
+  todayVisitors: number;
+  weekVisitors: number;
+  monthVisitors: number;
   newClaimCount: number;
   cocCount: number;
   appealCount: number;
@@ -114,6 +117,19 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
       <div className={`${color} h-full rounded-full transition-all`} style={{ width: `${pct}%` }} />
     </div>
   );
+}
+
+function countUniqueVisitors(
+  rows: { user_id?: string | null; visitor_id?: string | null; session_id?: string | null }[] | null,
+  ownerIds: Set<string>,
+): number {
+  const seen = new Set<string>();
+  for (const row of rows || []) {
+    if (row.user_id && ownerIds.has(row.user_id)) continue;
+    const key = row.user_id || row.visitor_id || row.session_id;
+    if (key) seen.add(key);
+  }
+  return seen.size;
 }
 
 export function AdminDashboard() {
@@ -223,7 +239,7 @@ export function AdminDashboard() {
       .from('profiles')
       .select('email')
       .neq('email_notifications', false);
-    const ownerEmails = ['daley_cutler@hotmail.co.uk', 'hairyco2@gmail.com'].map((e) => e.toLowerCase());
+    const ownerEmails = [...OWNER_EMAILS].map((e) => e.toLowerCase());
     const count = (data || []).filter(
       (p) => p.email && !ownerEmails.includes(String(p.email).toLowerCase()),
     ).length;
@@ -268,6 +284,65 @@ export function AdminDashboard() {
   const [generating, setGenerating] = useState(false);
   const [generateTopic, setGenerateTopic] = useState('');
   const [showGenerator, setShowGenerator] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<{ dataUrl: string; name: string } | null>(null);
+  const [extractedImageText, setExtractedImageText] = useState('');
+  const [extractingImage, setExtractingImage] = useState(false);
+  const [imageExtractError, setImageExtractError] = useState('');
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_IMAGE_FILE_BYTES = 3 * 1024 * 1024;
+
+  const clearReferenceImage = () => {
+    setReferenceImage(null);
+    setExtractedImageText('');
+    setImageExtractError('');
+    if (imageInputRef.current) imageInputRef.current.value = '';
+  };
+
+  const handleReferenceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setImageExtractError('Please choose an image file.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_FILE_BYTES) {
+      setImageExtractError('Image must be under 3MB.');
+      return;
+    }
+    setImageExtractError('');
+    setExtractedImageText('');
+    setReferenceImage({ dataUrl: '', name: file.name });
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      setReferenceImage({ dataUrl, name: file.name });
+      setExtractingImage(true);
+      try {
+        const res = await fetch('/api/generate-blog', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'extract-image-text', image: dataUrl }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setImageExtractError(data.error || 'Failed to extract text');
+          return;
+        }
+        setExtractedImageText(data.text || '');
+      } catch {
+        setImageExtractError('Failed to extract text. Check your connection.');
+      } finally {
+        setExtractingImage(false);
+      }
+    };
+    reader.onerror = () => {
+      setImageExtractError('Could not read the image file.');
+      setReferenceImage(null);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const recategorizePublished = async () => {
     setRecategorizing(true);
@@ -292,15 +367,37 @@ export function AdminDashboard() {
     }
   };
 
+  const requestBlogDraft = async (attempt: number) => {
+    const res = await fetch('/api/generate-blog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        topic: generateTopic || undefined,
+        imageText: extractedImageText || undefined,
+      }),
+    });
+    const retryable = res.status === 502 || res.status === 503 || res.status === 504;
+    if (retryable && attempt === 1) {
+      showBlogNotice('error', 'Server is waking up — retrying automatically…');
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return requestBlogDraft(2);
+    }
+    return res;
+  };
+
   const generatePost = async () => {
+    if (!generateTopic.trim() && !extractedImageText.trim()) {
+      showBlogNotice('error', 'Enter a topic or upload a reference image with text.');
+      return;
+    }
+    if (extractingImage) {
+      showBlogNotice('error', 'Wait for text extraction to finish.');
+      return;
+    }
     setGenerating(true);
     setBlogNotice(null);
     try {
-      const res = await fetch('/api/generate-blog', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: generateTopic || undefined }),
-      });
+      const res = await requestBlogDraft(1);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         showBlogNotice('error', data.error || `Generation failed (${res.status}). Try again.`);
@@ -309,12 +406,30 @@ export function AdminDashboard() {
       if (data.post) {
         setEditingPost({ ...data.post, published: false });
         setShowGenerator(false);
+        clearReferenceImage();
+        setGenerateTopic('');
         showBlogNotice('success', `Draft ready — topic: "${data.generated_from}". Review below, then save.`);
       } else {
         showBlogNotice('error', data.error || 'Generation failed. Try again.');
       }
     } catch {
-      showBlogNotice('error', 'Error generating post. Check your connection and try again.');
+      try {
+        showBlogNotice('error', 'Connection hiccup — retrying once…');
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const res = await requestBlogDraft(2);
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.post) {
+          setEditingPost({ ...data.post, published: false });
+          setShowGenerator(false);
+          clearReferenceImage();
+          setGenerateTopic('');
+          showBlogNotice('success', `Draft ready — topic: "${data.generated_from}". Review below, then save.`);
+          return;
+        }
+        showBlogNotice('error', data.error || `Generation failed (${res.status || 'network'}). Try again.`);
+      } catch {
+        showBlogNotice('error', 'Error generating post. Check your connection and try again.');
+      }
     } finally {
       setGenerating(false);
     }
@@ -576,10 +691,19 @@ export function AdminDashboard() {
       const activeSet = new Set((activeIds || []).map((a: any) => a.user_id));
       const churnCount = (allProfileIds || []).filter((p: any) => !activeSet.has(p.id)).length;
 
-      // Page views
-      const { count: todayViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString());
-      const { count: weekViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo.toISOString());
-      const { count: monthViews } = await supabase.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', monthAgo.toISOString());
+      // Unique visitors (logged-in + anonymous, excluding owners)
+      const { data: ownerProfiles } = await supabase.from('profiles').select('id').in('email', [...OWNER_EMAILS]);
+      const ownerIds = new Set((ownerProfiles || []).map((p) => p.id));
+
+      const visitorSelect = () => supabase.from('page_views').select('user_id, visitor_id, session_id');
+      const [todayRes, weekRes, monthRes] = await Promise.all([
+        visitorSelect().gte('created_at', today.toISOString()),
+        visitorSelect().gte('created_at', weekAgo.toISOString()),
+        visitorSelect().gte('created_at', monthAgo.toISOString()),
+      ]);
+      const todayVisitors = countUniqueVisitors(todayRes.data, ownerIds);
+      const weekVisitors = countUniqueVisitors(weekRes.data, ownerIds);
+      const monthVisitors = countUniqueVisitors(monthRes.data, ownerIds);
 
       // Claim completions
       const { count: newClaimCount } = await supabase.from('claim_events').select('*', { count: 'exact', head: true }).eq('event_type', 'new_claim');
@@ -614,9 +738,9 @@ export function AdminDashboard() {
         chartData,
         avgTimeToPayment,
         churnCount,
-        todayViews: todayViews || 0,
-        weekViews: weekViews || 0,
-        monthViews: monthViews || 0,
+        todayVisitors,
+        weekVisitors,
+        monthVisitors,
       });
       setLastRefresh(new Date());
     } catch (err) {
@@ -1216,41 +1340,41 @@ export function AdminDashboard() {
             </div>
 
             <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-              <p className="text-xs text-amber-800 leading-relaxed">Visitor tracking counts app page views. Data starts from when tracking was enabled. For full website analytics including landing page visits, check your Vercel dashboard.</p>
+              <p className="text-xs text-amber-800 leading-relaxed">Visitor counts are unique people (logged-in or anonymous) on this device/browser, excluding owner accounts. Each person is counted once per period even if they browse many pages.</p>
             </div>
 
             <section>
-              <h2 className="text-sm font-bold text-stone-900 mb-3">Page Views</h2>
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Visitors</h2>
               <div className="grid grid-cols-3 gap-3">
-                <StatCard icon={Eye} label="Today" value={stats.todayViews} color="bg-teal-600" />
-                <StatCard icon={Eye} label="This Week" value={stats.weekViews} color="bg-indigo-500" />
-                <StatCard icon={Eye} label="This Month" value={stats.monthViews} color="bg-purple-500" />
+                <StatCard icon={Eye} label="Today" value={stats.todayVisitors} color="bg-teal-600" />
+                <StatCard icon={Eye} label="This Week" value={stats.weekVisitors} color="bg-indigo-500" />
+                <StatCard icon={Eye} label="This Month" value={stats.monthVisitors} color="bg-purple-500" />
               </div>
             </section>
 
             <section>
-              <h2 className="text-sm font-bold text-stone-900 mb-3">Signups vs Views</h2>
+              <h2 className="text-sm font-bold text-stone-900 mb-3">Signups vs Visitors</h2>
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4 space-y-3">
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-xs text-stone-600">Total signups</span>
                     <span className="text-xs font-bold text-stone-900">{stats.totalUsers}</span>
                   </div>
-                  <MiniBar value={stats.totalUsers} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-teal-500" />
+                  <MiniBar value={stats.totalUsers} max={Math.max(stats.totalUsers, stats.monthVisitors)} color="bg-teal-500" />
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-xs text-stone-600">Page views this month</span>
-                    <span className="text-xs font-bold text-stone-900">{stats.monthViews}</span>
+                    <span className="text-xs text-stone-600">Visitors this month</span>
+                    <span className="text-xs font-bold text-stone-900">{stats.monthVisitors}</span>
                   </div>
-                  <MiniBar value={stats.monthViews} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-indigo-400" />
+                  <MiniBar value={stats.monthVisitors} max={Math.max(stats.totalUsers, stats.monthVisitors)} color="bg-indigo-400" />
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
                     <span className="text-xs text-stone-600">Paying users</span>
                     <span className="text-xs font-bold text-stone-900">{stats.paidUsers}</span>
                   </div>
-                  <MiniBar value={stats.paidUsers} max={Math.max(stats.totalUsers, stats.monthViews)} color="bg-emerald-500" />
+                  <MiniBar value={stats.paidUsers} max={Math.max(stats.totalUsers, stats.monthVisitors)} color="bg-emerald-500" />
                 </div>
               </div>
             </section>
@@ -1259,7 +1383,7 @@ export function AdminDashboard() {
               <div className="bg-teal-700 rounded-2xl p-4 text-white text-center">
                 <p className="text-xs text-teal-200 mb-1">Signup conversion rate</p>
                 <p className="text-3xl font-bold">
-                  {stats.monthViews > 0 ? `${Math.round((stats.totalUsers / stats.monthViews) * 100)}%` : 'N/A'}
+                  {stats.monthVisitors > 0 ? `${Math.round((stats.totalUsers / stats.monthVisitors) * 100)}%` : 'N/A'}
                 </p>
                 <p className="text-xs text-teal-300 mt-1">Visitors who signed up this month</p>
               </div>
@@ -1307,15 +1431,83 @@ export function AdminDashboard() {
           {showGenerator && (
             <div className="bg-purple-50 rounded-2xl border border-purple-100 p-4 mb-4">
               <p className="font-bold text-purple-900 text-sm mb-1">AI blog generator</p>
-              <p className="text-xs text-purple-700 mb-3">Writes an SEO-oriented draft from common PIP claimant topics. Edit before publishing.</p>
+              <p className="text-xs text-purple-700 mb-3">Writes an SEO-oriented draft from PIP topics or text extracted from a reference image. Edit before publishing.</p>
               <input
                 value={generateTopic}
                 onChange={e => setGenerateTopic(e.target.value)}
-                placeholder="Topic (optional — leave blank to auto-pick a PIP topic)"
+                placeholder="Topic (optional if using image — supplements extracted text)"
                 className="w-full border border-purple-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-purple-400 bg-white mb-3"
               />
-              <button onClick={generatePost} disabled={generating}
-                className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50 active:scale-[0.98] transition-transform">
+
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-purple-800 mb-2">Upload reference image</p>
+                {!referenceImage ? (
+                  <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-purple-200 rounded-xl px-4 py-5 bg-white cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-colors">
+                    <ImageUp className="w-6 h-6 text-purple-400" />
+                    <span className="text-xs text-purple-700 font-medium">Choose image (PNG, JPG, etc.)</span>
+                    <span className="text-[10px] text-purple-500">Max 3MB — text is extracted automatically</span>
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleReferenceImageUpload}
+                    />
+                  </label>
+                ) : (
+                  <div className="bg-white border border-purple-200 rounded-xl p-3 space-y-3">
+                    <div className="flex items-start gap-3">
+                      {referenceImage.dataUrl ? (
+                        <img
+                          src={referenceImage.dataUrl}
+                          alt="Reference"
+                          className="w-16 h-16 object-cover rounded-lg border border-purple-100 shrink-0"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                          <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-purple-900 truncate">{referenceImage.name}</p>
+                        {extractingImage && (
+                          <p className="text-[10px] text-purple-600 mt-1 flex items-center gap-1">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Extracting text…
+                          </p>
+                        )}
+                        {!extractingImage && extractedImageText && (
+                          <p className="text-[10px] text-emerald-700 mt-1">Text extracted — ready to generate</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={clearReferenceImage}
+                        className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-purple-100 text-purple-500 shrink-0"
+                        aria-label="Remove image"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {extractedImageText && (
+                      <div>
+                        <p className="text-[10px] font-bold text-purple-700 uppercase tracking-wide mb-1">Extracted text preview</p>
+                        <div className="text-[11px] text-stone-700 bg-purple-50/80 rounded-lg px-3 py-2 max-h-32 overflow-y-auto whitespace-pre-wrap leading-relaxed">
+                          {extractedImageText.length > 500 ? `${extractedImageText.slice(0, 500)}…` : extractedImageText}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {imageExtractError && (
+                  <p className="text-xs text-rose-600 mt-2">{imageExtractError}</p>
+                )}
+              </div>
+
+              <button
+                onClick={generatePost}
+                disabled={generating || extractingImage || (!generateTopic.trim() && !extractedImageText.trim())}
+                className="w-full bg-purple-600 text-white text-sm font-bold py-2.5 rounded-xl hover:bg-purple-700 disabled:opacity-50 active:scale-[0.98] transition-transform"
+              >
                 {generating ? 'Generating…' : 'Generate draft'}
               </button>
               {generating && <p className="text-xs text-purple-600 text-center mt-2">This usually takes 15–20 seconds.</p>}
@@ -1496,7 +1688,7 @@ export function AdminDashboard() {
                 </span>
               )}
             </div>
-            <p className="text-xs text-stone-500 mb-3">Sends to all subscribers with email notifications on. Test first before sending to all.</p>
+            <p className="text-xs text-stone-500 mb-3">Inactive until the first user signs up — then Monday cron emails you an approval preview. After you approve, it sends to all subscribers.</p>
             <div className="flex gap-2">
               <button onClick={() => sendDigest(true)} disabled={sendingDigest}
                 className="flex-1 bg-stone-100 text-stone-700 text-xs font-bold px-3 py-2.5 rounded-lg hover:bg-stone-200 transition-colors disabled:opacity-50">

@@ -1,6 +1,13 @@
 // api/generate-blog.js — admin: blog draft OR TikTok script OR recategorize (merged for Vercel Hobby 12-fn limit)
 
-import { pickContextTopics, generatePost, normalizeBlogCategory } from '../lib/blog-generate-core.js';
+import {
+  pickContextTopics,
+  generatePost,
+  normalizeBlogCategory,
+  extractImageText,
+  parseImageInput,
+  MAX_IMAGE_BASE64_LENGTH,
+} from '../lib/blog-generate-core.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -119,14 +126,49 @@ export default async function handler(req, res) {
     return handleRecategorize(res, body.publishedOnly !== false);
   }
 
-  const { topic } = body;
+  if (body.action === 'extract-image-text') {
+    const { image } = body;
+    if (!image) return res.status(400).json({ error: 'Image required' });
+    const parsed = parseImageInput(image);
+    if (!parsed) return res.status(400).json({ error: 'Invalid image format' });
+    if (parsed.base64.length > MAX_IMAGE_BASE64_LENGTH) {
+      return res.status(400).json({ error: 'Image too large — use a file under 4MB' });
+    }
+    try {
+      const text = await extractImageText(image);
+      return res.status(200).json({ text });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  const { topic, imageText, image } = body;
 
   try {
-    const contextTopics = pickContextTopics(topic);
-    const targetTopic = topic || contextTopics[0]?.title || 'How to claim PIP successfully';
-    console.log('Generating post for topic:', targetTopic);
+    let referenceText = typeof imageText === 'string' ? imageText.trim() : '';
 
-    const post = await generatePost(targetTopic, contextTopics);
+    if (!referenceText && image) {
+      const parsed = parseImageInput(image);
+      if (!parsed) return res.status(400).json({ error: 'Invalid image format' });
+      if (parsed.base64.length > MAX_IMAGE_BASE64_LENGTH) {
+        return res.status(400).json({ error: 'Image too large — use a file under 4MB' });
+      }
+      referenceText = await extractImageText(image);
+    }
+
+    if (!topic && !referenceText) {
+      return res.status(400).json({ error: 'Provide a topic, reference image, or both' });
+    }
+
+    const contextTopics = pickContextTopics(topic);
+    const targetTopic =
+      topic ||
+      (referenceText ? referenceText.slice(0, 80).replace(/\s+/g, ' ').trim() : '') ||
+      contextTopics[0]?.title ||
+      'How to claim PIP successfully';
+    console.log('Generating post for topic:', targetTopic, referenceText ? '(with reference text)' : '');
+
+    const post = await generatePost(targetTopic, contextTopics, { referenceText: referenceText || undefined });
 
     if (!post) return res.status(500).json({ error: 'Failed to parse generated post' });
 

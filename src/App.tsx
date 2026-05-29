@@ -42,7 +42,7 @@ import { BackpayCalculator } from './components/BackpayCalculator';
 import { WhyPIPpal } from './components/WhyPIPpal';
 import { FinalCTA } from './components/FinalCTA';
 import { AppProvider, useAppContext, Screen } from './components/AppContext';
-import { supabase } from './supabaseClient';
+import { trackPageView } from './utils/visitorTracking';
 import { HomeScreen } from './components/HomeScreen';
 import { EligibilityChecker } from './components/EligibilityChecker';
 import { MedicalProfile } from './components/MedicalProfile';
@@ -130,11 +130,6 @@ function AppContent() {
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [animKey, setAnimKey] = useState(0);
-  useEffect(() => {
-    if (!sessionStorage.getItem('pippal_session_id')) {
-      sessionStorage.setItem('pippal_session_id', Math.random().toString(36).slice(2));
-    }
-  }, []);
 
   // Hidden partner portal — ?partner=true
   useEffect(() => {
@@ -155,14 +150,11 @@ function AppContent() {
   useEffect(() => {
     setAnimKey((k) => k + 1);
     setDrawerOpen(false);
-    // Track page view
-    if (isLoggedIn) {
-      supabase.from('page_views').insert({
-        path: currentScreen,
-        session_id: sessionStorage.getItem('pippal_session_id') || Math.random().toString(36).slice(2),
-      }).then(() => undefined);
-    }
-  }, [currentScreen]);
+    trackPageView(currentScreen, {
+      userId: user?.id,
+      userEmail: user?.email,
+    });
+  }, [currentScreen, user?.id, user?.email]);
 
   // Keep shareable URLs in sync for blog (SPA otherwise stays on "/" while showing blog)
   useEffect(() => {

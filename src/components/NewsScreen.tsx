@@ -79,11 +79,13 @@ export function NewsScreen() {
       const data = await res.json().catch(() => ({}));
       const rows = Array.isArray(data.articles) ? data.articles : [];
       if (rows.length > 0) {
-        const normalized: Article[] = rows.map((a: Article) => ({
-          ...a,
-          title: plainTextFromHtml(String(a.title ?? '')),
-          body: plainTextFromHtml(String(a.body ?? '')),
-        }));
+        const normalized: Article[] = rows
+          .map((a: Article) => ({
+            ...a,
+            title: plainTextFromHtml(String(a.title ?? '')),
+            body: plainTextFromHtml(String(a.body ?? '')),
+          }))
+          .filter(a => !isIrrelevantNewsTitle(a.title) && !isBrokenNewsBody(a.body));
         setArticles(normalized);
         setLastUpdated(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
       } else {
