@@ -1,110 +1,131 @@
-/** Extract Reddit post text in the browser (avoids server IP blocks). */
+/**
+ * Reddit post text extraction for the admin blog generator.
+ * Reddit app "Share" links (/r/sub/s/…) are resolved on the server (redirect + /api/info.json).
+ * Direct /comments/ URLs are fetched in the browser when possible.
+ */
 
-export function isRedditPostUrl(input: string): boolean {
-  return /reddit\.com|redd\.it/i.test(input.trim());
+const REDDIT_HOST = /^(?:www\.)?reddit\.com$/i;
+const REDDIT_SHORT = /^redd\.it$/i;
+
+function normalizeRedditInput(raw: string): string {
+  let url = raw.trim();
+  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
+  return url;
 }
 
-export function parseRedditPostId(url: string): string | null {
-  const normalized = url.trim();
-  const commentsMatch = normalized.match(/\/comments\/([a-z0-9]+)/i);
-  if (commentsMatch) return commentsMatch[1];
-  const shortMatch = normalized.match(/redd\.it\/([a-z0-9]+)/i);
-  if (shortMatch) return shortMatch[1];
-  return null;
+function redditHost(hostname: string): boolean {
+  return REDDIT_HOST.test(hostname) || REDDIT_SHORT.test(hostname);
 }
 
-function normalizeRedditInput(urlInput: string): string {
-  const raw = urlInput.trim();
-  if (!raw) return raw;
-  if (/^https?:\/\//i.test(raw)) return raw;
-  if (/^redd\.it\//i.test(raw)) return `https://${raw}`;
-  if (/^www\.reddit\.com/i.test(raw)) return `https://${raw}`;
-  if (/^reddit\.com/i.test(raw)) return `https://${raw}`;
-  return raw;
+/** Reddit mobile app Share link or redd.it short URL — needs server-side redirect resolution. */
+export function isRedditShareLink(url: string): boolean {
+  const u = url.trim();
+  return /\/s\/[a-z0-9]+/i.test(u) || /^https?:\/\/(www\.)?redd\.it\//i.test(u);
 }
 
-async function fetchRedditJson(postId: string): Promise<string> {
-  const jsonUrl = `https://www.reddit.com/comments/${postId}.json?raw_json=1&limit=1`;
-
-  const res = await fetch(jsonUrl, {
-    headers: { Accept: 'application/json' },
-  });
-
-  if (!res.ok) {
-    throw new Error(
-      `Reddit returned ${res.status}. Copy the post text and paste it in the box below instead.`,
+export function isRedditPostUrl(url: string): boolean {
+  try {
+    const parsed = new URL(normalizeRedditInput(url));
+    if (!redditHost(parsed.hostname)) return false;
+    return (
+      /\/comments\/[a-z0-9]+/i.test(parsed.pathname) ||
+      /\/s\/[a-z0-9]+/i.test(parsed.pathname) ||
+      REDDIT_SHORT.test(parsed.hostname)
     );
+  } catch {
+    return false;
   }
-
-  const data = await res.json();
-  const post = data?.[0]?.data?.children?.[0]?.data;
-  if (!post) {
-    throw new Error('Reddit post not found. Check the link or paste the text manually.');
-  }
-
-  const parts: string[] = [];
-  if (post.title) parts.push(String(post.title));
-  if (post.selftext) parts.push(String(post.selftext));
-
-  const text = parts.join('\n\n').trim();
-  if (text.length < 20) {
-    throw new Error('This Reddit post has little or no text. Paste the content manually.');
-  }
-
-  return text.slice(0, 12000);
 }
 
-/** Reader proxy — works in browser when Reddit JSON is blocked or share links won't redirect. */
-async function fetchRedditViaReader(url: string): Promise<string> {
-  const readerUrl = `https://r.jina.ai/${url}`;
-  const res = await fetch(readerUrl, { headers: { Accept: 'text/plain' } });
-  if (!res.ok) throw new Error(`Reader returned ${res.status}`);
-  let text = (await res.text()).trim();
-  const markdownIdx = text.indexOf('Markdown Content:');
-  if (markdownIdx !== -1) text = text.slice(markdownIdx + 'Markdown Content:'.length).trim();
-  if (text.length < 40) throw new Error('Reader returned too little text');
-  return text.slice(0, 12000);
+async function fetchRedditFromServer(url: string): Promise<string> {
+  const res = await fetch('/api/generate-blog', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'extract-reddit-url', url }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Could not read Reddit link from server');
+  }
+  const text = typeof data.text === 'string' ? data.text.trim() : '';
+  if (!text) throw new Error('No text returned from Reddit link');
+  return text;
 }
 
-/** Follow redirects until we land on a URL with a post id (works for /s/ share links). */
-async function resolveRedditPostId(urlInput: string): Promise<string> {
-  const normalized = normalizeRedditInput(urlInput);
-  let postId = parseRedditPostId(normalized);
-  if (postId) return postId;
+function parseRedditPostIdFromPath(pathname: string): string | null {
+  const m = pathname.match(/\/comments\/([a-z0-9]+)/i);
+  return m ? m[1] : null;
+}
 
-  // redd.it, /s/ share links — follow redirects in the browser (may fail CORS)
-  if (/reddit\.com|redd\.it/i.test(normalized)) {
-    try {
-      const res = await fetch(normalized, {
-        redirect: 'follow',
-        credentials: 'omit',
-      });
-      postId = parseRedditPostId(res.url);
-      if (postId) return postId;
-    } catch {
-      /* CORS or network — try reader below */
-    }
-  }
+async function resolveRedditPostId(url: string): Promise<string> {
+  const parsed = new URL(normalizeRedditInput(url));
+  const direct = parseRedditPostIdFromPath(parsed.pathname);
+  if (direct) return direct;
+
+  const res = await fetch(parsed.toString(), {
+    method: 'GET',
+    redirect: 'follow',
+    credentials: 'omit',
+  });
+  const final = new URL(res.url || parsed.toString());
+  const id = parseRedditPostIdFromPath(final.pathname);
+  if (id) return id;
 
   throw new Error('NEEDS_READER');
 }
 
+async function fetchRedditJson(postId: string): Promise<string> {
+  const jsonUrl = `https://www.reddit.com/comments/${postId}.json?raw_json=1&limit=1`;
+  const res = await fetch(jsonUrl, { credentials: 'omit' });
+  if (!res.ok) throw new Error('NEEDS_READER');
+
+  const data = await res.json();
+  const post = data?.[0]?.data?.children?.[0]?.data;
+  if (!post) throw new Error('NEEDS_READER');
+
+  const title = (post.title || '').trim();
+  const selftext = (post.selftext || '').trim();
+  const sub = post.subreddit ? `r/${post.subreddit}` : '';
+  const parts = [sub, title, selftext].filter(Boolean);
+  const text = parts.join('\n\n').trim();
+  if (text.length < 20) throw new Error('NEEDS_READER');
+  return text.slice(0, 12000);
+}
+
+async function fetchRedditViaReader(url: string): Promise<string> {
+  const readerUrl = `https://r.jina.ai/${url}`;
+  const res = await fetch(readerUrl, { credentials: 'omit' });
+  if (!res.ok) throw new Error('NEEDS_READER');
+  const text = (await res.text()).trim();
+  if (text.length < 80) throw new Error('NEEDS_READER');
+  return text.slice(0, 12000);
+}
+
+/**
+ * Extract post title + body from a Reddit URL (Share links, short URLs, or /comments/ URLs).
+ */
 export async function extractRedditPostInBrowser(urlInput: string): Promise<string> {
   const normalized = normalizeRedditInput(urlInput);
+
+  if (!isRedditPostUrl(normalized)) {
+    throw new Error('Not a Reddit post URL');
+  }
+
+  // Reddit app "Copy link" → /r/sub/s/TOKEN — resolve on server
+  if (isRedditShareLink(normalized)) {
+    return fetchRedditFromServer(normalized);
+  }
 
   try {
     const postId = await resolveRedditPostId(normalized);
     return await fetchRedditJson(postId);
-  } catch (err: any) {
-    if (err?.message !== 'NEEDS_READER') throw err;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message !== 'NEEDS_READER') throw err;
   }
 
-  // Share links / short links when redirect fetch is blocked — reader proxy
   try {
     return await fetchRedditViaReader(normalized);
   } catch {
-    throw new Error(
-      'Could not read that Reddit link. Open the post on Reddit, copy the address bar URL (contains /comments/), or paste the post text below.',
-    );
+    return fetchRedditFromServer(normalized);
   }
 }

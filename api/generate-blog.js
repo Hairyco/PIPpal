@@ -7,6 +7,7 @@ import {
   normalizeBlogSaveTags,
   extractImageText,
   extractUrlText,
+  extractRedditUrlText,
   normalizeReferenceUrl,
   parseImageInput,
   slugifyTitle,
@@ -263,6 +264,17 @@ export default async function handler(req, res) {
     }
   }
 
+  if (body.action === 'extract-reddit-url') {
+    const { url } = body;
+    if (!url) return res.status(400).json({ error: 'URL required' });
+    try {
+      const text = await extractRedditUrlText(url);
+      return res.status(200).json({ text, url: normalizeReferenceUrl(url) });
+    } catch (err) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
   const { topic, imageText, image, url, urlText } = body;
 
   try {
@@ -280,11 +292,6 @@ export default async function handler(req, res) {
     }
 
     if (!referenceParts.length && url) {
-      if (/reddit\.com|redd\.it/i.test(String(url))) {
-        return res.status(400).json({
-          error: 'Reddit blocks server fetches. Use Fetch in admin (browser) or paste the post text.',
-        });
-      }
       referenceParts.push(await extractUrlText(url));
     }
 

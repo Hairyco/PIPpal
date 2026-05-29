@@ -1696,8 +1696,9 @@ export function AdminDashboard() {
                   </button>
                 </div>
                 <p className="text-[10px] text-purple-500 mt-1.5">
-                  Reddit loads in your browser. Paste the post link from the address bar, a redd.it short link, or a Share link — then Fetch. Example:{' '}
-                  <span className="font-mono">reddit.com/r/Benefits/comments/abc123/...</span>
+                  Reddit: paste the link from the app&apos;s Share → Copy link button (e.g.{' '}
+                  <span className="font-mono">reddit.com/r/sub/s/…</span>
+                  ), a redd.it link, or a full /comments/ URL — then tap Fetch.
                 </p>
                 {(isRedditPostUrl(referenceUrl) || urlExtractError) && (
                   <div className="mt-2">
