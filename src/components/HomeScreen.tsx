@@ -335,7 +335,7 @@ export function HomeScreen() {
             />
             <NavCard
               title={'Mandatory\nReconsideration'}
-              desc="Challenge a recent decision"
+              desc="Challenge if you were declined"
               icon={FileText}
               color="text-amber-600"
               bg="bg-amber-50"
