@@ -1,5 +1,4 @@
 import React, { useState, memo, Component } from 'react';
-import { formatPipEnhancedMonthly } from '../constants/pipDisplayRates';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft,
@@ -7,8 +6,6 @@ import {
   User,
   ArrowRight,
   Plus,
-  HelpCircle,
-  PoundSterling,
   ChevronDown,
   TrendingUp,
   Users,
@@ -323,9 +320,7 @@ function InlineEmailCapture({ onContinue }: { onContinue: () => void }) {
 
 export function EligibilityChecker() {
   const { navigateTo, goBack, setHasCompletedEligibility, isLoggedIn } = useAppContext();
-  const [phase, setPhase] = useState<
-    'intro' | 'conditions' | 'questions' | 'result'>(
-    'intro');
+  const [phase, setPhase] = useState<'conditions' | 'questions' | 'result'>('conditions');
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [customCondition, setCustomCondition] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -372,7 +367,7 @@ export function EligibilityChecker() {
     } else if (phase === 'questions' && currentIndex === 0) {
       setPhase('conditions');
     } else if (phase === 'conditions') {
-      setPhase('intro');
+      goBack();
     } else {
       goBack();
     }
@@ -381,7 +376,7 @@ export function EligibilityChecker() {
     setSelectedConditions([]);
     setAnswers([]);
     setCurrentIndex(0);
-    setPhase('intro');
+    setPhase('conditions');
   };
   // RESULT SCREEN
   if (phase === 'result') {
@@ -556,87 +551,6 @@ export function EligibilityChecker() {
               className="w-full bg-stone-100 text-stone-700 hover:bg-stone-200" />
             
           </div>
-        </div>
-      </div>);
-
-  }
-  // INTRO SCREEN
-  if (phase === 'intro') {
-    return (
-      <div className="flex flex-col h-full bg-stone-50">
-        <div className="px-5 md:px-8 py-4 flex items-center gap-3 bg-white border-b border-stone-100 sticky top-0 z-10">
-          <button
-            onClick={goBack}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-95 transition-all">
-            
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="font-bold text-stone-900 text-base sm:text-lg leading-snug">
-            <span className="text-stone-500 font-semibold">Free assessment</span>
-            <span className="text-stone-300 mx-1.5 font-normal" aria-hidden>
-              ›
-            </span>
-            What is PIP?
-          </h1>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-5 md:px-8 py-6 space-y-6">
-          {/* What is PIP */}
-          <div>
-            <div className="flex items-start gap-3 mb-4">
-              <div className="bg-teal-50 p-2.5 rounded-xl shrink-0">
-                <HelpCircle className="w-5 h-5 text-teal-700" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-stone-900 leading-tight">
-                  What is PIP?
-                </h2>
-                <p className="text-xs text-stone-400 mt-0.5">
-                  Personal Independence Payment
-                </p>
-              </div>
-            </div>
-
-            <p className="text-sm text-stone-600 leading-relaxed">
-              <strong className="text-stone-900">Personal Independence Payment (PIP)</strong> helps with extra costs if a long-term health condition or disability makes everyday tasks or getting about harder. It&apos;s for people aged{' '}
-              <strong className="text-stone-900">16 or over</strong> and under{' '}
-              <strong className="text-stone-900">State Pension age</strong>. You can receive up to{' '}
-              <strong className="text-stone-900">{formatPipEnhancedMonthly()} a month</strong>, and it is{' '}
-              <strong className="text-stone-900">not means-tested</strong> — your income or job doesn&apos;t decide whether you qualify.
-            </p>
-            <p className="text-[11px] text-stone-500 mt-2 leading-relaxed">
-              Numbers change each quarter — see DWP{' '}
-              <a
-                href="https://www.gov.uk/government/collections/personal-independence-payment-statistics"
-                className="text-teal-700 font-semibold underline underline-offset-2"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Personal Independence Payment statistics
-              </a>{' '}
-              on GOV.UK.
-            </p>
-          </div>
-
-          {/* Time warning */}
-          <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-2.5">
-            <span className="text-base mt-0.5">⏳</span>
-            <p className="text-sm text-amber-800 leading-relaxed">
-              Decisions can take <strong>up to 6 months</strong> — and if your
-              claim is turned down, starting again means another long wait.
-              Getting it right first time matters.
-            </p>
-          </div>
-        </div>
-
-        <div className="p-5 md:px-8 bg-white border-t border-stone-100">
-          <button
-            onClick={() => setPhase('conditions')}
-            className="w-full bg-teal-700 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-teal-800 active:scale-[0.98] transition-all shadow-sm flex items-center justify-center gap-2">
-            
-            Check If You're Eligible
-            <ArrowRight className="w-5 h-5" />
-          </button>
         </div>
       </div>);
 
