@@ -25,6 +25,10 @@ const CATEGORY_STYLES: Record<string, string> = {
 
 const BLOG_CATEGORY_ORDER = ['Tips', 'How To', 'News', 'Legislation', 'Appeals', 'Success Stories'];
 
+function getCategoryStyle(category: string) {
+  return CATEGORY_STYLES[category] || 'bg-stone-100 text-stone-600 border-stone-200';
+}
+
 function sortBlogCategories(categories: string[]): string[] {
   return [...categories].sort((a, b) => {
     const ai = BLOG_CATEGORY_ORDER.indexOf(a);
