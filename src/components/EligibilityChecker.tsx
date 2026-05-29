@@ -125,64 +125,6 @@ const questions = [
 
 },
 {
-  id: 'q4',
-  text: 'Do you need reminding, encouraging, or helping to do basic things?',
-  hint: 'This could be someone reminding you to eat, take medication, wash, or even get out of bed. It also counts if you need someone to motivate you or keep you calm.',
-  caseStudy: {
-    name: 'Lisa, 44',
-    condition: 'Depression & ADHD',
-    quote:
-    "\"After my diagnosis at 42, everything suddenly made sense — the forgotten meals, the missed medication, the days I can't get out of bed. My partner has to remind me to eat and shower. I felt ashamed, but that's exactly what PIP calls 'prompting' and it scores points.\""
-  },
-  options: [
-  {
-    text: 'Yes — I rely on someone else for most things',
-    score: 4
-  },
-  {
-    text: 'I need regular reminding or encouragement',
-    score: 3
-  },
-  {
-    text: 'Occasionally, but mostly I manage alone',
-    score: 2
-  },
-  {
-    text: "No, I don't need help with these things",
-    score: 0
-  }]
-
-},
-{
-  id: 'q5',
-  text: "Would you struggle to plan a journey to somewhere you've never been?",
-  hint: 'Think about working out a bus route, navigating a new town, or dealing with unexpected changes. Would anxiety, confusion, pain, or fatigue make this difficult or impossible?',
-  caseStudy: {
-    name: 'Priya, 18',
-    condition: 'Autism & Anxiety',
-    quote:
-    '"I got diagnosed autistic at 17 and had no idea I could claim PIP. I can get the bus to college because I\'ve memorised the route — but anywhere new and I have a meltdown. My SENCO helped me apply and I got enhanced mobility."'
-  },
-  options: [
-  {
-    text: "Yes — I can't do unfamiliar journeys at all",
-    score: 4
-  },
-  {
-    text: "I'd need someone with me or I'd panic",
-    score: 3
-  },
-  {
-    text: "I'd find it stressful but could probably manage",
-    score: 2
-  },
-  {
-    text: "No, I'm fine with new journeys",
-    score: 0
-  }]
-
-},
-{
   id: 'q6',
   text: 'Have you had these difficulties for more than 3 months?',
   hint: "PIP is for conditions that have lasted at least 3 months and are expected to continue for at least 9 more. This includes conditions that fluctuate — you don't need to be affected every single day.",
@@ -208,35 +150,6 @@ const questions = [
   {
     text: "I'm not sure how long it's been",
     score: 1
-  }]
-
-},
-{
-  id: 'q7',
-  text: 'Does your condition affect your ability to communicate, concentrate, or cope with social situations?',
-  hint: 'This includes struggling to read, losing track of conversations, finding phone calls overwhelming, or needing to avoid people because of how your condition makes you feel.',
-  caseStudy: {
-    name: 'Marcus, 36',
-    condition: 'Autism & Social anxiety',
-    quote:
-    '"I got diagnosed autistic at 34 after years of struggling. I can speak perfectly well — but I can\'t handle phone calls, I misread social cues, and busy places make me melt down. I didn\'t think that counted as a disability. It does."'
-  },
-  options: [
-  {
-    text: "Yes — it's a major difficulty for me",
-    score: 4
-  },
-  {
-    text: 'I struggle with some of these things',
-    score: 3
-  },
-  {
-    text: 'A little, but I get by',
-    score: 2
-  },
-  {
-    text: "No, this isn't an issue for me",
-    score: 0
   }]
 
 },
