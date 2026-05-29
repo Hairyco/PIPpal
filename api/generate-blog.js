@@ -280,6 +280,11 @@ export default async function handler(req, res) {
     }
 
     if (!referenceParts.length && url) {
+      if (/reddit\.com|redd\.it/i.test(String(url))) {
+        return res.status(400).json({
+          error: 'Reddit blocks server fetches. Use Fetch in admin (browser) or paste the post text.',
+        });
+      }
       referenceParts.push(await extractUrlText(url));
     }
 
