@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, RefreshCw, Loader2, Newspaper, ExternalLink, ChevronRight, Bookmark, BookmarkCheck } from 'lucide-react';
 import { useAppContext } from './AppContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { decodeHtmlEntities } from '../utils/htmlEntities';
+import { decodeHtmlEntities, plainTextFromHtml } from '../utils/htmlEntities';
 
 interface Article {
   title: string;
@@ -64,8 +64,8 @@ export function NewsScreen() {
       if (rows.length > 0) {
         const normalized: Article[] = rows.map((a: Article) => ({
           ...a,
-          title: decodeHtmlEntities(String(a.title ?? '')),
-          body: decodeHtmlEntities(String(a.body ?? '')),
+          title: plainTextFromHtml(String(a.title ?? '')),
+          body: plainTextFromHtml(String(a.body ?? '')),
         }));
         setArticles(normalized);
         setLastUpdated(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));

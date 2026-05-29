@@ -28,6 +28,15 @@ function decodeHtmlEntities(input) {
   return s;
 }
 
+/** Decode entities first, then strip tags — Google News RSS uses encoded HTML in descriptions */
+function plainTextFromHtml(input) {
+  if (!input || typeof input !== 'string') return '';
+  let s = decodeHtmlEntities(input);
+  s = s.replace(/<[^>]+>/g, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
+
 // Broad first-pass filter — must also mention PIP (see mentionsPipBenefit)
 const BROAD_KEYWORDS = [
   'pip', 'personal independence payment', 'disability benefit', 'disability payment',
@@ -86,9 +95,9 @@ function parseAtom(xml) {
   while ((match = regex.exec(xml)) !== null) {
     const e = match[1];
     const titleRaw = (e.match(/<title[^>]*>([^<]+)<\/title>/) || [])[1] || '';
-    const summaryRaw = ((e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
-    const title = decodeHtmlEntities(titleRaw.trim());
-    const summary = decodeHtmlEntities(summaryRaw);
+    const summaryRaw = (e.match(/<summary[^>]*>([\s\S]*?)<\/summary>/) || [])[1] || '';
+    const title = plainTextFromHtml(titleRaw.trim());
+    const summary = plainTextFromHtml(summaryRaw);
     const link = (e.match(/<link[^>]*href="([^"]+)"/) || [])[1] || '';
     const date = (e.match(/<published>([^<]+)<\/published>/) || [])[1] || '';
     if (title && firstPassFilter(title, summary)) {
@@ -105,9 +114,9 @@ function parseRSS(xml, curated = false) {
   while ((match = regex.exec(xml)) !== null) {
     const item = match[1];
     const titleRaw = (item.match(/<title>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/title>/) || [])[1] || '';
-    const descRaw = ((item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '').replace(/<[^>]*>/g, '').trim();
-    let title = decodeHtmlEntities(titleRaw.trim());
-    const desc = decodeHtmlEntities(descRaw);
+    const descRaw = (item.match(/<description>(?:<!\[CDATA\[)?([\s\S]*?)(?:\]\]>)?<\/description>/) || [])[1] || '';
+    let title = plainTextFromHtml(titleRaw.trim());
+    const desc = plainTextFromHtml(descRaw);
     const link = (item.match(/<link>([^<]+)<\/link>/) || [])[1] || '';
     const date = (item.match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || '';
     const publisher = decodeHtmlEntities(((item.match(/<source[^>]*>([\s\S]*?)<\/source>/) || [])[1] || '').trim());
@@ -139,7 +148,11 @@ async function fetchFeed(source) {
 }
 
 async function rewriteWithClaude(title, summary, sourceName) {
-  if (!summary || summary.length < 20) return { body: summary, relevant: true };
+  const cleanSummary = plainTextFromHtml(summary);
+  const cleanTitle = plainTextFromHtml(title);
+  if (!cleanSummary || cleanSummary.length < 20) {
+    return { body: cleanSummary || cleanTitle, relevant: true };
+  }
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -157,17 +170,17 @@ If NOT relevant, respond with exactly: NOT_RELEVANT
 
 If relevant, write 3 sentences starting directly with what happened. Second sentence: what it means for PIP claimants. Third: what they should know or do. No opening phrase like "This article". No greetings. No sign-off. No ** or !!.
 
-Title: ${title}
-Summary: ${summary}`
+Title: ${cleanTitle}
+Summary: ${cleanSummary}`
         }],
       }),
     });
     const data = await response.json();
-    const text = data.content?.[0]?.text?.trim() || summary;
-    if (text.startsWith('NOT_RELEVANT')) return { body: summary, relevant: false };
+    const text = plainTextFromHtml(data.content?.[0]?.text?.trim() || cleanSummary);
+    if (text.startsWith('NOT_RELEVANT')) return { body: cleanSummary, relevant: false };
     return { body: text, relevant: true };
   } catch {
-    return { body: summary, relevant: true };
+    return { body: cleanSummary, relevant: true };
   }
 }
 
@@ -234,8 +247,8 @@ async function ingestFreshArticles() {
       ? new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
       : '';
     freshArticles.push({
-      title: decodeHtmlEntities(String(item.title || '')),
-      body: decodeHtmlEntities(String(body || '')),
+      title: plainTextFromHtml(String(item.title || '')),
+      body: plainTextFromHtml(String(body || '')),
       link: item.showSource ? item.link : null,
       source: item.showSource ? item.sourceName : 'PIPpal News',
       date: dateStr,
@@ -267,13 +280,32 @@ function mergeArticles(freshArticles, stored) {
 
 function formatArticles(merged) {
   return merged.map(a => ({
-    title: decodeHtmlEntities(String(a.title || '')),
-    body: decodeHtmlEntities(String(a.body || '')),
+    title: plainTextFromHtml(String(a.title || '')),
+    body: plainTextFromHtml(String(a.body || '')),
     link: a.link,
     source: a.source,
     date: a.date,
     tags: Array.isArray(a.tags) ? a.tags : [a.tags || 'News'],
   }));
+}
+
+function bodyLooksLikeHtmlLeak(body) {
+  return /<\s*a\s+href|<\s*\/?\w+/i.test(String(body || ''));
+}
+
+async function repairStoredHtmlBodies(stored) {
+  const toFix = (stored || []).filter(a => a.id && bodyLooksLikeHtmlLeak(a.body));
+  for (const row of toFix) {
+    const cleaned = plainTextFromHtml(row.body);
+    if (!cleaned || cleaned === row.body) continue;
+    await fetch(`${SUPABASE_URL}/rest/v1/news_articles?id=eq.${row.id}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: cleaned, updated_at: new Date().toISOString() }),
+    }).catch(() => {});
+    row.body = cleaned;
+  }
+  if (toFix.length > 0) console.log(`Repaired ${toFix.length} news article bodies with HTML leaks`);
 }
 
 function isCronRequest(req) {
@@ -305,6 +337,7 @@ export default async function handler(req, res) {
     }
 
     const stored = await loadStoredArticles();
+    await repairStoredHtmlBodies(stored);
     await archiveLeakedArticles(stored);
 
     const articles = formatArticles(mergeArticles(freshArticles, stored));

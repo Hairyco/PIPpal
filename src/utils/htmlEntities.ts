@@ -14,3 +14,12 @@ export function decodeHtmlEntities(input: string): string {
   s = s.replace(/&amp;/g, '&');
   return s;
 }
+
+/** Plain text for RSS snippets and news bodies — decode entities before stripping tags */
+export function plainTextFromHtml(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  let s = decodeHtmlEntities(input);
+  s = s.replace(/<[^>]+>/g, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  return s;
+}
