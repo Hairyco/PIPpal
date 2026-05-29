@@ -204,8 +204,8 @@ function InlineEmailCapture({ onContinue }: { onContinue: () => void }) {
 
   return (
     <div className="bg-white rounded-2xl border border-teal-200 shadow-sm p-5">
-      <p className="text-sm font-bold text-stone-900 mb-1 text-center">See your full results</p>
-      <p className="text-xs text-stone-500 mb-4 leading-relaxed text-center">Enter your email to unlock your detailed breakdown and get helpful PIP tips.</p>
+      <p className="text-sm font-bold text-stone-900 mb-1 text-center">Your result is ready</p>
+      <p className="text-xs text-stone-500 mb-4 leading-relaxed text-center">Enter your email to see your eligibility score and personalised breakdown.</p>
       <form onSubmit={handleSubmit} className="space-y-3" noValidate>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
@@ -289,6 +289,7 @@ export function EligibilityChecker() {
     setSelectedConditions([]);
     setAnswers([]);
     setCurrentIndex(0);
+    setShowEmailGate(false);
     setPhase('conditions');
   };
   // RESULT SCREEN
@@ -304,6 +305,7 @@ export function EligibilityChecker() {
     'Based on your answers, you might not meet the criteria right now. But this is just a guide — many people underestimate how their condition affects them.';
     let encouragement =
     "It's still worth exploring. The way you describe your difficulties matters more than you think.";
+    const resultsLocked = showEmailGate && !isLoggedIn;
     if (percentage >= 60) {
       color = 'text-teal-600';
       bg = 'bg-teal-50';
@@ -336,6 +338,17 @@ export function EligibilityChecker() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 md:px-8 py-8">
+          {resultsLocked && (
+            <div className="w-full max-w-sm mx-auto mb-6">
+              <InlineEmailCapture onContinue={() => setShowEmailGate(false)} />
+            </div>
+          )}
+
+          <div
+            className={
+              resultsLocked ? 'blur-md pointer-events-none select-none opacity-90' : ''
+            }
+          >
           <div className="flex flex-col items-center text-center mb-8">
             <motion.div
               initial={{
@@ -397,15 +410,8 @@ export function EligibilityChecker() {
             </p>
           </div>
 
-          {/* Blurred content for non-logged-in users */}
-          {showEmailGate && !isLoggedIn && (
-            <div className="w-full max-w-sm mx-auto mt-4 mb-2">
-              <InlineEmailCapture onContinue={() => setShowEmailGate(false)} />
-            </div>
-          )}
-
           {/* Stats Row */}
-          <div className={`flex gap-2 mb-6 ${showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}`}>
+          <div className="flex gap-2 mb-6">
             <div className="flex-1 bg-teal-50 rounded-xl p-3 border border-teal-100 flex flex-col items-center text-center justify-center gap-1">
               <Users className="w-4 h-4 text-teal-600" />
               <div className="text-[10px] text-teal-800 leading-tight">
@@ -421,7 +427,7 @@ export function EligibilityChecker() {
           </div>
 
           {/* Conditions reminder */}
-          <div className={`bg-white rounded-2xl p-4 border border-stone-100 shadow-sm mb-6 ${showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}`}>
+          <div className="bg-white rounded-2xl p-4 border border-stone-100 shadow-sm mb-6">
             <div className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2">
               Your conditions
             </div>
@@ -437,7 +443,6 @@ export function EligibilityChecker() {
             </div>
           </div>
 
-          <div className={showEmailGate && !isLoggedIn ? 'blur-sm pointer-events-none select-none' : ''}>
           <button
             onClick={() => navigateTo('claim_flow')}
             className="w-full bg-orange-500 text-white py-3.5 rounded-xl font-semibold text-lg hover:bg-orange-600 active:scale-[0.98] transition-all shadow-sm mb-2 flex items-center justify-center gap-2">
@@ -447,8 +452,8 @@ export function EligibilityChecker() {
           <p className="text-[11px] text-stone-400 text-center mb-4">
             Free to start · Full access from £6.99 one-time
           </p>
-
           </div>
+
           <button
             onClick={reset}
             className="w-full text-stone-500 font-medium text-sm hover:text-stone-800 py-2">
@@ -456,7 +461,7 @@ export function EligibilityChecker() {
             Retake assessment
           </button>
 
-          <div className="mt-4 pt-4 border-t border-stone-100">
+          <div className={`mt-4 pt-4 border-t border-stone-100 ${resultsLocked ? 'blur-md pointer-events-none select-none opacity-90' : ''}`}>
             <ShareButton
               title="PIP Eligibility Checker"
               text="Check if you might be eligible for PIP with this free tool from PIPpal. It only takes 2 minutes."
