@@ -8,12 +8,13 @@ import {
 import { useAppContext } from './AppContext';
 
 export function AppealScreen() {
-  const { goBack, navigateTo, savedAnswers, medProfile, setAppealDraftReasons, isAdmin } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile, setAppealDraftReasons, isAdmin, user } = useAppContext();
 
   const [step, setStep] = useState(1);
   const [mrOutcome, setMrOutcome] = useState('');
   const [generating, setGenerating] = useState(false);
   const [appealReasons, setAppealReasons] = useState<string | null>(null);
+  const [generateError, setGenerateError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [answerAnalysis, setAnswerAnalysis] = useState<string | null>(null);
   const [answerScore, setAnswerScore] = useState<number | null>(null);
@@ -104,37 +105,48 @@ export function AppealScreen() {
   const generateReasons = async () => {
     setGenerating(true);
     setAppealReasons(null);
+    setGenerateError(null);
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'sscs1', savedAnswers, medProfile, mrOutcome }),
+        body: JSON.stringify({
+          type: 'sscs1',
+          savedAnswers,
+          medProfile,
+          mrOutcome,
+          userId: user?.id,
+          userEmail: user?.email,
+        }),
       });
-      const data = await res.json();
-      const reasons = data.reasons || 'Could not generate. Please try again.';
-      setAppealReasons(reasons);
-      if (res.ok && typeof data.reasons === 'string' && data.reasons.trim()) {
-        setAppealDraftReasons(data.reasons.trim());
-        fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: `You are reviewing PIP tribunal appeal reasons for an SSCS1 form. Return ONLY valid JSON: {"score": <number 1-10>, "analysis": "<2-3 sentences>"}. Score 1-10 for how strong this appeal case is (8+ = very strong, 5-7 = solid, below 5 = needs work). Analysis: be honest and objective — what it does well (descriptors challenged, reliability/safety criteria, evidence cited) and what could still be stronger. No sycophancy.\n\nAppeal reasons:\n${reasons}`,
-            conversationHistory: [],
-            medProfile: { conditions: medProfile?.conditions || [] },
-          }),
-        }).then(r => r.json()).then(d => {
-          if (d.reply) {
-            try {
-              const parsed = JSON.parse(d.reply.replace(/```json|```/g, '').trim());
-              if (parsed.score) setAnswerScore(Number(parsed.score));
-              if (parsed.analysis) setAnswerAnalysis(parsed.analysis.trim());
-            } catch { setAnswerAnalysis(d.reply.trim()); }
-          }
-        }).catch(() => {});
+      const data = await res.json().catch(() => ({}));
+      const reasons = typeof data.reasons === 'string' ? data.reasons.trim() : '';
+      if (!res.ok || !reasons) {
+        setGenerateError(data.detail || data.error || 'Could not generate appeal reasons. Please try again.');
+        return;
       }
+      setAppealReasons(reasons);
+      setAppealDraftReasons(reasons);
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `You are reviewing PIP tribunal appeal reasons for an SSCS1 form. Return ONLY valid JSON: {"score": <number 1-10>, "analysis": "<2-3 sentences>"}. Score 1-10 for how strong this appeal case is (8+ = very strong, 5-7 = solid, below 5 = needs work). Analysis: be honest and objective — what it does well (descriptors challenged, reliability/safety criteria, evidence cited) and what could still be stronger. No sycophancy.\n\nAppeal reasons:\n${reasons}`,
+          conversationHistory: [],
+          medProfile: { conditions: medProfile?.conditions || [] },
+          userId: user?.id,
+        }),
+      }).then(r => r.json()).then(d => {
+        if (d.reply) {
+          try {
+            const parsed = JSON.parse(d.reply.replace(/```json|```/g, '').trim());
+            if (parsed.score) setAnswerScore(Number(parsed.score));
+            if (parsed.analysis) setAnswerAnalysis(parsed.analysis.trim());
+          } catch { setAnswerAnalysis(d.reply.trim()); }
+        }
+      }).catch(() => {});
     } catch {
-      setAppealReasons('Something went wrong. Please try again.');
+      setGenerateError('Something went wrong. Please check your connection and try again.');
     } finally {
       setGenerating(false);
     }
@@ -402,10 +414,17 @@ export function AppealScreen() {
               <button onClick={() => navigateTo('question_index')} className="w-full bg-teal-700 text-white py-3 rounded-xl font-bold text-sm hover:bg-teal-800 transition-all">Complete my PIP answers →</button>
             </div>
           ) : !appealReasons ? (
-            <button type="button" onClick={generateReasons} disabled={generating}
-              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
-              {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
-            </button>
+            <div className="space-y-3">
+              {generateError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800" role="alert">
+                  {generateError}
+                </div>
+              )}
+              <button type="button" onClick={generateReasons} disabled={generating}
+                className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
+                {generating ? <><Loader2 className="w-5 h-5 animate-spin" /> Writing your appeal reasons...</> : <>✨ Write my SSCS1 appeal reasons</>}
+              </button>
+            </div>
           ) : (
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">

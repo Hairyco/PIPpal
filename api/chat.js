@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  const { notifyAdminAiFailure } = await import('../lib/notify-admin.js');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -186,6 +187,15 @@ Rules:
 
   } catch (error) {
     console.error('Chat error:', error.message);
+    void notifyAdminAiFailure({
+      feature: 'chat',
+      error,
+      context: {
+        userId: req.body?.userId,
+        buttonMode: !!req.body?.buttonMode,
+      },
+      httpStatus: 500,
+    });
     return res.status(500).json({ error: error.message });
   }
 }

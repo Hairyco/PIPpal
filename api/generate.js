@@ -3,6 +3,8 @@
 // Reduces serverless function count from 14 → 12 (Vercel Hobby plan limit)
 // Pass { type: 'mr-letter' | 'sscs1' | 'coc-answers' | 'coc-walkthrough-copy' | 'coc-document-classify' | 'coc-document-analysis', ...data } in the request body
 
+import { notifyAdminAiFailure } from '../lib/notify-admin.js';
+
 async function openaiChat(system, user, { jsonObject = false, maxTokens = 2000 } = {}) {
   if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
   const body = {
@@ -89,6 +91,11 @@ async function anthropicComplete(prompt, maxTokens = 2000) {
     }),
   });
 
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Anthropic error ${response.status}: ${errText}`);
+  }
+
   const data = await response.json();
   return (data.content?.[0]?.text || '').trim();
 }
@@ -107,7 +114,16 @@ export default async function handler(req, res) {
     mrOutcome,
     changes,
     baseCopy,
+    userId,
+    userEmail,
   } = req.body || {};
+
+  const alertContext = (extra = {}) => ({
+    type,
+    ...(userId ? { userId } : {}),
+    ...(userEmail ? { userEmail } : {}),
+    ...extra,
+  });
 
   const conditionsList = medProfile?.conditions?.map(c => c.name).join(', ') || 'not specified';
 
@@ -266,6 +282,13 @@ ${JSON.stringify(baseCopy)}`;
 
     try {
       if (!process.env.OPENAI_API_KEY) {
+        const err = new Error('OpenAI unavailable');
+        void notifyAdminAiFailure({
+          feature: 'generate/coc-walkthrough-copy',
+          error: err,
+          context: alertContext(),
+          httpStatus: 503,
+        });
         return res.status(503).json({ error: 'OpenAI unavailable', walkthroughCopy: null });
       }
       const raw = await openaiChat(system, user, { jsonObject: true, maxTokens: 4000 });
@@ -273,6 +296,12 @@ ${JSON.stringify(baseCopy)}`;
       return res.status(200).json({ walkthroughCopy: parsed });
     } catch (err) {
       console.error('coc-walkthrough-copy:', err.message);
+      void notifyAdminAiFailure({
+        feature: 'generate/coc-walkthrough-copy',
+        error: err,
+        context: alertContext(),
+        httpStatus: 500,
+      });
       return res.status(500).json({ error: err.message, walkthroughCopy: null });
     }
 
@@ -413,7 +442,14 @@ Rules:
 
     try {
       if (!process.env.OPENAI_API_KEY) {
-        return res.status(503).json({ error: 'OpenAI Vision not available (no API key)' });
+        const err = new Error('OpenAI Vision not available (no API key)');
+        void notifyAdminAiFailure({
+          feature: 'generate/coc-document-analysis',
+          error: err,
+          context: alertContext({ docKind }),
+          httpStatus: 503,
+        });
+        return res.status(503).json({ error: err.message });
       }
       const raw = await openaiVision(system, userText, imageObjects, { maxTokens: 3000 });
       let parsed;
@@ -425,11 +461,24 @@ Rules:
         parsed = match ? JSON.parse(match[0]) : null;
       }
       if (!parsed) {
-        return res.status(500).json({ error: 'Could not parse extraction result' });
+        const err = new Error('Could not parse extraction result');
+        void notifyAdminAiFailure({
+          feature: 'generate/coc-document-analysis',
+          error: err,
+          context: alertContext({ docKind }),
+          httpStatus: 500,
+        });
+        return res.status(500).json({ error: err.message });
       }
       return res.status(200).json({ extractedAnswers: parsed });
     } catch (err) {
       console.error('coc-document-analysis:', err.message);
+      void notifyAdminAiFailure({
+        feature: 'generate/coc-document-analysis',
+        error: err,
+        context: alertContext({ docKind }),
+        httpStatus: 500,
+      });
       return res.status(500).json({ error: err.message });
     }
 
@@ -446,24 +495,48 @@ Rules:
 
   try {
     let text = '';
+    let openAiError = null;
+    let anthropicError = null;
     const maxTok = type === 'coc-answers' ? 2400 : 2000;
 
     if (process.env.OPENAI_API_KEY) {
       try {
         text = await openaiChat(openAiSystem, prompt, { jsonObject: false, maxTokens: maxTok });
       } catch (e) {
+        openAiError = e;
         console.error('generate.js OpenAI:', e.message);
       }
     }
     if (!text && process.env.ANTHROPIC_API_KEY) {
-      text = await anthropicComplete(prompt, maxTok);
+      try {
+        text = await anthropicComplete(prompt, maxTok);
+      } catch (e) {
+        anthropicError = e;
+        console.error('generate.js Anthropic:', e.message);
+      }
     }
     if (!text) {
-      return res.status(503).json({ error: 'No LLM configured or responses were empty.' });
+      const failureError = openAiError || anthropicError || new Error('No LLM configured or responses were empty.');
+      void notifyAdminAiFailure({
+        feature: `generate/${type}`,
+        error: failureError,
+        context: alertContext(),
+        httpStatus: 503,
+      });
+      return res.status(503).json({
+        error: 'Generation failed. Please try again in a moment.',
+        detail: failureError.message,
+      });
     }
 
     res.status(200).json({ [responseKey]: text });
   } catch (err) {
+    void notifyAdminAiFailure({
+      feature: `generate/${type}`,
+      error: err,
+      context: alertContext(),
+      httpStatus: 500,
+    });
     res.status(500).json({ error: err.message });
   }
 }

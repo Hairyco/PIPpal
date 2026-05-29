@@ -198,10 +198,11 @@ function ActivityAccordionBlock({
 }
 
 export function MandatoryReconsiderationScreen() {
-  const { goBack, navigateTo, savedAnswers, medProfile, setMrDraftLetter, isAdmin } = useAppContext();
+  const { goBack, navigateTo, savedAnswers, medProfile, setMrDraftLetter, isAdmin, user } = useAppContext();
 
   const [generatingLetter, setGeneratingLetter] = useState(false);
   const [mrLetter, setMrLetter] = useState<string | null>(null);
+  const [letterGenerateError, setLetterGenerateError] = useState<string | null>(null);
   const [letterCopied, setLetterCopied] = useState(false);
   const [userNotes, setUserNotes] = useState('');
   const [answerAnalysis, setAnswerAnalysis] = useState<string | null>(null);
@@ -226,6 +227,7 @@ export function MandatoryReconsiderationScreen() {
     if (!canGenerateLetter) return;
     setGeneratingLetter(true);
     setMrLetter(null);
+    setLetterGenerateError(null);
     try {
       const res = await fetch('/api/generate', {
         method: 'POST',
@@ -237,35 +239,38 @@ export function MandatoryReconsiderationScreen() {
           decisionLetterExtraction: extractionText || undefined,
           decisionDetails: userNotes.trim() || undefined,
           disputedActivities: [],
+          userId: user?.id,
+          userEmail: user?.email,
         }),
       });
       const data = await res.json().catch(() => ({}));
-      const letterText =
-        typeof data.letter === 'string' ? data.letter : 'Could not generate letter. Please try again.';
-      setMrLetter(letterText);
-      if (res.ok && typeof data.letter === 'string' && data.letter.trim()) {
-        setMrDraftLetter(data.letter.trim());
-        // Generate objective analysis
-        fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: `You are reviewing a PIP Mandatory Reconsideration draft. Return ONLY valid JSON in this exact format: {"score": <number 1-10>, "analysis": "<2-3 sentences>"}. Score 1-10 for how strong this MR argument is (8+ = very strong, 5-7 = solid, below 5 = needs work). Analysis: be honest and objective — what it does well (specific descriptors, reliability criteria, evidence cited) and what could still be stronger. No sycophancy.\n\nDraft:\n${letterText}`,
-            conversationHistory: [],
-            medProfile: { conditions: medProfile?.conditions || [] },
-          }),
-        }).then(r => r.json()).then(d => {
-          if (d.reply) {
-            try {
-              const parsed = JSON.parse(d.reply.replace(/```json|```/g, '').trim());
-              if (parsed.score) setAnswerScore(Number(parsed.score));
-              if (parsed.analysis) setAnswerAnalysis(parsed.analysis.trim());
-            } catch { setAnswerAnalysis(d.reply.trim()); }
-          }
-        }).catch(() => {});
+      const letterText = typeof data.letter === 'string' ? data.letter.trim() : '';
+      if (!res.ok || !letterText) {
+        setLetterGenerateError(data.detail || data.error || 'Could not generate letter. Please try again.');
+        return;
       }
+      setMrLetter(letterText);
+      setMrDraftLetter(letterText);
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `You are reviewing a PIP Mandatory Reconsideration draft. Return ONLY valid JSON in this exact format: {"score": <number 1-10>, "analysis": "<2-3 sentences>"}. Score 1-10 for how strong this MR argument is (8+ = very strong, 5-7 = solid, below 5 = needs work). Analysis: be honest and objective — what it does well (specific descriptors, reliability criteria, evidence cited) and what could still be stronger. No sycophancy.\n\nDraft:\n${letterText}`,
+          conversationHistory: [],
+          medProfile: { conditions: medProfile?.conditions || [] },
+          userId: user?.id,
+        }),
+      }).then(r => r.json()).then(d => {
+        if (d.reply) {
+          try {
+            const parsed = JSON.parse(d.reply.replace(/```json|```/g, '').trim());
+            if (parsed.score) setAnswerScore(Number(parsed.score));
+            if (parsed.analysis) setAnswerAnalysis(parsed.analysis.trim());
+          } catch { setAnswerAnalysis(d.reply.trim()); }
+        }
+      }).catch(() => {});
     } catch {
-      setMrLetter('Something went wrong. Please try again.');
+      setLetterGenerateError('Something went wrong. Please check your connection and try again.');
     } finally {
       setGeneratingLetter(false);
     }
@@ -701,18 +706,25 @@ export function MandatoryReconsiderationScreen() {
           </div>
 
           {!mrLetter ? (
-            <button
-              type="button"
-              onClick={generateLetter}
-              disabled={generatingLetter || !canGenerateLetter}
-              className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
-            >
-              {generatingLetter ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Building your {mrRoute === 'form' ? 'answers' : 'letter'}...</>
-              ) : (
-                <>✨ Generate my {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</>
+            <div className="space-y-3">
+              {letterGenerateError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800" role="alert">
+                  {letterGenerateError}
+                </div>
               )}
-            </button>
+              <button
+                type="button"
+                onClick={generateLetter}
+                disabled={generatingLetter || !canGenerateLetter}
+                className="w-full py-4 rounded-xl font-bold text-base bg-teal-700 text-white hover:bg-teal-800 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+              >
+                {generatingLetter ? (
+                  <><Loader2 className="w-5 h-5 animate-spin" /> Building your {mrRoute === 'form' ? 'answers' : 'letter'}...</>
+                ) : (
+                  <>✨ Generate my {mrRoute === 'form' ? 'CRMR1 answers' : 'MR letter'}</>
+                )}
+              </button>
+            </div>
           ) : (
             <div className="space-y-3">
               <div className="bg-white rounded-2xl border border-stone-100 shadow-sm p-4">
