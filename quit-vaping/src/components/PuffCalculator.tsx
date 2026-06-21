@@ -12,7 +12,6 @@ import {
   type PuffLogs,
 } from '../utils/puffDiary'
 import { ResultBox } from './ResultBox'
-import { SaveToHomeScreenButton } from './SaveToHomeScreenButton'
 
 interface PuffCalculatorProps {
   puffs: number
@@ -125,20 +124,6 @@ export function PuffCalculator({
               <p className="mt-2 text-xs text-slate-500">
                 Research shows: 10–15 puffs ≈ 1 cigarette
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={handleLogToday}
-                  className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700"
-                >
-                  <Save className="h-4 w-4" />
-                  Log today&apos;s puffs
-                </button>
-                <SaveToHomeScreenButton />
-              </div>
-              {savedHint && !hasLoggedToday && (
-                <p className="mt-2 text-sm font-medium text-brand-600">{savedHint}</p>
-              )}
             </div>
 
             <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
@@ -153,8 +138,19 @@ export function PuffCalculator({
             </div>
           </div>
 
-          <div>
+          <div className="space-y-4">
             <ResultBox cigarettes={cigarettes} formula={formula} />
+            <button
+              type="button"
+              onClick={handleLogToday}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 sm:w-auto"
+            >
+              <Save className="h-4 w-4" />
+              Log today&apos;s puffs
+            </button>
+            {savedHint && !hasLoggedToday && (
+              <p className="text-sm font-medium text-brand-600">{savedHint}</p>
+            )}
           </div>
         </div>
       </div>

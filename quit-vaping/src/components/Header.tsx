@@ -1,12 +1,19 @@
 import { Leaf } from 'lucide-react'
-import { SearchBar } from './SearchBar'
+import { SearchBar, type SearchQuickFilter } from './SearchBar'
 
 interface HeaderProps {
   searchQuery: string
   onSearchChange: (value: string) => void
+  searchQuickFilter?: SearchQuickFilter
+  onSearchQuickFilterChange?: (filter: SearchQuickFilter) => void
 }
 
-export function Header({ searchQuery, onSearchChange }: HeaderProps) {
+export function Header({
+  searchQuery,
+  onSearchChange,
+  searchQuickFilter,
+  onSearchQuickFilterChange,
+}: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
@@ -25,7 +32,12 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
             </div>
           </a>
 
-          <SearchBar value={searchQuery} onChange={onSearchChange} />
+          <SearchBar
+            value={searchQuery}
+            onChange={onSearchChange}
+            quickFilter={searchQuickFilter}
+            onQuickFilterChange={onSearchQuickFilterChange}
+          />
 
           <nav className="hidden shrink-0 items-center gap-4 text-sm lg:flex">
             <a

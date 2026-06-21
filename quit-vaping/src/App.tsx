@@ -9,23 +9,32 @@ import { Header } from './components/Header'
 import { InfoBanner } from './components/InfoBanner'
 import { ProductRecommendations } from './components/ProductRecommendations'
 import { PuffCalculator } from './components/PuffCalculator'
+import type { SearchQuickFilter } from './components/SearchBar'
+import { ALL_E_LIQUID_BRANDS, type ELiquidBrand } from './data/eLiquidOptions'
 import { usePuffDiary } from './hooks/usePuffDiary'
 import { readSharePayloadFromUrl, type SharePayload } from './utils/puffDiary'
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<CalculatorTab>('eliquid')
+  const [activeTab, setActiveTab] = useState<CalculatorTab>('puff')
   const [nicotineMg, setNicotineMg] = useState(10)
   const [volumeMl, setVolumeMl] = useState(10)
+  const [eLiquidBrand, setELiquidBrand] = useState<ELiquidBrand>(ALL_E_LIQUID_BRANDS)
   const [puffs, setPuffs] = useState(200)
   const [cigarettesPerDay, setCigarettesPerDay] = useState(20)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuickFilter, setSearchQuickFilter] = useState<SearchQuickFilter>(null)
   const [challengeOpen, setChallengeOpen] = useState(false)
   const [sharedFriend] = useState<SharePayload | null>(() => readSharePayloadFromUrl())
   const diary = usePuffDiary()
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <Header
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchQuickFilter={searchQuickFilter}
+        onSearchQuickFilterChange={setSearchQuickFilter}
+      />
 
       <section className="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 px-4 py-12 text-white sm:px-6 sm:py-16">
         <div className="mx-auto max-w-6xl">
@@ -62,8 +71,10 @@ export function App() {
             <ELiquidCalculator
               nicotineMg={nicotineMg}
               volumeMl={volumeMl}
+              brand={eLiquidBrand}
               onNicotineChange={setNicotineMg}
               onVolumeChange={setVolumeMl}
+              onBrandChange={setELiquidBrand}
             />
           )}
           {activeTab === 'puff' && (
@@ -87,10 +98,14 @@ export function App() {
           <ProductRecommendations
             currentNicotineMg={nicotineMg}
             searchQuery={searchQuery}
+            searchQuickFilter={searchQuickFilter}
             onSearchChange={setSearchQuery}
+            onSearchQuickFilterChange={setSearchQuickFilter}
             volumeMl={volumeMl}
+            eLiquidBrand={eLiquidBrand}
             onNicotineChange={setNicotineMg}
             onVolumeChange={setVolumeMl}
+            onBrandChange={setELiquidBrand}
           />
 
           <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">

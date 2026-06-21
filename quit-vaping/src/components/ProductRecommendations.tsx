@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
   ArrowDownRight,
-  ChevronDown,
   ExternalLink,
   ShoppingBag,
   Store,
@@ -19,14 +18,21 @@ import {
 import { FeaturedCollectionsCarousel } from './FeaturedCollectionsCarousel'
 import { ELiquidCalculator } from './ELiquidCalculator'
 import type { Collection } from '../data/collections'
+import type { SearchQuickFilter } from './SearchBar'
+import { ALL_E_LIQUID_BRANDS, type ELiquidBrand } from '../data/eLiquidOptions'
+import { StoreLogo } from './StoreLogo'
 
 interface ProductRecommendationsProps {
   currentNicotineMg: number
   searchQuery: string
+  searchQuickFilter?: SearchQuickFilter
   onSearchChange?: (query: string) => void
+  onSearchQuickFilterChange?: (filter: SearchQuickFilter) => void
   volumeMl: number
+  eLiquidBrand: ELiquidBrand
   onNicotineChange: (v: number) => void
   onVolumeChange: (v: number) => void
+  onBrandChange: (brand: ELiquidBrand) => void
 }
 
 const CATEGORIES: { id: ProductType | 'all'; label: string }[] = [
@@ -47,7 +53,6 @@ function ProductCard({
   product: Product
   highlighted?: boolean
 }) {
-  const [expanded, setExpanded] = useState(false)
   const best = lowestPrice(product)
   const highest = highestPrice(product)
   const sorted = [...product.prices].sort((a, b) => a.price - b.price)
@@ -110,39 +115,30 @@ function ProductCard({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setExpanded((v) => !v)}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
-          >
+          <p className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
             Compare prices
-            <ChevronDown
-              className={`h-4 w-4 transition ${expanded ? 'rotate-180' : ''}`}
-            />
-          </button>
+          </p>
 
-          {expanded && (
-            <div className="mt-2 space-y-1.5">
-              {sorted.map((price) => (
-                <a
-                  key={price.store}
-                  href={price.url}
-                  className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-2.5 text-sm transition hover:border-brand-200 hover:bg-brand-50/50"
-                >
-                  <span className="font-medium text-slate-700">{price.store}</span>
-                  <span className="flex items-center gap-1.5 font-semibold text-slate-900">
-                    £{price.price.toFixed(2)}
-                    {price.store === best.store && (
-                      <span className="rounded bg-accent-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        BEST
-                      </span>
-                    )}
-                    <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
-                  </span>
-                </a>
-              ))}
-            </div>
-          )}
+          <div className="space-y-2">
+            {sorted.map((price) => (
+              <a
+                key={price.store}
+                href={price.url}
+                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50/80 px-3 py-2.5 transition hover:border-brand-200 hover:bg-brand-50/50"
+              >
+                <StoreLogo storeName={price.store} />
+                <span className="flex shrink-0 items-center gap-1.5 font-semibold text-slate-900">
+                  £{price.price.toFixed(2)}
+                  {price.store === best.store && (
+                    <span className="rounded bg-accent-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                      BEST
+                    </span>
+                  )}
+                  <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </article>
@@ -152,22 +148,36 @@ function ProductCard({
 export function ProductRecommendations({
   currentNicotineMg,
   searchQuery,
+  searchQuickFilter = null,
   onSearchChange,
+  onSearchQuickFilterChange,
   volumeMl,
+  eLiquidBrand,
   onNicotineChange,
   onVolumeChange,
+  onBrandChange,
 }: ProductRecommendationsProps) {
   const [category, setCategory] = useState<ProductType | 'all'>('all')
   const recommended = getRecommendedProducts(currentNicotineMg)
   const recommendedIds = new Set(recommended.map((p) => p.id))
   const steps = getRecommendedStrengths(currentNicotineMg)
 
-  const filteredProducts = useMemo(
-    () => filterProducts(PRODUCTS, searchQuery, category),
-    [searchQuery, category],
-  )
+  const filteredProducts = useMemo(() => {
+    const brandFilter = category === 'e-liquid' ? eLiquidBrand : null
+    let list = filterProducts(PRODUCTS, searchQuery, category, searchQuickFilter, brandFilter)
 
-  const isSearching = searchQuery.trim().length > 0 || category !== 'all'
+    if (category === 'e-liquid') {
+      list = list.filter((p) => p.strengthMg === currentNicotineMg)
+    }
+
+    return list
+  }, [searchQuery, category, searchQuickFilter, eLiquidBrand, currentNicotineMg])
+
+  const isSearching =
+    searchQuery.trim().length > 0 ||
+    category !== 'all' ||
+    searchQuickFilter !== null ||
+    (category === 'e-liquid' && eLiquidBrand !== ALL_E_LIQUID_BRANDS)
   const showRecommended = !isSearching && recommended.length > 0
   const browseProducts = showRecommended
     ? filteredProducts.filter((p) => !recommendedIds.has(p.id))
@@ -175,6 +185,7 @@ export function ProductRecommendations({
 
   function handleCollectionSelect(collection: Collection) {
     setCategory(collection.category)
+    onSearchQuickFilterChange?.(null)
     onSearchChange?.(collection.searchTerm ?? '')
     document.getElementById('recommendations')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -206,7 +217,10 @@ export function ProductRecommendations({
           <button
             key={id}
             type="button"
-            onClick={() => setCategory(id)}
+            onClick={() => {
+              setCategory(id)
+              onSearchQuickFilterChange?.(null)
+            }}
             className={`rounded-full px-4 py-2 text-sm font-medium transition ${
               category === id
                 ? 'bg-brand-600 text-white shadow-sm'
@@ -223,8 +237,10 @@ export function ProductRecommendations({
           compact
           nicotineMg={currentNicotineMg}
           volumeMl={volumeMl}
+          brand={eLiquidBrand}
           onNicotineChange={onNicotineChange}
           onVolumeChange={onVolumeChange}
+          onBrandChange={onBrandChange}
         />
       )}
 

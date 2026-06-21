@@ -15,7 +15,7 @@ const tabs: { id: CalculatorTab; label: string; icon: typeof Calculator }[] = [
 ]
 
 function tabClass(isActive: boolean) {
-  return `flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold transition ${
+  return `flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition sm:px-4 sm:py-3 ${
     isActive
       ? 'bg-brand-600 text-white shadow-md shadow-brand-600/25'
       : 'bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50'
@@ -35,14 +35,14 @@ export function CalculatorTabs({
   const CostIcon = costTab.icon
 
   return (
-    <div className="flex flex-col gap-2 sm:grid sm:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2">
       <button
         type="button"
         onClick={() => onChange(puffTab.id)}
         className={tabClass(active === puffTab.id)}
       >
-        <PuffIcon className="h-4 w-4" />
-        {puffTab.label}
+        <PuffIcon className="h-4 w-4 shrink-0" />
+        <span className="text-center leading-tight">{puffTab.label}</span>
       </button>
 
       <button
@@ -50,24 +50,23 @@ export function CalculatorTabs({
         onClick={() => onChange(eliquidTab.id)}
         className={tabClass(active === eliquidTab.id)}
       >
-        <EliquidIcon className="h-4 w-4" />
-        {eliquidTab.label}
+        <EliquidIcon className="h-4 w-4 shrink-0" />
+        <span className="text-center leading-tight">{eliquidTab.label}</span>
       </button>
 
-      <div className="flex flex-col gap-2">
-        <button type="button" onClick={onChallengeClick} className={tabClass(false)}>
-          <Users className="h-4 w-4" />
-          Compare with friend
-        </button>
-        <button
-          type="button"
-          onClick={() => onChange(costTab.id)}
-          className={tabClass(active === costTab.id)}
-        >
-          <CostIcon className="h-4 w-4" />
-          {costTab.label}
-        </button>
-      </div>
+      <button type="button" onClick={onChallengeClick} className={tabClass(false)}>
+        <Users className="h-4 w-4 shrink-0" />
+        <span className="text-center leading-tight">Compare with friend</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onChange(costTab.id)}
+        className={tabClass(active === costTab.id)}
+      >
+        <CostIcon className="h-4 w-4 shrink-0" />
+        <span className="text-center leading-tight">{costTab.label}</span>
+      </button>
     </div>
   )
 }
