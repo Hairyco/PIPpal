@@ -10,8 +10,8 @@ export function Hero() {
         Incubator
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-        Build any business. No dev. No rugs.
-        <span className="mt-1 block">Automated marketing wallets</span>
+        Launch any business in any industry
+        <span className="mt-1 block">with automated marketing wallets</span>
       </p>
       <PartnerLogos />
     </div>
