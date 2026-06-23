@@ -1,3 +1,5 @@
+import { PartnerLogos } from './PartnerLogos';
+
 export function Hero() {
   return (
     <div className="container my-16 text-center">
@@ -10,6 +12,7 @@ export function Hero() {
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
         The safest place to trade. No dev. No rugs. Automated marketing wallets
       </p>
+      <PartnerLogos />
     </div>
   );
 }
