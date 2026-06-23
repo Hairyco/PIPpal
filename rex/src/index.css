@@ -1,0 +1,52 @@
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .dex-card {
+    @apply relative flex w-full flex-col gap-2 rounded-2xl bg-gradient-to-b from-blue-300/5 to-blue-300/10 p-4;
+  }
+
+  .dex-card::before {
+    content: '';
+    @apply pointer-events-none absolute inset-0 select-none rounded-[inherit] bg-gradient-to-b from-white/10 to-white/5 p-px;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+  }
+
+  .dex-btn {
+    @apply inline-flex w-fit items-center rounded-md bg-rex-gradient px-4 py-2 text-sm text-white transition-opacity hover:opacity-90;
+  }
+
+  .hero-shimmer {
+    background-size: 200% 200%;
+    animation: shimmer 5s ease-in-out infinite;
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
