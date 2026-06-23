@@ -25,9 +25,17 @@ export function Header() {
           </div>
         </Link>
 
-        <a href="#" className="text-sm text-foreground transition-opacity hover:opacity-80">
-          Sign In
-        </a>
+        <div className="flex items-center gap-4 sm:gap-6">
+          <Link
+            to="/become-a-supplier"
+            className="text-sm text-foreground transition-opacity hover:opacity-80"
+          >
+            Become a supplier
+          </Link>
+          <a href="#" className="text-sm text-foreground transition-opacity hover:opacity-80">
+            Sign In
+          </a>
+        </div>
       </div>
     </header>
   );
