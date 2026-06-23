@@ -40,7 +40,7 @@ function CoinzillaLogo() {
 
 export function PartnerLogos() {
   return (
-    <section className="container -mt-8 mb-8">
+    <section className="container -mt-8 mb-2">
       <div className="flex flex-wrap items-center justify-center gap-10 md:gap-16">
         <DexScreenerLogo />
         <DexToolsLogo />
