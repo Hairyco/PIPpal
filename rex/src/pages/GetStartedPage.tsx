@@ -34,6 +34,7 @@ export function GetStartedPage() {
   const [step, setStep] = useState<Step>('idea');
   const [studioSearch, setStudioSearch] = useState('');
   const [showOwnSupplier, setShowOwnSupplier] = useState(false);
+  const [studioSkipped, setStudioSkipped] = useState(false);
   const [launched, setLaunched] = useState(false);
 
   const [projectName, setProjectName] = useState('');
@@ -62,10 +63,25 @@ export function GetStartedPage() {
   };
 
   const toggleStudio = (id: string) => {
+    setStudioSkipped(false);
+    setShowOwnSupplier(false);
     setShortlistedStudios((prev) =>
       prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
     );
+  };
+
+  const skipStudios = () => {
+    setStudioSkipped(true);
     setShowOwnSupplier(false);
+    setShortlistedStudios([]);
+    setOwnSupplierName('');
+    setOwnSupplierEmail('');
+    setOwnSupplierWebsite('');
+  };
+
+  const openOwnSupplier = () => {
+    setStudioSkipped(false);
+    setShowOwnSupplier(true);
   };
 
   const assignTalent = (deliverableId: string, talentId: string) => {
@@ -76,7 +92,10 @@ export function GetStartedPage() {
   };
 
   const canProceedIdea = projectName.trim() && categoryId && description.trim() && deliverables.length > 0;
-  const hasStudioPath = shortlistedStudios.length > 0 || (showOwnSupplier && ownSupplierName.trim() && ownSupplierEmail.trim());
+  const hasOwnSupplier =
+    showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
+  const canProceedStudios =
+    shortlistedStudios.length > 0 || hasOwnSupplier || studioSkipped;
 
   if (launched) {
     return (
@@ -299,7 +318,7 @@ export function GetStartedPage() {
                   {shortlistedStudios.length > 0 && (
                     <p className="mt-3 text-xs text-sky-400">
                       {shortlistedStudios.length} studio{shortlistedStudios.length > 1 ? 's' : ''}{' '}
-                      shortlisted
+                      shortlisted — continue to talent pool or review.
                     </p>
                   )}
                 </div>
@@ -309,8 +328,11 @@ export function GetStartedPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    setShowOwnSupplier((v) => !v);
-                    if (!showOwnSupplier) setShortlistedStudios([]);
+                    if (showOwnSupplier) {
+                      setShowOwnSupplier(false);
+                    } else {
+                      openOwnSupplier();
+                    }
                   }}
                   className="flex w-full items-center gap-3 text-left"
                 >
@@ -335,7 +357,10 @@ export function GetStartedPage() {
                       <input
                         className={inputClass}
                         value={ownSupplierName}
-                        onChange={(e) => setOwnSupplierName(e.target.value)}
+                        onChange={(e) => {
+                          setStudioSkipped(false);
+                          setOwnSupplierName(e.target.value);
+                        }}
                         placeholder="Your supplier's name"
                       />
                     </div>
@@ -348,7 +373,10 @@ export function GetStartedPage() {
                           type="email"
                           className={inputClass}
                           value={ownSupplierEmail}
-                          onChange={(e) => setOwnSupplierEmail(e.target.value)}
+                          onChange={(e) => {
+                            setStudioSkipped(false);
+                            setOwnSupplierEmail(e.target.value);
+                          }}
                           placeholder="team@agency.com"
                         />
                       </div>
@@ -374,7 +402,7 @@ export function GetStartedPage() {
                 )}
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
                   onClick={() => setStep('idea')}
@@ -383,16 +411,36 @@ export function GetStartedPage() {
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </button>
-                <button
-                  type="button"
-                  disabled={!hasStudioPath}
-                  onClick={() => setStep('talent')}
-                  className="dex-btn disabled:opacity-40"
-                >
-                  Talent pool
-                  <ArrowRight className="ml-2 inline h-4 w-4" />
-                </button>
+                <div className="flex flex-wrap items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={skipStudios}
+                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    Skip — decide later
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!canProceedStudios}
+                    onClick={() => setStep('talent')}
+                    className="dex-btn disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {shortlistedStudios.length > 0
+                      ? `Continue (${shortlistedStudios.length} shortlisted)`
+                      : hasOwnSupplier
+                        ? 'Continue with your supplier'
+                        : studioSkipped
+                          ? 'Continue without studio'
+                          : 'Talent pool'}
+                    <ArrowRight className="ml-2 inline h-4 w-4" />
+                  </button>
+                </div>
               </div>
+              {!canProceedStudios && (
+                <p className="text-center text-xs text-muted-foreground">
+                  Shortlist at least one studio, add your own supplier, or skip to continue.
+                </p>
+              )}
             </div>
           )}
 
@@ -538,9 +586,15 @@ export function GetStartedPage() {
 
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {showOwnSupplier ? 'Your supplier' : 'Shortlisted studios'}
+                      {hasOwnSupplier && shortlistedStudios.length === 0
+                        ? 'Your supplier'
+                        : studioSkipped
+                          ? 'Development studio'
+                          : 'Shortlisted studios'}
                     </p>
-                    {showOwnSupplier ? (
+                    {studioSkipped ? (
+                      <p className="mt-1 text-sm text-muted-foreground">Decide later</p>
+                    ) : hasOwnSupplier && shortlistedStudios.length === 0 ? (
                       <p className="mt-1 text-sm text-white">
                         {ownSupplierName}{' '}
                         <span className="text-muted-foreground">(pending vetting)</span>
