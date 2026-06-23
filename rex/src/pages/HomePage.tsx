@@ -10,8 +10,8 @@ export function HomePage() {
     <Layout>
       <Hero />
       <LaunchCta />
-      <IndustryGrid />
       <StudioCarousel />
+      <IndustryGrid />
       <Pillars />
     </Layout>
   );
