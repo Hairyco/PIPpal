@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { PartnerLogos } from './PartnerLogos';
 
 export function Hero() {
@@ -14,6 +15,12 @@ export function Hero() {
         <span className="mt-1 block">Automated marketing wallets</span>
       </p>
       <PartnerLogos />
+      <Link
+        to="/become-a-supplier"
+        className="mt-8 inline-flex items-center gap-2 rounded-md border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-sky-400/40 hover:bg-white/10"
+      >
+        Become a supplier
+      </Link>
     </div>
   );
 }
