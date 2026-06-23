@@ -28,11 +28,6 @@ const MILESTONE_ICONS: Record<MilestoneIcon, LucideIcon> = {
   rocket: Rocket,
 };
 
-const VENDOR_LOGO: Partial<Record<WalletChartMilestone['vendor'], string>> = {
-  DexScreener: '/images/partners/dexscreener.ico',
-  DEXTools: '/images/partners/dextools.svg',
-};
-
 function buildSmoothPath(points: ChartPoint[], maxY: number, width: number): string {
   const innerW = width - PADDING.left - PADDING.right;
   const innerH = CHART_HEIGHT - PADDING.top - PADDING.bottom;
