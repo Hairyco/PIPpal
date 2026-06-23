@@ -1,17 +1,33 @@
 import type { ActiveProject } from './categoryContent';
 
+export type MilestoneIcon =
+  | 'megaphone'
+  | 'badge'
+  | 'banner'
+  | 'display'
+  | 'spotlight'
+  | 'rocket';
+
 export interface WalletChartMilestone {
   id: string;
   amount: number;
   title: string;
   description: string;
   vendor: 'DexScreener' | 'Coinzilla' | 'DEXTools';
+  icon: MilestoneIcon;
   status: 'completed' | 'active' | 'upcoming';
 }
 
 export interface ChartPoint {
   label: string;
   value: number;
+}
+
+export interface ChartMilestoneMarker {
+  milestone: WalletChartMilestone;
+  pointIndex: number;
+  x: number;
+  y: number;
 }
 
 const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
@@ -21,6 +37,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'DexScreener token promotion',
     description: 'Trending bar placement & social boost on DexScreener',
     vendor: 'DexScreener',
+    icon: 'megaphone',
   },
   {
     id: 'ds-enhanced',
@@ -28,6 +45,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'Enhanced token info',
     description: 'Logo, links, and verified info on DexScreener token page',
     vendor: 'DexScreener',
+    icon: 'badge',
   },
   {
     id: 'ds-banner',
@@ -35,6 +53,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'DexScreener banner ad',
     description: 'Homepage banner campaign on DexScreener',
     vendor: 'DexScreener',
+    icon: 'banner',
   },
   {
     id: 'cz-display',
@@ -42,6 +61,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'Coinzilla display campaign',
     description: 'Crypto display ads across Coinzilla publisher network',
     vendor: 'Coinzilla',
+    icon: 'display',
   },
   {
     id: 'dx-tools',
@@ -49,6 +69,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'DEXTools spotlight',
     description: 'Featured placement and pair spotlight on DEXTools',
     vendor: 'DEXTools',
+    icon: 'spotlight',
   },
   {
     id: 'multi-push',
@@ -56,6 +77,7 @@ const WALLET_MILESTONE_TIERS: Omit<WalletChartMilestone, 'status'>[] = [
     title: 'Multi-platform push',
     description: 'Coordinated burst across DexScreener, Coinzilla & DEXTools',
     vendor: 'DexScreener',
+    icon: 'rocket',
   },
 ];
 
@@ -86,44 +108,101 @@ export function generateWalletHistory(
   currentBalance: number,
 ): ChartPoint[] {
   const seed = hashSeed(project.id + project.symbol);
-  const days = 14;
+  const days = 28;
   const points: ChartPoint[] = [];
 
+  const spendTiers = WALLET_MILESTONE_TIERS.filter((t) => t.amount <= currentBalance * 1.1).map(
+    (t) => t.amount,
+  );
+
+  let balance = Math.max(12, Math.round(currentBalance * 0.04));
+  const targetSteps: number[] = [];
+
   for (let i = 0; i < days; i++) {
-    const progress = (i + 1) / days;
-    const noise = ((seed + i * 17) % 11) - 5;
-    const balance = Math.max(0, Math.round(currentBalance * progress * (0.85 + noise * 0.02)));
     const date = new Date();
     date.setDate(date.getDate() - (days - 1 - i));
+
+    const dailyTax = Math.round((currentBalance / days) * (0.7 + ((seed + i * 13) % 10) / 20));
+    const volatility = (((seed + i * 7) % 9) - 4) * (currentBalance * 0.008);
+    balance = Math.max(0, balance + dailyTax + volatility);
+
+    for (const tier of spendTiers) {
+      if (balance >= tier && !targetSteps.includes(tier)) {
+        targetSteps.push(tier);
+        balance = Math.max(tier * 0.12, balance - tier * (0.55 + ((seed + i) % 5) * 0.08));
+      }
+    }
+
+    if (i === days - 1) balance = currentBalance;
+
     points.push({
       label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: balance,
+      value: Math.round(Math.min(balance, currentBalance * 1.05)),
     });
   }
 
   points[points.length - 1].value = currentBalance;
+
+  for (let i = 1; i < points.length; i++) {
+    points[i].value = Math.max(points[i].value, points[i - 1].value * 0.82);
+  }
+
   return points;
+}
+
+export function getChartMilestoneMarkers(
+  history: ChartPoint[],
+  milestones: WalletChartMilestone[],
+  maxY: number,
+  width: number,
+  chartHeight: number,
+  padding: { top: number; right: number; bottom: number; left: number },
+): ChartMilestoneMarker[] {
+  const innerW = width - padding.left - padding.right;
+  const innerH = chartHeight - padding.top - padding.bottom;
+  const markers: ChartMilestoneMarker[] = [];
+
+  for (const milestone of milestones) {
+    if (milestone.status === 'upcoming') continue;
+
+    let pointIndex = history.findIndex((p) => p.value >= milestone.amount);
+    if (pointIndex === -1 && milestone.status === 'active') {
+      pointIndex = history.length - 1;
+    }
+    if (pointIndex === -1) continue;
+
+    const point = history[pointIndex];
+    const x = padding.left + (pointIndex / Math.max(history.length - 1, 1)) * innerW;
+    const y = padding.top + innerH - (point.value / maxY) * innerH;
+
+    markers.push({ milestone, pointIndex, x, y });
+  }
+
+  return markers;
 }
 
 export function generatePriceHistory(project: ActiveProject): ChartPoint[] {
   const seed = hashSeed(project.symbol);
   const endPrice = parseFloat(project.price.replace(/[$,]/g, ''));
   const startPrice = endPrice / (1 + project.change24h / 100);
-  const hours = 24;
-  const points: ChartPoint[] = [];
+  const points = 48;
+  const history: ChartPoint[] = [];
+  let price = startPrice;
 
-  for (let i = 0; i < hours; i++) {
-    const t = i / (hours - 1);
-    const wave = Math.sin((i + seed) * 0.7) * 0.04;
-    const price = startPrice + (endPrice - startPrice) * t + startPrice * wave;
-    points.push({
-      label: i % 6 === 0 ? `${24 - i}h` : '',
-      value: Math.max(price, endPrice * 0.5),
+  for (let i = 0; i < points; i++) {
+    const t = i / (points - 1);
+    const trend = startPrice + (endPrice - startPrice) * t;
+    const wave = Math.sin((i + seed) * 0.55) * endPrice * 0.06;
+    const spike = i % 11 === 0 ? endPrice * (((seed + i) % 3) - 1) * 0.03 : 0;
+    price = Math.max(endPrice * 0.45, trend + wave + spike);
+    history.push({
+      label: i % 8 === 0 ? `${48 - i}m` : '',
+      value: price,
     });
   }
 
-  points[points.length - 1].value = endPrice;
-  return points;
+  history[history.length - 1].value = endPrice;
+  return history;
 }
 
 export function parseDollar(value: string): number {
