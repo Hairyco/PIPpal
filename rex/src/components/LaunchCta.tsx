@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { HowItWorksModal } from './HowItWorksModal';
@@ -19,9 +20,9 @@ export function LaunchCta() {
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <button type="button" className="dex-btn">
+          <Link to="/get-started" className="dex-btn">
             Get Started
-          </button>
+          </Link>
           <button
             type="button"
             onClick={() => setShowHowItWorks(true)}
