@@ -11,7 +11,7 @@ export function Hero() {
         Incubator
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-        The safest place to trade. No dev. No rugs.
+        Build any business. No dev. No rugs.
         <span className="mt-1 block">Automated marketing wallets</span>
       </p>
       <PartnerLogos />
