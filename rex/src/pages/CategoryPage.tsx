@@ -101,7 +101,7 @@ export function CategoryPage() {
 
         <div className="mt-6">
           {tab === 'projects' ? (
-            <ProjectsTable projects={content.projects} />
+            <ProjectsTable projects={content.projects} categoryId={categoryId ?? ''} />
           ) : (
             <IdeasPanel ideas={content.ideas} />
           )}

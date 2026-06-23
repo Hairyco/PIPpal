@@ -1,21 +1,15 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { BadgeCheck, Map, Wallet } from 'lucide-react';
 import type { ActiveProject } from '../../data/categoryContent';
+import { TokenIcon } from '../TokenIcon';
 import { getProjectDetails, getMilestoneProgress } from '../../data/projectDetails';
 import { RoadmapModal } from './RoadmapModal';
 
 type View = 'trending' | 'gainers' | 'mcap' | 'marketing';
 
-function TokenIcon({ symbol }: { symbol: string }) {
-  const hue = symbol.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360;
-  return (
-    <div
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-      style={{ backgroundColor: `hsl(${hue} 60% 45%)` }}
-    >
-      {symbol.slice(0, 2)}
-    </div>
-  );
+function projectPath(categoryId: string, project: ActiveProject) {
+  return `/project/${categoryId}/${project.id}`;
 }
 
 function ChangeCell({ value }: { value: number }) {
@@ -61,7 +55,13 @@ function MilestoneBar({ project }: { project: ActiveProject }) {
   );
 }
 
-export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
+export function ProjectsTable({
+  projects,
+  categoryId,
+}: {
+  projects: ActiveProject[];
+  categoryId: string;
+}) {
   const [view, setView] = useState<View>('trending');
   const [modalProject, setModalProject] = useState<ActiveProject | null>(null);
 
@@ -142,7 +142,12 @@ export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
                         <TokenIcon symbol={project.symbol} />
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-medium text-foreground">{project.name}</span>
+                            <Link
+                              to={projectPath(categoryId, project)}
+                              className="font-medium text-foreground hover:text-sky-400"
+                            >
+                              {project.name}
+                            </Link>
                             {project.verified && (
                               <BadgeCheck className="h-3.5 w-3.5 text-sky-400" aria-label="KYC verified" />
                             )}
@@ -209,7 +214,12 @@ export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
                       <TokenIcon symbol={project.symbol} />
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="font-medium text-foreground">{project.name}</span>
+                            <Link
+                              to={projectPath(categoryId, project)}
+                              className="font-medium text-foreground hover:text-sky-400"
+                            >
+                              {project.name}
+                            </Link>
                           {project.verified && (
                             <BadgeCheck className="h-3.5 w-3.5 text-sky-400" aria-label="KYC verified" />
                           )}
@@ -240,9 +250,9 @@ export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
                         <Map className="mr-1 inline h-3 w-3" />
                         Roadmap
                       </button>
-                      <button type="button" className="dex-btn text-xs">
+                      <Link to={projectPath(categoryId, project)} className="dex-btn text-xs">
                         Trade
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

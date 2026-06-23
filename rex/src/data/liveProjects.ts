@@ -1,5 +1,6 @@
 export interface FeaturedLiveProject {
   id: string;
+  projectId: string;
   name: string;
   symbol: string;
   category: string;
@@ -12,6 +13,7 @@ export interface FeaturedLiveProject {
 export const liveProjects: FeaturedLiveProject[] = [
   {
     id: 'cwh',
+    projectId: '1',
     name: 'CatWifHat',
     symbol: 'CWH',
     category: 'Meme Coins',
@@ -22,6 +24,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'fbet',
+    projectId: '1',
     name: 'FanBet Pro',
     symbol: 'FBET',
     category: 'Sports',
@@ -32,6 +35,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'fit',
+    projectId: '1',
     name: 'FitTrack',
     symbol: 'FIT',
     category: 'Apps',
@@ -42,6 +46,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'strm',
+    projectId: '1',
     name: 'StreamVault',
     symbol: 'STRM',
     category: 'Media & Ent',
@@ -52,6 +57,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'prex',
+    projectId: '2',
     name: 'PepeRex',
     symbol: 'PREX',
     category: 'Meme Coins',
@@ -62,6 +68,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'study',
+    projectId: '2',
     name: 'StudyPal',
     symbol: 'STUDY',
     category: 'Apps',
@@ -72,6 +79,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'cpay',
+    projectId: '2',
     name: 'CreatorPay',
     symbol: 'CPAY',
     category: 'Media & Ent',
@@ -82,6 +90,7 @@ export const liveProjects: FeaturedLiveProject[] = [
   },
   {
     id: 'club',
+    projectId: '2',
     name: 'ClubToken FC',
     symbol: 'CLUB',
     category: 'Sports',

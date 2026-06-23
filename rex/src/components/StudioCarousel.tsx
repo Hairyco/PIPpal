@@ -19,7 +19,7 @@ function ProjectCard({ project }: { project: FeaturedLiveProject }) {
 
   return (
     <Link
-      to={`/category/${project.categoryId}`}
+      to={`/project/${project.categoryId}/${project.projectId}`}
       className="dex-card w-[280px] shrink-0 transition-opacity hover:opacity-90 md:w-[300px]"
     >
       <div className="relative z-[1] flex items-center gap-3">

@@ -215,3 +215,8 @@ export function getCategoryContent(categoryId: string): CategoryContent {
   const content = categoryContent[categoryId] ?? defaultContent;
   return enrichContent(categoryId, content);
 }
+
+export function getProject(categoryId: string, projectId: string): ActiveProject | null {
+  const content = getCategoryContent(categoryId);
+  return content.projects.find((p) => p.id === projectId) ?? null;
+}
