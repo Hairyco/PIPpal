@@ -1,3 +1,5 @@
+import { resolveProjectUtilities } from './projectUtilities';
+
 export interface ActiveProject {
   id: string;
   rank: number;
@@ -8,7 +10,10 @@ export interface ActiveProject {
   change24h: number;
   age: string;
   verified: boolean;
+  utilities: string[];
 }
+
+type RawProject = Omit<ActiveProject, 'utilities'>;
 
 export interface ProjectIdea {
   id: string;
@@ -23,7 +28,22 @@ export interface CategoryContent {
   ideas: ProjectIdea[];
 }
 
-const categoryContent: Record<string, CategoryContent> = {
+type RawCategoryContent = {
+  projects: RawProject[];
+  ideas: ProjectIdea[];
+};
+
+function enrichContent(categoryId: string, content: RawCategoryContent): CategoryContent {
+  return {
+    ...content,
+    projects: content.projects.map((p) => ({
+      ...p,
+      utilities: resolveProjectUtilities(categoryId, p.id),
+    })),
+  };
+}
+
+const categoryContent: Record<string, RawCategoryContent> = {
   'meme-coins': {
     projects: [
       { id: '1', rank: 1, name: 'CatWifHat', symbol: 'CWH', marketCap: '$4.2M', price: '$0.0042', change24h: 142.5, age: '2d', verified: true },
@@ -165,7 +185,7 @@ const categoryContent: Record<string, CategoryContent> = {
   },
 };
 
-const defaultContent: CategoryContent = {
+const defaultContent: RawCategoryContent = {
   projects: [
     { id: '1', rank: 1, name: 'RexStarter', symbol: 'REX', marketCap: '$500K', price: '$0.005', change24h: 15.0, age: '7d', verified: true },
     { id: '2', rank: 2, name: 'LaunchPad', symbol: 'LAUNCH', marketCap: '$250K', price: '$0.0025', change24h: 8.3, age: '3d', verified: false },
@@ -177,5 +197,6 @@ const defaultContent: CategoryContent = {
 };
 
 export function getCategoryContent(categoryId: string): CategoryContent {
-  return categoryContent[categoryId] ?? defaultContent;
+  const content = categoryContent[categoryId] ?? defaultContent;
+  return enrichContent(categoryId, content);
 }

@@ -10,7 +10,7 @@ type Tab = 'projects' | 'ideas';
 
 export function CategoryPage() {
   const { categoryId } = useParams<{ categoryId: string }>();
-  const [tab, setTab] = useState<Tab>('ideas');
+  const [tab, setTab] = useState<Tab>('projects');
 
   const industry = industries.find((i) => i.id === categoryId);
   const content = getCategoryContent(categoryId ?? '');
@@ -70,6 +70,20 @@ export function CategoryPage() {
           <div className="flex gap-1">
             <button
               type="button"
+              onClick={() => setTab('projects')}
+              className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                tab === 'projects'
+                  ? 'border-sky-400 text-white'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Active Projects
+              <span className="ml-2 rounded-full bg-sky-500/20 px-2 py-0.5 text-xs text-sky-400">
+                {content.projects.length}
+              </span>
+            </button>
+            <button
+              type="button"
               onClick={() => setTab('ideas')}
               className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
                 tab === 'ideas'
@@ -81,17 +95,6 @@ export function CategoryPage() {
               <span className="ml-2 rounded-full bg-sky-500/20 px-2 py-0.5 text-xs text-sky-400">
                 {content.ideas.length}
               </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('projects')}
-              className={`border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
-                tab === 'projects'
-                  ? 'border-sky-400 text-white'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Active Projects
             </button>
           </div>
         </div>

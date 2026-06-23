@@ -28,6 +28,21 @@ function ChangeCell({ value }: { value: number }) {
   );
 }
 
+function UtilityPills({ utilities }: { utilities: string[] }) {
+  return (
+    <div className="flex max-w-[200px] flex-wrap gap-1">
+      {utilities.map((utility) => (
+        <span
+          key={utility}
+          className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300"
+        >
+          {utility}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function MilestoneBar({ project }: { project: ActiveProject }) {
   const { done, total } = getMilestoneProgress(getProjectDetails(project).milestones);
   const pct = (done / total) * 100;
@@ -168,11 +183,12 @@ export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
             </tbody>
           </table>
         ) : (
-          <table className="w-full min-w-[800px] text-left text-sm">
+          <table className="w-full min-w-[920px] text-left text-sm">
             <thead>
               <tr className="border-b border-white/10 text-xs text-muted-foreground">
                 <th className="px-4 py-3 font-medium">#</th>
                 <th className="px-4 py-3 font-medium">Project</th>
+                <th className="px-4 py-3 font-medium">Utility</th>
                 <th className="px-4 py-3 font-medium">MCAP</th>
                 <th className="px-4 py-3 font-medium">Price</th>
                 <th className="px-4 py-3 font-medium">24H</th>
@@ -201,6 +217,9 @@ export function ProjectsTable({ projects }: { projects: ActiveProject[] }) {
                         <span className="text-xs text-muted-foreground">{project.symbol}</span>
                       </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <UtilityPills utilities={project.utilities} />
                   </td>
                   <td className="px-4 py-3 font-medium text-sky-400">{project.marketCap}</td>
                   <td className="px-4 py-3 text-foreground">{project.price}</td>
