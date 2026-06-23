@@ -6,6 +6,13 @@ export const projectUtilities: Record<string, Record<string, string[]>> = {
     '4': ['Merch drops', 'Fan voting', 'Auto marketing'],
     '5': ['Mobile game', 'Revenue share'],
   },
+  apps: {
+    '1': ['Fitness tracking', 'Premium plans', 'Challenges'],
+    '2': ['Study tools', 'AI quizzes', 'Subscriptions'],
+    '3': ['Food delivery', 'Local orders', 'Loyalty rewards'],
+    '4': ['Task manager', 'Team sync', 'Pro tier'],
+    '5': ['Group chat', 'Communities', 'In-app tips'],
+  },
   media: {
     '1': ['Streaming app', 'Creator payouts', 'Subscriptions'],
     '2': ['Tipping platform', 'Revenue split'],

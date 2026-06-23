@@ -59,6 +59,21 @@ const categoryContent: Record<string, RawCategoryContent> = {
       { id: 'i4', title: 'Charity meme fundraiser', description: 'Meme coin where 2% of every trade auto-donates to a transparent charity wallet.', estimatedRaise: '$100K–$500K', buildTime: '1 week' },
     ],
   },
+  apps: {
+    projects: [
+      { id: '1', rank: 1, name: 'FitTrack', symbol: 'FIT', marketCap: '$2.6M', price: '$0.026', change24h: 41.2, age: '16d', verified: true },
+      { id: '2', rank: 2, name: 'StudyPal', symbol: 'STUDY', marketCap: '$1.1M', price: '$0.011', change24h: 19.4, age: '22d', verified: true },
+      { id: '3', rank: 3, name: 'LocalEats', symbol: 'EATS', marketCap: '$720K', price: '$0.0072', change24h: -4.8, age: '9d', verified: false },
+      { id: '4', rank: 4, name: 'TaskFlow', symbol: 'TASK', marketCap: '$480K', price: '$0.0048', change24h: 12.6, age: '12d', verified: true },
+      { id: '5', rank: 5, name: 'ChatLoop', symbol: 'LOOP', marketCap: '$310K', price: '$0.0031', change24h: 7.3, age: '5d', verified: false },
+    ],
+    ideas: [
+      { id: 'i1', title: 'Habit tracker with streak rewards', description: 'Daily habit app where token holders unlock premium coaching and community challenges.', estimatedRaise: '$80K–$350K', buildTime: '5 weeks' },
+      { id: 'i2', title: 'Local services marketplace', description: 'Book cleaners, tutors, and handymen with crypto payments and verified reviews.', estimatedRaise: '$150K–$700K', buildTime: '8 weeks' },
+      { id: 'i3', title: 'AI study companion', description: 'Personalized quiz and flashcard app that adapts to each learner’s weak spots.', estimatedRaise: '$100K–$500K', buildTime: '6 weeks' },
+      { id: 'i4', title: 'Neighborhood events app', description: 'Discover and host local meetups with ticket sales and sponsor slots funded by the token.', estimatedRaise: '$60K–$300K', buildTime: '4 weeks' },
+    ],
+  },
   media: {
     projects: [
       { id: '1', rank: 1, name: 'StreamVault', symbol: 'STRM', marketCap: '$2.1M', price: '$0.021', change24h: 34.2, age: '14d', verified: true },

@@ -17,6 +17,14 @@ export const industries: Industry[] = [
     image: '/images/industries/meme-coins.png',
   },
   {
+    id: 'apps',
+    name: 'Apps',
+    description: 'Mobile, web, and social apps with real users and revenue',
+    projectCount: 892,
+    tag: 'High Demand',
+    image: '/images/industries/apps.jpg',
+  },
+  {
     id: 'media',
     name: 'Media & Ent',
     description: 'Content platforms, streaming, and creator economies',

@@ -5,7 +5,7 @@ export function IndustryGrid() {
   return (
     <section className="container my-16">
       <h2 className="mb-6 max-w-2xl text-xl font-normal text-muted-foreground sm:mb-8 sm:text-2xl md:text-3xl">
-        Explore the categories where ideas become reality.
+        Explore the categories where big ideas become reality.
       </h2>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-4 lg:grid-cols-3">
