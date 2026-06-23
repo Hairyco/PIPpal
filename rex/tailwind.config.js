@@ -31,16 +31,11 @@ export default {
       },
       animation: {
         'scroll-left': 'scroll-left 40s linear infinite',
-        shimmer: 'shimmer 4s ease-in-out infinite',
       },
       keyframes: {
         'scroll-left': {
           '0%': { transform: 'translateX(0)' },
           '100%': { transform: 'translateX(-50%)' },
-        },
-        shimmer: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
         },
       },
     },

@@ -31,16 +31,6 @@
   .dex-btn {
     @apply inline-flex w-fit items-center rounded-md bg-rex-gradient px-4 py-2 text-sm text-white transition-opacity hover:opacity-90;
   }
-
-  .hero-shimmer {
-    background-size: 200% 200%;
-    animation: shimmer 5s ease-in-out infinite;
-  }
-}
-
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
 }
 
 .hide-scrollbar::-webkit-scrollbar {
