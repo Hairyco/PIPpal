@@ -16,6 +16,7 @@ import { industries } from '../data/industries';
 import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
 import { getTalentForDeliverable, talentPool } from '../data/talentPool';
 import { CLAIM_FEE } from '../data/claimPricing';
+import { LaunchPreview } from '../components/get-started/LaunchPreview';
 
 type Step = 'idea' | 'studios' | 'talent' | 'review';
 
@@ -97,6 +98,18 @@ export function GetStartedPage() {
   const canProceedStudios =
     shortlistedStudios.length > 0 || hasOwnSupplier || studioSkipped;
 
+  const previewData = {
+    projectName,
+    categoryId,
+    description,
+    deliverables,
+    shortlistedStudios,
+    showOwnSupplier,
+    ownSupplierName,
+    studioSkipped,
+    talentAssignments,
+  };
+
   if (launched) {
     return (
       <Layout>
@@ -120,17 +133,17 @@ export function GetStartedPage() {
       <div className="container py-8 pb-16">
         <BackLink />
 
-        <div className="mx-auto mt-6 max-w-3xl">
+        <div className="mx-auto mt-6 max-w-6xl">
           <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">
             Get started
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             Describe your idea, shortlist a dev studio, fill gaps with talent from the pool, and
             launch.
           </p>
 
-          <div className="mt-8 flex gap-2">
+          <div className="mt-8 flex max-w-3xl gap-2">
             {STEPS.map((s, i) => (
               <div key={s.id} className="flex flex-1 flex-col gap-1.5">
                 <div
@@ -150,7 +163,8 @@ export function GetStartedPage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-3xl">
+        <div className="mx-auto mt-8 grid max-w-6xl gap-8 lg:grid-cols-[1fr_340px]">
+          <div className="min-w-0 max-w-3xl">
           {step === 'idea' && (
             <div className="space-y-5">
               <div className="dex-card">
@@ -661,6 +675,11 @@ export function GetStartedPage() {
               </div>
             </div>
           )}
+          </div>
+
+          <div className="order-first lg:order-last">
+            <LaunchPreview data={previewData} />
+          </div>
         </div>
       </div>
     </Layout>
