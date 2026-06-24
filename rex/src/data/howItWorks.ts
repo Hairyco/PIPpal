@@ -100,12 +100,3 @@ export const howItWorksSteps: HowItWorksStep[] = [
     bullets: premiumFeatures.map((p) => `${p.name} — $${p.price}: ${p.description}`),
   },
 ];
-
-export const pillarsSummary = howItWorksSteps
-  .filter((s) => ['marketing', 'claim', 'roadmap'].includes(s.id))
-  .map((s) => ({
-    title: s.title,
-    subtitle: s.subtitle,
-    description: s.description,
-    id: s.id,
-  }));
