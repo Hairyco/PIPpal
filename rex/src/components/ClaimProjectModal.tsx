@@ -168,7 +168,7 @@ export function ClaimProjectModal({ projectTitle, onClose }: ClaimProjectModalPr
               <span className="font-semibold text-white">Total due today</span>
               <span className="text-xl font-bold text-sky-400">${totalDue}</span>
             </div>
-            <button type="button" className="dex-btn mt-4 w-full justify-center">
+            <button type="button" className="dex-btn-green mt-4 w-full justify-center">
               Claim for ${totalDue}
             </button>
             <p className="mt-2 text-center text-[10px] text-muted-foreground">

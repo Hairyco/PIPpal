@@ -31,6 +31,10 @@
   .dex-btn {
     @apply inline-flex w-fit items-center rounded-md bg-rex-gradient px-4 py-2 text-sm text-white transition-opacity hover:opacity-90;
   }
+
+  .dex-btn-green {
+    @apply inline-flex w-fit items-center rounded-md bg-[#c8f542] px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90;
+  }
 }
 
 .hide-scrollbar::-webkit-scrollbar {

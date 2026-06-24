@@ -45,7 +45,7 @@ export function IdeasPanel({ ideas }: { ideas: ProjectIdea[] }) {
               <button
                 type="button"
                 onClick={() => setClaimingIdea(idea)}
-                className="dex-btn relative z-[1] shrink-0 whitespace-nowrap"
+                className="dex-btn-green relative z-[1] shrink-0 whitespace-nowrap"
               >
                 Claim this project
               </button>
