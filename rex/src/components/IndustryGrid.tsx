@@ -1,5 +1,6 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Search } from 'lucide-react';
 import { industries, type Industry } from '../data/industries';
 
 const featuredIds = new Set(['meme-coins', 'aerospace']);
@@ -82,9 +83,28 @@ interface IndustryGridProps {
   showAll?: boolean;
 }
 
+function matchesIndustryQuery(industry: Industry, query: string): boolean {
+  const haystack = [
+    industry.name,
+    industry.description,
+    industry.tag,
+    industry.id.replace(/-/g, ' '),
+  ]
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes(query);
+}
+
 export function IndustryGrid({ showAll = false }: IndustryGridProps) {
-  const displayed = showAll ? industries : industries.slice(0, PREVIEW_COUNT);
+  const [query, setQuery] = useState('');
   const cardSize: CardSize = showAll ? 'compact' : 'preview';
+
+  const displayed = useMemo(() => {
+    if (!showAll) return industries.slice(0, PREVIEW_COUNT);
+    const q = query.trim().toLowerCase();
+    if (!q) return industries;
+    return industries.filter((industry) => matchesIndustryQuery(industry, q));
+  }, [showAll, query]);
 
   return (
     <section className={showAll ? '' : 'container my-20'}>
@@ -97,22 +117,52 @@ export function IndustryGrid({ showAll = false }: IndustryGridProps) {
         </div>
         <p className="max-w-xs text-sm text-muted-foreground">
           {showAll
-            ? `${industries.length} sectors where Rex projects launch, fundraise, and deliver.`
+            ? query.trim()
+              ? `${displayed.length} of ${industries.length} sectors`
+              : `${industries.length} sectors where Rex projects launch, fundraise, and deliver.`
             : 'Curated sectors where Rex projects launch, fundraise, and deliver within the ecosystem'}
         </p>
       </div>
 
-      <div
-        className={
-          showAll
-            ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-            : 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5'
-        }
-      >
-        {displayed.map((industry) => (
-          <IndustryCard key={industry.id} industry={industry} size={cardSize} />
-        ))}
-      </div>
+      {showAll && (
+        <div className="relative mb-6 max-w-xl">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search categories…"
+            className={`w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30 ${query ? 'pr-14' : 'pr-4'}`}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
+      {showAll && query.trim() && displayed.length === 0 ? (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          No categories match &ldquo;{query.trim()}&rdquo;. Try a different search.
+        </p>
+      ) : (
+        <div
+          className={
+            showAll
+              ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
+              : 'grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5'
+          }
+        >
+          {displayed.map((industry) => (
+            <IndustryCard key={industry.id} industry={industry} size={cardSize} />
+          ))}
+        </div>
+      )}
 
       {!showAll && industries.length > PREVIEW_COUNT && (
         <div className="mt-8 flex justify-center">

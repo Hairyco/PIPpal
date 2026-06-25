@@ -54,6 +54,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
       'This is where the owner can officially claim the role of founder — set new milestones, identify marketing, and put it to community vote.',
     bullets: [
       'Complete KYC to verify your identity as founder',
+      'Unlock vesting on your 15% founder allocation (share pool uses the same rules)',
       'Set roadmap milestones and propose marketing spend',
       'Community vote on major founder decisions',
       `One-time $${CLAIM_FEE} claim fee plus optional premium perks from $${Math.min(...premiumFeatures.map((p) => p.price))} each`,

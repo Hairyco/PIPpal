@@ -4,7 +4,7 @@ import { BadgeCheck, Map, Megaphone, Wallet } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingWalletChart, PriceChart } from '../components/project/ProjectCharts';
-import { TradePanel } from '../components/project/TradePanel';
+import { PublicTokenomicsBlock } from '../components/project/PublicTokenomicsBlock';
 import { RoadmapModal } from '../components/category/RoadmapModal';
 import { getProject } from '../data/categoryContent';
 import { industries } from '../data/industries';
@@ -198,6 +198,7 @@ export function ProjectPage() {
           </div>
 
           <div className="space-y-4">
+            <PublicTokenomicsBlock />
             <TradePanel
               symbol={project.symbol}
               price={project.price}

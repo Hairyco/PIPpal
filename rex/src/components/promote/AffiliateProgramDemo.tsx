@@ -3,9 +3,9 @@ import {
   Check,
   Copy,
   Link2,
-  Megaphone,
   TrendingUp,
   Users,
+  Wallet,
 } from 'lucide-react';
 import { DemoPreviewBadge } from './DemoPreviewBadge';
 import { affiliateProgramDefaults } from '../../data/promotePricing';
@@ -48,18 +48,28 @@ export function AffiliateProgramDemo({
               <DemoPreviewBadge />
             </div>
             <h2 className="mt-2 text-lg font-semibold text-white">
-              Let promoters earn from your marketing tax
+              Let promoters earn — always from your marketing wallet
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               Publishers browse the Rex catalogue, join your programme, and share tracked links.
-              Commission is paid automatically from your marketing wallet on each referred buy.
+              Every commission is paid automatically from your marketing wallet on each referred buy
+              — never from your personal funds or a separate budget.
             </p>
           </div>
         </div>
 
-        <div className="mt-5 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
+        <div className="mt-5 flex items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
+          <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-white">Marketing wallet only.</span> Affiliate
+            payouts always draw from the same wallet funded by your buy/sell tax. If the wallet is
+            empty, commissions pause until trading refills it.
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
           TBC — affiliate tracking and payouts are not live yet. This preview shows the planned
-          founder controls and promoter catalogue experience.
+          founder controls, marketing-wallet funding, and promoter catalogue experience.
         </div>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -74,14 +84,15 @@ export function AffiliateProgramDemo({
               <div>
                 <p className="font-medium text-white">Enable affiliate programme</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  List {projectName} in the promoter catalogue with a Join button.
+                  List {projectName} in the promoter catalogue. Payouts always come from your
+                  marketing wallet when promoters drive buys.
                 </p>
               </div>
             </label>
 
             <div className={enabled ? '' : 'pointer-events-none opacity-40'}>
               <label className="mb-2 block text-xs font-medium text-muted-foreground">
-                Commission share of marketing tax ({commission}%)
+                Commission share of marketing tax ({commission}%) — paid from wallet
               </label>
               <input
                 type="range"
@@ -97,7 +108,7 @@ export function AffiliateProgramDemo({
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
                 {affiliateProgramDefaults.attributionDays}-day attribution window · min payout $
-                {affiliateProgramDefaults.minPayout}
+                {affiliateProgramDefaults.minPayout} from marketing wallet
               </p>
             </div>
 
@@ -139,7 +150,7 @@ export function AffiliateProgramDemo({
                     <th className="pb-2 pr-3 font-medium">Project</th>
                     <th className="pb-2 pr-3 font-medium">Conv.</th>
                     <th className="pb-2 pr-3 font-medium">EPC</th>
-                    <th className="pb-2 pr-3 font-medium">Commission</th>
+                    <th className="pb-2 pr-3 font-medium">Commission (wallet)</th>
                     <th className="pb-2 font-medium">Action</th>
                   </tr>
                 </thead>
@@ -196,9 +207,9 @@ export function AffiliateProgramDemo({
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {[
+            { icon: Wallet, label: 'Marketing wallet', text: 'All affiliate payouts always funded here' },
             { icon: Link2, label: 'Tracked links', text: 'Unique ref per promoter' },
             { icon: TrendingUp, label: 'Live EPC', text: 'Earnings per 100 clicks' },
-            { icon: Megaphone, label: 'Asset pack', text: 'Logos, charts, copy blocks' },
           ].map(({ icon: Icon, label, text }) => (
             <div
               key={label}

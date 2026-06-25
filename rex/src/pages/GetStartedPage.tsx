@@ -6,7 +6,8 @@ import { industries } from '../data/industries';
 import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
 import { talentPool } from '../data/talentPool';
 import { CLAIM_FEE, KYC_FEE } from '../data/claimPricing';
-import { RecommendedRoadmapList, RoadmapKycNotice } from '../components/get-started/LaunchFlowParts';
+import { RecommendedRoadmapList, RoadmapHorizonSelect, RoadmapKycNotice } from '../components/get-started/LaunchFlowParts';
+import { FounderTokenomicsPanel } from '../components/founder/FounderTokenomicsPanel';
 import {
   InspireMePanel,
   runInspireGenerate,
@@ -18,6 +19,7 @@ import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
+import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
 import { saveFounderProject } from '../utils/founderProject';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
@@ -44,6 +46,8 @@ export function GetStartedPage() {
   const [description, setDescription] = useState('');
   const [coinUtilities, setCoinUtilities] = useState<CoinUtilityId[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
+  const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
+  const [shareGrants, setShareGrants] = useState<ShareGrant[]>([]);
   const [inspireOpen, setInspireOpen] = useState(false);
   const [inspireInterest, setInspireInterest] = useState('');
   const [inspireResult, setInspireResult] = useState<InspireIdeaResult | null>(null);
@@ -116,8 +120,9 @@ export function GetStartedPage() {
         categoryId,
         projectName,
         deliverables,
+        horizon: roadmapHorizon,
       }),
-    [categoryId, projectName, deliverables],
+    [categoryId, projectName, deliverables, roadmapHorizon],
   );
 
   const goToStep = (target: Step) => {
@@ -172,6 +177,9 @@ export function GetStartedPage() {
       description: description.trim(),
       coinUtilities,
       deliverables,
+      roadmapHorizon,
+      shareGrants,
+      kycCompleted: false,
       shortlistedStudios,
       studioSkipped,
       ownSupplierName,
@@ -345,6 +353,13 @@ export function GetStartedPage() {
                     </p>
                   </div>
 
+                  <RoadmapHorizonSelect value={roadmapHorizon} onChange={setRoadmapHorizon} />
+                  <FounderTokenomicsPanel
+                    horizon={roadmapHorizon}
+                    shareGrants={shareGrants}
+                    onShareGrantsChange={setShareGrants}
+                    editable
+                  />
                   <RoadmapKycNotice />
                   <RecommendedRoadmapList milestones={milestones} />
                 </div>
@@ -462,7 +477,10 @@ export function GetStartedPage() {
                       Roadmap
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {milestones.length} milestones — Rex managed until KYC
+                      {getRoadmapHorizon(roadmapHorizon).label} · {milestones.length} milestones ·
+                      {shareGrants.length > 0
+                        ? ` ${shareGrants.length} share grant${shareGrants.length === 1 ? '' : 's'}`
+                        : ' no share grants yet'}
                     </p>
                   </div>
 

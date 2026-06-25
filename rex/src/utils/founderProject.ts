@@ -1,5 +1,7 @@
-import type { DeliverableId } from '../data/devStudios';
-import type { CoinUtilityId } from '../data/coinUtilities';
+import type { ShareGrant } from '../data/founderTokenomics';
+import type { DeliverableId } from './devStudios';
+import type { CoinUtilityId } from './coinUtilities';
+import type { RoadmapHorizonId } from './roadmapHorizons';
 import type { VendorChatTarget } from './vendorChat';
 
 export type FounderProject = {
@@ -8,6 +10,9 @@ export type FounderProject = {
   description: string;
   coinUtilities: CoinUtilityId[];
   deliverables: DeliverableId[];
+  roadmapHorizon: RoadmapHorizonId;
+  shareGrants: ShareGrant[];
+  kycCompleted: boolean;
   shortlistedStudios: string[];
   studioSkipped: boolean;
   ownSupplierName: string;
@@ -36,7 +41,13 @@ export function loadFounderProject(): FounderProject | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as FounderProject;
+    const parsed = JSON.parse(raw) as Partial<FounderProject>;
+    return {
+      ...parsed,
+      roadmapHorizon: parsed.roadmapHorizon ?? '12-months',
+      shareGrants: parsed.shareGrants ?? [],
+      kycCompleted: parsed.kycCompleted ?? false,
+    } as FounderProject;
   } catch {
     return null;
   }

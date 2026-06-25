@@ -1,5 +1,6 @@
 import { MapPin, Sparkles } from 'lucide-react';
 import type { RecommendedMilestone } from '../../utils/recommendedRoadmap';
+import { roadmapHorizons, type RoadmapHorizonId } from '../../data/roadmapHorizons';
 
 export function RecommendedRoadmapList({ milestones }: { milestones: RecommendedMilestone[] }) {
   return (
@@ -32,6 +33,42 @@ export function RecommendedRoadmapList({ milestones }: { milestones: Recommended
   );
 }
 
+export function RoadmapHorizonSelect({
+  value,
+  onChange,
+}: {
+  value: RoadmapHorizonId;
+  onChange: (id: RoadmapHorizonId) => void;
+}) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Roadmap horizon
+      </p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {roadmapHorizons.map((horizon) => {
+          const selected = value === horizon.id;
+          return (
+            <button
+              key={horizon.id}
+              type="button"
+              onClick={() => onChange(horizon.id)}
+              className={`rounded-xl border p-4 text-left transition-colors ${
+                selected
+                  ? 'border-sky-500/50 bg-sky-500/10'
+                  : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+              }`}
+            >
+              <p className="font-medium text-white">{horizon.label}</p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{horizon.summary}</p>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function RoadmapKycNotice() {
   return (
     <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
@@ -41,7 +78,8 @@ export function RoadmapKycNotice() {
           <p className="text-sm font-medium text-white">Recommended roadmap — Rex managed</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             This path is included in your $1 launch. Shortlist studios and talent on the next steps.
-            Complete KYC ($150) later to edit milestones and approve vendor spend yourself.
+            Complete KYC ($150) to unlock your founder token allocation, edit milestones, and approve
+            vendor spend yourself.
           </p>
         </div>
       </div>

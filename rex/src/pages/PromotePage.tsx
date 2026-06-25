@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowUp, Megaphone, Sparkles } from 'lucide-react';
+import { ArrowUp, Megaphone, Sparkles, Wallet } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
@@ -71,7 +71,7 @@ export function PromotePage() {
               <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Promote</p>
               <h1 className="font-serif text-2xl font-bold text-white md:text-3xl">{projectName}</h1>
               <p className="text-sm text-muted-foreground">
-                {symbol} · {industry.name} · Grow visibility after launch
+                {symbol} · {industry.name} · Fund boosts from your marketing wallet
               </p>
             </div>
           </div>
@@ -82,7 +82,24 @@ export function PromotePage() {
           )}
         </div>
 
-        <section className="dex-card mt-8">
+        <div className="mt-6 flex flex-col gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+            <div>
+              <p className="text-sm font-medium text-white">Marketing wallet</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Buy/sell tax on every trade fills this wallet. Category boosts and affiliate
+                payouts always come from here — no separate checkout or founder top-up.
+              </p>
+            </div>
+          </div>
+          <p className="shrink-0 text-sm font-semibold text-sky-300 sm:text-right">
+            $2,430 available
+            <span className="ml-1 text-xs font-normal text-muted-foreground">(demo)</span>
+          </p>
+        </div>
+
+        <section className="dex-card mt-6">
           <div className="relative z-[1] p-5 sm:p-6">
             <div className="flex items-center gap-2">
               <Megaphone className="h-4 w-4 text-sky-400" />
@@ -91,11 +108,11 @@ export function PromotePage() {
               </span>
             </div>
             <h2 className="mt-2 text-lg font-semibold text-white">
-              Pay to rank higher in {industry.name}
+              Rank higher in {industry.name}
             </h2>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               Boost where your project appears on the category page. Higher tiers get pinned slots
-              and badges — more eyes on launch week.
+              and badges — costs are taken from your marketing wallet when you activate a boost.
             </p>
 
             <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -126,6 +143,9 @@ export function PromotePage() {
                       <span className="text-sm font-normal text-muted-foreground">
                         /{tier.period}
                       </span>
+                    </p>
+                    <p className="mt-1 text-[10px] font-medium uppercase tracking-wider text-sky-400/80">
+                      From marketing wallet
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{tier.description}</p>
                     <p className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-sky-300">
@@ -181,7 +201,7 @@ export function PromotePage() {
               className="dex-btn-green mt-6 w-full justify-center sm:w-auto disabled:cursor-not-allowed disabled:opacity-40"
             >
               {selectedTier
-                ? `Boost listing — $${categoryBoostTiers.find((t) => t.id === selectedTier)?.price}`
+                ? `Activate boost — $${categoryBoostTiers.find((t) => t.id === selectedTier)?.price} from wallet`
                 : 'Select a boost tier'}
             </button>
           </div>
@@ -192,8 +212,8 @@ export function PromotePage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Paid boosts are live in demo mode. Affiliate programme marked{' '}
-          <DemoPreviewBadge className="align-middle" /> — full build TBC.
+          Category boosts and affiliate payouts always come from your marketing wallet. Demo mode —{' '}
+          <DemoPreviewBadge className="align-middle" /> on affiliate programme; full build TBC.
         </p>
       </div>
     </Layout>

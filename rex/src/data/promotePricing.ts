@@ -14,7 +14,7 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
     name: 'Spotlight',
     price: 99,
     period: '7 days',
-    description: 'Pinned #1 in your category with a highlighted card and badge.',
+    description: 'Pinned #1 in your category with a highlighted card and badge. Funded from your marketing wallet.',
     position: '#1 pinned',
     highlight: true,
   },
@@ -23,7 +23,7 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
     name: 'Featured',
     price: 49,
     period: '7 days',
-    description: 'Top 3 placement and a “Featured” ribbon on the category list.',
+    description: 'Top 3 placement and a “Featured” ribbon on the category list. Funded from your marketing wallet.',
     position: 'Top 3',
   },
   {
@@ -31,12 +31,13 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
     name: 'Boosted',
     price: 19,
     period: '7 days',
-    description: 'Move up the default sort — more visibility without a pinned slot.',
+    description: 'Move up the default sort — more visibility without a pinned slot. Funded from your marketing wallet.',
     position: 'Rank boost',
   },
 ];
 
 export const affiliateProgramDefaults = {
+  /** Commission % of marketing tax — always paid from the marketing wallet */
   commissionMin: 5,
   commissionMax: 40,
   defaultCommission: 15,

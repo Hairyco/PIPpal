@@ -15,15 +15,6 @@ export interface Industry {
 
 export const industries: Industry[] = [
   {
-    id: 'meme-coins',
-    name: 'Meme Coins',
-    description: 'Community-driven tokens with automated marketing engines',
-    projectCount: 2847,
-    tag: 'Trending',
-    image: '/images/industries/meme-coins.png',
-    icon: industryIcon('meme-coins', '/images/industries/icons/meme-coins.svg'),
-  },
-  {
     id: 'ai-tech',
     name: 'Artificial Intelligence',
     description: 'Machine learning tools and AI-powered products',
@@ -31,6 +22,15 @@ export const industries: Industry[] = [
     tag: 'Innovation',
     image: industryImage('ai-tech', '/images/industries/ai.jpg'),
     icon: industryIcon('ai-tech', '/images/industries/icons/ai-tech.svg'),
+  },
+  {
+    id: 'meme-coins',
+    name: 'Meme Coins',
+    description: 'Community-driven tokens with automated marketing engines',
+    projectCount: 2847,
+    tag: 'Trending',
+    image: '/images/industries/meme-coins.png',
+    icon: industryIcon('meme-coins', '/images/industries/icons/meme-coins.svg'),
   },
   {
     id: 'celebrity-coins',

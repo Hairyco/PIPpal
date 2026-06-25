@@ -11,22 +11,33 @@ import {
 } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
-import { RecommendedRoadmapList } from '../components/get-started/LaunchFlowParts';
+import {
+  RecommendedRoadmapList,
+  RoadmapHorizonSelect,
+} from '../components/get-started/LaunchFlowParts';
+import { ExitMarketplaceDemo } from '../components/founder/ExitMarketplaceDemo';
+import {
+  FounderTokenomicsPanel,
+  FounderVestingStatus,
+} from '../components/founder/FounderTokenomicsPanel';
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import { KYC_FEE } from '../data/claimPricing';
 import { devStudios, projectDeliverables } from '../data/devStudios';
 import { industries } from '../data/industries';
 import { talentPool } from '../data/talentPool';
+import type { ShareGrant } from '../data/founderTokenomics';
 import { getCoinUtilityLabel } from '../data/coinUtilities';
-import { loadFounderProject, projectSymbol } from '../utils/founderProject';
+import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
+import { loadFounderProject, projectSymbol, saveFounderProject } from '../utils/founderProject';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
-type DashboardTab = 'overview' | 'roadmap' | 'vendors' | 'promote';
+type DashboardTab = 'overview' | 'roadmap' | 'ownership' | 'vendors' | 'promote';
 
 const TABS: { id: DashboardTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'ownership', label: 'Ownership' },
   { id: 'vendors', label: 'Vendors' },
   { id: 'promote', label: 'Promote' },
 ];
@@ -35,6 +46,15 @@ export function FounderDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState<DashboardTab>('overview');
   const [chatTarget, setChatTarget] = useState<VendorChatTarget | null>(null);
+  const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>(
+    () => loadFounderProject()?.roadmapHorizon ?? '12-months',
+  );
+  const [shareGrants, setShareGrants] = useState<ShareGrant[]>(
+    () => loadFounderProject()?.shareGrants ?? [],
+  );
+  const [kycCompleted, setKycCompleted] = useState(
+    () => loadFounderProject()?.kycCompleted ?? false,
+  );
 
   const project = loadFounderProject();
   const welcome = searchParams.get('welcome') === '1';
@@ -49,9 +69,10 @@ export function FounderDashboardPage() {
             categoryId: project.categoryId,
             projectName: project.projectName,
             deliverables: project.deliverables,
+            horizon: roadmapHorizon,
           })
         : [],
-    [project],
+    [project, roadmapHorizon],
   );
 
   if (!project) {
@@ -75,6 +96,27 @@ export function FounderDashboardPage() {
   const dismissWelcome = () => {
     searchParams.delete('welcome');
     setSearchParams(searchParams, { replace: true });
+  };
+
+  const handleHorizonChange = (horizon: RoadmapHorizonId) => {
+    setRoadmapHorizon(horizon);
+    if (project) {
+      saveFounderProject({ ...project, roadmapHorizon: horizon });
+    }
+  };
+
+  const handleShareGrantsChange = (grants: ShareGrant[]) => {
+    setShareGrants(grants);
+    if (project) {
+      saveFounderProject({ ...project, shareGrants: grants });
+    }
+  };
+
+  const handleCompleteKyc = () => {
+    setKycCompleted(true);
+    if (project) {
+      saveFounderProject({ ...project, kycCompleted: true });
+    }
   };
 
   const promoteUrl = `/project/${project.categoryId}/new/promote?name=${encodeURIComponent(project.projectName)}`;
@@ -197,17 +239,23 @@ export function FounderDashboardPage() {
                 <div className="relative z-[1] flex gap-3">
                   <BadgeCheck className="mt-0.5 h-6 w-6 shrink-0 text-amber-400" />
                   <div>
-                    <h2 className="font-semibold text-white">Unlock full founder controls</h2>
+                    <h2 className="font-semibold text-white">
+                      {kycCompleted ? 'Founder verified' : 'Unlock founder allocation & controls'}
+                    </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Complete KYC (${KYC_FEE}) to edit milestones, reassign vendors, and approve
-                      marketing spend yourself.
+                      {kycCompleted
+                        ? 'Your vesting clock is running. Manage allocation and exit from the Ownership tab.'
+                        : `Complete KYC ($${KYC_FEE}) to unlock your 15% founder token allocation, edit milestones, and approve marketing spend.`}
                     </p>
-                    <button
-                      type="button"
-                      className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-200"
-                    >
-                      Complete KYC — ${KYC_FEE}
-                    </button>
+                    {!kycCompleted && (
+                      <button
+                        type="button"
+                        onClick={handleCompleteKyc}
+                        className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-200"
+                      >
+                        Complete KYC — ${KYC_FEE} (demo)
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -218,17 +266,52 @@ export function FounderDashboardPage() {
         {tab === 'roadmap' && (
           <div className="mt-6 space-y-4">
             <div className="dex-card">
-              <div className="relative z-[1]">
-                <h2 className="font-semibold text-white">Recommended roadmap</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Rex manages payouts until you complete KYC. Milestones unlock as your marketing
-                  wallet fills.
-                </p>
-                <div className="mt-4">
-                  <RecommendedRoadmapList milestones={milestones} />
+              <div className="relative z-[1] space-y-4">
+                <div>
+                  <h2 className="font-semibold text-white">Recommended roadmap</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {getRoadmapHorizon(roadmapHorizon).label} horizon · Rex manages payouts until
+                    you complete KYC.
+                  </p>
                 </div>
+                <RoadmapHorizonSelect value={roadmapHorizon} onChange={handleHorizonChange} />
+                <RecommendedRoadmapList milestones={milestones} />
               </div>
             </div>
+          </div>
+        )}
+
+        {tab === 'ownership' && (
+          <div className="mt-6 space-y-6">
+            <div className="dex-card">
+              <div className="relative z-[1] space-y-4">
+                <div>
+                  <h2 className="font-semibold text-white">Founder ownership</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {getRoadmapHorizon(roadmapHorizon).label} vesting · KYC-gated unlock · optional
+                    exit marketplace
+                  </p>
+                </div>
+                <FounderVestingStatus
+                  horizon={roadmapHorizon}
+                  launchedAt={project.launchedAt}
+                  kycCompleted={kycCompleted}
+                />
+                <FounderTokenomicsPanel
+                  horizon={roadmapHorizon}
+                  shareGrants={shareGrants}
+                  onShareGrantsChange={handleShareGrantsChange}
+                  editable
+                />
+              </div>
+            </div>
+            <ExitMarketplaceDemo
+              projectName={project.projectName}
+              symbol={symbol}
+              horizon={roadmapHorizon}
+              launchedAt={project.launchedAt}
+              kycCompleted={kycCompleted}
+            />
           </div>
         )}
 
@@ -338,7 +421,8 @@ export function FounderDashboardPage() {
               <div className="relative z-[1]">
                 <h2 className="font-semibold text-white">Grow your launch</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Boost your category ranking or set up the affiliate programme demo.
+                  Boost your category ranking from your marketing wallet, or set up the affiliate
+                  programme demo.
                 </p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link to={promoteUrl} className="dex-btn-green">
