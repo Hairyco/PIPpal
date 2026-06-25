@@ -5,6 +5,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { BecomeSupplierPage } from './pages/BecomeSupplierPage';
 import { ProjectPage } from './pages/ProjectPage';
 import { GetStartedPage } from './pages/GetStartedPage';
+import { MarketplacePage } from './pages/MarketplacePage';
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />
         <Route path="/get-started" element={<GetStartedPage />} />
+        <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />
       </Routes>
     </BrowserRouter>

@@ -6,6 +6,13 @@ export const projectUtilities: Record<string, Record<string, string[]>> = {
     '4': ['Merch drops', 'Fan voting', 'Auto marketing'],
     '5': ['Mobile game', 'Revenue share'],
   },
+  'celebrity-coins': {
+    '1': ['Fan perks', 'Merch drops', 'Auto ads'],
+    '2': ['Holder AMAs', 'Social boosts', 'Staking'],
+    '3': ['Viral marketing', 'Meme contests'],
+    '4': ['Celebrity parody', 'Telegram calls', 'Trending pushes'],
+    '5': ['Fan voting', 'Exclusive drops'],
+  },
   apps: {
     '1': ['Fitness tracking', 'Premium plans', 'Challenges'],
     '2': ['Study tools', 'AI quizzes', 'Subscriptions'],

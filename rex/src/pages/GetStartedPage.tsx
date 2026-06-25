@@ -16,7 +16,8 @@ import { industries } from '../data/industries';
 import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
 import { getTalentForDeliverable, talentPool } from '../data/talentPool';
 import { CLAIM_FEE } from '../data/claimPricing';
-import { LaunchPreview } from '../components/get-started/LaunchPreview';
+import { LaunchPreviewPane } from '../components/get-started/LaunchPreviewPane';
+import { StudioLogoBadge } from '../components/marketplace/StudioLogo';
 
 type Step = 'idea' | 'studios' | 'talent' | 'review';
 
@@ -47,6 +48,7 @@ export function GetStartedPage() {
   const [ownSupplierEmail, setOwnSupplierEmail] = useState('');
   const [ownSupplierWebsite, setOwnSupplierWebsite] = useState('');
   const [talentAssignments, setTalentAssignments] = useState<Record<string, string>>({});
+  const [previewPaneOpen, setPreviewPaneOpen] = useState(true);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
@@ -130,20 +132,22 @@ export function GetStartedPage() {
 
   return (
     <Layout>
-      <div className="container py-8 pb-16">
-        <BackLink />
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col md:flex-row">
+        <div className="min-w-0 flex-1">
+          <div className="container py-8 pb-6">
+            <BackLink />
 
-        <div className="mx-auto mt-6 max-w-6xl">
-          <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
-          <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">
-            Get started
-          </h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Describe your idea, shortlist a dev studio, fill gaps with talent from the pool, and
-            launch.
-          </p>
+            <div className="mt-6 max-w-3xl">
+              <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
+              <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">
+                Get started
+              </h1>
+              <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                Describe your idea, shortlist a dev studio, fill gaps with talent from the pool, and
+                launch.
+              </p>
 
-          <div className="mt-8 flex max-w-3xl gap-2">
+              <div className="mt-8 flex gap-2">
             {STEPS.map((s, i) => (
               <div key={s.id} className="flex flex-1 flex-col gap-1.5">
                 <div
@@ -160,11 +164,10 @@ export function GetStartedPage() {
                 </span>
               </div>
             ))}
-          </div>
-        </div>
+              </div>
+            </div>
 
-        <div className="mx-auto mt-8 grid max-w-6xl gap-8 lg:grid-cols-[1fr_340px]">
-          <div className="min-w-0 max-w-3xl">
+            <div className="container mt-8 max-w-3xl pb-16 md:pb-8">
           {step === 'idea' && (
             <div className="space-y-5">
               <div className="dex-card">
@@ -294,12 +297,7 @@ export function GetStartedPage() {
                               : 'border-white/10 bg-white/5 hover:border-white/20'
                           }`}
                         >
-                          <div
-                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold text-white"
-                            style={{ backgroundColor: studio.color }}
-                          >
-                            {studio.initials}
-                          </div>
+                          <StudioLogoBadge studio={studio} />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-white">{studio.name}</p>
@@ -675,12 +673,16 @@ export function GetStartedPage() {
               </div>
             </div>
           )}
-          </div>
-
-          <div className="order-first lg:order-last">
-            <LaunchPreview data={previewData} />
+            </div>
           </div>
         </div>
+
+        <LaunchPreviewPane
+          data={previewData}
+          mobileOpen={previewPaneOpen}
+          onMobileOpen={() => setPreviewPaneOpen(true)}
+          onMobileClose={() => setPreviewPaneOpen(false)}
+        />
       </div>
     </Layout>
   );

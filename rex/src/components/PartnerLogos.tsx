@@ -1,48 +1,68 @@
+import type { ReactNode } from 'react';
+import { SolanaLogo } from './SolanaLogo';
+
+const logoClass =
+  'h-10 w-10 shrink-0 transition-transform duration-300 group-hover:scale-105 sm:h-12 sm:w-12';
+
 function PartnerMark({
   name,
-  logoSrc,
-  logoClassName = 'h-5 w-5',
+  logo,
 }: {
   name: string;
-  logoSrc: string;
-  logoClassName?: string;
+  logo: ReactNode;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-2 opacity-70 transition-opacity hover:opacity-100">
-      <img
-        src={logoSrc}
-        alt=""
-        className={`${logoClassName} object-contain`}
-        loading="lazy"
-        decoding="async"
-      />
-      <span className="whitespace-nowrap font-serif text-xs text-foreground sm:text-sm">
+    <div className="group flex shrink-0 items-center gap-3 opacity-80 transition-all duration-300 hover:opacity-100 sm:gap-3.5">
+      {logo}
+      <span className="whitespace-nowrap text-xs font-medium tracking-wide text-white/85 transition-colors duration-300 group-hover:text-white sm:text-base">
         {name}
       </span>
     </div>
   );
 }
 
+const PARTNERS = [
+  {
+    name: 'XRP',
+    logo: (
+      <img
+        src="/images/partners/xrp.svg"
+        alt=""
+        className={`${logoClass} object-contain`}
+        loading="lazy"
+        decoding="async"
+      />
+    ),
+  },
+  {
+    name: 'Solana',
+    logo: <SolanaLogo className={logoClass} />,
+  },
+  {
+    name: 'Polygon',
+    logo: (
+      <img
+        src="/images/partners/polygon.svg"
+        alt=""
+        className={`${logoClass} object-contain`}
+        loading="lazy"
+        decoding="async"
+      />
+    ),
+  },
+] as const;
+
 export function PartnerLogos() {
   return (
-    <div className="mt-8 flex flex-col items-center gap-4">
-      <div className="inline-flex max-w-full flex-nowrap items-center justify-center gap-4 sm:gap-10">
-        <PartnerMark
-          name="DEX Screener"
-          logoSrc="/images/partners/dexscreener.ico"
-          logoClassName="h-5 w-5 sm:h-6 sm:w-6"
-        />
-        <PartnerMark
-          name="DEXTools"
-          logoSrc="/images/partners/dextools.svg"
-          logoClassName="h-5 w-5 sm:h-6 sm:w-6"
-        />
+    <div className="mt-10 flex flex-col items-center gap-5">
+      <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/35">
+        Built on leading chains
+      </p>
+      <div className="flex max-w-full flex-nowrap items-center justify-center gap-6 overflow-x-auto px-1 sm:gap-10 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {PARTNERS.map((partner) => (
+          <PartnerMark key={partner.name} name={partner.name} logo={partner.logo} />
+        ))}
       </div>
-      <PartnerMark
-        name="Coinzilla"
-        logoSrc="/images/partners/coinzilla.svg"
-        logoClassName="h-4 w-4 sm:h-5 sm:w-5"
-      />
     </div>
   );
 }

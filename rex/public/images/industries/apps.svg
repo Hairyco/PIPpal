@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" fill="none">
+  <rect width="1200" height="750" fill="#0a0e17" />
+  <defs>
+    <filter id="tile-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.45" />
+    </filter>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.24" />
+      <stop offset="100%" stop-color="#fff" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <g transform="skewY(-8) scale(1.02) translate(40 30)" filter="url(#tile-shadow)">
+    <g transform="translate(80 60)">
+      <rect width="128" height="128" rx="30" fill="#5865F2" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <rect x="46" y="46" width="36" height="36" rx="10" fill="#fff" opacity="0.95" />
+    </g>
+    <g transform="translate(230 40)">
+      <rect width="128" height="128" rx="30" fill="#FFFC00" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <circle cx="64" cy="64" r="22" fill="#111" opacity="0.85" />
+    </g>
+    <g transform="translate(380 55)">
+      <rect width="128" height="128" rx="30" fill="#E50914" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 48h52v12H48zm0 22h40v12H48zm0 22h48v12H48z" opacity="0.95" />
+    </g>
+    <g transform="translate(530 35)">
+      <rect width="128" height="128" rx="30" fill="#1DB954" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M52 52h48v8H52zm0 16h40v8H52zm0 16h44v8H52z" opacity="0.95" />
+    </g>
+    <g transform="translate(680 50)">
+      <rect width="128" height="128" rx="30" fill="#FF5A5F" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M64 44c-14 0-26 12-26 26s12 26 26 26 26-12 26-26-12-26-26-26z" opacity="0.95" />
+    </g>
+    <g transform="translate(830 42)">
+      <rect width="128" height="128" rx="30" fill="#4285F4" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <circle cx="64" cy="64" r="20" stroke="#fff" stroke-width="8" fill="none" />
+    </g>
+    <g transform="translate(980 58)">
+      <rect width="128" height="128" rx="30" fill="#F24E1E" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <rect x="48" y="48" width="32" height="32" rx="8" fill="#fff" opacity="0.95" />
+    </g>
+
+    <g transform="translate(150 200)">
+      <rect width="128" height="128" rx="30" fill="#111827" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 52h56v10H48zm0 20h44v10H48zm0 20h52v10H48z" />
+    </g>
+    <g transform="translate(300 185)">
+      <rect width="128" height="128" rx="30" fill="#2563EB" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 56h32v8H48zm0 16h48v8H48zm0 16h40v8H48z" />
+    </g>
+    <g transform="translate(450 210)">
+      <rect width="128" height="128" rx="30" fill="#0EA5E9" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M52 64l28-20v40z" />
+    </g>
+    <g transform="translate(600 190)">
+      <rect width="128" height="128" rx="30" fill="#F97316" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <circle cx="64" cy="64" r="24" fill="#fff" opacity="0.95" />
+    </g>
+    <g transform="translate(750 205)">
+      <rect width="128" height="128" rx="30" fill="#7C3AED" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M44 52h16v56H44zm28-12c10 0 18 8 18 18v38H74V62c0-4-4-8-8-8s-8 4-8 8v44H42V52h14z" />
+    </g>
+    <g transform="translate(900 195)">
+      <rect width="128" height="128" rx="30" fill="#8B5CF6" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 56h32v8H48zm0 16h48v8H48zm0 16h40v8H48z" opacity="0.95" />
+    </g>
+
+    <g transform="translate(100 350)">
+      <rect width="128" height="128" rx="30" fill="#06B6D4" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M52 48h48v12H52zm0 20h36v12H52zm0 20h44v12H52z" />
+    </g>
+    <g transform="translate(250 335)">
+      <rect width="128" height="128" rx="30" fill="#F59E0B" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#111" d="M64 46l8 24h26l-21 16 8 24-21-16-21 16 8-24-21-16h26z" />
+    </g>
+    <g transform="translate(400 360)">
+      <rect width="128" height="128" rx="30" fill="#EC4899" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M64 88c-16 0-28-12-28-28 0-10 14-30 28-44 14 14 28 34 28 44 0 16-12 28-28 28z" />
+    </g>
+    <g transform="translate(550 340)">
+      <rect width="128" height="128" rx="30" fill="#10B981" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <rect x="46" y="46" width="14" height="14" rx="3" fill="#fff" />
+      <rect x="68" y="46" width="14" height="14" rx="3" fill="#fff" />
+      <rect x="46" y="68" width="14" height="14" rx="3" fill="#fff" />
+      <rect x="68" y="68" width="14" height="14" rx="3" fill="#fff" />
+    </g>
+    <g transform="translate(700 355)">
+      <rect width="128" height="128" rx="30" fill="#6366F1" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <circle cx="64" cy="64" r="26" stroke="#fff" stroke-width="8" fill="none" />
+    </g>
+    <g transform="translate(850 345)">
+      <rect width="128" height="128" rx="30" fill="#EF4444" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M64 44l10 30h32l-26 18 10 30-26-18-26 18 10-30-26-18h32z" />
+    </g>
+    <g transform="translate(1000 365)">
+      <rect width="128" height="128" rx="30" fill="#14B8A6" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M56 52h16v48H56zm24-8h16v56H80z" />
+    </g>
+
+    <g transform="translate(180 500)">
+      <rect width="128" height="128" rx="30" fill="#A855F7" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 64h64v8H48z M48 48h48v8H48z M48 80h56v8H48z" />
+    </g>
+    <g transform="translate(330 485)">
+      <rect width="128" height="128" rx="30" fill="#FB7185" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M44 52h40l20 12v40l-20 12H44z" />
+    </g>
+    <g transform="translate(480 510)">
+      <rect width="128" height="128" rx="30" fill="#3B82F6" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M52 68l28-20v40z" />
+    </g>
+    <g transform="translate(630 495)">
+      <rect width="128" height="128" rx="30" fill="#22C55E" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <circle cx="64" cy="64" r="22" fill="#fff" opacity="0.95" />
+    </g>
+    <g transform="translate(780 505)">
+      <rect width="128" height="128" rx="30" fill="#E11D48" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <rect x="48" y="48" width="32" height="32" rx="16" fill="#fff" />
+    </g>
+    <g transform="translate(930 490)">
+      <rect width="128" height="128" rx="30" fill="#38BDF8" />
+      <rect width="128" height="128" rx="30" fill="url(#glow)" />
+      <path fill="#fff" d="M48 56h56v8H48zm0 16h44v8H48zm0 16h52v8H48z" />
+    </g>
+  </g>
+</svg>

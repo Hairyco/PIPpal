@@ -1,3 +1,5 @@
+import { industryImage } from './industryImages';
+
 export interface Industry {
   id: string;
   name: string;
@@ -5,6 +7,8 @@ export interface Industry {
   projectCount: number;
   tag: string;
   image: string;
+  /** Wide header image; falls back to `image` when omitted */
+  banner?: string;
 }
 
 export const industries: Industry[] = [
@@ -17,12 +21,29 @@ export const industries: Industry[] = [
     image: '/images/industries/meme-coins.png',
   },
   {
+    id: 'ai-tech',
+    name: 'Artificial Intelligence',
+    description: 'Machine learning tools and AI-powered products',
+    projectCount: 621,
+    tag: 'Innovation',
+    image: industryImage('ai-tech', '/images/industries/ai.jpg'),
+  },
+  {
+    id: 'celebrity-coins',
+    name: 'Celebrity Coins',
+    description:
+      'Fan tokens and parody coins tied to celebrities, influencers, and viral moments — or launched by verified celebrities themselves',
+    projectCount: 1243,
+    tag: 'Hot',
+    image: industryImage('celebrity-coins', '/images/industries/celebrity-coins.jpg'),
+  },
+  {
     id: 'apps',
     name: 'Apps',
     description: 'Mobile, web, and social apps with real users and revenue',
     projectCount: 892,
     tag: 'High Demand',
-    image: '/images/industries/apps.jpg',
+    image: industryImage('apps', '/images/industries/apps.svg'),
   },
   {
     id: 'media',
@@ -30,7 +51,7 @@ export const industries: Industry[] = [
     description: 'Content platforms, streaming, and creator economies',
     projectCount: 412,
     tag: 'High Growth',
-    image: '/images/industries/media.jpg',
+    image: industryImage('media', '/images/industries/media.jpg'),
   },
   {
     id: 'sport',
@@ -57,20 +78,12 @@ export const industries: Industry[] = [
     image: '/images/industries/gaming.jpg',
   },
   {
-    id: 'ai-tech',
-    name: 'Artificial Intelligence',
-    description: 'Machine learning tools and AI-powered products',
-    projectCount: 621,
-    tag: 'Innovation',
-    image: '/images/industries/ai.jpg',
-  },
-  {
     id: 'defi',
     name: 'DeFi',
     description: 'Decentralized finance protocols and yield platforms',
     projectCount: 534,
     tag: 'High Volume',
-    image: '/images/industries/defi.jpg',
+    image: industryImage('defi', '/images/industries/defi.jpg'),
   },
   {
     id: 'fashion',

@@ -1,3 +1,5 @@
+import { banner } from './marketplaceBanners';
+
 export interface DevStudio {
   id: string;
   name: string;
@@ -8,6 +10,9 @@ export interface DevStudio {
   color: string;
   tags: string[];
   minBudget: string;
+  avatar: string;
+  banner: string;
+  yearsExperience: number;
 }
 
 export const devStudios: DevStudio[] = [
@@ -21,6 +26,10 @@ export const devStudios: DevStudio[] = [
     color: '#3b82f6',
     tags: ['Mobile', 'Web3', 'Games'],
     minBudget: '$15K',
+    avatar:
+      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('pixel-forge'),
+    yearsExperience: 8,
   },
   {
     id: 'nova-labs',
@@ -32,6 +41,10 @@ export const devStudios: DevStudio[] = [
     color: '#8b5cf6',
     tags: ['DeFi', 'Dashboards', 'Smart contracts'],
     minBudget: '$25K',
+    avatar:
+      'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('nova-labs'),
+    yearsExperience: 6,
   },
   {
     id: 'stackline',
@@ -43,6 +56,10 @@ export const devStudios: DevStudio[] = [
     color: '#6366f1',
     tags: ['Websites', 'SaaS', 'Marketplaces'],
     minBudget: '$10K',
+    avatar:
+      'https://images.unsplash.com/photo-1556761175-b413da4baf72?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('stackline'),
+    yearsExperience: 7,
   },
   {
     id: 'arcade-works',
@@ -54,6 +71,10 @@ export const devStudios: DevStudio[] = [
     color: '#06b6d4',
     tags: ['Games', 'Social', 'Meme'],
     minBudget: '$8K',
+    avatar:
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('arcade-works'),
+    yearsExperience: 5,
   },
   {
     id: 'prism-ui',
@@ -65,6 +86,10 @@ export const devStudios: DevStudio[] = [
     color: '#14b8a6',
     tags: ['UI/UX', 'Websites', 'Branding'],
     minBudget: '$5K',
+    avatar:
+      'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('prism-ui'),
+    yearsExperience: 4,
   },
   {
     id: 'chaincraft',
@@ -76,6 +101,10 @@ export const devStudios: DevStudio[] = [
     color: '#10b981',
     tags: ['Solidity', 'Audits', 'Tokenomics'],
     minBudget: '$12K',
+    avatar:
+      'https://images.unsplash.com/photo-1519389950473-f47f0d6ba0a9?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('chaincraft'),
+    yearsExperience: 5,
   },
   {
     id: 'orbit-digital',
@@ -87,6 +116,10 @@ export const devStudios: DevStudio[] = [
     color: '#f59e0b',
     tags: ['SaaS', 'Websites', 'APIs'],
     minBudget: '$20K',
+    avatar:
+      'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('orbit-digital'),
+    yearsExperience: 6,
   },
   {
     id: 'vertex-games',
@@ -98,6 +131,10 @@ export const devStudios: DevStudio[] = [
     color: '#ec4899',
     tags: ['Games', '3D', 'Mobile'],
     minBudget: '$30K',
+    avatar:
+      'https://images.unsplash.com/photo-1556760544-740b53c3aafd?w=256&h=256&fit=crop&crop=faces',
+    banner: banner('vertex-games'),
+    yearsExperience: 9,
   },
 ];
 

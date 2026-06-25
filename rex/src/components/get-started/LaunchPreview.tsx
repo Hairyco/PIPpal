@@ -46,7 +46,13 @@ function walletProgress(data: LaunchPreviewData): number {
   return Math.min(pct, 92);
 }
 
-export function LaunchPreview({ data }: { data: LaunchPreviewData }) {
+export function LaunchPreview({
+  data,
+  inPane = false,
+}: {
+  data: LaunchPreviewData;
+  inPane?: boolean;
+}) {
   const symbol = makeSymbol(data.projectName);
   const industry = industries.find((i) => i.id === data.categoryId);
   const walletPct = walletProgress(data);
@@ -60,15 +66,19 @@ export function LaunchPreview({ data }: { data: LaunchPreviewData }) {
     });
 
   return (
-    <div className="lg:sticky lg:top-24">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-sky-400">Live preview</p>
-        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-          Updates as you type
-        </span>
-      </div>
+    <div className={inPane ? undefined : 'lg:sticky lg:top-24'}>
+      {!inPane && (
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-medium uppercase tracking-wider text-sky-400">Live preview</p>
+          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+            Updates as you type
+          </span>
+        </div>
+      )}
 
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0a0e17] shadow-2xl">
+      <div
+        className={`overflow-hidden rounded-2xl border border-white/10 bg-[#0a0e17] ${inPane ? '' : 'shadow-2xl'}`}
+      >
         <div className="flex items-center gap-2 border-b border-white/10 bg-[#111820] px-4 py-2.5">
           <div className="flex gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full bg-white/20" />

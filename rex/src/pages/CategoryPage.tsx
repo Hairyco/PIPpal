@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BackLink, Layout } from '../components/Layout';
+import { CategoryBanner } from '../components/category/CategoryBanner';
 import { ProjectsTable } from '../components/category/ProjectsTable';
 import { IdeasPanel } from '../components/category/IdeasPanel';
 import { getCategoryContent } from '../data/categoryContent';
@@ -33,37 +34,12 @@ export function CategoryPage() {
       <div className="container py-8 pb-16">
         <BackLink />
 
-        <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{industry.tag}</p>
-            <h1 className="font-serif text-3xl font-bold text-white md:text-4xl">
-              {industry.name}
-            </h1>
-            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-              {industry.description}
-            </p>
-          </div>
-
-          <div className="flex gap-6 text-sm">
-            <div>
-              <p className="text-muted-foreground">Active</p>
-              <p className="text-lg font-semibold text-sky-400">
-                {content.projects.length}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Ideas</p>
-              <p className="text-lg font-semibold text-foreground">
-                {content.ideas.length}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Total</p>
-              <p className="text-lg font-semibold text-foreground">
-                {industry.projectCount.toLocaleString()}
-              </p>
-            </div>
-          </div>
+        <div className="mt-6">
+          <CategoryBanner
+            industry={industry}
+            activeCount={content.projects.length}
+            ideasCount={content.ideas.length}
+          />
         </div>
 
         <div className="mt-8 border-b border-white/10">

@@ -59,6 +59,21 @@ const categoryContent: Record<string, RawCategoryContent> = {
       { id: 'i4', title: 'Charity meme fundraiser', description: 'Meme coin where 2% of every trade auto-donates to a transparent charity wallet.', estimatedRaise: '$100K–$500K', buildTime: '1 week' },
     ],
   },
+  'celebrity-coins': {
+    projects: [
+      { id: '1', rank: 1, name: 'SwiftieCoin', symbol: 'SWFT', marketCap: '$3.1M', price: '$0.0031', change24h: 89.4, age: '3d', verified: true },
+      { id: '2', rank: 2, name: 'KardashKoin', symbol: 'KARD', marketCap: '$1.4M', price: '$0.0014', change24h: 52.1, age: '6d', verified: true },
+      { id: '3', rank: 3, name: 'DrakeDrop', symbol: 'DRKE', marketCap: '$920K', price: '$0.00092', change24h: -8.3, age: '2d', verified: false },
+      { id: '4', rank: 4, name: 'ElonMuskMoon', symbol: 'ELON', marketCap: '$680K', price: '$0.00068', change24h: 34.7, age: '4d', verified: true },
+      { id: '5', rank: 5, name: 'BeyHive', symbol: 'HIVE', marketCap: '$410K', price: '$0.00041', change24h: 21.2, age: '7d', verified: false },
+    ],
+    ideas: [
+      { id: 'i1', title: 'Celebrity moment parody coin', description: 'Launch a token around a trending celebrity headline with auto-marketing and holder fan perks.', estimatedRaise: '$80K–$400K', buildTime: '1 week' },
+      { id: 'i2', title: 'Influencer fan token', description: 'Verified creator launches a fan coin with exclusive drops, AMAs, and merch funded by trading tax.', estimatedRaise: '$50K–$250K', buildTime: '5 days' },
+      { id: 'i3', title: 'Red carpet event coin', description: 'Time-limited token for awards season or a major premiere with countdown marketing pushes.', estimatedRaise: '$100K–$500K', buildTime: '10 days' },
+      { id: 'i4', title: 'Celebrity charity token', description: 'Parody or tribute coin where a transparent % of trades supports a named cause or fan initiative.', estimatedRaise: '$150K–$600K', buildTime: '2 weeks' },
+    ],
+  },
   apps: {
     projects: [
       { id: '1', rank: 1, name: 'FitTrack', symbol: 'FIT', marketCap: '$2.6M', price: '$0.026', change24h: 41.2, age: '16d', verified: true },
