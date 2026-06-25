@@ -91,7 +91,7 @@ export function CategoryPage() {
         </div>
 
         <div className="mt-10 text-center">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
+          <Link to="/categories" className="text-sm text-muted-foreground hover:text-foreground">
             ← Browse all categories
           </Link>
         </div>

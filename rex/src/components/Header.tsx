@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { RexLogo } from './RexLogo';
+import { hasFounderProject } from '../utils/founderProject';
 
 export function Header() {
+  const showDashboard = hasFounderProject();
+
   return (
     <header className="container sticky top-0 z-50 py-4 backdrop-blur">
       <div className="flex h-10 flex-row items-center justify-between">
@@ -14,6 +17,14 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4 sm:gap-6">
+          {showDashboard && (
+            <Link
+              to="/dashboard"
+              className="text-sm font-medium text-sky-400 transition-opacity hover:opacity-80"
+            >
+              Dashboard
+            </Link>
+          )}
           <Link
             to="/become-a-supplier"
             className="text-sm text-foreground transition-opacity hover:opacity-80"

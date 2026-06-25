@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, UserPlus } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, BadgeCheck, UserPlus } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { industries } from '../data/industries';
 import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
@@ -18,6 +18,7 @@ import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
+import { saveFounderProject } from '../utils/founderProject';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
 type Step = 'idea' | 'roadmap' | 'studios' | 'talent' | 'launch';
@@ -37,7 +38,6 @@ export function GetStartedPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState<Step>('idea');
-  const [launched, setLaunched] = useState(false);
 
   const [projectName, setProjectName] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -165,37 +165,23 @@ export function GetStartedPage() {
     setInspireOpen(false);
   };
 
-  if (launched) {
-    return (
-      <Layout>
-        <div className="container py-16 text-center">
-          <CheckCircle2 className="mx-auto h-16 w-16 text-emerald-400" />
-          <h1 className="mt-6 font-serif text-3xl font-bold text-white">Project launched!</h1>
-          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-            {projectName} is live on Rex with your recommended roadmap, marketing wallet, and team
-            shortlist saved.
-            {vendorChats.length > 0 && (
-              <>
-                {' '}
-                Vendor chats stay open — finalise scope and pricing in your founder dashboard.
-              </>
-            )}
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              to={`/project/${categoryId}/new/promote?name=${encodeURIComponent(projectName)}`}
-              className="dex-btn-green"
-            >
-              Promote your coin
-            </Link>
-            <button type="button" onClick={() => navigate('/')} className="dex-btn">
-              Back to home
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  const handleLaunch = () => {
+    saveFounderProject({
+      projectName: projectName.trim(),
+      categoryId,
+      description: description.trim(),
+      coinUtilities,
+      deliverables,
+      shortlistedStudios,
+      studioSkipped,
+      ownSupplierName,
+      ownSupplierEmail,
+      talentAssignments,
+      vendorChats,
+      launchedAt: new Date().toISOString(),
+    });
+    navigate('/dashboard?welcome=1');
+  };
 
   return (
     <Layout>
@@ -598,7 +584,7 @@ export function GetStartedPage() {
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </button>
-                <button type="button" onClick={() => setLaunched(true)} className="dex-btn">
+                <button type="button" onClick={handleLaunch} className="dex-btn">
                   Launch for ${CLAIM_FEE}
                 </button>
               </div>

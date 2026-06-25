@@ -7,6 +7,8 @@ import { ProjectPage } from './pages/ProjectPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { MarketplacePage } from './pages/MarketplacePage';
 import { PromotePage } from './pages/PromotePage';
+import { CategoriesPage } from './pages/CategoriesPage';
+import { FounderDashboardPage } from './pages/FounderDashboardPage';
 
 export function App() {
   return (
@@ -15,9 +17,11 @@ export function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
+        <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />
         <Route path="/project/:categoryId/:projectId/promote" element={<PromotePage />} />
         <Route path="/get-started" element={<GetStartedPage />} />
+        <Route path="/dashboard" element={<FounderDashboardPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />
       </Routes>
