@@ -14,9 +14,11 @@ import {
 import { LaunchStudiosStep } from '../components/get-started/LaunchStudiosStep';
 import { LaunchTalentStep } from '../components/get-started/LaunchTalentStep';
 import { CoinUtilitySelect } from '../components/get-started/CoinUtilitySelect';
+import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
+import type { VendorChatTarget } from '../utils/vendorChat';
 
 type Step = 'idea' | 'roadmap' | 'studios' | 'talent' | 'launch';
 
@@ -55,8 +57,19 @@ export function GetStartedPage() {
   const [ownSupplierEmail, setOwnSupplierEmail] = useState('');
   const [ownSupplierWebsite, setOwnSupplierWebsite] = useState('');
   const [talentAssignments, setTalentAssignments] = useState<Record<string, string>>({});
+  const [chatTarget, setChatTarget] = useState<VendorChatTarget | null>(null);
+  const [vendorChats, setVendorChats] = useState<VendorChatTarget[]>([]);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
+
+  const openVendorChat = (target: VendorChatTarget) => {
+    setChatTarget(target);
+    setVendorChats((prev) =>
+      prev.some((chat) => chat.key === target.key) ? prev : [...prev, target],
+    );
+  };
+
+  const vendorChatKeys = vendorChats.map((chat) => chat.key);
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -161,6 +174,12 @@ export function GetStartedPage() {
           <p className="mx-auto mt-3 max-w-md text-muted-foreground">
             {projectName} is live on Rex with your recommended roadmap, marketing wallet, and team
             shortlist saved.
+            {vendorChats.length > 0 && (
+              <>
+                {' '}
+                Vendor chats stay open — finalise scope and pricing in your founder dashboard.
+              </>
+            )}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -384,6 +403,8 @@ export function GetStartedPage() {
                 setOwnSupplierEmail(v);
               }}
               onOwnSupplierWebsite={setOwnSupplierWebsite}
+              vendorChatKeys={vendorChatKeys}
+              onOpenChat={openVendorChat}
               onBack={() => setStep('roadmap')}
               onContinue={() => setStep('talent')}
             />
@@ -393,7 +414,9 @@ export function GetStartedPage() {
             <LaunchTalentStep
               deliverables={deliverables}
               talentAssignments={talentAssignments}
+              vendorChatKeys={vendorChatKeys}
               onAssignTalent={assignTalent}
+              onOpenChat={openVendorChat}
               onBack={() => setStep('studios')}
               onContinue={() => setStep('launch')}
             />
@@ -509,6 +532,32 @@ export function GetStartedPage() {
                     )}
                   </div>
 
+                  {vendorChats.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Vendor conversations
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {vendorChats.length} active chat{vendorChats.length > 1 ? 's' : ''} — scope
+                        and pricing to finalise after launch
+                      </p>
+                      <ul className="mt-2 space-y-1">
+                        {vendorChats.map((chat) => (
+                          <li key={chat.key} className="flex items-center justify-between text-sm">
+                            <span className="text-white">{chat.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => setChatTarget(chat)}
+                              className="text-xs font-medium text-sky-400 hover:text-sky-300"
+                            >
+                              Open chat
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between rounded-xl border border-sky-500/25 bg-sky-500/5 p-4">
                     <div className="flex items-center gap-2">
                       <UserPlus className="h-5 w-5 text-sky-400" />
@@ -557,6 +606,10 @@ export function GetStartedPage() {
           )}
         </div>
       </div>
+
+      {chatTarget && (
+        <VendorChatModal target={chatTarget} onClose={() => setChatTarget(null)} />
+      )}
     </Layout>
   );
 }
