@@ -4,7 +4,7 @@ import { devStudios } from '../../data/devStudios';
 import { StudioLogoBadge } from '../marketplace/StudioLogo';
 
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
+  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
 
 export interface StudiosStepState {
   studioSearch: string;

@@ -6,6 +6,7 @@ import { BecomeSupplierPage } from './pages/BecomeSupplierPage';
 import { ProjectPage } from './pages/ProjectPage';
 import { GetStartedPage } from './pages/GetStartedPage';
 import { MarketplacePage } from './pages/MarketplacePage';
+import { PromotePage } from './pages/PromotePage';
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />
+        <Route path="/project/:categoryId/:projectId/promote" element={<PromotePage />} />
         <Route path="/get-started" element={<GetStartedPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
         <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />

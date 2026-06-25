@@ -42,7 +42,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
       'Investors can track wallet balance and upcoming vendor spend live',
       'Platform takes a 5–10% management fee on milestone payouts',
     ],
-    highlight: 'The project builds and markets itself.',
+    highlight: 'Your coin builds and markets itself.',
   },
   {
     id: 'claim',

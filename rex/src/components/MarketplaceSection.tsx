@@ -98,7 +98,7 @@ export function MarketplaceSection() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by skill, role, or studio…"
-              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+              className="w-full rounded-xl border border-white/10 bg-white/5 py-2.5 pl-9 pr-4 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
             />
           </div>
 

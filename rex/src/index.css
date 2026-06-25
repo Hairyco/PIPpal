@@ -13,6 +13,13 @@
     @apply bg-background text-foreground antialiased;
     font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   }
+
+  /* iOS Safari zooms focused inputs below 16px — keep page scale fixed */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 @layer components {

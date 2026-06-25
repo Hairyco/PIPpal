@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { BadgeCheck, Map, Wallet } from 'lucide-react';
+import { BadgeCheck, Map, Megaphone, Wallet } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingWalletChart, PriceChart } from '../components/project/ProjectCharts';
@@ -69,7 +69,15 @@ export function ProjectPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-6 text-sm">
+          <div className="flex flex-col items-start gap-3 sm:items-end">
+            <Link
+              to={`/project/${categoryId}/${projectId}/promote`}
+              className="inline-flex items-center gap-2 rounded-lg border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 transition-colors hover:bg-sky-500/20"
+            >
+              <Megaphone className="h-4 w-4" />
+              Promote
+            </Link>
+            <div className="flex flex-wrap gap-6 text-sm">
             <div>
               <p className="text-muted-foreground">Price</p>
               <p className="text-lg font-semibold text-white">{project.price}</p>
@@ -88,6 +96,7 @@ export function ProjectPage() {
             <div>
               <p className="text-muted-foreground">Wallet</p>
               <p className="text-lg font-semibold text-emerald-400">{details.marketingWallet.balance}</p>
+            </div>
             </div>
           </div>
         </div>

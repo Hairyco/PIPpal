@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BadgeCheck, CheckCircle2, UserPlus } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { industries } from '../data/industries';
@@ -19,7 +19,7 @@ import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 type Step = 'idea' | 'roadmap' | 'studios' | 'talent' | 'launch';
 
 const inputClass =
-  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
+  'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
 
 const STEPS: { id: Step; label: string }[] = [
   { id: 'idea', label: 'Your idea' },
@@ -149,9 +149,17 @@ export function GetStartedPage() {
             {projectName} is live on Rex with your recommended roadmap, marketing wallet, and team
             shortlist saved.
           </p>
-          <button type="button" onClick={() => navigate('/')} className="dex-btn mt-8">
-            Back to home
-          </button>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              to={`/project/${categoryId}/new/promote?name=${encodeURIComponent(projectName)}`}
+              className="dex-btn-green"
+            >
+              Promote your coin
+            </Link>
+            <button type="button" onClick={() => navigate('/')} className="dex-btn">
+              Back to home
+            </button>
+          </div>
         </div>
       </Layout>
     );
