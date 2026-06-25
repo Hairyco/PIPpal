@@ -10,6 +10,7 @@ interface CategoryBannerProps {
 export function CategoryBanner({ industry, activeCount, ideasCount }: CategoryBannerProps) {
   const [bannerFailed, setBannerFailed] = useState(false);
   const bannerSrc = industry.banner ?? industry.image;
+  const iconSrc = industry.icon ?? industry.image;
 
   return (
     <div className="dex-card overflow-hidden !p-0 [&::before]:z-[2]">
@@ -34,7 +35,7 @@ export function CategoryBanner({ industry, activeCount, ideasCount }: CategoryBa
         <div className="-mt-10 flex flex-col gap-5 sm:-mt-12 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex min-w-0 items-end gap-4">
             <img
-              src={industry.image}
+              src={iconSrc}
               alt={industry.name}
               className="h-20 w-20 shrink-0 rounded-2xl object-cover ring-4 ring-[#0a0e17] sm:h-24 sm:w-24"
               loading="eager"

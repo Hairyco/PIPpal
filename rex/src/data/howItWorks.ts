@@ -21,7 +21,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Launch for $1',
     subtitle: 'Low barrier entry',
     description:
-      'Anyone can spin up a project in minutes — no coding or marketing experience required.',
+      'Bring an idea to life in minutes — no coding or marketing experience required.',
     bullets: [
       'Pick a category or claim a generated idea',
       'Token and project page go live instantly',
@@ -35,14 +35,14 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Automated marketing wallet',
     subtitle: 'The self-funding engine',
     description:
-      'Every trade feeds a dedicated marketing wallet. When milestones are reached, Rex pays vetted vendors for the services your project needs — even if the founder disappears.',
+      'Built-in buy/sell tax on every trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted vendors for the services your project needs.',
     bullets: [
-      '2–5% buy/sell tax flows into the marketing wallet',
+      '2–10% buy/sell tax flows into the marketing wallet',
       'Milestone thresholds unlock payouts to approved vendors automatically',
       'Investors can track wallet balance and upcoming vendor spend live',
       'Platform takes a 5–10% management fee on milestone payouts',
     ],
-    highlight: 'The coin markets itself.',
+    highlight: 'The project builds and markets itself.',
   },
   {
     id: 'claim',
@@ -58,7 +58,6 @@ export const howItWorksSteps: HowItWorksStep[] = [
       'Community vote on major founder decisions',
       `One-time $${CLAIM_FEE} claim fee plus optional premium perks from $${Math.min(...premiumFeatures.map((p) => p.price))} each`,
     ],
-    highlight: `$${CLAIM_FEE} to claim`,
   },
   {
     id: 'roadmap',

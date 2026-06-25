@@ -55,9 +55,11 @@ export function StudioCarousel() {
     <section className="my-16">
       <div className="container">
         <h2 className="mb-4 font-serif text-4xl text-white">Live Projects</h2>
-        <p className="mb-8 max-w-xl text-muted-foreground">
-          Real projects building on Rex right now — with roadmaps, marketing wallets, and verified
-          milestones.
+        <p className="mb-2 max-w-2xl text-muted-foreground">
+          Real projects on Rex — funded by trading activity, not promises.
+        </p>
+        <p className="mb-8 max-w-2xl text-sm text-white/40">
+          Each has a marketing wallet, roadmap, and verified milestones.
         </p>
       </div>
 

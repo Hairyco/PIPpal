@@ -1,4 +1,5 @@
 export const CLAIM_FEE = 1;
+export const KYC_FEE = 150;
 
 export interface PremiumFeature {
   id: string;

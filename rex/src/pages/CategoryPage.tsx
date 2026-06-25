@@ -4,6 +4,7 @@ import { BackLink, Layout } from '../components/Layout';
 import { CategoryBanner } from '../components/category/CategoryBanner';
 import { ProjectsTable } from '../components/category/ProjectsTable';
 import { IdeasPanel } from '../components/category/IdeasPanel';
+import { TrendingCelebrities } from '../components/category/TrendingCelebrities';
 import { getCategoryContent } from '../data/categoryContent';
 import { industries } from '../data/industries';
 
@@ -41,6 +42,12 @@ export function CategoryPage() {
             ideasCount={content.ideas.length}
           />
         </div>
+
+        {categoryId === 'celebrity-coins' && (
+          <div className="mt-8">
+            <TrendingCelebrities />
+          </div>
+        )}
 
         <div className="mt-8 border-b border-white/10">
           <div className="flex gap-1">

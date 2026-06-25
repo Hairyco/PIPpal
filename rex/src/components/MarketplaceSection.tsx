@@ -18,7 +18,10 @@ const TABS: { id: MarketplaceTab; label: string }[] = [
   { id: 'influencers', label: 'Influencers' },
 ];
 
-const PREVIEW_COUNT = 2;
+const PREVIEW_COUNT = 5;
+
+const previewCardClass =
+  'w-[72vw] shrink-0 snap-start sm:w-[calc((100%-0.75rem*2)/2.15)] lg:w-[calc((100%-0.75rem*3)/4.12)]';
 
 function skillLabel(id: string): string {
   return projectDeliverables.find((d) => d.id === id)?.label ?? id;
@@ -81,8 +84,10 @@ export function MarketplaceSection() {
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Marketplace</p>
-          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Search marketplace</h2>
-          <p className="mt-2 text-muted-foreground">Creators ready to build your project</p>
+          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Vetted builders</h2>
+          <p className="mt-2 text-muted-foreground">
+            When milestones hit, Rex pays studios and creators from the marketing wallet.
+          </p>
         </div>
 
         <div className="flex w-full flex-col gap-3 sm:flex-row lg:max-w-xl lg:shrink-0">
@@ -116,15 +121,47 @@ export function MarketplaceSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-5">
-        {tab === 'studios' &&
-          filteredStudios.map((studio) => <StudioCard key={studio.id} studio={studio} />)}
-        {tab === 'independent' &&
-          filteredTalent.map((worker) => <IndependentCard key={worker.id} worker={worker} />)}
-        {tab === 'influencers' &&
-          filteredInfluencers.map((influencer) => (
-            <InfluencerCard key={influencer.id} influencer={influencer} />
-          ))}
+      <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-[22%] bg-gradient-to-l from-background via-background/90 to-transparent"
+          aria-hidden
+        />
+
+        <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory hide-scrollbar sm:gap-4">
+          {tab === 'studios' &&
+            filteredStudios.map((studio, index) => (
+              <div
+                key={studio.id}
+                className={`${previewCardClass} ${
+                  index === PREVIEW_COUNT - 1 ? 'blur-[3px] opacity-55' : ''
+                }`}
+              >
+                <StudioCard studio={studio} />
+              </div>
+            ))}
+          {tab === 'independent' &&
+            filteredTalent.map((worker, index) => (
+              <div
+                key={worker.id}
+                className={`${previewCardClass} ${
+                  index === PREVIEW_COUNT - 1 ? 'blur-[3px] opacity-55' : ''
+                }`}
+              >
+                <IndependentCard worker={worker} />
+              </div>
+            ))}
+          {tab === 'influencers' &&
+            filteredInfluencers.map((influencer, index) => (
+              <div
+                key={influencer.id}
+                className={`${previewCardClass} ${
+                  index === PREVIEW_COUNT - 1 ? 'blur-[3px] opacity-55' : ''
+                }`}
+              >
+                <InfluencerCard influencer={influencer} />
+              </div>
+            ))}
+        </div>
       </div>
 
       {activeList.length === 0 && (

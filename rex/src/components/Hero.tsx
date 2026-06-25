@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { PartnerLogos } from './PartnerLogos';
 
 export function Hero() {
@@ -10,8 +11,16 @@ export function Hero() {
         </span>
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-        The world&apos;s first automated incubator with built-in marketing wallets.
+        The world&apos;s first automated incubator — launch for $1, fund growth from every trade,
+        and unlock vetted delivery at milestones.
       </p>
+
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <Link to="/get-started" className="dex-btn">
+          Launch for $1
+        </Link>
+      </div>
+
       <PartnerLogos />
     </div>
   );

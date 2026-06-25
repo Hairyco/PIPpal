@@ -171,7 +171,7 @@ export function StudioLogo({
   size?: 'md' | 'lg';
 }) {
   const Logo = LOGOS[studio.id];
-  const dim = size === 'lg' ? 'h-14 w-14 sm:h-20 sm:w-20' : 'h-10 w-10';
+  const dim = size === 'lg' ? 'h-16 w-16 sm:h-[4.5rem] sm:w-[4.5rem]' : 'h-10 w-10';
 
   return (
     <div

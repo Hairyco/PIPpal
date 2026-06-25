@@ -1,4 +1,4 @@
-import { industryImage } from './industryImages';
+import { industryImage, industryIcon } from './industryImages';
 
 export interface Industry {
   id: string;
@@ -9,6 +9,8 @@ export interface Industry {
   image: string;
   /** Wide header image; falls back to `image` when omitted */
   banner?: string;
+  /** Square profile image on category page; falls back to `image` when omitted */
+  icon?: string;
 }
 
 export const industries: Industry[] = [
@@ -19,6 +21,7 @@ export const industries: Industry[] = [
     projectCount: 2847,
     tag: 'Trending',
     image: '/images/industries/meme-coins.png',
+    icon: industryIcon('meme-coins', '/images/industries/icons/meme-coins.svg'),
   },
   {
     id: 'ai-tech',
@@ -27,6 +30,7 @@ export const industries: Industry[] = [
     projectCount: 621,
     tag: 'Innovation',
     image: industryImage('ai-tech', '/images/industries/ai.jpg'),
+    icon: industryIcon('ai-tech', '/images/industries/icons/ai-tech.svg'),
   },
   {
     id: 'celebrity-coins',
@@ -36,6 +40,7 @@ export const industries: Industry[] = [
     projectCount: 1243,
     tag: 'Hot',
     image: industryImage('celebrity-coins', '/images/industries/celebrity-coins.jpg'),
+    icon: industryIcon('celebrity-coins', '/images/industries/icons/celebrity-coins.svg'),
   },
   {
     id: 'apps',
@@ -43,7 +48,8 @@ export const industries: Industry[] = [
     description: 'Mobile, web, and social apps with real users and revenue',
     projectCount: 892,
     tag: 'High Demand',
-    image: industryImage('apps', '/images/industries/apps.svg'),
+    image: industryImage('apps', '/images/industries/apps.jpg'),
+    icon: industryIcon('apps', '/images/industries/icons/apps.svg'),
   },
   {
     id: 'media',
@@ -52,6 +58,7 @@ export const industries: Industry[] = [
     projectCount: 412,
     tag: 'High Growth',
     image: industryImage('media', '/images/industries/media.jpg'),
+    icon: industryIcon('media', '/images/industries/icons/media.svg'),
   },
   {
     id: 'sport',
@@ -60,6 +67,7 @@ export const industries: Industry[] = [
     projectCount: 328,
     tag: 'Popular',
     image: '/images/industries/sports.jpg',
+    icon: industryIcon('sport', '/images/industries/icons/sport.svg'),
   },
   {
     id: 'aerospace',
@@ -68,6 +76,7 @@ export const industries: Industry[] = [
     projectCount: 89,
     tag: 'Deep Tech',
     image: '/images/industries/aerospace.jpg',
+    icon: industryIcon('aerospace', '/images/industries/icons/aerospace.svg'),
   },
   {
     id: 'gaming',
@@ -76,6 +85,7 @@ export const industries: Industry[] = [
     projectCount: 756,
     tag: 'Interactive',
     image: '/images/industries/gaming.jpg',
+    icon: industryIcon('gaming', '/images/industries/icons/gaming.svg'),
   },
   {
     id: 'defi',
@@ -84,6 +94,7 @@ export const industries: Industry[] = [
     projectCount: 534,
     tag: 'High Volume',
     image: industryImage('defi', '/images/industries/defi.jpg'),
+    icon: industryIcon('defi', '/images/industries/icons/defi.svg'),
   },
   {
     id: 'fashion',
@@ -92,6 +103,7 @@ export const industries: Industry[] = [
     projectCount: 198,
     tag: 'Emerging',
     image: '/images/industries/fashion.jpg',
+    icon: industryIcon('fashion', '/images/industries/icons/fashion.svg'),
   },
   {
     id: 'music',
@@ -100,6 +112,7 @@ export const industries: Industry[] = [
     projectCount: 267,
     tag: 'Creator Economy',
     image: '/images/industries/music.jpg',
+    icon: industryIcon('music', '/images/industries/icons/music.svg'),
   },
   {
     id: 'real-estate',
@@ -108,5 +121,6 @@ export const industries: Industry[] = [
     projectCount: 143,
     tag: 'Asset Backed',
     image: '/images/industries/real-estate.jpg',
+    icon: industryIcon('real-estate', '/images/industries/icons/real-estate.svg'),
   },
 ];

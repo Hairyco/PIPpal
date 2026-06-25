@@ -1,20 +1,20 @@
 import { Layout } from '../components/Layout';
 import { Hero } from '../components/Hero';
-import { LaunchCta } from '../components/LaunchCta';
+import { Pillars } from '../components/Pillars';
 import { StudioCarousel } from '../components/StudioCarousel';
 import { IndustryGrid } from '../components/IndustryGrid';
 import { MarketplaceSection } from '../components/MarketplaceSection';
-import { Pillars } from '../components/Pillars';
+import { LaunchCta } from '../components/LaunchCta';
 
 export function HomePage() {
   return (
     <Layout>
       <Hero />
-      <LaunchCta />
-      <StudioCarousel />
-      <MarketplaceSection />
-      <IndustryGrid />
       <Pillars />
+      <StudioCarousel />
+      <IndustryGrid />
+      <MarketplaceSection />
+      <LaunchCta />
     </Layout>
   );
 }

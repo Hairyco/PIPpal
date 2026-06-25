@@ -25,11 +25,11 @@ export function IndustryGrid() {
             Categories
           </p>
           <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">
-            Explore big ideas that are becoming reality.
+            Explore big ideas that become reality.
           </h2>
         </div>
         <p className="max-w-xs text-sm text-muted-foreground">
-          Curated sectors where Rex projects launch, fundraise, and deliver.
+          Curated sectors where Rex projects launch, fundraise, and deliver within the ecosystem
         </p>
       </div>
 

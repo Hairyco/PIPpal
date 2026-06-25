@@ -12,10 +12,10 @@ export function Pillars() {
 
   return (
     <>
-      <section className="container my-16 pb-16">
-        <h2 className="mb-4 font-serif text-4xl text-white">How Rex Works</h2>
-        <p className="mb-8 max-w-xl text-muted-foreground">
-          Three steps from idea to a live project with automated marketing.
+      <section className="container my-20">
+        <h2 className="mb-3 font-serif text-4xl text-white">How Rex Works</h2>
+        <p className="mb-8 max-w-2xl text-lg text-sky-400 sm:text-xl">
+          Your project builds and markets itself.
         </p>
 
         <div className="grid gap-4 md:grid-cols-3">
