@@ -1,6 +1,7 @@
 import { Wallet, BadgeCheck, Map, Building2, Rocket, Gift } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { CLAIM_FEE, premiumFeatures } from './claimPricing';
+import { BONDING_CURVE_LAUNCH_NOTE, BONDING_CURVE_TRADE_NOTE } from './bondingCurve';
 
 export interface HowItWorksStep {
   id: string;
@@ -21,10 +22,11 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Launch for $1',
     subtitle: 'Low barrier entry',
     description:
-      'Bring an idea to life in minutes — no coding or marketing experience required.',
+      'Bring an idea to life in minutes — your coin launches on a Rex bonding curve, no LP or coding required.',
     bullets: [
       'Pick a category or claim a generated idea',
-      'Token and project page go live instantly',
+      'Token goes live on the bonding curve instantly',
+      BONDING_CURVE_LAUNCH_NOTE,
       'Marketing and roadmap wallets created automatically',
     ],
   },
@@ -35,9 +37,10 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Automated marketing wallet',
     subtitle: 'The self-funding engine',
     description:
-      'Built-in buy/sell tax on every trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted vendors for the services your project needs.',
+      'Built-in buy/sell tax on every curve trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted vendors for the services your project needs.',
     bullets: [
-      '2–10% buy/sell tax flows into the marketing wallet',
+      '2–10% tax on bonding-curve buys and sells',
+      BONDING_CURVE_TRADE_NOTE,
       'Milestone thresholds unlock payouts to approved vendors automatically',
       'Investors can track wallet balance and upcoming vendor spend live',
       'Platform takes a 5–10% management fee on milestone payouts',
@@ -69,7 +72,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     description:
       'A separate roadmap wallet fills from trading activity. When milestones hit, funds unlock automatically for the next phase.',
     bullets: [
-      'Milestone 1: Launch & liquidity',
+      'Milestone 1: Bonding curve launch',
       'Milestone 2: Marketing fund threshold → first ads',
       'Milestone 3: Roadmap wallet unlock → supplier build begins',
       'Milestone 4: MVP release to token holders',

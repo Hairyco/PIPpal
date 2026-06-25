@@ -20,6 +20,7 @@ import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
+import { BONDING_CURVE_LAUNCH_NOTE, BONDING_CURVE_SUMMARY } from '../data/bondingCurve';
 import { saveFounderProject } from '../utils/founderProject';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
@@ -201,7 +202,7 @@ export function GetStartedPage() {
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">Get started</h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             Describe your idea, review Rex&apos;s recommended roadmap, shortlist studios and talent,
-            then launch. Complete KYC (${KYC_FEE}) for full founder controls.
+            then launch on the bonding curve. Complete KYC (${KYC_FEE}) for full founder controls.
           </p>
 
           <div className="mt-8 flex gap-1.5 sm:gap-2">
@@ -232,7 +233,7 @@ export function GetStartedPage() {
           </div>
         </div>
 
-        <div className="mt-8 max-w-3xl">
+        <div className="mt-8 max-w-3xl min-w-0 overflow-x-hidden">
           {step === 'idea' && (
             <div className="space-y-5">
               <div className="dex-card">
@@ -341,12 +342,12 @@ export function GetStartedPage() {
           )}
 
           {step === 'roadmap' && (
-            <div className="space-y-5">
-              <div className="dex-card">
-                <div className="relative z-[1] space-y-4">
+            <div className="min-w-0 space-y-5 overflow-x-hidden">
+              <div className="dex-card min-w-0 overflow-hidden">
+                <div className="relative z-[1] min-w-0 space-y-4">
                   <div>
                     <h2 className="font-semibold text-white">Recommended roadmap</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 break-words text-sm text-muted-foreground">
                       Based on {projectName} in{' '}
                       {industries.find((i) => i.id === categoryId)?.name}. Rex manages payouts
                       until you complete KYC.
@@ -354,18 +355,19 @@ export function GetStartedPage() {
                   </div>
 
                   <RoadmapHorizonSelect value={roadmapHorizon} onChange={setRoadmapHorizon} />
+                  <RecommendedRoadmapList milestones={milestones} />
                   <FounderTokenomicsPanel
                     horizon={roadmapHorizon}
                     shareGrants={shareGrants}
                     onShareGrantsChange={setShareGrants}
                     editable
+                    defaultExpanded={false}
                   />
                   <RoadmapKycNotice />
-                  <RecommendedRoadmapList milestones={milestones} />
                 </div>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                 <button
                   type="button"
                   onClick={() => setStep('idea')}
@@ -428,6 +430,11 @@ export function GetStartedPage() {
               <div className="dex-card">
                 <div className="relative z-[1] space-y-4">
                   <h2 className="font-semibold text-white">Review your launch</h2>
+                  <p className="text-sm text-muted-foreground">{BONDING_CURVE_SUMMARY}</p>
+
+                  <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs text-muted-foreground">
+                    {BONDING_CURVE_LAUNCH_NOTE}
+                  </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
                     <p className="text-xs font-medium uppercase tracking-wider text-sky-400">

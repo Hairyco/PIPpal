@@ -1,35 +1,85 @@
-import { MapPin, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, MapPin, Sparkles } from 'lucide-react';
 import type { RecommendedMilestone } from '../../utils/recommendedRoadmap';
 import { roadmapHorizons, type RoadmapHorizonId } from '../../data/roadmapHorizons';
 
+const MOBILE_PREVIEW_COUNT = 4;
+
 export function RecommendedRoadmapList({ milestones }: { milestones: RecommendedMilestone[] }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasMore = milestones.length > MOBILE_PREVIEW_COUNT;
+  const mobileVisible = expanded ? milestones : milestones.slice(0, MOBILE_PREVIEW_COUNT);
+
   return (
-    <ol className="space-y-3">
-      {milestones.map((milestone) => (
-        <li
-          key={`${milestone.step}-${milestone.title}`}
-          className="flex gap-4 rounded-xl border border-white/10 bg-white/[0.03] p-4"
+    <div className="min-w-0">
+      {/* Mobile: compact list with expand */}
+      <ol className="space-y-2.5 md:hidden">
+        {mobileVisible.map((milestone) => (
+          <MilestoneCard key={`${milestone.step}-${milestone.title}`} milestone={milestone} compact />
+        ))}
+      </ol>
+      {hasMore && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-muted-foreground transition-colors hover:border-sky-500/30 hover:text-foreground md:hidden"
         >
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-rex-gradient text-sm font-bold text-white"
-            aria-hidden
+          {expanded ? 'Show fewer milestones' : `Show all ${milestones.length} milestones`}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`}
+          />
+        </button>
+      )}
+
+      {/* Desktop: full list */}
+      <ol className="hidden space-y-3 md:block">
+        {milestones.map((milestone) => (
+          <MilestoneCard key={`${milestone.step}-${milestone.title}`} milestone={milestone} />
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function MilestoneCard({
+  milestone,
+  compact = false,
+}: {
+  milestone: RecommendedMilestone;
+  compact?: boolean;
+}) {
+  return (
+    <li
+      className={`min-w-0 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] ${
+        compact ? 'p-3' : 'p-4'
+      }`}
+    >
+      <div className="flex gap-3">
+        <div
+          className={`flex shrink-0 items-center justify-center rounded-full bg-rex-gradient font-bold text-white ${
+            compact ? 'h-8 w-8 text-xs' : 'h-9 w-9 text-sm'
+          }`}
+          aria-hidden
+        >
+          {milestone.step}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className={`break-words font-medium text-white ${compact ? 'text-sm' : ''}`}>
+            {milestone.title}
+          </h3>
+          <span className="mt-1.5 inline-block max-w-full break-words rounded-full border border-sky-500/25 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium leading-snug text-sky-300">
+            {milestone.unlock}
+          </span>
+          <p
+            className={`mt-2 break-words leading-relaxed text-muted-foreground ${
+              compact ? 'text-xs' : 'text-sm'
+            }`}
           >
-            {milestone.step}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <h3 className="font-medium text-white">{milestone.title}</h3>
-              <span className="shrink-0 rounded-full border border-sky-500/25 bg-sky-500/10 px-2 py-0.5 text-[10px] font-medium text-sky-300">
-                {milestone.unlock}
-              </span>
-            </div>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              {milestone.description}
-            </p>
-          </div>
-        </li>
-      ))}
-    </ol>
+            {milestone.description}
+          </p>
+        </div>
+      </div>
+    </li>
   );
 }
 
@@ -41,7 +91,7 @@ export function RoadmapHorizonSelect({
   onChange: (id: RoadmapHorizonId) => void;
 }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Roadmap horizon
       </p>
@@ -53,14 +103,16 @@ export function RoadmapHorizonSelect({
               key={horizon.id}
               type="button"
               onClick={() => onChange(horizon.id)}
-              className={`rounded-xl border p-4 text-left transition-colors ${
+              className={`min-w-0 rounded-xl border p-4 text-left transition-colors ${
                 selected
                   ? 'border-sky-500/50 bg-sky-500/10'
                   : 'border-white/10 bg-white/[0.03] hover:border-white/20'
               }`}
             >
               <p className="font-medium text-white">{horizon.label}</p>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{horizon.summary}</p>
+              <p className="mt-1 break-words text-xs leading-relaxed text-muted-foreground">
+                {horizon.summary}
+              </p>
             </button>
           );
         })}
@@ -71,12 +123,12 @@ export function RoadmapHorizonSelect({
 
 export function RoadmapKycNotice() {
   return (
-    <div className="rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
+    <div className="min-w-0 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4">
       <div className="flex gap-3">
         <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-medium text-white">Recommended roadmap — Rex managed</p>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          <p className="mt-1 break-words text-xs leading-relaxed text-muted-foreground">
             This path is included in your $1 launch. Shortlist studios and talent on the next steps.
             Complete KYC ($150) to unlock your founder token allocation, edit milestones, and approve
             vendor spend yourself.

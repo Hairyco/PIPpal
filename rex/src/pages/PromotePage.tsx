@@ -61,7 +61,7 @@ export function PromotePage() {
 
   return (
     <Layout>
-      <div className="container py-8 pb-16">
+      <div className="container min-w-0 overflow-x-hidden py-8 pb-16">
         <BackLink to={projectPath} label={isNewLaunch ? 'Back' : `Back to ${projectName}`} />
 
         <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -88,7 +88,7 @@ export function PromotePage() {
             <div>
               <p className="text-sm font-medium text-white">Marketing wallet</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Buy/sell tax on every trade fills this wallet. Category boosts and affiliate
+                Buy/sell tax on bonding-curve trades fills this wallet. Category boosts and affiliate
                 payouts always come from here — no separate checkout or founder top-up.
               </p>
             </div>
@@ -99,7 +99,7 @@ export function PromotePage() {
           </p>
         </div>
 
-        <section className="dex-card mt-6">
+        <section id="boosts" className="dex-card mt-6 min-w-0 scroll-mt-24 overflow-hidden">
           <div className="relative z-[1] p-5 sm:p-6">
             <div className="flex items-center gap-2">
               <Megaphone className="h-4 w-4 text-sky-400" />
@@ -207,7 +207,7 @@ export function PromotePage() {
           </div>
         </section>
 
-        <div className="mt-8">
+        <div id="affiliate" className="mt-8 scroll-mt-24">
           <AffiliateProgramDemo projectName={projectName} symbol={symbol} />
         </div>
 

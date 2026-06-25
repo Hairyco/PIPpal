@@ -74,10 +74,10 @@ export function getProjectDetails(project: ActiveProject): ProjectDetails {
   const milestones: Milestone[] = [
     {
       id: 'm1',
-      title: 'Launch & liquidity',
+      title: 'Bonding curve launch',
       target: '$10K MCAP',
       status: 'completed',
-      unlocks: 'DexScreener listing',
+      unlocks: 'Live on Rex curve · DexScreener',
     },
     {
       id: 'm2',
@@ -117,15 +117,15 @@ export function getProjectDetails(project: ActiveProject): ProjectDetails {
     roadmap: [
       {
         phase: 'Phase 1',
-        title: 'Token launch & community',
-        description: 'Fair launch, liquidity lock, and community channels live.',
+        title: 'Bonding curve launch & community',
+        description: 'Fair launch on the Rex bonding curve — mint on buy, burn on sell, community channels live.',
         timeline: 'Week 1–2',
         status: 'completed',
       },
       {
         phase: 'Phase 2',
         title: 'Automated marketing engine',
-        description: 'Trading tax fills marketing wallet; ads auto-purchase at threshold.',
+        description: 'Curve trading tax fills marketing wallet; ads auto-purchase at threshold.',
         timeline: 'Week 3–4',
         status: completedPhases >= 1 ? 'in_progress' : 'upcoming',
       },
@@ -147,7 +147,7 @@ export function getProjectDetails(project: ActiveProject): ProjectDetails {
     tokenomics: [
       { label: 'Marketing wallet', percent: 3 + (seed % 2) },
       { label: 'Roadmap / build fund', percent: 5 },
-      { label: 'Liquidity pool', percent: 85 - (seed % 3) },
+      { label: 'Bonding curve supply', percent: 85 - (seed % 3) },
       { label: 'Team (locked)', percent: 5 + (seed % 3) },
     ],
     supplier: {

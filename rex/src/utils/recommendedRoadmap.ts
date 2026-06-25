@@ -22,15 +22,15 @@ function baseMilestones(
     return [
       {
         step: 1,
-        title: 'Launch & liquidity',
-        description: `${name} goes live on Rex with marketing and roadmap wallets created automatically.`,
+        title: 'Bonding curve launch',
+        description: `${name} goes live on the Rex bonding curve with marketing and roadmap wallets created automatically. Buyers mint along the curve — no LP required.`,
         unlock: 'Year 1 · Day 0',
       },
       {
         step: 2,
         title: 'Marketing wallet fills',
         description:
-          'Buy/sell tax (2–10%) flows into your marketing wallet. Rex runs sustained community and listing growth.',
+          'Buy/sell tax (2–10%) on curve trades flows into your marketing wallet. Rex runs sustained community and listing growth.',
         unlock: 'Year 1',
       },
       {
@@ -42,7 +42,7 @@ function baseMilestones(
       {
         step: 4,
         title: 'Roadmap wallet unlock',
-        description: 'Trading volume unlocks the build budget. Rex holds funds in milestone escrow.',
+        description: 'Bonding-curve trading volume unlocks the build budget. Rex holds funds in milestone escrow.',
         unlock: 'Year 1–2 · ~$50K MCAP',
       },
     ];
@@ -51,15 +51,15 @@ function baseMilestones(
   return [
     {
       step: 1,
-      title: 'Launch & liquidity',
-      description: `${name} goes live on Rex with marketing and roadmap wallets created automatically.`,
+      title: 'Bonding curve launch',
+      description: `${name} goes live on the Rex bonding curve with marketing and roadmap wallets created automatically. Buyers mint along the curve — no LP required.`,
       unlock: 'Day 0 · $1 launch',
     },
     {
       step: 2,
       title: 'Marketing wallet fills',
       description:
-        'Buy/sell tax (2–10%) flows into your marketing wallet. Rex runs Telegram, DexScreener, and trending placements.',
+        'Buy/sell tax (2–10%) on curve trades flows into your marketing wallet. Rex runs Telegram, DexScreener, and trending placements.',
       unlock: 'Month 1–2',
     },
     {
@@ -71,7 +71,7 @@ function baseMilestones(
     {
       step: 4,
       title: 'Roadmap wallet unlock',
-      description: 'Trading volume unlocks the build budget. Rex holds funds in milestone escrow.',
+      description: 'Bonding-curve trading volume unlocks the build budget. Rex holds funds in milestone escrow.',
       unlock: 'Month 3–4 · ~$50K MCAP',
     },
   ];

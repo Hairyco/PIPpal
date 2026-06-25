@@ -11,8 +11,8 @@ export function Hero() {
         </span>
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
-        The world&apos;s first automated incubator — launch for $1, fund growth from every trade,
-        and unlock vetted delivery at milestones.
+        The world&apos;s first automated incubator — launch on a bonding curve for $1, fund growth
+        from every curve trade, and unlock vetted delivery at milestones.
       </p>
 
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

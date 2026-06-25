@@ -162,7 +162,7 @@ export function RoadmapModal({ project, details, onClose }: RoadmapModalProps) {
               ))}
             </div>
             <p className="mt-3 text-xs text-muted-foreground">
-              Marketing wallet receives {details.tokenomics[0].percent}% of every trade via buy/sell tax.
+              Marketing wallet receives {details.tokenomics[0].percent}% of every curve trade via buy/sell tax.
               Funds auto-deploy to DexScreener or Coinzilla at {details.marketingWallet.threshold}.
             </p>
           </section>

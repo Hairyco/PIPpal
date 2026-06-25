@@ -4,7 +4,7 @@ import { Pillars } from '../components/Pillars';
 import { StudioCarousel } from '../components/StudioCarousel';
 import { IndustryGrid } from '../components/IndustryGrid';
 import { MarketplaceSection } from '../components/MarketplaceSection';
-import { LaunchCta } from '../components/LaunchCta';
+import { GrowSection } from '../components/GrowSection';
 
 export function HomePage() {
   return (
@@ -14,6 +14,7 @@ export function HomePage() {
       <StudioCarousel />
       <IndustryGrid />
       <MarketplaceSection />
+      <GrowSection />
       <LaunchCta />
     </Layout>
   );

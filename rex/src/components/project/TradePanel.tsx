@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, TrendingUp } from 'lucide-react';
+import { BONDING_CURVE_LABEL } from '../../data/bondingCurve';
 
 type Side = 'buy' | 'sell';
 
@@ -21,6 +22,13 @@ export function TradePanel({
 
   return (
     <div className="rounded-xl border border-white/10 bg-[#0a0e17]/80 p-4">
+      <div className="mb-3 flex items-center gap-2 rounded-lg border border-sky-500/20 bg-sky-500/5 px-3 py-2">
+        <TrendingUp className="h-3.5 w-3.5 shrink-0 text-sky-400" />
+        <p className="text-[11px] text-muted-foreground">
+          <span className="font-medium text-sky-300">{BONDING_CURVE_LABEL}</span> — price moves with
+          supply. Buys mint, sells burn.
+        </p>
+      </div>
       <div className="flex rounded-lg border border-white/10 p-1">
         <button
           type="button"
@@ -73,7 +81,7 @@ export function TradePanel({
             </span>
             <span className="shrink-0 text-sm font-medium text-sky-400">{symbol}</span>
           </div>
-          <p className="mt-1 text-[10px] text-muted-foreground">Est. price {price}</p>
+          <p className="mt-1 text-[10px] text-muted-foreground">Curve price {price}</p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -95,8 +103,8 @@ export function TradePanel({
             <span>{taxRate}</span>
           </div>
           <div className="mt-1 flex justify-between">
-            <span>Slippage</span>
-            <span>1%</span>
+            <span>Curve impact</span>
+            <span>~1%</span>
           </div>
         </div>
 
@@ -112,7 +120,7 @@ export function TradePanel({
         </button>
 
         <p className="text-center text-[10px] text-muted-foreground">
-          Connect wallet to trade on Rex
+          Connect wallet to trade on the Rex bonding curve
         </p>
       </div>
     </div>

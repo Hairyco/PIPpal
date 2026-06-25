@@ -1,4 +1,5 @@
-import { Lock } from 'lucide-react';
+import { Lock, TrendingUp } from 'lucide-react';
+import { BONDING_CURVE_SUMMARY } from '../../data/bondingCurve';
 import { FOUNDER_ALLOCATION_PERCENT, tokenSupplySlices } from '../../data/founderTokenomics';
 
 export function PublicTokenomicsBlock() {
@@ -6,8 +7,10 @@ export function PublicTokenomicsBlock() {
     <div className="dex-card">
       <div className="relative z-[1]">
         <h2 className="font-semibold text-white">Token supply</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Published at launch — founder and share-pool tokens unlock only after KYC + vesting.
+        <p className="mt-1 text-xs text-muted-foreground">{BONDING_CURVE_SUMMARY}</p>
+        <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-sky-300/90">
+          <TrendingUp className="h-3 w-3" />
+          Bonding curve · founder and share-pool tokens unlock after KYC + vesting
         </p>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {tokenSupplySlices.map((slice) => (

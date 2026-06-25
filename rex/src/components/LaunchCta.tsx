@@ -19,7 +19,8 @@ export function LaunchCta() {
           </span>
         </p>
         <p className="mx-auto mt-3 max-w-lg text-sm text-muted-foreground">
-          Every trade feeds your marketing wallet. Rex handles growth and delivery at milestones.
+          Bonding-curve launch for $1 — every buy and sell feeds your marketing wallet. Rex handles
+          growth and delivery at milestones.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BadgeCheck, Lock, PieChart, Plus, Trash2, Users } from 'lucide-react';
+import { BadgeCheck, ChevronDown, Lock, PieChart, Plus, Trash2, Users } from 'lucide-react';
 import {
   createShareGrant,
   EXIT_MARKETPLACE_FEE_PERCENT,
@@ -19,18 +19,40 @@ export function FounderTokenomicsPanel({
   onShareGrantsChange,
   editable = false,
   compact = false,
+  defaultExpanded = true,
 }: {
   horizon: RoadmapHorizonId;
   shareGrants: ShareGrant[];
   onShareGrantsChange?: (grants: ShareGrant[]) => void;
   editable?: boolean;
   compact?: boolean;
+  /** Collapse heavy sections on the roadmap step (mobile-friendly). */
+  defaultExpanded?: boolean;
 }) {
   const vesting = getVestingSchedule(horizon);
   const poolRemaining = sharePoolRemaining(shareGrants);
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const [grantName, setGrantName] = useState('');
   const [grantRole, setGrantRole] = useState('');
   const [grantPercent, setGrantPercent] = useState('1');
+
+  if (!expanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        className="flex w-full min-w-0 items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left transition-colors hover:border-sky-500/30"
+      >
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-white">Founder allocation &amp; share pool</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {FOUNDER_ALLOCATION_PERCENT}% founder · {SHARE_POOL_PERCENT}% share pool · KYC + vesting
+          </p>
+        </div>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+      </button>
+    );
+  }
 
   const addGrant = () => {
     if (!onShareGrantsChange) return;
@@ -48,19 +70,30 @@ export function FounderTokenomicsPanel({
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <PieChart className="h-4 w-4 text-sky-400" />
-          <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
-            Founder allocation &amp; tokenomics
-          </p>
+    <div className="min-w-0 space-y-4">
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <PieChart className="h-4 w-4 shrink-0 text-sky-400" />
+            <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
+              Founder allocation &amp; tokenomics
+            </p>
+          </div>
+          {!compact && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Supply split is published at launch. Your {FOUNDER_ALLOCATION_PERCENT}% founder tranche
+              unlocks only after KYC and the vesting schedule below.
+            </p>
+          )}
         </div>
-        {!compact && (
-          <p className="mt-1 text-sm text-muted-foreground">
-            Supply split is published at launch. Your {FOUNDER_ALLOCATION_PERCENT}% founder tranche
-            unlocks only after KYC and the vesting schedule below.
-          </p>
+        {!defaultExpanded && (
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="shrink-0 text-xs text-muted-foreground hover:text-foreground"
+          >
+            Collapse
+          </button>
         )}
       </div>
 
@@ -143,40 +176,42 @@ export function FounderTokenomicsPanel({
         </p>
 
         {editable && poolRemaining > 0 && (
-          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto_auto]">
+          <div className="mt-3 space-y-2">
             <input
               type="text"
               placeholder="Name"
               value={grantName}
               onChange={(e) => setGrantName(e.target.value)}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none"
             />
             <input
               type="text"
               placeholder="Role (e.g. CTO, advisor)"
               value={grantRole}
               onChange={(e) => setGrantRole(e.target.value)}
-              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none"
             />
-            <input
-              type="number"
-              min={0.1}
-              max={poolRemaining}
-              step={0.1}
-              value={grantPercent}
-              onChange={(e) => setGrantPercent(e.target.value)}
-              className="w-20 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground focus:border-sky-500/40 focus:outline-none"
-              aria-label="Percent of supply"
-            />
-            <button
-              type="button"
-              onClick={addGrant}
-              disabled={!grantName.trim() || !grantRole.trim() || Number(grantPercent) <= 0}
-              className="inline-flex items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground hover:border-sky-500/30 disabled:opacity-40"
-            >
-              <Plus className="h-4 w-4" />
-              Add
-            </button>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min={0.1}
+                max={poolRemaining}
+                step={0.1}
+                value={grantPercent}
+                onChange={(e) => setGrantPercent(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-base text-foreground focus:border-sky-500/40 focus:outline-none"
+                aria-label="Percent of supply"
+              />
+              <button
+                type="button"
+                onClick={addGrant}
+                disabled={!grantName.trim() || !grantRole.trim() || Number(grantPercent) <= 0}
+                className="inline-flex shrink-0 items-center justify-center gap-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-foreground hover:border-sky-500/30 disabled:opacity-40"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -237,10 +272,12 @@ export function FounderVestingStatus({
           style={{ width: `${barPercent}%` }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-[10px] text-muted-foreground">
+      <div className="mt-2 flex flex-col gap-0.5 text-[10px] text-muted-foreground sm:flex-row sm:justify-between">
         <span>0%</span>
-        <span>{progress.founderUnlockedPercent}% / {FOUNDER_ALLOCATION_PERCENT}% unlocked</span>
-        <span>{FOUNDER_ALLOCATION_PERCENT}%</span>
+        <span className="break-words sm:text-center">
+          {progress.founderUnlockedPercent}% / {FOUNDER_ALLOCATION_PERCENT}% unlocked
+        </span>
+        <span className="sm:text-right">{FOUNDER_ALLOCATION_PERCENT}%</span>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">{schedule.label}</p>
       <p className="mt-1 text-xs text-sky-300/80">{progress.nextUnlockLabel}</p>

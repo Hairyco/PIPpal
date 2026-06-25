@@ -19,9 +19,9 @@ export type TokenSupplySlice = {
 export const tokenSupplySlices: TokenSupplySlice[] = [
   {
     id: 'community',
-    label: 'Community & liquidity',
+    label: 'Bonding curve supply',
     percent: 75,
-    note: 'Circulating supply at launch',
+    note: 'Minted on buy, burned on sell — price set by the curve',
   },
   {
     id: 'founder',

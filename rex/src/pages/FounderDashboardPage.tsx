@@ -21,7 +21,8 @@ import {
   FounderVestingStatus,
 } from '../components/founder/FounderTokenomicsPanel';
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
-import { KYC_FEE } from '../data/claimPricing';
+import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
+import { categoryBoostTiers } from '../data/promotePricing';
 import { devStudios, projectDeliverables } from '../data/devStudios';
 import { industries } from '../data/industries';
 import { talentPool } from '../data/talentPool';
@@ -170,13 +171,13 @@ export function FounderDashboardPage() {
         </div>
 
         <div className="mt-8 border-b border-white/10">
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="mt-8 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:overflow-visible">
             {TABS.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => setTab(item.id)}
-                className={`shrink-0 border-b-2 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4 ${
                   tab === item.id
                     ? 'border-sky-400 text-white'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -264,9 +265,9 @@ export function FounderDashboardPage() {
         )}
 
         {tab === 'roadmap' && (
-          <div className="mt-6 space-y-4">
-            <div className="dex-card">
-              <div className="relative z-[1] space-y-4">
+          <div className="mt-6 min-w-0 space-y-4 overflow-x-hidden">
+            <div className="dex-card min-w-0 overflow-hidden">
+              <div className="relative z-[1] min-w-0 space-y-4">
                 <div>
                   <h2 className="font-semibold text-white">Recommended roadmap</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -416,20 +417,90 @@ export function FounderDashboardPage() {
         )}
 
         {tab === 'promote' && (
-          <div className="mt-6 space-y-4">
-            <div className="dex-card">
-              <div className="relative z-[1]">
-                <h2 className="font-semibold text-white">Grow your launch</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Boost your category ranking from your marketing wallet, or set up the affiliate
-                  programme demo.
+          <div className="mt-6 min-w-0 space-y-6 overflow-x-hidden">
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
+              <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white">Marketing wallet</p>
+                <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                  Category boosts and affiliate payouts always come from here — $2,430 available
+                  (demo).
                 </p>
+              </div>
+            </div>
+
+            <div className="dex-card min-w-0 overflow-hidden">
+              <div className="relative z-[1] min-w-0">
+                <div className="flex items-center gap-2">
+                  <Megaphone className="h-4 w-4 text-sky-400" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                    Category boosts
+                  </span>
+                </div>
+                <h2 className="mt-2 font-semibold text-white">Rank higher in {industry?.name}</h2>
+                <p className="mt-1 break-words text-sm text-muted-foreground">
+                  Pin or boost your listing on the category page. Activate a tier and the cost is
+                  deducted from your marketing wallet.
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {categoryBoostTiers.map((tier) => (
+                    <li
+                      key={tier.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white">{tier.name}</p>
+                        <p className="text-xs text-muted-foreground">{tier.position}</p>
+                      </div>
+                      <p className="shrink-0 text-sm font-semibold text-sky-400">
+                        ${tier.price}
+                        <span className="text-xs font-normal text-muted-foreground">
+                          /{tier.period}
+                        </span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  <Link to={promoteUrl} className="dex-btn-green">
-                    Open promote tools
+                  <Link to={`${promoteUrl}#boosts`} className="dex-btn-green">
+                    Manage boosts
                   </Link>
                   <Link to={`/category/${project.categoryId}`} className="dex-btn">
-                    View category listing
+                    View category
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            <div className="dex-card min-w-0 overflow-hidden">
+              <div className="relative z-[1] min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Users className="h-4 w-4 text-sky-400" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                    Affiliate programme
+                  </span>
+                  <DemoPreviewBadge />
+                </div>
+                <h2 className="mt-2 font-semibold text-white">Pay promoters from your wallet</h2>
+                <p className="mt-1 break-words text-sm text-muted-foreground">
+                  List {project.projectName} in the promoter catalogue. Commissions on referred
+                  bonding-curve buys are paid automatically from your marketing wallet — never from
+                  your personal funds.
+                </p>
+                <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
+                  <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                    Set commission % of marketing tax · tracked ref links per promoter
+                  </li>
+                  <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
+                    Payouts pause if the marketing wallet is empty
+                  </li>
+                </ul>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link to={`${promoteUrl}#affiliate`} className="dex-btn-green">
+                    Set up affiliate programme
+                  </Link>
+                  <Link to="/affiliates" className="dex-btn">
+                    Preview catalogue
                   </Link>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { GetStartedPage } from './pages/GetStartedPage';
 import { MarketplacePage } from './pages/MarketplacePage';
 import { PromotePage } from './pages/PromotePage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { AffiliatesCataloguePage } from './pages/AffiliatesCataloguePage';
 import { FounderDashboardPage } from './pages/FounderDashboardPage';
 
 export function App() {
@@ -23,6 +24,7 @@ export function App() {
         <Route path="/get-started" element={<GetStartedPage />} />
         <Route path="/dashboard" element={<FounderDashboardPage />} />
         <Route path="/marketplace" element={<MarketplacePage />} />
+        <Route path="/affiliates" element={<AffiliatesCataloguePage />} />
         <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />
       </Routes>
     </BrowserRouter>
