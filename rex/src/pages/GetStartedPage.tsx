@@ -13,8 +13,10 @@ import {
 } from '../components/get-started/InspireMePanel';
 import { LaunchStudiosStep } from '../components/get-started/LaunchStudiosStep';
 import { LaunchTalentStep } from '../components/get-started/LaunchTalentStep';
+import { CoinUtilitySelect } from '../components/get-started/CoinUtilitySelect';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
+import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
 
 type Step = 'idea' | 'roadmap' | 'studios' | 'talent' | 'launch';
 
@@ -38,6 +40,7 @@ export function GetStartedPage() {
   const [projectName, setProjectName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
+  const [coinUtilities, setCoinUtilities] = useState<CoinUtilityId[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [inspireOpen, setInspireOpen] = useState(false);
   const [inspireInterest, setInspireInterest] = useState('');
@@ -69,6 +72,12 @@ export function GetStartedPage() {
         next.add('marketing');
         return [...next];
       });
+      setCoinUtilities((prev) => {
+        const next = new Set(prev);
+        next.add('auto-marketing');
+        next.add('fan-perks');
+        return [...next];
+      });
     }
   }, [searchParams]);
 
@@ -79,7 +88,11 @@ export function GetStartedPage() {
   };
 
   const canProceedIdea =
-    projectName.trim() && categoryId && description.trim() && deliverables.length > 0;
+    projectName.trim() &&
+    categoryId &&
+    description.trim() &&
+    coinUtilities.length > 0 &&
+    deliverables.length > 0;
 
   const hasOwnSupplier =
     showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
@@ -243,6 +256,8 @@ export function GetStartedPage() {
                     </select>
                   </div>
 
+                  <CoinUtilitySelect selected={coinUtilities} onChange={setCoinUtilities} />
+
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       What&apos;s the idea?
@@ -399,6 +414,22 @@ export function GetStartedPage() {
                       {industries.find((i) => i.id === categoryId)?.name}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{description}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Coin utilities
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {coinUtilities.map((id) => (
+                        <span
+                          key={id}
+                          className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-0.5 text-xs text-sky-300"
+                        >
+                          {getCoinUtilityLabel(id)}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
                   <div>
