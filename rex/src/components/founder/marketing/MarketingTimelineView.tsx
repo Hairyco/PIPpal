@@ -14,7 +14,7 @@ interface MarketingTimelineViewProps {
   onSubmitPmApproval?: (phaseId: string) => void;
 }
 
-const COL = 'w-[176px] shrink-0 sm:w-[200px]';
+const COL = 'min-w-[176px] flex-1 sm:min-w-[200px]';
 
 export function MarketingTimelineView({
   phases,
@@ -34,7 +34,7 @@ export function MarketingTimelineView({
       {/* Page 1: horizontal timeline + vendor columns below each step */}
       <div className="layout-clip relative rounded-xl border border-white/10 bg-[#060a12]/40">
         <div className="overflow-x-auto hide-scrollbar">
-          <div className="inline-flex min-w-full px-3 py-4">
+          <div className="flex w-full min-w-max px-3 py-4 lg:min-w-0">
             {phases.map((phase, index) => {
               const isActive = phase.id === activePhaseId;
               const isLast = index === phases.length - 1;

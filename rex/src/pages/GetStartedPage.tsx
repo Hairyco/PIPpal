@@ -246,10 +246,10 @@ export function GetStartedPage() {
       <div className="container py-8 pb-16">
         <BackLink />
 
-        <div className="mt-6 max-w-3xl">
+        <div className="mt-6 w-full">
           <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">Get started</h1>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Describe your idea, review Rex&apos;s recommended roadmap, shortlist studios and talent,
             then go live on Rex. Complete KYC (${KYC_FEE}) for full founder controls.
           </p>
@@ -282,7 +282,7 @@ export function GetStartedPage() {
           </div>
         </div>
 
-        <div className="mt-8 max-w-3xl min-w-0 overflow-x-hidden">
+        <div className="mt-8 w-full min-w-0 overflow-x-hidden">
           {step === 'idea' && (
             <div className="space-y-5">
               <div className="dex-card">
