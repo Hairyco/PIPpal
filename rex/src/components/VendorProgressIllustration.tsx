@@ -31,7 +31,7 @@ function DeliverableRow({ item }: { item: VendorDeliverable }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium text-white">{item.label}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">{item.vendor}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">{item.supplier}</p>
         </div>
         <div className="shrink-0 text-right">
           <span

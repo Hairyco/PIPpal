@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Industry } from '../data/industries';
+import type { Industry } from '../../data/industries';
 
 interface CategoryBannerProps {
   industry: Industry;

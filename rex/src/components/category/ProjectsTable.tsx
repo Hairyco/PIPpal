@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom';
 import { BadgeCheck, Map, Wallet } from 'lucide-react';
 import type { ActiveProject } from '../../data/categoryContent';
 import { TokenIcon } from '../TokenIcon';
-import { getProjectDetails, getMilestoneProgress } from '../../data/projectDetails';
+import { getProjectDetails, getMilestoneProgress, parseMarketCapK } from '../../data/projectDetails';
 import { RoadmapModal } from './RoadmapModal';
 
 type View = 'trending' | 'gainers' | 'mcap' | 'marketing';
 
-function projectPath(categoryId: string, project: ActiveProject) {
+function projectPath(fallbackCategoryId: string | undefined, project: ActiveProject) {
+  const categoryId =
+    'categoryId' in project && typeof (project as { categoryId?: string }).categoryId === 'string'
+      ? (project as { categoryId: string }).categoryId
+      : fallbackCategoryId;
   return `/project/${categoryId}/${project.id}`;
 }
 
@@ -60,14 +64,15 @@ export function ProjectsTable({
   categoryId,
 }: {
   projects: ActiveProject[];
-  categoryId: string;
+  categoryId?: string;
+  showCategory?: boolean;
 }) {
   const [view, setView] = useState<View>('trending');
   const [modalProject, setModalProject] = useState<ActiveProject | null>(null);
 
   const sorted = [...projects].sort((a, b) => {
     if (view === 'mcap') {
-      return parseFloat(b.marketCap.replace(/[$KM]/g, '')) - parseFloat(a.marketCap.replace(/[$KM]/g, ''));
+      return parseMarketCapK(b.marketCap) - parseMarketCapK(a.marketCap);
     }
     if (view === 'gainers') return b.change24h - a.change24h;
     if (view === 'marketing') {

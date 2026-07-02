@@ -1,7 +1,8 @@
 import type { ShareGrant } from '../data/founderTokenomics';
-import type { DeliverableId } from './devStudios';
-import type { CoinUtilityId } from './coinUtilities';
-import type { RoadmapHorizonId } from './roadmapHorizons';
+import type { DeliverableId } from '../data/devStudios';
+import type { CoinUtilityId } from '../data/coinUtilities';
+import type { RoadmapHorizonId } from '../data/roadmapHorizons';
+import type { LaunchModeId } from '../data/launchModes';
 import type { VendorChatTarget } from './vendorChat';
 
 export type FounderProject = {
@@ -19,6 +20,8 @@ export type FounderProject = {
   ownSupplierEmail: string;
   talentAssignments: Record<string, string>;
   vendorChats: VendorChatTarget[];
+  launchMode: LaunchModeId;
+  stagingLaunchDate?: string;
   launchedAt: string;
 };
 
@@ -47,6 +50,7 @@ export function loadFounderProject(): FounderProject | null {
       roadmapHorizon: parsed.roadmapHorizon ?? '12-months',
       shareGrants: parsed.shareGrants ?? [],
       kycCompleted: parsed.kycCompleted ?? false,
+      launchMode: parsed.launchMode ?? 'immediate',
     } as FounderProject;
   } catch {
     return null;

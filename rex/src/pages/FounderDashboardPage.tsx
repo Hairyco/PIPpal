@@ -23,11 +23,14 @@ import {
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { categoryBoostTiers } from '../data/promotePricing';
+import { KYC_FEE } from '../data/claimPricing';
 import { devStudios, projectDeliverables } from '../data/devStudios';
 import { industries } from '../data/industries';
 import { talentPool } from '../data/talentPool';
 import type { ShareGrant } from '../data/founderTokenomics';
 import { getCoinUtilityLabel } from '../data/coinUtilities';
+import { formatLaunchDate } from '../data/launchingSoon';
+import { getLaunchModeLabel } from '../data/launchModes';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
 import { loadFounderProject, projectSymbol, saveFounderProject } from '../utils/founderProject';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
@@ -59,6 +62,7 @@ export function FounderDashboardPage() {
 
   const project = loadFounderProject();
   const welcome = searchParams.get('welcome') === '1';
+  const isStaging = project?.launchMode === 'staging';
 
   const symbol = project ? projectSymbol(project.projectName) : 'COIN';
   const industry = industries.find((i) => i.id === project?.categoryId);
@@ -126,18 +130,33 @@ export function FounderDashboardPage() {
     <Layout>
       <div className="container py-8 pb-16">
         {welcome && (
-          <div className="mb-6 flex flex-col gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            className={`mb-6 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+              isStaging
+                ? 'border-amber-500/30 bg-amber-500/10'
+                : 'border-emerald-500/30 bg-emerald-500/10'
+            }`}
+          >
             <div>
-              <p className="font-medium text-emerald-200">{project.projectName} is live!</p>
-              <p className="mt-1 text-sm text-emerald-200/80">
-                Your coin is on Rex. Use this dashboard to track the roadmap, chat with vendors, and
-                promote your launch.
+              <p className={`font-medium ${isStaging ? 'text-amber-200' : 'text-emerald-200'}`}>
+                {isStaging
+                  ? `${project.projectName} is in Launching Soon`
+                  : `${project.projectName} is live!`}
+              </p>
+              <p className={`mt-1 text-sm ${isStaging ? 'text-amber-200/80' : 'text-emerald-200/80'}`}>
+                {isStaging
+                  ? `You're listed in Launching Soon${
+                      project.stagingLaunchDate
+                        ? ` until ${formatLaunchDate(project.stagingLaunchDate)}`
+                        : ''
+                    }. Build community interest, then flip to live when ready.`
+                  : 'Your coin is on Rex. Use this dashboard to track the roadmap, chat with vendors, and promote your launch.'}
               </p>
             </div>
             <button
               type="button"
               onClick={dismissWelcome}
-              className="shrink-0 text-sm text-emerald-300 hover:text-emerald-200"
+              className={`shrink-0 text-sm ${isStaging ? 'text-amber-300' : 'text-emerald-300'}`}
             >
               Dismiss
             </button>
@@ -155,12 +174,29 @@ export function FounderDashboardPage() {
                 {project.projectName}
               </h1>
               <p className="text-sm text-muted-foreground">
-                {symbol} · {industry?.name ?? project.categoryId} · Launched{' '}
-                {new Date(project.launchedAt).toLocaleDateString('en-GB', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                })}
+                {symbol} · {industry?.name ?? project.categoryId}
+                {isStaging ? (
+                  <>
+                    {' '}
+                    ·{' '}
+                    <span className="text-amber-300">
+                      {getLaunchModeLabel('staging')}
+                      {project.stagingLaunchDate
+                        ? ` · ${formatLaunchDate(project.stagingLaunchDate)}`
+                        : ''}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {' '}
+                    · Launched{' '}
+                    {new Date(project.launchedAt).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </>
+                )}
               </p>
             </div>
           </div>
