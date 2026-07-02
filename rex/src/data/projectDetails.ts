@@ -63,44 +63,103 @@ function hashSeed(str: string): number {
   return str.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
 }
 
+function parseAgeDays(age: string): number {
+  const match = age.match(/^(\d+)d$/);
+  return match ? parseInt(match[1], 10) : 7;
+}
+
+const MILESTONE_TEMPLATES: Pick<Milestone, 'title' | 'target' | 'unlocks'>[] = [
+  { title: 'Bonding curve launch', target: '$10K MCAP', unlocks: 'Live on Rex curve · DexScreener' },
+  { title: 'Marketing fund threshold', target: 'Wallet threshold', unlocks: 'First auto ad campaign' },
+  { title: 'Community channels live', target: '1K holders', unlocks: 'Discord · Telegram · X' },
+  { title: 'Roadmap wallet unlock', target: '$100K MCAP', unlocks: 'Supplier build begins' },
+  { title: 'Supplier assigned', target: 'Vetted studio', unlocks: 'Kickoff & spec locked' },
+  { title: 'Wireframes approved', target: 'Design sign-off', unlocks: 'UI build starts' },
+  { title: 'Alpha prototype', target: 'Internal demo', unlocks: 'Stakeholder review' },
+  { title: 'Beta release', target: '$500K MCAP', unlocks: 'Beta release to holders' },
+  { title: 'Marketing wave 2', target: 'Wallet refill', unlocks: 'Paid user acquisition' },
+  { title: 'Public launch', target: '$1M MCAP', unlocks: 'Product goes live' },
+  { title: 'Revenue milestone', target: 'First revenue', unlocks: 'Holder profit share' },
+  { title: 'Scale & integrations', target: 'Partnerships', unlocks: 'API & ecosystem' },
+];
+
+function getMilestoneCount(mcapK: number, seed: number): number {
+  if (mcapK >= 500_000) return 10 + (seed % 3);
+  if (mcapK >= 50_000) return 8 + (seed % 3);
+  if (mcapK >= 5_000) return 6 + (seed % 3);
+  if (mcapK >= 500) return 4 + (seed % 2);
+  return 4;
+}
+
+function getCompletedMilestoneCount(
+  total: number,
+  mcapK: number,
+  ageDays: number,
+  seed: number,
+): number {
+  let done: number;
+  if (mcapK >= 500_000) done = 6 + (seed % 4);
+  else if (mcapK >= 50_000) done = 4 + (seed % 4);
+  else if (mcapK >= 5_000) done = 3 + (seed % 3);
+  else if (mcapK >= 500) done = 2 + (seed % 2);
+  else done = 1 + (seed % 2);
+
+  if (ageDays >= 30) done += 1;
+  if (ageDays >= 60) done += 1;
+  if (ageDays >= 90) done += 1;
+
+  return Math.min(total - 1, Math.max(1, done));
+}
+
+function buildMilestones(
+  project: ActiveProject,
+  seed: number,
+  threshold: number,
+): Milestone[] {
+  const mcapK = parseMarketCapK(project.marketCap);
+  const ageDays = parseAgeDays(project.age);
+  const total = getMilestoneCount(mcapK, seed);
+  const completed = getCompletedMilestoneCount(total, mcapK, ageDays, seed);
+
+  return Array.from({ length: total }, (_, i) => {
+    const template = MILESTONE_TEMPLATES[i % MILESTONE_TEMPLATES.length];
+    let status: Milestone['status'];
+    if (i < completed) status = 'completed';
+    else if (i === completed) status = 'active';
+    else status = 'upcoming';
+
+    const target =
+      template.title === 'Marketing fund threshold'
+        ? `$${threshold.toLocaleString()} wallet`
+        : template.target;
+
+    return {
+      id: `m${i + 1}`,
+      title: template.title,
+      target,
+      status,
+      unlocks: template.unlocks,
+    };
+  });
+}
+
+/** Market cap normalized to thousands (e.g. $1M → 1000, $1.2B → 1_200_000). */
+export function parseMarketCapK(marketCap: string): number {
+  const num = parseFloat(marketCap.replace(/[$,]/g, ''));
+  if (marketCap.includes('B')) return num * 1_000_000;
+  if (marketCap.includes('M')) return num * 1_000;
+  if (marketCap.includes('K')) return num;
+  return num;
+}
+
 export function getProjectDetails(project: ActiveProject): ProjectDetails {
   const seed = hashSeed(project.id + project.symbol);
   const supplier = suppliers[seed % suppliers.length];
-  const mcapNum = parseFloat(project.marketCap.replace(/[$KM]/g, '')) *
-    (project.marketCap.includes('M') ? 1000 : 1);
+  const mcapNum = parseMarketCapK(project.marketCap);
   const walletBalance = Math.round(mcapNum * 0.02 * (3 + (seed % 5)));
   const threshold = [2500, 5000, 10000][seed % 3];
 
-  const milestones: Milestone[] = [
-    {
-      id: 'm1',
-      title: 'Bonding curve launch',
-      target: '$10K MCAP',
-      status: 'completed',
-      unlocks: 'Live on Rex curve · DexScreener',
-    },
-    {
-      id: 'm2',
-      title: 'Marketing fund threshold',
-      target: `$${threshold.toLocaleString()} wallet`,
-      status: walletBalance >= threshold ? 'completed' : 'active',
-      unlocks: 'First auto ad campaign',
-    },
-    {
-      id: 'm3',
-      title: 'Roadmap wallet unlock',
-      target: '$100K MCAP',
-      status: mcapNum >= 100 ? 'active' : 'upcoming',
-      unlocks: 'Supplier build begins',
-    },
-    {
-      id: 'm4',
-      title: 'Product MVP',
-      target: '$500K MCAP',
-      status: 'upcoming',
-      unlocks: 'Beta release to holders',
-    },
-  ];
+  const milestones = buildMilestones(project, seed, threshold);
 
   const completedPhases = project.verified ? 1 : 0;
 

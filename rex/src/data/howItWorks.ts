@@ -1,7 +1,7 @@
-import { Wallet, BadgeCheck, Map, Building2, Rocket, Gift } from 'lucide-react';
+import { Wallet, BadgeCheck, Map, Building2, Rocket, Gift, Hourglass } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { CLAIM_FEE, premiumFeatures } from './claimPricing';
-import { BONDING_CURVE_LAUNCH_NOTE, BONDING_CURVE_TRADE_NOTE } from './bondingCurve';
+import { LAUNCH_NOTE, LAUNCH_TRADE_NOTE } from './launchTerms';
 
 export interface HowItWorksStep {
   id: string;
@@ -14,6 +14,42 @@ export interface HowItWorksStep {
   highlight?: string;
 }
 
+/** Short 5-step flow for the landing timeline. */
+export const landingTimelineSteps: Pick<HowItWorksStep, 'id' | 'icon' | 'title' | 'subtitle'>[] = [
+  {
+    id: 'launch',
+    icon: Rocket,
+    title: 'Launch for $1',
+    subtitle: 'Bring any idea to life',
+  },
+  {
+    id: 'roadmap',
+    icon: Map,
+    title: 'Roadmap set',
+    subtitle: 'Milestones define what gets built and when',
+  },
+  {
+    id: 'staging',
+    icon: Hourglass,
+    title: 'Launch now or stage',
+    subtitle: 'Go live immediately — or list in Launching Soon',
+  },
+  {
+    id: 'wallet',
+    icon: Wallet,
+    title: 'Automated marketing wallet',
+    subtitle: 'Buy/sell tax grows your marketing wallet to fund your project',
+  },
+  {
+    id: 'payout',
+    icon: Building2,
+    title: 'Suppliers get paid',
+    subtitle: 'Rex releases funds to vetted suppliers at each milestone',
+  },
+];
+
+export const landingPillarStepIds = ['launch', 'roadmap', 'marketing'] as const;
+
 export const howItWorksSteps: HowItWorksStep[] = [
   {
     id: 'launch',
@@ -22,34 +58,63 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Launch for $1',
     subtitle: 'Low barrier entry',
     description:
-      'Bring an idea to life in minutes — your coin launches on a Rex bonding curve, no LP or coding required.',
+      'Bring an idea to life in minutes — your coin launches on Rex for $1, no LP or coding required.',
     bullets: [
       'Pick a category or claim a generated idea',
-      'Token goes live on the bonding curve instantly',
-      BONDING_CURVE_LAUNCH_NOTE,
+      'Launch right away — or join staging in Launching Soon',
+      LAUNCH_NOTE,
       'Marketing and roadmap wallets created automatically',
     ],
   },
   {
-    id: 'marketing',
+    id: 'roadmap',
     step: 2,
+    icon: Map,
+    title: 'Roadmap & milestones',
+    subtitle: 'Set what gets built and when',
+    description:
+      'A separate roadmap wallet fills from trading activity. When milestones hit, funds unlock automatically for the next phase.',
+    bullets: [
+      'Milestone 1: Token launch',
+      'Milestone 2: Marketing fund threshold → first ads',
+      'Milestone 3: Roadmap wallet unlock → supplier build begins',
+      'Milestone 4: MVP release to token holders',
+    ],
+  },
+  {
+    id: 'staging',
+    step: 3,
+    icon: Hourglass,
+    title: 'Launch now or stage',
+    subtitle: 'Trade immediately or build buzz first',
+    description:
+      'Choose to go live on Rex right away, or list in Launching Soon to grow community interest before trading opens.',
+    bullets: [
+      'Launch right away — your coin is ready to trade from day one',
+      'Join staging — featured in Launching Soon with a target go-live date',
+      'Followers get notified when staging projects flip to live',
+      'Switch from staging to live anytime from your founder dashboard',
+    ],
+  },
+  {
+    id: 'marketing',
+    step: 4,
     icon: Wallet,
     title: 'Automated marketing wallet',
-    subtitle: 'The self-funding engine',
+    subtitle: 'Trades fund the wallet — milestones pay providers',
     description:
-      'Built-in buy/sell tax on every curve trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted vendors for the services your project needs.',
+      'Built-in buy/sell tax on every trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted suppliers for the services your project needs.',
     bullets: [
-      '2–10% tax on bonding-curve buys and sells',
-      BONDING_CURVE_TRADE_NOTE,
-      'Milestone thresholds unlock payouts to approved vendors automatically',
-      'Investors can track wallet balance and upcoming vendor spend live',
+      '2–10% tax on buys and sells',
+      LAUNCH_TRADE_NOTE,
+      'Milestone thresholds unlock payouts to approved suppliers automatically',
+      'Investors can track wallet balance and upcoming supplier spend live',
       'Platform takes a 5–10% management fee on milestone payouts',
     ],
-    highlight: 'Your coin builds and markets itself.',
   },
   {
     id: 'claim',
-    step: 3,
+    step: 5,
     icon: BadgeCheck,
     title: 'Claim ownership — KYC',
     subtitle: 'Become the verified founder',
@@ -64,23 +129,8 @@ export const howItWorksSteps: HowItWorksStep[] = [
     ],
   },
   {
-    id: 'roadmap',
-    step: 4,
-    icon: Map,
-    title: 'Roadmap & milestones',
-    subtitle: 'Guaranteed delivery path',
-    description:
-      'A separate roadmap wallet fills from trading activity. When milestones hit, funds unlock automatically for the next phase.',
-    bullets: [
-      'Milestone 1: Bonding curve launch',
-      'Milestone 2: Marketing fund threshold → first ads',
-      'Milestone 3: Roadmap wallet unlock → supplier build begins',
-      'Milestone 4: MVP release to token holders',
-    ],
-  },
-  {
     id: 'supplier',
-    step: 5,
+    step: 6,
     icon: Building2,
     title: 'Founder & supplier delivery',
     subtitle: 'Your build, your choice',
@@ -95,7 +145,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
   },
   {
     id: 'perks',
-    step: 6,
+    step: 7,
     icon: Gift,
     title: 'Investor perks',
     subtitle: 'Optional paid add-ons',

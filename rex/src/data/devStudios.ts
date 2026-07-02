@@ -146,6 +146,11 @@ export const projectDeliverables = [
   { id: 'dashboard', label: 'Admin dashboard', description: 'Internal tools and analytics panels' },
   { id: 'api', label: 'Backend & API', description: 'Server, database, and integrations' },
   { id: 'marketing', label: 'Growth & marketing', description: 'Launch campaigns and content' },
+  {
+    id: 'physical-product',
+    label: 'Physical product',
+    description: 'Merch, hardware, or manufactured goods — requires PM approval',
+  },
 ] as const;
 
 export type DeliverableId = (typeof projectDeliverables)[number]['id'];

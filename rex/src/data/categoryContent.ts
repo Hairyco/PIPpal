@@ -46,8 +46,8 @@ function enrichContent(categoryId: string, content: RawCategoryContent): Categor
 const categoryContent: Record<string, RawCategoryContent> = {
   'meme-coins': {
     projects: [
-      { id: '1', rank: 1, name: 'CatWifHat', symbol: 'CWH', marketCap: '$4.2M', price: '$0.0042', change24h: 142.5, age: '2d', verified: true },
-      { id: '2', rank: 2, name: 'PepeRex', symbol: 'PREX', marketCap: '$1.8M', price: '$0.0018', change24h: 67.3, age: '5d', verified: true },
+      { id: '1', rank: 1, name: 'CatWifHat', symbol: 'CWH', marketCap: '$1.2B', price: '$1.20', change24h: 142.5, age: '2d', verified: true },
+      { id: '2', rank: 2, name: 'PepeRex', symbol: 'PREX', marketCap: '$420M', price: '$0.42', change24h: 67.3, age: '5d', verified: true },
       { id: '3', rank: 3, name: 'DogeMoon', symbol: 'DMOON', marketCap: '$890K', price: '$0.00089', change24h: -12.4, age: '1d', verified: false },
       { id: '4', rank: 4, name: 'ShibaSquad', symbol: 'SHIBS', marketCap: '$620K', price: '$0.00062', change24h: 28.1, age: '8d', verified: true },
       { id: '5', rank: 5, name: 'FrogFi', symbol: 'FFI', marketCap: '$410K', price: '$0.00041', change24h: 9.7, age: '3d', verified: false },
@@ -76,8 +76,8 @@ const categoryContent: Record<string, RawCategoryContent> = {
   },
   apps: {
     projects: [
-      { id: '1', rank: 1, name: 'FitTrack', symbol: 'FIT', marketCap: '$2.6M', price: '$0.026', change24h: 41.2, age: '16d', verified: true },
-      { id: '2', rank: 2, name: 'StudyPal', symbol: 'STUDY', marketCap: '$1.1M', price: '$0.011', change24h: 19.4, age: '22d', verified: true },
+      { id: '1', rank: 1, name: 'FitTrack', symbol: 'FIT', marketCap: '$50M', price: '$0.50', change24h: 41.2, age: '16d', verified: true },
+      { id: '2', rank: 2, name: 'StudyPal', symbol: 'STUDY', marketCap: '$12M', price: '$0.12', change24h: 19.4, age: '22d', verified: true },
       { id: '3', rank: 3, name: 'LocalEats', symbol: 'EATS', marketCap: '$720K', price: '$0.0072', change24h: -4.8, age: '9d', verified: false },
       { id: '4', rank: 4, name: 'TaskFlow', symbol: 'TASK', marketCap: '$480K', price: '$0.0048', change24h: 12.6, age: '12d', verified: true },
       { id: '5', rank: 5, name: 'ChatLoop', symbol: 'LOOP', marketCap: '$310K', price: '$0.0031', change24h: 7.3, age: '5d', verified: false },
@@ -91,8 +91,8 @@ const categoryContent: Record<string, RawCategoryContent> = {
   },
   media: {
     projects: [
-      { id: '1', rank: 1, name: 'StreamVault', symbol: 'STRM', marketCap: '$2.1M', price: '$0.021', change24h: 34.2, age: '14d', verified: true },
-      { id: '2', rank: 2, name: 'CreatorPay', symbol: 'CPAY', marketCap: '$980K', price: '$0.0098', change24h: 18.6, age: '21d', verified: true },
+      { id: '1', rank: 1, name: 'StreamVault', symbol: 'STRM', marketCap: '$890M', price: '$8.90', change24h: 34.2, age: '14d', verified: true },
+      { id: '2', rank: 2, name: 'CreatorPay', symbol: 'CPAY', marketCap: '$95M', price: '$0.95', change24h: 18.6, age: '21d', verified: true },
       { id: '3', rank: 3, name: 'ClipChain', symbol: 'CLIP', marketCap: '$540K', price: '$0.0054', change24h: -5.2, age: '6d', verified: false },
       { id: '4', rank: 4, name: 'PodcastFi', symbol: 'POD', marketCap: '$320K', price: '$0.0032', change24h: 11.3, age: '9d', verified: false },
     ],
@@ -105,8 +105,8 @@ const categoryContent: Record<string, RawCategoryContent> = {
   },
   sport: {
     projects: [
-      { id: '1', rank: 1, name: 'FanBet Pro', symbol: 'FBET', marketCap: '$3.4M', price: '$0.034', change24h: 22.8, age: '30d', verified: true },
-      { id: '2', rank: 2, name: 'ClubToken FC', symbol: 'CLUB', marketCap: '$1.2M', price: '$0.012', change24h: 8.4, age: '18d', verified: true },
+      { id: '1', rank: 1, name: 'FanBet Pro', symbol: 'FBET', marketCap: '$38M', price: '$0.38', change24h: 22.8, age: '30d', verified: true },
+      { id: '2', rank: 2, name: 'ClubToken FC', symbol: 'CLUB', marketCap: '$1.1B', price: '$1.10', change24h: 8.4, age: '18d', verified: true },
       { id: '3', rank: 3, name: 'FantasyLeague', symbol: 'FANT', marketCap: '$760K', price: '$0.0076', change24h: -3.1, age: '11d', verified: false },
       { id: '4', rank: 4, name: 'AthleteX', symbol: 'ATHX', marketCap: '$490K', price: '$0.0049', change24h: 15.7, age: '7d', verified: true },
     ],
@@ -211,6 +211,20 @@ const categoryContent: Record<string, RawCategoryContent> = {
       { id: 'i2', title: 'Property listing with token escrow', description: 'Buy/sell property with funds held in escrow until inspections pass.', estimatedRaise: '$200K–$1M', buildTime: '10 weeks' },
       { id: 'i3', title: 'Short-term rental manager', description: 'Airbnb-style management tool with automated payouts to co-owners.', estimatedRaise: '$150K–$800K', buildTime: '8 weeks' },
       { id: 'i4', title: 'Commercial lease marketplace', description: 'Match small businesses with retail spaces using smart lease contracts.', estimatedRaise: '$300K–$1.5M', buildTime: '11 weeks' },
+    ],
+  },
+  miscellaneous: {
+    projects: [
+      { id: '1', rank: 1, name: 'OpenBuild', symbol: 'OPEN', marketCap: '$18M', price: '$0.18', change24h: 24.6, age: '45d', verified: true },
+      { id: '2', rank: 2, name: 'NexusHub', symbol: 'NEX', marketCap: '$6.4M', price: '$0.064', change24h: 11.2, age: '28d', verified: true },
+      { id: '3', rank: 3, name: 'SideQuest', symbol: 'SIDE', marketCap: '$2.1M', price: '$0.021', change24h: -3.8, age: '14d', verified: false },
+      { id: '4', rank: 4, name: 'OddLot', symbol: 'ODD', marketCap: '$890K', price: '$0.0089', change24h: 9.4, age: '9d', verified: true },
+    ],
+    ideas: [
+      { id: 'i1', title: 'Niche community marketplace', description: 'A token-powered marketplace for a vertical Rex does not have a dedicated category for yet.', estimatedRaise: '$80K–$500K', buildTime: '6 weeks' },
+      { id: 'i2', title: 'Hybrid product + service', description: 'Blend physical goods, digital access, and holder perks in one launch.', estimatedRaise: '$100K–$600K', buildTime: '7 weeks' },
+      { id: 'i3', title: 'Local services network', description: 'Match providers and customers in your city with milestone-based payouts.', estimatedRaise: '$120K–$750K', buildTime: '8 weeks' },
+      { id: 'i4', title: 'Experimental utility token', description: 'Test a new mechanic, audience, or business model outside standard sectors.', estimatedRaise: '$50K–$300K', buildTime: '5 weeks' },
     ],
   },
 };

@@ -3,6 +3,7 @@ import ai from '../assets/industries/ai.jpg';
 import celebrityCoins from '../assets/industries/celebrity-coins.jpg';
 import defi from '../assets/industries/defi.jpg';
 import media from '../assets/industries/media.jpg';
+import miscellaneous from '../assets/industries/miscellaneous.jpg';
 
 const bundled: Record<string, string> = {
   apps,
@@ -10,6 +11,7 @@ const bundled: Record<string, string> = {
   defi,
   'celebrity-coins': celebrityCoins,
   media,
+  miscellaneous,
 };
 
 const iconModules = import.meta.glob<string>('../assets/industries/icons/*.{jpg,png,svg}', {

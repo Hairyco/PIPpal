@@ -6,8 +6,10 @@ import { industries } from '../data/industries';
 import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
 import { talentPool } from '../data/talentPool';
 import { CLAIM_FEE, KYC_FEE } from '../data/claimPricing';
-import { RecommendedRoadmapList, RoadmapHorizonSelect, RoadmapKycNotice } from '../components/get-started/LaunchFlowParts';
+import type { ShareGrant } from '../data/founderTokenomics';
+import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
 import { FounderTokenomicsPanel } from '../components/founder/FounderTokenomicsPanel';
+import { RoadmapKycNotice } from '../components/get-started/LaunchFlowParts';
 import {
   InspireMePanel,
   runInspireGenerate,
@@ -20,11 +22,14 @@ import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
-import { BONDING_CURVE_LAUNCH_NOTE, BONDING_CURVE_SUMMARY } from '../data/bondingCurve';
+import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
+import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
+import { formatLaunchDate } from '../data/launchingSoon';
+import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
 import { saveFounderProject } from '../utils/founderProject';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
-type Step = 'idea' | 'roadmap' | 'studios' | 'talent' | 'launch';
+type Step = 'idea' | 'roadmap' | 'timing' | 'studios' | 'talent' | 'launch';
 
 const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
@@ -32,6 +37,7 @@ const inputClass =
 const STEPS: { id: Step; label: string }[] = [
   { id: 'idea', label: 'Your idea' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'timing', label: 'Launch timing' },
   { id: 'studios', label: 'Studios' },
   { id: 'talent', label: 'Talent' },
   { id: 'launch', label: 'Launch' },
@@ -64,6 +70,8 @@ export function GetStartedPage() {
   const [talentAssignments, setTalentAssignments] = useState<Record<string, string>>({});
   const [chatTarget, setChatTarget] = useState<VendorChatTarget | null>(null);
   const [vendorChats, setVendorChats] = useState<VendorChatTarget[]>([]);
+  const [launchMode, setLaunchMode] = useState<LaunchModeId>('immediate');
+  const [stagingLaunchDate, setStagingLaunchDate] = useState('');
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
@@ -114,6 +122,28 @@ export function GetStartedPage() {
 
   const hasOwnSupplier =
     showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
+
+  const previewProject = useMemo(
+    (): import('../utils/founderProject').FounderProject => ({
+      projectName,
+      categoryId,
+      description,
+      coinUtilities,
+      deliverables,
+      roadmapHorizon,
+      shareGrants,
+      kycCompleted: false,
+      shortlistedStudios: [],
+      studioSkipped: false,
+      ownSupplierName: '',
+      ownSupplierEmail: '',
+      talentAssignments: {},
+      vendorChats: [],
+      launchMode: 'immediate',
+      launchedAt: new Date().toISOString(),
+    }),
+    [projectName, categoryId, description, coinUtilities, deliverables, roadmapHorizon, shareGrants],
+  );
 
   const milestones = useMemo(
     () =>
@@ -187,9 +217,11 @@ export function GetStartedPage() {
       ownSupplierEmail,
       talentAssignments,
       vendorChats,
+      launchMode,
+      stagingLaunchDate: launchMode === 'staging' ? stagingLaunchDate : undefined,
       launchedAt: new Date().toISOString(),
     });
-    navigate('/dashboard?welcome=1');
+    navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
   };
 
   return (
@@ -202,7 +234,7 @@ export function GetStartedPage() {
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">Get started</h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             Describe your idea, review Rex&apos;s recommended roadmap, shortlist studios and talent,
-            then launch on the bonding curve. Complete KYC (${KYC_FEE}) for full founder controls.
+            then go live on Rex. Complete KYC (${KYC_FEE}) for full founder controls.
           </p>
 
           <div className="mt-8 flex gap-1.5 sm:gap-2">
@@ -344,26 +376,33 @@ export function GetStartedPage() {
           {step === 'roadmap' && (
             <div className="min-w-0 space-y-5 overflow-x-hidden">
               <div className="dex-card min-w-0 overflow-hidden">
-                <div className="relative z-[1] min-w-0 space-y-4">
-                  <div>
+                <div className="relative z-[1] min-w-0">
+                  <div className="mb-5">
                     <h2 className="font-semibold text-white">Recommended roadmap</h2>
                     <p className="mt-1 break-words text-sm text-muted-foreground">
-                      Based on {projectName} in{' '}
-                      {industries.find((i) => i.id === categoryId)?.name}. Rex manages payouts
-                      until you complete KYC.
+                      Based on {projectName || 'your project'} in{' '}
+                      {industries.find((i) => i.id === categoryId)?.name ?? 'your category'}. Telegram
+                      call-outs run first, then charting and scale placements as your wallet fills.
                     </p>
                   </div>
 
-                  <RoadmapHorizonSelect value={roadmapHorizon} onChange={setRoadmapHorizon} />
-                  <RecommendedRoadmapList milestones={milestones} />
-                  <FounderTokenomicsPanel
-                    horizon={roadmapHorizon}
-                    shareGrants={shareGrants}
-                    onShareGrantsChange={setShareGrants}
-                    editable
-                    defaultExpanded={false}
+                  <MarketingRoadmapPanel
+                    project={previewProject}
+                    roadmapHorizon={roadmapHorizon}
+                    kycCompleted={false}
+                    onHorizonChange={setRoadmapHorizon}
                   />
-                  <RoadmapKycNotice />
+
+                  <div className="mt-6 space-y-4 border-t border-white/10 pt-6">
+                    <FounderTokenomicsPanel
+                      horizon={roadmapHorizon}
+                      shareGrants={shareGrants}
+                      onShareGrantsChange={setShareGrants}
+                      editable
+                      defaultExpanded={false}
+                    />
+                    <RoadmapKycNotice />
+                  </div>
                 </div>
               </div>
 
@@ -376,12 +415,23 @@ export function GetStartedPage() {
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </button>
-                <button type="button" onClick={() => setStep('studios')} className="dex-btn">
-                  Shortlist studios
+                <button type="button" onClick={() => setStep('timing')} className="dex-btn">
+                  Choose launch timing
                   <ArrowRight className="ml-2 inline h-4 w-4" />
                 </button>
               </div>
             </div>
+          )}
+
+          {step === 'timing' && (
+            <LaunchTimingStep
+              launchMode={launchMode}
+              stagingLaunchDate={stagingLaunchDate}
+              onLaunchModeChange={setLaunchMode}
+              onStagingLaunchDateChange={setStagingLaunchDate}
+              onBack={() => setStep('roadmap')}
+              onContinue={() => setStep('studios')}
+            />
           )}
 
           {step === 'studios' && (
@@ -408,7 +458,7 @@ export function GetStartedPage() {
               onOwnSupplierWebsite={setOwnSupplierWebsite}
               vendorChatKeys={vendorChatKeys}
               onOpenChat={openVendorChat}
-              onBack={() => setStep('roadmap')}
+              onBack={() => setStep('timing')}
               onContinue={() => setStep('talent')}
             />
           )}
@@ -430,10 +480,22 @@ export function GetStartedPage() {
               <div className="dex-card">
                 <div className="relative z-[1] space-y-4">
                   <h2 className="font-semibold text-white">Review your launch</h2>
-                  <p className="text-sm text-muted-foreground">{BONDING_CURVE_SUMMARY}</p>
+                  <p className="text-sm text-muted-foreground">{LAUNCH_SUMMARY}</p>
 
                   <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs text-muted-foreground">
-                    {BONDING_CURVE_LAUNCH_NOTE}
+                    {LAUNCH_NOTE}
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
+                    <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                      Launch timing
+                    </p>
+                    <p className="mt-1 font-medium text-white">{getLaunchModeLabel(launchMode)}</p>
+                    {launchMode === 'staging' && stagingLaunchDate && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Target launch: {formatLaunchDate(stagingLaunchDate)} · Listed in Launching Soon
+                      </p>
+                    )}
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
@@ -610,7 +672,9 @@ export function GetStartedPage() {
                   Back
                 </button>
                 <button type="button" onClick={handleLaunch} className="dex-btn">
-                  Launch for ${CLAIM_FEE}
+                  {launchMode === 'staging'
+                    ? `Join Launching Soon — $${CLAIM_FEE}`
+                    : `Launch for $${CLAIM_FEE}`}
                 </button>
               </div>
             </div>

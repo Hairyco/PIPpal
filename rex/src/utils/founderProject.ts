@@ -4,6 +4,7 @@ import type { CoinUtilityId } from '../data/coinUtilities';
 import type { RoadmapHorizonId } from '../data/roadmapHorizons';
 import type { LaunchModeId } from '../data/launchModes';
 import type { VendorChatTarget } from './vendorChat';
+import type { MarketingTimelineOverrides } from './buildMarketingRoadmap';
 
 export type FounderProject = {
   projectName: string;
@@ -23,6 +24,10 @@ export type FounderProject = {
   launchMode: LaunchModeId;
   stagingLaunchDate?: string;
   launchedAt: string;
+  /** KYC-gated: shift marketing phase timing */
+  marketingTimelineOverrides?: MarketingTimelineOverrides;
+  /** Phases submitted for Rex PM approval */
+  pmApprovedPhases?: string[];
 };
 
 const STORAGE_KEY = 'rex-founder-project';
@@ -51,6 +56,8 @@ export function loadFounderProject(): FounderProject | null {
       shareGrants: parsed.shareGrants ?? [],
       kycCompleted: parsed.kycCompleted ?? false,
       launchMode: parsed.launchMode ?? 'immediate',
+      marketingTimelineOverrides: parsed.marketingTimelineOverrides ?? {},
+      pmApprovedPhases: parsed.pmApprovedPhases ?? [],
     } as FounderProject;
   } catch {
     return null;

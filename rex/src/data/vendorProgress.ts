@@ -3,7 +3,7 @@ export type VendorDeliverableStatus = 'complete' | 'in-progress' | 'upcoming';
 export interface VendorDeliverable {
   id: string;
   label: string;
-  vendor: string;
+  supplier: string;
   progress: number;
   status: VendorDeliverableStatus;
   eta: string;
@@ -19,7 +19,7 @@ export const VENDOR_DELIVERABLES: VendorDeliverable[] = [
   {
     id: 'website',
     label: 'Website',
-    vendor: 'Pixel Forge Studio',
+    supplier: 'Pixel Forge Studio',
     progress: 82,
     status: 'in-progress',
     eta: 'Ships in 4 days',
@@ -27,7 +27,7 @@ export const VENDOR_DELIVERABLES: VendorDeliverable[] = [
   {
     id: 'app',
     label: 'Mobile app (iOS + Android)',
-    vendor: 'Pixel Forge Studio',
+    supplier: 'Pixel Forge Studio',
     progress: 54,
     status: 'in-progress',
     eta: 'Beta in 2 weeks',
@@ -35,15 +35,15 @@ export const VENDOR_DELIVERABLES: VendorDeliverable[] = [
   {
     id: 'admin',
     label: 'Admin dashboard',
-    vendor: 'Stackline Dev',
+    supplier: 'Stackline Dev',
     progress: 100,
     status: 'complete',
     eta: 'Live',
   },
   {
     id: 'api',
-    label: 'API & token integration',
-    vendor: 'Chaincraft Labs',
+    label: 'Prototype MVP',
+    supplier: 'Chaincraft Labs',
     progress: 28,
     status: 'upcoming',
     eta: 'Starts next milestone',

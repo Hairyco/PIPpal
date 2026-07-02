@@ -58,7 +58,7 @@ export function PartnerLogos() {
       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/35">
         Built on leading chains
       </p>
-      <div className="flex max-w-full flex-nowrap items-center justify-center gap-6 overflow-x-auto px-1 sm:gap-10 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="layout-clip flex min-w-0 max-w-full flex-nowrap items-center justify-center gap-6 overflow-x-auto px-1 sm:gap-10 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {PARTNERS.map((partner) => (
           <PartnerMark key={partner.name} name={partner.name} logo={partner.logo} />
         ))}

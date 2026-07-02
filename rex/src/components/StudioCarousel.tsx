@@ -63,11 +63,11 @@ export function StudioCarousel() {
         </p>
       </div>
 
-      <div className="relative overflow-hidden">
+      <div className="layout-clip relative h-[148px] w-full md:h-[156px]">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-background to-transparent md:w-24" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-background to-transparent md:w-24" />
 
-        <div className="flex w-max animate-scroll-left gap-4 px-4 hover:[animation-play-state:paused]">
+        <div className="absolute left-0 top-0 flex w-max max-w-none animate-scroll-left gap-4 px-4 hover:[animation-play-state:paused]">
           {doubled.map((project, i) => (
             <ProjectCard key={`${project.id}-${i}`} project={project} />
           ))}

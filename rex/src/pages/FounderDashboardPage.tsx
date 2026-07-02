@@ -11,10 +11,7 @@ import {
 } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
-import {
-  RecommendedRoadmapList,
-  RoadmapHorizonSelect,
-} from '../components/get-started/LaunchFlowParts';
+import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
 import { ExitMarketplaceDemo } from '../components/founder/ExitMarketplaceDemo';
 import {
   FounderTokenomicsPanel,
@@ -303,16 +300,20 @@ export function FounderDashboardPage() {
         {tab === 'roadmap' && (
           <div className="mt-6 min-w-0 space-y-4 overflow-x-hidden">
             <div className="dex-card min-w-0 overflow-hidden">
-              <div className="relative z-[1] min-w-0 space-y-4">
-                <div>
-                  <h2 className="font-semibold text-white">Recommended roadmap</h2>
+              <div className="relative z-[1] min-w-0">
+                <div className="mb-5">
+                  <h2 className="font-semibold text-white">Project roadmap</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {getRoadmapHorizon(roadmapHorizon).label} horizon · Rex manages payouts until
-                    you complete KYC.
+                    {getRoadmapHorizon(roadmapHorizon).label} horizon · Marketing campaign and build
+                    milestones
                   </p>
                 </div>
-                <RoadmapHorizonSelect value={roadmapHorizon} onChange={handleHorizonChange} />
-                <RecommendedRoadmapList milestones={milestones} />
+                <MarketingRoadmapPanel
+                  project={project}
+                  roadmapHorizon={roadmapHorizon}
+                  kycCompleted={kycCompleted}
+                  onHorizonChange={handleHorizonChange}
+                />
               </div>
             </div>
           </div>

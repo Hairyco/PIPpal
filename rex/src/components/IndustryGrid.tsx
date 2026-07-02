@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, Search } from 'lucide-react';
 import { industries, type Industry } from '../data/industries';
 
-const featuredIds = new Set(['meme-coins', 'aerospace']);
+const featuredIds = new Set(['ai-tech', 'aerospace']);
 
 const PREVIEW_COUNT = 4;
 

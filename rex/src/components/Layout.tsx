@@ -3,13 +3,13 @@ import { Header } from './Header';
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen w-full min-w-0 max-w-full flex-col overflow-x-clip">
       <div
         className="absolute left-0 top-0 -z-10 h-screen w-full bg-black bg-hero-radial"
         aria-hidden
       />
       <Header />
-      <main className="flex-grow">{children}</main>
+      <main className="min-w-0 w-full max-w-full flex-grow overflow-x-clip">{children}</main>
     </div>
   );
 }

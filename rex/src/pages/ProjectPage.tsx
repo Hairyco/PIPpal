@@ -5,6 +5,7 @@ import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingWalletChart, PriceChart } from '../components/project/ProjectCharts';
 import { PublicTokenomicsBlock } from '../components/project/PublicTokenomicsBlock';
+import { TradePanel } from '../components/project/TradePanel';
 import { RoadmapModal } from '../components/category/RoadmapModal';
 import { getProject } from '../data/categoryContent';
 import { industries } from '../data/industries';

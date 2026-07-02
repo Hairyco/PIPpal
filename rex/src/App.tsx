@@ -10,6 +10,7 @@ import { PromotePage } from './pages/PromotePage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { AffiliatesCataloguePage } from './pages/AffiliatesCataloguePage';
 import { FounderDashboardPage } from './pages/FounderDashboardPage';
+import { TradePage } from './pages/TradePage';
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/trade" element={<TradePage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />

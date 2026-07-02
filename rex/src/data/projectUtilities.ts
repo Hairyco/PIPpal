@@ -72,6 +72,12 @@ export const projectUtilities: Record<string, Record<string, string[]>> = {
     '3': ['Rent distribution', 'Tenant portal'],
     '4': ['Land DAO', 'Development votes'],
   },
+  miscellaneous: {
+    '1': ['Open roadmap', 'Flexible build', 'Auto marketing'],
+    '2': ['Cross-niche tools', 'Holder perks'],
+    '3': ['Experimental launch', 'Community voting'],
+    '4': ['Niche marketplace', 'Milestone payouts'],
+  },
 };
 
 export function resolveProjectUtilities(categoryId: string, projectId: string): string[] {

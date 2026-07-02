@@ -84,9 +84,9 @@ export function MarketplaceSection() {
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Marketplace</p>
-          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Vetted builders</h2>
+          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Explore Studios</h2>
           <p className="mt-2 text-muted-foreground">
-            When milestones hit, Rex pays studios and creators from the marketing wallet.
+            Browse vetted suppliers ready to build your project.
           </p>
         </div>
 
@@ -121,13 +121,13 @@ export function MarketplaceSection() {
         </div>
       </div>
 
-      <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="layout-clip relative -mx-4 max-w-[100vw] px-4 sm:mx-0 sm:max-w-none sm:px-0">
         <div
           className="pointer-events-none absolute inset-y-0 right-0 z-10 w-[22%] bg-gradient-to-l from-background via-background/90 to-transparent"
           aria-hidden
         />
 
-        <div className="flex gap-3 overflow-x-auto pb-1 snap-x snap-mandatory hide-scrollbar sm:gap-4">
+        <div className="flex min-w-0 max-w-full gap-3 overflow-x-auto pb-1 snap-x snap-mandatory hide-scrollbar sm:gap-4">
           {tab === 'studios' &&
             filteredStudios.map((studio, index) => (
               <div
@@ -174,7 +174,7 @@ export function MarketplaceSection() {
         to={`/marketplace?tab=${tab}`}
         className="dex-btn mt-5 flex w-full items-center justify-center py-3"
       >
-        Explore
+        Explore Studios
       </Link>
     </section>
   );
