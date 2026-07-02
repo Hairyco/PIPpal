@@ -97,10 +97,10 @@ export function buildMarketingTimeline(input: BuildInput): MarketingTimelinePhas
     {
       id: 'launch',
       step: 1,
-      title: 'Bonding curve goes live',
+      title: 'Go live on Rex',
       timing: 'Day 0 · Launch',
       offsetDays: 0,
-      description: `${name} launches on the Rex bonding curve. Marketing and roadmap wallets are created automatically.`,
+      description: `${name} launches on Rex. Marketing and roadmap wallets are created automatically from trade activity.`,
       phaseType: 'launch',
       approvalStatus: 'completed',
       platforms: [],
@@ -108,7 +108,7 @@ export function buildMarketingTimeline(input: BuildInput): MarketingTimelinePhas
     {
       id: 'telegram-early',
       step: 2,
-      title: 'Telegram call-outs & community',
+      title: 'Telegram & community push',
       timing: 'Day 1–3',
       offsetDays: 1,
       description:
@@ -126,7 +126,7 @@ export function buildMarketingTimeline(input: BuildInput): MarketingTimelinePhas
     {
       id: 'charting-baseline',
       step: 3,
-      title: 'Charting baseline',
+      title: 'Charting & listings',
       timing: isLong ? 'Week 2–3' : 'Week 1–2',
       offsetDays: isLong ? 14 : 7,
       description:

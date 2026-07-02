@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { MapPin, Megaphone, Route } from 'lucide-react';
+import { Megaphone, Route } from 'lucide-react';
 import type { DeliverableId } from '../../data/devStudios';
 import type { RoadmapHorizonId } from '../../data/roadmapHorizons';
 import type { FounderProject } from '../../utils/founderProject';
@@ -144,17 +144,29 @@ export function MarketingRoadmapPanel({
 
       {view === 'marketing' ? (
         <>
-          <div className="rounded-xl border border-sky-500/20 bg-sky-500/5 p-4">
-            <div className="flex gap-3">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-sky-400" />
+          <div className="rounded-2xl border border-white/[0.08] bg-gradient-to-br from-sky-500/[0.07] via-transparent to-indigo-500/[0.05] p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white">Recommended marketing path</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  Telegram call-outs run first (Day 1–3), then charting, growth, and scale
-                  placements as your marketing wallet fills from trade tax.
-                  {!kycCompleted &&
-                    ' Complete KYC to change timing and pick alternative platform packages.'}
+                <p className="text-[10px] font-medium uppercase tracking-wider text-sky-400">
+                  Your marketing plan
                 </p>
+                <h3 className="mt-1 text-base font-semibold text-white sm:text-lg">
+                  Community first, then charting and scale
+                </h3>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  Rex sequences paid placements as your marketing wallet fills — Telegram and
+                  callers early, then charting, growth banners, and high-impact scale buys.
+                  {!kycCompleted &&
+                    ' Complete KYC to adjust timing and pick alternative vendor packages.'}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2 text-[10px] font-medium">
+                <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-emerald-300">
+                  Funded by trade tax
+                </span>
+                <span className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-1 text-sky-300">
+                  {marketingPhases.length} phases
+                </span>
               </div>
             </div>
           </div>

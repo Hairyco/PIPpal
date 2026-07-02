@@ -409,11 +409,11 @@ export function GetStartedPage() {
               <div className="dex-card min-w-0 overflow-hidden">
                 <div className="relative z-[1] min-w-0">
                   <div className="mb-5">
-                    <h2 className="font-semibold text-white">Recommended roadmap</h2>
+                    <h2 className="font-semibold text-white">Marketing roadmap</h2>
                     <p className="mt-1 break-words text-sm text-muted-foreground">
-                      Based on {projectName || 'your project'} in{' '}
-                      {industries.find((i) => i.id === categoryId)?.name ?? 'your category'}. Telegram
-                      call-outs run first, then charting and scale placements as your wallet fills.
+                      Rex&apos;s recommended campaign for {projectName || 'your project'} in{' '}
+                      {industries.find((i) => i.id === categoryId)?.name ?? 'your category'} —
+                      community push first, then charting and scale as your wallet grows.
                     </p>
                   </div>
 

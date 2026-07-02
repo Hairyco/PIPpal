@@ -1,9 +1,22 @@
-import { useState } from 'react';
-import { Calendar, ChevronRight, Lock, Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  Calendar,
+  ChevronRight,
+  Lock,
+  Megaphone,
+  Package,
+  Rocket,
+  ShieldCheck,
+  TrendingUp,
+  Users,
+  Wallet,
+  Wrench,
+  Zap,
+} from 'lucide-react';
 import { formatAdCost, getAdPlatform, getAdPlatformOption } from '../../../data/adPlatforms';
 import type { MarketingTimelinePhase } from '../../../utils/buildMarketingRoadmap';
 import { TIMING_OFFSET_PRESETS } from '../../../utils/buildMarketingRoadmap';
-import { ApprovalStatusBadge, PlatformLogo } from './PlatformLogo';
+import { ApprovalStatusBadge, PlatformCategoryBadge, PlatformLogo } from './PlatformLogo';
 
 interface MarketingTimelineViewProps {
   phases: MarketingTimelinePhase[];
@@ -14,7 +27,70 @@ interface MarketingTimelineViewProps {
   onSubmitPmApproval?: (phaseId: string) => void;
 }
 
-const COL = 'min-w-[176px] flex-1 sm:min-w-[200px]';
+const phaseAccent: Record<
+  MarketingTimelinePhase['phaseType'],
+  { icon: typeof Rocket; ring: string; bg: string; text: string }
+> = {
+  launch: {
+    icon: Rocket,
+    ring: 'ring-emerald-500/25',
+    bg: 'bg-emerald-500/10',
+    text: 'text-emerald-300',
+  },
+  community: {
+    icon: Users,
+    ring: 'ring-sky-500/25',
+    bg: 'bg-sky-500/10',
+    text: 'text-sky-300',
+  },
+  charting: {
+    icon: TrendingUp,
+    ring: 'ring-indigo-500/25',
+    bg: 'bg-indigo-500/10',
+    text: 'text-indigo-300',
+  },
+  growth: {
+    icon: Megaphone,
+    ring: 'ring-violet-500/25',
+    bg: 'bg-violet-500/10',
+    text: 'text-violet-300',
+  },
+  scale: {
+    icon: Zap,
+    ring: 'ring-amber-500/25',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-300',
+  },
+  build: {
+    icon: Wrench,
+    ring: 'ring-white/15',
+    bg: 'bg-white/[0.06]',
+    text: 'text-muted-foreground',
+  },
+  product: {
+    icon: Package,
+    ring: 'ring-pink-500/25',
+    bg: 'bg-pink-500/10',
+    text: 'text-pink-300',
+  },
+  approval: {
+    icon: ShieldCheck,
+    ring: 'ring-amber-500/25',
+    bg: 'bg-amber-500/10',
+    text: 'text-amber-300',
+  },
+};
+
+function phaseLabel(phase: MarketingTimelinePhase): string {
+  if (phase.phaseType === 'launch') return 'Launch';
+  if (phase.phaseType === 'community') return 'Community';
+  if (phase.phaseType === 'charting') return 'Charting';
+  if (phase.phaseType === 'growth') return 'Growth';
+  if (phase.phaseType === 'scale') return 'Scale';
+  if (phase.phaseType === 'build') return 'Build';
+  if (phase.phaseType === 'product') return 'Product';
+  return 'Review';
+}
 
 export function MarketingTimelineView({
   phases,
@@ -27,194 +103,261 @@ export function MarketingTimelineView({
   const firstWithPlatforms = phases.find((p) => p.platforms.length > 0)?.id ?? phases[0]?.id;
   const [activePhaseId, setActivePhaseId] = useState(firstWithPlatforms);
 
-  const activePhase = phases.find((p) => p.id === activePhaseId);
+  const activePhase = phases.find((p) => p.id === activePhaseId) ?? phases[0];
+  const accent = activePhase ? phaseAccent[activePhase.phaseType] : phaseAccent.community;
+  const PhaseIcon = accent.icon;
+
+  const summary = useMemo(() => {
+    const withVendors = phases.filter((p) => p.platforms.length > 0);
+    const minSpend = withVendors.reduce((sum, phase) => {
+      const phaseMin = phase.platforms.reduce((min, entry) => {
+        const option = getAdPlatformOption(entry.platformId, entry.optionId);
+        return option ? Math.min(min, option.costFrom) : min;
+      }, Infinity);
+      return sum + (Number.isFinite(phaseMin) ? phaseMin : 0);
+    }, 0);
+
+    return {
+      phaseCount: phases.length,
+      vendorCount: withVendors.reduce((n, p) => n + p.platforms.length, 0),
+      minSpend,
+    };
+  }, [phases]);
+
+  if (!activePhase) return null;
+
+  const pmApproved = pmApprovedPhases.includes(activePhase.id);
+  const effectiveStatus =
+    pmApproved && activePhase.approvalStatus === 'pending-pm'
+      ? 'approved'
+      : activePhase.approvalStatus;
 
   return (
-    <div className="min-w-0 space-y-4">
-      {/* Page 1: horizontal timeline + vendor columns below each step */}
-      <div className="layout-clip relative rounded-xl border border-white/10 bg-[#060a12]/40">
-        <div className="overflow-x-auto hide-scrollbar">
-          <div className="flex w-full min-w-max px-3 py-4 lg:min-w-0">
-            {phases.map((phase, index) => {
-              const isActive = phase.id === activePhaseId;
-              const isLast = index === phases.length - 1;
-              const pmApproved = pmApprovedPhases.includes(phase.id);
-              const effectiveStatus =
-                pmApproved && phase.approvalStatus === 'pending-pm'
-                  ? 'approved'
-                  : phase.approvalStatus;
+    <div className="min-w-0 space-y-5">
+      {/* Summary strip */}
+      <div className="grid gap-2 sm:grid-cols-3">
+        {[
+          { label: 'Campaign phases', value: String(summary.phaseCount) },
+          { label: 'Vendor placements', value: String(summary.vendorCount) },
+          {
+            label: 'Est. from',
+            value: summary.minSpend > 0 ? formatAdCost(summary.minSpend) : '—',
+          },
+        ].map((item) => (
+          <div
+            key={item.label}
+            className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
+          >
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {item.label}
+            </p>
+            <p className="mt-0.5 text-lg font-semibold text-white">{item.value}</p>
+          </div>
+        ))}
+      </div>
 
-              return (
-                <div
-                  key={phase.id}
-                  className={`relative flex flex-col ${COL} ${isLast ? '' : 'pr-3'}`}
+      {/* Phase selector */}
+      <div className="overflow-x-auto hide-scrollbar">
+        <div className="flex min-w-max gap-2 pb-1 sm:min-w-0 sm:flex-wrap">
+          {phases.map((phase) => {
+            const isActive = phase.id === activePhaseId;
+            const meta = phaseAccent[phase.phaseType];
+            const Icon = meta.icon;
+
+            return (
+              <button
+                key={phase.id}
+                type="button"
+                onClick={() => setActivePhaseId(phase.id)}
+                aria-current={isActive ? 'step' : undefined}
+                className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition-all ${
+                  isActive
+                    ? 'border-sky-500/40 bg-sky-500/10 shadow-[0_0_0_1px_rgba(14,165,233,0.15)]'
+                    : 'border-white/[0.08] bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]'
+                }`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${meta.bg} ${meta.text}`}
                 >
-                  {/* Horizontal connector between steps */}
-                  {!isLast && (
-                    <div
-                      className="pointer-events-none absolute left-[calc(50%+1.25rem)] top-[1.125rem] h-0.5 w-[calc(100%-2.5rem+0.75rem)] bg-gradient-to-r from-sky-500/45 to-sky-500/10"
-                      aria-hidden
-                    />
-                  )}
-
-                  {/* Timeline node */}
-                  <button
-                    type="button"
-                    onClick={() => setActivePhaseId(phase.id)}
-                    className="relative z-[1] mx-auto flex flex-col items-center text-center"
-                    aria-current={isActive ? 'step' : undefined}
-                  >
-                    <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-xs font-bold transition-all ${
-                        isActive
-                          ? 'border-sky-400 bg-sky-500/20 text-sky-300 ring-4 ring-sky-500/15'
-                          : 'border-sky-500/30 bg-[#030711] text-sky-400/80'
-                      }`}
-                    >
-                      {phase.step}
-                    </div>
-                    <p
-                      className={`mt-2 line-clamp-2 px-1 text-[11px] font-semibold leading-snug ${
-                        isActive ? 'text-white' : 'text-white/80'
-                      }`}
-                    >
-                      {phase.title}
-                    </p>
-                    <p className="mt-1 flex items-center gap-1 text-[10px] text-sky-400/90">
-                      <Calendar className="h-2.5 w-2.5 shrink-0" />
-                      <span className="truncate">{phase.timing.split('·')[0].trim()}</span>
-                    </p>
-                    <div className="mt-1.5">
-                      <ApprovalStatusBadge status={effectiveStatus} />
-                    </div>
-                  </button>
-
-                  {/* Vendors below this step */}
-                  <div
-                    className={`mt-4 flex min-h-[120px] flex-col gap-2 rounded-lg border p-2 transition-colors ${
-                      isActive
-                        ? 'border-sky-500/25 bg-sky-500/5'
-                        : 'border-white/[0.06] bg-white/[0.02]'
+                  <Icon className="h-4 w-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    Step {phase.step} · {phaseLabel(phase)}
+                  </span>
+                  <span
+                    className={`block max-w-[140px] truncate text-xs font-semibold sm:max-w-[180px] ${
+                      isActive ? 'text-white' : 'text-white/85'
                     }`}
                   >
-                    {phase.platforms.length === 0 ? (
-                      <p className="flex flex-1 items-center justify-center px-1 text-center text-[10px] leading-snug text-muted-foreground">
-                        {phase.phaseType === 'launch'
-                          ? 'Launch day'
-                          : phase.requiresPmApproval
-                            ? 'PM approval'
-                            : 'Build phase'}
-                      </p>
-                    ) : (
-                      phase.platforms.map((entry) => {
-                        const platform = getAdPlatform(entry.platformId);
-                        const option = getAdPlatformOption(entry.platformId, entry.optionId);
-                        if (!platform || !option) return null;
-
-                        return (
-                          <button
-                            key={`${phase.id}-${entry.platformId}`}
-                            type="button"
-                            onClick={() => {
-                              setActivePhaseId(phase.id);
-                              onSelectPlatform(entry.platformId, phase.id);
-                            }}
-                            className="group flex items-center gap-2 rounded-lg border border-white/[0.06] bg-[#030711]/80 p-2 text-left transition-all hover:border-sky-500/30 hover:bg-sky-500/5"
-                          >
-                            <PlatformLogo platformId={entry.platformId} size="sm" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-[10px] font-semibold text-white">
-                                {platform.name}
-                              </p>
-                              <p className="truncate text-[9px] text-muted-foreground">
-                                {formatAdCost(option.costFrom)}
-                              </p>
-                            </div>
-                            <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground group-hover:text-sky-400" />
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    {phase.title}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <p className="text-center text-[10px] text-muted-foreground">
-        Scroll horizontally to see the full path · Tap a vendor for campaign details
-      </p>
+      {/* Journey progress */}
+      <div className="hidden items-center gap-1 sm:flex" aria-hidden>
+        {phases.map((phase, index) => {
+          const isPast = phase.step < activePhase.step;
+          const isCurrent = phase.id === activePhaseId;
+          return (
+            <div key={phase.id} className="flex flex-1 items-center gap-1">
+              <div
+                className={`h-1.5 flex-1 rounded-full transition-colors ${
+                  isCurrent ? 'bg-sky-400' : isPast ? 'bg-sky-500/35' : 'bg-white/10'
+                }`}
+              />
+              {index < phases.length - 1 && <span className="w-0" />}
+            </div>
+          );
+        })}
+      </div>
 
-      {/* Expanded detail for selected step */}
-      {activePhase && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+      {/* Active phase detail */}
+      <div className={`rounded-2xl border border-white/10 bg-[#060a12]/50 p-5 ring-1 ${accent.ring}`}>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 gap-3">
+            <div
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${accent.bg} ${accent.text}`}
+            >
+              <PhaseIcon className="h-5 w-5" />
+            </div>
             <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-sky-400">
-                Selected · Step {activePhase.step}
-              </p>
-              <h3 className="mt-0.5 text-sm font-semibold text-white">{activePhase.title}</h3>
-              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-sky-400">
+                  Step {activePhase.step}
+                </p>
+                <ApprovalStatusBadge status={effectiveStatus} />
+              </div>
+              <h3 className="mt-0.5 text-base font-semibold text-white sm:text-lg">
+                {activePhase.title}
+              </h3>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-sky-400/80" />
                   {activePhase.timing}
                 </span>
-                {activePhase.walletThreshold && (
-                  <span className="inline-flex items-center gap-1">
-                    <Wallet className="h-3 w-3" />
-                    {formatAdCost(activePhase.walletThreshold)} wallet threshold
+                {activePhase.walletThreshold != null && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Wallet className="h-3.5 w-3.5 text-emerald-400/80" />
+                    Wallet from {formatAdCost(activePhase.walletThreshold)}
                   </span>
                 )}
-              </p>
+              </div>
             </div>
-
-            {kycCompleted && activePhase.platforms.length > 0 && onTimingChange && (
-              <select
-                value={activePhase.offsetDays}
-                onChange={(e) => onTimingChange(activePhase.id, Number(e.target.value))}
-                className="rounded-lg border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-foreground"
-                aria-label={`Change timing for ${activePhase.title}`}
-              >
-                {TIMING_OFFSET_PRESETS.map((preset) => (
-                  <option key={preset.days} value={preset.days}>
-                    Move to {preset.label}
-                  </option>
-                ))}
-              </select>
-            )}
           </div>
 
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            {activePhase.description}
-          </p>
-
-          {activePhase.requiresPmApproval && !pmApprovedPhases.includes(activePhase.id) && (
-            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-              <p className="text-xs text-amber-200">
-                Requires Rex project manager approval before execution.
-              </p>
-              {onSubmitPmApproval && (
-                <button
-                  type="button"
-                  onClick={() => onSubmitPmApproval(activePhase.id)}
-                  className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
-                >
-                  Submit for review
-                </button>
-              )}
-            </div>
-          )}
-
-          {!kycCompleted && (
-            <p className="mt-3 inline-flex items-center gap-1 text-[10px] text-amber-300/80">
-              <Lock className="h-3 w-3" />
-              Complete KYC to change timing and pick alternative vendor packages
-            </p>
+          {kycCompleted && activePhase.platforms.length > 0 && onTimingChange && (
+            <select
+              value={activePhase.offsetDays}
+              onChange={(e) => onTimingChange(activePhase.id, Number(e.target.value))}
+              className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-foreground"
+              aria-label={`Change timing for ${activePhase.title}`}
+            >
+              {TIMING_OFFSET_PRESETS.map((preset) => (
+                <option key={preset.days} value={preset.days}>
+                  Move to {preset.label}
+                </option>
+              ))}
+            </select>
           )}
         </div>
-      )}
+
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          {activePhase.description}
+        </p>
+
+        {activePhase.requiresPmApproval && !pmApprovedPhases.includes(activePhase.id) && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+            <p className="text-xs text-amber-200">
+              Requires Rex project manager approval before this phase runs.
+            </p>
+            {onSubmitPmApproval && (
+              <button
+                type="button"
+                onClick={() => onSubmitPmApproval(activePhase.id)}
+                className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/20"
+              >
+                Submit for review
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Vendors or empty state */}
+        <div className="mt-5 border-t border-white/[0.06] pt-5">
+          {activePhase.platforms.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-8 text-center">
+              <PhaseIcon className="mx-auto h-8 w-8 text-muted-foreground/50" />
+              <p className="mt-3 text-sm font-medium text-white">
+                {activePhase.phaseType === 'launch'
+                  ? 'Launch day setup'
+                  : activePhase.phaseType === 'build'
+                    ? 'Build milestone'
+                    : activePhase.requiresPmApproval
+                      ? 'Awaiting approval'
+                      : 'No paid placements'}
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-xs text-muted-foreground">
+                {activePhase.phaseType === 'launch'
+                  ? 'Your token goes live on Rex. Marketing and roadmap wallets are created automatically from trade activity.'
+                  : activePhase.phaseType === 'build'
+                    ? 'Funded from your roadmap wallet when this deliverable milestone is reached.'
+                    : 'Rex will coordinate this step once earlier phases are complete.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                Recommended vendors for this phase
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {activePhase.platforms.map((entry) => {
+                  const platform = getAdPlatform(entry.platformId);
+                  const option = getAdPlatformOption(entry.platformId, entry.optionId);
+                  if (!platform || !option) return null;
+
+                  return (
+                    <button
+                      key={`${activePhase.id}-${entry.platformId}-${entry.optionId}`}
+                      type="button"
+                      onClick={() => onSelectPlatform(entry.platformId, activePhase.id)}
+                      className="group flex items-start gap-3 rounded-xl border border-white/[0.08] bg-[#030711]/60 p-4 text-left transition-all hover:border-sky-500/35 hover:bg-sky-500/[0.04]"
+                    >
+                      <PlatformLogo platformId={entry.platformId} size="md" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-white">{platform.name}</p>
+                          <PlatformCategoryBadge category={platform.category} />
+                        </div>
+                        <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                          {option.name}
+                        </p>
+                        <p className="mt-2 text-xs font-medium text-sky-300/90">
+                          From {formatAdCost(option.costFrom)}
+                          {option.duration ? ` · ${option.duration}` : ''}
+                        </p>
+                      </div>
+                      <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-sky-400" />
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+
+        {!kycCompleted && (
+          <p className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-amber-500/15 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/90">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+            Complete KYC to adjust timing and swap vendor packages
+          </p>
+        )}
+      </div>
     </div>
   );
 }
