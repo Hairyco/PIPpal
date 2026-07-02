@@ -244,9 +244,11 @@ export function GetStartedPage() {
   return (
     <Layout>
       <div className="container py-8 pb-16">
-        <BackLink />
+        <div className="mx-auto max-w-4xl">
+          <BackLink />
+        </div>
 
-        <div className="mt-6 w-full">
+        <div className="mx-auto mt-6 max-w-4xl">
           <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">Get started</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -282,7 +284,7 @@ export function GetStartedPage() {
           </div>
         </div>
 
-        <div className="mt-8 w-full min-w-0 overflow-x-hidden">
+        <div className="mx-auto mt-8 max-w-4xl min-w-0 overflow-x-hidden">
           {step === 'idea' && (
             <div className="space-y-5">
               <div className="dex-card">
