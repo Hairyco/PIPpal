@@ -28,6 +28,9 @@ export type FounderProject = {
   marketingTimelineOverrides?: MarketingTimelineOverrides;
   /** Phases submitted for Rex PM approval */
   pmApprovedPhases?: string[];
+  /** Custom project / token image (data URL or remote URL) */
+  projectImageUrl?: string | null;
+  projectImageSource?: 'upload' | 'generated';
 };
 
 const STORAGE_KEY = 'rex-founder-project';

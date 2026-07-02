@@ -26,6 +26,7 @@ import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
 import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
 import { formatLaunchDate } from '../data/launchingSoon';
 import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
+import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
 import { saveFounderProject } from '../utils/founderProject';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
@@ -51,6 +52,8 @@ export function GetStartedPage() {
   const [projectName, setProjectName] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [description, setDescription] = useState('');
+  const [projectImageUrl, setProjectImageUrl] = useState<string | null>(null);
+  const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(null);
   const [coinUtilities, setCoinUtilities] = useState<CoinUtilityId[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
@@ -141,8 +144,20 @@ export function GetStartedPage() {
       vendorChats: [],
       launchMode: 'immediate',
       launchedAt: new Date().toISOString(),
+      projectImageUrl,
+      projectImageSource: projectImageSource ?? undefined,
     }),
-    [projectName, categoryId, description, coinUtilities, deliverables, roadmapHorizon, shareGrants],
+    [
+      projectName,
+      categoryId,
+      description,
+      coinUtilities,
+      deliverables,
+      roadmapHorizon,
+      shareGrants,
+      projectImageUrl,
+      projectImageSource,
+    ],
   );
 
   const milestones = useMemo(
@@ -220,6 +235,8 @@ export function GetStartedPage() {
       launchMode,
       stagingLaunchDate: launchMode === 'staging' ? stagingLaunchDate : undefined,
       launchedAt: new Date().toISOString(),
+      projectImageUrl,
+      projectImageSource: projectImageSource ?? undefined,
     });
     navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
   };
@@ -327,6 +344,18 @@ export function GetStartedPage() {
                       onUseIdea={applyInspiredIdea}
                     />
                   </div>
+
+                  <ProjectImagePicker
+                    imageUrl={projectImageUrl}
+                    imageSource={projectImageSource}
+                    onChange={(url, source) => {
+                      setProjectImageUrl(url);
+                      setProjectImageSource(source);
+                    }}
+                    projectName={projectName}
+                    description={description}
+                    categoryLabel={industries.find((i) => i.id === categoryId)?.name}
+                  />
                 </div>
               </div>
 

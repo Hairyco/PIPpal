@@ -18,6 +18,7 @@ import {
   FounderVestingStatus,
 } from '../components/founder/FounderTokenomicsPanel';
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
+import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { categoryBoostTiers } from '../data/promotePricing';
 import { KYC_FEE } from '../data/claimPricing';
@@ -29,6 +30,7 @@ import { getCoinUtilityLabel } from '../data/coinUtilities';
 import { formatLaunchDate } from '../data/launchingSoon';
 import { getLaunchModeLabel } from '../data/launchModes';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
+import { REX_TOKEN_SYMBOL } from '../data/rexToken';
 import { loadFounderProject, projectSymbol, saveFounderProject } from '../utils/founderProject';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import type { VendorChatTarget } from '../utils/vendorChat';
@@ -55,6 +57,12 @@ export function FounderDashboardPage() {
   );
   const [kycCompleted, setKycCompleted] = useState(
     () => loadFounderProject()?.kycCompleted ?? false,
+  );
+  const [projectImageUrl, setProjectImageUrl] = useState<string | null>(
+    () => loadFounderProject()?.projectImageUrl ?? null,
+  );
+  const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(
+    () => loadFounderProject()?.projectImageSource ?? null,
   );
 
   const project = loadFounderProject();
@@ -98,6 +106,17 @@ export function FounderDashboardPage() {
   const dismissWelcome = () => {
     searchParams.delete('welcome');
     setSearchParams(searchParams, { replace: true });
+  };
+
+  const handleProjectImageChange = (url: string | null, source: ProjectImageSource) => {
+    if (!project) return;
+    setProjectImageUrl(url);
+    setProjectImageSource(source);
+    saveFounderProject({
+      ...project,
+      projectImageUrl: url,
+      projectImageSource: source ?? undefined,
+    });
   };
 
   const handleHorizonChange = (horizon: RoadmapHorizonId) => {
@@ -162,7 +181,7 @@ export function FounderDashboardPage() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-4">
-            <TokenIcon symbol={symbol} size="lg" />
+            <TokenIcon symbol={symbol} size="lg" imageUrl={projectImageUrl} />
             <div>
               <p className="text-sm font-medium uppercase tracking-wider text-sky-400">
                 Founder dashboard
@@ -252,6 +271,25 @@ export function FounderDashboardPage() {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
+              <div className="dex-card">
+                <div className="relative z-[1]">
+                  <h2 className="font-semibold text-white">Project image</h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Upload free, or generate with AI using {REX_TOKEN_SYMBOL} token.
+                  </p>
+                  <div className="mt-4">
+                    <ProjectImagePicker
+                      imageUrl={projectImageUrl}
+                      imageSource={projectImageSource}
+                      onChange={handleProjectImageChange}
+                      projectName={project.projectName}
+                      description={project.description}
+                      categoryLabel={industry?.name}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="dex-card">
                 <div className="relative z-[1]">
                   <h2 className="font-semibold text-white">Coin utilities</h2>
