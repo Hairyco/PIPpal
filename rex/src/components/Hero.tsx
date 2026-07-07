@@ -7,7 +7,7 @@ export function Hero() {
   return (
     <div className="container my-16 text-center">
       <h1 className="font-serif text-4xl font-bold md:text-7xl">
-        <span className="block text-white">Create any business</span>
+        <span className="block text-white">Create the future</span>
         <span className="block">
           <TypingText
             text="in minutes"
