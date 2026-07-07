@@ -1,14 +1,18 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeftRight } from 'lucide-react';
 import { PartnerLogos } from './PartnerLogos';
+import { TypingText } from './TypingText';
 
 export function Hero() {
   return (
     <div className="container my-16 text-center">
       <h1 className="font-serif text-4xl font-bold md:text-7xl">
         <span className="block text-white">Create any business</span>
-        <span className="block bg-gradient-to-br from-white to-white/10 bg-clip-text text-transparent">
-          in minutes
+        <span className="block">
+          <TypingText
+            text="in minutes"
+            className="bg-gradient-to-br from-white to-white/10 bg-clip-text text-transparent"
+          />
         </span>
       </h1>
       <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground md:text-lg">
