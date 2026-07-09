@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Rocket, Store, TrendingUp } from 'lucide-react';
+import { Rocket, Store, TrendingUp } from 'lucide-react';
 
 const BUILD_PILLS = [
   { label: 'Blockchain', categoryId: 'defi' },
@@ -15,30 +15,38 @@ const BUILD_PILLS = [
 ] as const;
 
 const STAGES = [
-  {
-    id: 'create',
-    label: 'Create',
-    description: 'Launch your token, site, and marketing plan for $1.',
-    icon: Rocket,
-  },
-  {
-    id: 'scale',
-    label: 'Scale',
-    description: 'Trade tax fills your wallet — Rex runs campaigns automatically.',
-    icon: TrendingUp,
-  },
-  {
-    id: 'exit',
-    label: 'Exit',
-    description: 'Sell the company to a buyer on Rex when you are ready.',
-    icon: Store,
-  },
+  { label: 'Create', icon: Rocket },
+  { label: 'Scale', icon: TrendingUp },
+  { label: 'Exit', icon: Store },
 ] as const;
 
 export function BuildCategoryPills() {
   return (
     <section className="container pb-8 pt-2 text-center" aria-label="Build by category">
       <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">Build a:</h2>
+
+      <div
+        className="mx-auto mt-4 flex max-w-md items-center justify-center gap-2 sm:max-w-lg sm:gap-3"
+        aria-label="Create, scale, exit"
+      >
+        {STAGES.map((stage, index) => {
+          const Icon = stage.icon;
+          return (
+            <div key={stage.label} className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 sm:px-4 sm:py-2">
+                <Icon className="h-3.5 w-3.5 text-sky-400 sm:h-4 sm:w-4" />
+                <span className="text-xs font-semibold text-white sm:text-sm">{stage.label}</span>
+              </div>
+              {index < STAGES.length - 1 && (
+                <span className="text-white/25" aria-hidden>
+                  →
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
         {BUILD_PILLS.map((pill) => (
           <Link
@@ -49,36 +57,6 @@ export function BuildCategoryPills() {
             {pill.label}
           </Link>
         ))}
-      </div>
-
-      <div className="mx-auto mt-8 max-w-3xl border-t border-white/[0.08] pt-8">
-        <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-sky-400/90">
-          The Rex journey
-        </p>
-        <div className="mt-5 grid gap-4 text-left sm:grid-cols-3 sm:gap-3">
-          {STAGES.map((stage, index) => {
-            const Icon = stage.icon;
-            return (
-              <div key={stage.id} className="relative flex flex-col items-center sm:items-start">
-                {index < STAGES.length - 1 && (
-                  <ArrowRight
-                    className="absolute -right-2 top-5 hidden h-4 w-4 text-white/20 sm:block"
-                    aria-hidden
-                  />
-                )}
-                <div className="flex items-center gap-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-sky-500/25 bg-sky-500/10 text-sky-300">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <p className="font-semibold text-white">{stage.label}</p>
-                </div>
-                <p className="mt-2 max-w-[220px] text-center text-xs leading-relaxed text-muted-foreground sm:text-left">
-                  {stage.description}
-                </p>
-              </div>
-            );
-          })}
-        </div>
       </div>
     </section>
   );
