@@ -16,7 +16,7 @@ const BUILD_PILLS = [
 export function BuildCategoryPills() {
   return (
     <section className="container pb-8 pt-2 text-center" aria-label="Build by category">
-      <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">Build a</h2>
+      <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">Build a:</h2>
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
         {BUILD_PILLS.map((pill) => (
           <Link
