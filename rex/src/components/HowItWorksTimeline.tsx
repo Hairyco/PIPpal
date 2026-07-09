@@ -22,7 +22,7 @@ export function HowItWorksTimeline() {
 
   return (
     <>
-      <section className="container my-20" aria-label="How Rex works">
+      <section className="container mb-16 mt-6" aria-label="How Rex works">
         <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0a0e17] px-4 py-8 sm:px-8 sm:py-10">
           <div
             className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-sky-500/40 to-transparent"

@@ -54,7 +54,7 @@ const PARTNERS = [
 
 export function PartnerLogos() {
   return (
-    <div className="mt-10 flex flex-col items-center gap-5">
+    <div className="mt-8 flex flex-col items-center gap-5">
       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/35">
         Built on leading chains
       </p>

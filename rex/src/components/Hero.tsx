@@ -17,7 +17,7 @@ export function Hero() {
         <div className="absolute inset-0 bg-gradient-to-b from-[#030711]/30 via-transparent to-[#030711]" />
       </div>
 
-      <div className="container relative py-20 text-center md:py-28">
+      <div className="container relative pb-10 pt-20 text-center md:pb-12 md:pt-28">
         <h1 className="font-serif text-4xl font-bold md:text-7xl">
           <span className="block text-white">Create a utility token</span>
           <span className="block">
