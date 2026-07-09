@@ -15,10 +15,10 @@ const BUILD_PILLS = [
 
 export function BuildCategoryPills() {
   return (
-    <section className="container pb-8 pt-2 text-center" aria-label="Build by category">
-      <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">Build a:</h2>
+    <section className="relative z-10 pb-10 pt-2 text-center" aria-label="Build by category">
+      <h2 className="container font-serif text-3xl font-bold text-white md:text-4xl">Build a:</h2>
       {/* inline-flex tag cloud — reliable content-width wrapping on iOS Safari */}
-      <div className="mt-5 px-0.5 leading-[2.6] sm:leading-[2.75]">
+      <div className="container mt-5 px-0.5 leading-[2.6] sm:leading-[2.75]">
         {BUILD_PILLS.map((pill) => (
           <Link
             key={pill.categoryId}
