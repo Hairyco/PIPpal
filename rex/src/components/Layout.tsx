@@ -5,7 +5,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen w-full min-w-0 max-w-full flex-col overflow-x-clip">
       <div
-        className="absolute left-0 top-0 -z-10 h-screen w-full bg-black bg-hero-radial"
+        className="absolute left-0 top-0 -z-10 h-screen w-full bg-background bg-hero-radial"
         aria-hidden
       />
       <Header />

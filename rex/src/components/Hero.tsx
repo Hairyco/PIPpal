@@ -14,7 +14,7 @@ export function Hero() {
           fetchPriority="high"
         />
         <div className="absolute inset-0 bg-[#030711]/50" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030711] via-[#030711]/55 to-[#030711]/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030711] via-[#030711]/55 to-[#030711]" />
       </div>
 
       <div className="container relative z-10 pb-10 pt-20 text-center md:pb-12 md:pt-28">

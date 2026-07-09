@@ -23,7 +23,7 @@ export function BuildCategoryPills() {
           <Link
             key={pill.categoryId}
             to={`/get-started?category=${pill.categoryId}`}
-            className="mx-1 inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/20 bg-[#030711] px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:border-sky-500/40 hover:bg-sky-500/10 sm:px-4 sm:py-2 sm:text-sm"
+            className="mx-1 inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/20 bg-white/[0.04] px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:border-sky-500/40 hover:bg-sky-500/10 sm:px-4 sm:py-2 sm:text-sm"
           >
             {pill.label}
           </Link>
