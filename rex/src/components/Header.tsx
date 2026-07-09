@@ -12,7 +12,7 @@ export function Header() {
           <RexLogo />
           <div className="flex flex-col items-baseline -space-y-0.5 md:flex-row md:space-x-2 md:space-y-0">
             <span className="font-serif text-lg text-foreground">Rex</span>
-            <span className="text-sm text-white/50 md:text-base">Incubator</span>
+            <span className="text-sm text-white/50 md:text-base">Growth engine</span>
           </div>
         </Link>
 
