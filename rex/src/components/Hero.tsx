@@ -5,19 +5,19 @@ import { TypingText } from './TypingText';
 
 export function Hero() {
   return (
-    <section className="relative w-full overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
+    <section className="relative isolate w-full overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
         <img
           src="/hero-space.png"
           alt=""
-          className="h-full w-full object-cover object-center"
+          className="h-full w-full object-cover object-[center_75%]"
           fetchPriority="high"
         />
-        <div className="absolute inset-0 bg-[#030711]/45" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#030711]/30 via-transparent to-[#030711]" />
+        <div className="absolute inset-0 bg-[#030711]/50" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#030711] via-[#030711]/55 to-[#030711]/90" />
       </div>
 
-      <div className="container relative pb-10 pt-20 text-center md:pb-12 md:pt-28">
+      <div className="container relative z-10 pb-10 pt-20 text-center md:pb-12 md:pt-28">
         <h1 className="font-serif text-4xl font-bold md:text-7xl">
           <span className="block text-white">Create a utility token</span>
           <span className="block">
