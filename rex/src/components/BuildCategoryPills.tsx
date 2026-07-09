@@ -17,12 +17,13 @@ export function BuildCategoryPills() {
   return (
     <section className="container pb-8 pt-2 text-center" aria-label="Build by category">
       <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">Build a:</h2>
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+      {/* inline-flex tag cloud — reliable content-width wrapping on iOS Safari */}
+      <div className="mt-5 px-0.5 leading-[2.6] sm:leading-[2.75]">
         {BUILD_PILLS.map((pill) => (
           <Link
             key={pill.categoryId}
             to={`/get-started?category=${pill.categoryId}`}
-            className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-medium text-white/90 transition-colors hover:border-sky-500/40 hover:bg-sky-500/10 hover:text-white"
+            className="mx-1 inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-white/20 bg-[#030711] px-3.5 py-1.5 text-[13px] font-medium text-white transition-colors hover:border-sky-500/40 hover:bg-sky-500/10 sm:px-4 sm:py-2 sm:text-sm"
           >
             {pill.label}
           </Link>
