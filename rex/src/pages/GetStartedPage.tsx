@@ -16,11 +16,9 @@ import {
 } from '../components/get-started/InspireMePanel';
 import { LaunchStudiosStep } from '../components/get-started/LaunchStudiosStep';
 import { LaunchTalentStep } from '../components/get-started/LaunchTalentStep';
-import { CoinUtilitySelect } from '../components/get-started/CoinUtilitySelect';
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
-import { getCoinUtilityLabel, type CoinUtilityId } from '../data/coinUtilities';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
 import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
 import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
@@ -54,7 +52,6 @@ export function GetStartedPage() {
   const [description, setDescription] = useState('');
   const [projectImageUrl, setProjectImageUrl] = useState<string | null>(null);
   const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(null);
-  const [coinUtilities, setCoinUtilities] = useState<CoinUtilityId[]>([]);
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
   const [shareGrants, setShareGrants] = useState<ShareGrant[]>([]);
@@ -101,12 +98,6 @@ export function GetStartedPage() {
         next.add('marketing');
         return [...next];
       });
-      setCoinUtilities((prev) => {
-        const next = new Set(prev);
-        next.add('auto-marketing');
-        next.add('fan-perks');
-        return [...next];
-      });
     }
   }, [searchParams]);
 
@@ -117,11 +108,7 @@ export function GetStartedPage() {
   };
 
   const canProceedIdea =
-    projectName.trim() &&
-    categoryId &&
-    description.trim() &&
-    coinUtilities.length > 0 &&
-    deliverables.length > 0;
+    projectName.trim() && categoryId && description.trim() && deliverables.length > 0;
 
   const hasOwnSupplier =
     showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
@@ -131,7 +118,7 @@ export function GetStartedPage() {
       projectName,
       categoryId,
       description,
-      coinUtilities,
+      coinUtilities: [],
       deliverables,
       roadmapHorizon,
       shareGrants,
@@ -151,7 +138,6 @@ export function GetStartedPage() {
       projectName,
       categoryId,
       description,
-      coinUtilities,
       deliverables,
       roadmapHorizon,
       shareGrants,
@@ -221,7 +207,7 @@ export function GetStartedPage() {
       projectName: projectName.trim(),
       categoryId,
       description: description.trim(),
-      coinUtilities,
+      coinUtilities: [],
       deliverables,
       roadmapHorizon,
       shareGrants,
@@ -320,8 +306,6 @@ export function GetStartedPage() {
                       ))}
                     </select>
                   </div>
-
-                  <CoinUtilitySelect selected={coinUtilities} onChange={setCoinUtilities} />
 
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -538,22 +522,6 @@ export function GetStartedPage() {
                       {industries.find((i) => i.id === categoryId)?.name}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{description}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Coin utilities
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {coinUtilities.map((id) => (
-                        <span
-                          key={id}
-                          className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-0.5 text-xs text-sky-300"
-                        >
-                          {getCoinUtilityLabel(id)}
-                        </span>
-                      ))}
-                    </div>
                   </div>
 
                   <div>

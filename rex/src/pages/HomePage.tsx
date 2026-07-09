@@ -1,5 +1,6 @@
 import { Layout } from '../components/Layout';
 import { Hero } from '../components/Hero';
+import { BuildCategoryPills } from '../components/BuildCategoryPills';
 import { HowItWorksTimeline } from '../components/HowItWorksTimeline';
 import { StudioCarousel } from '../components/StudioCarousel';
 import { IndustryGrid } from '../components/IndustryGrid';
@@ -11,6 +12,7 @@ export function HomePage() {
   return (
     <Layout>
       <Hero />
+      <BuildCategoryPills />
       <HowItWorksTimeline />
       <StudioCarousel />
       <IndustryGrid />
