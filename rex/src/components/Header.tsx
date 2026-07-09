@@ -6,8 +6,9 @@ export function Header() {
   const showDashboard = hasFounderProject();
 
   return (
-    <header className="container sticky top-0 z-50 py-4 backdrop-blur">
-      <div className="flex h-10 flex-row items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-black/75 backdrop-blur-md">
+      <div className="container py-4">
+        <div className="flex h-10 flex-row items-center justify-between">
         <Link to="/" className="flex flex-row items-center space-x-2">
           <RexLogo />
           <div className="flex flex-col items-baseline -space-y-0.5 md:flex-row md:space-x-2 md:space-y-0">
@@ -34,6 +35,7 @@ export function Header() {
           <a href="#" className="text-sm text-foreground transition-opacity hover:opacity-80">
             Sign In
           </a>
+        </div>
         </div>
       </div>
     </header>
