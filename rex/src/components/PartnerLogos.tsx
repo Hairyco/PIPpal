@@ -23,32 +23,8 @@ function PartnerMark({
 
 const PARTNERS = [
   {
-    name: 'XRP',
-    logo: (
-      <img
-        src="/images/partners/xrp.svg"
-        alt=""
-        className={`${logoClass} object-contain`}
-        loading="lazy"
-        decoding="async"
-      />
-    ),
-  },
-  {
     name: 'Solana',
     logo: <SolanaLogo className={logoClass} />,
-  },
-  {
-    name: 'Polygon',
-    logo: (
-      <img
-        src="/images/partners/polygon.svg"
-        alt=""
-        className={`${logoClass} object-contain`}
-        loading="lazy"
-        decoding="async"
-      />
-    ),
   },
 ] as const;
 
@@ -56,7 +32,7 @@ export function PartnerLogos() {
   return (
     <div className="mt-8 flex flex-col items-center gap-5">
       <p className="text-[10px] font-medium uppercase tracking-[0.25em] text-white/35">
-        Built on leading chains
+        Built on leading chain
       </p>
       <div className="layout-clip flex min-w-0 max-w-full flex-nowrap items-center justify-center gap-6 overflow-x-auto px-1 sm:gap-10 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {PARTNERS.map((partner) => (
