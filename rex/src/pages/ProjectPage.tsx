@@ -6,6 +6,7 @@ import { TokenIcon } from '../components/TokenIcon';
 import { MarketingWalletChart, PriceChart } from '../components/project/ProjectCharts';
 import { PublicTokenomicsBlock } from '../components/project/PublicTokenomicsBlock';
 import { TradePanel } from '../components/project/TradePanel';
+import { ValuationInfoTip } from '../components/project/ValuationInfoTip';
 import { RoadmapModal } from '../components/category/RoadmapModal';
 import { getProject } from '../data/categoryContent';
 import { industries } from '../data/industries';
@@ -99,10 +100,11 @@ export function ProjectPage() {
               <p className="text-lg font-semibold text-emerald-400">{details.marketingWallet.balance}</p>
             </div>
             <div>
-              <p className="text-muted-foreground">Valuation</p>
-              <p className="text-lg font-semibold text-violet-300" title="Estimated exit price on Rex marketplace">
-                {details.exitValuation}
-              </p>
+              <div className="flex items-center gap-1">
+                <p className="text-muted-foreground">Valuation</p>
+                <ValuationInfoTip />
+              </div>
+              <p className="text-lg font-semibold text-violet-300">{details.exitValuation}</p>
             </div>
             </div>
           </div>
