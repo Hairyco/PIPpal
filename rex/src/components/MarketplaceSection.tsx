@@ -84,7 +84,7 @@ export function MarketplaceSection() {
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">Marketplace</p>
-          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Explore Studios</h2>
+          <h2 className="mt-2 font-serif text-3xl text-white md:text-4xl">Our Partners</h2>
           <p className="mt-2 text-muted-foreground">
             Browse vetted suppliers ready to build your project.
           </p>
@@ -174,7 +174,7 @@ export function MarketplaceSection() {
         to={`/marketplace?tab=${tab}`}
         className="dex-btn mt-5 flex w-full items-center justify-center py-3"
       >
-        Explore Studios
+        Our Partners
       </Link>
     </section>
   );
