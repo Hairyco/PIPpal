@@ -1,6 +1,7 @@
 import { Layout } from '../components/Layout';
 import { Hero } from '../components/Hero';
 import { BuildCategoryPills } from '../components/BuildCategoryPills';
+import { RexJourneySection } from '../components/RexJourneySection';
 import { HowItWorksTimeline } from '../components/HowItWorksTimeline';
 import { StudioCarousel } from '../components/StudioCarousel';
 import { IndustryGrid } from '../components/IndustryGrid';
@@ -13,6 +14,7 @@ export function HomePage() {
     <Layout>
       <Hero />
       <BuildCategoryPills />
+      <RexJourneySection />
       <HowItWorksTimeline />
       <StudioCarousel />
       <IndustryGrid />
