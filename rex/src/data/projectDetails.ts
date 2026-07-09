@@ -36,6 +36,8 @@ export interface ProjectSupplier {
 
 export interface ProjectDetails {
   tagline: string;
+  /** Estimated full exit price — token, product, Rex listing, and marketing assets. */
+  exitValuation: string;
   marketingWallet: {
     balance: string;
     threshold: string;
@@ -152,6 +154,45 @@ export function parseMarketCapK(marketCap: string): number {
   return num;
 }
 
+export function formatCompactDollar(amount: number): string {
+  if (amount >= 1_000_000_000) {
+    const b = amount / 1_000_000_000;
+    return `$${b >= 10 ? Math.round(b) : b.toFixed(1).replace(/\.0$/, '')}B`;
+  }
+  if (amount >= 1_000_000) {
+    const m = amount / 1_000_000;
+    return `$${m >= 10 ? Math.round(m) : m.toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (amount >= 10_000) {
+    return `$${Math.round(amount / 1_000)}K`;
+  }
+  return `$${Math.round(amount).toLocaleString()}`;
+}
+
+/** Exit marketplace valuation — MCAP + product assets + marketing wallet. */
+function computeExitValuation(
+  project: ActiveProject,
+  walletBalance: number,
+  seed: number,
+): string {
+  const mcapK = parseMarketCapK(project.marketCap);
+  const mcapDollars = mcapK * 1000;
+  const ageDays = parseAgeDays(project.age);
+  const productAssets = 150_000 + (seed % 100) * 8_000 + ageDays * 2_000;
+
+  let total: number;
+  if (mcapK >= 50_000) {
+    const premium = 1.08 + (seed % 11) / 100;
+    total = mcapDollars * premium + walletBalance;
+  } else if (mcapK >= 1_000) {
+    total = mcapDollars * 0.55 + walletBalance + productAssets * 3;
+  } else {
+    total = walletBalance * 4 + productAssets + mcapDollars * 0.35;
+  }
+
+  return formatCompactDollar(total);
+}
+
 export function getProjectDetails(project: ActiveProject): ProjectDetails {
   const seed = hashSeed(project.id + project.symbol);
   const supplier = suppliers[seed % suppliers.length];
@@ -165,6 +206,7 @@ export function getProjectDetails(project: ActiveProject): ProjectDetails {
 
   return {
     tagline: `${project.name} is building on Rex with automated marketing and a vetted delivery pipeline.`,
+    exitValuation: computeExitValuation(project, walletBalance, seed),
     marketingWallet: {
       balance: `$${walletBalance.toLocaleString()}`,
       threshold: `$${threshold.toLocaleString()}`,

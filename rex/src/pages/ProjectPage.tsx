@@ -98,6 +98,12 @@ export function ProjectPage() {
               <p className="text-muted-foreground">Wallet</p>
               <p className="text-lg font-semibold text-emerald-400">{details.marketingWallet.balance}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground">Valuation</p>
+              <p className="text-lg font-semibold text-violet-300" title="Estimated exit price on Rex marketplace">
+                {details.exitValuation}
+              </p>
+            </div>
             </div>
           </div>
         </div>
