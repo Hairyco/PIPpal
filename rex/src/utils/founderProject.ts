@@ -31,6 +31,10 @@ export type FounderProject = {
   /** Custom project / token image (data URL or remote URL) */
   projectImageUrl?: string | null;
   projectImageSource?: 'upload' | 'generated';
+  telegramGroup: string;
+  discordUrl?: string;
+  xUrl?: string;
+  websiteUrl?: string;
 };
 
 const STORAGE_KEY = 'rex-founder-project';
@@ -61,6 +65,7 @@ export function loadFounderProject(): FounderProject | null {
       launchMode: parsed.launchMode ?? 'immediate',
       marketingTimelineOverrides: parsed.marketingTimelineOverrides ?? {},
       pmApprovedPhases: parsed.pmApprovedPhases ?? [],
+      telegramGroup: parsed.telegramGroup ?? '',
     } as FounderProject;
   } catch {
     return null;

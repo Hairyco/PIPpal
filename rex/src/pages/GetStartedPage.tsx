@@ -25,7 +25,9 @@ import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
 import { formatLaunchDate } from '../data/launchingSoon';
 import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
 import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
+import { CommunityLinksForm } from '../components/get-started/CommunityLinksForm';
 import { saveFounderProject } from '../utils/founderProject';
+import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
 type Step = 'idea' | 'roadmap' | 'timing' | 'studios' | 'talent' | 'launch';
@@ -52,6 +54,10 @@ export function GetStartedPage() {
   const [description, setDescription] = useState('');
   const [projectImageUrl, setProjectImageUrl] = useState<string | null>(null);
   const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(null);
+  const [telegramGroup, setTelegramGroup] = useState('');
+  const [discordUrl, setDiscordUrl] = useState('');
+  const [xUrl, setXUrl] = useState('');
+  const [websiteUrl, setWebsiteUrl] = useState('');
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
   const [shareGrants, setShareGrants] = useState<ShareGrant[]>([]);
@@ -107,8 +113,23 @@ export function GetStartedPage() {
     );
   };
 
+  const communityLinks = useMemo(
+    () =>
+      normalizeCommunityLinks({
+        telegramGroup,
+        discordUrl,
+        xUrl,
+        websiteUrl,
+      }),
+    [telegramGroup, discordUrl, xUrl, websiteUrl],
+  );
+
   const canProceedIdea =
-    projectName.trim() && categoryId && description.trim() && deliverables.length > 0;
+    projectName.trim() &&
+    categoryId &&
+    description.trim() &&
+    hasRequiredTelegram(communityLinks.telegramGroup) &&
+    deliverables.length > 0;
 
   const hasOwnSupplier =
     showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
@@ -133,6 +154,10 @@ export function GetStartedPage() {
       launchedAt: new Date().toISOString(),
       projectImageUrl,
       projectImageSource: projectImageSource ?? undefined,
+      telegramGroup: communityLinks.telegramGroup,
+      discordUrl: communityLinks.discordUrl,
+      xUrl: communityLinks.xUrl,
+      websiteUrl: communityLinks.websiteUrl,
     }),
     [
       projectName,
@@ -143,6 +168,7 @@ export function GetStartedPage() {
       shareGrants,
       projectImageUrl,
       projectImageSource,
+      communityLinks,
     ],
   );
 
@@ -223,6 +249,10 @@ export function GetStartedPage() {
       launchedAt: new Date().toISOString(),
       projectImageUrl,
       projectImageSource: projectImageSource ?? undefined,
+      telegramGroup: communityLinks.telegramGroup,
+      discordUrl: communityLinks.discordUrl,
+      xUrl: communityLinks.xUrl,
+      websiteUrl: communityLinks.websiteUrl,
     });
     navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
   };
@@ -306,6 +336,16 @@ export function GetStartedPage() {
                       ))}
                     </select>
                   </div>
+
+                  <CommunityLinksForm
+                    value={communityLinks}
+                    onChange={(links) => {
+                      setTelegramGroup(links.telegramGroup);
+                      setDiscordUrl(links.discordUrl ?? '');
+                      setXUrl(links.xUrl ?? '');
+                      setWebsiteUrl(links.websiteUrl ?? '');
+                    }}
+                  />
 
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -522,6 +562,28 @@ export function GetStartedPage() {
                       {industries.find((i) => i.id === categoryId)?.name}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{description}</p>
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
+                    <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                      Community
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Telegram: {communityLinks.telegramGroup}
+                    </p>
+                    {communityLinks.discordUrl && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Discord: {communityLinks.discordUrl}
+                      </p>
+                    )}
+                    {communityLinks.xUrl && (
+                      <p className="mt-1 text-xs text-muted-foreground">X: {communityLinks.xUrl}</p>
+                    )}
+                    {communityLinks.websiteUrl && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Website: {communityLinks.websiteUrl}
+                      </p>
+                    )}
                   </div>
 
                   <div>
