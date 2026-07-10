@@ -75,7 +75,7 @@ function ExitOfferMockup() {
 
 export function RexJourneySection() {
   return (
-    <section className="container mb-16 mt-4 md:mb-20 md:mt-6" aria-label="Create, scale, exit">
+    <section className="container my-16 md:my-20" aria-label="Create, scale, exit">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">
