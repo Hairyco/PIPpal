@@ -5,6 +5,7 @@ import type { RoadmapHorizonId } from '../data/roadmapHorizons';
 import type { LaunchModeId } from '../data/launchModes';
 import type { VendorChatTarget } from './vendorChat';
 import type { MarketingTimelineOverrides } from './buildMarketingRoadmap';
+import type { ProjectOrigin } from './projectOrigin';
 
 export type FounderProject = {
   projectName: string;
@@ -31,6 +32,12 @@ export type FounderProject = {
   /** Custom project / token image (data URL or remote URL) */
   projectImageUrl?: string | null;
   projectImageSource?: 'upload' | 'generated';
+  /** New idea vs product already live */
+  projectOrigin?: ProjectOrigin;
+  /** Live site or app store link when bringing an existing project */
+  existingProductUrl?: string;
+  /** Uploaded logos, screenshots, and brand assets */
+  projectAssets?: string[];
   telegramGroup: string;
   discordUrl?: string;
 };
@@ -63,6 +70,7 @@ export function loadFounderProject(): FounderProject | null {
       launchMode: parsed.launchMode ?? 'immediate',
       marketingTimelineOverrides: parsed.marketingTimelineOverrides ?? {},
       pmApprovedPhases: parsed.pmApprovedPhases ?? [],
+      projectOrigin: parsed.projectOrigin ?? 'new',
       telegramGroup: parsed.telegramGroup ?? '',
     } as FounderProject;
   } catch {

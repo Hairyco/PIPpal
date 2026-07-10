@@ -26,8 +26,11 @@ import { formatLaunchDate } from '../data/launchingSoon';
 import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
 import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
 import { CommunityLinksForm } from '../components/get-started/CommunityLinksForm';
+import { ExistingProjectAssets } from '../components/get-started/ExistingProjectAssets';
+import { ProjectOriginPicker } from '../components/get-started/ProjectOriginPicker';
 import { saveFounderProject } from '../utils/founderProject';
 import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
+import type { ProjectOrigin } from '../utils/projectOrigin';
 import type { VendorChatTarget } from '../utils/vendorChat';
 
 type Step = 'idea' | 'roadmap' | 'timing' | 'studios' | 'talent' | 'launch';
@@ -54,6 +57,9 @@ export function GetStartedPage() {
   const [description, setDescription] = useState('');
   const [projectImageUrl, setProjectImageUrl] = useState<string | null>(null);
   const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(null);
+  const [projectOrigin, setProjectOrigin] = useState<ProjectOrigin>('new');
+  const [existingProductUrl, setExistingProductUrl] = useState('');
+  const [projectAssets, setProjectAssets] = useState<string[]>([]);
   const [telegramGroup, setTelegramGroup] = useState('');
   const [discordUrl, setDiscordUrl] = useState('');
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
@@ -120,12 +126,25 @@ export function GetStartedPage() {
     [telegramGroup, discordUrl],
   );
 
+  const isExisting = projectOrigin === 'existing';
+
+  const handleProjectOriginChange = (origin: ProjectOrigin) => {
+    setProjectOrigin(origin);
+    if (origin === 'existing') {
+      setDeliverables((prev) => (prev.includes('marketing') ? prev : [...prev, 'marketing']));
+    }
+  };
+
+  const hasExistingProof =
+    !isExisting || existingProductUrl.trim().length > 0 || projectAssets.length > 0;
+
   const canProceedIdea =
     projectName.trim() &&
     categoryId &&
     description.trim() &&
     hasRequiredTelegram(communityLinks.telegramGroup) &&
-    deliverables.length > 0;
+    deliverables.length > 0 &&
+    hasExistingProof;
 
   const hasOwnSupplier =
     showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
@@ -150,6 +169,9 @@ export function GetStartedPage() {
       launchedAt: new Date().toISOString(),
       projectImageUrl,
       projectImageSource: projectImageSource ?? undefined,
+      projectOrigin,
+      existingProductUrl: isExisting ? existingProductUrl.trim() || undefined : undefined,
+      projectAssets: isExisting && projectAssets.length > 0 ? projectAssets : undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     }),
@@ -163,6 +185,10 @@ export function GetStartedPage() {
       projectImageUrl,
       projectImageSource,
       communityLinks,
+      projectOrigin,
+      existingProductUrl,
+      projectAssets,
+      isExisting,
     ],
   );
 
@@ -243,6 +269,9 @@ export function GetStartedPage() {
       launchedAt: new Date().toISOString(),
       projectImageUrl,
       projectImageSource: projectImageSource ?? undefined,
+      projectOrigin,
+      existingProductUrl: isExisting ? existingProductUrl.trim() || undefined : undefined,
+      projectAssets: isExisting && projectAssets.length > 0 ? projectAssets : undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     });
@@ -329,14 +358,20 @@ export function GetStartedPage() {
                     </select>
                   </div>
 
+                  <ProjectOriginPicker value={projectOrigin} onChange={handleProjectOriginChange} />
+
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                      What&apos;s the idea?
+                      {isExisting ? 'Tell us about your product' : "What's the idea?"}
                     </label>
                     <textarea
                       className={inputClass}
                       rows={4}
-                      placeholder="Describe what you're building, who it's for, and what problem it solves…"
+                      placeholder={
+                        isExisting
+                          ? 'What does your product do today, who uses it, and what growth do you want from Rex?'
+                          : "Describe what you're building, who it's for, and what problem it solves…"
+                      }
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />
@@ -352,6 +387,15 @@ export function GetStartedPage() {
                       onUseIdea={applyInspiredIdea}
                     />
                   </div>
+
+                  {isExisting && (
+                    <ExistingProjectAssets
+                      productUrl={existingProductUrl}
+                      onProductUrlChange={setExistingProductUrl}
+                      assets={projectAssets}
+                      onAssetsChange={setProjectAssets}
+                    />
+                  )}
 
                   <ProjectImagePicker
                     imageUrl={projectImageUrl}
@@ -377,9 +421,13 @@ export function GetStartedPage() {
 
               <div className="dex-card">
                 <div className="relative z-[1]">
-                  <h2 className="font-semibold text-white">What do you need built?</h2>
+                  <h2 className="font-semibold text-white">
+                    {isExisting ? 'What should Rex help you grow?' : 'What do you need built?'}
+                  </h2>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Rex uses these to shape your recommended roadmap milestones.
+                    {isExisting
+                      ? 'Pick the areas Rex should focus on — marketing is pre-selected for existing products.'
+                      : 'Rex uses these to shape your recommended roadmap milestones.'}
                   </p>
                   <div className="mt-4 grid gap-2 sm:grid-cols-2">
                     {projectDeliverables.map((d) => {
@@ -403,6 +451,12 @@ export function GetStartedPage() {
                   </div>
                 </div>
               </div>
+
+              {isExisting && !hasExistingProof && (
+                <p className="text-xs text-amber-400/90">
+                  Add your product URL or at least one brand asset to continue.
+                </p>
+              )}
 
               <div className="flex justify-end">
                 <button
@@ -550,8 +604,29 @@ export function GetStartedPage() {
                     <p className="mt-1 font-medium text-white">{projectName}</p>
                     <p className="text-xs text-muted-foreground">
                       {industries.find((i) => i.id === categoryId)?.name}
+                      {isExisting && ' · Existing project'}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{description}</p>
+                    {isExisting && existingProductUrl.trim() && (
+                      <p className="mt-2 text-xs text-sky-400">{existingProductUrl.trim()}</p>
+                    )}
+                    {isExisting && projectAssets.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {projectAssets.slice(0, 4).map((asset, index) => (
+                          <img
+                            key={`${index}-${asset.slice(0, 16)}`}
+                            src={asset}
+                            alt=""
+                            className="h-10 w-10 rounded-md border border-white/10 object-cover"
+                          />
+                        ))}
+                        {projectAssets.length > 4 && (
+                          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-[10px] text-muted-foreground">
+                            +{projectAssets.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
