@@ -12,29 +12,28 @@ export function CommunityLinksForm({ value, onChange }: CommunityLinksFormProps)
   const set = (patch: Partial<ProjectCommunityLinks>) => onChange({ ...value, ...patch });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
         <h3 className="text-sm font-semibold text-white">Community links</h3>
         <p className="mt-1 text-xs text-muted-foreground">
-          Rex uses these for marketing call-outs and your project page. Telegram is required.
+          Telegram is required. Discord is optional.
         </p>
       </div>
 
-      <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          Telegram group <span className="text-sky-400">*</span>
-        </label>
-        <input
-          className={inputClass}
-          placeholder="https://t.me/yourgroup or @yourgroup"
-          value={value.telegramGroup}
-          onChange={(e) => set({ telegramGroup: e.target.value })}
-          required
-          aria-required="true"
-        />
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Telegram <span className="text-sky-400">*</span>
+          </label>
+          <input
+            className={inputClass}
+            placeholder="https://t.me/yourgroup or @yourgroup"
+            value={value.telegramGroup}
+            onChange={(e) => set({ telegramGroup: e.target.value })}
+            required
+            aria-required="true"
+          />
+        </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
             Discord <span className="text-white/30">(optional)</span>
@@ -46,29 +45,6 @@ export function CommunityLinksForm({ value, onChange }: CommunityLinksFormProps)
             onChange={(e) => set({ discordUrl: e.target.value })}
           />
         </div>
-        <div>
-          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-            X (Twitter) <span className="text-white/30">(optional)</span>
-          </label>
-          <input
-            className={inputClass}
-            placeholder="https://x.com/yourproject"
-            value={value.xUrl ?? ''}
-            onChange={(e) => set({ xUrl: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-          Website <span className="text-white/30">(optional)</span>
-        </label>
-        <input
-          className={inputClass}
-          placeholder="https://yourproject.com"
-          value={value.websiteUrl ?? ''}
-          onChange={(e) => set({ websiteUrl: e.target.value })}
-        />
       </div>
     </div>
   );

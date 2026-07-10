@@ -56,8 +56,6 @@ export function GetStartedPage() {
   const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(null);
   const [telegramGroup, setTelegramGroup] = useState('');
   const [discordUrl, setDiscordUrl] = useState('');
-  const [xUrl, setXUrl] = useState('');
-  const [websiteUrl, setWebsiteUrl] = useState('');
   const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
   const [shareGrants, setShareGrants] = useState<ShareGrant[]>([]);
@@ -118,10 +116,8 @@ export function GetStartedPage() {
       normalizeCommunityLinks({
         telegramGroup,
         discordUrl,
-        xUrl,
-        websiteUrl,
       }),
-    [telegramGroup, discordUrl, xUrl, websiteUrl],
+    [telegramGroup, discordUrl],
   );
 
   const canProceedIdea =
@@ -156,8 +152,6 @@ export function GetStartedPage() {
       projectImageSource: projectImageSource ?? undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
-      xUrl: communityLinks.xUrl,
-      websiteUrl: communityLinks.websiteUrl,
     }),
     [
       projectName,
@@ -251,8 +245,6 @@ export function GetStartedPage() {
       projectImageSource: projectImageSource ?? undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
-      xUrl: communityLinks.xUrl,
-      websiteUrl: communityLinks.websiteUrl,
     });
     navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
   };
@@ -337,16 +329,6 @@ export function GetStartedPage() {
                     </select>
                   </div>
 
-                  <CommunityLinksForm
-                    value={communityLinks}
-                    onChange={(links) => {
-                      setTelegramGroup(links.telegramGroup);
-                      setDiscordUrl(links.discordUrl ?? '');
-                      setXUrl(links.xUrl ?? '');
-                      setWebsiteUrl(links.websiteUrl ?? '');
-                    }}
-                  />
-
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
                       What&apos;s the idea?
@@ -381,6 +363,14 @@ export function GetStartedPage() {
                     projectName={projectName}
                     description={description}
                     categoryLabel={industries.find((i) => i.id === categoryId)?.name}
+                  />
+
+                  <CommunityLinksForm
+                    value={communityLinks}
+                    onChange={(links) => {
+                      setTelegramGroup(links.telegramGroup);
+                      setDiscordUrl(links.discordUrl ?? '');
+                    }}
                   />
                 </div>
               </div>
@@ -574,14 +564,6 @@ export function GetStartedPage() {
                     {communityLinks.discordUrl && (
                       <p className="mt-1 text-xs text-muted-foreground">
                         Discord: {communityLinks.discordUrl}
-                      </p>
-                    )}
-                    {communityLinks.xUrl && (
-                      <p className="mt-1 text-xs text-muted-foreground">X: {communityLinks.xUrl}</p>
-                    )}
-                    {communityLinks.websiteUrl && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Website: {communityLinks.websiteUrl}
                       </p>
                     )}
                   </div>

@@ -33,8 +33,6 @@ export type FounderProject = {
   projectImageSource?: 'upload' | 'generated';
   telegramGroup: string;
   discordUrl?: string;
-  xUrl?: string;
-  websiteUrl?: string;
 };
 
 const STORAGE_KEY = 'rex-founder-project';
