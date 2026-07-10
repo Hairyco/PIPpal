@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::accounts::LaunchProject;
+use crate::LaunchProject;
 use crate::constants::{INITIAL_VIRTUAL_SOL, INITIAL_VIRTUAL_TOKENS};
 use crate::events::ProjectLaunched;
 

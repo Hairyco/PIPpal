@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Burn};
 
-use crate::accounts::Sell;
+use crate::Sell;
 use crate::curve::{apply_sell_to_reserves, quote_sell_sol};
 use crate::errors::RexError;
 use crate::events::TradeExecuted;

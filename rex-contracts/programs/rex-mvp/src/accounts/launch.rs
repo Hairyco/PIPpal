@@ -1,9 +1,3 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token};
-
-use crate::constants::{INITIAL_VIRTUAL_SOL, INITIAL_VIRTUAL_TOKENS, TOKEN_DECIMALS};
-use crate::state::{Project, RexConfig};
-
 #[derive(Accounts)]
 pub struct LaunchProject<'info> {
     #[account(mut)]

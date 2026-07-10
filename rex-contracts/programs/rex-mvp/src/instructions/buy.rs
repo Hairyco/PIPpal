@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, MintTo};
 
-use crate::accounts::Buy;
+use crate::Buy;
 use crate::curve::{apply_buy_to_reserves, quote_buy_tokens};
 use crate::errors::RexError;
 use crate::events::TradeExecuted;

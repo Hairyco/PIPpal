@@ -15,8 +15,8 @@
 //! | `errors`      | Human-readable failure reasons               |
 
 use anchor_lang::prelude::*;
+use anchor_spl::token::{Mint, Token, TokenAccount};
 
-pub mod accounts;
 pub mod constants;
 pub mod curve;
 pub mod errors;
@@ -26,7 +26,18 @@ pub mod instructions;
 pub mod state;
 pub mod transfer;
 
-pub use accounts::*;
+use constants::TOKEN_DECIMALS;
+use errors::RexError;
+use state::{Project, RexConfig, WhitelistedProvider};
+
+// Account validation structs must be in the crate root for Anchor's `#[program]` macro.
+include!("accounts/initialize.rs");
+include!("accounts/launch.rs");
+include!("accounts/buy.rs");
+include!("accounts/sell.rs");
+include!("accounts/whitelist.rs");
+include!("accounts/disburse.rs");
+
 pub use constants::*;
 pub use events::*;
 pub use state::*;

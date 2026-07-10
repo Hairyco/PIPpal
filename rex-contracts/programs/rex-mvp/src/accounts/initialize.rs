@@ -1,7 +1,3 @@
-use anchor_lang::prelude::*;
-
-use crate::state::RexConfig;
-
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut)]

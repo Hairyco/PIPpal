@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::accounts::Initialize;
-use crate::state::RexConfig;
+use crate::Initialize;
 
 pub fn handler(ctx: Context<Initialize>) -> Result<()> {
     let config = &mut ctx.accounts.config;

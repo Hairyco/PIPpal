@@ -1,8 +1,3 @@
-use anchor_lang::prelude::*;
-
-use crate::errors::RexError;
-use crate::state::{Project, RexConfig, WhitelistedProvider};
-
 #[derive(Accounts)]
 pub struct DisburseMarketing<'info> {
     #[account(constraint = authority.key() == config.authority @ RexError::Unauthorized)]

@@ -1,9 +1,3 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token::{Mint, Token, TokenAccount};
-
-use crate::errors::RexError;
-use crate::state::{Project, RexConfig};
-
 #[derive(Accounts)]
 pub struct Sell<'info> {
     #[account(mut)]

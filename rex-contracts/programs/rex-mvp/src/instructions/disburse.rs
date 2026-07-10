@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::accounts::DisburseMarketing;
+use crate::DisburseMarketing;
 use crate::errors::RexError;
 use crate::events::MarketingDisbursed;
 use crate::transfer::transfer_lamports_signed;

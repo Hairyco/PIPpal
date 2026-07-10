@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::accounts::AddWhitelistProvider;
+use crate::AddWhitelistProvider;
 use crate::events::ProviderWhitelisted;
 
 pub fn handler(ctx: Context<AddWhitelistProvider>) -> Result<()> {

@@ -1,11 +1,9 @@
-use anchor_lang::prelude::*;
-
-use crate::errors::RexError;
-use crate::state::{RexConfig, WhitelistedProvider};
-
 #[derive(Accounts)]
 pub struct AddWhitelistProvider<'info> {
-    #[account(constraint = authority.key() == config.authority @ RexError::Unauthorized)]
+    #[account(
+        constraint = authority.key() == config.authority @ RexError::Unauthorized,
+        mut,
+    )]
     pub authority: Signer<'info>,
 
     /// CHECK: supplier wallet to whitelist
