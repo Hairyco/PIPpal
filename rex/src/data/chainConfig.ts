@@ -1,4 +1,4 @@
-/** On-chain fee constants — keep in sync with rex-contracts/programs/rex-mvp/src/state.rs */
+/** On-chain fee constants — keep in sync with rex-contracts/programs/rex-mvp/src/constants.rs */
 
 /** 1% Rex platform fee on buys and sells (basis points). */
 export const PLATFORM_FEE_BPS = 100;
