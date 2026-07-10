@@ -31,14 +31,23 @@ import { saveFounderProject } from '../utils/founderProject';
 import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
 import type { ProjectOrigin } from '../utils/projectOrigin';
 import { buildConceptSummary } from '../utils/conceptSummary';
+import { MarketAnalysisStep } from '../components/get-started/MarketAnalysisStep';
+import {
+  applyAnalysisRecommendations,
+  buildMarketAnalysis,
+  type AnalysisChatMessage,
+  type AnalysisDocument,
+  type MarketAnalysis,
+} from '../utils/marketAnalysis';
 
-type Step = 'idea' | 'summary' | 'roadmap' | 'creative' | 'launch';
+type Step = 'idea' | 'analysis' | 'summary' | 'roadmap' | 'creative' | 'launch';
 
 const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
 
 const STEPS: { id: Step; label: string }[] = [
   { id: 'idea', label: 'Your idea' },
+  { id: 'analysis', label: 'Market analysis' },
   { id: 'summary', label: 'Rex summary' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'creative', label: 'Creative suite' },
@@ -76,6 +85,11 @@ export function GetStartedPage() {
   const [inspireResult, setInspireResult] = useState<InspireIdeaResult | null>(null);
   const [inspiring, setInspiring] = useState(false);
   const [launchMode, setLaunchMode] = useState<LaunchModeId>('immediate');
+  const [analysisDocuments, setAnalysisDocuments] = useState<AnalysisDocument[]>([]);
+  const [analysisChat, setAnalysisChat] = useState<AnalysisChatMessage[]>([]);
+  const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null);
+  const [selectedRecommendationIds, setSelectedRecommendationIds] = useState<string[]>([]);
+  const [analysisApproved, setAnalysisApproved] = useState(false);
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
@@ -98,6 +112,29 @@ export function GetStartedPage() {
   );
 
   const isExisting = projectOrigin === 'existing';
+
+  useEffect(() => {
+    if (step !== 'analysis' || analysisApproved) return;
+    const next = buildMarketAnalysis({
+      projectName,
+      categoryId,
+      description,
+      projectOrigin,
+      existingProductUrl: existingProductUrl.trim() || undefined,
+      documents: analysisDocuments,
+    });
+    setMarketAnalysis(next);
+    setSelectedRecommendationIds(next.recommendations.map((r) => r.id));
+  }, [
+    step,
+    analysisApproved,
+    projectName,
+    categoryId,
+    description,
+    projectOrigin,
+    existingProductUrl,
+    analysisDocuments,
+  ]);
 
   const conceptSummary = useMemo(
     () =>
@@ -235,6 +272,35 @@ export function GetStartedPage() {
       discordUrl: communityLinks.discordUrl,
     });
     navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
+  };
+
+  const handleApproveAnalysis = () => {
+    if (!marketAnalysis) return;
+    const updated = applyAnalysisRecommendations(
+      description,
+      marketAnalysis.recommendations,
+      selectedRecommendationIds,
+    );
+    if (updated !== description) setDescription(updated);
+    setAnalysisApproved(true);
+  };
+
+  const handleAnalysisDocumentsChange = (docs: AnalysisDocument[]) => {
+    setAnalysisDocuments(docs);
+    if (!analysisApproved) {
+      const next = buildMarketAnalysis({
+        projectName,
+        categoryId,
+        description,
+        projectOrigin,
+        existingProductUrl: existingProductUrl.trim() || undefined,
+        documents: docs,
+      });
+      setMarketAnalysis(next);
+      setSelectedRecommendationIds((prev) => [
+        ...new Set([...prev, ...next.recommendations.map((r) => r.id)]),
+      ]);
+    }
   };
 
   const categoryLabel = industries.find((i) => i.id === categoryId)?.name;
@@ -393,21 +459,45 @@ export function GetStartedPage() {
                 <button
                   type="button"
                   disabled={!canProceedIdea}
-                  onClick={() => setStep('summary')}
+                  onClick={() => {
+                    setAnalysisApproved(false);
+                    setAnalysisChat([]);
+                    setStep('analysis');
+                  }}
                   className="dex-btn disabled:opacity-40"
                 >
-                  Get Rex summary
+                  Run market analysis
                   <ArrowRight className="ml-2 inline h-4 w-4" />
                 </button>
               </div>
             </div>
           )}
 
+          {step === 'analysis' && marketAnalysis && (
+            <MarketAnalysisStep
+              projectName={projectName}
+              analysis={marketAnalysis}
+              onAnalysisChange={setMarketAnalysis}
+              documents={analysisDocuments}
+              onDocumentsChange={handleAnalysisDocumentsChange}
+              chatMessages={analysisChat}
+              onChatMessagesChange={setAnalysisChat}
+              selectedRecommendationIds={selectedRecommendationIds}
+              onSelectedRecommendationIdsChange={setSelectedRecommendationIds}
+              approved={analysisApproved}
+              onApprove={handleApproveAnalysis}
+              categoryId={categoryId}
+              description={description}
+              onBack={() => setStep('idea')}
+              onContinue={() => setStep('summary')}
+            />
+          )}
+
           {step === 'summary' && (
             <RexConceptSummaryStep
               summary={conceptSummary}
               categoryLabel={categoryLabel}
-              onBack={() => setStep('idea')}
+              onBack={() => setStep('analysis')}
               onContinue={() => setStep('roadmap')}
             />
           )}
