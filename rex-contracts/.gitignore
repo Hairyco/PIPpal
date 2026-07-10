@@ -1,0 +1,4 @@
+rex-contracts/target/
+rex-contracts/node_modules/
+rex-contracts/.anchor/
+rex-contracts/test-ledger/
