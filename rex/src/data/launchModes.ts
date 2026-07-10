@@ -15,24 +15,21 @@ export const launchModeOptions: LaunchModeOption[] = [
   {
     id: 'immediate',
     icon: Rocket,
-    title: 'Launch right away',
-    description: 'Your coin goes live on Rex immediately — ready to trade from day one.',
+    title: 'Launch immediately',
+    description: 'Go live on Rex right away — trading starts from day one.',
     bullets: [
       'Listed in live markets across Rex',
       'Buy/sell tax starts filling your marketing wallet',
-      'Best when your idea and roadmap are ready to share',
     ],
   },
   {
     id: 'staging',
     icon: Hourglass,
-    title: 'Join staging',
-    description:
-      'List in Launching Soon to generate community interest before trading opens.',
+    title: 'Prelaunch',
+    description: 'List in Launching Soon and build hype before trading opens.',
     bullets: [
-      'Featured in the Launching Soon section on Rex',
-      'Grow followers and early supporters before go-live',
-      'Set a target launch date — flip to live when you are ready',
+      'Featured in the Launching Soon section',
+      'Flip to live from your dashboard when ready',
     ],
   },
 ];

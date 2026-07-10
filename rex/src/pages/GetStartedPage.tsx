@@ -13,12 +13,10 @@ import {
   InspireMePanel,
   runInspireGenerate,
 } from '../components/get-started/InspireMePanel';
-import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
-import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
-import { formatLaunchDate } from '../data/launchingSoon';
+import { launchModeOptions, type LaunchModeId } from '../data/launchModes';
 import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
 import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
 import { CommunityLinksForm } from '../components/get-started/CommunityLinksForm';
@@ -34,7 +32,7 @@ import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCo
 import type { ProjectOrigin } from '../utils/projectOrigin';
 import { buildConceptSummary } from '../utils/conceptSummary';
 
-type Step = 'idea' | 'summary' | 'roadmap' | 'creative' | 'timing' | 'launch';
+type Step = 'idea' | 'summary' | 'roadmap' | 'creative' | 'launch';
 
 const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
@@ -44,7 +42,6 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'summary', label: 'Rex summary' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'creative', label: 'Creative suite' },
-  { id: 'timing', label: 'Launch timing' },
   { id: 'launch', label: 'Launch' },
 ];
 
@@ -79,7 +76,6 @@ export function GetStartedPage() {
   const [inspireResult, setInspireResult] = useState<InspireIdeaResult | null>(null);
   const [inspiring, setInspiring] = useState(false);
   const [launchMode, setLaunchMode] = useState<LaunchModeId>('immediate');
-  const [stagingLaunchDate, setStagingLaunchDate] = useState('');
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
@@ -224,7 +220,6 @@ export function GetStartedPage() {
       talentAssignments: {},
       vendorChats: [],
       launchMode,
-      stagingLaunchDate: launchMode === 'staging' ? stagingLaunchDate : undefined,
       launchedAt: new Date().toISOString(),
       projectImageUrl,
       projectImageSource: projectImageSource ?? undefined,
@@ -475,17 +470,6 @@ export function GetStartedPage() {
               value={creativeSuite}
               onChange={setCreativeSuite}
               onBack={() => setStep('roadmap')}
-              onContinue={() => setStep('timing')}
-            />
-          )}
-
-          {step === 'timing' && (
-            <LaunchTimingStep
-              launchMode={launchMode}
-              stagingLaunchDate={stagingLaunchDate}
-              onLaunchModeChange={setLaunchMode}
-              onStagingLaunchDateChange={setStagingLaunchDate}
-              onBack={() => setStep('creative')}
               onContinue={() => setStep('launch')}
             />
           )}
@@ -494,23 +478,49 @@ export function GetStartedPage() {
             <div className="space-y-5">
               <div className="dex-card">
                 <div className="relative z-[1] space-y-4">
-                  <h2 className="font-semibold text-white">Review your launch</h2>
+                  <h2 className="font-semibold text-white">Review & launch</h2>
                   <p className="text-sm text-muted-foreground">{LAUNCH_SUMMARY}</p>
+
+                  <div>
+                    <p className="mb-2 text-xs font-medium text-muted-foreground">Launch timing</p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {launchModeOptions.map((option) => {
+                        const Icon = option.icon;
+                        const selected = launchMode === option.id;
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setLaunchMode(option.id)}
+                            className={`rounded-xl border p-3 text-left transition-colors ${
+                              selected
+                                ? 'border-sky-500/50 bg-sky-500/10'
+                                : 'border-white/10 bg-white/5 hover:border-white/20'
+                            }`}
+                          >
+                            <div className="flex items-start gap-2.5">
+                              <span
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                                  selected ? 'bg-sky-500/20 text-sky-300' : 'bg-white/5 text-muted-foreground'
+                                }`}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </span>
+                              <span>
+                                <p className="text-sm font-medium text-white">{option.title}</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                                  {option.description}
+                                </p>
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
 
                   <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs text-muted-foreground">
                     {LAUNCH_NOTE}
-                  </div>
-
-                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
-                    <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
-                      Launch timing
-                    </p>
-                    <p className="mt-1 font-medium text-white">{getLaunchModeLabel(launchMode)}</p>
-                    {launchMode === 'staging' && stagingLaunchDate && (
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Target launch: {formatLaunchDate(stagingLaunchDate)} · Listed in Launching Soon
-                      </p>
-                    )}
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
@@ -635,7 +645,7 @@ export function GetStartedPage() {
               <div className="flex justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep('timing')}
+                  onClick={() => setStep('creative')}
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="mr-1 h-4 w-4" />
@@ -643,8 +653,8 @@ export function GetStartedPage() {
                 </button>
                 <button type="button" onClick={handleLaunch} className="dex-btn">
                   {launchMode === 'staging'
-                    ? `Join Launching Soon — $${CLAIM_FEE}`
-                    : `Launch for $${CLAIM_FEE}`}
+                    ? `Start prelaunch — $${CLAIM_FEE}`
+                    : `Launch immediately — $${CLAIM_FEE}`}
                 </button>
               </div>
             </div>

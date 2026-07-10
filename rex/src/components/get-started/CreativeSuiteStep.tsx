@@ -419,7 +419,7 @@ export function CreativeSuiteStep({
           Back
         </button>
         <button type="button" onClick={onContinue} className="dex-btn">
-          Choose launch timing
+          Review & launch
           <ArrowRight className="ml-2 inline h-4 w-4" />
         </button>
       </div>
