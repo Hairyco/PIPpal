@@ -49,6 +49,12 @@ export function Hero() {
       </div>
 
       <BuildCategoryPills />
+
+      <div className="pointer-events-none relative z-[1] h-28 w-full md:h-32" aria-hidden>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#030711]/75 to-[#030711]" />
+        <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-sky-400/25 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-[radial-gradient(ellipse_at_center_bottom,rgba(14,165,233,0.14),transparent_72%)] md:h-28" />
+      </div>
     </section>
   );
 }

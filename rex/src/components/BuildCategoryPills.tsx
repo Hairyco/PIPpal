@@ -75,7 +75,7 @@ function MarqueeRow({
 
 export function BuildCategoryPills() {
   return (
-    <section className="relative z-10 pb-10 pt-2" aria-label="Build by category">
+    <section className="relative z-10 pb-4 pt-2" aria-label="Build by category">
       <h2 className="container text-center font-serif text-3xl font-bold text-white md:text-4xl">
         Build a:
       </h2>
