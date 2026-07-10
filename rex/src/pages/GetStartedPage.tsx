@@ -9,6 +9,7 @@ import type { ShareGrant } from '../data/founderTokenomics';
 import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
 import { FounderTokenomicsPanel } from '../components/founder/FounderTokenomicsPanel';
 import { RoadmapKycNotice } from '../components/get-started/LaunchFlowParts';
+import { MarketingWalletTiersPanel } from '../components/get-started/MarketingWalletTiersPanel';
 import {
   InspireMePanel,
   runInspireGenerate,
@@ -522,6 +523,10 @@ export function GetStartedPage() {
                     onHorizonChange={setRoadmapHorizon}
                   />
 
+                  <div className="mt-6 border-t border-white/10 pt-6">
+                    <MarketingWalletTiersPanel />
+                  </div>
+
                   <div className="mt-6 space-y-4 border-t border-white/10 pt-6">
                     <FounderTokenomicsPanel
                       horizon={roadmapHorizon}
@@ -611,6 +616,10 @@ export function GetStartedPage() {
 
                   <div className="rounded-lg border border-sky-500/20 bg-sky-500/5 p-3 text-xs text-muted-foreground">
                     {LAUNCH_NOTE}
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
+                    <MarketingWalletTiersPanel compact />
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">

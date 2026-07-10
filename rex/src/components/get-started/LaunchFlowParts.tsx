@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, MapPin, Sparkles } from 'lucide-react';
+import { KYC_FEE } from '../../data/claimPricing';
 import type { RecommendedMilestone } from '../../utils/recommendedRoadmap';
 import { roadmapHorizons, type RoadmapHorizonId } from '../../data/roadmapHorizons';
 
@@ -129,9 +130,9 @@ export function RoadmapKycNotice() {
         <div className="min-w-0">
           <p className="text-sm font-medium text-white">Recommended roadmap — Rex managed</p>
           <p className="mt-1 break-words text-xs leading-relaxed text-muted-foreground">
-            This path is included in your $1 launch. Shortlist studios and talent on the next steps.
-            Complete KYC ($150) to unlock your founder token allocation, edit milestones, and approve
-            vendor spend yourself.
+            Trade tax fills your marketing wallet in tiers — Tier 1 is automated; Tier 2 ($5,000+)
+            and Tier 3 ($25,000+) require KYC. Product builds via whitelisted suppliers unlock after
+            6 months live. Complete KYC (${KYC_FEE}) for founder allocation and spend controls.
           </p>
         </div>
       </div>
