@@ -3,8 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, BadgeCheck, UserPlus } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { industries } from '../data/industries';
-import { devStudios, projectDeliverables, type DeliverableId } from '../data/devStudios';
-import { talentPool } from '../data/talentPool';
+import { projectDeliverables } from '../data/devStudios';
 import { CLAIM_FEE, KYC_FEE } from '../data/claimPricing';
 import type { ShareGrant } from '../data/founderTokenomics';
 import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
@@ -14,13 +13,10 @@ import {
   InspireMePanel,
   runInspireGenerate,
 } from '../components/get-started/InspireMePanel';
-import { LaunchStudiosStep } from '../components/get-started/LaunchStudiosStep';
-import { LaunchTalentStep } from '../components/get-started/LaunchTalentStep';
-import { VendorChatModal } from '../components/get-started/VendorChatModal';
+import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
 import type { InspireIdeaResult } from '../utils/launchIdeaAssistant';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import { getRoadmapHorizon, type RoadmapHorizonId } from '../data/roadmapHorizons';
-import { LaunchTimingStep } from '../components/get-started/LaunchTimingStep';
 import { getLaunchModeLabel, type LaunchModeId } from '../data/launchModes';
 import { formatLaunchDate } from '../data/launchingSoon';
 import { LAUNCH_NOTE, LAUNCH_SUMMARY } from '../data/launchTerms';
@@ -28,24 +24,37 @@ import { ProjectImagePicker, type ProjectImageSource } from '../components/get-s
 import { CommunityLinksForm } from '../components/get-started/CommunityLinksForm';
 import { ExistingProjectAssets } from '../components/get-started/ExistingProjectAssets';
 import { ProjectOriginPicker } from '../components/get-started/ProjectOriginPicker';
+import { RexConceptSummaryStep } from '../components/get-started/RexConceptSummaryStep';
+import {
+  CreativeSuiteStep,
+  type CreativeSuiteState,
+} from '../components/get-started/CreativeSuiteStep';
 import { saveFounderProject } from '../utils/founderProject';
 import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
 import type { ProjectOrigin } from '../utils/projectOrigin';
-import type { VendorChatTarget } from '../utils/vendorChat';
+import { buildConceptSummary } from '../utils/conceptSummary';
 
-type Step = 'idea' | 'roadmap' | 'timing' | 'studios' | 'talent' | 'launch';
+type Step = 'idea' | 'summary' | 'roadmap' | 'creative' | 'timing' | 'launch';
 
 const inputClass =
   'w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30';
 
 const STEPS: { id: Step; label: string }[] = [
   { id: 'idea', label: 'Your idea' },
+  { id: 'summary', label: 'Rex summary' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'creative', label: 'Creative suite' },
   { id: 'timing', label: 'Launch timing' },
-  { id: 'studios', label: 'Studios' },
-  { id: 'talent', label: 'Talent' },
   { id: 'launch', label: 'Launch' },
 ];
+
+const EMPTY_CREATIVE: CreativeSuiteState = {
+  landingPageUrl: null,
+  landingPageSource: null,
+  landingPageFunding: null,
+  bannerAssets: [],
+  queuedBannerCount: 0,
+};
 
 export function GetStartedPage() {
   const navigate = useNavigate();
@@ -62,37 +71,17 @@ export function GetStartedPage() {
   const [projectAssets, setProjectAssets] = useState<string[]>([]);
   const [telegramGroup, setTelegramGroup] = useState('');
   const [discordUrl, setDiscordUrl] = useState('');
-  const [deliverables, setDeliverables] = useState<DeliverableId[]>([]);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>('12-months');
   const [shareGrants, setShareGrants] = useState<ShareGrant[]>([]);
+  const [creativeSuite, setCreativeSuite] = useState<CreativeSuiteState>(EMPTY_CREATIVE);
   const [inspireOpen, setInspireOpen] = useState(false);
   const [inspireInterest, setInspireInterest] = useState('');
   const [inspireResult, setInspireResult] = useState<InspireIdeaResult | null>(null);
   const [inspiring, setInspiring] = useState(false);
-
-  const [studioSearch, setStudioSearch] = useState('');
-  const [showOwnSupplier, setShowOwnSupplier] = useState(false);
-  const [studioSkipped, setStudioSkipped] = useState(false);
-  const [shortlistedStudios, setShortlistedStudios] = useState<string[]>([]);
-  const [ownSupplierName, setOwnSupplierName] = useState('');
-  const [ownSupplierEmail, setOwnSupplierEmail] = useState('');
-  const [ownSupplierWebsite, setOwnSupplierWebsite] = useState('');
-  const [talentAssignments, setTalentAssignments] = useState<Record<string, string>>({});
-  const [chatTarget, setChatTarget] = useState<VendorChatTarget | null>(null);
-  const [vendorChats, setVendorChats] = useState<VendorChatTarget[]>([]);
   const [launchMode, setLaunchMode] = useState<LaunchModeId>('immediate');
   const [stagingLaunchDate, setStagingLaunchDate] = useState('');
 
   const stepIndex = STEPS.findIndex((s) => s.id === step);
-
-  const openVendorChat = (target: VendorChatTarget) => {
-    setChatTarget(target);
-    setVendorChats((prev) =>
-      prev.some((chat) => chat.key === target.key) ? prev : [...prev, target],
-    );
-  };
-
-  const vendorChatKeys = vendorChats.map((chat) => chat.key);
 
   useEffect(() => {
     const category = searchParams.get('category');
@@ -101,21 +90,7 @@ export function GetStartedPage() {
     if (category) setCategoryId(category);
     if (name) setProjectName(name);
     if (idea) setDescription(idea);
-    if (category === 'celebrity-coins' && (name || idea)) {
-      setDeliverables((prev) => {
-        const next = new Set(prev);
-        next.add('smart-contract');
-        next.add('marketing');
-        return [...next];
-      });
-    }
   }, [searchParams]);
-
-  const toggleDeliverable = (id: DeliverableId) => {
-    setDeliverables((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id],
-    );
-  };
 
   const communityLinks = useMemo(
     () =>
@@ -128,12 +103,18 @@ export function GetStartedPage() {
 
   const isExisting = projectOrigin === 'existing';
 
-  const handleProjectOriginChange = (origin: ProjectOrigin) => {
-    setProjectOrigin(origin);
-    if (origin === 'existing') {
-      setDeliverables((prev) => (prev.includes('marketing') ? prev : [...prev, 'marketing']));
-    }
-  };
+  const conceptSummary = useMemo(
+    () =>
+      buildConceptSummary({
+        projectName,
+        categoryId,
+        description,
+        projectOrigin,
+      }),
+    [projectName, categoryId, description, projectOrigin],
+  );
+
+  const deliverables = conceptSummary.inferredDeliverables;
 
   const hasExistingProof =
     !isExisting || existingProductUrl.trim().length > 0 || projectAssets.length > 0;
@@ -143,11 +124,7 @@ export function GetStartedPage() {
     categoryId &&
     description.trim() &&
     hasRequiredTelegram(communityLinks.telegramGroup) &&
-    deliverables.length > 0 &&
     hasExistingProof;
-
-  const hasOwnSupplier =
-    showOwnSupplier && ownSupplierName.trim().length > 0 && ownSupplierEmail.trim().length > 0;
 
   const previewProject = useMemo(
     (): import('../utils/founderProject').FounderProject => ({
@@ -160,7 +137,7 @@ export function GetStartedPage() {
       shareGrants,
       kycCompleted: false,
       shortlistedStudios: [],
-      studioSkipped: false,
+      studioSkipped: true,
       ownSupplierName: '',
       ownSupplierEmail: '',
       talentAssignments: {},
@@ -172,6 +149,11 @@ export function GetStartedPage() {
       projectOrigin,
       existingProductUrl: isExisting ? existingProductUrl.trim() || undefined : undefined,
       projectAssets: isExisting && projectAssets.length > 0 ? projectAssets : undefined,
+      landingPageUrl: creativeSuite.landingPageUrl,
+      landingPageSource: creativeSuite.landingPageSource ?? undefined,
+      landingPageFunding: creativeSuite.landingPageFunding ?? undefined,
+      bannerAssets: creativeSuite.bannerAssets.length > 0 ? creativeSuite.bannerAssets : undefined,
+      queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     }),
@@ -189,6 +171,7 @@ export function GetStartedPage() {
       existingProductUrl,
       projectAssets,
       isExisting,
+      creativeSuite,
     ],
   );
 
@@ -206,30 +189,6 @@ export function GetStartedPage() {
   const goToStep = (target: Step) => {
     const targetIndex = STEPS.findIndex((s) => s.id === target);
     if (targetIndex <= stepIndex) setStep(target);
-  };
-
-  const toggleStudio = (id: string) => {
-    setStudioSkipped(false);
-    setShowOwnSupplier(false);
-    setShortlistedStudios((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
-    );
-  };
-
-  const skipStudios = () => {
-    setStudioSkipped(true);
-    setShowOwnSupplier(false);
-    setShortlistedStudios([]);
-    setOwnSupplierName('');
-    setOwnSupplierEmail('');
-    setOwnSupplierWebsite('');
-  };
-
-  const assignTalent = (deliverableId: string, talentId: string) => {
-    setTalentAssignments((prev) => ({
-      ...prev,
-      [deliverableId]: prev[deliverableId] === talentId ? '' : talentId,
-    }));
   };
 
   const handleInspireGenerate = () => {
@@ -258,12 +217,12 @@ export function GetStartedPage() {
       roadmapHorizon,
       shareGrants,
       kycCompleted: false,
-      shortlistedStudios,
-      studioSkipped,
-      ownSupplierName,
-      ownSupplierEmail,
-      talentAssignments,
-      vendorChats,
+      shortlistedStudios: [],
+      studioSkipped: true,
+      ownSupplierName: '',
+      ownSupplierEmail: '',
+      talentAssignments: {},
+      vendorChats: [],
       launchMode,
       stagingLaunchDate: launchMode === 'staging' ? stagingLaunchDate : undefined,
       launchedAt: new Date().toISOString(),
@@ -272,11 +231,21 @@ export function GetStartedPage() {
       projectOrigin,
       existingProductUrl: isExisting ? existingProductUrl.trim() || undefined : undefined,
       projectAssets: isExisting && projectAssets.length > 0 ? projectAssets : undefined,
+      landingPageUrl: creativeSuite.landingPageUrl,
+      landingPageSource: creativeSuite.landingPageSource ?? undefined,
+      landingPageFunding: creativeSuite.landingPageFunding ?? undefined,
+      bannerAssets: creativeSuite.bannerAssets.length > 0 ? creativeSuite.bannerAssets : undefined,
+      queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     });
     navigate(launchMode === 'staging' ? '/dashboard?welcome=1&staging=1' : '/dashboard?welcome=1');
   };
+
+  const categoryLabel = industries.find((i) => i.id === categoryId)?.name;
+  const landingSlug = projectName.trim()
+    ? `${projectName.trim().toLowerCase().replace(/\s+/g, '-')}.rex.app`
+    : 'your-project.rex.app';
 
   return (
     <Layout>
@@ -289,8 +258,8 @@ export function GetStartedPage() {
           <p className="text-sm font-medium uppercase tracking-wider text-sky-400">Launch for $1</p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-white md:text-4xl">Get started</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Describe your idea, review Rex&apos;s recommended roadmap, shortlist studios and talent,
-            then go live on Rex. Complete KYC (${KYC_FEE}) for full founder controls.
+            Share your idea, review Rex&apos;s concept summary and roadmap, build launch assets in
+            the creative suite, then go live. Complete KYC (${KYC_FEE}) for full founder controls.
           </p>
 
           <div className="mt-8 flex gap-1.5 sm:gap-2">
@@ -358,7 +327,7 @@ export function GetStartedPage() {
                     </select>
                   </div>
 
-                  <ProjectOriginPicker value={projectOrigin} onChange={handleProjectOriginChange} />
+                  <ProjectOriginPicker value={projectOrigin} onChange={setProjectOrigin} />
 
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -406,7 +375,7 @@ export function GetStartedPage() {
                     }}
                     projectName={projectName}
                     description={description}
-                    categoryLabel={industries.find((i) => i.id === categoryId)?.name}
+                    categoryLabel={categoryLabel}
                   />
 
                   <CommunityLinksForm
@@ -416,39 +385,6 @@ export function GetStartedPage() {
                       setDiscordUrl(links.discordUrl ?? '');
                     }}
                   />
-                </div>
-              </div>
-
-              <div className="dex-card">
-                <div className="relative z-[1]">
-                  <h2 className="font-semibold text-white">
-                    {isExisting ? 'What should Rex help you grow?' : 'What do you need built?'}
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {isExisting
-                      ? 'Pick the areas Rex should focus on — marketing is pre-selected for existing products.'
-                      : 'Rex uses these to shape your recommended roadmap milestones.'}
-                  </p>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {projectDeliverables.map((d) => {
-                      const selected = deliverables.includes(d.id);
-                      return (
-                        <button
-                          key={d.id}
-                          type="button"
-                          onClick={() => toggleDeliverable(d.id)}
-                          className={`rounded-xl border p-3 text-left transition-colors ${
-                            selected
-                              ? 'border-sky-500/50 bg-sky-500/10'
-                              : 'border-white/10 bg-white/5 hover:border-white/20'
-                          }`}
-                        >
-                          <p className="text-sm font-medium text-white">{d.label}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{d.description}</p>
-                        </button>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
 
@@ -462,14 +398,23 @@ export function GetStartedPage() {
                 <button
                   type="button"
                   disabled={!canProceedIdea}
-                  onClick={() => setStep('roadmap')}
+                  onClick={() => setStep('summary')}
                   className="dex-btn disabled:opacity-40"
                 >
-                  See recommended roadmap
+                  Get Rex summary
                   <ArrowRight className="ml-2 inline h-4 w-4" />
                 </button>
               </div>
             </div>
+          )}
+
+          {step === 'summary' && (
+            <RexConceptSummaryStep
+              summary={conceptSummary}
+              categoryLabel={categoryLabel}
+              onBack={() => setStep('idea')}
+              onContinue={() => setStep('roadmap')}
+            />
           )}
 
           {step === 'roadmap' && (
@@ -480,8 +425,8 @@ export function GetStartedPage() {
                     <h2 className="font-semibold text-white">Marketing roadmap</h2>
                     <p className="mt-1 break-words text-sm text-muted-foreground">
                       Rex&apos;s recommended campaign for {projectName || 'your project'} in{' '}
-                      {industries.find((i) => i.id === categoryId)?.name ?? 'your category'} —
-                      community push first, then charting and scale as your wallet grows.
+                      {categoryLabel ?? 'your category'} — community push first, then charting and
+                      scale as your wallet grows.
                     </p>
                   </div>
 
@@ -508,18 +453,30 @@ export function GetStartedPage() {
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep('idea')}
+                  onClick={() => setStep('summary')}
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </button>
-                <button type="button" onClick={() => setStep('timing')} className="dex-btn">
-                  Choose launch timing
+                <button type="button" onClick={() => setStep('creative')} className="dex-btn">
+                  Open creative suite
                   <ArrowRight className="ml-2 inline h-4 w-4" />
                 </button>
               </div>
             </div>
+          )}
+
+          {step === 'creative' && (
+            <CreativeSuiteStep
+              projectName={projectName}
+              description={description}
+              categoryLabel={categoryLabel}
+              value={creativeSuite}
+              onChange={setCreativeSuite}
+              onBack={() => setStep('roadmap')}
+              onContinue={() => setStep('timing')}
+            />
           )}
 
           {step === 'timing' && (
@@ -528,48 +485,7 @@ export function GetStartedPage() {
               stagingLaunchDate={stagingLaunchDate}
               onLaunchModeChange={setLaunchMode}
               onStagingLaunchDateChange={setStagingLaunchDate}
-              onBack={() => setStep('roadmap')}
-              onContinue={() => setStep('studios')}
-            />
-          )}
-
-          {step === 'studios' && (
-            <LaunchStudiosStep
-              studioSearch={studioSearch}
-              showOwnSupplier={showOwnSupplier}
-              studioSkipped={studioSkipped}
-              shortlistedStudios={shortlistedStudios}
-              ownSupplierName={ownSupplierName}
-              ownSupplierEmail={ownSupplierEmail}
-              ownSupplierWebsite={ownSupplierWebsite}
-              onStudioSearch={setStudioSearch}
-              onToggleStudio={toggleStudio}
-              onSkipStudios={skipStudios}
-              onToggleOwnSupplierPanel={() => setShowOwnSupplier((v) => !v)}
-              onOwnSupplierName={(v) => {
-                setStudioSkipped(false);
-                setOwnSupplierName(v);
-              }}
-              onOwnSupplierEmail={(v) => {
-                setStudioSkipped(false);
-                setOwnSupplierEmail(v);
-              }}
-              onOwnSupplierWebsite={setOwnSupplierWebsite}
-              vendorChatKeys={vendorChatKeys}
-              onOpenChat={openVendorChat}
-              onBack={() => setStep('timing')}
-              onContinue={() => setStep('talent')}
-            />
-          )}
-
-          {step === 'talent' && (
-            <LaunchTalentStep
-              deliverables={deliverables}
-              talentAssignments={talentAssignments}
-              vendorChatKeys={vendorChatKeys}
-              onAssignTalent={assignTalent}
-              onOpenChat={openVendorChat}
-              onBack={() => setStep('studios')}
+              onBack={() => setStep('creative')}
               onContinue={() => setStep('launch')}
             />
           )}
@@ -603,30 +519,60 @@ export function GetStartedPage() {
                     </p>
                     <p className="mt-1 font-medium text-white">{projectName}</p>
                     <p className="text-xs text-muted-foreground">
-                      {industries.find((i) => i.id === categoryId)?.name}
+                      {categoryLabel}
                       {isExisting && ' · Existing project'}
                     </p>
                     <p className="mt-2 text-xs text-muted-foreground">{description}</p>
                     {isExisting && existingProductUrl.trim() && (
                       <p className="mt-2 text-xs text-sky-400">{existingProductUrl.trim()}</p>
                     )}
-                    {isExisting && projectAssets.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {projectAssets.slice(0, 4).map((asset, index) => (
-                          <img
-                            key={`${index}-${asset.slice(0, 16)}`}
-                            src={asset}
-                            alt=""
-                            className="h-10 w-10 rounded-md border border-white/10 object-cover"
-                          />
-                        ))}
-                        {projectAssets.length > 4 && (
-                          <span className="flex h-10 w-10 items-center justify-center rounded-md border border-white/10 bg-white/5 text-[10px] text-muted-foreground">
-                            +{projectAssets.length - 4}
-                          </span>
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
+                    <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                      Rex concept
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {conceptSummary.summary}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {deliverables.map((id) => (
+                        <span
+                          key={id}
+                          className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-foreground"
+                        >
+                          {projectDeliverables.find((d) => d.id === id)?.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
+                    <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                      Creative suite
+                    </p>
+                    {creativeSuite.landingPageUrl ? (
+                      <p className="mt-1 text-xs text-white">
+                        Landing page · {landingSlug}
+                        {creativeSuite.landingPageFunding === 'rex-coin' && (
+                          <span className="ml-1 text-emerald-400">· ready on launch</span>
                         )}
-                      </div>
+                      </p>
+                    ) : creativeSuite.landingPageFunding === 'marketing-wallet' ? (
+                      <p className="mt-1 text-xs text-amber-300/90">
+                        Landing page queued — generates when marketing wallet fills
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        No landing page yet — add from dashboard
+                      </p>
                     )}
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {creativeSuite.bannerAssets.length} banner
+                      {creativeSuite.bannerAssets.length === 1 ? '' : 's'} uploaded
+                      {creativeSuite.queuedBannerCount > 0 &&
+                        ` · ${creativeSuite.queuedBannerCount} queued`}
+                    </p>
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
@@ -645,22 +591,6 @@ export function GetStartedPage() {
 
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Deliverables
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {deliverables.map((id) => (
-                        <span
-                          key={id}
-                          className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-foreground"
-                        >
-                          {projectDeliverables.find((d) => d.id === id)?.label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                       Roadmap
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -670,84 +600,6 @@ export function GetStartedPage() {
                         : ' no share grants yet'}
                     </p>
                   </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {hasOwnSupplier && shortlistedStudios.length === 0
-                        ? 'Your supplier'
-                        : studioSkipped
-                          ? 'Development studio'
-                          : 'Shortlisted studios'}
-                    </p>
-                    {studioSkipped ? (
-                      <p className="mt-1 text-sm text-muted-foreground">Decide later</p>
-                    ) : hasOwnSupplier && shortlistedStudios.length === 0 ? (
-                      <p className="mt-1 text-sm text-white">
-                        {ownSupplierName}{' '}
-                        <span className="text-muted-foreground">(pending vetting)</span>
-                      </p>
-                    ) : (
-                      <ul className="mt-2 space-y-1">
-                        {shortlistedStudios.map((id) => {
-                          const studio = devStudios.find((s) => s.id === id)!;
-                          return (
-                            <li key={id} className="text-sm text-white">
-                              {studio.name}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      Talent assignments
-                    </p>
-                    {Object.entries(talentAssignments).filter(([, id]) => id).length === 0 ? (
-                      <p className="mt-1 text-sm text-muted-foreground">None — studio handles all</p>
-                    ) : (
-                      <ul className="mt-2 space-y-1">
-                        {Object.entries(talentAssignments)
-                          .filter(([, id]) => id)
-                          .map(([deliverableId, talentId]) => {
-                            const d = projectDeliverables.find((x) => x.id === deliverableId);
-                            const t = talentPool.find((x) => x.id === talentId);
-                            return (
-                              <li key={deliverableId} className="text-sm text-white">
-                                {d?.label}: <span className="text-sky-400">{t?.name}</span>
-                              </li>
-                            );
-                          })}
-                      </ul>
-                    )}
-                  </div>
-
-                  {vendorChats.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        Vendor conversations
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {vendorChats.length} active chat{vendorChats.length > 1 ? 's' : ''} — scope
-                        and pricing to finalise after launch
-                      </p>
-                      <ul className="mt-2 space-y-1">
-                        {vendorChats.map((chat) => (
-                          <li key={chat.key} className="flex items-center justify-between text-sm">
-                            <span className="text-white">{chat.name}</span>
-                            <button
-                              type="button"
-                              onClick={() => setChatTarget(chat)}
-                              className="text-xs font-medium text-sky-400 hover:text-sky-300"
-                            >
-                              Open chat
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
 
                   <div className="flex items-center justify-between rounded-xl border border-sky-500/25 bg-sky-500/5 p-4">
                     <div className="flex items-center gap-2">
@@ -783,7 +635,7 @@ export function GetStartedPage() {
               <div className="flex justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep('talent')}
+                  onClick={() => setStep('timing')}
                   className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="mr-1 h-4 w-4" />
@@ -799,10 +651,6 @@ export function GetStartedPage() {
           )}
         </div>
       </div>
-
-      {chatTarget && (
-        <VendorChatModal target={chatTarget} onClose={() => setChatTarget(null)} />
-      )}
     </Layout>
   );
 }

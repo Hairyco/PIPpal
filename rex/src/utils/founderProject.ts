@@ -38,6 +38,12 @@ export type FounderProject = {
   existingProductUrl?: string;
   /** Uploaded logos, screenshots, and brand assets */
   projectAssets?: string[];
+  /** Creative suite — landing page hosted via Vercel */
+  landingPageUrl?: string | null;
+  landingPageSource?: 'upload' | 'generated';
+  landingPageFunding?: 'marketing-wallet' | 'rex-coin';
+  bannerAssets?: string[];
+  queuedBannerCount?: number;
   telegramGroup: string;
   discordUrl?: string;
 };
