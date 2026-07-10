@@ -60,6 +60,10 @@ On a Mac or Linux machine:
 
 Windows is possible but Mac/Linux is easier for Solana development.
 
+**Automated CI (recommended):** A GitHub Actions workflow at `.github/workflows/rex-contracts.yml` runs `anchor build` and `anchor test` on every push to `rex-contracts/`. Push that file from GitHub Desktop or a token with the `workflow` scope — Cursor’s default git token cannot create workflow files.
+
+**This machine:** Rust and Solana CLI are installed. Anchor still needs either WSL (recommended on Windows) or Visual Studio Build Tools + Windows SDK for native builds.
+
 ### Step 2 — Run the proof test (developer)
 
 ```text

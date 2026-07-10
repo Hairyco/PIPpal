@@ -1,4 +1,5 @@
 import type { ActiveProject } from './categoryContent';
+import { TRADE_FEE_LABEL } from './chainConfig';
 
 export interface Milestone {
   id: string;
@@ -211,7 +212,7 @@ export function getProjectDetails(project: ActiveProject): ProjectDetails {
       balance: `$${walletBalance.toLocaleString()}`,
       threshold: `$${threshold.toLocaleString()}`,
       nextAdSpend: walletBalance >= threshold ? 'DexScreener banner — queued' : `$${(threshold - walletBalance).toLocaleString()} to threshold`,
-      taxRate: `${2 + (seed % 3)}% buy / ${2 + (seed % 2)}% sell`,
+      taxRate: TRADE_FEE_LABEL,
       lifetimeSpent: `$${Math.round(walletBalance * 0.4).toLocaleString()}`,
     },
     milestones,
