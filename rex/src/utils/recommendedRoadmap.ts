@@ -1,3 +1,4 @@
+import { TRADE_FEE_LABEL } from '../data/chainConfig';
 import { projectDeliverables, type DeliverableId } from '../data/devStudios';
 import {
   EXIT_MARKETPLACE_FEE_PERCENT,
@@ -30,7 +31,7 @@ function baseMilestones(
         step: 2,
         title: 'Marketing wallet fills',
         description:
-          'Buy/sell tax (2–10%) on curve trades flows into your marketing wallet. Rex runs sustained community and listing growth.',
+          `Buy/sell tax (${TRADE_FEE_LABEL}) on curve trades flows into your marketing wallet. Rex runs sustained community and listing growth.`,
         unlock: 'Year 1',
       },
       {
@@ -59,7 +60,7 @@ function baseMilestones(
       step: 2,
       title: 'Marketing wallet fills',
       description:
-        'Buy/sell tax (2–10%) on curve trades flows into your marketing wallet. Rex runs Telegram, DexScreener, and trending placements.',
+        `Buy/sell tax (${TRADE_FEE_LABEL}) on curve trades flows into your marketing wallet. Rex runs Telegram, DexScreener, and trending placements.`,
       unlock: 'Month 1–2',
     },
     {

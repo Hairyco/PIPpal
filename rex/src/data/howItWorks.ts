@@ -1,5 +1,6 @@
 import { Wallet, BadgeCheck, Map, Building2, Rocket, Gift, Hourglass } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { TRADE_FEE_LABEL } from './chainConfig';
 import { CLAIM_FEE, premiumFeatures } from './claimPricing';
 import { LAUNCH_NOTE, LAUNCH_TRADE_NOTE } from './launchTerms';
 
@@ -103,9 +104,9 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Automated marketing wallet',
     subtitle: 'Trades fund the wallet — milestones pay providers',
     description:
-      'Built-in buy/sell tax on every trade — typically 2–10% — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted suppliers for the services your project needs.',
+      `Built-in buy/sell tax on every trade — ${TRADE_FEE_LABEL} — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted suppliers for the services your project needs.`,
     bullets: [
-      '2–10% tax on buys and sells',
+      `${TRADE_FEE_LABEL} on buys and sells`,
       LAUNCH_TRADE_NOTE,
       'Milestone thresholds unlock payouts to approved suppliers automatically',
       'Investors can track wallet balance and upcoming supplier spend live',
