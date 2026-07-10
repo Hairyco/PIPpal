@@ -85,7 +85,8 @@ export function RexJourneySection() {
             Create. Scale. Exit.
           </h2>
           <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground md:text-base">
-            Rex is not just a launchpad — it is a full growth engine. Build on Rex, let trade tax
+            Rex is not just a launchpad — <strong className="font-semibold text-white">it is a full growth engine.</strong>{' '}
+            Build on Rex, let trade tax
             fund marketing and product, then sell the company to a buyer when the time is right.
           </p>
 
