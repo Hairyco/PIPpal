@@ -38,10 +38,10 @@ export default {
           'radial-gradient(ellipse at top left, #0c4a6e 0%, #000000 50%, #030711 100%)',
       },
       animation: {
-        'scroll-left': 'scroll-left 40s linear infinite',
-        'scroll-left-slow': 'scroll-left 52s linear infinite',
-        'scroll-right-slow': 'scroll-right 48s linear infinite',
-        'scroll-right': 'scroll-right 38s linear infinite',
+        'scroll-left': 'scroll-left 80s linear infinite',
+        'scroll-left-slow': 'scroll-left 95s linear infinite',
+        'scroll-right-slow': 'scroll-right 96s linear infinite',
+        'scroll-right': 'scroll-right 76s linear infinite',
       },
       keyframes: {
         'scroll-left': {
