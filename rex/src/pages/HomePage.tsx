@@ -194,15 +194,15 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-[#070912] text-[#f5f7fb]">
       <div className="border-b border-white/[0.06] bg-[#0a0c16]">
-        <div className="mx-auto flex h-9 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
-          <div className="mr-4 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
-            <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
+        <div className="mx-auto flex h-12 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
+          <div className="mr-4 flex shrink-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#c8ff3d]">
+            <Flame className="h-4 w-4 fill-[#c8ff3d]" />
             <span className="hidden sm:inline">Trending</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="flex min-w-max animate-scroll-left items-center gap-8 text-[11px] text-white/50">
+            <div className="flex min-w-max animate-scroll-left-ticker items-center gap-8 text-sm text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
-                <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
+                <span key={`${project.ticker}-${index}`} className="flex items-center gap-2.5">
                   <span className="text-white/25">#{project.rank}</span>
                   <span className="font-semibold text-white/85">${project.ticker}</span>
                   <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
@@ -300,6 +300,10 @@ export function HomePage() {
                 Telegram bot
               </button>
             </div>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-[#d5ff69]/90">
+              <Wallet className="h-3.5 w-3.5 shrink-0" />
+              Automated marketing wallets included
+            </p>
           </div>
         </section>
 
