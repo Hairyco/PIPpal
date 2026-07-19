@@ -82,11 +82,11 @@ const heroMemeLogos = [
 
 function HeroLogoCollage() {
   return (
-    <div className="relative h-[132px] w-[132px] sm:h-[148px] sm:w-[148px]" aria-hidden>
-      <div className="absolute inset-[22%] rounded-full border border-white/[0.07]" />
+    <div className="relative h-[96px] w-[96px] sm:h-[128px] sm:w-[128px]" aria-hidden>
+      <div className="absolute inset-[24%] rounded-full border border-white/[0.07]" />
       {heroMemeLogos.map((logo, index) => {
         const angle = (index / heroMemeLogos.length) * Math.PI * 2 - Math.PI / 2;
-        const radius = 46;
+        const radius = 38;
         const left = 50 + radius * Math.cos(angle);
         const top = 50 + radius * Math.sin(angle);
         const floatClass = index % 3 === 0 ? 'animate-float-a' : index % 3 === 1 ? 'animate-float-b' : 'animate-float-c';
@@ -95,7 +95,7 @@ function HeroLogoCollage() {
             key={logo.alt}
             src={logo.src}
             alt=""
-            className={`absolute h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-11 sm:w-11 ${floatClass}`}
+            className={`absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-9 sm:w-9 ${floatClass}`}
             style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.25}s` }}
             loading="lazy"
           />
@@ -278,23 +278,23 @@ export function HomePage() {
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.14),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.28),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-3 top-3 z-0 sm:right-6 sm:top-4 md:right-8">
+          <div className="pointer-events-none absolute right-2 top-2 z-0 sm:right-5 sm:top-3 md:right-7">
             <HeroLogoCollage />
           </div>
-          <div className="relative z-10 max-w-[calc(100%-7.25rem)] px-5 py-6 sm:max-w-[min(100%,28rem)] sm:px-7 sm:py-7 md:max-w-lg">
+          <div className="relative z-10 px-5 py-6 pr-[6.75rem] sm:max-w-[min(100%,28rem)] sm:px-7 sm:py-7 sm:pr-7 md:max-w-lg">
             <h1 className="font-serif text-3xl font-bold leading-[1.1] tracking-[-0.03em] sm:text-4xl">
               The home of community takeovers
             </h1>
-            <div className="mt-5 flex flex-nowrap items-center gap-2.5 sm:gap-3">
+            <div className="mt-5 flex flex-nowrap items-center gap-2 sm:gap-3">
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3.5 py-2.5 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-5 sm:text-sm"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2.5 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-5 sm:text-sm"
               >
                 Launch a CTO
               </button>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3.5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-5 sm:text-sm"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-5 sm:text-sm"
               >
                 <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Telegram bot
