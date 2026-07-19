@@ -304,6 +304,18 @@ export function HomePage() {
               <Wallet className="h-3.5 w-3.5 shrink-0" />
               Automated marketing wallets included
             </p>
+            <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-white/55">
+              {[
+                'No devs',
+                'No rugs',
+                'Community owned',
+              ].map((item) => (
+                <li key={item} className="inline-flex items-center gap-1">
+                  <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
