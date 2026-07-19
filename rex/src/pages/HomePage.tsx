@@ -72,6 +72,35 @@ const shortcuts = [
 ];
 const categories = ['All', 'Meme', 'AI', 'DeFi'];
 
+const heroMemeLogos = [
+  { src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', alt: 'DOGE', className: 'left-[42%] top-[4%] h-12 w-12 animate-float-a' },
+  { src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', alt: 'SHIB', className: 'right-[8%] top-[14%] h-11 w-11 animate-float-b' },
+  { src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', alt: 'PEPE', className: 'right-[0%] top-[42%] h-12 w-12 animate-float-c' },
+  { src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', alt: 'BONK', className: 'right-[10%] bottom-[10%] h-10 w-10 animate-float-a' },
+  { src: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', alt: 'WIF', className: 'left-[38%] bottom-[2%] h-11 w-11 animate-float-b' },
+  { src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png', alt: 'FLOKI', className: 'left-[12%] bottom-[18%] h-10 w-10 animate-float-c' },
+  { src: '/meme-logos/peponk.png', alt: 'PEPONK', className: 'left-[6%] top-[28%] h-11 w-11 animate-float-a' },
+  { src: '/meme-logos/tendies.png', alt: 'TENDIES', className: 'left-[28%] top-[12%] h-9 w-9 animate-float-b' },
+];
+
+function HeroLogoCollage() {
+  return (
+    <div className="relative mx-auto h-[168px] w-[168px] sm:h-[180px] sm:w-[180px]" aria-hidden>
+      <div className="absolute inset-[18%] rounded-full border border-white/[0.06]" />
+      <div className="absolute inset-[34%] rounded-full border border-[#c8ff3d]/15" />
+      {heroMemeLogos.map((logo) => (
+        <img
+          key={logo.alt}
+          src={logo.src}
+          alt=""
+          className={`absolute rounded-full object-cover shadow-[0_8px_24px_rgba(0,0,0,0.45)] ring-2 ring-white/10 ${logo.className}`}
+          loading="lazy"
+        />
+      ))}
+    </div>
+  );
+}
+
 const tableCols =
   'grid-cols-[28px_36px_minmax(180px,1.4fr)_72px_64px_84px_128px_88px_72px_72px_168px_72px]';
 
@@ -244,25 +273,30 @@ export function HomePage() {
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.18),transparent_42%),radial-gradient(circle_at_88%_55%,rgba(124,58,237,0.32),transparent_44%)]" />
-          <div className="relative flex min-h-[220px] flex-col justify-center gap-6 px-5 py-10 sm:min-h-[260px] sm:px-8 sm:py-12 md:min-h-[280px]">
-            <h1 className="max-w-3xl font-serif text-4xl font-bold leading-[1.05] tracking-[-0.04em] sm:text-5xl md:text-6xl">
-              The home of community takeovers
-            </h1>
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
-              >
-                Launch a CTO
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
-              >
-                <Bot className="h-4 w-4" />
-                Telegram bot
-              </button>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.14),transparent_42%),radial-gradient(circle_at_88%_55%,rgba(124,58,237,0.28),transparent_44%)]" />
+          <div className="relative grid items-center gap-5 px-5 py-6 sm:px-7 sm:py-7 md:grid-cols-[1fr_auto] md:gap-8">
+            <div className="min-w-0">
+              <h1 className="max-w-xl font-serif text-3xl font-bold leading-[1.1] tracking-[-0.03em] sm:text-4xl">
+                The home of community takeovers
+              </h1>
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
+                >
+                  Launch a CTO
+                </button>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
+                >
+                  <Bot className="h-4 w-4" />
+                  Telegram bot
+                </button>
+              </div>
+            </div>
+            <div className="mx-auto w-fit shrink-0 md:mx-0 md:pr-2">
+              <HeroLogoCollage />
             </div>
           </div>
         </section>
