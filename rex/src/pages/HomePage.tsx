@@ -243,42 +243,26 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        <section className="relative rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_12%_30%,rgba(200,255,61,0.13),transparent_35%),radial-gradient(circle_at_86%_50%,rgba(124,58,237,0.25),transparent_38%)]" />
-          <div className="relative grid min-h-[190px] gap-5 p-5 sm:p-7 md:grid-cols-[1fr_auto] md:items-center">
-            <div className="min-w-0 max-w-2xl">
-              <h1 className="font-serif text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
-                The home of community takeovers
-              </h1>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-white/48">
-                Track abandoned Solana projects, discover active communities, and follow relaunches from proposal to takeover.
-              </p>
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
-                >
-                  Launch a CTO
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
-                >
-                  <Bot className="h-4 w-4" />
-                  Telegram bot
-                </button>
-              </div>
-            </div>
-            <div className="hidden h-32 w-52 md:block">
-              <div className="relative h-full w-full">
-                <div className="absolute left-7 top-3 grid h-20 w-20 place-items-center rounded-3xl bg-violet-500/20 text-violet-300 ring-1 ring-violet-400/20">
-                  <Users className="h-9 w-9" />
-                </div>
-                <div className="absolute bottom-1 right-6 grid h-20 w-20 place-items-center rounded-3xl bg-[#c8ff3d]/15 text-[#c8ff3d] ring-1 ring-[#c8ff3d]/20">
-                  <RotateCcw className="h-9 w-9" />
-                </div>
-                <div className="absolute right-14 top-10 h-px w-16 rotate-12 bg-gradient-to-r from-violet-400 to-[#c8ff3d]" />
-              </div>
+        <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.18),transparent_42%),radial-gradient(circle_at_88%_55%,rgba(124,58,237,0.32),transparent_44%)]" />
+          <div className="relative flex min-h-[220px] flex-col justify-center gap-6 px-5 py-10 sm:min-h-[260px] sm:px-8 sm:py-12 md:min-h-[280px]">
+            <h1 className="max-w-3xl font-serif text-4xl font-bold leading-[1.05] tracking-[-0.04em] sm:text-5xl md:text-6xl">
+              The home of community takeovers
+            </h1>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
+              >
+                Launch a CTO
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
+              >
+                <Bot className="h-4 w-4" />
+                Telegram bot
+              </button>
             </div>
           </div>
         </section>
