@@ -41,6 +41,7 @@ type Project = {
   raidsJoined: string;
   score: number;
   colors: string;
+  logo: string;
   verified?: boolean;
   boost?: number;
   promoted?: boolean;
@@ -49,17 +50,17 @@ type Project = {
 type TableTab = 'overview' | 'wallet' | 'raids';
 
 const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', raidsActive: 3, raidsJoined: '1.2K', score: 92, colors: 'from-fuchsia-400 to-violet-700', verified: true, boost: 50, promoted: true },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', raidsActive: 2, raidsJoined: '840', score: 87, colors: 'from-lime-300 to-emerald-700', verified: true, boost: 36, promoted: true },
-  { rank: 3, name: 'Based Martian', ticker: 'BMARS', chain: 'BASE', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: '0x91…mars', marketingBalance: '12.4 ETH', raidsActive: 5, raidsJoined: '2.4K', score: 79, colors: 'from-sky-400 to-blue-700', verified: true, boost: 25 },
-  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'ETH', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: '0x33…call', marketingBalance: '3.1 ETH', raidsActive: 1, raidsJoined: '310', score: 73, colors: 'from-orange-300 to-red-700', boost: 13 },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', raidsActive: 4, raidsJoined: '1.8K', score: 68, colors: 'from-cyan-300 to-teal-700', verified: true, boost: 12 },
-  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', marketingWallet: '0xEx…exit', marketingBalance: '1.8 ETH', raidsActive: 0, raidsJoined: '96', score: 61, colors: 'from-amber-300 to-orange-700', boost: 11 },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', raidsActive: 2, raidsJoined: '420', score: 58, colors: 'from-indigo-300 to-purple-800', boost: 9 },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: '0xSu…rvvr', marketingBalance: '0.9 ETH', raidsActive: 1, raidsJoined: '188', score: 54, colors: 'from-rose-300 to-pink-700', boost: 7 },
+  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', raidsActive: 3, raidsJoined: '1.2K', score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=MoonPigeon&backgroundColor=c084fc', verified: true, boost: 50, promoted: true },
+  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', raidsActive: 2, raidsJoined: '840', score: 87, colors: 'from-lime-300 to-emerald-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=TerminalFrog&backgroundColor=84cc16', verified: true, boost: 36, promoted: true },
+  { rank: 3, name: 'Based Martian', ticker: 'BMARS', chain: 'BASE', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: '0x91…mars', marketingBalance: '12.4 ETH', raidsActive: 5, raidsJoined: '2.4K', score: 79, colors: 'from-sky-400 to-blue-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=BasedMartian&backgroundColor=38bdf8', verified: true, boost: 25 },
+  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'ETH', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: '0x33…call', marketingBalance: '3.1 ETH', raidsActive: 1, raidsJoined: '310', score: 73, colors: 'from-orange-300 to-red-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=DegenHotline&backgroundColor=fb923c', boost: 13 },
+  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', raidsActive: 4, raidsJoined: '1.8K', score: 68, colors: 'from-cyan-300 to-teal-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=PixelGoblin&backgroundColor=2dd4bf', verified: true, boost: 12 },
+  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', marketingWallet: '0xEx…exit', marketingBalance: '1.8 ETH', raidsActive: 0, raidsJoined: '96', score: 61, colors: 'from-amber-300 to-orange-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=ExitLiquidity&backgroundColor=fbbf24', boost: 11 },
+  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', raidsActive: 2, raidsJoined: '420', score: 58, colors: 'from-indigo-300 to-purple-800', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=NightShift&backgroundColor=818cf8', boost: 9 },
+  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: '0xSu…rvvr', marketingBalance: '0.9 ETH', raidsActive: 1, raidsJoined: '188', score: 54, colors: 'from-rose-300 to-pink-700', logo: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=RugSurvivor&backgroundColor=fb7185', boost: 7 },
 ];
 
-const tickerProjects = projects.slice(0, 6);
+const tickerProjects = projects;
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
   { label: 'Top All Time', icon: Trophy },
@@ -75,8 +76,13 @@ const tableTabs: { id: TableTab; label: string; icon: typeof Wallet }[] = [
 
 function ProjectMark({ project, size = 'h-10 w-10', rounded = 'rounded-full' }: { project: Project; size?: string; rounded?: string }) {
   return (
-    <div className={`${size} grid shrink-0 place-items-center ${rounded} bg-gradient-to-br ${project.colors} text-[11px] font-bold text-white ring-1 ring-white/10`}>
-      {project.ticker.slice(0, 2)}
+    <div className={`${size} shrink-0 overflow-hidden ${rounded} bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}>
+      <img
+        src={project.logo}
+        alt=""
+        className="h-full w-full object-cover"
+        loading="lazy"
+      />
     </div>
   );
 }
@@ -221,28 +227,34 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_30%,rgba(200,255,61,0.13),transparent_35%),radial-gradient(circle_at_86%_50%,rgba(124,58,237,0.25),transparent_38%)]" />
+        <section className="relative rounded-xl border border-white/[0.08] bg-[#111525]">
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_12%_30%,rgba(200,255,61,0.13),transparent_35%),radial-gradient(circle_at_86%_50%,rgba(124,58,237,0.25),transparent_38%)]" />
           <div className="relative grid min-h-[190px] gap-5 p-5 sm:p-7 md:grid-cols-[1fr_auto] md:items-center">
-            <div className="max-w-2xl">
+            <div className="min-w-0 max-w-2xl">
               <h1 className="font-serif text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                 Find the next community takeover.
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/48">
                 Track abandoned projects, discover active communities, and follow relaunches from proposal to takeover.
               </p>
-              <div className="mt-5 overflow-hidden">
-                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">
-                  Trending now
-                </p>
-                <div className="hide-scrollbar flex gap-3 overflow-x-auto pb-1">
+              <div className="mt-5">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">
+                    Trending now
+                  </p>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-0.5 text-[10px] font-semibold text-[#d5ff69]">
+                    <Wallet className="h-3 w-3" />
+                    Automated wallets included
+                  </span>
+                </div>
+                <div className="hide-scrollbar -mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
                   {tickerProjects.map((project) => (
                     <button
                       key={project.ticker}
                       type="button"
-                      className="flex shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
+                      className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
                     >
-                      <ProjectMark project={project} size="h-8 w-8" />
+                      <ProjectMark project={project} size="h-9 w-9" />
                       <span className="text-left">
                         <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
                         <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
