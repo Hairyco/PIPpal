@@ -102,7 +102,6 @@ const heroMemeLogos = [
 function HeroLogoCollage() {
   return (
     <div className="relative h-[96px] w-[96px] sm:h-[128px] sm:w-[128px]" aria-hidden>
-      <div className="absolute inset-[24%] rounded-full border border-white/[0.07]" />
       {heroMemeLogos.map((logo, index) => {
         const angle = (index / heroMemeLogos.length) * Math.PI * 2 - Math.PI / 2;
         const radius = 38;
@@ -110,14 +109,19 @@ function HeroLogoCollage() {
         const top = 50 + radius * Math.sin(angle);
         const floatClass = index % 3 === 0 ? 'animate-float-a' : index % 3 === 1 ? 'animate-float-b' : 'animate-float-c';
         return (
-          <img
+          <div
             key={logo.alt}
-            src={logo.src}
-            alt=""
-            className={`absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-9 sm:w-9 ${floatClass}`}
-            style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.25}s` }}
-            loading="lazy"
-          />
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${left}%`, top: `${top}%` }}
+          >
+            <img
+              src={logo.src}
+              alt=""
+              className={`h-7 w-7 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-9 sm:w-9 ${floatClass}`}
+              style={{ animationDelay: `${index * 0.2}s` }}
+              loading="eager"
+            />
+          </div>
         );
       })}
     </div>
@@ -358,7 +362,6 @@ export function HomePage() {
             <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-white/55">
               {[
                 'No rugs',
-                'Tracked milestones',
                 'Community owned',
               ].map((item) => (
                 <li key={item} className="inline-flex items-center gap-1">
