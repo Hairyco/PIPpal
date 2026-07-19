@@ -306,8 +306,8 @@ export function HomePage() {
             </p>
             <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-white/55">
               {[
-                'No devs',
                 'No rugs',
+                'Tracked milestones',
                 'Community owned',
               ].map((item) => (
                 <li key={item} className="inline-flex items-center gap-1">
