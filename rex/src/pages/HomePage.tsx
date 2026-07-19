@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  ArrowUpRight,
   BarChart3,
   Bell,
   Bot,
@@ -180,22 +179,33 @@ export function HomePage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_30%,rgba(200,255,61,0.13),transparent_35%),radial-gradient(circle_at_86%_50%,rgba(124,58,237,0.25),transparent_38%)]" />
           <div className="relative grid min-h-[190px] gap-5 p-5 sm:p-7 md:grid-cols-[1fr_auto] md:items-center">
             <div className="max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#c8ff3d] px-2 py-1 text-[9px] font-bold uppercase tracking-wider text-[#090b14]">
-                New platform
-              </span>
-              <h1 className="mt-4 font-serif text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+              <h1 className="font-serif text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                 Find the next community takeover.
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/48">
                 Track abandoned projects, discover active communities, and follow relaunches from proposal to takeover.
               </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-bold text-[#090b14]">
-                  Explore CTOs <ArrowUpRight className="h-4 w-4" />
-                </button>
-                <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs font-semibold">
-                  <Bot className="h-4 w-4 text-[#2aabee]" /> Open Telegram
-                </button>
+              <div className="mt-5 overflow-hidden">
+                <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">
+                  Trending now
+                </p>
+                <div className="hide-scrollbar flex gap-3 overflow-x-auto pb-1">
+                  {tickerProjects.map((project) => (
+                    <button
+                      key={project.ticker}
+                      type="button"
+                      className="flex shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
+                    >
+                      <ProjectMark project={project} size="h-8 w-8" />
+                      <span className="text-left">
+                        <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
+                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                          {project.change >= 0 ? '+' : ''}{project.change}%
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="hidden h-32 w-52 md:block">
