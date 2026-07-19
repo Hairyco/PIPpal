@@ -40,6 +40,8 @@ export default {
       animation: {
         'scroll-left': 'scroll-left 80s linear infinite',
         'scroll-left-slow': 'scroll-left 95s linear infinite',
+        'scroll-left-medium': 'scroll-left 42s linear infinite',
+        'scroll-left-fast': 'scroll-left 22s linear infinite',
         'scroll-right-slow': 'scroll-right 96s linear infinite',
         'scroll-right': 'scroll-right 76s linear infinite',
       },

@@ -50,17 +50,19 @@ type Project = {
 type TableTab = 'overview' | 'wallet' | 'raids';
 
 const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', raidsActive: 3, raidsJoined: '1.2K', score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50, promoted: true },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', raidsActive: 2, raidsJoined: '840', score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36, promoted: true },
+  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', raidsActive: 3, raidsJoined: '1.2K', score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
+  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', raidsActive: 2, raidsJoined: '840', score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
   { rank: 3, name: 'Based Martian', ticker: 'BMARS', chain: 'BASE', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: '0x91…mars', marketingBalance: '12.4 ETH', raidsActive: 5, raidsJoined: '2.4K', score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
   { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'ETH', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: '0x33…call', marketingBalance: '3.1 ETH', raidsActive: 1, raidsJoined: '310', score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', raidsActive: 4, raidsJoined: '1.8K', score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12 },
-  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', marketingWallet: '0xEx…exit', marketingBalance: '1.8 ETH', raidsActive: 0, raidsJoined: '96', score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11 },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', raidsActive: 2, raidsJoined: '420', score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9 },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: '0xSu…rvvr', marketingBalance: '0.9 ETH', raidsActive: 1, raidsJoined: '188', score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7 },
+  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', raidsActive: 4, raidsJoined: '1.8K', score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
+  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', marketingWallet: '0xEx…exit', marketingBalance: '1.8 ETH', raidsActive: 0, raidsJoined: '96', score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11, promoted: true },
+  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', raidsActive: 2, raidsJoined: '420', score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
+  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: '0xSu…rvvr', marketingBalance: '0.9 ETH', raidsActive: 1, raidsJoined: '188', score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
 ];
 
 const tickerProjects = projects;
+const trendingNowProjects = projects.filter((project) => !project.promoted);
+const promotedProjects = projects.filter((project) => project.promoted);
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
   { label: 'Top All Time', icon: Trophy },
@@ -247,22 +249,24 @@ export function HomePage() {
                     Automated wallets included
                   </span>
                 </div>
-                <div className="hide-scrollbar -mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
-                  {tickerProjects.map((project) => (
-                    <button
-                      key={project.ticker}
-                      type="button"
-                      className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
-                    >
-                      <ProjectMark project={project} size="h-9 w-9" />
-                      <span className="text-left">
-                        <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
-                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                <div className="layout-clip -mx-5 overflow-hidden px-5 pb-1">
+                  <div className="flex w-max max-w-none animate-scroll-left-medium gap-2.5 hover:[animation-play-state:paused] motion-reduce:animate-none">
+                    {[...trendingNowProjects, ...trendingNowProjects].map((project, index) => (
+                      <button
+                        key={`${project.ticker}-${index}`}
+                        type="button"
+                        className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
+                      >
+                        <ProjectMark project={project} size="h-9 w-9" />
+                        <span className="text-left">
+                          <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
+                          <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                          </span>
                         </span>
-                      </span>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -285,34 +289,38 @@ export function HomePage() {
             <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Promote</button>
           </div>
-          <div className="hide-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-5 sm:px-5">
-            {projects.filter((project) => project.promoted).map((project) => (
-              <article
-                key={project.ticker}
-                className="group w-[min(100%,300px)] shrink-0 rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20"
-              >
-                <div className="flex items-center gap-3">
-                  <ProjectMark project={project} size="h-12 w-12" />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-bold">${project.ticker}</p>
-                      <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+          <div className="layout-clip -mx-3 overflow-hidden px-3 pb-1 sm:-mx-5 sm:px-5">
+            <div className="flex w-max max-w-none animate-scroll-left-fast gap-3 hover:[animation-play-state:paused] motion-reduce:animate-none">
+              {[...promotedProjects, ...promotedProjects].map((project, index) => (
+                <article
+                  key={`${project.ticker}-${index}`}
+                  className="group w-[300px] shrink-0 rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20"
+                >
+                  <div className="flex items-center gap-3">
+                    <ProjectMark project={project} size="h-12 w-12" />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-bold">${project.ticker}</p>
+                        <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                      </div>
+                      <p className="truncate text-xs text-white/35">{project.name}</p>
                     </div>
-                    <p className="truncate text-xs text-white/35">{project.name}</p>
+                    <div className="ml-auto text-right">
+                      <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
+                      <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                        {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                      </p>
+                    </div>
+                    <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
                   </div>
-                  <div className="ml-auto text-right">
-                    <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
-                    <p className="text-xs font-semibold text-lime-300">+{project.change24h}%</p>
+                  <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
+                    <StageBadge stage={project.stage} />
+                    <span className="text-[10px] text-white/30">{project.chain}</span>
+                    <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
                   </div>
-                  <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
-                </div>
-                <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
-                  <StageBadge stage={project.stage} />
-                  <span className="text-[10px] text-white/30">{project.chain}</span>
-                  <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
