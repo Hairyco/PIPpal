@@ -439,16 +439,10 @@ export function HomePage() {
               {[...promotedProjects, ...promotedProjects].map((project, index) => (
                 <article
                   key={`${project.ticker}-${index}`}
-                  className="group relative w-[300px] shrink-0 rounded-xl p-[1px]"
+                  className="group relative w-[300px] shrink-0 overflow-hidden rounded-xl"
                 >
-                  <div
-                    className="absolute inset-0 animate-chase-spin rounded-xl opacity-90"
-                    style={{
-                      background:
-                        'conic-gradient(from 0deg, transparent 0deg, transparent 250deg, rgba(200,255,61,0.15) 270deg, #c8ff3d 300deg, #ffffff 325deg, transparent 360deg)',
-                    }}
-                  />
-                  <div className="relative rounded-[11px] border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
+                  <div className="promoted-chase" />
+                  <div className="relative rounded-xl border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
                     <div className="flex items-center gap-3">
                       <ProjectMark project={project} size="h-12 w-12" />
                       <div className="min-w-0">
