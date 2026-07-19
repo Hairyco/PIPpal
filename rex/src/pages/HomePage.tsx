@@ -249,24 +249,22 @@ export function HomePage() {
                     Automated wallets included
                   </span>
                 </div>
-                <div className="layout-clip -mx-5 overflow-hidden px-5 pb-1">
-                  <div className="flex w-max max-w-none animate-scroll-left-medium gap-2.5 hover:[animation-play-state:paused] motion-reduce:animate-none">
-                    {[...trendingNowProjects, ...trendingNowProjects].map((project, index) => (
-                      <button
-                        key={`${project.ticker}-${index}`}
-                        type="button"
-                        className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
-                      >
-                        <ProjectMark project={project} size="h-9 w-9" />
-                        <span className="text-left">
-                          <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
-                          <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                          </span>
+                <div className="hide-scrollbar -mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
+                  {trendingNowProjects.map((project) => (
+                    <button
+                      key={project.ticker}
+                      type="button"
+                      className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
+                    >
+                      <ProjectMark project={project} size="h-9 w-9" />
+                      <span className="text-left">
+                        <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
+                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                         </span>
-                      </button>
-                    ))}
-                  </div>
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
