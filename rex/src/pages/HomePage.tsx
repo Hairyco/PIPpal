@@ -95,36 +95,36 @@ const heroCoins = [
   {
     src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png',
     alt: 'SHIB',
-    rim: 'from-orange-300 via-orange-500 to-amber-700',
-    className: 'left-[6%] top-[2%] z-[1] h-[46px] w-[46px] sm:h-[54px] sm:w-[54px]',
+    rim: 'from-orange-300 via-orange-500 to-amber-800',
+    className: 'left-[4%] top-[4%] z-[1] h-[54px] w-[54px] rotate-[-8deg] sm:h-[62px] sm:w-[62px]',
     float: 'animate-float-a',
   },
   {
-    src: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
-    alt: 'SHIB-GOLD',
-    rim: 'from-rose-400 via-red-500 to-red-800',
-    className: 'right-[4%] top-[0%] z-[2] h-[48px] w-[48px] sm:h-[56px] sm:w-[56px]',
+    src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg',
+    alt: 'BONK',
+    rim: 'from-rose-300 via-red-500 to-red-900',
+    className: 'left-[46%] top-[0%] z-[2] h-[56px] w-[56px] rotate-[10deg] sm:h-[64px] sm:w-[64px]',
     float: 'animate-float-b',
   },
   {
     src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
     alt: 'DOGE',
-    rim: 'from-yellow-200 via-amber-400 to-yellow-700',
-    className: 'left-[28%] top-[28%] z-[3] h-[52px] w-[52px] sm:h-[60px] sm:w-[60px]',
+    rim: 'from-yellow-200 via-amber-400 to-yellow-800',
+    className: 'left-[26%] top-[26%] z-[3] h-[58px] w-[58px] rotate-[-2deg] sm:h-[66px] sm:w-[66px]',
     float: 'animate-float-c',
   },
   {
     src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg',
     alt: 'PEPE',
-    rim: 'from-emerald-300 via-green-500 to-emerald-800',
-    className: 'left-[2%] bottom-[2%] z-[4] h-[48px] w-[48px] sm:h-[56px] sm:w-[56px]',
+    rim: 'from-lime-300 via-emerald-500 to-green-900',
+    className: 'left-[2%] top-[46%] z-[5] h-[56px] w-[56px] rotate-[-12deg] sm:h-[64px] sm:w-[64px]',
     float: 'animate-float-b',
   },
   {
     src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png',
     alt: 'FLOKI',
-    rim: 'from-slate-100 via-zinc-300 to-zinc-500',
-    className: 'right-[2%] bottom-[0%] z-[5] h-[50px] w-[50px] sm:h-[58px] sm:w-[58px]',
+    rim: 'from-white via-zinc-300 to-zinc-600',
+    className: 'left-[44%] top-[48%] z-[4] h-[58px] w-[58px] rotate-[8deg] sm:h-[66px] sm:w-[66px]',
     float: 'animate-float-a',
   },
 ];
@@ -144,18 +144,9 @@ function FloatingCoin({
 }) {
   return (
     <div className={`absolute ${className} ${float}`} style={{ animationDelay: delay }}>
-      <div className="relative h-full w-full">
-        <div
-          className="absolute -inset-[2px] animate-chase-spin rounded-full"
-          style={{
-            background:
-              'conic-gradient(from 0deg, transparent 0deg, transparent 240deg, #c8ff3d 285deg, #fff 318deg, transparent 360deg)',
-          }}
-        />
-        <div className={`relative h-full w-full rounded-full bg-gradient-to-br ${rim} p-[3px] shadow-[0_10px_22px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]`}>
-          <div className="h-full w-full overflow-hidden rounded-full bg-[#12141f] p-[2px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]">
-            <img src={src} alt="" className="h-full w-full rounded-full object-cover" loading="eager" />
-          </div>
+      <div className={`h-full w-full rounded-full bg-gradient-to-br ${rim} p-[3px] shadow-[0_12px_24px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.4)]`}>
+        <div className="h-full w-full overflow-hidden rounded-full bg-[#12141f] p-[2px] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)]">
+          <img src={src} alt="" className="h-full w-full rounded-full object-cover" loading="eager" />
         </div>
       </div>
     </div>
@@ -164,7 +155,8 @@ function FloatingCoin({
 
 function HeroLogoCollage() {
   return (
-    <div className="relative h-[118px] w-[118px] sm:h-[140px] sm:w-[140px]" aria-hidden>
+    <div className="relative h-[132px] w-[130px] sm:h-[152px] sm:w-[150px]" aria-hidden>
+      <div className="pointer-events-none absolute inset-x-[10%] top-[18%] h-[70%] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.28),transparent_68%)] blur-md" />
       {heroCoins.map((coin, index) => (
         <FloatingCoin
           key={coin.alt}
@@ -172,9 +164,14 @@ function HeroLogoCollage() {
           rim={coin.rim}
           className={coin.className}
           float={coin.float}
-          delay={`${index * 0.15}s`}
+          delay={`${index * 0.12}s`}
         />
       ))}
+      <div className="pointer-events-none absolute -bottom-1 left-1/2 h-12 w-[115%] -translate-x-1/2">
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.22),rgba(200,255,61,0.08),transparent_70%)] blur-md" />
+        <div className="absolute inset-x-[8%] bottom-0 h-6 animate-pulse rounded-full bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.35),transparent_72%)] blur-lg" />
+        <div className="absolute inset-x-[18%] bottom-1 h-4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.18),transparent_75%)] blur-md" />
+      </div>
     </div>
   );
 }
@@ -186,47 +183,19 @@ function ProjectMark({
   project,
   size = 'h-10 w-10',
   rounded = 'rounded-full',
-  chase = false,
 }: {
   project: Project;
   size?: string;
   rounded?: string;
-  chase?: boolean;
 }) {
-  const mark = (
-    <div className={`${size} shrink-0 overflow-hidden ${rounded} bg-gradient-to-br ${project.colors}`}>
+  return (
+    <div className={`${size} shrink-0 overflow-hidden ${rounded} bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}>
       <img
         src={project.logo}
         alt=""
         className="h-full w-full object-cover"
         loading="lazy"
       />
-    </div>
-  );
-
-  if (!chase) {
-    return <div className={`${rounded} ring-1 ring-white/10`}>{mark}</div>;
-  }
-
-  return (
-    <div className={`relative shrink-0 ${size}`}>
-      <div
-        className="absolute -inset-[2px] animate-chase-spin rounded-full"
-        style={{
-          background:
-            'conic-gradient(from 0deg, transparent 0deg, transparent 250deg, #c8ff3d 290deg, #ffffff 320deg, transparent 360deg)',
-        }}
-      />
-      <div className={`relative ${size} overflow-hidden rounded-full bg-[#0d101b] p-[2px]`}>
-        <div className={`h-full w-full overflow-hidden rounded-full bg-gradient-to-br ${project.colors}`}>
-          <img
-            src={project.logo}
-            alt=""
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        </div>
-      </div>
     </div>
   );
 }
@@ -470,29 +439,38 @@ export function HomePage() {
               {[...promotedProjects, ...promotedProjects].map((project, index) => (
                 <article
                   key={`${project.ticker}-${index}`}
-                  className="group w-[300px] shrink-0 rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20"
+                  className="group relative w-[300px] shrink-0 rounded-xl p-[1px]"
                 >
-                  <div className="flex items-center gap-3">
-                    <ProjectMark project={project} size="h-12 w-12" chase />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-bold">${project.ticker}</p>
-                        <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                  <div
+                    className="absolute inset-0 animate-chase-spin rounded-xl opacity-90"
+                    style={{
+                      background:
+                        'conic-gradient(from 0deg, transparent 0deg, transparent 250deg, rgba(200,255,61,0.15) 270deg, #c8ff3d 300deg, #ffffff 325deg, transparent 360deg)',
+                    }}
+                  />
+                  <div className="relative rounded-[11px] border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
+                    <div className="flex items-center gap-3">
+                      <ProjectMark project={project} size="h-12 w-12" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="truncate text-sm font-bold">${project.ticker}</p>
+                          <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                        </div>
+                        <p className="truncate text-xs text-white/35">{project.name}</p>
                       </div>
-                      <p className="truncate text-xs text-white/35">{project.name}</p>
+                      <div className="ml-auto text-right">
+                        <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
+                        <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                        </p>
+                      </div>
+                      <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
                     </div>
-                    <div className="ml-auto text-right">
-                      <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
-                      <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                        {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                      </p>
+                    <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
+                      <StageBadge stage={project.stage} />
+                      <span className="text-[10px] text-white/30">{project.chain}</span>
+                      <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
                     </div>
-                    <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
-                  </div>
-                  <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
-                    <StageBadge stage={project.stage} />
-                    <span className="text-[10px] text-white/30">{project.chain}</span>
-                    <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
                   </div>
                 </article>
               ))}
