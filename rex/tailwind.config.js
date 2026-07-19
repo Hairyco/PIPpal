@@ -48,7 +48,7 @@ export default {
         'float-a': 'float-y 4.2s ease-in-out infinite',
         'float-b': 'float-y 5.1s ease-in-out infinite reverse',
         'float-c': 'float-y 3.6s ease-in-out infinite',
-        'chase-spin': 'chase-spin 2.4s linear infinite',
+        'chase-spin': 'chase-spin 8s linear infinite',
       },
       keyframes: {
         'scroll-left': {
