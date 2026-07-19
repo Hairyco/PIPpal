@@ -72,6 +72,25 @@ const shortcuts = [
 ];
 const categories = ['All', 'Meme', 'AI', 'DeFi'];
 
+const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
+  'Top Today': {
+    title: 'Top CTOs Today',
+    subtitle: 'Solana community takeovers ranked by activity over the last 24 hours.',
+  },
+  'Top All Time': {
+    title: 'Top CTOs All Time',
+    subtitle: 'Highest-voted Solana community takeovers across all time.',
+  },
+  'New CTOs': {
+    title: 'New CTOs',
+    subtitle: 'Recently forming Solana takeovers just entering the rankings.',
+  },
+  Trending: {
+    title: 'Trending CTOs',
+    subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
+  },
+};
+
 const heroMemeLogos = [
   { src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', alt: 'DOGE' },
   { src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', alt: 'SHIB' },
@@ -179,7 +198,7 @@ export function HomePage() {
 
   const visibleProjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
-    return projects.filter((project) => {
+    const filtered = projects.filter((project) => {
       const matchesQuery =
         !normalized ||
         project.name.toLowerCase().includes(normalized) ||
@@ -189,7 +208,39 @@ export function HomePage() {
         project.category === activeCategory;
       return matchesQuery && matchesCategory;
     });
-  }, [query, activeCategory]);
+
+    const sorted = [...filtered];
+    switch (activeShortcut) {
+      case 'Top All Time':
+        sorted.sort((a, b) => b.votes - a.votes || b.score - a.score);
+        break;
+      case 'New CTOs':
+        sorted.sort((a, b) => {
+          const stageWeight = (stage: Project['stage']) =>
+            ({ Forming: 0, Voting: 1, Relaunching: 2, Live: 3 })[stage];
+          return stageWeight(a.stage) - stageWeight(b.stage) || b.votesToday - a.votesToday;
+        });
+        break;
+      case 'Trending':
+        sorted.sort((a, b) => b.change24h - a.change24h || b.votesToday - a.votesToday);
+        break;
+      case 'Top Today':
+      default:
+        sorted.sort((a, b) => b.votesToday - a.votesToday || b.votes - a.votes);
+        break;
+    }
+
+    return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
+  }, [query, activeCategory, activeShortcut]);
+
+  const sectionCopy = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
+
+  const selectShortcut = (label: string) => {
+    setActiveShortcut(label);
+    requestAnimationFrame(() => {
+      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#070912] text-[#f5f7fb]">
@@ -260,7 +311,7 @@ export function HomePage() {
               <button
                 key={shortcut.label}
                 type="button"
-                onClick={() => setActiveShortcut(shortcut.label)}
+                onClick={() => selectShortcut(shortcut.label)}
                 className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
                   active
                     ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
@@ -360,10 +411,10 @@ export function HomePage() {
         </section>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
-          <section className="min-w-0">
+          <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <div className="mb-4">
-              <h2 className="font-serif text-2xl font-bold">Top CTOs Today</h2>
-              <p className="mt-1 text-xs text-white/35">Solana community takeovers ranked by activity over the last 24 hours.</p>
+              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
+              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
             </div>
 
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
