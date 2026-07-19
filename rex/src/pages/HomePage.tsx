@@ -260,10 +260,13 @@ export function HomePage() {
                 >
                   Launch a CTO
                 </button>
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2.5 py-1 text-[10px] font-semibold text-[#d5ff69]">
-                  <Wallet className="h-3 w-3" />
-                  Automated wallets included
-                </span>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
+                >
+                  <Bot className="h-4 w-4" />
+                  Open Telegram
+                </button>
               </div>
             </div>
             <div className="hidden h-32 w-52 md:block">
