@@ -78,25 +78,28 @@ const heroMemeLogos = [
   { src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', alt: 'PEPE' },
   { src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', alt: 'BONK' },
   { src: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', alt: 'WIF' },
+  { src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png', alt: 'FLOKI' },
+  { src: '/meme-logos/peponk.png', alt: 'PEPONK' },
+  { src: '/meme-logos/tendies.png', alt: 'TENDIES' },
 ];
 
 function HeroLogoCollage() {
   return (
-    <div className="relative h-[96px] w-[96px] sm:h-[128px] sm:w-[128px]" aria-hidden>
-      <div className="absolute inset-[24%] rounded-full border border-white/[0.07]" />
+    <div className="relative h-[118px] w-[118px] sm:h-[148px] sm:w-[148px]" aria-hidden>
       {heroMemeLogos.map((logo, index) => {
         const angle = (index / heroMemeLogos.length) * Math.PI * 2 - Math.PI / 2;
-        const radius = 38;
+        const radius = 34;
         const left = 50 + radius * Math.cos(angle);
         const top = 50 + radius * Math.sin(angle);
         const floatClass = index % 3 === 0 ? 'animate-float-a' : index % 3 === 1 ? 'animate-float-b' : 'animate-float-c';
+        const sizeClass = index % 2 === 0 ? 'h-10 w-10 sm:h-12 sm:w-12' : 'h-9 w-9 sm:h-11 sm:w-11';
         return (
           <img
             key={logo.alt}
             src={logo.src}
             alt=""
-            className={`absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-9 sm:w-9 ${floatClass}`}
-            style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.25}s` }}
+            className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.45)] ring-2 ring-[#111525] ${sizeClass} ${floatClass}`}
+            style={{ left: `${left}%`, top: `${top}%`, zIndex: index + 1, animationDelay: `${index * 0.2}s` }}
             loading="lazy"
           />
         );
