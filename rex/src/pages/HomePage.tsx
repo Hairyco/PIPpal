@@ -389,7 +389,7 @@ export function HomePage() {
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.24),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-2 top-2 z-0 sm:right-4 sm:top-3">
+          <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
             <HeroLogoCollage />
           </div>
           <div className="relative z-10 px-4 py-4 pr-[7.25rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
