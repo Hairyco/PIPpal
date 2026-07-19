@@ -62,7 +62,6 @@ const projects: Project[] = [
 ];
 
 const tickerProjects = projects;
-const trendingNowProjects = projects.filter((project) => !project.promoted);
 const promotedProjects = projects.filter((project) => project.promoted);
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
@@ -254,33 +253,17 @@ export function HomePage() {
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/48">
                 Track abandoned projects, discover active communities, and follow relaunches from proposal to takeover.
               </p>
-              <div className="mt-5">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/30">
-                    Trending now
-                  </p>
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-0.5 text-[10px] font-semibold text-[#d5ff69]">
-                    <Wallet className="h-3 w-3" />
-                    Automated wallets included
-                  </span>
-                </div>
-                <div className="hide-scrollbar -mx-5 flex gap-2.5 overflow-x-auto px-5 pb-1 [scrollbar-width:none]">
-                  {trendingNowProjects.map((project) => (
-                    <button
-                      key={project.ticker}
-                      type="button"
-                      className="flex min-w-[132px] shrink-0 items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.04] py-1.5 pl-1.5 pr-3.5 transition hover:border-[#c8ff3d]/25 hover:bg-white/[0.07]"
-                    >
-                      <ProjectMark project={project} size="h-9 w-9" />
-                      <span className="text-left">
-                        <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
-                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
+                >
+                  Launch a CTO
+                </button>
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2.5 py-1 text-[10px] font-semibold text-[#d5ff69]">
+                  <Wallet className="h-3 w-3" />
+                  Automated wallets included
+                </span>
               </div>
             </div>
             <div className="hidden h-32 w-52 md:block">
