@@ -232,7 +232,7 @@ export function HomePage() {
           <div className="relative grid min-h-[190px] gap-5 p-5 sm:p-7 md:grid-cols-[1fr_auto] md:items-center">
             <div className="min-w-0 max-w-2xl">
               <h1 className="font-serif text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
-                Find the next community takeover.
+                The home of community takeovers
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-6 text-white/48">
                 Track abandoned projects, discover active communities, and follow relaunches from proposal to takeover.
