@@ -91,50 +91,15 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
-const heroMemeLogos = [
-  { src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', alt: 'DOGE' },
-  { src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', alt: 'SHIB' },
-  { src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', alt: 'PEPE' },
-  { src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', alt: 'BONK' },
-  { src: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', alt: 'WIF' },
-];
-
 function HeroLogoCollage() {
-  const ring = heroMemeLogos.slice(0, 4);
-  const center = heroMemeLogos[4];
-
   return (
-    <div className="relative h-[88px] w-[88px] sm:h-[108px] sm:w-[108px]" aria-hidden>
-      {ring.map((logo, index) => {
-        const angle = (index / ring.length) * Math.PI * 2 - Math.PI / 2;
-        const radius = 32;
-        const left = 50 + radius * Math.cos(angle);
-        const top = 50 + radius * Math.sin(angle);
-        const floatClass = index % 2 === 0 ? 'animate-float-a' : 'animate-float-b';
-        return (
-          <div
-            key={logo.alt}
-            className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${left}%`, top: `${top}%`, zIndex: index + 1 }}
-          >
-            <img
-              src={logo.src}
-              alt=""
-              className={`h-8 w-8 rounded-full object-cover shadow-[0_6px_16px_rgba(0,0,0,0.45)] ring-2 ring-[#111525] sm:h-9 sm:w-9 ${floatClass}`}
-              style={{ animationDelay: `${index * 0.18}s` }}
-              loading="eager"
-            />
-          </div>
-        );
-      })}
-      <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-        <img
-          src={center.src}
-          alt=""
-          className="h-9 w-9 animate-float-c rounded-full object-cover shadow-[0_8px_18px_rgba(0,0,0,0.5)] ring-2 ring-[#111525] sm:h-10 sm:w-10"
-          loading="eager"
-        />
-      </div>
+    <div className="animate-float-a pointer-events-none" aria-hidden>
+      <img
+        src="/meme-logos/floating-coins.png"
+        alt=""
+        className="h-[112px] w-auto max-w-[140px] object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.55)] sm:h-[132px] sm:max-w-[168px]"
+        loading="eager"
+      />
     </div>
   );
 }
@@ -344,10 +309,10 @@ export function HomePage() {
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.24),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-3 top-3 z-0 sm:right-5 sm:top-4">
+          <div className="pointer-events-none absolute -right-1 top-1 z-0 sm:right-2 sm:top-2 md:right-4">
             <HeroLogoCollage />
           </div>
-          <div className="relative z-10 px-4 py-4 pr-[6.5rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
+          <div className="relative z-10 px-4 py-4 pr-[7.5rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
             <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
               The home of community takeovers
             </h1>
