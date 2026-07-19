@@ -265,7 +265,7 @@ export function HomePage() {
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
                 >
                   <Bot className="h-4 w-4" />
-                  Open Telegram
+                  Telegram bot
                 </button>
               </div>
             </div>
@@ -458,7 +458,7 @@ export function HomePage() {
               <h3 className="mt-2 font-serif text-lg font-bold">Found an abandoned project?</h3>
               <p className="mt-2 text-xs leading-5 text-white/40">Submit a Solana contract and community to start a takeover proposal.</p>
               <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2aabee] py-2.5 text-xs font-semibold">
-                <Bot className="h-4 w-4" /> Open Telegram
+                <Bot className="h-4 w-4" /> Telegram bot
               </button>
             </div>
           </aside>
