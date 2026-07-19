@@ -73,30 +73,34 @@ const shortcuts = [
 const categories = ['All', 'Meme', 'AI', 'DeFi'];
 
 const heroMemeLogos = [
-  { src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', alt: 'DOGE', className: 'left-[42%] top-[4%] h-12 w-12 animate-float-a' },
-  { src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', alt: 'SHIB', className: 'right-[8%] top-[14%] h-11 w-11 animate-float-b' },
-  { src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', alt: 'PEPE', className: 'right-[0%] top-[42%] h-12 w-12 animate-float-c' },
-  { src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', alt: 'BONK', className: 'right-[10%] bottom-[10%] h-10 w-10 animate-float-a' },
-  { src: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', alt: 'WIF', className: 'left-[38%] bottom-[2%] h-11 w-11 animate-float-b' },
-  { src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png', alt: 'FLOKI', className: 'left-[12%] bottom-[18%] h-10 w-10 animate-float-c' },
-  { src: '/meme-logos/peponk.png', alt: 'PEPONK', className: 'left-[6%] top-[28%] h-11 w-11 animate-float-a' },
-  { src: '/meme-logos/tendies.png', alt: 'TENDIES', className: 'left-[28%] top-[12%] h-9 w-9 animate-float-b' },
+  { src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', alt: 'DOGE' },
+  { src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png', alt: 'SHIB' },
+  { src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', alt: 'PEPE' },
+  { src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', alt: 'BONK' },
+  { src: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', alt: 'WIF' },
 ];
 
 function HeroLogoCollage() {
   return (
-    <div className="relative mx-auto h-[168px] w-[168px] sm:h-[180px] sm:w-[180px]" aria-hidden>
-      <div className="absolute inset-[18%] rounded-full border border-white/[0.06]" />
-      <div className="absolute inset-[34%] rounded-full border border-[#c8ff3d]/15" />
-      {heroMemeLogos.map((logo) => (
-        <img
-          key={logo.alt}
-          src={logo.src}
-          alt=""
-          className={`absolute rounded-full object-cover shadow-[0_8px_24px_rgba(0,0,0,0.45)] ring-2 ring-white/10 ${logo.className}`}
-          loading="lazy"
-        />
-      ))}
+    <div className="relative h-[132px] w-[132px] sm:h-[148px] sm:w-[148px]" aria-hidden>
+      <div className="absolute inset-[22%] rounded-full border border-white/[0.07]" />
+      {heroMemeLogos.map((logo, index) => {
+        const angle = (index / heroMemeLogos.length) * Math.PI * 2 - Math.PI / 2;
+        const radius = 46;
+        const left = 50 + radius * Math.cos(angle);
+        const top = 50 + radius * Math.sin(angle);
+        const floatClass = index % 3 === 0 ? 'animate-float-a' : index % 3 === 1 ? 'animate-float-b' : 'animate-float-c';
+        return (
+          <img
+            key={logo.alt}
+            src={logo.src}
+            alt=""
+            className={`absolute h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-11 sm:w-11 ${floatClass}`}
+            style={{ left: `${left}%`, top: `${top}%`, animationDelay: `${index * 0.25}s` }}
+            loading="lazy"
+          />
+        );
+      })}
     </div>
   );
 }
@@ -273,30 +277,28 @@ export function HomePage() {
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.14),transparent_42%),radial-gradient(circle_at_88%_55%,rgba(124,58,237,0.28),transparent_44%)]" />
-          <div className="relative grid items-center gap-5 px-5 py-6 sm:px-7 sm:py-7 md:grid-cols-[1fr_auto] md:gap-8">
-            <div className="min-w-0">
-              <h1 className="max-w-xl font-serif text-3xl font-bold leading-[1.1] tracking-[-0.03em] sm:text-4xl">
-                The home of community takeovers
-              </h1>
-              <div className="mt-5 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
-                >
-                  Launch a CTO
-                </button>
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
-                >
-                  <Bot className="h-4 w-4" />
-                  Telegram bot
-                </button>
-              </div>
-            </div>
-            <div className="mx-auto w-fit shrink-0 md:mx-0 md:pr-2">
-              <HeroLogoCollage />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.14),transparent_42%),radial-gradient(circle_at_88%_40%,rgba(124,58,237,0.28),transparent_44%)]" />
+          <div className="pointer-events-none absolute right-2 top-1/2 z-0 -translate-y-1/2 sm:right-5 md:right-8">
+            <HeroLogoCollage />
+          </div>
+          <div className="relative z-10 max-w-[calc(100%-7.5rem)] px-5 py-6 sm:max-w-[min(100%,28rem)] sm:px-7 sm:py-7 md:max-w-lg">
+            <h1 className="font-serif text-3xl font-bold leading-[1.1] tracking-[-0.03em] sm:text-4xl">
+              The home of community takeovers
+            </h1>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-lg bg-[#c8ff3d] px-5 py-2.5 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
+              >
+                Launch a CTO
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#2aabee] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3bb5f5]"
+              >
+                <Bot className="h-4 w-4" />
+                Telegram bot
+              </button>
             </div>
           </div>
         </section>
