@@ -91,15 +91,90 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
   },
 };
 
+const heroCoins = [
+  {
+    src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png',
+    alt: 'SHIB',
+    rim: 'from-orange-300 via-orange-500 to-amber-700',
+    className: 'left-[6%] top-[2%] z-[1] h-[46px] w-[46px] sm:h-[54px] sm:w-[54px]',
+    float: 'animate-float-a',
+  },
+  {
+    src: 'https://assets.coingecko.com/coins/images/11939/large/shiba.png',
+    alt: 'SHIB-GOLD',
+    rim: 'from-rose-400 via-red-500 to-red-800',
+    className: 'right-[4%] top-[0%] z-[2] h-[48px] w-[48px] sm:h-[56px] sm:w-[56px]',
+    float: 'animate-float-b',
+  },
+  {
+    src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+    alt: 'DOGE',
+    rim: 'from-yellow-200 via-amber-400 to-yellow-700',
+    className: 'left-[28%] top-[28%] z-[3] h-[52px] w-[52px] sm:h-[60px] sm:w-[60px]',
+    float: 'animate-float-c',
+  },
+  {
+    src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg',
+    alt: 'PEPE',
+    rim: 'from-emerald-300 via-green-500 to-emerald-800',
+    className: 'left-[2%] bottom-[2%] z-[4] h-[48px] w-[48px] sm:h-[56px] sm:w-[56px]',
+    float: 'animate-float-b',
+  },
+  {
+    src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png',
+    alt: 'FLOKI',
+    rim: 'from-slate-100 via-zinc-300 to-zinc-500',
+    className: 'right-[2%] bottom-[0%] z-[5] h-[50px] w-[50px] sm:h-[58px] sm:w-[58px]',
+    float: 'animate-float-a',
+  },
+];
+
+function FloatingCoin({
+  src,
+  rim,
+  className,
+  float,
+  delay,
+}: {
+  src: string;
+  rim: string;
+  className: string;
+  float: string;
+  delay: string;
+}) {
+  return (
+    <div className={`absolute ${className} ${float}`} style={{ animationDelay: delay }}>
+      <div className="relative h-full w-full">
+        <div
+          className="absolute -inset-[2px] animate-chase-spin rounded-full"
+          style={{
+            background:
+              'conic-gradient(from 0deg, transparent 0deg, transparent 240deg, #c8ff3d 285deg, #fff 318deg, transparent 360deg)',
+          }}
+        />
+        <div className={`relative h-full w-full rounded-full bg-gradient-to-br ${rim} p-[3px] shadow-[0_10px_22px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]`}>
+          <div className="h-full w-full overflow-hidden rounded-full bg-[#12141f] p-[2px] shadow-[inset_0_2px_4px_rgba(0,0,0,0.45)]">
+            <img src={src} alt="" className="h-full w-full rounded-full object-cover" loading="eager" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function HeroLogoCollage() {
   return (
-    <div className="animate-float-a pointer-events-none" aria-hidden>
-      <img
-        src="/meme-logos/floating-coins.png"
-        alt=""
-        className="h-[112px] w-auto max-w-[140px] object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.55)] sm:h-[132px] sm:max-w-[168px]"
-        loading="eager"
-      />
+    <div className="relative h-[118px] w-[118px] sm:h-[140px] sm:w-[140px]" aria-hidden>
+      {heroCoins.map((coin, index) => (
+        <FloatingCoin
+          key={coin.alt}
+          src={coin.src}
+          rim={coin.rim}
+          className={coin.className}
+          float={coin.float}
+          delay={`${index * 0.15}s`}
+        />
+      ))}
     </div>
   );
 }
@@ -345,10 +420,10 @@ export function HomePage() {
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.24),transparent_44%)]" />
-          <div className="pointer-events-none absolute -right-1 top-1 z-0 sm:right-2 sm:top-2 md:right-4">
+          <div className="pointer-events-none absolute right-2 top-2 z-0 sm:right-4 sm:top-3">
             <HeroLogoCollage />
           </div>
-          <div className="relative z-10 px-4 py-4 pr-[7.5rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
+          <div className="relative z-10 px-4 py-4 pr-[7.25rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
             <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
               The home of community takeovers
             </h1>
