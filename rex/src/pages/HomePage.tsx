@@ -227,9 +227,12 @@ export function HomePage() {
             <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Promote</button>
           </div>
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="hide-scrollbar -mx-3 flex gap-3 overflow-x-auto px-3 pb-1 sm:-mx-5 sm:px-5">
             {projects.filter((project) => project.promoted).map((project) => (
-              <article key={project.ticker} className="group rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20">
+              <article
+                key={project.ticker}
+                className="group w-[min(100%,300px)] shrink-0 rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20"
+              >
                 <div className="flex items-center gap-3">
                   <ProjectMark project={project} size="h-12 w-12" />
                   <div className="min-w-0">
