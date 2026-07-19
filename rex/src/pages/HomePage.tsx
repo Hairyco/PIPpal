@@ -4,7 +4,6 @@ import {
   Bell,
   Bot,
   ChevronDown,
-  ChevronRight,
   Clock3,
   Flame,
   Menu,
@@ -16,6 +15,8 @@ import {
   Star,
   Trophy,
   Users,
+  Wallet,
+  Zap,
 } from 'lucide-react';
 
 type Project = {
@@ -26,21 +27,36 @@ type Project = {
   stage: 'Forming' | 'Voting' | 'Relaunching' | 'Live';
   community: string;
   votes: number;
-  change: number;
+  votesToday: number;
+  price: string;
+  change1h: number | null;
+  change6h: number | null;
+  change24h: number;
+  marketCap: string;
+  fdv: string;
+  volume24h: string;
+  marketingWallet: string;
+  marketingBalance: string;
+  raidsActive: number;
+  raidsJoined: string;
   score: number;
   colors: string;
+  verified?: boolean;
+  boost?: number;
   promoted?: boolean;
 };
 
+type TableTab = 'overview' | 'wallet' | 'raids';
+
 const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 684, change: 34.8, score: 92, colors: 'from-fuchsia-400 to-violet-700', promoted: true },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 441, change: 22.4, score: 87, colors: 'from-lime-300 to-emerald-700', promoted: true },
-  { rank: 3, name: 'Based Martian', ticker: 'BMARS', chain: 'BASE', stage: 'Relaunching', community: '8.4K', votes: 319, change: 18.1, score: 79, colors: 'from-sky-400 to-blue-700' },
-  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'ETH', stage: 'Voting', community: '1.6K', votes: 208, change: 11.6, score: 73, colors: 'from-orange-300 to-red-700' },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 186, change: 8.3, score: 68, colors: 'from-cyan-300 to-teal-700' },
-  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 144, change: -4.2, score: 61, colors: 'from-amber-300 to-orange-700' },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 121, change: 6.8, score: 58, colors: 'from-indigo-300 to-purple-800' },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 97, change: 3.1, score: 54, colors: 'from-rose-300 to-pink-700' },
+  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', raidsActive: 3, raidsJoined: '1.2K', score: 92, colors: 'from-fuchsia-400 to-violet-700', verified: true, boost: 50, promoted: true },
+  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', raidsActive: 2, raidsJoined: '840', score: 87, colors: 'from-lime-300 to-emerald-700', verified: true, boost: 36, promoted: true },
+  { rank: 3, name: 'Based Martian', ticker: 'BMARS', chain: 'BASE', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: '0x91…mars', marketingBalance: '12.4 ETH', raidsActive: 5, raidsJoined: '2.4K', score: 79, colors: 'from-sky-400 to-blue-700', verified: true, boost: 25 },
+  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'ETH', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: '0x33…call', marketingBalance: '3.1 ETH', raidsActive: 1, raidsJoined: '310', score: 73, colors: 'from-orange-300 to-red-700', boost: 13 },
+  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', raidsActive: 4, raidsJoined: '1.8K', score: 68, colors: 'from-cyan-300 to-teal-700', verified: true, boost: 12 },
+  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'BASE', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', marketingWallet: '0xEx…exit', marketingBalance: '1.8 ETH', raidsActive: 0, raidsJoined: '96', score: 61, colors: 'from-amber-300 to-orange-700', boost: 11 },
+  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', raidsActive: 2, raidsJoined: '420', score: 58, colors: 'from-indigo-300 to-purple-800', boost: 9 },
+  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'ETH', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: '0xSu…rvvr', marketingBalance: '0.9 ETH', raidsActive: 1, raidsJoined: '188', score: 54, colors: 'from-rose-300 to-pink-700', boost: 7 },
 ];
 
 const tickerProjects = projects.slice(0, 6);
@@ -51,13 +67,41 @@ const shortcuts = [
   { label: 'Trending', icon: Flame },
 ];
 const categories = ['All', 'Solana', 'Ethereum', 'Base', 'Meme', 'AI', 'DeFi'];
+const tableTabs: { id: TableTab; label: string; icon: typeof Wallet }[] = [
+  { id: 'overview', label: 'Overview', icon: BarChart3 },
+  { id: 'wallet', label: 'Marketing wallet', icon: Wallet },
+  { id: 'raids', label: 'X raids', icon: Zap },
+];
 
-function ProjectMark({ project, size = 'h-10 w-10' }: { project: Project; size?: string }) {
+function ProjectMark({ project, size = 'h-10 w-10', rounded = 'rounded-full' }: { project: Project; size?: string; rounded?: string }) {
   return (
-    <div className={`${size} grid shrink-0 place-items-center rounded-full bg-gradient-to-br ${project.colors} text-[11px] font-bold text-white ring-2 ring-white/10`}>
+    <div className={`${size} grid shrink-0 place-items-center ${rounded} bg-gradient-to-br ${project.colors} text-[11px] font-bold text-white ring-1 ring-white/10`}>
       {project.ticker.slice(0, 2)}
     </div>
   );
+}
+
+function ChainPill({ chain }: { chain: Project['chain'] }) {
+  const label = chain === 'SOL' ? '◎' : chain === 'ETH' ? 'Ξ' : 'B';
+  return (
+    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.06] text-[10px] font-bold text-white/55" title={chain}>
+      {label}
+    </span>
+  );
+}
+
+function Pct({ value }: { value: number | null }) {
+  if (value === null) return <span className="text-white/25">--</span>;
+  return (
+    <span className={value >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+      {value.toFixed(2)}%
+    </span>
+  );
+}
+
+function formatVotes(n: number) {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 2).replace(/\.00$/, '')}K`;
+  return String(n);
 }
 
 function StageBadge({ stage }: { stage: Project['stage'] }) {
@@ -75,6 +119,8 @@ export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [tableTab, setTableTab] = useState<TableTab>('overview');
+  const [starred, setStarred] = useState<Record<string, boolean>>({});
 
   const visibleProjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -104,8 +150,8 @@ export function HomePage() {
                 <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
                   <span className="text-white/25">#{project.rank}</span>
                   <span className="font-semibold text-white/85">${project.ticker}</span>
-                  <span className={project.change >= 0 ? 'text-lime-300' : 'text-rose-400'}>
-                    {project.change >= 0 ? '+' : ''}{project.change}%
+                  <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
+                    {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                   </span>
                 </span>
               ))}
@@ -199,8 +245,8 @@ export function HomePage() {
                       <ProjectMark project={project} size="h-8 w-8" />
                       <span className="text-left">
                         <span className="block text-[11px] font-bold leading-none">${project.ticker}</span>
-                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                          {project.change >= 0 ? '+' : ''}{project.change}%
+                        <span className={`mt-1 block text-[10px] font-semibold leading-none ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                         </span>
                       </span>
                     </button>
@@ -244,7 +290,7 @@ export function HomePage() {
                   </div>
                   <div className="ml-auto text-right">
                     <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
-                    <p className="text-xs font-semibold text-lime-300">+{project.change}%</p>
+                    <p className="text-xs font-semibold text-lime-300">+{project.change24h}%</p>
                   </div>
                   <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
                 </div>
@@ -285,34 +331,199 @@ export function HomePage() {
               </button>
             </div>
 
+            <div className="mb-3 flex gap-1 rounded-xl border border-white/[0.07] bg-[#0d101b] p-1">
+              {tableTabs.map((tab) => {
+                const Icon = tab.icon;
+                const active = tableTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setTableTab(tab.id)}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-[11px] font-semibold transition ${
+                      active ? 'bg-white text-[#090b14]' : 'text-white/45 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{tab.label}</span>
+                    <span className="sm:hidden">{tab.id === 'overview' ? 'Overview' : tab.id === 'wallet' ? 'Wallet' : 'Raids'}</span>
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0d101b]">
-              <div className="hidden grid-cols-[42px_1.6fr_.7fr_.7fr_.7fr_30px] gap-3 border-b border-white/[0.06] px-4 py-3 text-[9px] font-semibold uppercase tracking-wider text-white/25 sm:grid">
-                <span>#</span><span>Project</span><span>Stage</span><span>Community</span><span>24h</span><span />
-              </div>
-              {visibleProjects.map((project) => (
-                <article
-                  key={project.ticker}
-                  className="group grid grid-cols-[34px_1fr_auto] items-center gap-3 border-b border-white/[0.055] px-3 py-3.5 last:border-0 hover:bg-white/[0.025] sm:grid-cols-[42px_1.6fr_.7fr_.7fr_.7fr_30px] sm:px-4"
-                >
-                  <span className={`text-center text-xs font-bold ${project.rank <= 3 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>{project.rank}</span>
-                  <div className="flex min-w-0 items-center gap-3">
-                    <ProjectMark project={project} />
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold">{project.name}</p>
-                        <span className="text-[9px] text-white/25">{project.chain}</span>
-                      </div>
-                      <p className="text-[11px] text-white/35">${project.ticker} · {project.votes} votes</p>
+              <div className="hide-scrollbar overflow-x-auto">
+                {tableTab === 'overview' && (
+                  <div className="min-w-[920px]">
+                    <div className="grid grid-cols-[28px_36px_minmax(180px,1.5fr)_72px_64px_64px_64px_84px_84px_88px_72px] items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30">
+                      <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
+                      <span className="text-center">#</span>
+                      <span>Asset</span>
+                      <span className="text-right">Price</span>
+                      <span className="text-right">%1h</span>
+                      <span className="text-right">%6h</span>
+                      <span className="text-right">%24h</span>
+                      <span className="text-right">Market Cap</span>
+                      <span className="text-right">FDV</span>
+                      <span className="text-right">24h Volume</span>
+                      <span className="text-right">Votes ▾</span>
                     </div>
+                    {visibleProjects.map((project) => (
+                      <article
+                        key={project.ticker}
+                        className="grid grid-cols-[28px_36px_minmax(180px,1.5fr)_72px_64px_64px_64px_84px_84px_88px_72px] items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      >
+                        <button
+                          type="button"
+                          aria-label={`Star ${project.ticker}`}
+                          onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                          className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                        >
+                          <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                        </button>
+                        <span className="text-center text-xs text-white/35">{project.rank}</span>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <p className="truncate text-sm font-bold">{project.ticker}</p>
+                              {project.verified && (
+                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
+                              )}
+                              {project.boost != null && (
+                                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-300">
+                                  <Zap className="h-3 w-3 fill-amber-300" />{project.boost}
+                                </span>
+                              )}
+                            </div>
+                            <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          </div>
+                          <ChainPill chain={project.chain} />
+                        </div>
+                        <span className="text-right text-xs font-medium">{project.price}</span>
+                        <span className="text-right text-xs"><Pct value={project.change1h} /></span>
+                        <span className="text-right text-xs"><Pct value={project.change6h} /></span>
+                        <span className="text-right text-xs"><Pct value={project.change24h} /></span>
+                        <span className="text-right text-xs text-white/80">{project.marketCap}</span>
+                        <span className="text-right text-xs text-white/80">{project.fdv}</span>
+                        <span className="text-right text-xs text-white/80">{project.volume24h}</span>
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
+                          <p className="text-[10px] text-white/35">{project.votesToday}</p>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                  <div className="hidden sm:block"><StageBadge stage={project.stage} /></div>
-                  <div className="hidden items-center gap-1.5 text-xs text-white/50 sm:flex"><Users className="h-3.5 w-3.5 text-white/20" />{project.community}</div>
-                  <div className={`text-right text-xs font-semibold ${project.change >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                    {project.change >= 0 ? '+' : ''}{project.change}%
+                )}
+
+                {tableTab === 'wallet' && (
+                  <div className="min-w-[760px]">
+                    <div className="grid grid-cols-[28px_36px_minmax(180px,1.4fr)_90px_120px_100px_110px_90px] items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30">
+                      <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
+                      <span className="text-center">#</span>
+                      <span>Asset</span>
+                      <span>Stage</span>
+                      <span>Marketing wallet</span>
+                      <span className="text-right">Balance</span>
+                      <span className="text-right">Community</span>
+                      <span className="text-right">Votes ▾</span>
+                    </div>
+                    {visibleProjects.map((project) => (
+                      <article
+                        key={project.ticker}
+                        className="grid grid-cols-[28px_36px_minmax(180px,1.4fr)_90px_120px_100px_110px_90px] items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      >
+                        <button
+                          type="button"
+                          aria-label={`Star ${project.ticker}`}
+                          onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                          className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                        >
+                          <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                        </button>
+                        <span className="text-center text-xs text-white/35">{project.rank}</span>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-bold">{project.ticker}</p>
+                            <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          </div>
+                          <ChainPill chain={project.chain} />
+                        </div>
+                        <StageBadge stage={project.stage} />
+                        <button type="button" className="inline-flex items-center gap-1.5 truncate rounded-md bg-white/[0.04] px-2 py-1 text-left text-[11px] font-medium text-[#c8ff3d] hover:bg-white/[0.07]">
+                          <Wallet className="h-3 w-3 shrink-0" />
+                          {project.marketingWallet}
+                        </button>
+                        <span className="text-right text-xs font-semibold text-white/85">{project.marketingBalance}</span>
+                        <span className="flex items-center justify-end gap-1 text-xs text-white/55"><Users className="h-3 w-3 text-white/25" />{project.community}</span>
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
+                          <p className="text-[10px] text-white/35">{project.votesToday}</p>
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                  <ChevronRight className="hidden h-4 w-4 text-white/15 transition group-hover:translate-x-0.5 group-hover:text-[#c8ff3d] sm:block" />
-                </article>
-              ))}
+                )}
+
+                {tableTab === 'raids' && (
+                  <div className="min-w-[720px]">
+                    <div className="grid grid-cols-[28px_36px_minmax(180px,1.4fr)_90px_90px_100px_100px_90px] items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30">
+                      <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
+                      <span className="text-center">#</span>
+                      <span>Asset</span>
+                      <span className="text-right">Active raids</span>
+                      <span className="text-right">Joined</span>
+                      <span className="text-right">%24h</span>
+                      <span className="text-right">Boost</span>
+                      <span className="text-right">Votes ▾</span>
+                    </div>
+                    {visibleProjects.map((project) => (
+                      <article
+                        key={project.ticker}
+                        className="grid grid-cols-[28px_36px_minmax(180px,1.4fr)_90px_90px_100px_100px_90px] items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      >
+                        <button
+                          type="button"
+                          aria-label={`Star ${project.ticker}`}
+                          onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                          className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                        >
+                          <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                        </button>
+                        <span className="text-center text-xs text-white/35">{project.rank}</span>
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <p className="truncate text-sm font-bold">{project.ticker}</p>
+                              {project.verified && (
+                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
+                              )}
+                            </div>
+                            <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          </div>
+                          <ChainPill chain={project.chain} />
+                        </div>
+                        <span className={`text-right text-xs font-semibold ${project.raidsActive > 0 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>
+                          {project.raidsActive > 0 ? project.raidsActive : '--'}
+                        </span>
+                        <span className="text-right text-xs text-white/70">{project.raidsJoined}</span>
+                        <span className="text-right text-xs"><Pct value={project.change24h} /></span>
+                        <span className="inline-flex items-center justify-end gap-1 text-xs font-semibold text-amber-300">
+                          <Zap className="h-3 w-3 fill-amber-300" />{project.boost ?? 0}
+                        </span>
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
+                          <p className="text-[10px] text-white/35">{project.votesToday}</p>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {visibleProjects.length === 0 && (
                 <div className="px-4 py-12 text-center text-sm text-white/35">No projects found.</div>
               )}
