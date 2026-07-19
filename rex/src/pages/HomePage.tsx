@@ -107,15 +107,51 @@ function HeroLogoCollage() {
 const tableCols =
   'grid-cols-[28px_36px_minmax(180px,1.4fr)_72px_64px_84px_128px_88px_72px_72px_168px_72px]';
 
-function ProjectMark({ project, size = 'h-10 w-10', rounded = 'rounded-full' }: { project: Project; size?: string; rounded?: string }) {
-  return (
-    <div className={`${size} shrink-0 overflow-hidden ${rounded} bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}>
+function ProjectMark({
+  project,
+  size = 'h-10 w-10',
+  rounded = 'rounded-full',
+  chase = false,
+}: {
+  project: Project;
+  size?: string;
+  rounded?: string;
+  chase?: boolean;
+}) {
+  const mark = (
+    <div className={`${size} shrink-0 overflow-hidden ${rounded} bg-gradient-to-br ${project.colors}`}>
       <img
         src={project.logo}
         alt=""
         className="h-full w-full object-cover"
         loading="lazy"
       />
+    </div>
+  );
+
+  if (!chase) {
+    return <div className={`${rounded} ring-1 ring-white/10`}>{mark}</div>;
+  }
+
+  return (
+    <div className={`relative shrink-0 ${size}`}>
+      <div
+        className="absolute -inset-[2px] animate-chase-spin rounded-full"
+        style={{
+          background:
+            'conic-gradient(from 0deg, transparent 0deg, transparent 250deg, #c8ff3d 290deg, #ffffff 320deg, transparent 360deg)',
+        }}
+      />
+      <div className={`relative ${size} overflow-hidden rounded-full bg-[#0d101b] p-[2px]`}>
+        <div className={`h-full w-full overflow-hidden rounded-full bg-gradient-to-br ${project.colors}`}>
+          <img
+            src={project.logo}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -362,7 +398,7 @@ export function HomePage() {
                   className="group w-[300px] shrink-0 rounded-xl border border-white/[0.08] bg-[#0d101b] p-4 transition hover:border-[#c8ff3d]/20"
                 >
                   <div className="flex items-center gap-3">
-                    <ProjectMark project={project} size="h-12 w-12" />
+                    <ProjectMark project={project} size="h-12 w-12" chase />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-sm font-bold">${project.ticker}</p>

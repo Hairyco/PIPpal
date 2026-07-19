@@ -48,6 +48,7 @@ export default {
         'float-a': 'float-y 4.2s ease-in-out infinite',
         'float-b': 'float-y 5.1s ease-in-out infinite reverse',
         'float-c': 'float-y 3.6s ease-in-out infinite',
+        'chase-spin': 'chase-spin 2.4s linear infinite',
       },
       keyframes: {
         'scroll-left': {
@@ -61,6 +62,10 @@ export default {
         'float-y': {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-8px)' },
+        },
+        'chase-spin': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
       },
     },
