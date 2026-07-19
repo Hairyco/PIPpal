@@ -100,30 +100,41 @@ const heroMemeLogos = [
 ];
 
 function HeroLogoCollage() {
+  const ring = heroMemeLogos.slice(0, 4);
+  const center = heroMemeLogos[4];
+
   return (
-    <div className="relative h-[96px] w-[96px] sm:h-[128px] sm:w-[128px]" aria-hidden>
-      {heroMemeLogos.map((logo, index) => {
-        const angle = (index / heroMemeLogos.length) * Math.PI * 2 - Math.PI / 2;
-        const radius = 38;
+    <div className="relative h-[88px] w-[88px] sm:h-[108px] sm:w-[108px]" aria-hidden>
+      {ring.map((logo, index) => {
+        const angle = (index / ring.length) * Math.PI * 2 - Math.PI / 2;
+        const radius = 32;
         const left = 50 + radius * Math.cos(angle);
         const top = 50 + radius * Math.sin(angle);
-        const floatClass = index % 3 === 0 ? 'animate-float-a' : index % 3 === 1 ? 'animate-float-b' : 'animate-float-c';
+        const floatClass = index % 2 === 0 ? 'animate-float-a' : 'animate-float-b';
         return (
           <div
             key={logo.alt}
             className="absolute -translate-x-1/2 -translate-y-1/2"
-            style={{ left: `${left}%`, top: `${top}%` }}
+            style={{ left: `${left}%`, top: `${top}%`, zIndex: index + 1 }}
           >
             <img
               src={logo.src}
               alt=""
-              className={`h-7 w-7 rounded-full object-cover shadow-[0_6px_18px_rgba(0,0,0,0.4)] ring-2 ring-white/15 sm:h-9 sm:w-9 ${floatClass}`}
-              style={{ animationDelay: `${index * 0.2}s` }}
+              className={`h-8 w-8 rounded-full object-cover shadow-[0_6px_16px_rgba(0,0,0,0.45)] ring-2 ring-[#111525] sm:h-9 sm:w-9 ${floatClass}`}
+              style={{ animationDelay: `${index * 0.18}s` }}
               loading="eager"
             />
           </div>
         );
       })}
+      <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+        <img
+          src={center.src}
+          alt=""
+          className="h-9 w-9 animate-float-c rounded-full object-cover shadow-[0_8px_18px_rgba(0,0,0,0.5)] ring-2 ring-[#111525] sm:h-10 sm:w-10"
+          loading="eager"
+        />
+      </div>
     </div>
   );
 }
@@ -249,15 +260,15 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-[#070912] text-[#f5f7fb]">
       <div className="border-b border-white/[0.06] bg-[#0a0c16]">
-        <div className="mx-auto flex h-12 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
-          <div className="mr-4 flex shrink-0 items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-[#c8ff3d]">
-            <Flame className="h-4 w-4 fill-[#c8ff3d]" />
+        <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
+          <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
+            <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
             <span className="hidden sm:inline">Trending</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="flex min-w-max animate-scroll-left-ticker items-center gap-8 text-sm text-white/50">
+            <div className="flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
-                <span key={`${project.ticker}-${index}`} className="flex items-center gap-2.5">
+                <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
                   <span className="text-white/25">#{project.rank}</span>
                   <span className="font-semibold text-white/85">${project.ticker}</span>
                   <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
@@ -332,34 +343,34 @@ export function HomePage() {
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.14),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.28),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-4 top-2 z-0 sm:right-6 sm:top-3 md:right-8">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.24),transparent_44%)]" />
+          <div className="pointer-events-none absolute right-3 top-3 z-0 sm:right-5 sm:top-4">
             <HeroLogoCollage />
           </div>
-          <div className="relative z-10 px-5 py-6 pr-[6.75rem] sm:max-w-[min(100%,28rem)] sm:px-7 sm:py-7 sm:pr-7 md:max-w-lg">
-            <h1 className="font-serif text-3xl font-bold leading-[1.1] tracking-[-0.03em] sm:text-4xl">
+          <div className="relative z-10 px-4 py-4 pr-[6.5rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
+            <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
               The home of community takeovers
             </h1>
-            <div className="mt-5 flex flex-nowrap items-center gap-2 sm:gap-3">
+            <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2.5 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-5 sm:text-sm"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 Launch a CTO
               </button>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-5 sm:text-sm"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Telegram bot
               </button>
             </div>
-            <p className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-medium text-[#d5ff69]/90">
+            <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
               <Wallet className="h-3.5 w-3.5 shrink-0" />
               Automated marketing wallets included
             </p>
-            <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px] font-medium text-white/55">
+            <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
               {[
                 'No rugs',
                 'Community owned',
