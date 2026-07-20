@@ -786,7 +786,7 @@ export function HomePage() {
         <section className="mt-8">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <h2 className="font-serif text-lg font-bold">Communities</h2>
+              <h2 className="font-serif text-lg font-bold">Launch communities</h2>
               <p className="mt-0.5 text-[11px] text-white/35">Telegram groups for Solana CTOs</p>
             </div>
             <button
