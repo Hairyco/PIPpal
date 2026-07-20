@@ -673,6 +673,7 @@ export function HomePage() {
   return (
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
       <div className="relative z-[1]">
+      <div className="sticky top-0 z-40 bg-black">
       <div className="border-b border-white/[0.06] bg-black">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
           <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
