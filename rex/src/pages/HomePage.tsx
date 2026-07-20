@@ -516,8 +516,8 @@ function forceNightTheme(): ThemeMode {
     document.documentElement.classList.add('theme-dark');
     document.documentElement.classList.remove('theme-light');
     document.documentElement.style.colorScheme = 'dark';
-    document.documentElement.style.backgroundColor = '#070912';
-    document.body.style.backgroundColor = '#070912';
+    document.documentElement.style.backgroundColor = '#000000';
+    document.body.style.backgroundColor = '#000000';
   }
   return 'dark';
 }
@@ -823,9 +823,8 @@ export function HomePage() {
 
   return (
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
-      <div className="page-gloss" aria-hidden />
       <div className="relative z-[1]">
-      <div className="border-b border-white/[0.06] bg-[#0a0c16]/90 backdrop-blur-md">
+      <div className="border-b border-white/[0.06] bg-black">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
           <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
             <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
@@ -855,7 +854,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className="border-b border-white/[0.07] bg-[#090b14]/88 backdrop-blur-md">
+      <header className="border-b border-white/[0.07] bg-black">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
@@ -920,7 +919,7 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className="border-b border-white/[0.06] bg-[#090b14]/88 backdrop-blur-md">
+      <nav className="border-b border-white/[0.06] bg-black">
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
           {shortcuts.map((shortcut) => {
             const Icon = shortcut.icon;
@@ -1443,7 +1442,7 @@ export function HomePage() {
         </div>
       </main>
 
-      <footer className="mt-10 border-t border-white/[0.06] bg-[#070912]/70 backdrop-blur-sm">
+      <footer className="mt-10 border-t border-white/[0.06] bg-black">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
