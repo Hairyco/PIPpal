@@ -401,6 +401,8 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
+  'grid-cols-[28px_36px_180px_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
+const tableColsPrelaunch =
   'grid-cols-[28px_36px_180px_68px_64px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
 const raidsTableCols =
   'grid-cols-[28px_36px_minmax(150px,180px)_minmax(180px,1.2fr)_72px_64px_64px_64px_72px_72px_68px]';
@@ -751,6 +753,9 @@ export function HomePage() {
   const castVote = (ticker: string) => {
     setVoted((prev) => (prev[ticker] ? prev : { ...prev, [ticker]: true }));
   };
+
+  const isPrelaunch = activeShortcut === 'Prelaunch';
+  const rankingTableCols = isPrelaunch ? tableColsPrelaunch : tableCols;
 
   const pickSearchResult = (project: Project) => {
     setQuery(project.ticker);
