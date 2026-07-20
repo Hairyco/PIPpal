@@ -366,6 +366,117 @@ function readStoredTheme(): ThemeMode {
   return 'light';
 }
 
+function PromotedRail({ projects }: { projects: Project[] }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
+  const resumeTimerRef = useRef<number | null>(null);
+  const loop = [...projects, ...projects];
+
+  const pause = () => {
+    pausedRef.current = true;
+    if (resumeTimerRef.current != null) {
+      window.clearTimeout(resumeTimerRef.current);
+      resumeTimerRef.current = null;
+    }
+  };
+
+  const scheduleResume = () => {
+    if (resumeTimerRef.current != null) window.clearTimeout(resumeTimerRef.current);
+    resumeTimerRef.current = window.setTimeout(() => {
+      pausedRef.current = false;
+      resumeTimerRef.current = null;
+    }, 2800);
+  };
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || projects.length === 0) return;
+
+    let frame = 0;
+    const tick = () => {
+      if (!pausedRef.current) {
+        el.scrollLeft += 0.55;
+        const half = el.scrollWidth / 2;
+        if (half > 0 && el.scrollLeft >= half) {
+          el.scrollLeft -= half;
+        }
+      }
+      frame = window.requestAnimationFrame(tick);
+    };
+    frame = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (resumeTimerRef.current != null) window.clearTimeout(resumeTimerRef.current);
+    };
+  }, [projects.length]);
+
+  return (
+    <div
+      ref={scrollerRef}
+      className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 pb-1 touch-pan-x sm:-mx-5 sm:px-5"
+      onPointerDown={pause}
+      onPointerUp={scheduleResume}
+      onPointerCancel={scheduleResume}
+      onTouchStart={pause}
+      onTouchEnd={scheduleResume}
+      onWheel={() => {
+        pause();
+        scheduleResume();
+      }}
+      onMouseEnter={pause}
+      onMouseLeave={scheduleResume}
+    >
+      <div className="flex w-max max-w-none items-stretch gap-0">
+        {loop.map((project, index) => (
+          <div key={`${project.ticker}-${index}`} className="flex items-stretch">
+            {index > 0 ? <ElectricBridge /> : null}
+            <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
+              <div className="promoted-chase" />
+              <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
+                <div className="flex items-center gap-2.5">
+                  <ProjectMark project={project} size="h-10 w-10" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-bold">${project.ticker}</p>
+                      <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                    </div>
+                    <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
+                    <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                      {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                    </p>
+                  </div>
+                  <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
+                </div>
+                <div className="mt-3 flex items-center gap-2 border-t border-white/[0.05] pt-2.5">
+                  <StageBadge stage={project.stage} />
+                  <span className="text-[10px] text-white/30">{project.chain}</span>
+                  <span
+                    className="ml-auto flex shrink-0 items-center gap-1 text-[10px] font-medium text-white/45"
+                    title={`${project.community} Telegram members`}
+                  >
+                    <img
+                      src="/images/partners/telegram.svg"
+                      alt=""
+                      className="h-3.5 w-3.5"
+                      loading="lazy"
+                    />
+                    {project.community}
+                  </span>
+                </div>
+                <MarketingAdProgress project={project} />
+              </div>
+            </article>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
@@ -601,54 +712,7 @@ export function HomePage() {
             </div>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
           </div>
-          <div className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:-mx-5 sm:px-5">
-            <div className="flex w-max max-w-none items-stretch gap-0">
-              {promotedProjects.map((project, index) => (
-                <div key={project.ticker} className="flex items-stretch">
-                  {index > 0 ? <ElectricBridge /> : null}
-                  <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
-                    <div className="promoted-chase" />
-                    <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
-                      <div className="flex items-center gap-2.5">
-                        <ProjectMark project={project} size="h-10 w-10" />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-sm font-bold">${project.ticker}</p>
-                            <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                          </div>
-                          <p className="truncate text-[11px] text-white/35">{project.name}</p>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
-                          <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                          </p>
-                        </div>
-                        <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
-                      </div>
-                      <div className="mt-3 flex items-center gap-2 border-t border-white/[0.05] pt-2.5">
-                        <StageBadge stage={project.stage} />
-                        <span className="text-[10px] text-white/30">{project.chain}</span>
-                        <span
-                          className="ml-auto flex shrink-0 items-center gap-1 text-[10px] font-medium text-white/45"
-                          title={`${project.community} Telegram members`}
-                        >
-                          <img
-                            src="/images/partners/telegram.svg"
-                            alt=""
-                            className="h-3.5 w-3.5"
-                            loading="lazy"
-                          />
-                          {project.community}
-                        </span>
-                      </div>
-                      <MarketingAdProgress project={project} />
-                    </div>
-                  </article>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PromotedRail projects={promotedProjects} />
         </section>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
