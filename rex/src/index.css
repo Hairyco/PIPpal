@@ -170,67 +170,6 @@
   filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.75));
 }
 
-@keyframes hero-smoke-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.55;
-  }
-  40% {
-    transform: translate3d(6%, -10%, 0) scale(1.12);
-    opacity: 0.85;
-  }
-  70% {
-    transform: translate3d(-5%, -6%, 0) scale(1.05);
-    opacity: 0.65;
-  }
-}
-
-.hero-smoke-plume {
-  position: absolute;
-  bottom: 0;
-  border-radius: 9999px;
-  filter: blur(14px);
-  animation: hero-smoke-drift 5.5s ease-in-out infinite;
-}
-
-.hero-smoke-plume-a {
-  left: 8%;
-  width: 48%;
-  height: 70%;
-  background: radial-gradient(ellipse at center, rgba(241, 245, 249, 0.55), rgba(148, 163, 184, 0.2), transparent 70%);
-  animation-duration: 6.2s;
-}
-
-.hero-smoke-plume-b {
-  left: 28%;
-  width: 55%;
-  height: 85%;
-  background: radial-gradient(ellipse at 40% 70%, rgba(255, 255, 255, 0.5), rgba(203, 213, 225, 0.22), transparent 68%);
-  animation-duration: 4.8s;
-  animation-delay: -1.2s;
-  filter: blur(18px);
-}
-
-.hero-smoke-plume-c {
-  right: 6%;
-  width: 42%;
-  height: 65%;
-  background: radial-gradient(ellipse at center, rgba(226, 232, 240, 0.48), rgba(100, 116, 139, 0.18), transparent 72%);
-  animation-duration: 7s;
-  animation-delay: -2.4s;
-}
-
-.hero-smoke-plume-d {
-  left: 18%;
-  width: 64%;
-  height: 55%;
-  background: radial-gradient(ellipse at 50% 80%, rgba(200, 255, 61, 0.12), rgba(255, 255, 255, 0.28), transparent 70%);
-  animation-duration: 5.4s;
-  animation-delay: -0.6s;
-  filter: blur(22px);
-}
-
 @keyframes marketing-sheen {
   0% {
     background-position: 200% 0;

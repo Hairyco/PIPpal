@@ -38,8 +38,8 @@ type Project = {
   volume24h: string;
   marketingWallet?: string;
   marketingBalance?: string;
-  /** SOL needed in marketing wallet for the next auto ad buy */
-  nextAdTargetSol?: number;
+  /** USD needed in marketing wallet for the next auto ad buy */
+  nextAdTargetUsd?: number;
   /** Short label for next spend (e.g. DexScreener) */
   nextAdSpend?: string;
   /** Telegram messages per hour */
@@ -58,14 +58,14 @@ type Project = {
 };
 
 const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', nextAdTargetSol: 50, nextAdSpend: 'DexScreener', mph: 186, raidsActive: 3, raidsJoined: '1.2K', roadmapMilestone: 'Marketing fund threshold', roadmapDone: 3, roadmapTotal: 8, score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', nextAdTargetSol: 30, nextAdSpend: 'DexScreener', mph: 94, raidsActive: 2, raidsJoined: '840', roadmapMilestone: 'Community channels live', roadmapDone: 2, roadmapTotal: 8, score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
-  { rank: 3, name: 'Lunar Martian', ticker: 'LMARS', chain: 'SOL', category: 'AI', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: 'Lm9r…mars', marketingBalance: '62.4 SOL', nextAdTargetSol: 75, nextAdSpend: 'DexScreener', mph: 142, raidsActive: 5, raidsJoined: '2.4K', roadmapMilestone: 'Supplier assigned', roadmapDone: 5, roadmapTotal: 10, score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
-  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: 'Ca11…line', marketingBalance: '14.8 SOL', nextAdTargetSol: 25, nextAdSpend: 'DexScreener', mph: 61, raidsActive: 1, raidsJoined: '310', roadmapMilestone: 'Bonding curve launch', roadmapDone: 1, roadmapTotal: 6, score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', category: 'AI', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', nextAdTargetSol: 40, nextAdSpend: 'DexScreener', mph: 118, raidsActive: 4, raidsJoined: '1.8K', roadmapMilestone: 'Roadmap wallet unlock', roadmapDone: 4, roadmapTotal: 9, score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
+  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '$482', nextAdTargetUsd: 500, nextAdSpend: 'DexScreener', mph: 186, raidsActive: 3, raidsJoined: '1.2K', roadmapMilestone: 'Marketing fund threshold', roadmapDone: 3, roadmapTotal: 8, score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
+  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '$216', nextAdTargetUsd: 300, nextAdSpend: 'DexScreener', mph: 94, raidsActive: 2, raidsJoined: '840', roadmapMilestone: 'Community channels live', roadmapDone: 2, roadmapTotal: 8, score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
+  { rank: 3, name: 'Lunar Martian', ticker: 'LMARS', chain: 'SOL', category: 'AI', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: 'Lm9r…mars', marketingBalance: '$624', nextAdTargetUsd: 750, nextAdSpend: 'DexScreener', mph: 142, raidsActive: 5, raidsJoined: '2.4K', roadmapMilestone: 'Supplier assigned', roadmapDone: 5, roadmapTotal: 10, score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
+  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: 'Ca11…line', marketingBalance: '$148', nextAdTargetUsd: 250, nextAdSpend: 'DexScreener', mph: 61, raidsActive: 1, raidsJoined: '310', roadmapMilestone: 'Bonding curve launch', roadmapDone: 1, roadmapTotal: 6, score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
+  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', category: 'AI', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '$330', nextAdTargetUsd: 400, nextAdSpend: 'DexScreener', mph: 118, raidsActive: 4, raidsJoined: '1.8K', roadmapMilestone: 'Roadmap wallet unlock', roadmapDone: 4, roadmapTotal: 9, score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
   { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'SOL', category: 'DeFi', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', mph: 28, raidsActive: 0, raidsJoined: '96', roadmapMilestone: 'Alpha prototype', roadmapDone: 6, roadmapTotal: 10, score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11, promoted: true },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', category: 'DeFi', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', nextAdTargetSol: 15, nextAdSpend: 'DexScreener', mph: 47, raidsActive: 2, raidsJoined: '420', roadmapMilestone: 'Marketing wave 2', roadmapDone: 2, roadmapTotal: 7, score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: 'SuRv…live', marketingBalance: '4.1 SOL', nextAdTargetSol: 10, nextAdSpend: 'DexScreener', mph: 39, raidsActive: 1, raidsJoined: '188', roadmapMilestone: 'Community channels live', roadmapDone: 1, roadmapTotal: 6, score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
+  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', category: 'DeFi', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '$94', nextAdTargetUsd: 150, nextAdSpend: 'DexScreener', mph: 47, raidsActive: 2, raidsJoined: '420', roadmapMilestone: 'Marketing wave 2', roadmapDone: 2, roadmapTotal: 7, score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
+  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: 'SuRv…live', marketingBalance: '$41', nextAdTargetUsd: 100, nextAdSpend: 'DexScreener', mph: 39, raidsActive: 1, raidsJoined: '188', roadmapMilestone: 'Community channels live', roadmapDone: 1, roadmapTotal: 6, score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
 ];
 
 const tickerProjects = projects;
@@ -104,7 +104,7 @@ const communities: Community[] = [
 
 const pinnedMessages: PinnedMessage[] = [
   { id: '1', ticker: 'GOB', community: 'Pixel Goblin', logo: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots.', when: '2h ago' },
-  { id: '2', ticker: 'MPEG', community: 'Moon Pigeon', logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', text: 'Marketing wallet hit 48 SOL. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago' },
+  { id: '2', ticker: 'MPEG', community: 'Moon Pigeon', logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', text: 'Marketing wallet hit $482. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago' },
   { id: '3', ticker: 'LMARS', community: 'Lunar Martian', logo: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers.', when: '5h ago' },
   { id: '4', ticker: 'SURV', community: 'Rug Survivor', logo: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', text: 'Community takeover vote open until Friday. Bring holders from the old group.', when: '8h ago' },
   { id: '5', ticker: 'NITE', community: 'Night Shift', logo: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids.', when: '11h ago' },
@@ -187,13 +187,10 @@ function HeroLogoCollage() {
           delay={`${index * 0.12}s`}
         />
       ))}
-      <div className="hero-smoke pointer-events-none absolute -bottom-4 left-1/2 h-20 w-[150%] -translate-x-1/2 sm:-bottom-5 sm:h-24">
-        <div className="hero-smoke-plume hero-smoke-plume-a" />
-        <div className="hero-smoke-plume hero-smoke-plume-b" />
-        <div className="hero-smoke-plume hero-smoke-plume-c" />
-        <div className="hero-smoke-plume hero-smoke-plume-d" />
-        <div className="absolute inset-x-[5%] bottom-0 h-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(226,232,240,0.45),rgba(148,163,184,0.18),transparent_72%)] blur-xl" />
-        <div className="absolute inset-x-[18%] bottom-1 h-6 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.35),transparent_70%)] blur-lg" />
+      <div className="pointer-events-none absolute -bottom-1 left-1/2 h-12 w-[115%] -translate-x-1/2">
+        <div className="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.22),rgba(200,255,61,0.08),transparent_70%)] blur-md" />
+        <div className="absolute inset-x-[8%] bottom-0 h-6 animate-pulse rounded-full bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.35),transparent_72%)] blur-lg" />
+        <div className="absolute inset-x-[18%] bottom-1 h-4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.18),transparent_75%)] blur-md" />
       </div>
     </div>
   );
@@ -221,15 +218,20 @@ function ElectricBridge() {
   );
 }
 
-function parseSolBalance(balance?: string) {
+function parseUsdAmount(balance?: string) {
   if (!balance) return 0;
-  const match = balance.match(/([\d.]+)/);
+  const match = balance.replace(/,/g, '').match(/([\d.]+)/);
   return match ? Number(match[1]) : 0;
+}
+
+function formatUsd(amount: number) {
+  if (amount >= 1000) return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
+  return `$${Math.round(amount)}`;
 }
 
 function MarketingAdProgress({ project }: { project: Project }) {
   const hasWallet = Boolean(
-    project.marketingWallet && project.marketingBalance && project.nextAdTargetSol,
+    project.marketingWallet && project.marketingBalance && project.nextAdTargetUsd,
   );
 
   if (!hasWallet) {
@@ -240,28 +242,28 @@ function MarketingAdProgress({ project }: { project: Project }) {
     );
   }
 
-  const balance = parseSolBalance(project.marketingBalance);
-  const target = project.nextAdTargetSol!;
+  const balance = parseUsdAmount(project.marketingBalance);
+  const target = project.nextAdTargetUsd!;
   const pct = Math.min(100, Math.round((balance / target) * 100));
   const ready = balance >= target;
   const spendLabel = project.nextAdSpend ?? 'DexScreener';
-  const remaining = Math.max(0, Number((target - balance).toFixed(1)));
+  const remaining = Math.max(0, target - balance);
 
   return (
     <div
       className="mt-2.5 h-[44px] rounded-lg border border-white/[0.06] bg-black/25 px-2 py-1.5"
-      title={`Marketing wallet: ${project.marketingBalance} of ${target} SOL toward ${spendLabel}`}
+      title={`Marketing wallet: ${project.marketingBalance} of ${formatUsd(target)} toward ${spendLabel}`}
     >
       <div className="mb-1 flex items-center justify-between gap-1.5">
         <p className="truncate text-[9px] font-semibold text-white/50">
           Marketing wallet
           <span className="font-normal text-white/30">
-            {ready ? ` · Ready` : ` · ${remaining} to ${spendLabel}`}
+            {ready ? ` · Ready` : ` · ${formatUsd(remaining)} to ${spendLabel}`}
           </span>
         </p>
         <p className="shrink-0 tabular-nums text-[9px] font-semibold text-white/45">
-          {balance}
-          <span className="font-normal text-white/25">/{target}</span>
+          {formatUsd(balance)}
+          <span className="font-normal text-white/25">/{formatUsd(target)}</span>
         </p>
       </div>
 
