@@ -172,10 +172,13 @@ function HeroLogoCollage() {
           delay={`${index * 0.12}s`}
         />
       ))}
-      <div className="pointer-events-none absolute -bottom-1 left-1/2 h-12 w-[115%] -translate-x-1/2">
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.22),rgba(200,255,61,0.08),transparent_70%)] blur-md" />
-        <div className="absolute inset-x-[8%] bottom-0 h-6 animate-pulse rounded-full bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.35),transparent_72%)] blur-lg" />
-        <div className="absolute inset-x-[18%] bottom-1 h-4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.18),transparent_75%)] blur-md" />
+      <div className="hero-smoke pointer-events-none absolute -bottom-4 left-1/2 h-20 w-[150%] -translate-x-1/2 sm:-bottom-5 sm:h-24">
+        <div className="hero-smoke-plume hero-smoke-plume-a" />
+        <div className="hero-smoke-plume hero-smoke-plume-b" />
+        <div className="hero-smoke-plume hero-smoke-plume-c" />
+        <div className="hero-smoke-plume hero-smoke-plume-d" />
+        <div className="absolute inset-x-[5%] bottom-0 h-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(226,232,240,0.45),rgba(148,163,184,0.18),transparent_72%)] blur-xl" />
+        <div className="absolute inset-x-[18%] bottom-1 h-6 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.35),transparent_70%)] blur-lg" />
       </div>
     </div>
   );
