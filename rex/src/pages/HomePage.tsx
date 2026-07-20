@@ -4,6 +4,7 @@ import {
   BarChart3,
   Bot,
   ChevronDown,
+  Flame,
   Menu,
   MessageSquare,
   Moon,
