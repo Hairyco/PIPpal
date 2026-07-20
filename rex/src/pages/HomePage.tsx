@@ -343,9 +343,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  'grid-cols-[28px_36px_180px_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
+  '28px 36px 180px 68px 72px 64px 56px 64px minmax(110px, 1fr) 72px 64px';
 const tableColsPrelaunch =
-  'grid-cols-[28px_36px_180px_68px_64px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
+  '28px 36px 180px 68px 64px 72px 64px 56px 64px minmax(110px, 1fr) 72px 64px';
 
 function ProjectMark({
   project,
@@ -657,7 +657,9 @@ export function HomePage() {
   };
 
   const isPrelaunch = activeShortcut === 'Prelaunch';
-  const rankingTableCols = isPrelaunch ? tableColsPrelaunch : tableCols;
+  const rankingGridStyle = {
+    gridTemplateColumns: isPrelaunch ? tableColsPrelaunch : tableCols,
+  } as const;
 
   const pickSearchResult = (project: Project) => {
     setQuery(project.ticker);
@@ -984,7 +986,10 @@ export function HomePage() {
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
                 <div className={isPrelaunch ? 'min-w-[1024px]' : 'min-w-[960px]'}>
-                  <div className={`grid ${rankingTableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
+                  <div
+                    className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
+                    style={rankingGridStyle}
+                  >
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
@@ -1007,7 +1012,8 @@ export function HomePage() {
                     return (
                     <article
                       key={project.ticker}
-                      className={`grid ${rankingTableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
+                      className="grid items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      style={rankingGridStyle}
                     >
                       <button
                         type="button"
