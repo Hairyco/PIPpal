@@ -13,11 +13,14 @@ import {
   RotateCcw,
   Search,
   SlidersHorizontal,
+  Sparkles,
   Star,
   Sun,
+  Trophy,
   Wallet,
   X,
   Zap,
+  Clock3,
 } from 'lucide-react';
 
 type Project = {
@@ -72,6 +75,32 @@ const projects: Project[] = [
 const tickerProjects = projects;
 const promotedProjects = projects.filter((project) => project.promoted);
 const categories = ['All', 'Meme', 'AI', 'DeFi'];
+
+const shortcuts = [
+  { label: 'Top Today', icon: Clock3 },
+  { label: 'Top All Time', icon: Trophy },
+  { label: 'New CTOs', icon: Sparkles },
+  { label: 'Trending', icon: Flame },
+];
+
+const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
+  'Top Today': {
+    title: 'Top CTOs Today',
+    subtitle: 'Solana community takeovers ranked by activity, MPH, and raids.',
+  },
+  'Top All Time': {
+    title: 'Top CTOs All Time',
+    subtitle: 'Highest-voted Solana community takeovers across all time.',
+  },
+  'New CTOs': {
+    title: 'New CTOs',
+    subtitle: 'Recently forming Solana takeovers just entering the rankings.',
+  },
+  Trending: {
+    title: 'Trending CTOs',
+    subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
+  },
+};
 
 type Community = {
   id: string;
@@ -512,6 +541,7 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 
 export function HomePage() {
   const [query, setQuery] = useState('');
+  const [activeShortcut, setActiveShortcut] = useState('Top Today');
   const [activeCategory, setActiveCategory] = useState('All');
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [searchFocused, setSearchFocused] = useState(false);
@@ -559,10 +589,38 @@ export function HomePage() {
       return matchesQuery && matchesCategory;
     });
 
-    return [...filtered]
-      .sort((a, b) => b.votesToday - a.votesToday || b.mph - a.mph || b.votes - a.votes)
-      .map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeCategory]);
+    const sorted = [...filtered];
+    switch (activeShortcut) {
+      case 'Top All Time':
+        sorted.sort((a, b) => b.votes - a.votes || b.score - a.score);
+        break;
+      case 'New CTOs':
+        sorted.sort((a, b) => {
+          const stageWeight = (stage: Project['stage']) =>
+            ({ Forming: 0, Voting: 1, Relaunching: 2, Live: 3 })[stage];
+          return stageWeight(a.stage) - stageWeight(b.stage) || b.votesToday - a.votesToday;
+        });
+        break;
+      case 'Trending':
+        sorted.sort((a, b) => b.change24h - a.change24h || b.mph - a.mph);
+        break;
+      case 'Top Today':
+      default:
+        sorted.sort((a, b) => b.votesToday - a.votesToday || b.mph - a.mph || b.votes - a.votes);
+        break;
+    }
+
+    return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
+  }, [query, activeCategory, activeShortcut]);
+
+  const sectionCopy = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
+
+  const selectShortcut = (label: string) => {
+    setActiveShortcut(label);
+    requestAnimationFrame(() => {
+      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
 
   return (
     <div className={`page-shell min-h-screen text-[#f5f7fb] ${isDark ? 'theme-dark' : 'theme-light'}`}>
@@ -645,6 +703,30 @@ export function HomePage() {
           </button>
         </div>
       </header>
+
+      <nav className={`border-b border-white/[0.06] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
+        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
+          {shortcuts.map((shortcut) => {
+            const Icon = shortcut.icon;
+            const active = activeShortcut === shortcut.label;
+            return (
+              <button
+                key={shortcut.label}
+                type="button"
+                onClick={() => selectShortcut(shortcut.label)}
+                className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
+                  active
+                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {shortcut.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         {showPinnedWall ? <PinnedWall onClose={() => setShowPinnedWall(false)} /> : null}
@@ -755,10 +837,8 @@ export function HomePage() {
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
           <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <div className="mb-4">
-              <h2 className="font-serif text-2xl font-bold">Top CTOs Today</h2>
-              <p className="mt-1 text-xs text-white/35">
-                Solana community takeovers ranked by activity, MPH, and raids.
-              </p>
+              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
+              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
             </div>
 
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
