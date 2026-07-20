@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   preview: {
-    // Cloudflare quick tunnels rotate hostnames; allow any *.trycloudflare.com host
-    allowedHosts: ['.trycloudflare.com', 'localhost'],
+    // Phone previews via Cloudflare quick tunnels (rotating *.trycloudflare.com hosts)
+    allowedHosts: true,
   },
 })
