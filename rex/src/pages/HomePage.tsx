@@ -2,8 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bot,
-  Bell,
-  BellOff,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -212,7 +210,7 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
   },
   'Top creators': {
     title: 'Top creators',
-    subtitle: 'Find proven builders by coins launched — follow to get notified on their next coin.',
+    subtitle: 'Find proven builders by coins launched — follow them or join their Telegram community.',
   },
   Trending: {
     title: 'Trending CTOs',
@@ -231,22 +229,22 @@ type Creator = {
   winRate: number;
   lastLaunch: string;
   tickers: string[];
+  communityUrl: string;
   verified?: boolean;
 };
 
 const creators: Creator[] = [
-  { id: 'pixelforge', handle: '@pixelforge', name: 'Pixel Forge', avatar: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', coinsCreated: 14, followers: '28.4K', winRate: 71, lastLaunch: '2d ago', tickers: ['GOB', 'MPEG', 'NITE'], verified: true },
-  { id: 'moonlab', handle: '@moonlab', name: 'Moon Lab', avatar: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', coinsCreated: 11, followers: '19.1K', winRate: 64, lastLaunch: '5h ago', tickers: ['MPEG', 'CALL'], verified: true },
-  { id: 'raidcraft', handle: '@raidcraft', name: 'Raid Craft', avatar: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', coinsCreated: 9, followers: '12.6K', winRate: 78, lastLaunch: '1d ago', tickers: ['LMARS', 'SURV'], verified: true },
-  { id: 'frogworks', handle: '@frogworks', name: 'Frog Works', avatar: '/meme-logos/tendies.png', colors: 'from-lime-300 to-emerald-700', coinsCreated: 8, followers: '9.8K', winRate: 55, lastLaunch: '3d ago', tickers: ['TFROG'], verified: false },
-  { id: 'exitdesk', handle: '@exitdesk', name: 'Exit Desk', avatar: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700', coinsCreated: 7, followers: '6.2K', winRate: 48, lastLaunch: '8h ago', tickers: ['EXIT', 'CALL'], verified: false },
-  { id: 'nightops', handle: '@nightops', name: 'Night Ops', avatar: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', coinsCreated: 6, followers: '4.4K', winRate: 67, lastLaunch: '12h ago', tickers: ['NITE'], verified: true },
-  { id: 'survivors', handle: '@survivorshq', name: 'Survivors HQ', avatar: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', coinsCreated: 5, followers: '3.1K', winRate: 60, lastLaunch: '4d ago', tickers: ['SURV'], verified: false },
-  { id: 'degenline', handle: '@degenline', name: 'Degen Line', avatar: '/meme-logos/unicorn-fart-dust.png', colors: 'from-orange-300 to-red-700', coinsCreated: 4, followers: '2.7K', winRate: 42, lastLaunch: '6h ago', tickers: ['CALL'], verified: false },
+  { id: 'pixelforge', handle: '@pixelforge', name: 'Pixel Forge', avatar: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', coinsCreated: 14, followers: '28.4K', winRate: 71, lastLaunch: '2d ago', tickers: ['GOB', 'MPEG', 'NITE'], communityUrl: 'https://t.me/pixelgoblin', verified: true },
+  { id: 'moonlab', handle: '@moonlab', name: 'Moon Lab', avatar: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', coinsCreated: 11, followers: '19.1K', winRate: 64, lastLaunch: '5h ago', tickers: ['MPEG', 'CALL'], communityUrl: 'https://t.me/moonpigeon', verified: true },
+  { id: 'raidcraft', handle: '@raidcraft', name: 'Raid Craft', avatar: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', coinsCreated: 9, followers: '12.6K', winRate: 78, lastLaunch: '1d ago', tickers: ['LMARS', 'SURV'], communityUrl: 'https://t.me/lunarmartian', verified: true },
+  { id: 'frogworks', handle: '@frogworks', name: 'Frog Works', avatar: '/meme-logos/tendies.png', colors: 'from-lime-300 to-emerald-700', coinsCreated: 8, followers: '9.8K', winRate: 55, lastLaunch: '3d ago', tickers: ['TFROG'], communityUrl: 'https://t.me/terminalfrog', verified: false },
+  { id: 'exitdesk', handle: '@exitdesk', name: 'Exit Desk', avatar: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700', coinsCreated: 7, followers: '6.2K', winRate: 48, lastLaunch: '8h ago', tickers: ['EXIT', 'CALL'], communityUrl: 'https://t.me/exitliq', verified: false },
+  { id: 'nightops', handle: '@nightops', name: 'Night Ops', avatar: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', coinsCreated: 6, followers: '4.4K', winRate: 67, lastLaunch: '12h ago', tickers: ['NITE'], communityUrl: 'https://t.me/nightshiftcto', verified: true },
+  { id: 'survivors', handle: '@survivorshq', name: 'Survivors HQ', avatar: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', coinsCreated: 5, followers: '3.1K', winRate: 60, lastLaunch: '4d ago', tickers: ['SURV'], communityUrl: 'https://t.me/rugsurvivor', verified: false },
+  { id: 'degenline', handle: '@degenline', name: 'Degen Line', avatar: '/meme-logos/unicorn-fart-dust.png', colors: 'from-orange-300 to-red-700', coinsCreated: 4, followers: '2.7K', winRate: 42, lastLaunch: '6h ago', tickers: ['CALL'], communityUrl: 'https://t.me/degenhotline', verified: false },
 ];
 
 const FOLLOW_KEY = 'cto-creator-follows';
-const NOTIFY_KEY = 'cto-creator-notifies';
 
 function readIdSet(key: string): Record<string, boolean> {
   try {
@@ -611,7 +609,6 @@ export function HomePage() {
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [following, setFollowing] = useState<Record<string, boolean>>(() => readIdSet(FOLLOW_KEY));
-  const [notifying, setNotifying] = useState<Record<string, boolean>>(() => readIdSet(NOTIFY_KEY));
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -635,14 +632,6 @@ export function HomePage() {
       /* ignore */
     }
   }, [following]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(NOTIFY_KEY, JSON.stringify(notifying));
-    } catch {
-      /* ignore */
-    }
-  }, [notifying]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -821,23 +810,7 @@ export function HomePage() {
   };
 
   const toggleFollow = (id: string) => {
-    setFollowing((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      if (!next[id]) {
-        setNotifying((n) => ({ ...n, [id]: false }));
-      }
-      return next;
-    });
-  };
-
-  const toggleNotify = (id: string) => {
-    setNotifying((prev) => {
-      const nextEnabled = !prev[id];
-      if (nextEnabled) {
-        setFollowing((f) => ({ ...f, [id]: true }));
-      }
-      return { ...prev, [id]: nextEnabled };
-    });
+    setFollowing((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -1033,7 +1006,7 @@ export function HomePage() {
             </div>
             ) : (
               <p className="mb-3 text-[11px] text-white/40">
-                Sorted by coins created. Follow a creator and turn on notifications to hear about their next launch.
+                Sorted by coins created. Follow a creator or join their Telegram community.
               </p>
             )}
 
@@ -1045,7 +1018,6 @@ export function HomePage() {
                   pagedCreators.map((creator, index) => {
                     const rank = (currentPage - 1) * pageSize + index + 1;
                     const isFollowing = Boolean(following[creator.id]);
-                    const isNotifying = Boolean(notifying[creator.id]);
                     return (
                       <article
                         key={creator.id}
@@ -1096,19 +1068,15 @@ export function HomePage() {
                             >
                               {isFollowing ? 'Following' : 'Follow'}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleNotify(creator.id)}
-                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] font-semibold transition sm:flex-none ${
-                                isNotifying
-                                  ? 'border-[#2aabee]/40 bg-[#2aabee]/15 text-[#7dd3fc]'
-                                  : 'border-white/[0.08] bg-white/[0.04] text-white/50 hover:text-white'
-                              }`}
-                              title={isNotifying ? 'Launch notifications on' : 'Notify me on next launch'}
+                            <a
+                              href={creator.communityUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-[11px] font-bold text-white transition hover:bg-[#3bb5f5] sm:flex-none"
                             >
-                              {isNotifying ? <Bell className="h-3.5 w-3.5" /> : <BellOff className="h-3.5 w-3.5" />}
-                              {isNotifying ? 'Notifying' : 'Notify'}
-                            </button>
+                              <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
+                              Join community
+                            </a>
                           </div>
                         </div>
                       </article>
