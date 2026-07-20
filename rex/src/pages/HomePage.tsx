@@ -806,28 +806,102 @@ export function HomePage() {
             </div>
           </a>
 
-          <label className="relative ml-auto min-w-0 flex-1 sm:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-            <input
-              ref={searchRef}
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-              placeholder="Search Solana CTOs"
-              aria-keyshortcuts="/"
-              className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-            />
-            {!searchFocused && !query ? (
-              <kbd
-                className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-white/[0.06] px-1.5 font-sans text-[11px] font-medium leading-none text-white/45 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
-                aria-hidden
+          <div className="relative ml-auto min-w-0 flex-1 sm:max-w-md">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+              <input
+                ref={searchRef}
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setSearchFocused(false), 120);
+                }}
+                placeholder="Search Solana CTOs"
+                aria-keyshortcuts="/"
+                aria-expanded={showSearchPanel}
+                aria-controls="cto-search-panel"
+                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+              />
+              {!searchFocused && !query ? (
+                <kbd
+                  className="pointer-events-none absolute right-2.5 top-1/2 inline-flex h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/20 bg-white/[0.08] px-1.5 font-sans text-[11px] font-semibold leading-none text-white/55 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]"
+                  aria-hidden
+                >
+                  /
+                </kbd>
+              ) : null}
+            </label>
+            {showSearchPanel ? (
+              <div
+                id="cto-search-panel"
+                role="listbox"
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
               >
-                /
-              </kbd>
+                <div className="max-h-[min(70vh,420px)] overflow-y-auto py-2">
+                  <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                    Promoted
+                  </p>
+                  {searchSuggestions.promoted.length === 0 ? (
+                    <p className="px-3 py-2 text-xs text-white/35">No promoted matches</p>
+                  ) : (
+                    searchSuggestions.promoted.map((project) => (
+                      <button
+                        key={`promoted-${project.ticker}`}
+                        type="button"
+                        role="option"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => pickSearchResult(project)}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.05]"
+                      >
+                        <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-sm font-bold">${project.ticker}</span>
+                            <span className="rounded bg-[#c8ff3d]/15 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#c8ff3d]">
+                              Ad
+                            </span>
+                          </div>
+                          <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                        </div>
+                        <span className={`shrink-0 text-[11px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                        </span>
+                      </button>
+                    ))
+                  )}
+                  {searchSuggestions.rest.length > 0 ? (
+                    <>
+                      <div className="my-2 border-t border-white/[0.06]" />
+                      <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
+                        All CTOs
+                      </p>
+                      {searchSuggestions.rest.map((project) => (
+                        <button
+                          key={`all-${project.ticker}`}
+                          type="button"
+                          role="option"
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => pickSearchResult(project)}
+                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.05]"
+                        >
+                          <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-bold">${project.ticker}</p>
+                            <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          </div>
+                          <span className={`shrink-0 text-[11px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  ) : null}
+                </div>
+              </div>
             ) : null}
-          </label>
+          </div>
 
           <Link
             to="/launch"
