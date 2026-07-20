@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
-  Bell,
   Bot,
   ChevronDown,
   Clock3,
   Flame,
   Menu,
+  Moon,
   Plus,
   RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
   Star,
+  Sun,
   Trophy,
   Users,
   Wallet,
@@ -327,13 +328,36 @@ function RoadmapCell({ project }: { project: Project }) {
   );
 }
 
+const THEME_KEY = 'cto-theme';
+type ThemeMode = 'light' | 'dark';
+
+function readStoredTheme(): ThemeMode {
+  try {
+    const value = localStorage.getItem(THEME_KEY);
+    if (value === 'dark' || value === 'light') return value;
+  } catch {
+    /* ignore */
+  }
+  return 'light';
+}
+
 export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
   const [activeCategory, setActiveCategory] = useState('All');
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [searchFocused, setSearchFocused] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme());
   const searchRef = useRef<HTMLInputElement>(null);
+  const isDark = theme === 'dark';
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -396,10 +420,10 @@ export function HomePage() {
   };
 
   return (
-    <div className="page-shell min-h-screen text-[#f5f7fb]">
-      <div className="page-gloss" aria-hidden />
+    <div className={`page-shell min-h-screen text-[#f5f7fb] ${isDark ? 'theme-dark' : 'theme-light'}`}>
+      {isDark ? <div className="page-gloss" aria-hidden /> : null}
       <div className="relative z-[1]">
-      <div className="border-b border-white/[0.06] bg-[#0a0c16]/90 backdrop-blur-md">
+      <div className={`border-b border-white/[0.06] ${isDark ? 'bg-[#0a0c16]/90 backdrop-blur-md' : 'bg-[#0a0c16]'}`}>
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
           <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
             <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
@@ -421,7 +445,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className="border-b border-white/[0.07] bg-[#090b14]/88 backdrop-blur-md">
+      <header className={`border-b border-white/[0.07] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
@@ -459,8 +483,14 @@ export function HomePage() {
           <button type="button" className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex">
             <Plus className="h-4 w-4" /> Submit CTO
           </button>
-          <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
+          <button
+            type="button"
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
+            className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
+            aria-label={isDark ? 'Switch to light background' : 'Switch to dark background'}
+            title={isDark ? 'Light mode' : 'Dark mode'}
+          >
+            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
           <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
             <Menu className="h-5 w-5" />
@@ -468,7 +498,7 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className="border-b border-white/[0.06] bg-[#090b14]/88 backdrop-blur-md">
+      <nav className={`border-b border-white/[0.06] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
           {shortcuts.map((shortcut) => {
             const Icon = shortcut.icon;
@@ -738,7 +768,7 @@ export function HomePage() {
         </div>
       </main>
 
-      <footer className="mt-10 border-t border-white/[0.06] bg-[#070912]/70 backdrop-blur-sm">
+      <footer className={`mt-10 border-t border-white/[0.06] ${isDark ? 'bg-[#070912]/70 backdrop-blur-sm' : 'bg-[#070912]'}`}>
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
