@@ -216,7 +216,7 @@ function MarketingAdProgress({ project }: { project: Project }) {
 
   if (!hasWallet) {
     return (
-      <div className="mt-3 flex h-[52px] items-center rounded-lg border border-dashed border-white/[0.08] bg-black/15 px-2.5">
+      <div className="mt-2.5 flex h-[44px] items-center rounded-lg border border-dashed border-white/[0.08] bg-black/15 px-2">
         <p className="text-[10px] font-medium text-white/30">No marketing wallet</p>
       </div>
     );
@@ -231,17 +231,17 @@ function MarketingAdProgress({ project }: { project: Project }) {
 
   return (
     <div
-      className="mt-3 h-[52px] rounded-lg border border-white/[0.06] bg-black/25 px-2.5 py-1.5"
+      className="mt-2.5 h-[44px] rounded-lg border border-white/[0.06] bg-black/25 px-2 py-1.5"
       title={`Marketing wallet: ${project.marketingBalance} of ${target} SOL toward ${spendLabel}`}
     >
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <p className="truncate text-[10px] font-semibold text-white/50">
+      <div className="mb-1 flex items-center justify-between gap-1.5">
+        <p className="truncate text-[9px] font-semibold text-white/50">
           Marketing wallet
           <span className="font-normal text-white/30">
-            {ready ? ` · Ready for ${spendLabel}` : ` · ${remaining} SOL to ${spendLabel}`}
+            {ready ? ` · Ready` : ` · ${remaining} to ${spendLabel}`}
           </span>
         </p>
-        <p className="shrink-0 tabular-nums text-[10px] font-semibold text-white/45">
+        <p className="shrink-0 tabular-nums text-[9px] font-semibold text-white/45">
           {balance}
           <span className="font-normal text-white/25">/{target}</span>
         </p>
@@ -596,7 +596,7 @@ export function HomePage() {
         <section className="mt-7">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <h2 className="font-serif text-lg font-bold">Advertised CTOs</h2>
+              <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
               <HeartbeatTracker />
             </div>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
@@ -606,27 +606,27 @@ export function HomePage() {
               {promotedProjects.map((project, index) => (
                 <div key={project.ticker} className="flex items-stretch">
                   {index > 0 ? <ElectricBridge /> : null}
-                  <article className="group relative flex w-[300px] shrink-0 overflow-hidden rounded-xl">
+                  <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
                     <div className="promoted-chase" />
-                    <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-4 transition group-hover:border-[#c8ff3d]/15">
-                      <div className="flex items-center gap-3">
-                        <ProjectMark project={project} size="h-12 w-12" />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
+                    <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
+                      <div className="flex items-center gap-2.5">
+                        <ProjectMark project={project} size="h-10 w-10" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
                             <p className="truncate text-sm font-bold">${project.ticker}</p>
-                            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                            <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
                           </div>
-                          <p className="truncate text-xs text-white/35">{project.name}</p>
+                          <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
-                        <div className="ml-auto text-right">
-                          <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
-                          <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                        <div className="shrink-0 text-right">
+                          <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
+                          <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
                             {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                           </p>
                         </div>
-                        <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
+                        <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
                       </div>
-                      <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
+                      <div className="mt-3 flex items-center gap-2 border-t border-white/[0.05] pt-2.5">
                         <StageBadge stage={project.stage} />
                         <span className="text-[10px] text-white/30">{project.chain}</span>
                         <span
