@@ -11,4 +11,8 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    // Cloudflare quick tunnels rotate hostnames; allow any *.trycloudflare.com host
+    allowedHosts: ['.trycloudflare.com', 'localhost'],
+  },
 })
