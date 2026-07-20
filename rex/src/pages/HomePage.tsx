@@ -19,6 +19,7 @@ import {
   Wallet,
   Zap,
   Clock3,
+  TrendingUp,
 } from 'lucide-react';
 
 type Project = {
@@ -122,6 +123,14 @@ const pinnedByTicker: Record<string, PinnedMessage> = {
 };
 
 type RankingFilter = TimeWindow | 'Pinned';
+
+const rankingModes = [
+  { id: 'Trending', label: 'Trending', icon: Flame, title: 'Trending CTOs', subtitle: 'Strongest momentum across Solana community takeovers.' },
+  { id: 'New', label: 'New', icon: Sparkles, title: 'New CTOs', subtitle: 'Recently forming takeovers just entering the board.' },
+  { id: 'Hot', label: 'Hot', icon: Zap, title: 'Hot CTOs', subtitle: 'Highest raid and messaging activity right now.' },
+  { id: 'Gainers', label: 'Gainers', icon: TrendingUp, title: 'Top gainers', subtitle: 'Biggest price movers in the selected time window.' },
+] as const;
+type RankingMode = (typeof rankingModes)[number]['id'];
 
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
@@ -512,6 +521,7 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
+  const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
   const isPinnedView = activeWindow === 'Pinned';
   const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
@@ -568,6 +578,26 @@ export function HomePage() {
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
+      if (activeMode === 'New') {
+        const stageRank = (stage: Project['stage']) =>
+          stage === 'Forming' ? 0 : stage === 'Voting' ? 1 : stage === 'Relaunching' ? 2 : 3;
+        const stageDiff = stageRank(a.stage) - stageRank(b.stage);
+        if (stageDiff !== 0) return stageDiff;
+        const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+        const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+        if (launchA !== launchB) return launchA - launchB;
+        return b.votesToday - a.votesToday;
+      }
+      if (activeMode === 'Hot') {
+        if (b.mph !== a.mph) return b.mph - a.mph;
+        if (b.raidsActive !== a.raidsActive) return b.raidsActive - a.raidsActive;
+        return b.votesToday - a.votesToday;
+      }
+      if (activeMode === 'Trending') {
+        if (b.score !== a.score) return b.score - a.score;
+        return b.mph - a.mph;
+      }
+      // Gainers — sort by selected time-window % change
       const changeA = changeForWindow(a, activeTimeWindow);
       const changeB = changeForWindow(b, activeTimeWindow);
       const scoreA = changeA ?? Number.NEGATIVE_INFINITY;
@@ -577,7 +607,7 @@ export function HomePage() {
     });
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -603,7 +633,7 @@ export function HomePage() {
   useEffect(() => {
     setPage(1);
     setPageInput('');
-  }, [query, activeWindow, activeShortcut]);
+  }, [query, activeWindow, activeShortcut, activeMode]);
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -635,12 +665,15 @@ export function HomePage() {
         subtitle: 'Most recent pinned message from each Telegram group.',
       };
     }
-    const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
-    const base = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
-    return {
-      title: base.title,
-      subtitle: `Ranked by ${activeWindow} price change — ${windowTab?.title ?? 'active movers'}.`,
-    };
+    const mode = rankingModes.find((tab) => tab.id === activeMode) ?? rankingModes[0];
+    if (activeMode === 'Gainers') {
+      const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
+      return {
+        title: mode.title,
+        subtitle: `Ranked by ${activeWindow} price change — ${windowTab?.title ?? 'active movers'}.`,
+      };
+    }
+    return { title: mode.title, subtitle: mode.subtitle };
   })();
 
   const selectShortcut = (label: string) => {
@@ -650,6 +683,13 @@ export function HomePage() {
     requestAnimationFrame(() => {
       document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  };
+
+  const selectRankingMode = (mode: RankingMode) => {
+    setActiveMode(mode);
+    if (isPinnedView) setActiveWindow('5m');
+    setPage(1);
+    setPageInput('');
   };
 
   const castVote = (ticker: string) => {
@@ -913,6 +953,29 @@ export function HomePage() {
             <div className="mb-4">
               <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
               <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+            </div>
+
+            <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
+              {rankingModes.map((mode) => {
+                const Icon = mode.icon;
+                const active = !isPinnedView && activeMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    title={mode.subtitle}
+                    onClick={() => selectRankingMode(mode.id)}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
+                      active
+                        ? 'bg-white text-[#090b14]'
+                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {mode.label}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
