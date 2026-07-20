@@ -319,7 +319,7 @@ function ProjectMark({
 
 function ChainPill() {
   return (
-    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-current/10 text-[10px] font-bold opacity-55" title="Solana">
+    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.06] text-[10px] font-bold text-white/55" title="Solana">
       ◎
     </span>
   );
@@ -349,7 +349,7 @@ function readStoredTheme(): ThemeMode {
   } catch {
     /* ignore */
   }
-  return 'light';
+  return 'dark';
 }
 
 function PromotedRail({ projects }: { projects: Project[] }) {
@@ -558,22 +558,22 @@ export function HomePage() {
   };
 
   return (
-    <div className={`page-shell min-h-screen ${isDark ? 'theme-dark' : 'theme-light'}`}>
+    <div className={`page-shell min-h-screen text-[#f5f7fb] ${isDark ? 'theme-dark' : 'theme-light'}`}>
       {isDark ? <div className="page-gloss" aria-hidden /> : null}
       <div className="relative z-[1]">
-      <div className={`border-b ${isDark ? 'border-white/[0.06] bg-[#0a0c16]/90 backdrop-blur-md' : 'border-black/[0.06] bg-white/90 backdrop-blur-md'}`}>
+      <div className={`border-b border-white/[0.06] ${isDark ? 'bg-[#0a0c16]/90 backdrop-blur-md' : 'bg-[#0a0c16]'}`}>
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
-          <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#6a8f00] dark:text-[#c8ff3d]" style={{ color: isDark ? '#c8ff3d' : '#5a7a00' }}>
-            <Flame className="h-3.5 w-3.5" style={{ fill: isDark ? '#c8ff3d' : '#5a7a00', color: isDark ? '#c8ff3d' : '#5a7a00' }} />
+          <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
+            <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
             <span className="hidden sm:inline">Trending</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className={`flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs ${isDark ? 'text-white/50' : 'text-black/45'}`}>
+            <div className="flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
                 <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
-                  <span className={isDark ? 'text-white/25' : 'text-black/25'}>#{project.rank}</span>
-                  <span className={`font-semibold ${isDark ? 'text-white/85' : 'text-black/80'}`}>${project.ticker}</span>
-                  <span className={project.change24h >= 0 ? (isDark ? 'text-lime-300' : 'text-lime-700') : 'text-rose-500'}>
+                  <span className="text-white/25">#{project.rank}</span>
+                  <span className="font-semibold text-white/85">${project.ticker}</span>
+                  <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
                     {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                   </span>
                 </span>
@@ -583,7 +583,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className={`border-b ${isDark ? 'border-white/[0.07] bg-[#090b14]/88 backdrop-blur-md' : 'border-black/[0.08] bg-white/95 backdrop-blur-md'}`}>
+      <header className={`border-b border-white/[0.07] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
@@ -591,12 +591,12 @@ export function HomePage() {
             </span>
             <div className="hidden sm:block">
               <p className="font-serif text-lg font-bold leading-none tracking-tight">CTO</p>
-              <p className={`mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] ${isDark ? 'text-white/30' : 'text-black/35'}`}>Community takeover</p>
+              <p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/30">Community takeover</p>
             </div>
           </a>
 
           <label className="relative ml-auto min-w-0 flex-1 sm:max-w-md">
-            <Search className={`pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 ${isDark ? 'text-white/30' : 'text-black/35'}`} />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <input
               ref={searchRef}
               type="search"
@@ -606,19 +606,11 @@ export function HomePage() {
               onBlur={() => setSearchFocused(false)}
               placeholder="Search Solana CTOs"
               aria-keyshortcuts="/"
-              className={`h-10 w-full rounded-lg border pl-9 pr-11 text-sm outline-none transition focus:border-[#c8ff3d]/40 ${
-                isDark
-                  ? 'border-white/[0.08] bg-white/[0.045] text-white placeholder:text-white/25'
-                  : 'border-black/[0.1] bg-white text-[#12141c] placeholder:text-black/35'
-              }`}
+              className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
             />
             {!searchFocused && !query ? (
               <kbd
-                className={`pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border px-1.5 font-sans text-[11px] font-medium leading-none sm:inline-flex ${
-                  isDark
-                    ? 'border-white/15 bg-white/[0.06] text-white/45 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]'
-                    : 'border-black/10 bg-black/[0.04] text-black/40'
-                }`}
+                className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-white/[0.06] px-1.5 font-sans text-[11px] font-medium leading-none text-white/45 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
                 aria-hidden
               >
                 /
@@ -635,25 +627,19 @@ export function HomePage() {
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className={`grid h-10 w-10 place-items-center rounded-lg transition ${
-              isDark ? 'text-white/60 hover:bg-white/5 hover:text-white' : 'text-black/50 hover:bg-black/[0.04] hover:text-black'
-            }`}
+            className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
             aria-label={isDark ? 'Switch to light background' : 'Switch to dark background'}
             title={isDark ? 'Light mode' : 'Dark mode'}
           >
             {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
-          <button
-            type="button"
-            className={`grid h-10 w-10 place-items-center rounded-lg ${isDark ? 'text-white/60 hover:bg-white/5' : 'text-black/50 hover:bg-black/[0.04]'}`}
-            aria-label="Open menu"
-          >
+          <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
             <Menu className="h-5 w-5" />
           </button>
         </div>
       </header>
 
-      <nav className={`border-b ${isDark ? 'border-white/[0.06] bg-[#090b14]/88 backdrop-blur-md' : 'border-black/[0.08] bg-white/95 backdrop-blur-md'}`}>
+      <nav className={`border-b border-white/[0.06] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
           {shortcuts.map((shortcut) => {
             const Icon = shortcut.icon;
@@ -665,12 +651,8 @@ export function HomePage() {
                 onClick={() => selectShortcut(shortcut.label)}
                 className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
                   active
-                    ? isDark
-                      ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-[#7aa600]/35 bg-[#c8ff3d]/35 text-[#3a5200]'
-                    : isDark
-                      ? 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
-                      : 'border-black/[0.08] bg-white text-black/55 hover:text-black'
+                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -710,7 +692,7 @@ export function HomePage() {
               <Wallet className="h-3.5 w-3.5 shrink-0" />
               Automated marketing wallets included
             </p>
-            <ul className={`mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium ${isDark ? 'text-white/55' : 'text-black/55'}`}>
+            <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
               {['Community owned'].map((item) => (
                 <li key={item} className="inline-flex items-center gap-1">
                   <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
@@ -736,7 +718,7 @@ export function HomePage() {
           <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <div className="mb-4">
               <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
-              <p className={`mt-1 text-xs muted-fg`}>{sectionCopy.subtitle}</p>
+              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
             </div>
 
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -747,31 +729,22 @@ export function HomePage() {
                   onClick={() => setActiveCategory(category)}
                   className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition ${
                     activeCategory === category
-                      ? isDark
-                        ? 'bg-white text-[#090b14]'
-                        : 'bg-[#12141c] text-white'
-                      : isDark
-                        ? 'border border-white/[0.07] bg-white/[0.025] text-white/45'
-                        : 'border border-black/[0.08] bg-white text-black/45'
+                      ? 'bg-white text-[#090b14]'
+                      : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
                   }`}
                 >
                   {category}
                 </button>
               ))}
-              <button
-                type="button"
-                className={`ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] ${
-                  isDark ? 'border-white/[0.07] text-white/45' : 'border-black/[0.08] text-black/45'
-                }`}
-              >
+              <button type="button" className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] text-white/45">
                 <SlidersHorizontal className="h-3 w-3" /> Filters
               </button>
             </div>
 
-            <div className={`gloss-panel rounded-xl border ${isDark ? 'border-white/[0.1]' : 'border-black/[0.08]'}`}>
+            <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
                 <div className="min-w-[1040px]">
-                  <div className={`grid ${tableCols} items-center gap-2 border-b px-3 py-2.5 text-[10px] font-semibold ${isDark ? 'border-white/[0.06] text-white/30' : 'border-black/[0.06] text-black/35'}`}>
+                  <div className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
@@ -791,19 +764,17 @@ export function HomePage() {
                     return (
                     <article
                       key={project.ticker}
-                      className={`grid ${tableCols} items-center gap-2 border-b px-3 py-3 last:border-0 ${
-                        isDark ? 'border-white/[0.05] hover:bg-white/[0.02]' : 'border-black/[0.05] hover:bg-black/[0.02]'
-                      }`}
+                      className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
                     >
                       <button
                         type="button"
                         aria-label={`Star ${project.ticker}`}
                         onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
-                        className={`grid place-items-center hover:text-[#c8ff3d] ${isDark ? 'text-white/20' : 'text-black/20'}`}
+                        className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
                       >
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
                       </button>
-                      <span className={`text-center text-xs ${isDark ? 'text-white/35' : 'text-black/35'}`}>{project.rank}</span>
+                      <span className="text-center text-xs text-white/35">{project.rank}</span>
                       <div className="flex min-w-0 items-center gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0">
@@ -813,12 +784,12 @@ export function HomePage() {
                               <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
                             )}
                             {project.boost != null && (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-500">
-                                <Zap className="h-3 w-3 fill-amber-400" />{project.boost}
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-300">
+                                <Zap className="h-3 w-3 fill-amber-300" />{project.boost}
                               </span>
                             )}
                           </div>
-                          <p className={`truncate text-[11px] muted-fg`}>{project.name}</p>
+                          <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
                         <ChainPill />
                       </div>
@@ -829,9 +800,7 @@ export function HomePage() {
                           disabled={hasVoted}
                           className={`rounded-md px-2.5 py-1.5 text-[11px] font-bold transition ${
                             hasVoted
-                              ? isDark
-                                ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                                : 'bg-[#c8ff3d]/45 text-[#3a5200]'
+                              ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
                               : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
                           }`}
                         >
@@ -840,29 +809,29 @@ export function HomePage() {
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
                       <span className="text-right text-xs"><Pct value={project.change24h} /></span>
-                      <span className="text-right text-xs font-semibold text-[#8fbf00]" title="Messages per hour" style={{ color: isDark ? '#c8ff3d' : '#5a7a00' }}>
+                      <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
                         {project.mph}
                       </span>
                       <div className="text-right">
-                        <p className={`text-xs font-semibold ${project.raidsActive > 0 ? (isDark ? 'text-[#c8ff3d]' : 'text-[#5a7a00]') : (isDark ? 'text-white/25' : 'text-black/25')}`}>
+                        <p className={`text-xs font-semibold ${project.raidsActive > 0 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>
                           {project.raidsActive > 0 ? `${project.raidsActive} raids` : '0 raids'}
                         </p>
-                        <p className={`text-[10px] ${isDark ? 'text-white/40' : 'text-black/40'}`}>{project.raidsJoined} eng.</p>
+                        <p className="text-[10px] text-white/40">{project.raidsJoined} eng.</p>
                       </div>
                       {project.marketingWallet ? (
-                        <button type="button" className={`inline-flex min-w-0 items-center gap-1.5 truncate rounded-md px-2 py-1 text-left text-[11px] font-medium hover:opacity-90 ${isDark ? 'bg-white/[0.04] text-[#c8ff3d]' : 'bg-black/[0.04] text-[#5a7a00]'}`}>
+                        <button type="button" className="inline-flex min-w-0 items-center gap-1.5 truncate rounded-md bg-white/[0.04] px-2 py-1 text-left text-[11px] font-medium text-[#c8ff3d] hover:bg-white/[0.07]">
                           <Wallet className="h-3 w-3 shrink-0" />
                           <span className="truncate">{project.marketingWallet}</span>
                         </button>
                       ) : (
-                        <span className={`text-[11px] ${isDark ? 'text-white/25' : 'text-black/25'}`}>No wallet</span>
+                        <span className="text-[11px] text-white/25">No wallet</span>
                       )}
-                      <span className={`text-right text-xs font-semibold ${isDark ? 'text-white/85' : 'text-black/80'}`}>
+                      <span className="text-right text-xs font-semibold text-white/85">
                         {project.marketingBalance ?? '--'}
                       </span>
                       <div className="text-right">
                         <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(displayVotes)}</p>
-                        <p className={`text-[10px] ${isDark ? 'text-white/35' : 'text-black/35'}`}>{displayVotesToday}</p>
+                        <p className="text-[10px] text-white/35">{displayVotesToday}</p>
                       </div>
                     </article>
                     );
@@ -871,7 +840,7 @@ export function HomePage() {
               </div>
 
               {visibleProjects.length === 0 && (
-                <div className={`px-4 py-12 text-center text-sm ${isDark ? 'text-white/35' : 'text-black/35'}`}>No projects found.</div>
+                <div className="px-4 py-12 text-center text-sm text-white/35">No projects found.</div>
               )}
             </div>
 
@@ -882,15 +851,11 @@ export function HomePage() {
                   aria-label="Previous page"
                   disabled={currentPage <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={`grid h-10 w-10 place-items-center rounded-lg border transition disabled:opacity-35 ${
-                    isDark
-                      ? 'border-white/[0.08] bg-white/[0.025] text-white/70 hover:text-white'
-                      : 'border-black/[0.1] bg-white text-black/60 hover:text-black'
-                  }`}
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-white/70 transition hover:text-white disabled:opacity-35"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className={`min-w-[5.5rem] text-center text-xs font-semibold ${isDark ? 'text-white/55' : 'text-black/55'}`}>
+                <span className="min-w-[5.5rem] text-center text-xs font-semibold text-white/55">
                   Page {currentPage} / {totalPages}
                 </span>
                 <button
@@ -898,11 +863,7 @@ export function HomePage() {
                   aria-label="Next page"
                   disabled={currentPage >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className={`grid h-10 w-10 place-items-center rounded-lg border transition disabled:opacity-35 ${
-                    isDark
-                      ? 'border-white/[0.08] bg-white/[0.025] text-white/70 hover:text-white'
-                      : 'border-black/[0.1] bg-white text-black/60 hover:text-black'
-                  }`}
+                  className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-white/70 transition hover:text-white disabled:opacity-35"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -911,11 +872,11 @@ export function HomePage() {
           </section>
 
           <aside className="space-y-4">
-            <div className={`gloss-panel overflow-hidden rounded-xl border p-4 ${isDark ? 'border-sky-400/20 bg-gradient-to-br from-sky-500/12 to-transparent' : 'border-sky-500/25 bg-gradient-to-br from-sky-400/15 to-white'}`}>
-              <span className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-sky-300' : 'text-sky-700'}`}>Telegram bot</span>
+            <div className="gloss-panel overflow-hidden rounded-xl border border-sky-400/20 bg-gradient-to-br from-sky-500/12 to-transparent p-4">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-sky-300">Telegram bot</span>
               <h3 className="mt-2 font-serif text-lg font-bold">Found an abandoned project?</h3>
-              <p className={`mt-2 text-xs leading-5 ${isDark ? 'text-white/40' : 'text-black/45'}`}>Submit a Solana contract and community to start a takeover proposal.</p>
-              <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2aabee] py-2.5 text-xs font-semibold text-white">
+              <p className="mt-2 text-xs leading-5 text-white/40">Submit a Solana contract and community to start a takeover proposal.</p>
+              <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2aabee] py-2.5 text-xs font-semibold">
                 <Bot className="h-4 w-4" /> Telegram bot
               </button>
             </div>
@@ -923,8 +884,8 @@ export function HomePage() {
         </div>
       </main>
 
-      <footer className={`mt-10 border-t ${isDark ? 'border-white/[0.06] bg-[#070912]/70 backdrop-blur-sm' : 'border-black/[0.06] bg-white/80 backdrop-blur-sm'}`}>
-        <div className={`mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] sm:flex-row sm:items-center sm:justify-between ${isDark ? 'text-white/25' : 'text-black/35'}`}>
+      <footer className={`mt-10 border-t border-white/[0.06] ${isDark ? 'bg-[#070912]/70 backdrop-blur-sm' : 'bg-[#070912]'}`}>
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
             <span>Solana CTO discovery</span>

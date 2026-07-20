@@ -190,15 +190,6 @@
   background-color: #070912;
 }
 
-.theme-light.page-shell {
-  background-color: #f3f5f9;
-  color: #12141c;
-}
-
-.theme-dark.page-shell {
-  color: #f5f7fb;
-}
-
 .page-gloss {
   pointer-events: none;
   position: absolute;
@@ -269,44 +260,6 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-}
-
-.theme-light .gloss-panel {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%),
-    #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 2px rgba(18, 20, 28, 0.04),
-    0 8px 24px rgba(18, 20, 28, 0.05);
-}
-
-.theme-light .gloss-panel-soft {
-  background:
-    linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 2px rgba(18, 20, 28, 0.04),
-    0 10px 28px rgba(18, 20, 28, 0.06);
-}
-
-.theme-light .chrome-surface {
-  background: rgba(255, 255, 255, 0.92);
-  border-color: rgba(18, 20, 28, 0.08);
-  color: #12141c;
-}
-
-.theme-dark .chrome-surface {
-  background: rgba(9, 11, 20, 0.88);
-  border-color: rgba(255, 255, 255, 0.07);
-}
-
-.theme-light .muted-fg {
-  color: rgba(18, 20, 28, 0.45);
-}
-
-.theme-dark .muted-fg {
-  color: rgba(255, 255, 255, 0.35);
 }
 
 /* iOS Safari shrink-to-fit: wide clipped children must not expand document width */
