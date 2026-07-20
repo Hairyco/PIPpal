@@ -442,6 +442,18 @@ function PromotedRail({ projects }: { projects: Project[] }) {
                       <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
                     </div>
                     <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                    <span
+                      className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
+                      title={`${project.community} Telegram members`}
+                    >
+                      <img
+                        src="/images/partners/telegram.svg"
+                        alt=""
+                        className="h-3 w-3"
+                        loading="lazy"
+                      />
+                      {project.community}
+                    </span>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
@@ -450,22 +462,6 @@ function PromotedRail({ projects }: { projects: Project[] }) {
                     </p>
                   </div>
                   <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
-                </div>
-                <div className="mt-3 flex items-center gap-2 border-t border-white/[0.05] pt-2.5">
-                  <StageBadge stage={project.stage} />
-                  <span className="text-[10px] text-white/30">{project.chain}</span>
-                  <span
-                    className="ml-auto flex shrink-0 items-center gap-1 text-[10px] font-medium text-white/45"
-                    title={`${project.community} Telegram members`}
-                  >
-                    <img
-                      src="/images/partners/telegram.svg"
-                      alt=""
-                      className="h-3.5 w-3.5"
-                      loading="lazy"
-                    />
-                    {project.community}
-                  </span>
                 </div>
                 <MarketingAdProgress project={project} />
               </div>
