@@ -170,6 +170,19 @@
   filter: drop-shadow(0 0 4px rgba(125, 211, 252, 0.75));
 }
 
+@keyframes marketing-sheen {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.marketing-fill {
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 /* Glossy dark shell — same base colour, soft lacquer depth */
 .page-shell {
   position: relative;

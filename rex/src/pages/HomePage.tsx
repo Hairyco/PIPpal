@@ -219,37 +219,75 @@ function MarketingAdProgress({ project }: { project: Project }) {
   const pct = Math.min(100, Math.round((balance / target) * 100));
   const ready = balance >= target;
   const spendLabel = project.nextAdSpend ?? 'DexScreener';
+  const remaining = Math.max(0, Number((target - balance).toFixed(1)));
 
   return (
     <div
-      className="flex min-w-0 flex-1 items-center gap-1.5"
-      title={`${project.marketingBalance} → ${target} SOL for ${spendLabel}`}
+      className="mt-3 rounded-lg border border-white/[0.06] bg-black/25 px-2.5 py-2"
+      title={`${project.marketingBalance} of ${target} SOL toward ${spendLabel}`}
     >
-      <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
-        <div
-          className={`h-full rounded-full transition-all ${
-            ready
-              ? 'bg-gradient-to-r from-[#c8ff3d] to-lime-200'
-              : 'bg-gradient-to-r from-sky-400 to-[#c8ff3d]'
-          }`}
-          style={{ width: `${pct}%` }}
-        />
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <p className="text-[10px] font-medium text-white/40">
+          {ready ? (
+            <span className="text-[#c8ff3d]">Ready · {spendLabel}</span>
+          ) : (
+            <>
+              <span className="text-white/55">{remaining} SOL</span>
+              <span className="text-white/25"> to {spendLabel}</span>
+            </>
+          )}
+        </p>
+        <p className="tabular-nums text-[10px] font-semibold text-white/45">
+          {balance}
+          <span className="font-normal text-white/25"> / {target} SOL</span>
+        </p>
       </div>
-      <span
-        className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border ${
-          ready
-            ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/15'
-            : 'border-white/10 bg-white/[0.04]'
-        }`}
-        aria-label={`Next ad: ${spendLabel}`}
-      >
-        <img
-          src="/images/partners/dexscreener.ico"
-          alt=""
-          className="h-3 w-3"
-          loading="lazy"
-        />
-      </span>
+
+      <div className="flex items-center gap-2">
+        <div className="relative h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07] ring-1 ring-inset ring-white/[0.04]">
+          <div
+            className={`marketing-fill absolute inset-y-0 left-0 rounded-full ${
+              ready
+                ? 'bg-[#c8ff3d] shadow-[0_0_12px_rgba(200,255,61,0.45)]'
+                : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
+            }`}
+            style={{ width: `${Math.max(pct, 4)}%` }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent)] opacity-40"
+            style={{ backgroundSize: '200% 100%', animation: ready ? undefined : 'marketing-sheen 2.4s ease-in-out infinite' }}
+          />
+        </div>
+
+        <span
+          className={`relative grid h-7 w-7 shrink-0 place-items-center rounded-full border ${
+            ready
+              ? 'border-[#c8ff3d]/55 bg-[#c8ff3d]/15 shadow-[0_0_10px_rgba(200,255,61,0.25)]'
+              : 'border-white/12 bg-[#12141f]'
+          }`}
+          aria-label={`Next ad spend: ${spendLabel}`}
+        >
+          <img
+            src="/images/partners/dexscreener.ico"
+            alt=""
+            className="h-3.5 w-3.5"
+            loading="lazy"
+          />
+          {!ready ? (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#0d101b] bg-sky-400"
+              aria-hidden
+            />
+          ) : (
+            <span
+              className="absolute -bottom-0.5 -right-0.5 grid h-2.5 w-2.5 place-items-center rounded-full border border-[#0d101b] bg-[#c8ff3d] text-[6px] font-black text-black"
+              aria-hidden
+            >
+              ✓
+            </span>
+          )}
+        </span>
+      </div>
     </div>
   );
 }
@@ -601,11 +639,11 @@ export function HomePage() {
                       <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
                         <StageBadge stage={project.stage} />
                         <span className="text-[10px] text-white/30">{project.chain}</span>
-                        <MarketingAdProgress project={project} />
                         <span className="ml-auto flex shrink-0 items-center gap-1 text-[10px] text-white/40">
                           <Users className="h-3 w-3" /> {project.community}
                         </span>
                       </div>
+                      <MarketingAdProgress project={project} />
                     </div>
                   </article>
                 </div>
