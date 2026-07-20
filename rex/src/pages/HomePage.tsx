@@ -216,180 +216,6 @@ function HeroLogoCollage() {
   );
 }
 
-const marketingPartners = [
-  { name: 'CoinGecko', src: '/images/partners/coingecko.svg' },
-  { name: 'DexScreener', src: '/images/partners/dexscreener.ico' },
-  { name: 'DEXTools', src: '/images/partners/dextools.svg' },
-  { name: 'CoinMarketCap', src: '/images/partners/coinmarketcap.svg' },
-];
-
-function MarketingPartnersPanel() {
-  return (
-    <div className="grid w-[132px] grid-cols-2 gap-2 sm:w-[152px] sm:gap-2.5" aria-hidden>
-      {marketingPartners.map((partner) => (
-        <div
-          key={partner.name}
-          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.1] bg-[#0a0c16]/75 px-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-          title={partner.name}
-        >
-          <img
-            src={partner.src}
-            alt=""
-            className="h-7 w-7 object-contain sm:h-8 sm:w-8"
-            loading="lazy"
-          />
-          <span className="max-w-full truncate text-[8px] font-semibold tracking-wide text-white/45 sm:text-[9px]">
-            {partner.name}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function HeroBannerCarousel() {
-  const [slide, setSlide] = useState(0);
-  const pausedRef = useRef(false);
-  const total = 2;
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      if (pausedRef.current) return;
-      setSlide((prev) => (prev + 1) % total);
-    }, 5500);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const goTo = (index: number) => {
-    setSlide(index);
-    pausedRef.current = true;
-    window.setTimeout(() => {
-      pausedRef.current = false;
-    }, 8000);
-  };
-
-  return (
-    <section
-      className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]"
-      onMouseEnter={() => {
-        pausedRef.current = true;
-      }}
-      onMouseLeave={() => {
-        pausedRef.current = false;
-      }}
-      onTouchStart={() => {
-        pausedRef.current = true;
-      }}
-      onTouchEnd={() => {
-        window.setTimeout(() => {
-          pausedRef.current = false;
-        }, 5000);
-      }}
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
-
-      <div className="relative">
-        <div
-          className="flex transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${slide * 100}%)` }}
-        >
-          {/* Slide 1 — community takeovers */}
-          <div className="relative w-full shrink-0">
-            <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
-              <HeroLogoCollage />
-            </div>
-            <div className="relative z-10 px-4 py-4 pr-[7.25rem] pb-10 sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 sm:pb-11 md:max-w-md">
-              <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
-                The home of community takeovers
-              </h1>
-              <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
-                <Link
-                  to="/launch"
-                  className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
-                >
-                  Launch a CTO
-                </Link>
-                <button
-                  type="button"
-                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
-                >
-                  <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  Telegram bot
-                </button>
-              </div>
-              <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
-                <Wallet className="h-3.5 w-3.5 shrink-0" />
-                Automated marketing wallets included
-              </p>
-              <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
-                <li className="inline-flex items-center gap-1">
-                  <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                  Community owned
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Slide 2 — marketing wallets */}
-          <div className="relative w-full shrink-0">
-            <div className="pointer-events-none absolute right-2 top-5 z-0 sm:right-5 sm:top-6">
-              <MarketingPartnersPanel />
-            </div>
-            <div className="relative z-10 px-4 py-4 pr-[8.5rem] pb-10 sm:max-w-[min(100%,28rem)] sm:px-6 sm:py-5 sm:pr-6 sm:pb-11 md:max-w-lg">
-              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
-                Marketing wallets
-              </p>
-              <h2 className="font-serif text-[1.55rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
-                Ads that buy themselves
-              </h2>
-              <p className="mt-2 max-w-[18rem] text-[11px] leading-relaxed text-white/50 sm:max-w-sm sm:text-xs">
-                Every CTO launches with a marketing wallet that auto-funds DexScreener, DEXTools, CoinGecko, and CoinMarketCap placements as balance hits targets.
-              </p>
-              <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
-                <Link
-                  to="/launch"
-                  className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
-                >
-                  Launch a CTO
-                </Link>
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/45 sm:text-[11px]">
-                  <Wallet className="h-3.5 w-3.5 text-[#c8ff3d]" />
-                  No manual buys
-                </span>
-              </div>
-              <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
-                {['Threshold-triggered ads', 'Community-controlled spend'].map((item) => (
-                  <li key={item} className="inline-flex items-center gap-1">
-                    <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
-          {[0, 1].map((index) => (
-            <button
-              key={index}
-              type="button"
-              aria-label={`Show banner ${index + 1}`}
-              aria-current={slide === index}
-              onClick={() => goTo(index)}
-              className={`h-2.5 w-2.5 rounded-full border transition ${
-                slide === index
-                  ? 'border-[#c8ff3d] bg-[#c8ff3d]'
-                  : 'border-white/35 bg-white/15 hover:bg-white/30'
-              }`}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function HeartbeatTracker() {
   return (
     <svg className="h-5 w-[4.5rem]" viewBox="0 0 84 24" aria-hidden>
@@ -494,7 +320,7 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  'grid-cols-[28px_36px_auto_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
+  'grid-cols-[28px_36px_180px_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
 
 function ProjectMark({
   project,
@@ -553,170 +379,94 @@ function readStoredTheme(): ThemeMode {
 }
 
 function PromotedRail({ projects }: { projects: Project[] }) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
-  const resumeTimerRef = useRef<number | null>(null);
-  const dragRef = useRef<{ active: boolean; startX: number; startScroll: number }>({
-    active: false,
-    startX: 0,
-    startScroll: 0,
-  });
+  const offsetRef = useRef(0);
   const loop = [...projects, ...projects];
-  const cardStep = 248 + 14; // card width + electric bridge
-
-  const pause = () => {
-    pausedRef.current = true;
-    if (resumeTimerRef.current != null) {
-      window.clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = null;
-    }
-  };
-
-  const scheduleResume = (delay = 3200) => {
-    if (resumeTimerRef.current != null) window.clearTimeout(resumeTimerRef.current);
-    resumeTimerRef.current = window.setTimeout(() => {
-      pausedRef.current = false;
-      resumeTimerRef.current = null;
-    }, delay);
-  };
-
-  const scrollByCards = (dir: -1 | 1) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    pause();
-    el.scrollBy({ left: dir * cardStep, behavior: 'smooth' });
-    scheduleResume();
-  };
 
   useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el || projects.length === 0) return;
+    const track = trackRef.current;
+    if (!track || projects.length === 0) return;
 
     let frame = 0;
+    const speed = 0.6;
     const tick = () => {
-      if (!pausedRef.current && !dragRef.current.active) {
-        el.scrollLeft += 0.55;
-        const half = el.scrollWidth / 2;
-        if (half > 0 && el.scrollLeft >= half) {
-          el.scrollLeft -= half;
+      if (!pausedRef.current) {
+        offsetRef.current += speed;
+        const half = track.scrollWidth / 2;
+        if (half > 0 && offsetRef.current >= half) {
+          offsetRef.current -= half;
         }
+        track.style.transform = `translate3d(-${offsetRef.current}px, 0, 0)`;
       }
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
 
-    return () => {
-      window.cancelAnimationFrame(frame);
-      if (resumeTimerRef.current != null) window.clearTimeout(resumeTimerRef.current);
-    };
+    return () => window.cancelAnimationFrame(frame);
   }, [projects.length]);
 
-  return (
-    <div className="relative min-w-0">
-      <button
-        type="button"
-        aria-label="Previous promoted CTOs"
-        onClick={() => scrollByCards(-1)}
-        className="absolute left-0 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-[#0d101b]/95 text-white/70 shadow-lg backdrop-blur-sm transition hover:text-white sm:left-1"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        aria-label="Next promoted CTOs"
-        onClick={() => scrollByCards(1)}
-        className="absolute right-0 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-[#0d101b]/95 text-white/70 shadow-lg backdrop-blur-sm transition hover:text-white sm:right-1"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+  const pause = () => {
+    pausedRef.current = true;
+  };
+  const resume = () => {
+    pausedRef.current = false;
+  };
 
+  return (
+    <div
+      className="relative min-w-0 overflow-hidden"
+      onMouseEnter={pause}
+      onMouseLeave={resume}
+      onTouchStart={pause}
+      onTouchEnd={resume}
+      onTouchCancel={resume}
+    >
       <div
-        ref={scrollerRef}
-        className="promoted-rail hide-scrollbar -mx-3 min-w-0 overflow-x-auto overscroll-x-contain px-10 pb-1 sm:-mx-5 sm:px-12"
-        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
-        onPointerDown={(event) => {
-          // Custom drag for mouse only — let touch use native overflow scrolling
-          if (event.pointerType !== 'mouse' || event.button !== 0) {
-            pause();
-            return;
-          }
-          const el = scrollerRef.current;
-          if (!el) return;
-          pause();
-          dragRef.current = {
-            active: true,
-            startX: event.clientX,
-            startScroll: el.scrollLeft,
-          };
-          el.setPointerCapture?.(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          if (!dragRef.current.active || event.pointerType !== 'mouse') return;
-          const el = scrollerRef.current;
-          if (!el) return;
-          const dx = event.clientX - dragRef.current.startX;
-          el.scrollLeft = dragRef.current.startScroll - dx;
-        }}
-        onPointerUp={(event) => {
-          if (event.pointerType === 'mouse') dragRef.current.active = false;
-          scheduleResume();
-        }}
-        onPointerCancel={() => {
-          dragRef.current.active = false;
-          scheduleResume();
-        }}
-        onTouchStart={pause}
-        onTouchMove={pause}
-        onTouchEnd={() => scheduleResume(3600)}
-        onWheel={() => {
-          pause();
-          scheduleResume();
-        }}
-        onMouseEnter={pause}
-        onMouseLeave={() => scheduleResume()}
+        ref={trackRef}
+        className="flex w-max max-w-none items-stretch gap-0 will-change-transform"
+        style={{ transform: 'translate3d(0,0,0)' }}
       >
-        <div className="flex w-max max-w-none items-stretch gap-0">
-          {loop.map((project, index) => (
-            <div key={`${project.ticker}-${index}`} className="flex shrink-0 items-stretch">
-              {index > 0 ? <ElectricBridge /> : null}
-              <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
-                <div className="promoted-chase" />
-                <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
-                  <div className="flex items-center gap-2.5">
-                    <ProjectMark project={project} size="h-10 w-10" />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="truncate text-sm font-bold">${project.ticker}</p>
-                        <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                      </div>
-                      <p className="truncate text-[11px] text-white/35">{project.name}</p>
-                      <span
-                        className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
-                        title={`${project.community} Telegram members`}
-                      >
-                        <img
-                          src="/images/partners/telegram.svg"
-                          alt=""
-                          className="h-3 w-3"
-                          loading="lazy"
-                        />
-                        {project.community}
-                      </span>
+        {loop.map((project, index) => (
+          <div key={`${project.ticker}-${index}`} className="flex shrink-0 items-stretch">
+            {index > 0 ? <ElectricBridge /> : null}
+            <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
+              <div className="promoted-chase" />
+              <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
+                <div className="flex items-center gap-2.5">
+                  <ProjectMark project={project} size="h-10 w-10" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-bold">${project.ticker}</p>
+                      <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
-                      <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                        {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                      </p>
-                    </div>
-                    <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
+                    <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                    <span
+                      className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
+                      title={`${project.community} Telegram members`}
+                    >
+                      <img
+                        src="/images/partners/telegram.svg"
+                        alt=""
+                        className="h-3 w-3"
+                        loading="lazy"
+                      />
+                      {project.community}
+                    </span>
                   </div>
-                  <MarketingAdProgress project={project} />
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
+                    <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                      {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                    </p>
+                  </div>
+                  <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
                 </div>
-              </article>
-            </div>
-          ))}
-        </div>
+                <MarketingAdProgress project={project} />
+              </div>
+            </article>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -729,6 +479,7 @@ export function HomePage() {
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
+  const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme());
   const searchRef = useRef<HTMLInputElement>(null);
@@ -830,7 +581,31 @@ export function HomePage() {
 
   useEffect(() => {
     setPage(1);
+    setPageInput('');
   }, [query, activeCategory, activeShortcut]);
+
+  const goToPage = (next: number) => {
+    const clamped = Math.min(totalPages, Math.max(1, next));
+    setPage(clamped);
+    setPageInput('');
+  };
+
+  const submitPageInput = () => {
+    const parsed = Number.parseInt(pageInput.trim(), 10);
+    if (!Number.isFinite(parsed)) {
+      setPageInput('');
+      return;
+    }
+    goToPage(parsed);
+  };
+
+  const pageNumbers = useMemo(() => {
+    const maxButtons = Math.min(totalPages, 5);
+    let start = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    const end = Math.min(totalPages, start + maxButtons - 1);
+    start = Math.max(1, end - maxButtons + 1);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }, [currentPage, totalPages]);
 
   const sectionCopy = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
 
@@ -960,7 +735,42 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        <HeroBannerCarousel />
+        <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
+          <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
+            <HeroLogoCollage />
+          </div>
+          <div className="relative z-10 px-4 py-4 pr-[7.25rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
+            <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
+              The home of community takeovers
+            </h1>
+            <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
+              <Link
+                to="/launch"
+                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
+              >
+                Launch a CTO
+              </Link>
+              <button
+                type="button"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+              >
+                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Telegram bot
+              </button>
+            </div>
+            <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
+              <Wallet className="h-3.5 w-3.5 shrink-0" />
+              Automated marketing wallets included
+            </p>
+            <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
+              <li className="inline-flex items-center gap-1">
+                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                Community owned
+              </li>
+            </ul>
+          </div>
+        </section>
 
         <section className="mt-7 min-w-0">
           <div className="mb-3 flex items-center justify-between">
@@ -973,7 +783,7 @@ export function HomePage() {
           <PromotedRail projects={promotedProjects} />
         </section>
 
-        <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
+        <div className="mt-8">
           <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <div className="mb-4">
               <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
@@ -1071,9 +881,9 @@ export function HomePage() {
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
                       </button>
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex max-w-[12.5rem] items-center gap-2.5 sm:max-w-[14rem]">
+                      <div className="flex w-[180px] items-center gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <p className="truncate text-sm font-bold">{project.ticker}</p>
                             {project.verified && (
@@ -1089,12 +899,12 @@ export function HomePage() {
                         </div>
                         <ChainPill />
                       </div>
-                      <div className="flex justify-center">
+                      <div className="flex w-full justify-center">
                         <button
                           type="button"
                           onClick={() => castVote(project.ticker)}
                           disabled={hasVoted}
-                          className={`rounded-md px-2.5 py-1.5 text-[11px] font-bold transition ${
+                          className={`w-[3.25rem] rounded-md px-0 py-1.5 text-center text-[11px] font-bold transition ${
                             hasVoted
                               ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
                               : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
@@ -1142,42 +952,70 @@ export function HomePage() {
             )}
 
             {activeCategory !== 'Pinned' && visibleProjects.length > 0 ? (
-              <div className="mt-4 flex items-center justify-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
                   aria-label="Previous page"
                   disabled={currentPage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => goToPage(currentPage - 1)}
                   className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-white/70 transition hover:text-white disabled:opacity-35"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="min-w-[5.5rem] text-center text-xs font-semibold text-white/55">
-                  Page {currentPage} / {totalPages}
-                </span>
+                {pageNumbers.map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => goToPage(num)}
+                    className={`grid h-10 min-w-[2.5rem] place-items-center rounded-lg border px-2 text-xs font-semibold transition ${
+                      num === currentPage
+                        ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/15 text-[#d5ff69]'
+                        : 'border-white/[0.08] bg-white/[0.025] text-white/55 hover:text-white'
+                    }`}
+                  >
+                    {num}
+                  </button>
+                ))}
                 <button
                   type="button"
                   aria-label="Next page"
                   disabled={currentPage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => goToPage(currentPage + 1)}
                   className="grid h-10 w-10 place-items-center rounded-lg border border-white/[0.08] bg-white/[0.025] text-white/70 transition hover:text-white disabled:opacity-35"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
+                <form
+                  className="ml-1 flex items-center gap-1.5"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    submitPageInput();
+                  }}
+                >
+                  <label className="sr-only" htmlFor="page-jump">
+                    Go to page
+                  </label>
+                  <input
+                    id="page-jump"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={pageInput}
+                    onChange={(event) => setPageInput(event.target.value.replace(/[^\d]/g, ''))}
+                    placeholder=""
+                    aria-label="Enter page number"
+                    className="h-10 w-12 rounded-lg border border-white/[0.08] bg-white/[0.025] px-2 text-center text-xs text-white outline-none focus:border-[#c8ff3d]/40"
+                  />
+                  <button
+                    type="submit"
+                    className="h-10 rounded-lg border border-white/[0.08] bg-white/[0.025] px-2.5 text-[11px] font-semibold text-white/55 transition hover:text-white"
+                  >
+                    Go
+                  </button>
+                </form>
               </div>
             ) : null}
           </section>
-
-          <aside className="space-y-4">
-            <div className="gloss-panel overflow-hidden rounded-xl border border-sky-400/20 bg-gradient-to-br from-sky-500/12 to-transparent p-4">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-sky-300">Telegram bot</span>
-              <h3 className="mt-2 font-serif text-lg font-bold">Found an abandoned project?</h3>
-              <p className="mt-2 text-xs leading-5 text-white/40">Submit a Solana contract and community to start a takeover proposal.</p>
-              <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2aabee] py-2.5 text-xs font-semibold">
-                <Bot className="h-4 w-4" /> Telegram bot
-              </button>
-            </div>
-          </aside>
         </div>
       </main>
 
