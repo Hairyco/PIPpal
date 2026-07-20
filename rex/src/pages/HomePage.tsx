@@ -4,19 +4,18 @@ import {
   BarChart3,
   Bot,
   ChevronDown,
-  Clock3,
-  Flame,
   Menu,
+  MessageSquare,
   Moon,
+  Pin,
   Plus,
   RotateCcw,
   Search,
   SlidersHorizontal,
-  Sparkles,
   Star,
   Sun,
-  Trophy,
   Wallet,
+  X,
   Zap,
 } from 'lucide-react';
 
@@ -43,6 +42,8 @@ type Project = {
   nextAdTargetSol?: number;
   /** Short label for next spend (e.g. DexScreener) */
   nextAdSpend?: string;
+  /** Telegram messages per hour */
+  mph: number;
   raidsActive: number;
   raidsJoined: string;
   roadmapMilestone: string;
@@ -57,44 +58,58 @@ type Project = {
 };
 
 const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', nextAdTargetSol: 50, nextAdSpend: 'DexScreener', raidsActive: 3, raidsJoined: '1.2K', roadmapMilestone: 'Marketing fund threshold', roadmapDone: 3, roadmapTotal: 8, score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', nextAdTargetSol: 30, nextAdSpend: 'DexScreener', raidsActive: 2, raidsJoined: '840', roadmapMilestone: 'Community channels live', roadmapDone: 2, roadmapTotal: 8, score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
-  { rank: 3, name: 'Lunar Martian', ticker: 'LMARS', chain: 'SOL', category: 'AI', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: 'Lm9r…mars', marketingBalance: '62.4 SOL', nextAdTargetSol: 75, nextAdSpend: 'DexScreener', raidsActive: 5, raidsJoined: '2.4K', roadmapMilestone: 'Supplier assigned', roadmapDone: 5, roadmapTotal: 10, score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
-  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: 'Ca11…line', marketingBalance: '14.8 SOL', nextAdTargetSol: 25, nextAdSpend: 'DexScreener', raidsActive: 1, raidsJoined: '310', roadmapMilestone: 'Bonding curve launch', roadmapDone: 1, roadmapTotal: 6, score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', category: 'AI', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', nextAdTargetSol: 40, nextAdSpend: 'DexScreener', raidsActive: 4, raidsJoined: '1.8K', roadmapMilestone: 'Roadmap wallet unlock', roadmapDone: 4, roadmapTotal: 9, score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
-  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'SOL', category: 'DeFi', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', raidsActive: 0, raidsJoined: '96', roadmapMilestone: 'Alpha prototype', roadmapDone: 6, roadmapTotal: 10, score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11, promoted: true },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', category: 'DeFi', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', nextAdTargetSol: 15, nextAdSpend: 'DexScreener', raidsActive: 2, raidsJoined: '420', roadmapMilestone: 'Marketing wave 2', roadmapDone: 2, roadmapTotal: 7, score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: 'SuRv…live', marketingBalance: '4.1 SOL', nextAdTargetSol: 10, nextAdSpend: 'DexScreener', raidsActive: 1, raidsJoined: '188', roadmapMilestone: 'Community channels live', roadmapDone: 1, roadmapTotal: 6, score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
+  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, price: '$0.000421', change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', marketingWallet: '7xA2…mPeg', marketingBalance: '48.2 SOL', nextAdTargetSol: 50, nextAdSpend: 'DexScreener', mph: 186, raidsActive: 3, raidsJoined: '1.2K', roadmapMilestone: 'Marketing fund threshold', roadmapDone: 3, roadmapTotal: 8, score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
+  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, price: '$0.000187', change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', marketingWallet: 'Fg9k…frog', marketingBalance: '21.6 SOL', nextAdTargetSol: 30, nextAdSpend: 'DexScreener', mph: 94, raidsActive: 2, raidsJoined: '840', roadmapMilestone: 'Community channels live', roadmapDone: 2, roadmapTotal: 8, score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
+  { rank: 3, name: 'Lunar Martian', ticker: 'LMARS', chain: 'SOL', category: 'AI', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, price: '$0.001104', change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', marketingWallet: 'Lm9r…mars', marketingBalance: '62.4 SOL', nextAdTargetSol: 75, nextAdSpend: 'DexScreener', mph: 142, raidsActive: 5, raidsJoined: '2.4K', roadmapMilestone: 'Supplier assigned', roadmapDone: 5, roadmapTotal: 10, score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
+  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, price: '$0.000062', change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', marketingWallet: 'Ca11…line', marketingBalance: '14.8 SOL', nextAdTargetSol: 25, nextAdSpend: 'DexScreener', mph: 61, raidsActive: 1, raidsJoined: '310', roadmapMilestone: 'Bonding curve launch', roadmapDone: 1, roadmapTotal: 6, score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
+  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', category: 'AI', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, price: '$0.000891', change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', marketingWallet: 'Gob1…pixl', marketingBalance: '33.0 SOL', nextAdTargetSol: 40, nextAdSpend: 'DexScreener', mph: 118, raidsActive: 4, raidsJoined: '1.8K', roadmapMilestone: 'Roadmap wallet unlock', roadmapDone: 4, roadmapTotal: 9, score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
+  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'SOL', category: 'DeFi', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, price: '$0.000244', change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', mph: 28, raidsActive: 0, raidsJoined: '96', roadmapMilestone: 'Alpha prototype', roadmapDone: 6, roadmapTotal: 10, score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11, promoted: true },
+  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', category: 'DeFi', stage: 'Voting', community: '980', votes: 264, votesToday: 9, price: '$0.000055', change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', marketingWallet: 'Ni7e…shft', marketingBalance: '9.4 SOL', nextAdTargetSol: 15, nextAdSpend: 'DexScreener', mph: 47, raidsActive: 2, raidsJoined: '420', roadmapMilestone: 'Marketing wave 2', roadmapDone: 2, roadmapTotal: 7, score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
+  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, price: '$0.000019', change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', marketingWallet: 'SuRv…live', marketingBalance: '4.1 SOL', nextAdTargetSol: 10, nextAdSpend: 'DexScreener', mph: 39, raidsActive: 1, raidsJoined: '188', roadmapMilestone: 'Community channels live', roadmapDone: 1, roadmapTotal: 6, score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
 ];
 
 const tickerProjects = projects;
 const promotedProjects = projects.filter((project) => project.promoted);
-const shortcuts = [
-  { label: 'Top Today', icon: Clock3 },
-  { label: 'Top All Time', icon: Trophy },
-  { label: 'New CTOs', icon: Sparkles },
-  { label: 'Trending', icon: Flame },
-];
 const categories = ['All', 'Meme', 'AI', 'DeFi'];
 
-const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
-  'Top Today': {
-    title: 'Top CTOs Today',
-    subtitle: 'Solana community takeovers ranked by activity over the last 24 hours.',
-  },
-  'Top All Time': {
-    title: 'Top CTOs All Time',
-    subtitle: 'Highest-voted Solana community takeovers across all time.',
-  },
-  'New CTOs': {
-    title: 'New CTOs',
-    subtitle: 'Recently forming Solana takeovers just entering the rankings.',
-  },
-  Trending: {
-    title: 'Trending CTOs',
-    subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
-  },
+type Community = {
+  id: string;
+  ticker: string;
+  name: string;
+  handle: string;
+  members: string;
+  mph: number;
+  logo: string;
+  colors: string;
 };
+
+type PinnedMessage = {
+  id: string;
+  ticker: string;
+  community: string;
+  logo: string;
+  colors: string;
+  text: string;
+  when: string;
+};
+
+const communities: Community[] = [
+  { id: 'gob', ticker: 'GOB', name: 'Pixel Goblin', handle: 't.me/pixelgoblin', members: '6.2K', mph: 118, logo: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700' },
+  { id: 'mpeg', ticker: 'MPEG', name: 'Moon Pigeon', handle: 't.me/moonpigeon', members: '4.8K', mph: 186, logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700' },
+  { id: 'lmars', ticker: 'LMARS', name: 'Lunar Martian', handle: 't.me/lunarmartian', members: '8.4K', mph: 142, logo: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700' },
+  { id: 'exit', ticker: 'EXIT', name: 'Exit Liquidity', handle: 't.me/exitliq', members: '3.7K', mph: 28, logo: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700' },
+  { id: 'surv', ticker: 'SURV', name: 'Rug Survivor', handle: 't.me/rugsurvivor', members: '1.2K', mph: 39, logo: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700' },
+  { id: 'nite', ticker: 'NITE', name: 'Night Shift', handle: 't.me/nightshiftcto', members: '980', mph: 47, logo: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800' },
+];
+
+const pinnedMessages: PinnedMessage[] = [
+  { id: '1', ticker: 'GOB', community: 'Pixel Goblin', logo: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots.', when: '2h ago' },
+  { id: '2', ticker: 'MPEG', community: 'Moon Pigeon', logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', text: 'Marketing wallet hit 48 SOL. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago' },
+  { id: '3', ticker: 'LMARS', community: 'Lunar Martian', logo: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers.', when: '5h ago' },
+  { id: '4', ticker: 'SURV', community: 'Rug Survivor', logo: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', text: 'Community takeover vote open until Friday. Bring holders from the old group.', when: '8h ago' },
+  { id: '5', ticker: 'NITE', community: 'Night Shift', logo: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids.', when: '11h ago' },
+  { id: '6', ticker: 'EXIT', community: 'Exit Liquidity', logo: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700', text: 'No marketing wallet yet — help us enable one after listing. AMA notes pinned here.', when: '14h ago' },
+];
 
 const heroCoins = [
   {
@@ -283,7 +298,51 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  'grid-cols-[28px_36px_minmax(180px,1.4fr)_72px_64px_84px_128px_88px_72px_72px_168px_72px]';
+  'grid-cols-[28px_36px_minmax(170px,1.3fr)_72px_64px_64px_100px_120px_88px_72px]';
+
+function PinnedWall({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center sm:p-6" role="dialog" aria-modal aria-labelledby="pinned-wall-title">
+      <button type="button" className="absolute inset-0 cursor-default" aria-label="Close pinned wall" onClick={onClose} />
+      <div className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d101b] shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3.5">
+          <div>
+            <h2 id="pinned-wall-title" className="flex items-center gap-2 font-serif text-lg font-bold">
+              <Pin className="h-4 w-4 text-[#c8ff3d]" />
+              Pinned wall
+            </h2>
+            <p className="mt-0.5 text-[11px] text-white/40">Pinned messages from all Telegram communities</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-9 w-9 place-items-center rounded-lg text-white/50 hover:bg-white/5 hover:text-white"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="hide-scrollbar space-y-3 overflow-y-auto p-4">
+          {pinnedMessages.map((pin) => (
+            <article key={pin.id} className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className={`h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${pin.colors} ring-1 ring-white/10`}>
+                  <img src={pin.logo} alt="" className="h-full w-full object-cover" loading="lazy" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">${pin.ticker}</p>
+                  <p className="truncate text-[11px] text-white/35">{pin.community}</p>
+                </div>
+                <span className="shrink-0 text-[10px] text-white/30">{pin.when}</span>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-white/70">{pin.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function ProjectMark({
   project,
@@ -326,34 +385,6 @@ function Pct({ value }: { value: number | null }) {
 function formatVotes(n: number) {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 2).replace(/\.00$/, '')}K`;
   return String(n);
-}
-
-function StageBadge({ stage }: { stage: Project['stage'] }) {
-  const styles: Record<Project['stage'], string> = {
-    Forming: 'bg-sky-400/10 text-sky-300',
-    Voting: 'bg-violet-400/10 text-violet-300',
-    Relaunching: 'bg-amber-300/10 text-amber-200',
-    Live: 'bg-lime-300/10 text-lime-300',
-  };
-
-  return <span className={`rounded-md px-2 py-1 text-[10px] font-semibold ${styles[stage]}`}>{stage}</span>;
-}
-
-function RoadmapCell({ project }: { project: Project }) {
-  const pct = Math.round((project.roadmapDone / project.roadmapTotal) * 100);
-  return (
-    <div className="min-w-0">
-      <p className="truncate text-[11px] font-medium text-sky-300">{project.roadmapMilestone}</p>
-      <div className="mt-1.5 flex items-center gap-2">
-        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
-          <div className="h-full rounded-full bg-gradient-to-r from-sky-400 to-[#c8ff3d]" style={{ width: `${pct}%` }} />
-        </div>
-        <span className="shrink-0 text-[10px] tabular-nums text-white/35">
-          {project.roadmapDone}/{project.roadmapTotal}
-        </span>
-      </div>
-    </div>
-  );
 }
 
 const THEME_KEY = 'cto-theme';
@@ -478,11 +509,11 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 
 export function HomePage() {
   const [query, setQuery] = useState('');
-  const [activeShortcut, setActiveShortcut] = useState('Top Today');
   const [activeCategory, setActiveCategory] = useState('All');
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [searchFocused, setSearchFocused] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme());
+  const [showPinnedWall, setShowPinnedWall] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const isDark = theme === 'dark';
 
@@ -496,6 +527,10 @@ export function HomePage() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showPinnedWall) {
+        setShowPinnedWall(false);
+        return;
+      }
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
@@ -506,7 +541,7 @@ export function HomePage() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [showPinnedWall]);
 
   const visibleProjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -521,38 +556,10 @@ export function HomePage() {
       return matchesQuery && matchesCategory;
     });
 
-    const sorted = [...filtered];
-    switch (activeShortcut) {
-      case 'Top All Time':
-        sorted.sort((a, b) => b.votes - a.votes || b.score - a.score);
-        break;
-      case 'New CTOs':
-        sorted.sort((a, b) => {
-          const stageWeight = (stage: Project['stage']) =>
-            ({ Forming: 0, Voting: 1, Relaunching: 2, Live: 3 })[stage];
-          return stageWeight(a.stage) - stageWeight(b.stage) || b.votesToday - a.votesToday;
-        });
-        break;
-      case 'Trending':
-        sorted.sort((a, b) => b.change24h - a.change24h || b.votesToday - a.votesToday);
-        break;
-      case 'Top Today':
-      default:
-        sorted.sort((a, b) => b.votesToday - a.votesToday || b.votes - a.votes);
-        break;
-    }
-
-    return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeCategory, activeShortcut]);
-
-  const sectionCopy = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
-
-  const selectShortcut = (label: string) => {
-    setActiveShortcut(label);
-    requestAnimationFrame(() => {
-      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
+    return [...filtered]
+      .sort((a, b) => b.votesToday - a.votesToday || b.mph - a.mph || b.votes - a.votes)
+      .map((project, index) => ({ ...project, rank: index + 1 }));
+  }, [query, activeCategory]);
 
   return (
     <div className={`page-shell min-h-screen text-[#f5f7fb] ${isDark ? 'theme-dark' : 'theme-light'}`}>
@@ -636,31 +643,8 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className={`border-b border-white/[0.06] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
-        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
-          {shortcuts.map((shortcut) => {
-            const Icon = shortcut.icon;
-            const active = activeShortcut === shortcut.label;
-            return (
-              <button
-                key={shortcut.label}
-                type="button"
-                onClick={() => selectShortcut(shortcut.label)}
-                className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
-                  active
-                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {shortcut.label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
-
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
+        {showPinnedWall ? <PinnedWall onClose={() => setShowPinnedWall(false)} /> : null}
         <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
           <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
@@ -714,11 +698,64 @@ export function HomePage() {
           <PromotedRail projects={promotedProjects} />
         </section>
 
+        <section className="mt-8">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-serif text-lg font-bold">Communities</h2>
+              <p className="mt-0.5 text-[11px] text-white/35">Telegram groups for Solana CTOs</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowPinnedWall(true)}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 py-2 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15"
+            >
+              <Pin className="h-3.5 w-3.5" />
+              Pinned
+            </button>
+          </div>
+          <div className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-5 sm:px-5">
+            <div className="flex w-max gap-3">
+              {communities.map((group) => (
+                <a
+                  key={group.id}
+                  href={`https://${group.handle}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="gloss-panel w-[200px] shrink-0 rounded-xl border border-white/[0.08] p-3 transition hover:border-[#2aabee]/35"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${group.colors} ring-1 ring-white/10`}>
+                      <img src={group.logo} alt="" className="h-full w-full object-cover" loading="lazy" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">${group.ticker}</p>
+                      <p className="truncate text-[11px] text-white/35">{group.name}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-2 text-[10px]">
+                    <span className="inline-flex items-center gap-1 font-medium text-white/45">
+                      <img src="/images/partners/telegram.svg" alt="" className="h-3 w-3" />
+                      {group.members}
+                    </span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-[#c8ff3d]">
+                      <MessageSquare className="h-3 w-3" />
+                      {group.mph} MPH
+                    </span>
+                  </div>
+                  <p className="mt-2 truncate text-[10px] text-white/25">{group.handle}</p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
           <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <div className="mb-4">
-              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
-              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+              <h2 className="font-serif text-2xl font-bold">Top CTOs Today</h2>
+              <p className="mt-1 text-xs text-white/35">
+                Solana community takeovers ranked by activity, MPH, and raids.
+              </p>
             </div>
 
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
@@ -743,19 +780,17 @@ export function HomePage() {
 
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={`min-w-[1100px]`}>
+                <div className="min-w-[980px]">
                   <div className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
                     <span className="text-right">Price</span>
                     <span className="text-right">%24h</span>
-                    <span className="text-right">Market Cap</span>
+                    <span className="text-right" title="Messages per hour">MPH</span>
+                    <span className="text-right" title="Raids and people engaging">Raids</span>
                     <span>Marketing wallet</span>
                     <span className="text-right">Balance</span>
-                    <span className="text-right">Raids</span>
-                    <span className="text-right">Joined</span>
-                    <span>Roadmap</span>
                     <span className="text-right">Votes ▾</span>
                   </div>
                   {visibleProjects.map((project) => (
@@ -792,7 +827,15 @@ export function HomePage() {
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
                       <span className="text-right text-xs"><Pct value={project.change24h} /></span>
-                      <span className="text-right text-xs text-white/80">{project.marketCap}</span>
+                      <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
+                        {project.mph}
+                      </span>
+                      <div className="text-right">
+                        <p className={`text-xs font-semibold ${project.raidsActive > 0 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>
+                          {project.raidsActive > 0 ? `${project.raidsActive} raids` : '0 raids'}
+                        </p>
+                        <p className="text-[10px] text-white/40">{project.raidsJoined} eng.</p>
+                      </div>
                       {project.marketingWallet ? (
                         <button type="button" className="inline-flex min-w-0 items-center gap-1.5 truncate rounded-md bg-white/[0.04] px-2 py-1 text-left text-[11px] font-medium text-[#c8ff3d] hover:bg-white/[0.07]">
                           <Wallet className="h-3 w-3 shrink-0" />
@@ -804,11 +847,6 @@ export function HomePage() {
                       <span className="text-right text-xs font-semibold text-white/85">
                         {project.marketingBalance ?? '--'}
                       </span>
-                      <span className={`text-right text-xs font-semibold ${project.raidsActive > 0 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>
-                        {project.raidsActive > 0 ? project.raidsActive : '--'}
-                      </span>
-                      <span className="text-right text-xs text-white/70">{project.raidsJoined}</span>
-                      <RoadmapCell project={project} />
                       <div className="text-right">
                         <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
                         <p className="text-[10px] text-white/35">{project.votesToday}</p>
