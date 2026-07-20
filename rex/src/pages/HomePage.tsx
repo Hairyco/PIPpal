@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BarChart3,
   Bot,
@@ -504,9 +505,12 @@ export function HomePage() {
             ) : null}
           </label>
 
-          <button type="button" className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex">
+          <Link
+            to="/launch"
+            className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
+          >
             <Plus className="h-4 w-4" /> Submit CTO
-          </button>
+          </Link>
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
@@ -557,12 +561,12 @@ export function HomePage() {
               The home of community takeovers
             </h1>
             <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
-              <button
-                type="button"
+              <Link
+                to="/launch"
                 className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 Launch a CTO
-              </button>
+              </Link>
               <button
                 type="button"
                 className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"

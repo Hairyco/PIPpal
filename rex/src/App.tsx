@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
+import { LaunchCtoPage } from './pages/LaunchCtoPage';
 import { CategoryPage } from './pages/CategoryPage';
 import { BecomeSupplierPage } from './pages/BecomeSupplierPage';
 import { ProjectPage } from './pages/ProjectPage';
@@ -18,6 +19,7 @@ export function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/launch" element={<LaunchCtoPage />} />
         <Route path="/trade" element={<TradePage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
