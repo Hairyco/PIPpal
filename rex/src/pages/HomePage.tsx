@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bot,
@@ -19,7 +19,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   Star,
-  Sun,
   Trophy,
   UserRound,
   Users,
@@ -498,12 +497,19 @@ function formatVotes(n: number) {
 const THEME_KEY = 'cto-theme';
 type ThemeMode = 'light' | 'dark';
 
-/** Product default is always dark/black — ignore stale light preference on load */
-function readStoredTheme(): ThemeMode {
+/** Always boot in night mode — wipe any stale light preference */
+function forceNightTheme(): ThemeMode {
   try {
     localStorage.setItem(THEME_KEY, 'dark');
   } catch {
     /* ignore */
+  }
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.add('theme-dark');
+    document.documentElement.classList.remove('theme-light');
+    document.documentElement.style.colorScheme = 'dark';
+    document.documentElement.style.backgroundColor = '#070912';
+    document.body.style.backgroundColor = '#070912';
   }
   return 'dark';
 }
@@ -612,18 +618,12 @@ export function HomePage() {
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
-  const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme());
   const searchRef = useRef<HTMLInputElement>(null);
-  const isDark = theme === 'dark';
   const pageSize = 5;
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(THEME_KEY, theme);
-    } catch {
-      /* ignore */
-    }
-  }, [theme]);
+  useLayoutEffect(() => {
+    forceNightTheme();
+  }, []);
 
   useEffect(() => {
     try {
@@ -814,10 +814,10 @@ export function HomePage() {
   };
 
   return (
-    <div className={`page-shell min-h-screen text-[#f5f7fb] ${isDark ? 'theme-dark' : 'theme-light'}`}>
-      {isDark ? <div className="page-gloss" aria-hidden /> : null}
+    <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
+      <div className="page-gloss" aria-hidden />
       <div className="relative z-[1]">
-      <div className={`border-b border-white/[0.06] ${isDark ? 'bg-[#0a0c16]/90 backdrop-blur-md' : 'bg-[#0a0c16]'}`}>
+      <div className="border-b border-white/[0.06] bg-[#0a0c16]/90 backdrop-blur-md">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
           <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
             <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
@@ -847,7 +847,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className={`border-b border-white/[0.07] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
+      <header className="border-b border-white/[0.07] bg-[#090b14]/88 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
@@ -890,12 +890,12 @@ export function HomePage() {
           </Link>
           <button
             type="button"
-            onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
-            aria-label={isDark ? 'Switch to light background' : 'Switch to dark background'}
-            title={isDark ? 'Light mode' : 'Dark mode'}
+            onClick={() => forceNightTheme()}
+            className="grid h-10 w-10 place-items-center rounded-lg text-[#c8ff3d]/80 transition hover:bg-white/5 hover:text-[#c8ff3d]"
+            aria-label="Night mode"
+            title="Night mode"
           >
-            {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Moon className="h-5 w-5" />
           </button>
           <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
             <Menu className="h-5 w-5" />
@@ -903,7 +903,7 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className={`border-b border-white/[0.06] ${isDark ? 'bg-[#090b14]/88 backdrop-blur-md' : 'bg-[#090b14]'}`}>
+      <nav className="border-b border-white/[0.06] bg-[#090b14]/88 backdrop-blur-md">
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
           {shortcuts.map((shortcut) => {
             const Icon = shortcut.icon;
@@ -1413,7 +1413,7 @@ export function HomePage() {
         </div>
       </main>
 
-      <footer className={`mt-10 border-t border-white/[0.06] ${isDark ? 'bg-[#070912]/70 backdrop-blur-sm' : 'bg-[#070912]'}`}>
+      <footer className="mt-10 border-t border-white/[0.06] bg-[#070912]/70 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>

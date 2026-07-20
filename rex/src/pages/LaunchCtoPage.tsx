@@ -23,7 +23,7 @@ export function LaunchCtoPage() {
   };
 
   return (
-    <div className="page-shell theme-light min-h-screen text-[#f5f7fb]">
+    <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
       <div className="relative z-[1]">
         <header className="border-b border-white/[0.07] bg-[#090b14]">
           <div className="mx-auto flex h-14 max-w-xl items-center gap-3 px-3 sm:px-5">
