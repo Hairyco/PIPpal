@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   Bell,
@@ -277,6 +277,22 @@ export function HomePage() {
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
   const [activeCategory, setActiveCategory] = useState('All');
   const [starred, setStarred] = useState<Record<string, boolean>>({});
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || target?.isContentEditable) return;
+      event.preventDefault();
+      searchRef.current?.focus();
+      searchRef.current?.select();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const visibleProjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -363,15 +379,26 @@ export function HomePage() {
           </a>
 
           <label className="relative ml-auto min-w-0 flex-1 sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
             <input
+              ref={searchRef}
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => setSearchFocused(false)}
               placeholder="Search Solana CTOs"
-              className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-9 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+              aria-keyshortcuts="/"
+              className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
             />
-            <span className="absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-white/10 px-1.5 py-0.5 text-[9px] text-white/25 sm:block">/</span>
+            {!searchFocused && !query ? (
+              <kbd
+                className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/15 bg-white/[0.06] px-1.5 font-sans text-[11px] font-medium leading-none text-white/45 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
+                aria-hidden
+              >
+                /
+              </kbd>
+            ) : null}
           </label>
 
           <button type="button" className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex">
