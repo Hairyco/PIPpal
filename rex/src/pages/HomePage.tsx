@@ -1031,8 +1031,8 @@ export function HomePage() {
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <p className="text-sm font-bold">{creator.name}</p>
-                              {creator.verified ? (
-                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
+                              {creator.coinsCreated >= 10 ? (
+                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black" title="10+ coins created">✓</span>
                               ) : null}
                               <span className="text-[11px] text-white/35">{creator.handle}</span>
                             </div>
