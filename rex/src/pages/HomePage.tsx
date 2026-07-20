@@ -10,7 +10,6 @@ import {
   Heart,
   Menu,
   MessageCircle,
-  Moon,
   Pin,
   Plus,
   Repeat2,
