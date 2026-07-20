@@ -21,8 +21,6 @@ import {
   Sparkles,
   Star,
   Trophy,
-  UserRound,
-  Users,
   Wallet,
   Zap,
   Clock3,
@@ -188,7 +186,6 @@ const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
   { label: 'Prelaunch', icon: Rocket },
   { label: 'New CTOs', icon: Sparkles },
-  { label: 'Top creators', icon: Users },
   { label: 'Top All Time', icon: Trophy },
   { label: 'Trending', icon: Flame },
 ];
@@ -210,54 +207,11 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
     title: 'New CTOs',
     subtitle: 'Recently forming Solana takeovers just entering the rankings.',
   },
-  'Top creators': {
-    title: 'Top creators',
-    subtitle: 'Find proven builders by coins launched — follow them or join their Telegram community.',
-  },
   Trending: {
     title: 'Trending CTOs',
     subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
   },
 };
-
-type Creator = {
-  id: string;
-  handle: string;
-  name: string;
-  avatar: string;
-  colors: string;
-  coinsCreated: number;
-  followers: string;
-  winRate: number;
-  lastLaunch: string;
-  tickers: string[];
-  communityUrl: string;
-  verified?: boolean;
-};
-
-const creators: Creator[] = [
-  { id: 'pixelforge', handle: '@pixelforge', name: 'Pixel Forge', avatar: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', coinsCreated: 14, followers: '28.4K', winRate: 71, lastLaunch: '2d ago', tickers: ['GOB', 'MPEG', 'NITE'], communityUrl: 'https://t.me/pixelgoblin', verified: true },
-  { id: 'moonlab', handle: '@moonlab', name: 'Moon Lab', avatar: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', coinsCreated: 11, followers: '19.1K', winRate: 64, lastLaunch: '5h ago', tickers: ['MPEG', 'CALL'], communityUrl: 'https://t.me/moonpigeon', verified: true },
-  { id: 'raidcraft', handle: '@raidcraft', name: 'Raid Craft', avatar: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', coinsCreated: 9, followers: '12.6K', winRate: 78, lastLaunch: '1d ago', tickers: ['LMARS', 'SURV'], communityUrl: 'https://t.me/lunarmartian', verified: true },
-  { id: 'frogworks', handle: '@frogworks', name: 'Frog Works', avatar: '/meme-logos/tendies.png', colors: 'from-lime-300 to-emerald-700', coinsCreated: 8, followers: '9.8K', winRate: 55, lastLaunch: '3d ago', tickers: ['TFROG'], communityUrl: 'https://t.me/terminalfrog', verified: false },
-  { id: 'exitdesk', handle: '@exitdesk', name: 'Exit Desk', avatar: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700', coinsCreated: 7, followers: '6.2K', winRate: 48, lastLaunch: '8h ago', tickers: ['EXIT', 'CALL'], communityUrl: 'https://t.me/exitliq', verified: false },
-  { id: 'nightops', handle: '@nightops', name: 'Night Ops', avatar: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', coinsCreated: 6, followers: '4.4K', winRate: 67, lastLaunch: '12h ago', tickers: ['NITE'], communityUrl: 'https://t.me/nightshiftcto', verified: true },
-  { id: 'survivors', handle: '@survivorshq', name: 'Survivors HQ', avatar: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', coinsCreated: 5, followers: '3.1K', winRate: 60, lastLaunch: '4d ago', tickers: ['SURV'], communityUrl: 'https://t.me/rugsurvivor', verified: false },
-  { id: 'degenline', handle: '@degenline', name: 'Degen Line', avatar: '/meme-logos/unicorn-fart-dust.png', colors: 'from-orange-300 to-red-700', coinsCreated: 4, followers: '2.7K', winRate: 42, lastLaunch: '6h ago', tickers: ['CALL'], communityUrl: 'https://t.me/degenhotline', verified: false },
-];
-
-const FOLLOW_KEY = 'cto-creator-follows';
-
-function readIdSet(key: string): Record<string, boolean> {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, boolean>;
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
 
 const heroCoins = [
   {
@@ -622,7 +576,6 @@ export function HomePage() {
   const [activeCategory, setActiveCategory] = useState<RankingTab>('All');
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
-  const [following, setFollowing] = useState<Record<string, boolean>>(() => readIdSet(FOLLOW_KEY));
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -632,14 +585,6 @@ export function HomePage() {
   useLayoutEffect(() => {
     forceNightTheme();
   }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(FOLLOW_KEY, JSON.stringify(following));
-    } catch {
-      /* ignore */
-    }
-  }, [following]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -711,21 +656,6 @@ export function HomePage() {
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
   }, [query, activeCategory, activeShortcut]);
 
-  const visibleCreators = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    const filtered = creators.filter((creator) => {
-      if (!normalized) return true;
-      return (
-        creator.name.toLowerCase().includes(normalized) ||
-        creator.handle.toLowerCase().includes(normalized) ||
-        creator.tickers.some((ticker) => ticker.toLowerCase().includes(normalized))
-      );
-    });
-    return [...filtered].sort((a, b) => b.coinsCreated - a.coinsCreated || b.winRate - a.winRate);
-  }, [query]);
-
-  const isCreatorsView = activeShortcut === 'Top creators';
-
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return projects
@@ -743,13 +673,9 @@ export function HomePage() {
       .sort((a, b) => a.pin.minutesAgo - b.pin.minutesAgo);
   }, [query]);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil((isCreatorsView ? visibleCreators.length : visibleProjects.length) / pageSize),
-  );
+  const totalPages = Math.max(1, Math.ceil(visibleProjects.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedProjects = visibleProjects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  const pagedCreators = visibleCreators.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   useEffect(() => {
     setPage(1);
@@ -780,9 +706,6 @@ export function HomePage() {
   }, [currentPage, totalPages]);
 
   const sectionCopy = (() => {
-    if (isCreatorsView) {
-      return shortcutCopy['Top creators'];
-    }
     if (activeCategory === 'Raids') {
       return {
         title: 'X raids',
@@ -815,10 +738,6 @@ export function HomePage() {
 
   const castVote = (ticker: string) => {
     setVoted((prev) => (prev[ticker] ? prev : { ...prev, [ticker]: true }));
-  };
-
-  const toggleFollow = (id: string) => {
-    setFollowing((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   return (
@@ -999,7 +918,6 @@ export function HomePage() {
               <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
             </div>
 
-            {!isCreatorsView ? (
             <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
               {rankingTabs.map((tab) => (
                 <button
@@ -1020,87 +938,8 @@ export function HomePage() {
                 <SlidersHorizontal className="h-3 w-3" /> Filters
               </button>
             </div>
-            ) : (
-              <p className="mb-3 text-[11px] text-white/40">
-                Sorted by coins created. Follow a creator or join their Telegram community.
-              </p>
-            )}
 
-            {isCreatorsView ? (
-              <div className="gloss-panel space-y-3 rounded-xl border border-white/[0.1] p-3 sm:p-4">
-                {pagedCreators.length === 0 ? (
-                  <div className="px-4 py-10 text-center text-sm text-white/35">No creators found.</div>
-                ) : (
-                  pagedCreators.map((creator, index) => {
-                    const rank = (currentPage - 1) * pageSize + index + 1;
-                    const isFollowing = Boolean(following[creator.id]);
-                    return (
-                      <article
-                        key={creator.id}
-                        className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5"
-                      >
-                        <div className="flex flex-wrap items-start gap-3">
-                          <span className="mt-2 w-5 shrink-0 text-center text-xs text-white/30">{rank}</span>
-                          <div className={`h-12 w-12 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${creator.colors} ring-1 ring-white/10`}>
-                            <img src={creator.avatar} alt="" className="h-full w-full object-cover" loading="lazy" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <p className="text-sm font-bold">{creator.name}</p>
-                              {creator.coinsCreated >= 10 ? (
-                                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black" title="10+ coins created">✓</span>
-                              ) : null}
-                              <span className="text-[11px] text-white/35">{creator.handle}</span>
-                            </div>
-                            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/45">
-                              <span className="inline-flex items-center gap-1 font-semibold text-[#c8ff3d]">
-                                <UserRound className="h-3 w-3" />
-                                {creator.coinsCreated} coins created
-                              </span>
-                              <span>{creator.followers} followers</span>
-                              <span>{creator.winRate}% survive</span>
-                              <span>Last launch {creator.lastLaunch}</span>
-                            </div>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {creator.tickers.map((ticker) => (
-                                <span
-                                  key={ticker}
-                                  className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-white/55"
-                                >
-                                  ${ticker}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex w-full shrink-0 gap-2 sm:ml-auto sm:w-auto sm:flex-col sm:items-stretch">
-                            <button
-                              type="button"
-                              onClick={() => toggleFollow(creator.id)}
-                              className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition sm:flex-none ${
-                                isFollowing
-                                  ? 'border border-[#c8ff3d]/30 bg-[#c8ff3d]/15 text-[#d5ff69]'
-                                  : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
-                              }`}
-                            >
-                              {isFollowing ? 'Following' : 'Follow'}
-                            </button>
-                            <a
-                              href={creator.communityUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-[11px] font-bold text-white transition hover:bg-[#3bb5f5] sm:flex-none"
-                            >
-                              <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-                              Join community
-                            </a>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })
-                )}
-              </div>
-            ) : activeCategory === 'Pinned' ? (
+            {activeCategory === 'Pinned' ? (
               <div className="gloss-panel space-y-3 rounded-xl border border-white/[0.1] p-3 sm:p-4">
                 <p className="px-1 text-[11px] text-white/40">
                   Most recent pinned message from each Telegram group.
@@ -1374,7 +1213,7 @@ export function HomePage() {
             </div>
             )}
 
-            {((isCreatorsView && visibleCreators.length > 0) || (!isCreatorsView && activeCategory !== 'Pinned' && visibleProjects.length > 0)) ? (
+            {activeCategory !== 'Pinned' && visibleProjects.length > 0 ? (
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
