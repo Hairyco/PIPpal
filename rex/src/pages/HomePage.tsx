@@ -203,7 +203,7 @@ function HeartbeatTracker() {
 
 function ElectricBridge() {
   return (
-    <div className="electric-bridge" aria-hidden>
+    <div className="electric-bridge pointer-events-none" aria-hidden>
       <svg className="h-[72px] w-3.5 overflow-visible" viewBox="0 0 14 72">
         <path className="electric-bolt" d="M7 2 L4 16 L9 28 L3 42 L10 54 L7 70" />
         <path className="electric-bolt electric-bolt-alt" d="M7 6 L10 20 L5 34 L11 48 L6 62" />
@@ -356,7 +356,13 @@ function PromotedRail({ projects }: { projects: Project[] }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const pausedRef = useRef(false);
   const resumeTimerRef = useRef<number | null>(null);
+  const dragRef = useRef<{ active: boolean; startX: number; startScroll: number }>({
+    active: false,
+    startX: 0,
+    startScroll: 0,
+  });
   const loop = [...projects, ...projects];
+  const cardStep = 248 + 14; // card width + electric bridge
 
   const pause = () => {
     pausedRef.current = true;
@@ -366,12 +372,20 @@ function PromotedRail({ projects }: { projects: Project[] }) {
     }
   };
 
-  const scheduleResume = () => {
+  const scheduleResume = (delay = 3200) => {
     if (resumeTimerRef.current != null) window.clearTimeout(resumeTimerRef.current);
     resumeTimerRef.current = window.setTimeout(() => {
       pausedRef.current = false;
       resumeTimerRef.current = null;
-    }, 2800);
+    }, delay);
+  };
+
+  const scrollByCards = (dir: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    pause();
+    el.scrollBy({ left: dir * cardStep, behavior: 'smooth' });
+    scheduleResume();
   };
 
   useEffect(() => {
@@ -380,7 +394,7 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 
     let frame = 0;
     const tick = () => {
-      if (!pausedRef.current) {
+      if (!pausedRef.current && !dragRef.current.active) {
         el.scrollLeft += 0.55;
         const half = el.scrollWidth / 2;
         if (half > 0 && el.scrollLeft >= half) {
@@ -398,62 +412,111 @@ function PromotedRail({ projects }: { projects: Project[] }) {
   }, [projects.length]);
 
   return (
-    <div
-      ref={scrollerRef}
-      className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 pb-1 touch-pan-x sm:-mx-5 sm:px-5"
-      onPointerDown={pause}
-      onPointerUp={scheduleResume}
-      onPointerCancel={scheduleResume}
-      onTouchStart={pause}
-      onTouchEnd={scheduleResume}
-      onWheel={() => {
-        pause();
-        scheduleResume();
-      }}
-      onMouseEnter={pause}
-      onMouseLeave={scheduleResume}
-    >
-      <div className="flex w-max max-w-none items-stretch gap-0">
-        {loop.map((project, index) => (
-          <div key={`${project.ticker}-${index}`} className="flex items-stretch">
-            {index > 0 ? <ElectricBridge /> : null}
-            <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
-              <div className="promoted-chase" />
-              <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
-                <div className="flex items-center gap-2.5">
-                  <ProjectMark project={project} size="h-10 w-10" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-bold">${project.ticker}</p>
-                      <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+    <div className="relative min-w-0">
+      <button
+        type="button"
+        aria-label="Previous promoted CTOs"
+        onClick={() => scrollByCards(-1)}
+        className="absolute left-0 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-[#0d101b]/95 text-white/70 shadow-lg backdrop-blur-sm transition hover:text-white sm:left-1"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        aria-label="Next promoted CTOs"
+        onClick={() => scrollByCards(1)}
+        className="absolute right-0 top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-[#0d101b]/95 text-white/70 shadow-lg backdrop-blur-sm transition hover:text-white sm:right-1"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+
+      <div
+        ref={scrollerRef}
+        className="promoted-rail hide-scrollbar -mx-3 min-w-0 overflow-x-auto overscroll-x-contain px-10 pb-1 sm:-mx-5 sm:px-12"
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
+        onPointerDown={(event) => {
+          // Custom drag for mouse only — let touch use native overflow scrolling
+          if (event.pointerType !== 'mouse' || event.button !== 0) {
+            pause();
+            return;
+          }
+          const el = scrollerRef.current;
+          if (!el) return;
+          pause();
+          dragRef.current = {
+            active: true,
+            startX: event.clientX,
+            startScroll: el.scrollLeft,
+          };
+          el.setPointerCapture?.(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (!dragRef.current.active || event.pointerType !== 'mouse') return;
+          const el = scrollerRef.current;
+          if (!el) return;
+          const dx = event.clientX - dragRef.current.startX;
+          el.scrollLeft = dragRef.current.startScroll - dx;
+        }}
+        onPointerUp={(event) => {
+          if (event.pointerType === 'mouse') dragRef.current.active = false;
+          scheduleResume();
+        }}
+        onPointerCancel={() => {
+          dragRef.current.active = false;
+          scheduleResume();
+        }}
+        onTouchStart={pause}
+        onTouchMove={pause}
+        onTouchEnd={() => scheduleResume(3600)}
+        onWheel={() => {
+          pause();
+          scheduleResume();
+        }}
+        onMouseEnter={pause}
+        onMouseLeave={() => scheduleResume()}
+      >
+        <div className="flex w-max max-w-none items-stretch gap-0">
+          {loop.map((project, index) => (
+            <div key={`${project.ticker}-${index}`} className="flex shrink-0 items-stretch">
+              {index > 0 ? <ElectricBridge /> : null}
+              <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
+                <div className="promoted-chase" />
+                <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
+                  <div className="flex items-center gap-2.5">
+                    <ProjectMark project={project} size="h-10 w-10" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="truncate text-sm font-bold">${project.ticker}</p>
+                        <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                      </div>
+                      <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                      <span
+                        className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
+                        title={`${project.community} Telegram members`}
+                      >
+                        <img
+                          src="/images/partners/telegram.svg"
+                          alt=""
+                          className="h-3 w-3"
+                          loading="lazy"
+                        />
+                        {project.community}
+                      </span>
                     </div>
-                    <p className="truncate text-[11px] text-white/35">{project.name}</p>
-                    <span
-                      className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
-                      title={`${project.community} Telegram members`}
-                    >
-                      <img
-                        src="/images/partners/telegram.svg"
-                        alt=""
-                        className="h-3 w-3"
-                        loading="lazy"
-                      />
-                      {project.community}
-                    </span>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
+                      <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                        {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                      </p>
+                    </div>
+                    <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
                   </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
-                    <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                      {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                    </p>
-                  </div>
-                  <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
+                  <MarketingAdProgress project={project} />
                 </div>
-                <MarketingAdProgress project={project} />
-              </div>
-            </article>
-          </div>
-        ))}
+              </article>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -703,7 +766,7 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="mt-7">
+        <section className="mt-7 min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
