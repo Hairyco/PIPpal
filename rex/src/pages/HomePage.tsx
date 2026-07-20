@@ -592,15 +592,15 @@ export function HomePage() {
         <section className="mt-7">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
+              <h2 className="font-serif text-lg font-bold">Advertised CTOs</h2>
               <HeartbeatTracker />
             </div>
-            <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Promote</button>
+            <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
           </div>
-          <div className="layout-clip -mx-3 overflow-hidden px-3 pb-1 sm:-mx-5 sm:px-5">
-            <div className="flex w-max max-w-none animate-scroll-left-fast items-stretch gap-0 hover:[animation-play-state:paused] motion-reduce:animate-none">
-              {[...promotedProjects, ...promotedProjects].map((project, index) => (
-                <div key={`${project.ticker}-${index}`} className="flex items-stretch">
+          <div className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:-mx-5 sm:px-5">
+            <div className="flex w-max max-w-none items-stretch gap-0">
+              {promotedProjects.map((project, index) => (
+                <div key={project.ticker} className="flex items-stretch">
                   {index > 0 ? <ElectricBridge /> : null}
                   <article className="group relative flex w-[300px] shrink-0 overflow-hidden rounded-xl">
                     <div className="promoted-chase" />
