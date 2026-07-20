@@ -294,7 +294,7 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  'grid-cols-[28px_36px_minmax(150px,1.25fr)_68px_72px_64px_56px_64px_100px_88px_72px]';
+  'grid-cols-[28px_36px_auto_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
 
 function ProjectMark({
   project,
@@ -743,7 +743,7 @@ export function HomePage() {
 
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className="min-w-[1040px]">
+                <div className="min-w-[960px]">
                   <div className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
@@ -775,7 +775,7 @@ export function HomePage() {
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
                       </button>
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex min-w-0 items-center gap-2.5">
+                      <div className="flex max-w-[12.5rem] items-center gap-2.5 sm:max-w-[14rem]">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
