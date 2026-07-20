@@ -635,6 +635,14 @@ export function HomePage() {
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
                 <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
                   <span className="text-white/25">#{project.rank}</span>
+                  <span className={`h-5 w-5 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${project.colors} ring-1 ring-white/15`}>
+                    <img
+                      src={project.logo}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </span>
                   <span className="font-semibold text-white/85">${project.ticker}</span>
                   <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
                     {project.change24h >= 0 ? '+' : ''}{project.change24h}%
