@@ -6,10 +6,9 @@ import {
   ChevronDown,
   Flame,
   Menu,
-  MessageSquare,
   Moon,
-  Pin,
   Plus,
+  Rocket,
   RotateCcw,
   Search,
   SlidersHorizontal,
@@ -18,7 +17,6 @@ import {
   Sun,
   Trophy,
   Wallet,
-  X,
   Zap,
   Clock3,
 } from 'lucide-react';
@@ -78,6 +76,7 @@ const categories = ['All', 'Meme', 'AI', 'DeFi'];
 
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
+  { label: 'Prelaunch', icon: Rocket },
   { label: 'Top All Time', icon: Trophy },
   { label: 'New CTOs', icon: Sparkles },
   { label: 'Trending', icon: Flame },
@@ -87,6 +86,10 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
   'Top Today': {
     title: 'Top CTOs Today',
     subtitle: 'Solana community takeovers ranked by activity, MPH, and raids.',
+  },
+  Prelaunch: {
+    title: 'Prelaunch CTOs',
+    subtitle: 'Forming Solana takeovers before launch — early communities and votes.',
   },
   'Top All Time': {
     title: 'Top CTOs All Time',
@@ -101,45 +104,6 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
     subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
   },
 };
-
-type Community = {
-  id: string;
-  ticker: string;
-  name: string;
-  handle: string;
-  members: string;
-  mph: number;
-  logo: string;
-  colors: string;
-};
-
-type PinnedMessage = {
-  id: string;
-  ticker: string;
-  community: string;
-  logo: string;
-  colors: string;
-  text: string;
-  when: string;
-};
-
-const communities: Community[] = [
-  { id: 'gob', ticker: 'GOB', name: 'Pixel Goblin', handle: 't.me/pixelgoblin', members: '6.2K', mph: 118, logo: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700' },
-  { id: 'mpeg', ticker: 'MPEG', name: 'Moon Pigeon', handle: 't.me/moonpigeon', members: '4.8K', mph: 186, logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700' },
-  { id: 'lmars', ticker: 'LMARS', name: 'Lunar Martian', handle: 't.me/lunarmartian', members: '8.4K', mph: 142, logo: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700' },
-  { id: 'exit', ticker: 'EXIT', name: 'Exit Liquidity', handle: 't.me/exitliq', members: '3.7K', mph: 28, logo: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700' },
-  { id: 'surv', ticker: 'SURV', name: 'Rug Survivor', handle: 't.me/rugsurvivor', members: '1.2K', mph: 39, logo: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700' },
-  { id: 'nite', ticker: 'NITE', name: 'Night Shift', handle: 't.me/nightshiftcto', members: '980', mph: 47, logo: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800' },
-];
-
-const pinnedMessages: PinnedMessage[] = [
-  { id: '1', ticker: 'GOB', community: 'Pixel Goblin', logo: '/meme-logos/wiki-cat.png', colors: 'from-cyan-300 to-teal-700', text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots.', when: '2h ago' },
-  { id: '2', ticker: 'MPEG', community: 'Moon Pigeon', logo: '/meme-logos/peponk.png', colors: 'from-fuchsia-400 to-violet-700', text: 'Marketing wallet hit $482. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago' },
-  { id: '3', ticker: 'LMARS', community: 'Lunar Martian', logo: '/meme-logos/lunar-lad.png', colors: 'from-sky-400 to-blue-700', text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers.', when: '5h ago' },
-  { id: '4', ticker: 'SURV', community: 'Rug Survivor', logo: '/meme-logos/batcat.png', colors: 'from-rose-300 to-pink-700', text: 'Community takeover vote open until Friday. Bring holders from the old group.', when: '8h ago' },
-  { id: '5', ticker: 'NITE', community: 'Night Shift', logo: '/meme-logos/choctopus.png', colors: 'from-indigo-300 to-purple-800', text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids.', when: '11h ago' },
-  { id: '6', ticker: 'EXIT', community: 'Exit Liquidity', logo: '/meme-logos/robinhood-dog.png', colors: 'from-amber-300 to-orange-700', text: 'No marketing wallet yet — help us enable one after listing. AMA notes pinned here.', when: '14h ago' },
-];
 
 const heroCoins = [
   {
@@ -332,50 +296,6 @@ function MarketingAdProgress({ project }: { project: Project }) {
 const tableCols =
   'grid-cols-[28px_36px_minmax(170px,1.3fr)_72px_64px_64px_100px_120px_88px_72px]';
 
-function PinnedWall({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 p-3 sm:items-center sm:p-6" role="dialog" aria-modal aria-labelledby="pinned-wall-title">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Close pinned wall" onClick={onClose} />
-      <div className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d101b] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.07] px-4 py-3.5">
-          <div>
-            <h2 id="pinned-wall-title" className="flex items-center gap-2 font-serif text-lg font-bold">
-              <Pin className="h-4 w-4 text-[#c8ff3d]" />
-              Pinned wall
-            </h2>
-            <p className="mt-0.5 text-[11px] text-white/40">Pinned messages from all Telegram communities</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-9 w-9 place-items-center rounded-lg text-white/50 hover:bg-white/5 hover:text-white"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="hide-scrollbar space-y-3 overflow-y-auto p-4">
-          {pinnedMessages.map((pin) => (
-            <article key={pin.id} className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
-              <div className="flex items-center gap-2.5">
-                <div className={`h-9 w-9 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${pin.colors} ring-1 ring-white/10`}>
-                  <img src={pin.logo} alt="" className="h-full w-full object-cover" loading="lazy" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold">${pin.ticker}</p>
-                  <p className="truncate text-[11px] text-white/35">{pin.community}</p>
-                </div>
-                <span className="shrink-0 text-[10px] text-white/30">{pin.when}</span>
-              </div>
-              <p className="mt-3 text-sm leading-relaxed text-white/70">{pin.text}</p>
-            </article>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ProjectMark({
   project,
   size = 'h-10 w-10',
@@ -546,7 +466,6 @@ export function HomePage() {
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [searchFocused, setSearchFocused] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() => readStoredTheme());
-  const [showPinnedWall, setShowPinnedWall] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const isDark = theme === 'dark';
 
@@ -560,10 +479,6 @@ export function HomePage() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && showPinnedWall) {
-        setShowPinnedWall(false);
-        return;
-      }
       if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return;
       const target = event.target as HTMLElement | null;
       const tag = target?.tagName;
@@ -574,7 +489,7 @@ export function HomePage() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [showPinnedWall]);
+  }, []);
 
   const visibleProjects = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -586,11 +501,16 @@ export function HomePage() {
       const matchesCategory =
         activeCategory === 'All' ||
         project.category === activeCategory;
-      return matchesQuery && matchesCategory;
+      const matchesShortcut =
+        activeShortcut !== 'Prelaunch' || project.stage === 'Forming';
+      return matchesQuery && matchesCategory && matchesShortcut;
     });
 
     const sorted = [...filtered];
     switch (activeShortcut) {
+      case 'Prelaunch':
+        sorted.sort((a, b) => b.votesToday - a.votesToday || b.score - a.score);
+        break;
       case 'Top All Time':
         sorted.sort((a, b) => b.votes - a.votes || b.score - a.score);
         break;
@@ -729,7 +649,6 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        {showPinnedWall ? <PinnedWall onClose={() => setShowPinnedWall(false)} /> : null}
         <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
           <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
@@ -781,57 +700,6 @@ export function HomePage() {
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
           </div>
           <PromotedRail projects={promotedProjects} />
-        </section>
-
-        <section className="mt-8">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-serif text-lg font-bold">Launch communities</h2>
-              <p className="mt-0.5 text-[11px] text-white/35">Telegram groups for Solana CTOs</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowPinnedWall(true)}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 py-2 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15"
-            >
-              <Pin className="h-3.5 w-3.5" />
-              Pinned
-            </button>
-          </div>
-          <div className="hide-scrollbar -mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-5 sm:px-5">
-            <div className="flex w-max gap-3">
-              {communities.map((group) => (
-                <a
-                  key={group.id}
-                  href={`https://${group.handle}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="gloss-panel w-[200px] shrink-0 rounded-xl border border-white/[0.08] p-3 transition hover:border-[#2aabee]/35"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${group.colors} ring-1 ring-white/10`}>
-                      <img src={group.logo} alt="" className="h-full w-full object-cover" loading="lazy" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold">${group.ticker}</p>
-                      <p className="truncate text-[11px] text-white/35">{group.name}</p>
-                    </div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-2 text-[10px]">
-                    <span className="inline-flex items-center gap-1 font-medium text-white/45">
-                      <img src="/images/partners/telegram.svg" alt="" className="h-3 w-3" />
-                      {group.members}
-                    </span>
-                    <span className="inline-flex items-center gap-1 font-semibold text-[#c8ff3d]">
-                      <MessageSquare className="h-3 w-3" />
-                      {group.mph} MPH
-                    </span>
-                  </div>
-                  <p className="mt-2 truncate text-[10px] text-white/25">{group.handle}</p>
-                </a>
-              ))}
-            </div>
-          </div>
         </section>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-[minmax(0,1fr)_250px]">
