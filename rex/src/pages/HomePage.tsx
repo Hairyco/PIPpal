@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Flame,
   Menu,
+  Pin,
   Plus,
   Rocket,
   RotateCcw,
@@ -100,6 +101,27 @@ function changeForWindow(project: Project, window: TimeWindow): number | null {
       return project.change24h;
   }
 }
+
+type PinnedMessage = {
+  ticker: string;
+  text: string;
+  when: string;
+  minutesAgo: number;
+};
+
+/** Most recent pinned message per Telegram group (one per CTO) */
+const pinnedByTicker: Record<string, PinnedMessage> = {
+  GOB: { ticker: 'GOB', text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots.', when: '2h ago', minutesAgo: 120 },
+  MPEG: { ticker: 'MPEG', text: 'Marketing wallet hit $482. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago', minutesAgo: 180 },
+  LMARS: { ticker: 'LMARS', text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers.', when: '5h ago', minutesAgo: 300 },
+  SURV: { ticker: 'SURV', text: 'Community takeover vote open until Friday. Bring holders from the old group.', when: '8h ago', minutesAgo: 480 },
+  NITE: { ticker: 'NITE', text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids.', when: '11h ago', minutesAgo: 660 },
+  EXIT: { ticker: 'EXIT', text: 'No marketing wallet yet — help us enable one after listing. AMA notes pinned here.', when: '14h ago', minutesAgo: 840 },
+  TFROG: { ticker: 'TFROG', text: 'Forming channel rules + CA verification thread. Stick to official links only.', when: '16h ago', minutesAgo: 960 },
+  CALL: { ticker: 'CALL', text: 'Hotline raid pack: copy, GIF, and Dex chart. Drop once, don’t spam.', when: '1d ago', minutesAgo: 1440 },
+};
+
+type RankingFilter = TimeWindow | 'Pinned';
 
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
@@ -490,7 +512,9 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState('Top Today');
-  const [activeWindow, setActiveWindow] = useState<TimeWindow>('5m');
+  const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
+  const isPinnedView = activeWindow === 'Pinned';
+  const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
@@ -544,8 +568,8 @@ export function HomePage() {
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
-      const changeA = changeForWindow(a, activeWindow);
-      const changeB = changeForWindow(b, activeWindow);
+      const changeA = changeForWindow(a, activeTimeWindow);
+      const changeB = changeForWindow(b, activeTimeWindow);
       const scoreA = changeA ?? Number.NEGATIVE_INFINITY;
       const scoreB = changeB ?? Number.NEGATIVE_INFINITY;
       if (scoreB !== scoreA) return scoreB - scoreA;
@@ -553,9 +577,26 @@ export function HomePage() {
     });
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeWindow, activeShortcut]);
+  }, [query, activeTimeWindow, activeShortcut]);
 
-    const totalPages = Math.max(1, Math.ceil(visibleProjects.length / pageSize));
+  const pinnedFeed = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    return projects
+      .filter((project) => {
+        const pin = pinnedByTicker[project.ticker];
+        if (!pin) return false;
+        if (!normalized) return true;
+        return (
+          project.name.toLowerCase().includes(normalized) ||
+          project.ticker.toLowerCase().includes(normalized) ||
+          pin.text.toLowerCase().includes(normalized)
+        );
+      })
+      .map((project) => ({ project, pin: pinnedByTicker[project.ticker] }))
+      .sort((a, b) => a.pin.minutesAgo - b.pin.minutesAgo);
+  }, [query]);
+
+  const totalPages = Math.max(1, Math.ceil(visibleProjects.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedProjects = visibleProjects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
@@ -588,6 +629,12 @@ export function HomePage() {
   }, [currentPage, totalPages]);
 
   const sectionCopy = (() => {
+    if (isPinnedView) {
+      return {
+        title: 'Pinned messages',
+        subtitle: 'Most recent pinned message from each Telegram group.',
+      };
+    }
     const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
     const base = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
     return {
@@ -869,7 +916,7 @@ export function HomePage() {
                 <button
                   key={tab.id}
                   type="button"
-                  title={'title' in tab ? tab.title : undefined}
+                  title={tab.title}
                   onClick={() => setActiveWindow(tab.id)}
                   className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition ${
                     activeWindow === tab.id
@@ -880,22 +927,73 @@ export function HomePage() {
                   {tab.label}
                 </button>
               ))}
+              <button
+                type="button"
+                title="Most recent pinned message in each Telegram group"
+                onClick={() => setActiveWindow('Pinned')}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-semibold transition ${
+                  isPinnedView
+                    ? 'bg-white text-[#090b14]'
+                    : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
+                }`}
+              >
+                <Pin className="h-3 w-3" />
+                Pinned
+              </button>
               <button type="button" className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] text-white/45">
                 <SlidersHorizontal className="h-3 w-3" /> Filters
               </button>
             </div>
 
+            {isPinnedView ? (
+              <div className="gloss-panel space-y-3 rounded-xl border border-white/[0.1] p-3 sm:p-4">
+                <p className="px-1 text-[11px] text-white/40">
+                  Most recent pinned message from each Telegram group.
+                </p>
+                {pinnedFeed.length === 0 ? (
+                  <div className="px-4 py-10 text-center text-sm text-white/35">No pinned messages found.</div>
+                ) : (
+                  pinnedFeed.map(({ project, pin }) => (
+                    <article
+                      key={project.ticker}
+                      className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ProjectMark project={project} size="h-9 w-9" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="truncate text-sm font-bold">${project.ticker}</p>
+                            <span className="truncate text-[11px] text-white/35">{project.name}</span>
+                          </div>
+                          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/30">
+                            <img src="/images/partners/telegram.svg" alt="" className="h-3 w-3" />
+                            {project.community} members
+                          </p>
+                        </div>
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-1 text-[10px] font-semibold text-[#d5ff69]">
+                          <Pin className="h-3 w-3" />
+                          {pin.when}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-relaxed text-white/70">{pin.text}</p>
+                    </article>
+                  ))
+                )}
+              </div>
+            ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className="min-w-[1024px]">
-                  <div className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
+                <div className={isPrelaunch ? 'min-w-[1024px]' : 'min-w-[960px]'}>
+                  <div className={`grid ${rankingTableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
                     <span className="text-center">Vote</span>
-                    <span className="text-right" title="Hours until launch">Launch</span>
+                    {isPrelaunch ? (
+                      <span className="text-right" title="Hours until launch">Launch</span>
+                    ) : null}
                     <span className="text-right">Price</span>
-                    <span className="text-right">%{activeWindow}</span>
+                    <span className="text-right">%{activeTimeWindow}</span>
                     <span className="text-right" title="Messages per hour">MPH</span>
                     <span className="text-right" title="Raids and people engaging">Raids</span>
                     <span>Marketing wallet</span>
@@ -909,7 +1007,7 @@ export function HomePage() {
                     return (
                     <article
                       key={project.ticker}
-                      className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
+                      className={`grid ${rankingTableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
                     >
                       <button
                         type="button"
@@ -952,20 +1050,22 @@ export function HomePage() {
                           {hasVoted ? 'Voted' : 'Vote'}
                         </button>
                       </div>
-                      <span
-                        className={`text-right text-xs font-semibold ${
-                          project.launchInHours == null || project.launchInHours <= 0
-                            ? 'text-white/35'
-                            : project.launchInHours <= 12
-                              ? 'text-[#c8ff3d]'
-                              : 'text-white/80'
-                        }`}
-                        title="Hours until launch"
-                      >
-                        {formatLaunchIn(project.launchInHours)}
-                      </span>
+                      {isPrelaunch ? (
+                        <span
+                          className={`text-right text-xs font-semibold ${
+                            project.launchInHours == null || project.launchInHours <= 0
+                              ? 'text-white/35'
+                              : project.launchInHours <= 12
+                                ? 'text-[#c8ff3d]'
+                                : 'text-white/80'
+                          }`}
+                          title="Hours until launch"
+                        >
+                          {formatLaunchIn(project.launchInHours)}
+                        </span>
+                      ) : null}
                       <span className="text-right text-xs font-medium">{project.price}</span>
-                      <span className="text-right text-xs"><Pct value={changeForWindow(project, activeWindow)} /></span>
+                      <span className="text-right text-xs"><Pct value={changeForWindow(project, activeTimeWindow)} /></span>
                       <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
                         {project.mph}
                       </span>
@@ -1000,8 +1100,9 @@ export function HomePage() {
                 <div className="px-4 py-12 text-center text-sm text-white/35">No projects found.</div>
               )}
             </div>
+            )}
 
-            {visibleProjects.length > 0 ? (
+            {!isPinnedView && visibleProjects.length > 0 ? (
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
