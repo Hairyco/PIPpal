@@ -77,8 +77,8 @@ const categories = ['All', 'Meme', 'AI', 'DeFi'];
 const shortcuts = [
   { label: 'Top Today', icon: Clock3 },
   { label: 'Prelaunch', icon: Rocket },
-  { label: 'Top All Time', icon: Trophy },
   { label: 'New CTOs', icon: Sparkles },
+  { label: 'Top All Time', icon: Trophy },
   { label: 'Trending', icon: Flame },
 ];
 
