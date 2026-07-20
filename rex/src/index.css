@@ -24,7 +24,9 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply antialiased;
+    background-color: #070912;
+    color: #f5f7fb;
     font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
   }
 

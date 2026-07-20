@@ -452,10 +452,10 @@ function formatVotes(n: number) {
 const THEME_KEY = 'cto-theme';
 type ThemeMode = 'light' | 'dark';
 
+/** Product default is always dark/black — ignore stale light preference on load */
 function readStoredTheme(): ThemeMode {
   try {
-    const value = localStorage.getItem(THEME_KEY);
-    if (value === 'dark' || value === 'light') return value;
+    localStorage.setItem(THEME_KEY, 'dark');
   } catch {
     /* ignore */
   }
