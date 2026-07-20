@@ -4,11 +4,15 @@ import {
   Bot,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Flame,
+  Heart,
   Menu,
+  MessageCircle,
   Moon,
   Pin,
   Plus,
+  Repeat2,
   Rocket,
   RotateCcw,
   Search,
@@ -75,11 +79,87 @@ const tickerProjects = projects;
 const promotedProjects = projects.filter((project) => project.promoted);
 const rankingTabs = [
   { id: 'All', label: 'All' },
-  { id: 'Raids', label: 'Raids', title: 'Active raids and engagement' },
-  { id: 'MPH', label: 'MPH', title: 'Messages per hour' },
+  { id: 'Raids', label: 'Raids', title: 'X posts the community likes and shares' },
+  { id: 'MPH', label: 'MPH', title: 'Messages per hour in Telegram' },
   { id: 'Pinned', label: 'Pinned', title: 'Most recent pinned message in each Telegram group' },
 ] as const;
 type RankingTab = (typeof rankingTabs)[number]['id'];
+
+type EngagementLevel = 'High' | 'Medium' | 'Low';
+
+type RaidStats = {
+  post: string;
+  likes: number;
+  reposts: number;
+  replies: number;
+  views: string;
+  raiders: string;
+  status: 'Live' | 'Queued' | 'Done';
+};
+
+type MphStats = {
+  peakMph: number;
+  activeChatters: string;
+  replyRate: number;
+  uniqueSenders: string;
+  lastSpike: string;
+};
+
+/** X raid posts — likes/shares show community engagement on the raid target */
+const raidStatsByTicker: Record<string, RaidStats> = {
+  MPEG: { post: 'CA + Dex chart drop — reply with $MPEG', likes: 1840, reposts: 920, replies: 410, views: '128K', raiders: '1.2K', status: 'Live' },
+  TFROG: { post: 'CTO vote thread — quote with frog emoji', likes: 960, reposts: 540, replies: 220, views: '64K', raiders: '840', status: 'Live' },
+  LMARS: { post: 'Lunar Martian space raid — like + RT pinned', likes: 2400, reposts: 1500, replies: 680, views: '210K', raiders: '2.4K', status: 'Live' },
+  CALL: { post: 'Hotline raid pack GIF — one reply only', likes: 420, reposts: 180, replies: 95, views: '22K', raiders: '310', status: 'Queued' },
+  GOB: { post: 'Pixel Goblin banner — engage + tag 3 friends', likes: 1620, reposts: 880, replies: 350, views: '96K', raiders: '1.8K', status: 'Live' },
+  EXIT: { post: 'Exit Liquidity AMA clip — quote RT', likes: 210, reposts: 70, replies: 40, views: '9.4K', raiders: '96', status: 'Done' },
+  NITE: { post: 'Night Shift raid window 9–11pm UTC', likes: 780, reposts: 360, replies: 160, views: '41K', raiders: '420', status: 'Queued' },
+  SURV: { post: 'Rug Survivor takeover vote reminder', likes: 390, reposts: 150, replies: 88, views: '18K', raiders: '188', status: 'Live' },
+};
+
+/** Telegram chat velocity extras for the MPH tab */
+const mphStatsByTicker: Record<string, MphStats> = {
+  MPEG: { peakMph: 240, activeChatters: '860', replyRate: 62, uniqueSenders: '420', lastSpike: '12m ago' },
+  TFROG: { peakMph: 130, activeChatters: '310', replyRate: 48, uniqueSenders: '190', lastSpike: '28m ago' },
+  LMARS: { peakMph: 190, activeChatters: '1.1K', replyRate: 55, uniqueSenders: '640', lastSpike: '8m ago' },
+  CALL: { peakMph: 88, activeChatters: '140', replyRate: 41, uniqueSenders: '95', lastSpike: '1h ago' },
+  GOB: { peakMph: 165, activeChatters: '720', replyRate: 58, uniqueSenders: '380', lastSpike: '18m ago' },
+  EXIT: { peakMph: 44, activeChatters: '90', replyRate: 29, uniqueSenders: '52', lastSpike: '3h ago' },
+  NITE: { peakMph: 72, activeChatters: '160', replyRate: 46, uniqueSenders: '110', lastSpike: '42m ago' },
+  SURV: { peakMph: 58, activeChatters: '120', replyRate: 37, uniqueSenders: '78', lastSpike: '55m ago' },
+};
+
+function mphLevel(mph: number): EngagementLevel {
+  if (mph >= 100) return 'High';
+  if (mph >= 45) return 'Medium';
+  return 'Low';
+}
+
+function raidLevel(stats: RaidStats): EngagementLevel {
+  const score = stats.likes + stats.reposts * 3 + stats.replies;
+  if (score >= 2500) return 'High';
+  if (score >= 800) return 'Medium';
+  return 'Low';
+}
+
+function EngagementPill({ level }: { level: EngagementLevel }) {
+  const styles =
+    level === 'High'
+      ? 'border-emerald-400/30 bg-emerald-400/15 text-emerald-300'
+      : level === 'Medium'
+        ? 'border-amber-300/30 bg-amber-300/15 text-amber-200'
+        : 'border-white/15 bg-white/[0.06] text-white/45';
+  return (
+    <span className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${styles}`}>
+      {level}
+    </span>
+  );
+}
+
+function formatCount(n: number) {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}K`;
+  return String(n);
+}
 
 type PinnedMessage = {
   ticker: string;
@@ -321,6 +401,10 @@ function MarketingAdProgress({ project }: { project: Project }) {
 
 const tableCols =
   'grid-cols-[28px_36px_180px_68px_72px_64px_56px_64px_minmax(110px,1fr)_72px_64px]';
+const raidsTableCols =
+  'grid-cols-[28px_36px_minmax(150px,180px)_minmax(180px,1.2fr)_72px_64px_64px_64px_72px_72px_68px]';
+const mphTableCols =
+  'grid-cols-[28px_36px_minmax(150px,180px)_64px_80px_72px_72px_72px_88px_88px_68px]';
 
 function ProjectMark({
   project,
@@ -521,13 +605,19 @@ export function HomePage() {
         activeCategory === 'All' ||
         activeCategory === 'MPH' ||
         activeCategory === 'Pinned' ||
-        (activeCategory === 'Raids' && project.raidsActive > 0);
+        (activeCategory === 'Raids' && Boolean(raidStatsByTicker[project.ticker]));
       return matchesQuery && matchesShortcut && matchesTab;
     });
 
     const sorted = [...filtered];
     if (activeCategory === 'Raids') {
-      sorted.sort((a, b) => b.raidsActive - a.raidsActive || b.mph - a.mph || b.votesToday - a.votesToday);
+      sorted.sort((a, b) => {
+        const ra = raidStatsByTicker[a.ticker];
+        const rb = raidStatsByTicker[b.ticker];
+        const scoreA = ra ? ra.likes + ra.reposts * 3 + ra.replies : 0;
+        const scoreB = rb ? rb.likes + rb.reposts * 3 + rb.replies : 0;
+        return scoreB - scoreA || b.raidsActive - a.raidsActive;
+      });
     } else if (activeCategory === 'MPH') {
       sorted.sort((a, b) => b.mph - a.mph || b.raidsActive - a.raidsActive || b.votesToday - a.votesToday);
     } else {
@@ -607,7 +697,27 @@ export function HomePage() {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }, [currentPage, totalPages]);
 
-  const sectionCopy = shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
+  const sectionCopy = (() => {
+    if (activeCategory === 'Raids') {
+      return {
+        title: 'X raids',
+        subtitle: 'Community raid posts on X — likes, reposts, and replies that show real engagement.',
+      };
+    }
+    if (activeCategory === 'MPH') {
+      return {
+        title: 'Telegram MPH',
+        subtitle: 'Messages per hour in each CTO chat, with High / Medium / Low engagement levels.',
+      };
+    }
+    if (activeCategory === 'Pinned') {
+      return {
+        title: 'Pinned messages',
+        subtitle: 'Most recent pinned message from each Telegram group.',
+      };
+    }
+    return shortcutCopy[activeShortcut] ?? shortcutCopy['Top Today'];
+  })();
 
   const selectShortcut = (label: string) => {
     setActiveShortcut(label);
@@ -844,6 +954,127 @@ export function HomePage() {
                       <p className="mt-3 text-sm leading-relaxed text-white/70">{pin.text}</p>
                     </article>
                   ))
+                )}
+              </div>
+            ) : activeCategory === 'Raids' ? (
+              <div className="gloss-panel rounded-xl border border-white/[0.1]">
+                <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
+                  <div className="min-w-[980px]">
+                    <div className={`grid ${raidsTableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
+                      <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
+                      <span className="text-center">#</span>
+                      <span>Asset</span>
+                      <span>X post</span>
+                      <span className="text-right" title="Likes"><Heart className="ml-auto h-3 w-3" /></span>
+                      <span className="text-right" title="Reposts"><Repeat2 className="ml-auto h-3 w-3" /></span>
+                      <span className="text-right" title="Replies"><MessageCircle className="ml-auto h-3 w-3" /></span>
+                      <span className="text-right" title="Views"><Eye className="ml-auto h-3 w-3" /></span>
+                      <span className="text-right">Raiders</span>
+                      <span className="text-center">Engagement</span>
+                      <span className="text-right">Status</span>
+                    </div>
+                    {pagedProjects.map((project) => {
+                      const raid = raidStatsByTicker[project.ticker];
+                      if (!raid) return null;
+                      const level = raidLevel(raid);
+                      return (
+                        <article
+                          key={project.ticker}
+                          className={`grid ${raidsTableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
+                        >
+                          <button
+                            type="button"
+                            aria-label={`Star ${project.ticker}`}
+                            onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                            className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                          >
+                            <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                          </button>
+                          <span className="text-center text-xs text-white/35">{project.rank}</span>
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold">${project.ticker}</p>
+                              <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                            </div>
+                          </div>
+                          <p className="truncate text-[11px] text-white/65" title={raid.post}>{raid.post}</p>
+                          <span className="text-right text-xs font-semibold text-rose-300">{formatCount(raid.likes)}</span>
+                          <span className="text-right text-xs font-semibold text-sky-300">{formatCount(raid.reposts)}</span>
+                          <span className="text-right text-xs font-semibold text-white/70">{formatCount(raid.replies)}</span>
+                          <span className="text-right text-xs text-white/45">{raid.views}</span>
+                          <span className="text-right text-xs font-semibold text-[#c8ff3d]">{raid.raiders}</span>
+                          <div className="flex justify-center"><EngagementPill level={level} /></div>
+                          <span className={`text-right text-[11px] font-semibold ${
+                            raid.status === 'Live' ? 'text-[#c8ff3d]' : raid.status === 'Queued' ? 'text-amber-200' : 'text-white/35'
+                          }`}>
+                            {raid.status}
+                          </span>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+                {visibleProjects.length === 0 && (
+                  <div className="px-4 py-12 text-center text-sm text-white/35">No raid posts found.</div>
+                )}
+              </div>
+            ) : activeCategory === 'MPH' ? (
+              <div className="gloss-panel rounded-xl border border-white/[0.1]">
+                <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
+                  <div className="min-w-[960px]">
+                    <div className={`grid ${mphTableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
+                      <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
+                      <span className="text-center">#</span>
+                      <span>Asset</span>
+                      <span className="text-right" title="Messages per hour">MPH ▾</span>
+                      <span className="text-center">Level</span>
+                      <span className="text-right">Peak</span>
+                      <span className="text-right">Chatters</span>
+                      <span className="text-right">Reply %</span>
+                      <span className="text-right">Senders</span>
+                      <span className="text-right">Last spike</span>
+                      <span className="text-right">Members</span>
+                    </div>
+                    {pagedProjects.map((project) => {
+                      const mphExtra = mphStatsByTicker[project.ticker];
+                      const level = mphLevel(project.mph);
+                      return (
+                        <article
+                          key={project.ticker}
+                          className={`grid ${mphTableCols} items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]`}
+                        >
+                          <button
+                            type="button"
+                            aria-label={`Star ${project.ticker}`}
+                            onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                            className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                          >
+                            <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                          </button>
+                          <span className="text-center text-xs text-white/35">{project.rank}</span>
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-bold">${project.ticker}</p>
+                              <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                            </div>
+                          </div>
+                          <span className="text-right text-sm font-bold text-[#c8ff3d]">{project.mph}</span>
+                          <div className="flex justify-center"><EngagementPill level={level} /></div>
+                          <span className="text-right text-xs font-semibold text-white/70">{mphExtra?.peakMph ?? '--'}</span>
+                          <span className="text-right text-xs text-white/70">{mphExtra?.activeChatters ?? '--'}</span>
+                          <span className="text-right text-xs text-white/70">{mphExtra ? `${mphExtra.replyRate}%` : '--'}</span>
+                          <span className="text-right text-xs text-white/55">{mphExtra?.uniqueSenders ?? '--'}</span>
+                          <span className="text-right text-[11px] text-white/40">{mphExtra?.lastSpike ?? '--'}</span>
+                          <span className="text-right text-xs text-white/45">{project.community}</span>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </div>
+                {visibleProjects.length === 0 && (
+                  <div className="px-4 py-12 text-center text-sm text-white/35">No chats found.</div>
                 )}
               </div>
             ) : (
