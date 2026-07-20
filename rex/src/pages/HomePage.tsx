@@ -325,8 +325,10 @@ export function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070912] text-[#f5f7fb]">
-      <div className="border-b border-white/[0.06] bg-[#0a0c16]">
+    <div className="page-shell min-h-screen text-[#f5f7fb]">
+      <div className="page-gloss" aria-hidden />
+      <div className="relative z-[1]">
+      <div className="border-b border-white/[0.06] bg-[#0a0c16]/90 backdrop-blur-md">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
           <div className="mr-3 flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#c8ff3d]">
             <Flame className="h-3.5 w-3.5 fill-[#c8ff3d]" />
@@ -348,7 +350,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className="border-b border-white/[0.07] bg-[#090b14]">
+      <header className="border-b border-white/[0.07] bg-[#090b14]/88 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
@@ -384,7 +386,7 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className="border-b border-white/[0.06] bg-[#090b14]">
+      <nav className="border-b border-white/[0.06] bg-[#090b14]/88 backdrop-blur-md">
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
           {shortcuts.map((shortcut) => {
             const Icon = shortcut.icon;
@@ -409,8 +411,8 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        <section className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#111525]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(124,58,237,0.24),transparent_44%)]" />
+        <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
           <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
             <HeroLogoCollage />
           </div>
@@ -466,7 +468,7 @@ export function HomePage() {
                   {index > 0 ? <ElectricBridge /> : null}
                   <article className="group relative w-[300px] shrink-0 overflow-hidden rounded-xl">
                     <div className="promoted-chase" />
-                    <div className="relative rounded-xl border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
+                    <div className="gloss-panel relative rounded-xl border border-white/[0.08] p-4 transition group-hover:border-[#c8ff3d]/15">
                       <div className="flex items-center gap-3">
                         <ProjectMark project={project} size="h-12 w-12" />
                         <div className="min-w-0">
@@ -524,7 +526,7 @@ export function HomePage() {
               </button>
             </div>
 
-            <div className="rounded-xl border border-white/[0.08] bg-[#0d101b]">
+            <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
                 <div className={`min-w-[1100px]`}>
                   <div className={`grid ${tableCols} items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30`}>
@@ -602,7 +604,7 @@ export function HomePage() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-xl border border-white/[0.08] bg-[#0d101b] p-4">
+            <div className="gloss-panel rounded-xl border border-white/[0.1] p-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold">Solana activity</h3>
                 <BarChart3 className="h-4 w-4 text-white/25" />
@@ -620,15 +622,15 @@ export function HomePage() {
                       <span className="text-white/25">{item.value}</span>
                     </div>
                     <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#c8ff3d] to-violet-500" style={{ width: item.width }} />
+                      <div className="h-full rounded-full bg-gradient-to-r from-[#c8ff3d] to-sky-400" style={{ width: item.width }} />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-violet-400/15 bg-gradient-to-br from-violet-500/15 to-[#0d101b] p-4">
-              <span className="text-[9px] font-bold uppercase tracking-wider text-violet-300">Telegram bot</span>
+            <div className="gloss-panel overflow-hidden rounded-xl border border-sky-400/20 bg-gradient-to-br from-sky-500/12 to-transparent p-4">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-sky-300">Telegram bot</span>
               <h3 className="mt-2 font-serif text-lg font-bold">Found an abandoned project?</h3>
               <p className="mt-2 text-xs leading-5 text-white/40">Submit a Solana contract and community to start a takeover proposal.</p>
               <button type="button" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-[#2aabee] py-2.5 text-xs font-semibold">
@@ -645,7 +647,7 @@ export function HomePage() {
         </div>
       </main>
 
-      <footer className="mt-10 border-t border-white/[0.06] bg-[#070912]">
+      <footer className="mt-10 border-t border-white/[0.06] bg-[#070912]/70 backdrop-blur-sm">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
@@ -654,6 +656,7 @@ export function HomePage() {
           <div className="flex gap-5"><span>Terms</span><span>Privacy</span><span>Contact</span></div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
