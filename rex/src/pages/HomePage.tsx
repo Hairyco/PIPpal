@@ -176,6 +176,28 @@ function HeroLogoCollage() {
   );
 }
 
+function HeartbeatTracker() {
+  return (
+    <svg className="h-5 w-[4.5rem]" viewBox="0 0 84 24" aria-hidden>
+      <path
+        className="heartbeat-line"
+        d="M0 12 H14 L18 12 L22 5 L27 19 L31 9 L35 12 H84"
+      />
+    </svg>
+  );
+}
+
+function ElectricBridge() {
+  return (
+    <div className="electric-bridge" aria-hidden>
+      <svg className="h-[72px] w-3.5 overflow-visible" viewBox="0 0 14 72">
+        <path className="electric-bolt" d="M7 2 L4 16 L9 28 L3 42 L10 54 L7 70" />
+        <path className="electric-bolt electric-bolt-alt" d="M7 6 L10 20 L5 34 L11 48 L6 62" />
+      </svg>
+    </div>
+  );
+}
+
 const tableCols =
   'grid-cols-[28px_36px_minmax(180px,1.4fr)_72px_64px_84px_128px_88px_72px_72px_168px_72px]';
 
@@ -431,42 +453,45 @@ export function HomePage() {
 
         <section className="mt-7">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
+            <div className="flex items-center gap-2.5">
+              <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
+              <HeartbeatTracker />
+            </div>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Promote</button>
           </div>
           <div className="layout-clip -mx-3 overflow-hidden px-3 pb-1 sm:-mx-5 sm:px-5">
-            <div className="flex w-max max-w-none animate-scroll-left-fast gap-3 hover:[animation-play-state:paused] motion-reduce:animate-none">
+            <div className="flex w-max max-w-none animate-scroll-left-fast items-stretch gap-0 hover:[animation-play-state:paused] motion-reduce:animate-none">
               {[...promotedProjects, ...promotedProjects].map((project, index) => (
-                <article
-                  key={`${project.ticker}-${index}`}
-                  className="group relative w-[300px] shrink-0 overflow-hidden rounded-xl"
-                >
-                  <div className="promoted-chase" />
-                  <div className="relative rounded-xl border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
-                    <div className="flex items-center gap-3">
-                      <ProjectMark project={project} size="h-12 w-12" />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-sm font-bold">${project.ticker}</p>
-                          <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                <div key={`${project.ticker}-${index}`} className="flex items-stretch">
+                  {index > 0 ? <ElectricBridge /> : null}
+                  <article className="group relative w-[300px] shrink-0 overflow-hidden rounded-xl">
+                    <div className="promoted-chase" />
+                    <div className="relative rounded-xl border border-white/[0.06] bg-[#0d101b] p-4 transition group-hover:border-[#c8ff3d]/15">
+                      <div className="flex items-center gap-3">
+                        <ProjectMark project={project} size="h-12 w-12" />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-bold">${project.ticker}</p>
+                            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c8ff3d] text-[9px] font-black text-black">✓</span>
+                          </div>
+                          <p className="truncate text-xs text-white/35">{project.name}</p>
                         </div>
-                        <p className="truncate text-xs text-white/35">{project.name}</p>
+                        <div className="ml-auto text-right">
+                          <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
+                          <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
+                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                          </p>
+                        </div>
+                        <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
                       </div>
-                      <div className="ml-auto text-right">
-                        <p className="text-sm font-semibold">{project.votes.toLocaleString()} votes</p>
-                        <p className={`text-xs font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                        </p>
+                      <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
+                        <StageBadge stage={project.stage} />
+                        <span className="text-[10px] text-white/30">{project.chain}</span>
+                        <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
                       </div>
-                      <Star className="ml-1 h-4 w-4 text-white/20 group-hover:text-[#c8ff3d]" />
                     </div>
-                    <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
-                      <StageBadge stage={project.stage} />
-                      <span className="text-[10px] text-white/30">{project.chain}</span>
-                      <span className="ml-auto flex items-center gap-1 text-[10px] text-white/40"><Users className="h-3 w-3" /> {project.community}</span>
-                    </div>
-                  </div>
-                </article>
+                  </article>
+                </div>
               ))}
             </div>
           </div>
