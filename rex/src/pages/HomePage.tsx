@@ -857,6 +857,7 @@ export function HomePage() {
           })}
         </div>
       </nav>
+      </div>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
         <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
