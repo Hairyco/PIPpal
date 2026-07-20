@@ -190,6 +190,180 @@ function HeroLogoCollage() {
   );
 }
 
+const marketingPartners = [
+  { name: 'CoinGecko', src: '/images/partners/coingecko.svg' },
+  { name: 'DexScreener', src: '/images/partners/dexscreener.ico' },
+  { name: 'DEXTools', src: '/images/partners/dextools.svg' },
+  { name: 'CoinMarketCap', src: '/images/partners/coinmarketcap.svg' },
+];
+
+function MarketingPartnersPanel() {
+  return (
+    <div className="grid w-[132px] grid-cols-2 gap-2 sm:w-[152px] sm:gap-2.5" aria-hidden>
+      {marketingPartners.map((partner) => (
+        <div
+          key={partner.name}
+          className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-white/[0.1] bg-[#0a0c16]/75 px-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+          title={partner.name}
+        >
+          <img
+            src={partner.src}
+            alt=""
+            className="h-7 w-7 object-contain sm:h-8 sm:w-8"
+            loading="lazy"
+          />
+          <span className="max-w-full truncate text-[8px] font-semibold tracking-wide text-white/45 sm:text-[9px]">
+            {partner.name}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HeroBannerCarousel() {
+  const [slide, setSlide] = useState(0);
+  const pausedRef = useRef(false);
+  const total = 2;
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (pausedRef.current) return;
+      setSlide((prev) => (prev + 1) % total);
+    }, 5500);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const goTo = (index: number) => {
+    setSlide(index);
+    pausedRef.current = true;
+    window.setTimeout(() => {
+      pausedRef.current = false;
+    }, 8000);
+  };
+
+  return (
+    <section
+      className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]"
+      onMouseEnter={() => {
+        pausedRef.current = true;
+      }}
+      onMouseLeave={() => {
+        pausedRef.current = false;
+      }}
+      onTouchStart={() => {
+        pausedRef.current = true;
+      }}
+      onTouchEnd={() => {
+        window.setTimeout(() => {
+          pausedRef.current = false;
+        }, 5000);
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
+
+      <div className="relative">
+        <div
+          className="flex transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${slide * 100}%)` }}
+        >
+          {/* Slide 1 — community takeovers */}
+          <div className="relative w-full shrink-0">
+            <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
+              <HeroLogoCollage />
+            </div>
+            <div className="relative z-10 px-4 py-4 pr-[7.25rem] pb-10 sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 sm:pb-11 md:max-w-md">
+              <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
+                The home of community takeovers
+              </h1>
+              <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
+                <Link
+                  to="/launch"
+                  className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
+                >
+                  Launch a CTO
+                </Link>
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+                >
+                  <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Telegram bot
+                </button>
+              </div>
+              <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
+                <Wallet className="h-3.5 w-3.5 shrink-0" />
+                Automated marketing wallets included
+              </p>
+              <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
+                <li className="inline-flex items-center gap-1">
+                  <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                  Community owned
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Slide 2 — marketing wallets */}
+          <div className="relative w-full shrink-0">
+            <div className="pointer-events-none absolute right-2 top-5 z-0 sm:right-5 sm:top-6">
+              <MarketingPartnersPanel />
+            </div>
+            <div className="relative z-10 px-4 py-4 pr-[8.5rem] pb-10 sm:max-w-[min(100%,28rem)] sm:px-6 sm:py-5 sm:pr-6 sm:pb-11 md:max-w-lg">
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
+                Marketing wallets
+              </p>
+              <h2 className="font-serif text-[1.55rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
+                Ads that buy themselves
+              </h2>
+              <p className="mt-2 max-w-[18rem] text-[11px] leading-relaxed text-white/50 sm:max-w-sm sm:text-xs">
+                Every CTO launches with a marketing wallet that auto-funds DexScreener, DEXTools, CoinGecko, and CoinMarketCap placements as balance hits targets.
+              </p>
+              <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
+                <Link
+                  to="/launch"
+                  className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
+                >
+                  Launch a CTO
+                </Link>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/45 sm:text-[11px]">
+                  <Wallet className="h-3.5 w-3.5 text-[#c8ff3d]" />
+                  No manual buys
+                </span>
+              </div>
+              <ul className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
+                {['Threshold-triggered ads', 'Community-controlled spend'].map((item) => (
+                  <li key={item} className="inline-flex items-center gap-1">
+                    <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2">
+          {[0, 1].map((index) => (
+            <button
+              key={index}
+              type="button"
+              aria-label={`Show banner ${index + 1}`}
+              aria-current={slide === index}
+              onClick={() => goTo(index)}
+              className={`h-2.5 w-2.5 rounded-full border transition ${
+                slide === index
+                  ? 'border-[#c8ff3d] bg-[#c8ff3d]'
+                  : 'border-white/35 bg-white/15 hover:bg-white/30'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function HeartbeatTracker() {
   return (
     <svg className="h-5 w-[4.5rem]" viewBox="0 0 84 24" aria-hidden>
@@ -735,44 +909,7 @@ export function HomePage() {
       </nav>
 
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
-        <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
-            <HeroLogoCollage />
-          </div>
-          <div className="relative z-10 px-4 py-4 pr-[7.25rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
-            <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
-              The home of community takeovers
-            </h1>
-            <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
-              <Link
-                to="/launch"
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
-              >
-                Launch a CTO
-              </Link>
-              <button
-                type="button"
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
-              >
-                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Telegram bot
-              </button>
-            </div>
-            <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
-              <Wallet className="h-3.5 w-3.5 shrink-0" />
-              Automated marketing wallets included
-            </p>
-            <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
-              {['Community owned'].map((item) => (
-                <li key={item} className="inline-flex items-center gap-1">
-                  <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
+        <HeroBannerCarousel />
 
         <section className="mt-7 min-w-0">
           <div className="mb-3 flex items-center justify-between">
