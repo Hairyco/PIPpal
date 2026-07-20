@@ -15,7 +15,6 @@ import {
   Star,
   Sun,
   Trophy,
-  Users,
   Wallet,
   Zap,
 } from 'lucide-react';
@@ -639,8 +638,17 @@ export function HomePage() {
                       <div className="mt-4 flex items-center gap-2 border-t border-white/[0.05] pt-3">
                         <StageBadge stage={project.stage} />
                         <span className="text-[10px] text-white/30">{project.chain}</span>
-                        <span className="ml-auto flex shrink-0 items-center gap-1 text-[10px] text-white/40">
-                          <Users className="h-3 w-3" /> {project.community}
+                        <span
+                          className="ml-auto flex shrink-0 items-center gap-1 text-[10px] font-medium text-white/45"
+                          title={`${project.community} Telegram members`}
+                        >
+                          <img
+                            src="/images/partners/telegram.svg"
+                            alt=""
+                            className="h-3.5 w-3.5"
+                            loading="lazy"
+                          />
+                          {project.community}
                         </span>
                       </div>
                       <MarketingAdProgress project={project} />
