@@ -581,6 +581,19 @@ export function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 5;
 
+  const searchSuggestions = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    const matches = (project: Project) =>
+      !normalized ||
+      project.name.toLowerCase().includes(normalized) ||
+      project.ticker.toLowerCase().includes(normalized);
+    const promoted = promotedProjects.filter(matches);
+    const rest = projects.filter((project) => !project.promoted && matches(project));
+    return { promoted, rest };
+  }, [query]);
+
+  const showSearchPanel = searchFocused;
+
   useLayoutEffect(() => {
     forceNightTheme();
   }, []);
@@ -739,6 +752,15 @@ export function HomePage() {
     setVoted((prev) => (prev[ticker] ? prev : { ...prev, [ticker]: true }));
   };
 
+  const pickSearchResult = (project: Project) => {
+    setQuery(project.ticker);
+    setSearchFocused(false);
+    searchRef.current?.blur();
+    requestAnimationFrame(() => {
+      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   return (
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
       <div className="relative z-[1]">
@@ -821,15 +843,6 @@ export function HomePage() {
           >
             <Bell className="h-5 w-5" />
             <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8ff3d]" aria-hidden />
-          </button>
-          <button
-            type="button"
-            onClick={() => forceNightTheme()}
-            className="grid h-10 w-10 place-items-center rounded-lg text-[#c8ff3d]/80 transition hover:bg-white/5 hover:text-[#c8ff3d]"
-            aria-label="Night mode"
-            title="Night mode"
-          >
-            <Moon className="h-5 w-5" />
           </button>
           <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
             <Menu className="h-5 w-5" />
