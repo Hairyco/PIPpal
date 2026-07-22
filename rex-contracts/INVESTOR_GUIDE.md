@@ -25,6 +25,10 @@ net           = gross - platform - creator - marketing   (99.05%)
 
 `fee_mode` is locked at `launch_project` (0 = creator keep, 1 = trader cashback).
 
+### Abandonment trigger
+
+If the creator wallet holds under 10% of initial allocation (`CREATOR_MIN_HOLD_BPS` = 1000), the creator cut is revoked for that wallet and diverted (default: marketing). Platform and marketing fees are never halted by a dump — only the scammer’s passive income stops.
+
 Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from curve before user payout).
 
 ## Architecture diagram

@@ -93,6 +93,38 @@ export const CREATOR_FEE_MODES: {
   },
 ];
 
+/**
+ * Abandonment trigger — revoke creator cut only (not all trade fees).
+ * If the creator wallet holds under 10% of initial allocation (dumped 90%+),
+ * the creator/trader pool share is diverted away from the dumped wallet.
+ * Platform + marketing fees keep collecting so volume and recovery spend continue.
+ */
+export const CREATOR_MIN_HOLD_PCT = 10;
+export const CREATOR_DUMP_TRIGGER_PCT = 90;
+/** Where the revoked creator cut is redirected after abandonment. */
+export type CreatorFeeRedirect = 'marketing' | 'traders';
+export const CREATOR_FEE_REDIRECT_DEFAULT: CreatorFeeRedirect = 'marketing';
+
+export const ABANDONMENT_RULE = {
+  title: 'Abandonment trigger',
+  thresholdLabel: `Creator holds under ${CREATOR_MIN_HOLD_PCT}% (dumped ${CREATOR_DUMP_TRIGGER_PCT}%+)`,
+  action:
+    'Creator fee cut is permanently revoked for that wallet — total trade tax stays on. Rex platform fee and marketing wallet keep collecting.',
+  redirectMarketing:
+    'Option A — revoked cut boosts the marketing wallet (e.g. 0.40% → 0.60% at launch) to fund community recovery.',
+  redirectTraders:
+    'Option B — revoked cut routes into the trader volume / cashback pool.',
+  contrast:
+    'Unlike Pump.fun (dev keeps collecting until a manual fee-key change), Rex revokes the dump wallet’s cut on-chain automatically.',
+} as const;
+
+export const FEE_GUIDELINES = [
+  'Dynamic tiers: total trade tax scales down with market cap; marketing never turns off.',
+  'Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.',
+  `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
+  'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
+] as const;
+
 export function splitTradeFeesLamports(
   grossLamports: number,
   tier: FeeTier = FEE_TIERS[0],

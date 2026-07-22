@@ -16,6 +16,8 @@ Launch-tier trade tax is **0.95%** (0.35% Rex + 0.20% creator/trader pool + 0.40
 
 Mode A founders withdraw pool fees with `withdraw_creator_fees`. Mode B disables founder withdraw (trader cashback).
 
+**Abandonment:** if the creator dumps 90%+ (holds under 10%), their cut is revoked and diverted to marketing or traders — platform and marketing fees keep collecting.
+
 ## Code layout (modular for review)
 
 ```text

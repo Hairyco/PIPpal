@@ -16,7 +16,9 @@ import {
   Wallet,
 } from 'lucide-react';
 import {
+  ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
+  FEE_GUIDELINES,
   FEE_TIERS,
   TRADE_FEE_LABEL,
   formatBpsPercent,
@@ -437,6 +439,28 @@ export function LaunchCtoPage() {
                         </p>
                       </div>
                     </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-rose-300">
+                  Fee guidelines · {ABANDONMENT_RULE.title}
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-white/85">
+                  {ABANDONMENT_RULE.thresholdLabel}
+                </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-white/55">
+                  {ABANDONMENT_RULE.action}
+                </p>
+                <ul className="mt-3 space-y-1.5 text-[11px] leading-relaxed text-white/50">
+                  <li>{ABANDONMENT_RULE.redirectMarketing}</li>
+                  <li>{ABANDONMENT_RULE.redirectTraders}</li>
+                  <li>{ABANDONMENT_RULE.contrast}</li>
+                </ul>
+                <ul className="mt-3 space-y-1 border-t border-white/[0.06] pt-3 text-[11px] text-white/45">
+                  {FEE_GUIDELINES.map((line) => (
+                    <li key={line}>· {line}</li>
                   ))}
                 </ul>
               </div>

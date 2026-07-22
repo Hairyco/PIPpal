@@ -121,6 +121,16 @@ On a 1 SOL buy: Rex gets 0.0035 SOL, creator/trader pool 0.002 SOL, marketing 0.
 
 At launch, founders choose Mode A (keep creator fees) or Mode B (split to traders as cashback) — locked on-chain.
 
+### Abandonment trigger (dump 90%+)
+
+Trading fees are **not** turned off when a creator rugs. On each swap, if the creator wallet holds **under 10%** of their initial allocation:
+
+1. Their **0.20% creator cut is permanently revoked** for that wallet  
+2. That cut is redirected to the **marketing wallet** (default) or **trader rebate pool**  
+3. **Rex (0.35%) and marketing (0.40%) keep collecting** so the chart still funds recovery and platform costs  
+
+This is stricter than Pump.fun, where dumped creators can keep collecting until a manual fee-key change.
+
 ---
 
 ## What is NOT in the MVP yet

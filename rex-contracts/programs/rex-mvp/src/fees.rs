@@ -5,6 +5,11 @@
 //!   0.20% → creator / trader pool (Mode A: founder withdraw; Mode B: trader rebates)
 //!   0.40% → project marketing wallet
 //!  99.05% → net (into curve on buy, to user on sell after curve quote)
+//!
+//! # Abandonment trigger (product rule — enforce on swap when creator ATA is wired)
+//! If creator token balance < 10% of initial allocation (`CREATOR_MIN_HOLD_BPS`),
+//! set creator cut to 0 for that wallet and divert the 0.20% to marketing (default)
+//! or the trader pool. Do **not** disable platform or marketing fees — volume stays taxed.
 
 use anchor_lang::prelude::*;
 

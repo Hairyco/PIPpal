@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Clock, Wallet, X } from 'lucide-react';
 import {
+  ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
   FEE_TIERS,
   TRADE_FEE_LABEL,
@@ -220,14 +221,26 @@ export function MarketingWalletExplainer({
               </li>
             ))}
           </ul>
+          <div className="mt-3 rounded-lg border border-rose-400/25 bg-rose-500/[0.07] px-2.5 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-rose-300">
+              {ABANDONMENT_RULE.title}
+            </p>
+            <p className="mt-1 text-[11px] font-semibold text-white/80">
+              {ABANDONMENT_RULE.thresholdLabel}
+            </p>
+            <p className="mt-1 text-[10px] leading-relaxed text-white/50">
+              {ABANDONMENT_RULE.action} {ABANDONMENT_RULE.redirectMarketing}
+            </p>
+          </div>
         </div>
 
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
           Marketing ({formatBpsPercent(LAUNCH_TIER.marketingBps)} at launch) lands in a non-custodial
           vault for this coin. The creator/trader pool (
           {formatBpsPercent(LAUNCH_TIER.creatorPoolBps)}) is set at deploy — keep it as creator fees
-          or auto-cashback traders. As the marketing balance rises, Rex unlocks supplier spends in
-          order.
+          or auto-cashback traders. Dump 90%+ and that cut is revoked from the wallet, not the whole
+          trade tax — Rex and marketing keep funding recovery. As the marketing balance rises, Rex
+          unlocks supplier spends in order.
         </p>
       </div>
       <div className="p-4 sm:p-5">
