@@ -911,6 +911,7 @@ export function HomePage() {
           >
             <Plus className="h-4 w-4" /> Submit CTO
           </Link>
+          <ConnectWalletButton className="shrink-0" />
           <button
             type="button"
             className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
@@ -978,7 +979,7 @@ export function HomePage() {
             </div>
             <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
               <Wallet className="h-3.5 w-3.5 shrink-0" />
-              Automated marketing wallets included
+              Marketing wallets included
             </p>
             <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
               <li className="inline-flex items-center gap-1">
