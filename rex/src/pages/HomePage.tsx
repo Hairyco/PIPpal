@@ -826,7 +826,7 @@ export function HomePage() {
                 aria-keyshortcuts="/"
                 aria-expanded={showSearchPanel}
                 aria-controls="cto-search-panel"
-                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40 sm:pr-11"
+                className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40 sm:pr-11"
               />
               {!searchFocused && !query ? (
                 <kbd
@@ -914,6 +914,7 @@ export function HomePage() {
             >
               <Plus className="h-4 w-4" /> Submit CTO
             </Link>
+            <ConnectWalletButton className="shrink-0" />
             <button
               type="button"
               className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
@@ -931,29 +932,26 @@ export function HomePage() {
       </header>
 
       <nav className="border-b border-white/[0.06] bg-black">
-        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:px-5">
-          <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
-            {shortcuts.map((shortcut) => {
-              const Icon = shortcut.icon;
-              const active = activeShortcut === shortcut.label;
-              return (
-                <button
-                  key={shortcut.label}
-                  type="button"
-                  onClick={() => selectShortcut(shortcut.label)}
-                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
-                    active
-                      ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {shortcut.label}
-                </button>
-              );
-            })}
-          </div>
-          <ConnectWalletButton className="ml-auto shrink-0" />
+        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
+          {shortcuts.map((shortcut) => {
+            const Icon = shortcut.icon;
+            const active = activeShortcut === shortcut.label;
+            return (
+              <button
+                key={shortcut.label}
+                type="button"
+                onClick={() => selectShortcut(shortcut.label)}
+                className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
+                  active
+                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {shortcut.label}
+              </button>
+            );
+          })}
         </div>
       </nav>
       </div>
