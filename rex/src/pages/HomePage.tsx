@@ -974,7 +974,7 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setWalletExplainerOpen(true)}
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 py-2 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Marketing wallet

@@ -1,9 +1,26 @@
 import { CheckCircle2, Circle, Clock, Wallet, X } from 'lucide-react';
-import { TRADE_FEE_LABEL } from '../data/chainConfig';
+import {
+  CREATOR_FEE_BPS,
+  MARKETING_FEE_BPS,
+  PLATFORM_FEE_BPS,
+  TRADE_FEE_BPS,
+  TRADE_FEE_LABEL,
+} from '../data/chainConfig';
 import {
   MARKETING_SPEND_FLOW,
   formatSpendCost,
 } from '../data/marketingSpendFlow';
+
+function formatBpsPercent(bps: number) {
+  const pct = bps / 100;
+  return `${pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(2).replace(/0$/, '')}%`;
+}
+
+const FEE_ROWS = [
+  { label: 'Platform (Rex)', bps: PLATFORM_FEE_BPS, tone: 'text-white/80' },
+  { label: 'Creator vault', bps: CREATOR_FEE_BPS, tone: 'text-[#7dd3fc]' },
+  { label: 'Marketing wallet', bps: MARKETING_FEE_BPS, tone: 'text-[#d5ff69]' },
+] as const;
 
 type SpendStatus = 'complete' | 'in-progress' | 'upcoming';
 
@@ -139,11 +156,11 @@ export function MarketingWalletExplainer({
       <div className="border-b border-white/[0.06] p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#c8ff3d]">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#2aabee]/15 text-[#2aabee]">
               <Wallet className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2aabee]/90">
                 Marketing wallet
               </p>
               <h3 className="mt-0.5 font-serif text-lg font-bold text-white sm:text-xl">
@@ -161,10 +178,42 @@ export function MarketingWalletExplainer({
             </div>
           ) : null}
         </div>
+
+        <div className="mt-4 rounded-xl border border-white/[0.08] bg-black/35 p-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
+                Trade fees
+              </p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-white">
+                {formatBpsPercent(TRADE_FEE_BPS)}{' '}
+                <span className="text-sm font-medium text-white/45">per buy &amp; sell</span>
+              </p>
+            </div>
+            <p className="max-w-[14rem] text-right text-[10px] leading-relaxed text-white/35">
+              {TRADE_FEE_LABEL}
+            </p>
+          </div>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
+            {FEE_ROWS.map((row) => (
+              <li
+                key={row.label}
+                className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
+              >
+                <p className="text-[10px] text-white/40">{row.label}</p>
+                <p className={`mt-0.5 text-sm font-bold tabular-nums ${row.tone}`}>
+                  {formatBpsPercent(row.bps)}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-          Every buy and sell takes {TRADE_FEE_LABEL}. The marketing share (0.40%) lands in a
-          non-custodial vault for this coin. As the balance rises, Rex unlocks supplier spends in
-          order — you track progress here the same way builds used to show on the Rex landing page.
+          The marketing share ({formatBpsPercent(MARKETING_FEE_BPS)}) lands in a non-custodial vault
+          for this coin. Creator fees ({formatBpsPercent(CREATOR_FEE_BPS)}) update the creator vault
+          for withdrawal. As the marketing balance rises, Rex unlocks supplier spends in order —
+          you track progress here the same way builds used to show on the Rex landing page.
         </p>
       </div>
       <div className="p-4 sm:p-5">
