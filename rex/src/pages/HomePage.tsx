@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet';
 import { LightningBundleArt } from '../components/services/LightningBundleArt';
+import { ConnectWalletButton } from '../components/ConnectWalletButton';
 
 type Project = {
   rank: number;
