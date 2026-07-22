@@ -155,7 +155,7 @@ const shortcutCopy: Record<Shortcut, { title: string; subtitle: string }> = {
   },
   Prelaunch: {
     title: 'Prelaunch CTOs',
-    subtitle: 'Forming and voting takeovers before launch — soonest launch first.',
+    subtitle: 'Vote to set launch order — highest votes go live first.',
   },
   'Top All Time': {
     title: 'Top CTOs All Time',
@@ -190,12 +190,9 @@ function compareByShortcut(
       return b.votesToday - a.votesToday || b.votes - a.votes || b.mph - a.mph;
     case 'Top All Time':
       return b.votes - a.votes || b.votesToday - a.votesToday;
-    case 'Prelaunch': {
-      const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
-      const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
-      if (launchA !== launchB) return launchA - launchB;
-      return b.votesToday - a.votesToday || b.votes - a.votes;
-    }
+    case 'Prelaunch':
+      // Launch order = most votes first
+      return b.votes - a.votes || b.votesToday - a.votesToday || b.mph - a.mph;
     case 'New CTOs': {
       const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
       const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
@@ -421,9 +418,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  '28px 36px 180px 68px 72px 64px 56px 64px minmax(110px, 1fr) 72px 64px';
+  '28px 36px 180px 72px 64px 56px 64px minmax(110px, 1fr) 72px';
 const tableColsPrelaunch =
-  '28px 36px 180px 68px 64px 72px 64px 56px 64px minmax(110px, 1fr) 72px 64px';
+  '28px 36px 180px 68px 56px 72px 64px 56px 64px minmax(110px, 1fr) 72px 64px';
 
 function ProjectMark({
   project,
@@ -466,11 +463,6 @@ function Pct({ value }: { value: number | null }) {
 function formatVotes(n: number) {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 2).replace(/\.00$/, '')}K`;
   return String(n);
-}
-
-function formatLaunchIn(hours: number | null) {
-  if (hours == null || hours <= 0) return 'Live';
-  return `${hours}h`;
 }
 
 const THEME_KEY = 'cto-theme';
@@ -648,11 +640,20 @@ export function HomePage() {
       return matchesQuery && matchesShortcut(project, activeShortcut);
     });
 
-    const sorted = [...filtered];
+    const withLocalVotes = filtered.map((project) => {
+      const bump = voted[project.ticker] ? 1 : 0;
+      return {
+        ...project,
+        votes: project.votes + bump,
+        votesToday: project.votesToday + bump,
+      };
+    });
+
+    const sorted = [...withLocalVotes];
     sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode, voted]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1120,9 +1121,13 @@ export function HomePage() {
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
-                    <span className="text-center">Vote</span>
                     {isPrelaunch ? (
-                      <span className="text-right" title="Hours until launch">Launch</span>
+                      <>
+                        <span className="text-center">Vote</span>
+                        <span className="text-right" title="Launch queue — highest votes first">
+                          Queue
+                        </span>
+                      </>
                     ) : null}
                     <span className="text-right">Price</span>
                     <span className="text-right">%{activeTimeWindow}</span>
@@ -1130,12 +1135,12 @@ export function HomePage() {
                     <span className="text-right" title="Raids and people engaging">Raids</span>
                     <span>Marketing wallet</span>
                     <span className="text-right">Balance</span>
-                    <span className="text-right">Votes ▾</span>
+                    {isPrelaunch ? (
+                      <span className="text-right">Votes ▾</span>
+                    ) : null}
                   </div>
                   {pagedProjects.map((project) => {
                     const hasVoted = Boolean(voted[project.ticker]);
-                    const displayVotes = project.votes + (hasVoted ? 1 : 0);
-                    const displayVotesToday = project.votesToday + (hasVoted ? 1 : 0);
                     return (
                     <article
                       key={project.ticker}
@@ -1169,33 +1174,31 @@ export function HomePage() {
                         </div>
                         <ChainPill />
                       </div>
-                      <div className="flex w-full justify-center">
-                        <button
-                          type="button"
-                          onClick={() => castVote(project.ticker)}
-                          disabled={hasVoted}
-                          className={`w-[3.25rem] rounded-md px-0 py-1.5 text-center text-[11px] font-bold transition ${
-                            hasVoted
-                              ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                              : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
-                          }`}
-                        >
-                          {hasVoted ? 'Voted' : 'Vote'}
-                        </button>
-                      </div>
                       {isPrelaunch ? (
-                        <span
-                          className={`text-right text-xs font-semibold ${
-                            project.launchInHours == null || project.launchInHours <= 0
-                              ? 'text-white/35'
-                              : project.launchInHours <= 12
-                                ? 'text-[#c8ff3d]'
-                                : 'text-white/80'
-                          }`}
-                          title="Hours until launch"
-                        >
-                          {formatLaunchIn(project.launchInHours)}
-                        </span>
+                        <>
+                          <div className="flex w-full justify-center">
+                            <button
+                              type="button"
+                              onClick={() => castVote(project.ticker)}
+                              disabled={hasVoted}
+                              className={`w-[3.25rem] rounded-md px-0 py-1.5 text-center text-[11px] font-bold transition ${
+                                hasVoted
+                                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
+                                  : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
+                              }`}
+                            >
+                              {hasVoted ? 'Voted' : 'Vote'}
+                            </button>
+                          </div>
+                          <span
+                            className={`text-right text-xs font-semibold ${
+                              project.rank === 1 ? 'text-[#c8ff3d]' : 'text-white/80'
+                            }`}
+                            title="Launch queue position — most votes launch first"
+                          >
+                            {project.rank === 1 ? 'Next' : `#${project.rank}`}
+                          </span>
+                        </>
                       ) : null}
                       <span className="text-right text-xs font-medium">{project.price}</span>
                       <span className="text-right text-xs"><Pct value={changeForWindow(project, activeTimeWindow)} /></span>
@@ -1219,10 +1222,12 @@ export function HomePage() {
                       <span className="text-right text-xs font-semibold text-white/85">
                         {project.marketingBalance ?? '--'}
                       </span>
-                      <div className="text-right">
-                        <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(displayVotes)}</p>
-                        <p className="text-[10px] text-white/35">{displayVotesToday}</p>
-                      </div>
+                      {isPrelaunch ? (
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
+                          <p className="text-[10px] text-white/35">+{project.votesToday} today</p>
+                        </div>
+                      ) : null}
                     </article>
                     );
                   })}
