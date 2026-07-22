@@ -1,5 +1,5 @@
-import { useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -40,6 +40,7 @@ const VESTING_SCHEDULE = [
 ];
 
 export function LaunchCtoPage() {
+  const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('details');
   const [name, setName] = useState('');
@@ -58,6 +59,23 @@ export function LaunchCtoPage() {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const [fromCoinPage, setFromCoinPage] = useState(false);
+  const prefillApplied = useRef(false);
+
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    const qName = searchParams.get('name')?.trim() ?? '';
+    const qTicker = searchParams.get('ticker')?.trim() ?? '';
+    const qCa = searchParams.get('ca')?.trim() ?? '';
+    if (!qName && !qTicker && !qCa) return;
+    prefillApplied.current = true;
+    if (qName) setName(qName);
+    if (qTicker) setTicker(qTicker.replace(/^\$/, ''));
+    if (qCa) setContract(qCa);
+    setMode('launch');
+    setStep('details');
+    setFromCoinPage(true);
+  }, [searchParams]);
 
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
   const steps =
@@ -236,6 +254,17 @@ export function LaunchCtoPage() {
                   </p>
                 </div>
               )}
+
+              {fromCoinPage ? (
+                <div className="mt-4 rounded-xl border border-sky-400/25 bg-sky-500/10 px-4 py-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300">
+                    Prefilled from coin page
+                  </p>
+                  <p className="mt-1 text-[12px] text-white/55">
+                    Name, ticker, and V1 mint were copied from the listing. Review and continue.
+                  </p>
+                </div>
+              ) : null}
 
               <form onSubmit={onDetailsContinue} className="mt-6 space-y-4">
                 <p className="text-[11px] text-white/35">

@@ -24,10 +24,12 @@ export function MigrateToV2Banner({
   ticker,
   sourceVenue,
   devDumpedPct,
+  href = '/launch',
 }: {
   ticker: string;
   sourceVenue?: string;
   devDumpedPct?: number;
+  href?: string;
 }) {
   return (
     <div className="rounded-xl border border-rose-400/35 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent p-4">
@@ -46,10 +48,10 @@ export function MigrateToV2Banner({
           </p>
         </div>
         <Link
-          to="/launch"
+          to={href}
           className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
         >
-          Migrate to Native V2
+          Launch a CTO
         </Link>
       </div>
     </div>

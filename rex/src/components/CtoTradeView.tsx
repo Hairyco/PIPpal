@@ -2,13 +2,23 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
+  Copy,
   ExternalLink,
+  Flame,
   Star,
   Wallet,
   Zap,
 } from 'lucide-react';
 import { MigrateToV2Banner, OriginBadge } from './OriginBadge';
-import type { FeeModeKind, ProjectOrigin, SourceVenue } from '../data/ctoProjects';
+import {
+  launchCtoHref,
+  resolveV1Liquidity,
+  resolveV1Mint,
+  shortMint,
+  type FeeModeKind,
+  type ProjectOrigin,
+  type SourceVenue,
+} from '../data/ctoProjects';
 
 export type TradeViewProject = {
   name: string;
@@ -29,6 +39,8 @@ export type TradeViewProject = {
   marketingBalance?: string;
   nextAdTargetUsd?: number;
   nextAdSpend?: string;
+  v1Mint?: string;
+  v1Liquidity?: string;
   community: string;
   colors: string;
   logo: string;
@@ -45,6 +57,17 @@ function formatLaunchLabel(hours: number | null): string {
   if (hours < 1) return '<1h';
   if (hours < 24) return `${hours}h`;
   return `${Math.round(hours / 24)}d`;
+}
+
+function parseUsdAmount(balance?: string) {
+  if (!balance) return 0;
+  const match = balance.replace(/,/g, '').match(/([\d.]+)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function formatUsd(amount: number) {
+  if (amount >= 1000) return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
+  return `$${Math.round(amount)}`;
 }
 
 function Pct({ value }: { value: number | null }) {
@@ -155,7 +178,19 @@ export function CtoTradeView({
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
   const [chartWindow, setChartWindow] = useState('5m');
+  const [copied, setCopied] = useState(false);
   const positive = (change ?? project.change24h) >= 0;
+
+  const v1Mint = resolveV1Mint(project);
+  const v1Liquidity = resolveV1Liquidity(project);
+  const launchHref = launchCtoHref(project);
+  const isExternal = project.origin === 'external_cto';
+  const isNativeV2 = project.origin === 'native_cto';
+
+  const mktBalance = parseUsdAmount(project.marketingBalance);
+  const mktTarget = project.nextAdTargetUsd ?? 0;
+  const mktPct = mktTarget > 0 ? Math.min(100, Math.round((mktBalance / mktTarget) * 100)) : 0;
+  const mktReady = mktTarget > 0 && mktBalance >= mktTarget;
 
   const stats = [
     { label: 'Market Cap', value: project.marketCap },
@@ -170,6 +205,16 @@ export function CtoTradeView({
       value: project.raidsActive > 0 ? `${project.raidsActive}` : '0',
     },
   ];
+
+  const copyV1 = async () => {
+    try {
+      await navigator.clipboard.writeText(v1Mint);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
 
   return (
     <div className="-mx-3 sm:-mx-5">
@@ -214,7 +259,7 @@ export function CtoTradeView({
                 {project.origin === 'native_launch' && project.feeMode
                   ? ` · Mode ${project.feeMode === 'creator' ? 'A' : 'B'}`
                   : ''}
-                {project.origin === 'external_cto' && project.devDumpedPct != null
+                {isExternal && project.devDumpedPct != null
                   ? ` · Dev dumped ${project.devDumpedPct}%`
                   : ''}
               </p>
@@ -229,6 +274,13 @@ export function CtoTradeView({
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              to={launchHref}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"
+            >
+              <Flame className="h-3.5 w-3.5" />
+              Launch a CTO
+            </Link>
             <button
               type="button"
               onClick={onToggleStar}
@@ -248,10 +300,12 @@ export function CtoTradeView({
             </a>
             <button
               type="button"
+              onClick={copyV1}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
+              title={v1Mint}
             >
               <ExternalLink className="h-3.5 w-3.5" />
-              CA
+              {copied ? 'Copied' : 'V1 CA'}
             </button>
           </div>
         </div>
@@ -285,39 +339,100 @@ export function CtoTradeView({
         </div>
       </div>
 
-      {project.origin === 'external_cto' ? (
+      {isExternal ? (
         <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
           <MigrateToV2Banner
             ticker={project.ticker}
             sourceVenue={project.sourceVenue}
             devDumpedPct={project.devDumpedPct}
+            href={launchHref}
           />
         </div>
       ) : null}
 
       <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
-          <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
-            <div className="flex gap-1">
-              {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
-                <button
-                  key={w}
-                  type="button"
-                  onClick={() => setChartWindow(w)}
-                  className={`rounded-md px-2 py-1 text-[10px] font-semibold ${
-                    chartWindow === w
-                      ? 'bg-white text-[#090b14]'
-                      : 'text-white/40 hover:text-white'
-                  }`}
-                >
-                  {w}
-                </button>
-              ))}
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+            <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+              <div className="flex gap-1">
+                {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => setChartWindow(w)}
+                    className={`rounded-md px-2 py-1 text-[10px] font-semibold ${
+                      chartWindow === w
+                        ? 'bg-white text-[#090b14]'
+                        : 'text-white/40 hover:text-white'
+                    }`}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-white/30">Price chart · demo</p>
             </div>
-            <p className="text-[10px] text-white/30">Price chart · demo</p>
+            <div className="h-[320px] px-1 py-2 sm:h-[380px]">
+              <CandleChart positive={positive} />
+            </div>
           </div>
-          <div className="h-[320px] px-1 py-2 sm:h-[380px]">
-            <CandleChart positive={positive} />
+
+          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
+                  V1 token · API source
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white">
+                  {isNativeV2
+                    ? `Historical V1 for $${project.ticker} (burned on Rex)`
+                    : `Live V1 listing on ${project.sourceVenue}`}
+                </p>
+              </div>
+              {!isNativeV2 ? (
+                <Link
+                  to={launchHref}
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"
+                >
+                  <Flame className="h-3.5 w-3.5" />
+                  Launch a CTO
+                </Link>
+              ) : null}
+            </div>
+
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">Mint</p>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <p className="truncate font-mono text-xs font-semibold text-white/85" title={v1Mint}>
+                    {shortMint(v1Mint)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={copyV1}
+                    className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
+                    aria-label="Copy V1 mint"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </button>
+                </div>
+              </div>
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">Venue</p>
+                <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
+              </div>
+              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                  {isNativeV2 ? 'V1 status' : 'Liquidity'}
+                </p>
+                <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
+              </div>
+            </div>
+            <p className="mt-2.5 text-[11px] leading-relaxed text-white/40">
+              {isNativeV2
+                ? 'V1 CA is retained for history after burn. Creator fees and marketing wallet run on Native V2.'
+                : 'Sourced from external APIs for discovery. Launch a Native V2 CTO to burn V1, cut the original dev, and route fees to the community marketing wallet.'}
+            </p>
           </div>
         </div>
 
@@ -372,12 +487,13 @@ export function CtoTradeView({
               ))}
             </div>
 
-            {project.origin === 'external_cto' ? (
+            {isExternal ? (
               <Link
-                to="/launch"
-                className="mt-3 flex h-11 w-full items-center justify-center rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
+                to={launchHref}
+                className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
               >
-                Migrate ${project.ticker} to V2
+                <Flame className="h-4 w-4" />
+                Launch a CTO
               </Link>
             ) : (
               <button
@@ -392,28 +508,79 @@ export function CtoTradeView({
               </button>
             )}
             <p className="mt-2 text-center text-[10px] text-white/30">
-              {project.origin === 'external_cto'
-                ? 'External listing — fees stay on the original venue until migration'
+              {isExternal
+                ? 'External listing — launch Native V2 to reclaim creator fees'
                 : 'Demo only — no on-chain trade'}
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
-              Marketing wallet
-            </p>
-            <p className="mt-1 text-lg font-semibold tabular-nums text-[#d5ff69]">
-              {project.marketingBalance ?? 'No wallet'}
+          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
+                Marketing wallet
+              </p>
+              <Link
+                to="/marketing-wallet"
+                className="text-[10px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
+              >
+                How it works
+              </Link>
+            </div>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
+              {project.marketingBalance ?? '—'}
             </p>
             {project.marketingWallet ? (
               <p className="mt-0.5 font-mono text-[11px] text-[#c8ff3d]/80">{project.marketingWallet}</p>
-            ) : null}
-            {project.nextAdSpend && project.nextAdTargetUsd ? (
-              <p className="mt-2 text-[11px] text-white/45">
-                Next: {project.nextAdSpend} at ${project.nextAdTargetUsd}
+            ) : (
+              <p className="mt-1 text-[11px] text-white/40">
+                {isExternal
+                  ? 'Created on Native V2 launch'
+                  : 'No marketing wallet on this listing'}
               </p>
+            )}
+            {project.marketingBalance && mktTarget > 0 ? (
+              <div className="mt-3">
+                <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
+                  <span className="text-white/40">
+                    Next: {project.nextAdSpend ?? 'DexScreener'}
+                  </span>
+                  <span className="tabular-nums font-semibold text-white/70">
+                    {formatUsd(mktBalance)}/{formatUsd(mktTarget)}
+                  </span>
+                </div>
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full ${
+                      mktReady
+                        ? 'bg-[#c8ff3d]'
+                        : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
+                    }`}
+                    style={{ width: `${Math.max(mktPct, 4)}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-[10px] text-white/35">
+                  {mktReady
+                    ? `Ready to deploy ${project.nextAdSpend ?? 'ad'}`
+                    : `${formatUsd(Math.max(0, mktTarget - mktBalance))} to next spend`}
+                </p>
+              </div>
             ) : null}
           </div>
+
+          {!isExternal ? (
+            <Link
+              to={launchHref}
+              className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.1] bg-white/[0.02] px-3 py-3 transition hover:border-[#c8ff3d]/30 hover:bg-[#c8ff3d]/5"
+            >
+              <div>
+                <p className="text-xs font-bold text-white">Launch a CTO</p>
+                <p className="mt-0.5 text-[10px] text-white/40">
+                  Prefills ${project.ticker} + V1 mint
+                </p>
+              </div>
+              <Flame className="h-4 w-4 shrink-0 text-[#c8ff3d]" />
+            </Link>
+          ) : null}
         </aside>
       </div>
 

@@ -39,6 +39,10 @@ export type CtoProject = {
   marketingBalance?: string;
   nextAdTargetUsd?: number;
   nextAdSpend?: string;
+  /** External / pre-migration mint (API-sourced V1 CA) */
+  v1Mint?: string;
+  /** Quoted liquidity on the V1 venue */
+  v1Liquidity?: string;
   mph: number;
   raidsActive: number;
   raidsJoined: string;
@@ -282,6 +286,8 @@ export const ctoProjects: CtoProject[] = [
     volume24h: '$41K',
     txs: '2.8K',
     holders: '1.9K',
+    v1Mint: 'CALL7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK',
+    v1Liquidity: '$38K',
     mph: 61,
     raidsActive: 1,
     raidsJoined: '310',
@@ -763,3 +769,39 @@ export const ctoProjects: CtoProject[] = [
     boost: 19,
   },
 ];
+
+type V1Source = Pick<CtoProject, 'ticker' | 'v1Mint' | 'origin' | 'v1Liquidity' | 'volume24h' | 'name' | 'sourceVenue'>;
+
+/** Deterministic demo V1 mint until live API wiring. Prefer project.v1Mint when set. */
+export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): string {
+  if (project.v1Mint) return project.v1Mint;
+  const seed = `${project.ticker}-v1`.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  let out = '';
+  let n = seed * 7919 + 104729;
+  for (let i = 0; i < 44; i++) {
+    n = (n * 1103515245 + 12345) >>> 0;
+    out += alphabet[n % alphabet.length];
+  }
+  return out;
+}
+
+export function resolveV1Liquidity(project: Pick<V1Source, 'v1Liquidity' | 'volume24h' | 'origin'>): string {
+  if (project.v1Liquidity) return project.v1Liquidity;
+  if (project.origin === 'native_cto') return 'Burned';
+  return project.volume24h;
+}
+
+export function shortMint(mint: string): string {
+  if (mint.length <= 12) return mint;
+  return `${mint.slice(0, 4)}…${mint.slice(-4)}`;
+}
+
+export function launchCtoHref(project: Pick<V1Source, 'name' | 'ticker' | 'v1Mint' | 'origin'>): string {
+  const params = new URLSearchParams({
+    name: project.name,
+    ticker: project.ticker,
+    ca: resolveV1Mint(project),
+  });
+  return `/launch?${params.toString()}`;
+}
