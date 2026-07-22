@@ -31,6 +31,8 @@ import {
   HYBRID_FEED_TABS,
   ctoProjects,
   matchesHybridTab,
+  resolveMarketingWalletAddress,
+  solscanAccountUrl,
   type CtoProject,
   type HybridFeedTab,
 } from '../data/ctoProjects';
@@ -1318,11 +1320,17 @@ export function HomePage() {
                         <p className="text-[10px] text-white/40">{project.raidsJoined} eng.</p>
                       </div>
                       {project.marketingWallet ? (
-                        <button
-                          type="button"
+                        <a
+                          href={
+                            resolveMarketingWalletAddress(project)
+                              ? solscanAccountUrl(resolveMarketingWalletAddress(project)!)
+                              : undefined
+                          }
+                          target="_blank"
+                          rel="noreferrer"
                           onClick={(event) => event.stopPropagation()}
                           className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
-                          title={`Marketing wallet ${project.marketingWallet}`}
+                          title={`View marketing wallet on Solscan`}
                         >
                           <Wallet className="h-3 w-3 shrink-0 text-[#c8ff3d]" />
                           <span className="truncate text-[11px] font-medium text-[#c8ff3d]">
@@ -1331,7 +1339,7 @@ export function HomePage() {
                           <span className="shrink-0 text-[11px] font-semibold text-white/85">
                             {project.marketingBalance ?? '--'}
                           </span>
-                        </button>
+                        </a>
                       ) : (
                         <span className="text-[11px] text-white/25">No wallet</span>
                       )}

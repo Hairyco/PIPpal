@@ -36,6 +36,8 @@ export type CtoProject = {
   txs: string;
   holders: string;
   marketingWallet?: string;
+  /** Full Solana address for Solscan (preferred over truncated marketingWallet) */
+  marketingWalletAddress?: string;
   marketingBalance?: string;
   nextAdTargetUsd?: number;
   nextAdSpend?: string;
@@ -772,10 +774,8 @@ export const ctoProjects: CtoProject[] = [
 
 type V1Source = Pick<CtoProject, 'ticker' | 'v1Mint' | 'origin' | 'v1Liquidity' | 'volume24h' | 'name' | 'sourceVenue'>;
 
-/** Deterministic demo V1 mint until live API wiring. Prefer project.v1Mint when set. */
-export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): string {
-  if (project.v1Mint) return project.v1Mint;
-  const seed = `${project.ticker}-v1`.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+function demoAddress(seedKey: string): string {
+  const seed = seedKey.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
   const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
   let out = '';
   let n = seed * 7919 + 104729;
@@ -784,6 +784,12 @@ export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): str
     out += alphabet[n % alphabet.length];
   }
   return out;
+}
+
+/** Deterministic demo V1 mint until live API wiring. Prefer project.v1Mint when set. */
+export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): string {
+  if (project.v1Mint) return project.v1Mint;
+  return demoAddress(`${project.ticker}-v1`);
 }
 
 export function resolveV1Liquidity(project: Pick<V1Source, 'v1Liquidity' | 'volume24h' | 'origin'>): string {
@@ -795,6 +801,28 @@ export function resolveV1Liquidity(project: Pick<V1Source, 'v1Liquidity' | 'volu
 export function shortMint(mint: string): string {
   if (mint.length <= 12) return mint;
   return `${mint.slice(0, 4)}…${mint.slice(-4)}`;
+}
+
+/** Full marketing vault address for explorers. Demo-derived until live PDA wiring. */
+export function resolveMarketingWalletAddress(
+  project: Pick<CtoProject, 'ticker' | 'marketingWallet' | 'marketingWalletAddress'>,
+): string | null {
+  if (project.marketingWalletAddress && project.marketingWalletAddress.length >= 32) {
+    return project.marketingWalletAddress;
+  }
+  if (
+    project.marketingWallet &&
+    !project.marketingWallet.includes('…') &&
+    project.marketingWallet.length >= 32
+  ) {
+    return project.marketingWallet;
+  }
+  if (!project.marketingWallet) return null;
+  return demoAddress(`${project.ticker}-mkt`);
+}
+
+export function solscanAccountUrl(address: string): string {
+  return `https://solscan.io/account/${address}`;
 }
 
 export function launchCtoHref(project: Pick<V1Source, 'name' | 'ticker' | 'v1Mint' | 'origin'>): string {

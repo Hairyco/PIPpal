@@ -13,9 +13,11 @@ import {
 import { MigrateToV2Banner, OriginBadge } from './OriginBadge';
 import {
   launchCtoHref,
+  resolveMarketingWalletAddress,
   resolveV1Liquidity,
   resolveV1Mint,
   shortMint,
+  solscanAccountUrl,
   type FeeModeKind,
   type ProjectOrigin,
   type SourceVenue,
@@ -37,6 +39,7 @@ export type TradeViewProject = {
   raidsActive: number;
   raidsJoined: string;
   marketingWallet?: string;
+  marketingWalletAddress?: string;
   marketingBalance?: string;
   nextAdTargetUsd?: number;
   nextAdSpend?: string;
@@ -194,6 +197,10 @@ export function CtoTradeView({
   const v1Mint = resolveV1Mint(project);
   const v1Liquidity = resolveV1Liquidity(project);
   const launchHref = launchCtoHref(project);
+  const marketingAddress = resolveMarketingWalletAddress(project);
+  const marketingSolscan = marketingAddress ? solscanAccountUrl(marketingAddress) : null;
+  const marketingShort =
+    project.marketingWallet ?? (marketingAddress ? shortMint(marketingAddress) : null);
   const isExternal = project.origin === 'external_cto';
   const isNativeV2 = project.origin === 'native_cto';
 
@@ -353,10 +360,16 @@ export function CtoTradeView({
               <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#d5ff69]">
                 <Wallet className="h-3.5 w-3.5 shrink-0" />
                 {project.marketingBalance ?? '—'}
-                {project.marketingWallet ? (
-                  <span className="truncate text-[11px] font-medium text-[#c8ff3d]/80">
-                    {project.marketingWallet}
-                  </span>
+                {marketingSolscan && marketingShort ? (
+                  <a
+                    href={marketingSolscan}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="truncate text-[11px] font-medium text-[#c8ff3d]/80 underline-offset-2 hover:underline"
+                    title={`View ${marketingAddress} on Solscan`}
+                  >
+                    {marketingShort}
+                  </a>
                 ) : null}
               </p>
             </div>
@@ -666,8 +679,18 @@ export function CtoTradeView({
             <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
               {project.marketingBalance ?? '—'}
             </p>
-            {project.marketingWallet ? (
-              <p className="mt-0.5 font-mono text-[11px] text-[#c8ff3d]/80">{project.marketingWallet}</p>
+            {marketingSolscan && marketingShort ? (
+              <a
+                href={marketingSolscan}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                title={`View ${marketingAddress} on Solscan`}
+              >
+                {marketingShort}
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="font-sans text-[10px] font-semibold">Solscan</span>
+              </a>
             ) : (
               <p className="mt-1 text-[11px] text-white/40">
                 {isExternal
