@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
+  LayoutGrid,
   Menu,
   Pin,
   Plus,
@@ -24,6 +25,7 @@ import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet'
 import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
+import { CtoTradeView } from '../components/CtoTradeView';
 
 type Project = {
   rank: number;
@@ -373,36 +375,16 @@ function MarketingAdProgress({ project }: { project: Project }) {
 
   return (
     <div
-      className="mt-2.5 h-[44px] rounded-lg border border-white/[0.06] bg-black/25 px-2 py-1.5"
+      className="mt-2.5 rounded-lg border border-white/[0.06] bg-black/25 px-2 py-1.5"
       title={`Marketing wallet: ${project.marketingBalance} of ${formatUsd(target)} toward ${spendLabel}`}
     >
-      <div className="mb-1 flex items-center justify-between gap-1.5">
-        <p className="truncate text-[9px] font-semibold text-white/50">
-          Marketing wallet
-          <span className="font-normal text-white/30">
-            {ready ? ` · Ready` : ` · ${formatUsd(remaining)} to ${spendLabel}`}
-          </span>
+      <div className="mb-1 flex items-center gap-2">
+        <p className="min-w-0 truncate text-[9px] font-semibold text-white/50">Mkt wallet</p>
+        <p className="ml-auto shrink-0 tabular-nums text-[9px] font-semibold text-white/70">
+          {formatUsd(balance)}/{formatUsd(target)}
         </p>
-        <p className="shrink-0 tabular-nums text-[9px] font-semibold text-white/45">
-          {formatUsd(balance)}
-          <span className="font-normal text-white/25">/{formatUsd(target)}</span>
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="relative h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.07]">
-          <div
-            className={`marketing-fill absolute inset-y-0 left-0 rounded-full ${
-              ready
-                ? 'bg-[#c8ff3d] shadow-[0_0_10px_rgba(200,255,61,0.4)]'
-                : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
-            }`}
-            style={{ width: `${Math.max(pct, 4)}%` }}
-          />
-        </div>
-
         <span
-          className={`relative grid h-5 w-5 shrink-0 place-items-center rounded-full border ${
+          className={`relative grid h-4 w-4 shrink-0 place-items-center rounded-full border ${
             ready
               ? 'border-[#c8ff3d]/55 bg-[#c8ff3d]/15'
               : 'border-white/12 bg-[#12141f]'
@@ -412,11 +394,29 @@ function MarketingAdProgress({ project }: { project: Project }) {
           <img
             src="/images/partners/dexscreener.ico"
             alt=""
-            className="h-3 w-3"
+            className="h-2.5 w-2.5"
             loading="lazy"
           />
         </span>
       </div>
+
+      <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+        <div
+          className={`marketing-fill absolute inset-y-0 left-0 rounded-full ${
+            ready
+              ? 'bg-[#c8ff3d] shadow-[0_0_10px_rgba(200,255,61,0.4)]'
+              : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
+          }`}
+          style={{ width: `${Math.max(pct, 4)}%` }}
+        />
+      </div>
+      {!ready ? (
+        <p className="mt-1 truncate text-[9px] text-white/35">
+          {formatUsd(remaining)} to {spendLabel}
+        </p>
+      ) : (
+        <p className="mt-1 text-[9px] font-medium text-[#d5ff69]">Ready · {spendLabel}</p>
+      )}
     </div>
   );
 }
@@ -608,6 +608,8 @@ export function HomePage() {
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
+  const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 5;
 
@@ -687,6 +689,25 @@ export function HomePage() {
   const totalPages = Math.max(1, Math.ceil(visibleProjects.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedProjects = visibleProjects.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const selectedProject =
+    visibleProjects.find((project) => project.ticker === selectedTicker) ??
+    visibleProjects[0] ??
+    projects[0];
+
+  const openTradeView = (ticker?: string) => {
+    if (ticker) setSelectedTicker(ticker);
+    else if (selectedProject) setSelectedTicker(selectedProject.ticker);
+    setViewMode('trade');
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  const toggleViewMode = () => {
+    if (viewMode === 'list') openTradeView();
+    else setViewMode('list');
+  };
 
   useEffect(() => {
     setPage(1);
@@ -968,7 +989,26 @@ export function HomePage() {
       </nav>
       </div>
 
-      <main className="mx-auto max-w-7xl px-3 py-5 sm:px-5">
+      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : 'py-5'}`}>
+        {viewMode === 'trade' && selectedProject ? (
+          <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem] pt-2">
+            <CtoTradeView
+              project={selectedProject}
+              projects={visibleProjects}
+              change={changeForWindow(selectedProject, activeTimeWindow)}
+              onSelect={setSelectedTicker}
+              onBack={() => setViewMode('list')}
+              starred={Boolean(starred[selectedProject.ticker])}
+              onToggleStar={() =>
+                setStarred((prev) => ({
+                  ...prev,
+                  [selectedProject.ticker]: !prev[selectedProject.ticker],
+                }))
+              }
+            />
+          </section>
+        ) : (
+          <>
         <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
           <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
@@ -1020,9 +1060,20 @@ export function HomePage() {
 
         <div className="mt-8">
           <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem]">
-            <div className="mb-4">
-              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
-              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
+                <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleViewMode}
+                title="Switch to trade terminal view"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                Change view
+              </button>
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
@@ -1161,13 +1212,25 @@ export function HomePage() {
                     return (
                     <article
                       key={project.ticker}
-                      className="grid items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openTradeView(project.ticker)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openTradeView(project.ticker);
+                        }
+                      }}
+                      className="grid cursor-pointer items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
                       style={rankingGridStyle}
                     >
                       <button
                         type="button"
                         aria-label={`Star ${project.ticker}`}
-                        onClick={() => setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }))}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }));
+                        }}
                         className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
                       >
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
@@ -1196,7 +1259,10 @@ export function HomePage() {
                           <div className="flex w-full justify-center">
                             <button
                               type="button"
-                              onClick={() => castVote(project.ticker)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                castVote(project.ticker);
+                              }}
                               disabled={hasVoted}
                               className={`w-[3.25rem] rounded-md px-0 py-1.5 text-center text-[11px] font-bold transition ${
                                 hasVoted
@@ -1241,6 +1307,7 @@ export function HomePage() {
                       {project.marketingWallet ? (
                         <button
                           type="button"
+                          onClick={(event) => event.stopPropagation()}
                           className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
                           title={`Marketing wallet ${project.marketingWallet}`}
                         >
@@ -1339,6 +1406,8 @@ export function HomePage() {
             ) : null}
           </section>
         </div>
+          </>
+        )}
       </main>
 
       <section id="services" className="mx-auto mt-10 max-w-7xl scroll-mt-28 px-3 sm:px-5">
