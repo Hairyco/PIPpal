@@ -5,6 +5,7 @@ import {
   Copy,
   ExternalLink,
   Flame,
+  Settings2,
   Star,
   Wallet,
   Zap,
@@ -155,6 +156,11 @@ function CandleChart({ positive }: { positive: boolean }) {
 }
 
 const BUY_PRESETS = [0.1, 0.25, 0.5, 1, 2];
+const SELL_PRESETS = [25, 50, 75, 100];
+/** Pump.fun-style max slippage presets (%) */
+const SLIPPAGE_PRESETS = [1, 5, 10, 20];
+const DEFAULT_SLIPPAGE = 5;
+const DEFAULT_PRIORITY_FEE = '0.0005';
 
 type CtoTradeViewProps = {
   project: TradeViewProject;
@@ -177,8 +183,12 @@ export function CtoTradeView({
 }: CtoTradeViewProps) {
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
+  const [sellPct, setSellPct] = useState('25');
   const [chartWindow, setChartWindow] = useState('5m');
   const [copied, setCopied] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
+  const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
   const positive = (change ?? project.change24h) >= 0;
 
   const v1Mint = resolveV1Mint(project);
@@ -191,6 +201,10 @@ export function CtoTradeView({
   const mktTarget = project.nextAdTargetUsd ?? 0;
   const mktPct = mktTarget > 0 ? Math.min(100, Math.round((mktBalance / mktTarget) * 100)) : 0;
   const mktReady = mktTarget > 0 && mktBalance >= mktTarget;
+
+  const slippageNum = Number(slippage);
+  const slippageLabel = Number.isFinite(slippageNum) && slippageNum > 0 ? `${slippageNum}%` : '—';
+  const highSlippage = Number.isFinite(slippageNum) && slippageNum >= 20;
 
   const stats = [
     { label: 'Market Cap', value: project.marketCap },
@@ -214,6 +228,17 @@ export function CtoTradeView({
     } catch {
       /* ignore */
     }
+  };
+
+  const setSlippageSafe = (raw: string) => {
+    const cleaned = raw.replace(/[^\d.]/g, '');
+    if (cleaned === '' || cleaned === '.') {
+      setSlippage(cleaned);
+      return;
+    }
+    const n = Number(cleaned);
+    if (!Number.isFinite(n)) return;
+    setSlippage(String(Math.min(99, Math.max(0, n))));
   };
 
   return (
@@ -459,33 +484,145 @@ export function CtoTradeView({
               </button>
             </div>
 
-            <label className="mt-3 block">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                Amount (SOL)
-              </span>
-              <input
-                value={amount}
-                onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))}
-                className="mt-1.5 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base font-semibold outline-none focus:border-[#c8ff3d]/40"
-              />
-            </label>
-
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {BUY_PRESETS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setAmount(String(preset))}
-                  className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
-                    amount === String(preset)
-                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-white/[0.08] text-white/45 hover:text-white'
-                  }`}
-                >
-                  {preset}
-                </button>
-              ))}
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen((open) => !open)}
+                className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold ${
+                  settingsOpen
+                    ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                    : 'border-white/[0.08] text-white/45 hover:text-white'
+                }`}
+                aria-expanded={settingsOpen}
+              >
+                <Settings2 className="h-3 w-3" />
+                Slippage {slippageLabel}
+              </button>
+              <p className="text-[10px] text-white/30">Tip {priorityFee || '0'} SOL</p>
             </div>
+
+            {settingsOpen ? (
+              <div className="mt-2 rounded-lg border border-white/[0.08] bg-white/[0.03] p-2.5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                  Set max. slippage (%)
+                </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {SLIPPAGE_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setSlippage(String(preset))}
+                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                        Number(slippage) === preset
+                          ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                          : 'border-white/[0.08] text-white/45 hover:text-white'
+                      }`}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+                <label className="mt-2 block">
+                  <span className="sr-only">Custom slippage percent</span>
+                  <div className="relative">
+                    <input
+                      value={slippage}
+                      onChange={(event) => setSlippageSafe(event.target.value)}
+                      inputMode="decimal"
+                      className="h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 pr-8 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
+                      placeholder="5"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/35">
+                      %
+                    </span>
+                  </div>
+                </label>
+                {highSlippage ? (
+                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                    High slippage — you may get a worse fill on volatile coins.
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-[10px] text-white/35">
+                    Trade fails if price moves more than this before confirmation.
+                  </p>
+                )}
+
+                <label className="mt-3 block">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                    Priority fee (SOL)
+                  </span>
+                  <input
+                    value={priorityFee}
+                    onChange={(event) => setPriorityFee(event.target.value.replace(/[^\d.]/g, ''))}
+                    inputMode="decimal"
+                    className="mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
+                    placeholder="0.0005"
+                  />
+                </label>
+              </div>
+            ) : null}
+
+            {side === 'buy' ? (
+              <>
+                <label className="mt-3 block">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                    Amount (SOL)
+                  </span>
+                  <input
+                    value={amount}
+                    onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))}
+                    className="mt-1.5 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base font-semibold outline-none focus:border-[#c8ff3d]/40"
+                  />
+                </label>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {BUY_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setAmount(String(preset))}
+                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                        amount === String(preset)
+                          ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                          : 'border-white/[0.08] text-white/45 hover:text-white'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="mt-3 block">
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                    Sell amount (%)
+                  </span>
+                  <input
+                    value={sellPct}
+                    onChange={(event) =>
+                      setSellPct(event.target.value.replace(/[^\d.]/g, '').slice(0, 5))
+                    }
+                    className="mt-1.5 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base font-semibold outline-none focus:border-[#c8ff3d]/40"
+                  />
+                </label>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {SELL_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setSellPct(String(preset))}
+                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                        sellPct === String(preset)
+                          ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                          : 'border-white/[0.08] text-white/45 hover:text-white'
+                      }`}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
 
             {isExternal ? (
               <Link
@@ -510,7 +647,7 @@ export function CtoTradeView({
             <p className="mt-2 text-center text-[10px] text-white/30">
               {isExternal
                 ? 'External listing — launch Native V2 to reclaim creator fees'
-                : 'Demo only — no on-chain trade'}
+                : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
           </div>
 
