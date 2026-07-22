@@ -7,9 +7,9 @@ This document maps the contract architecture for technical due diligence.
 Rex MVP is a Solana program (Anchor 0.30.1) that:
 
 1. Launches project tokens on a **bonding curve**
-2. Splits **0.90% trade tax** on every buy and sell: **0.35% protocol** + **0.15% creator** + **0.40% marketing**
+2. Splits **0.95% launch-tier trade tax** on every buy and sell: **0.35% protocol** + **0.20% creator/trader pool** + **0.40% marketing**
 3. Holds marketing SOL in a **program-derived address (PDA)**
-4. Holds creator fees in a **creator vault PDA**; founder withdraws to their wallet
+4. Holds the creator/trader pool in a **creator vault PDA**; Mode A founders withdraw; Mode B locks founder withdraw for trader rebates
 5. Disburses marketing SOL to **whitelisted supplier wallets** only, via Rex authority
 
 ## Fee logic (canonical)
@@ -18,10 +18,12 @@ Defined in `programs/rex-mvp/src/constants.rs` and implemented in `fees.rs`:
 
 ```text
 platform_fee  = gross × 35 / 10_000   (0.35%)
-creator_fee   = gross × 15 / 10_000   (0.15%)
+creator_fee   = gross × 20 / 10_000   (0.20%)
 marketing_fee = gross × 40 / 10_000   (0.40%)
-net           = gross - platform - creator - marketing   (99.10%)
+net           = gross - platform - creator - marketing   (99.05%)
 ```
+
+`fee_mode` is locked at `launch_project` (0 = creator keep, 1 = trader cashback).
 
 Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from curve before user payout).
 
@@ -87,7 +89,7 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
 
 `tests/poc-marketing-wallet.ts` asserts:
 
-- Buy splits 0.35% / 0.15% / 0.40% / 99.10% correctly  
+- Buy splits 0.35% / 0.20% / 0.40% / 99.05% correctly  
 - Sell taxes gross SOL with the same split  
 - Founder can withdraw creator fees  
 - Whitelist + disburse credits supplier  

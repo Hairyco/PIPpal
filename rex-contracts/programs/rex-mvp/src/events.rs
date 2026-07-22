@@ -7,6 +7,7 @@ pub struct ProjectLaunched {
     pub founder: Pubkey,
     pub mint: Pubkey,
     pub trading_enabled: bool,
+    pub fee_mode: u8,
 }
 
 /// Emitted on every buy or sell — indexers use this to update marketing / creator UI.

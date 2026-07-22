@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { RexMvp } from '../target/types/rex_mvp';
 
 const PLATFORM_BPS = 35n;
-const CREATOR_BPS = 15n;
+const CREATOR_BPS = 20n;
 const MARKETING_BPS = 40n;
 const BPS = 10_000n;
 
@@ -95,7 +95,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     );
 
     await program.methods
-      .launchProject(true)
+      .launchProject(true, 0)
       .accounts({
         founder: authority.publicKey,
         config: configPda,
@@ -114,6 +114,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
 
     const project = await program.account.project.fetch(projectPda);
     expect(project.tradingEnabled).to.equal(true);
+    expect(project.feeMode).to.equal(0);
     expect(project.mint.toBase58()).to.equal(mint.publicKey.toBase58());
   });
 
@@ -129,7 +130,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     await provider.sendAndConfirm(tx, [investor]);
   });
 
-  it('buy: splits 0.35% platform + 0.15% creator + 0.40% marketing (0.90% total)', async () => {
+  it('buy: splits 0.35% platform + 0.20% creator + 0.40% marketing (0.95% total)', async () => {
     const solIn = 1 * LAMPORTS_PER_SOL;
     const { platform, creator, marketing, net } = splitFees(BigInt(solIn));
 
@@ -176,7 +177,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     expect(Number(tokenBal.value.amount)).to.be.greaterThan(0);
   });
 
-  it('sell: taxes gross SOL — 0.35% platform + 0.15% creator + 0.40% marketing', async () => {
+  it('sell: taxes gross SOL — 0.35% platform + 0.20% creator + 0.40% marketing', async () => {
     const tokenBal = await provider.connection.getTokenAccountBalance(investorAta);
     const sellAmount = new anchor.BN(tokenBal.value.amount).div(new anchor.BN(2));
 

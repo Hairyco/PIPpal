@@ -1,18 +1,20 @@
 # Rex MVP Contracts (Solana / Anchor)
 
-Proof-of-concept bonding curve with **marketing + creator fee routing** and **whitelisted supplier disbursements**.
+Proof-of-concept bonding curve with **marketing + creator/trader fee routing** and **whitelisted supplier disbursements**.
+
+Launch-tier trade tax is **0.95%** (0.35% Rex + 0.20% creator/trader pool + 0.40% marketing). Creators lock Mode A (keep fees) or Mode B (trader cashback) at deploy.
 
 **Not technical?** Read [GETTING_STARTED.md](./GETTING_STARTED.md) first.  
 **Investor / auditor?** Read [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md).
 
-## Fee model (Model A · 0.90%)
+## Fee model (launch tier · 0.95%)
 
-| Action | Rex (platform) | Creator vault | Marketing wallet | Total |
-|--------|----------------|---------------|------------------|-------|
-| Buy    | 0.35%          | 0.15%         | 0.40%            | 0.90% |
-| Sell   | 0.35%          | 0.15%         | 0.40%            | 0.90% |
+| Action | Rex (platform) | Creator/trader pool | Marketing wallet | Total |
+|--------|----------------|---------------------|------------------|-------|
+| Buy    | 0.35%          | 0.20%               | 0.40%            | 0.95% |
+| Sell   | 0.35%          | 0.20%               | 0.40%            | 0.95% |
 
-Creator fees accumulate in a vault; the project founder withdraws them with `withdraw_creator_fees`.
+Mode A founders withdraw pool fees with `withdraw_creator_fees`. Mode B disables founder withdraw (trader cashback).
 
 ## Code layout (modular for review)
 
@@ -20,7 +22,7 @@ Creator fees accumulate in a vault; the project founder withdraws them with `wit
 programs/rex-mvp/src/
   lib.rs              ← entry point + instruction routing
   constants.rs        ← fee % and curve defaults ★ investors start here
-  fees.rs             ← 0.35% + 0.15% + 0.40% tax split + tests
+  fees.rs             ← 0.35% + 0.20% + 0.40% tax split + tests
   curve.rs            ← bonding curve math + tests
   state.rs            ← account struct definitions
   events.rs           ← on-chain event logs
@@ -53,8 +55,8 @@ anchor deploy --provider.cluster devnet
 |-------------|--------|---------|
 | `initialize` | Rex authority | Global config |
 | `launch_project` | Founder | New project + mint + vaults |
-| `buy` | Investor | Buy tokens (0.90% tax) |
-| `sell` | Investor | Sell tokens (0.90% tax) |
+| `buy` | Investor | Buy tokens (0.95% launch-tier tax) |
+| `sell` | Investor | Sell tokens (0.95% launch-tier tax) |
 | `withdraw_creator_fees` | Founder | Withdraw creator vault SOL |
 | `add_whitelist_provider` | Rex authority | Whitelist supplier |
 | `disburse_marketing` | Rex authority | Pay supplier from marketing wallet |

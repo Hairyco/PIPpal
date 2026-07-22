@@ -10,19 +10,22 @@ import {
   Lock,
   RotateCcw,
   ShieldAlert,
+  Split,
   Upload,
+  Users,
   Wallet,
 } from 'lucide-react';
-import { TRADE_FEE_LABEL } from '../data/chainConfig';
+import {
+  CREATOR_FEE_MODES,
+  FEE_TIERS,
+  TRADE_FEE_LABEL,
+  formatBpsPercent,
+  totalFeeBps,
+  type CreatorFeeMode,
+} from '../data/chainConfig';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'details' | 'burn' | 'marketing' | 'done';
-
-const STEPS: { id: Exclude<FlowStep, 'done'>; label: string }[] = [
-  { id: 'details', label: 'Details' },
-  { id: 'burn', label: 'Burn V1' },
-  { id: 'marketing', label: 'Marketing' },
-];
+type FlowStep = 'details' | 'fees' | 'burn' | 'marketing' | 'done';
 
 const fieldClass =
   'mt-1.5 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -44,6 +47,7 @@ export function LaunchCtoPage() {
   const [twitter, setTwitter] = useState('');
   const [website, setWebsite] = useState('');
   const [note, setNote] = useState('');
+  const [feeMode, setFeeMode] = useState<CreatorFeeMode>('creator');
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
   const [burned, setBurned] = useState(false);
@@ -54,7 +58,22 @@ export function LaunchCtoPage() {
   const bannerRef = useRef<HTMLInputElement>(null);
 
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
-  const stepIndex = STEPS.findIndex((s) => s.id === step);
+  const steps =
+    mode === 'launch'
+      ? [
+          { id: 'details' as const, label: 'Details' },
+          { id: 'fees' as const, label: 'Fees' },
+          { id: 'burn' as const, label: 'Burn V1' },
+          { id: 'marketing' as const, label: 'Marketing' },
+        ]
+      : [
+          { id: 'details' as const, label: 'Details' },
+          { id: 'burn' as const, label: 'Burn V1' },
+          { id: 'marketing' as const, label: 'Marketing' },
+        ];
+  const stepIndex = steps.findIndex((s) => s.id === step);
+  const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
+  const launchTier = FEE_TIERS[0];
 
   const resetFlow = () => {
     setStep('details');
@@ -65,6 +84,7 @@ export function LaunchCtoPage() {
     setTwitter('');
     setWebsite('');
     setNote('');
+    setFeeMode('creator');
     setBurnAmount('');
     setVestingAccepted(false);
     setBurned(false);
@@ -79,6 +99,11 @@ export function LaunchCtoPage() {
   };
 
   const onDetailsContinue = (event: FormEvent) => {
+    event.preventDefault();
+    setStep(mode === 'launch' ? 'fees' : 'burn');
+  };
+
+  const onFeesContinue = (event: FormEvent) => {
     event.preventDefault();
     setStep('burn');
   };
@@ -138,7 +163,7 @@ export function LaunchCtoPage() {
 
           {step !== 'done' ? (
             <div className="mt-5 flex gap-1.5">
-              {STEPS.map((s, i) => (
+              {steps.map((s, i) => (
                 <div key={s.id} className="flex flex-1 flex-col gap-1.5">
                   <div
                     className={`h-1 rounded-full transition-colors ${
@@ -194,8 +219,8 @@ export function LaunchCtoPage() {
                       <p className="text-sm font-bold text-[#d5ff69]">Marketing wallet included</p>
                       <p className="mt-1 text-[12px] leading-relaxed text-white/55">
                         Every launch creates a dedicated wallet. {TRADE_FEE_LABEL} on trades fills
-                        it. When the balance hits a threshold, ads buy themselves (Telegram,
-                        DexScreener, and more) — no upfront media budget.
+                        it. Next you choose whether creator fees stay with you or cashback traders —
+                        locked at deploy.
                       </p>
                     </div>
                   </div>
@@ -309,11 +334,131 @@ export function LaunchCtoPage() {
                   type="submit"
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
                 >
-                  Continue to burn
+                  {mode === 'launch' ? 'Continue to fees' : 'Continue to burn'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </form>
             </>
+          ) : null}
+
+          {step === 'fees' ? (
+            <form onSubmit={onFeesContinue} className="mt-6 space-y-4">
+              <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.07] p-4">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
+                    <Split className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-[#d5ff69]">Creator fee destination</p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-white/55">
+                      Choose who receives the creator/trader pool cut (
+                      {formatBpsPercent(launchTier.creatorPoolBps)} at launch). This is locked
+                      on-chain at deploy and cannot be changed later.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {CREATOR_FEE_MODES.map((option) => {
+                  const selected = feeMode === option.id;
+                  const Icon = option.id === 'creator' ? Wallet : Users;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setFeeMode(option.id)}
+                      className={`w-full rounded-xl border px-4 py-3.5 text-left transition ${
+                        selected
+                          ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                          : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+                            selected
+                              ? 'bg-[#c8ff3d]/20 text-[#c8ff3d]'
+                              : 'bg-white/5 text-white/45'
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-bold text-white">{option.title}</p>
+                            {selected ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#d5ff69]">
+                                <Check className="h-3 w-3" />
+                                Selected
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="mt-0.5 text-[11px] font-medium text-white/40">
+                            {option.subtitle}
+                          </p>
+                          <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-white/55">
+                            <li>Pays to: {option.destination}</li>
+                            <li>{option.ctoMigration}</li>
+                            <li>Best for: {option.useCase}</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
+                  Dynamic trade fees
+                </p>
+                <p className="mt-1 text-[12px] text-white/50">
+                  Total tax scales with market cap. Marketing never turns off.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {FEE_TIERS.map((tier) => (
+                    <li
+                      key={tier.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2"
+                    >
+                      <div>
+                        <p className="text-xs font-semibold text-white/85">{tier.label}</p>
+                        <p className="text-[10px] text-white/40">{tier.marketCap}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-bold tabular-nums text-[#d5ff69]">
+                          {formatBpsPercent(totalFeeBps(tier))}
+                        </p>
+                        <p className="text-[10px] text-white/35">
+                          {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
+                          {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
+                          {formatBpsPercent(tier.platformBps)} Rex
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStep('details')}
+                  className="inline-flex h-10 items-center justify-center gap-1.5 text-xs font-semibold text-white/45 hover:text-white"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-6"
+                >
+                  Continue to burn
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </form>
           ) : null}
 
           {step === 'burn' ? (
@@ -341,6 +486,16 @@ export function LaunchCtoPage() {
                   </div>
                 </div>
               </div>
+
+              {mode === 'launch' ? (
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
+                    Fee mode locked
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-white/85">{selectedFeeMode.title}</p>
+                  <p className="mt-0.5 text-[11px] text-white/45">{selectedFeeMode.destination}</p>
+                </div>
+              ) : null}
 
               <label className="block">
                 <span className="text-[11px] font-semibold text-white/45">
@@ -451,7 +606,7 @@ export function LaunchCtoPage() {
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
                 <button
                   type="button"
-                  onClick={() => setStep('details')}
+                  onClick={() => setStep(mode === 'launch' ? 'fees' : 'details')}
                   className="inline-flex h-10 items-center justify-center gap-1.5 text-xs font-semibold text-white/45 hover:text-white"
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
@@ -603,6 +758,11 @@ export function LaunchCtoPage() {
                 {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is set for
                 review — V1 burn / vested V2
                 {burned ? ' recorded' : ' skipped in demo'}
+                {mode === 'launch' ? (
+                  <>
+                    , fee mode: {selectedFeeMode.title.toLowerCase()}
+                  </>
+                ) : null}
                 , marketing assets saved.
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">

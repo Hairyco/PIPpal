@@ -1,16 +1,25 @@
 use anchor_lang::prelude::*;
 
 use crate::LaunchProject;
-use crate::constants::{INITIAL_VIRTUAL_SOL, INITIAL_VIRTUAL_TOKENS};
+use crate::constants::{
+    FEE_MODE_CREATOR, FEE_MODE_TRADER_CASHBACK, INITIAL_VIRTUAL_SOL, INITIAL_VIRTUAL_TOKENS,
+};
+use crate::errors::RexError;
 use crate::events::ProjectLaunched;
 
-pub fn handler(ctx: Context<LaunchProject>, trading_enabled: bool) -> Result<()> {
+pub fn handler(ctx: Context<LaunchProject>, trading_enabled: bool, fee_mode: u8) -> Result<()> {
+    require!(
+        fee_mode == FEE_MODE_CREATOR || fee_mode == FEE_MODE_TRADER_CASHBACK,
+        RexError::InvalidFeeMode
+    );
+
     let clock = Clock::get()?;
     let project = &mut ctx.accounts.project;
     project.founder = ctx.accounts.founder.key();
     project.mint = ctx.accounts.mint.key();
     project.launched_at = clock.unix_timestamp;
     project.trading_enabled = trading_enabled;
+    project.fee_mode = fee_mode;
     project.virtual_sol_reserves = INITIAL_VIRTUAL_SOL;
     project.virtual_token_reserves = INITIAL_VIRTUAL_TOKENS;
     project.real_sol_reserves = 0;
@@ -24,6 +33,7 @@ pub fn handler(ctx: Context<LaunchProject>, trading_enabled: bool) -> Result<()>
         founder: project.founder,
         mint: project.mint,
         trading_enabled,
+        fee_mode,
     });
 
     Ok(())

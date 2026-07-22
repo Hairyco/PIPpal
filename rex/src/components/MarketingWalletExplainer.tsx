@@ -1,26 +1,17 @@
 import { CheckCircle2, Circle, Clock, Wallet, X } from 'lucide-react';
 import {
-  CREATOR_FEE_BPS,
-  MARKETING_FEE_BPS,
-  PLATFORM_FEE_BPS,
-  TRADE_FEE_BPS,
+  CREATOR_FEE_MODES,
+  FEE_TIERS,
   TRADE_FEE_LABEL,
+  formatBpsPercent,
+  totalFeeBps,
 } from '../data/chainConfig';
 import {
   MARKETING_SPEND_FLOW,
   formatSpendCost,
 } from '../data/marketingSpendFlow';
 
-function formatBpsPercent(bps: number) {
-  const pct = bps / 100;
-  return `${pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(2).replace(/0$/, '')}%`;
-}
-
-const FEE_ROWS = [
-  { label: 'Platform (Rex)', bps: PLATFORM_FEE_BPS, tone: 'text-white/80' },
-  { label: 'Creator vault', bps: CREATOR_FEE_BPS, tone: 'text-[#7dd3fc]' },
-  { label: 'Marketing wallet', bps: MARKETING_FEE_BPS, tone: 'text-[#d5ff69]' },
-] as const;
+const LAUNCH_TIER = FEE_TIERS[0];
 
 type SpendStatus = 'complete' | 'in-progress' | 'upcoming';
 
@@ -186,23 +177,45 @@ export function MarketingWalletExplainer({
                 Trade fees
               </p>
               <p className="mt-1 text-lg font-semibold tabular-nums text-white">
-                {formatBpsPercent(TRADE_FEE_BPS)}{' '}
-                <span className="text-sm font-medium text-white/45">per buy &amp; sell</span>
+                {formatBpsPercent(totalFeeBps(LAUNCH_TIER))}{' '}
+                <span className="text-sm font-medium text-white/45">at launch</span>
               </p>
             </div>
             <p className="max-w-[14rem] text-right text-[10px] leading-relaxed text-white/35">
               {TRADE_FEE_LABEL}
             </p>
           </div>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-3">
-            {FEE_ROWS.map((row) => (
+          <ul className="mt-3 space-y-2">
+            {FEE_TIERS.map((tier) => (
               <li
-                key={row.label}
+                key={tier.id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
+              >
+                <div>
+                  <p className="text-[10px] text-white/40">
+                    {tier.label} · {tier.marketCap}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-white/30">
+                    {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
+                    {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
+                    {formatBpsPercent(tier.platformBps)} Rex
+                  </p>
+                </div>
+                <p className="text-sm font-bold tabular-nums text-[#d5ff69]">
+                  {formatBpsPercent(totalFeeBps(tier))}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {CREATOR_FEE_MODES.map((mode) => (
+              <li
+                key={mode.id}
                 className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
               >
-                <p className="text-[10px] text-white/40">{row.label}</p>
-                <p className={`mt-0.5 text-sm font-bold tabular-nums ${row.tone}`}>
-                  {formatBpsPercent(row.bps)}
+                <p className="text-[10px] font-semibold text-white/70">{mode.title}</p>
+                <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
+                  {mode.destination}
                 </p>
               </li>
             ))}
@@ -210,10 +223,11 @@ export function MarketingWalletExplainer({
         </div>
 
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-          The marketing share ({formatBpsPercent(MARKETING_FEE_BPS)}) lands in a non-custodial vault
-          for this coin. Creator fees ({formatBpsPercent(CREATOR_FEE_BPS)}) update the creator vault
-          for withdrawal. As the marketing balance rises, Rex unlocks supplier spends in order —
-          you track progress here the same way builds used to show on the Rex landing page.
+          Marketing ({formatBpsPercent(LAUNCH_TIER.marketingBps)} at launch) lands in a non-custodial
+          vault for this coin. The creator/trader pool (
+          {formatBpsPercent(LAUNCH_TIER.creatorPoolBps)}) is set at deploy — keep it as creator fees
+          or auto-cashback traders. As the marketing balance rises, Rex unlocks supplier spends in
+          order.
         </p>
       </div>
       <div className="p-4 sm:p-5">

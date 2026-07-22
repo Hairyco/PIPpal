@@ -21,6 +21,8 @@ pub struct Project {
     pub mint: Pubkey,
     pub launched_at: i64,
     pub trading_enabled: bool,
+    /// Locked at launch: `FEE_MODE_CREATOR` or `FEE_MODE_TRADER_CASHBACK`.
+    pub fee_mode: u8,
     pub virtual_sol_reserves: u64,
     pub virtual_token_reserves: u64,
     pub real_sol_reserves: u64,
@@ -31,7 +33,7 @@ pub struct Project {
 }
 
 impl Project {
-    pub const LEN: usize = 8 + 32 + 32 + 8 + 1 + 8 + 8 + 8 + 1 + 1 + 1 + 1;
+    pub const LEN: usize = 8 + 32 + 32 + 8 + 1 + 1 + 8 + 8 + 8 + 1 + 1 + 1 + 1;
 }
 
 /// A supplier wallet approved by Rex to receive marketing wallet payments.

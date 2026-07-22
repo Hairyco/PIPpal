@@ -1,10 +1,10 @@
 //! Trade fee split — investors should review this file first.
 //!
-//! Every buy and sell applies the same split on gross lamports (Model A · 0.90%):
+//! Launch-tier split on every buy and sell (0.95% total):
 //!   0.35% → Rex protocol treasury
-//!   0.15% → creator / V2 CTO vault (founder withdraws)
+//!   0.20% → creator / trader pool (Mode A: founder withdraw; Mode B: trader rebates)
 //!   0.40% → project marketing wallet
-//!  99.10% → net (into curve on buy, to user on sell after curve quote)
+//!  99.05% → net (into curve on buy, to user on sell after curve quote)
 
 use anchor_lang::prelude::*;
 
@@ -40,13 +40,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn model_a_zero_point_nine_percent_split() {
+    fn launch_tier_zero_point_nine_five_percent_split() {
         let gross = 1_000_000_000u64; // 1 SOL
         let (platform, creator, marketing, net) = apply_trade_fees(gross).unwrap();
         assert_eq!(platform, 3_500_000); // 0.35%
-        assert_eq!(creator, 1_500_000); // 0.15%
+        assert_eq!(creator, 2_000_000); // 0.20%
         assert_eq!(marketing, 4_000_000); // 0.40%
-        assert_eq!(net, 991_000_000); // 99.10%
+        assert_eq!(net, 990_500_000); // 99.05%
         assert_eq!(platform + creator + marketing + net, gross);
     }
 

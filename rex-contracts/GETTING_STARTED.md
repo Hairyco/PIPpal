@@ -9,7 +9,7 @@ This guide is for founders and investors who are **not developers**. It explains
 When someone buys or sells a project coin on Rex:
 
 1. **Rex earns 0.35%** — goes to the Rex protocol treasury  
-2. **0.15% goes to the creator vault** — the founder (V2 CTO team) can withdraw to their wallet  
+2. **0.20% goes to the creator/trader pool** — Mode A: founder withdraws; Mode B: trader cashback (locked at launch)  
 3. **0.40% goes to the project’s marketing wallet** — used to pay for ads, DexScreener, Telegram promos, etc.  
 4. The rest powers the **bonding curve** (how the token price moves)
 
@@ -24,7 +24,7 @@ That is the proof investors care about: **trades fill the marketing wallet, and 
 | Wallet | What it is | What happens |
 |--------|------------|--------------|
 | **Investor wallet** | A normal Solana wallet (like a bank account) | Sends SOL to buy tokens, receives SOL when selling |
-| **Creator vault** | Program vault for the V2 CTO / founder | Collects 0.15%; founder withdraws anytime |
+| **Creator vault** | Program vault for the V2 CTO / founder or trader rebates | Collects 0.20%; Mode A founder withdraws |
 | **Marketing wallet** | A secure vault controlled by the Rex program | Collects 0.40% of every buy and sell |
 | **Supplier wallet** | A vendor you trust (e.g. DexScreener, ad agency) | Must be whitelisted first; then Rex can pay them from the marketing wallet |
 
@@ -38,7 +38,7 @@ When a developer runs `anchor test`, the computer automatically:
 
 1. Sets up Rex  
 2. Launches a test project  
-3. Simulates an investor **buying** tokens → checks marketing (+0.40%), creator (+0.15%), and Rex treasury (+0.35%)  
+3. Simulates an investor **buying** tokens → checks marketing (+0.40%), creator (+0.20%), and Rex treasury (+0.35%)  
 4. Simulates a **sell** → same tax split  
 5. **Founder withdraws** creator fees to their wallet  
 6. **Whitelists** a supplier wallet  
@@ -97,7 +97,7 @@ rex-contracts/programs/rex-mvp/src/
 
 | File / folder | What to look at |
 |---------------|-----------------|
-| **`constants.rs`** | Fee rates: 0.35% Rex, 0.15% creator, 0.40% marketing |
+| **`constants.rs`** | Fee rates: 0.35% Rex, 0.20% creator/trader pool, 0.40% marketing |
 | **`fees.rs`** | How tax is calculated — **start here** |
 | **`curve.rs`** | Token price math |
 | **`instructions/buy.rs`** | What happens when someone buys |
@@ -112,12 +112,14 @@ Full auditor-oriented overview: [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md)
 
 ## Fees (simple version)
 
-| When | Rex | Creator vault | Marketing | Total tax |
-|------|-----|---------------|-----------|-----------|
-| Someone **buys** | 0.35% | 0.15% | 0.40% | 0.90% |
-| Someone **sells** | 0.35% | 0.15% | 0.40% | 0.90% |
+| When | Rex | Creator/trader pool | Marketing | Total tax |
+|------|-----|---------------------|-----------|-----------|
+| Someone **buys** | 0.35% | 0.20% | 0.40% | 0.95% |
+| Someone **sells** | 0.35% | 0.20% | 0.40% | 0.95% |
 
-On a 1 SOL buy: Rex gets 0.0035 SOL, creator vault 0.0015 SOL, marketing 0.004 SOL, 0.991 SOL goes into the curve.
+On a 1 SOL buy: Rex gets 0.0035 SOL, creator/trader pool 0.002 SOL, marketing 0.004 SOL, 0.9905 SOL goes into the curve.
+
+At launch, founders choose Mode A (keep creator fees) or Mode B (split to traders as cashback) — locked on-chain.
 
 ---
 
@@ -142,7 +144,7 @@ It is a program-controlled vault (PDA). Only the Rex program can move funds out,
 Not in MVP — disbursement requires Rex authority signature + whitelist.
 
 **Can the founder withdraw creator fees?**  
-Yes — creator fees (0.15%) accumulate in the creator vault; the project founder withdraws to their wallet via `withdraw_creator_fees`.
+In Mode A, yes — the 0.20% pool accumulates in the creator vault and the founder withdraws via `withdraw_creator_fees`. In Mode B (trader cashback), founder withdraw is disabled.
 
 **Can fees change?**  
 Currently fixed in `constants.rs`. Any change requires deploying a new program version (visible on-chain).

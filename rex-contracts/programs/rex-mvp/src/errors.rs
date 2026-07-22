@@ -16,6 +16,10 @@ pub enum RexError {
     InsufficientMarketingBalance,
     #[msg("Creator vault has insufficient SOL")]
     InsufficientCreatorBalance,
+    #[msg("Invalid fee mode — use creator keep (0) or trader cashback (1)")]
+    InvalidFeeMode,
+    #[msg("Creator fee withdraw disabled — project uses trader cashback mode")]
+    CreatorWithdrawDisabled,
     #[msg("Math overflow")]
     MathOverflow,
     #[msg("Unauthorized — Rex authority only")]

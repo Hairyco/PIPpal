@@ -7,6 +7,10 @@ use crate::transfer::transfer_lamports_signed;
 
 pub fn handler(ctx: Context<WithdrawCreatorFees>, amount: u64) -> Result<()> {
     require!(amount > 0, RexError::ZeroAmount);
+    require!(
+        ctx.accounts.project.fee_mode == crate::constants::FEE_MODE_CREATOR,
+        RexError::CreatorWithdrawDisabled
+    );
 
     let creator_info = ctx.accounts.creator_vault.to_account_info();
     require!(

@@ -5,7 +5,7 @@
 //! | Module        | Purpose                                                    |
 //! |---------------|------------------------------------------------------------|
 //! | `constants`   | Fee percentages and curve defaults                         |
-//! | `fees`        | 0.35% platform + 0.15% creator + 0.40% marketing (0.90%)   |
+//! | `fees`        | Launch tier 0.35% + 0.20% + 0.40% (0.95%); Mode A/B at deploy |
 //! | `curve`       | Bonding curve pricing math                                 |
 //! | `state`       | On-chain account layouts                                   |
 //! | `accounts`    | Per-instruction account validation                         |
@@ -55,16 +55,21 @@ pub mod rex_mvp {
     }
 
     /// Founder launches a project: token mint + marketing/creator vaults + curve.
-    pub fn launch_project(ctx: Context<LaunchProject>, trading_enabled: bool) -> Result<()> {
-        instructions::launch_project(ctx, trading_enabled)
+    /// `fee_mode`: 0 = creator keeps fees (CTO enabled), 1 = trader cashback (CTO disabled).
+    pub fn launch_project(
+        ctx: Context<LaunchProject>,
+        trading_enabled: bool,
+        fee_mode: u8,
+    ) -> Result<()> {
+        instructions::launch_project(ctx, trading_enabled, fee_mode)
     }
 
-    /// Investor buys project tokens with SOL (0.90% tax: 0.35% Rex + 0.15% creator + 0.40% marketing).
+    /// Investor buys project tokens with SOL (launch-tier 0.95% tax).
     pub fn buy(ctx: Context<Buy>, sol_amount: u64, min_tokens_out: u64) -> Result<()> {
         instructions::buy(ctx, sol_amount, min_tokens_out)
     }
 
-    /// Investor sells project tokens for SOL (0.90% tax on gross SOL out).
+    /// Investor sells project tokens for SOL (launch-tier 0.95% tax on gross SOL out).
     pub fn sell(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Result<()> {
         instructions::sell(ctx, token_amount, min_sol_out)
     }

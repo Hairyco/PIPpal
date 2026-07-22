@@ -1,28 +1,37 @@
 //! Fee and curve constants — single source of truth for investor review.
 //!
-//! Model A (0.90% total) from CTO launchpad economics spec:
+//! Launch-phase defaults (under $100k mcap) from final CTO launchpad spec:
 //! | Constant            | Value | Meaning                              |
 //! |---------------------|-------|--------------------------------------|
 //! | PLATFORM_FEE_BPS    | 35    | 0.35% to Rex protocol treasury       |
-//! | CREATOR_FEE_BPS     | 15    | 0.15% to V2 CTO / creator vault      |
+//! | CREATOR_FEE_BPS     | 20    | 0.20% creator/trader pool            |
 //! | MARKETING_FEE_BPS   | 40    | 0.40% to marketing wallet            |
-//! | Total trade tax     | 90 bps = 0.90%                       |
+//! | Total trade tax     | 95 bps = 0.95%                       |
+//!
+//! Higher mcap tiers reduce fees on-chain via oracle/config (frontend mirrors FEE_TIERS).
+//! Fee destination mode (creator keep vs trader cashback) is locked at `launch_project`.
 
-/// 0.35% — Rex protocol fee on buys and sells (basis points).
+/// 0.35% — Rex protocol fee on buys and sells (basis points). Launch tier.
 pub const PLATFORM_FEE_BPS: u64 = 35;
 
-/// 0.15% — creator / V2 CTO vault on buys and sells (basis points).
-/// Accumulates in the creator vault; founder withdraws to their wallet.
-pub const CREATOR_FEE_BPS: u64 = 15;
+/// 0.20% — creator / trader pool on buys and sells (basis points). Launch tier.
+/// Mode A: accumulates in creator vault; founder withdraws.
+/// Mode B: same vault acts as trader rebate pool (founder withdraw disabled).
+pub const CREATOR_FEE_BPS: u64 = 20;
 
-/// 0.40% — project marketing wallet on buys and sells (basis points).
-/// Hits $500 marketing target near ~$125k volume.
+/// 0.40% — project marketing wallet on buys and sells (basis points). Launch tier.
 pub const MARKETING_FEE_BPS: u64 = 40;
 
 pub const BPS_DENOMINATOR: u64 = 10_000;
 
-/// Total trade fee (platform + creator + marketing).
+/// Total launch-tier trade fee (platform + creator pool + marketing).
 pub const TRADE_FEE_BPS: u64 = PLATFORM_FEE_BPS + CREATOR_FEE_BPS + MARKETING_FEE_BPS;
+
+/// Mode A — creator keeps the pool cut; V1→V2 CTO migration enabled.
+pub const FEE_MODE_CREATOR: u8 = 0;
+
+/// Mode B — pool cut is trader cashback; CTO migration disabled.
+pub const FEE_MODE_TRADER_CASHBACK: u8 = 1;
 
 /// SPL token decimals for project coins.
 pub const TOKEN_DECIMALS: u8 = 6;
