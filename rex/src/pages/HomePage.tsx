@@ -26,63 +26,18 @@ import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
+import { OriginBadge } from '../components/OriginBadge';
+import {
+  HYBRID_FEED_TABS,
+  ctoProjects,
+  matchesHybridTab,
+  type CtoProject,
+  type HybridFeedTab,
+} from '../data/ctoProjects';
 
-type Project = {
-  rank: number;
-  name: string;
-  ticker: string;
-  chain: 'SOL';
-  category: 'Meme' | 'AI' | 'DeFi';
-  stage: 'Forming' | 'Voting' | 'Relaunching' | 'Live';
-  community: string;
-  votes: number;
-  votesToday: number;
-  /** Hours until scheduled launch; null if already live */
-  launchInHours: number | null;
-  price: string;
-  change5m: number | null;
-  change30m: number | null;
-  change1h: number | null;
-  change6h: number | null;
-  change24h: number;
-  marketCap: string;
-  fdv: string;
-  volume24h: string;
-  /** 24h transaction count (buys + sells) */
-  txs: string;
-  /** Unique holders */
-  holders: string;
-  marketingWallet?: string;
-  marketingBalance?: string;
-  /** USD needed in marketing wallet for the next auto ad buy */
-  nextAdTargetUsd?: number;
-  /** Short label for next spend (e.g. DexScreener) */
-  nextAdSpend?: string;
-  /** Telegram messages per hour */
-  mph: number;
-  raidsActive: number;
-  raidsJoined: string;
-  roadmapMilestone: string;
-  roadmapDone: number;
-  roadmapTotal: number;
-  score: number;
-  colors: string;
-  logo: string;
-  verified?: boolean;
-  boost?: number;
-  promoted?: boolean;
-};
+type Project = CtoProject;
 
-const projects: Project[] = [
-  { rank: 1, name: 'Moon Pigeon', ticker: 'MPEG', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '4.8K', votes: 3660, votesToday: 50, launchInHours: 18, price: '$0.000421', change5m: 1.2, change30m: 3.1, change1h: 2.4, change6h: 9.98, change24h: 34.8, marketCap: '$842K', fdv: '$1.2M', volume24h: '$186K', txs: '12.4K', holders: '8.2K', marketingWallet: '7xA2…mPeg', marketingBalance: '$482', nextAdTargetUsd: 500, nextAdSpend: 'DexScreener', mph: 186, raidsActive: 3, raidsJoined: '1.2K', roadmapMilestone: 'Marketing fund threshold', roadmapDone: 3, roadmapTotal: 8, score: 92, colors: 'from-fuchsia-400 to-violet-700', logo: '/meme-logos/peponk.png', verified: true, boost: 50 },
-  { rank: 2, name: 'Terminal Frog', ticker: 'TFROG', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '2.1K', votes: 1860, votesToday: 36, launchInHours: 42, price: '$0.000187', change5m: -0.3, change30m: 0.8, change1h: -1.1, change6h: 4.2, change24h: 22.4, marketCap: '$412K', fdv: '$690K', volume24h: '$94K', txs: '6.1K', holders: '3.4K', marketingWallet: 'Fg9k…frog', marketingBalance: '$216', nextAdTargetUsd: 300, nextAdSpend: 'DexScreener', mph: 94, raidsActive: 2, raidsJoined: '840', roadmapMilestone: 'Community channels live', roadmapDone: 2, roadmapTotal: 8, score: 87, colors: 'from-lime-300 to-emerald-700', logo: '/meme-logos/tendies.png', verified: true, boost: 36 },
-  { rank: 3, name: 'Lunar Martian', ticker: 'LMARS', chain: 'SOL', category: 'AI', stage: 'Relaunching', community: '8.4K', votes: 1190, votesToday: 25, launchInHours: 6, price: '$0.001104', change5m: 2.1, change30m: 1.4, change1h: 0.8, change6h: -2.4, change24h: 18.1, marketCap: '$1.1M', fdv: '$2.4M', volume24h: '$255K', txs: '18.9K', holders: '14.1K', marketingWallet: 'Lm9r…mars', marketingBalance: '$624', nextAdTargetUsd: 750, nextAdSpend: 'DexScreener', mph: 142, raidsActive: 5, raidsJoined: '2.4K', roadmapMilestone: 'Supplier assigned', roadmapDone: 5, roadmapTotal: 10, score: 79, colors: 'from-sky-400 to-blue-700', logo: '/meme-logos/lunar-lad.png', verified: true, boost: 25 },
-  { rank: 4, name: 'Degen Hotline', ticker: 'CALL', chain: 'SOL', category: 'Meme', stage: 'Voting', community: '1.6K', votes: 1400, votesToday: 13, launchInHours: 24, price: '$0.000062', change5m: 0.4, change30m: null, change1h: null, change6h: 1.6, change24h: 11.6, marketCap: '$220K', fdv: '$410K', volume24h: '$41K', txs: '2.8K', holders: '1.9K', marketingWallet: 'Ca11…line', marketingBalance: '$148', nextAdTargetUsd: 250, nextAdSpend: 'DexScreener', mph: 61, raidsActive: 1, raidsJoined: '310', roadmapMilestone: 'Bonding curve launch', roadmapDone: 1, roadmapTotal: 6, score: 73, colors: 'from-orange-300 to-red-700', logo: '/meme-logos/unicorn-fart-dust.png', boost: 13 },
-  { rank: 5, name: 'Pixel Goblin', ticker: 'GOB', chain: 'SOL', category: 'AI', stage: 'Forming', community: '6.2K', votes: 341, votesToday: 12, launchInHours: 36, price: '$0.000891', change5m: 3.8, change30m: 4.5, change1h: 5.2, change6h: 12.4, change24h: 8.3, marketCap: '$560K', fdv: '$780K', volume24h: '$72K', txs: '9.3K', holders: '5.6K', marketingWallet: 'Gob1…pixl', marketingBalance: '$330', nextAdTargetUsd: 400, nextAdSpend: 'DexScreener', mph: 118, raidsActive: 4, raidsJoined: '1.8K', roadmapMilestone: 'Roadmap wallet unlock', roadmapDone: 4, roadmapTotal: 9, score: 68, colors: 'from-cyan-300 to-teal-700', logo: '/meme-logos/wiki-cat.png', verified: true, boost: 12, promoted: true },
-  { rank: 6, name: 'Exit Liquidity', ticker: 'EXIT', chain: 'SOL', category: 'DeFi', stage: 'Live', community: '3.7K', votes: 230, votesToday: 11, launchInHours: null, price: '$0.000244', change5m: -1.2, change30m: -2.0, change1h: -3.4, change6h: -8.1, change24h: -4.2, marketCap: '$198K', fdv: '$310K', volume24h: '$29K', txs: '4.2K', holders: '2.7K', mph: 28, raidsActive: 0, raidsJoined: '96', roadmapMilestone: 'Alpha prototype', roadmapDone: 6, roadmapTotal: 10, score: 61, colors: 'from-amber-300 to-orange-700', logo: '/meme-logos/robinhood-dog.png', boost: 11, promoted: true },
-  { rank: 7, name: 'Night Shift', ticker: 'NITE', chain: 'SOL', category: 'DeFi', stage: 'Voting', community: '980', votes: 264, votesToday: 9, launchInHours: 12, price: '$0.000055', change5m: 0.6, change30m: 0.9, change1h: 1.1, change6h: null, change24h: 6.8, marketCap: '$88K', fdv: '$140K', volume24h: '$18K', txs: '1.1K', holders: '860', marketingWallet: 'Ni7e…shft', marketingBalance: '$94', nextAdTargetUsd: 150, nextAdSpend: 'DexScreener', mph: 47, raidsActive: 2, raidsJoined: '420', roadmapMilestone: 'Marketing wave 2', roadmapDone: 2, roadmapTotal: 7, score: 58, colors: 'from-indigo-300 to-purple-800', logo: '/meme-logos/choctopus.png', boost: 9, promoted: true },
-  { rank: 8, name: 'Rug Survivor', ticker: 'SURV', chain: 'SOL', category: 'Meme', stage: 'Forming', community: '1.2K', votes: 215, votesToday: 7, launchInHours: 48, price: '$0.000019', change5m: 0.2, change30m: -0.1, change1h: -0.4, change6h: 3.3, change24h: 3.1, marketCap: '$64K', fdv: '$95K', volume24h: '$11K', txs: '740', holders: '520', marketingWallet: 'SuRv…live', marketingBalance: '$41', nextAdTargetUsd: 100, nextAdSpend: 'DexScreener', mph: 39, raidsActive: 1, raidsJoined: '188', roadmapMilestone: 'Community channels live', roadmapDone: 1, roadmapTotal: 6, score: 54, colors: 'from-rose-300 to-pink-700', logo: '/meme-logos/batcat.png', boost: 7, promoted: true },
-];
+const projects = ctoProjects;
 
 const tickerProjects = projects;
 const promotedProjects = projects.filter((project) => project.promoted);
@@ -134,10 +89,9 @@ const pinnedByTicker: Record<string, PinnedMessage> = {
 type RankingFilter = TimeWindow | 'Pinned';
 
 const rankingModes = [
-  { id: 'Trending', label: 'Trending', icon: Flame, title: 'Trending CTOs', subtitle: 'Strongest momentum across Solana community takeovers.' },
-  { id: 'New', label: 'New', icon: Sparkles, title: 'New CTOs', subtitle: 'Recently forming takeovers just entering the board.' },
-  { id: 'Hot', label: 'Hot', icon: Zap, title: 'Hot CTOs', subtitle: 'Highest raid and messaging activity right now.' },
-  { id: 'Gainers', label: 'Gainers', icon: TrendingUp, title: 'Top gainers', subtitle: 'Biggest price movers in the selected time window.' },
+  { id: 'Trending', label: 'Trending', icon: Flame, title: 'Trending', subtitle: 'Strongest momentum right now.' },
+  { id: 'Hot', label: 'Hot', icon: Zap, title: 'Hot', subtitle: 'Highest raid and messaging activity.' },
+  { id: 'Gainers', label: 'Gainers', icon: TrendingUp, title: 'Gainers', subtitle: 'Biggest price movers in the selected window.' },
 ] as const;
 type RankingMode = (typeof rankingModes)[number]['id'];
 
@@ -207,16 +161,6 @@ function compareByShortcut(
     }
     case 'Trending':
     default:
-      if (mode === 'New') {
-        const stageRank = (stage: Project['stage']) =>
-          stage === 'Forming' ? 0 : stage === 'Voting' ? 1 : stage === 'Relaunching' ? 2 : 3;
-        const stageDiff = stageRank(a.stage) - stageRank(b.stage);
-        if (stageDiff !== 0) return stageDiff;
-        const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
-        const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
-        if (launchA !== launchB) return launchA - launchB;
-        return b.votesToday - a.votesToday;
-      }
       if (mode === 'Hot') {
         if (b.mph !== a.mph) return b.mph - a.mph;
         if (b.raidsActive !== a.raidsActive) return b.raidsActive - a.raidsActive;
@@ -422,9 +366,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  '28px 36px 180px 72px 56px 56px 52px 72px 64px 48px 64px 148px';
+  '28px 36px 200px 72px 56px 56px 52px 72px 64px 48px 64px 148px';
 const tableColsPrelaunch =
-  '28px 36px 180px 68px 56px 72px 56px 56px 52px 72px 64px 48px 64px 148px 64px';
+  '28px 36px 200px 68px 56px 72px 56px 56px 52px 72px 64px 48px 64px 148px 64px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -557,6 +501,7 @@ function PromotedRail({ projects }: { projects: Project[] }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="truncate text-sm font-bold">${project.ticker}</p>
+                      <OriginBadge origin={project.origin} compact />
                       <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
                     </div>
                     <p className="truncate text-[11px] text-white/35">{project.name}</p>
@@ -595,6 +540,7 @@ export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState<Shortcut>('Trending');
   const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
+  const [hybridTab, setHybridTab] = useState<HybridFeedTab>('all');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
   const isPinnedView = activeWindow === 'Pinned';
   const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
@@ -611,7 +557,7 @@ export function HomePage() {
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
   const searchRef = useRef<HTMLInputElement>(null);
-  const pageSize = 5;
+  const pageSize = 10;
 
   const searchSuggestions = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -651,7 +597,11 @@ export function HomePage() {
         !normalized ||
         project.name.toLowerCase().includes(normalized) ||
         project.ticker.toLowerCase().includes(normalized);
-      return matchesQuery && matchesShortcut(project, activeShortcut);
+      return (
+        matchesQuery &&
+        matchesShortcut(project, activeShortcut) &&
+        matchesHybridTab(project, hybridTab)
+      );
     });
 
     const withLocalVotes = filtered.map((project) => {
@@ -667,7 +617,7 @@ export function HomePage() {
     sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode, voted]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, hybridTab]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -712,7 +662,7 @@ export function HomePage() {
   useEffect(() => {
     setPage(1);
     setPageInput('');
-  }, [query, activeWindow, activeShortcut, activeMode]);
+  }, [query, activeWindow, activeShortcut, activeMode, hybridTab]);
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -747,22 +697,21 @@ export function HomePage() {
     if (activeShortcut !== 'Trending') {
       return shortcutCopy[activeShortcut];
     }
-    const mode = rankingModes.find((tab) => tab.id === activeMode) ?? rankingModes[0];
+    const hybrid = HYBRID_FEED_TABS.find((tab) => tab.id === hybridTab) ?? HYBRID_FEED_TABS[0];
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
       return {
-        title: mode.title,
-        subtitle: `Ranked by ${activeWindow} price change — ${windowTab?.title ?? 'active movers'}.`,
+        title: hybrid.title,
+        subtitle: `Sorted by ${activeWindow} gainers — ${windowTab?.title ?? 'active movers'}.`,
       };
     }
-    if (activeMode === 'Trending') return shortcutCopy.Trending;
-    return { title: mode.title, subtitle: mode.subtitle };
+    return { title: hybrid.title, subtitle: hybrid.subtitle };
   })();
 
   const selectShortcut = (label: Shortcut) => {
     setActiveShortcut(label);
     if (label === 'Trending') setActiveMode('Trending');
-    if (label === 'New CTOs') setActiveMode('New');
+    if (label === 'New CTOs') setHybridTab('native_launch');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
@@ -771,9 +720,17 @@ export function HomePage() {
     });
   };
 
+  const selectHybridTab = (tab: HybridFeedTab) => {
+    setHybridTab(tab);
+    setActiveShortcut('Trending');
+    if (isPinnedView) setActiveWindow('5m');
+    setPage(1);
+    setPageInput('');
+  };
+
   const selectRankingMode = (mode: RankingMode) => {
     setActiveMode(mode);
-    setActiveShortcut(mode === 'New' ? 'New CTOs' : 'Trending');
+    setActiveShortcut('Trending');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
@@ -1077,13 +1034,31 @@ export function HomePage() {
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
+              {HYBRID_FEED_TABS.map((tab) => {
+                const active = !isPinnedView && !shortcutOwnsList && hybridTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    title={tab.subtitle}
+                    aria-pressed={active}
+                    onClick={() => selectHybridTab(tab.id)}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                      active
+                        ? 'border border-transparent bg-white text-[#090b14]'
+                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
               {rankingModes.map((mode) => {
                 const Icon = mode.icon;
-                const active =
-                  !isPinnedView &&
-                  !shortcutOwnsList &&
-                  (activeMode === mode.id ||
-                    (mode.id === 'New' && activeShortcut === 'New CTOs'));
+                const active = !isPinnedView && !shortcutOwnsList && activeMode === mode.id;
                 return (
                   <button
                     key={mode.id}
@@ -1091,13 +1066,13 @@ export function HomePage() {
                     title={mode.subtitle}
                     aria-pressed={active}
                     onClick={() => selectRankingMode(mode.id)}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
                       active
-                        ? 'border border-transparent bg-white text-[#090b14]'
-                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
+                        ? 'border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                        : 'border border-white/[0.06] bg-transparent text-white/40'
                     }`}
                   >
-                    <Icon className={`h-3.5 w-3.5 ${active ? 'text-[#090b14]' : ''}`} />
+                    <Icon className="h-3 w-3" />
                     {mode.label}
                   </button>
                 );
@@ -1236,11 +1211,12 @@ export function HomePage() {
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
                       </button>
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex w-[180px] items-center gap-2.5">
+                      <div className="flex w-[200px] items-center gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <p className="truncate text-sm font-bold">{project.ticker}</p>
+                            <OriginBadge origin={project.origin} compact />
                             {project.verified && (
                               <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
                             )}
@@ -1251,6 +1227,12 @@ export function HomePage() {
                             )}
                           </div>
                           <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          {project.origin === 'external_cto' ? (
+                            <p className="mt-0.5 truncate text-[10px] font-medium text-rose-300/80">
+                              {project.sourceVenue}
+                              {project.devDumpedPct != null ? ` · Dev dumped ${project.devDumpedPct}%` : ''}
+                            </p>
+                          ) : null}
                         </div>
                         <ChainPill />
                       </div>

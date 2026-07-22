@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ArrowLeft,
   ExternalLink,
@@ -6,6 +7,8 @@ import {
   Wallet,
   Zap,
 } from 'lucide-react';
+import { MigrateToV2Banner, OriginBadge } from './OriginBadge';
+import type { FeeModeKind, ProjectOrigin, SourceVenue } from '../data/ctoProjects';
 
 export type TradeViewProject = {
   name: string;
@@ -31,6 +34,10 @@ export type TradeViewProject = {
   logo: string;
   verified?: boolean;
   boost?: number;
+  origin: ProjectOrigin;
+  sourceVenue: SourceVenue;
+  devDumpedPct?: number;
+  feeMode?: FeeModeKind;
 };
 
 function formatLaunchLabel(hours: number | null): string {
@@ -186,6 +193,7 @@ export function CtoTradeView({
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <h2 className="truncate font-serif text-xl font-bold tracking-tight">${project.ticker}</h2>
+                <OriginBadge origin={project.origin} />
                 {project.verified ? (
                   <span className="grid h-4 w-4 place-items-center rounded-full bg-amber-300 text-[9px] font-black text-black">
                     ✓
@@ -198,10 +206,18 @@ export function CtoTradeView({
                   </span>
                 ) : null}
                 <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-white/50">
-                  SOL
+                  {project.sourceVenue}
                 </span>
               </div>
-              <p className="truncate text-xs text-white/40">{project.name}</p>
+              <p className="truncate text-xs text-white/40">
+                {project.name}
+                {project.origin === 'native_launch' && project.feeMode
+                  ? ` · Mode ${project.feeMode === 'creator' ? 'A' : 'B'}`
+                  : ''}
+                {project.origin === 'external_cto' && project.devDumpedPct != null
+                  ? ` · Dev dumped ${project.devDumpedPct}%`
+                  : ''}
+              </p>
             </div>
           </div>
 
@@ -268,6 +284,16 @@ export function CtoTradeView({
           </div>
         </div>
       </div>
+
+      {project.origin === 'external_cto' ? (
+        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
+          <MigrateToV2Banner
+            ticker={project.ticker}
+            sourceVenue={project.sourceVenue}
+            devDumpedPct={project.devDumpedPct}
+          />
+        </div>
+      ) : null}
 
       <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
@@ -346,17 +372,30 @@ export function CtoTradeView({
               ))}
             </div>
 
-            <button
-              type="button"
-              className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold ${
-                side === 'buy'
-                  ? 'bg-emerald-400 text-black hover:bg-emerald-300'
-                  : 'bg-rose-400 text-black hover:bg-rose-300'
-              }`}
-            >
-              {side === 'buy' ? `Buy $${project.ticker}` : `Sell $${project.ticker}`}
-            </button>
-            <p className="mt-2 text-center text-[10px] text-white/30">Demo only — no on-chain trade</p>
+            {project.origin === 'external_cto' ? (
+              <Link
+                to="/launch"
+                className="mt-3 flex h-11 w-full items-center justify-center rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
+              >
+                Migrate ${project.ticker} to V2
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold ${
+                  side === 'buy'
+                    ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                    : 'bg-rose-400 text-black hover:bg-rose-300'
+                }`}
+              >
+                {side === 'buy' ? `Buy $${project.ticker}` : `Sell $${project.ticker}`}
+              </button>
+            )}
+            <p className="mt-2 text-center text-[10px] text-white/30">
+              {project.origin === 'external_cto'
+                ? 'External listing — fees stay on the original venue until migration'
+                : 'Demo only — no on-chain trade'}
+            </p>
           </div>
 
           <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
