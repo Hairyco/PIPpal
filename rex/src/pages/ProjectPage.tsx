@@ -4,6 +4,7 @@ import { BadgeCheck, Map, Megaphone, Wallet } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingWalletChart, PriceChart } from '../components/project/ProjectCharts';
+import { MarketingWalletExplainer } from '../components/MarketingWalletExplainer';
 import { PublicTokenomicsBlock } from '../components/project/PublicTokenomicsBlock';
 import { TradePanel } from '../components/project/TradePanel';
 import { ValuationInfoTip } from '../components/project/ValuationInfoTip';
@@ -169,7 +170,10 @@ export function ProjectPage() {
             </div>
 
             {chartTab === 'wallet' && (
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-4">
+                <MarketingWalletExplainer balanceUsd={walletBalance} />
+
+                <div className="space-y-2">
                 <h2 className="text-sm font-semibold text-white">Ad spend milestones</h2>
                 {walletMilestones.map((milestone) => (
                   <div
@@ -202,6 +206,7 @@ export function ProjectPage() {
                     </span>
                   </div>
                 ))}
+                </div>
               </div>
             )}
           </div>

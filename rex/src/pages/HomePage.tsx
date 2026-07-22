@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bot,
   Bell,
   ChevronLeft,
   ChevronRight,
@@ -24,6 +23,7 @@ import {
 import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet';
 import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 
 type Project = {
   rank: number;
@@ -603,6 +603,7 @@ export function HomePage() {
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 5;
 
@@ -971,10 +972,11 @@ export function HomePage() {
               </Link>
               <button
                 type="button"
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+                onClick={() => setWalletExplainerOpen(true)}
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 py-2 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
               >
-                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Telegram bot
+                <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                Marketing wallet
               </button>
             </div>
             <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
@@ -1344,6 +1346,10 @@ export function HomePage() {
       </footer>
       </div>
       <ServicesBottomSheet />
+      <MarketingWalletExplainerModal
+        open={walletExplainerOpen}
+        onClose={() => setWalletExplainerOpen(false)}
+      />
     </div>
   );
 }
