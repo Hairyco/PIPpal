@@ -128,7 +128,7 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
     >
       <Wallet className="h-3.5 w-3.5 shrink-0" />
       <span className="hidden sm:inline">{busy ? 'Connecting…' : 'Connect wallet'}</span>
-      <span className="sm:hidden">{busy ? '…' : 'Wallet'}</span>
+      <span className="sm:hidden">{busy ? '…' : 'Connect'}</span>
     </button>
   );
 }

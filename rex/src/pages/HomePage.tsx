@@ -799,7 +799,7 @@ export function HomePage() {
       </div>
 
       <header className="border-b border-white/[0.07] bg-black">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-3 sm:px-5">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
               <RotateCcw className="h-5 w-5 stroke-[2.6]" />
@@ -810,7 +810,7 @@ export function HomePage() {
             </div>
           </a>
 
-          <div className="relative ml-auto min-w-0 flex-1 sm:max-w-md">
+          <div className="relative min-w-0 flex-1 sm:max-w-md md:max-w-lg">
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
               <input
@@ -826,11 +826,11 @@ export function HomePage() {
                 aria-keyshortcuts="/"
                 aria-expanded={showSearchPanel}
                 aria-controls="cto-search-panel"
-                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40 sm:pr-11"
               />
               {!searchFocused && !query ? (
                 <kbd
-                  className="pointer-events-none absolute right-2.5 top-1/2 inline-flex h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/20 bg-white/[0.08] px-1.5 font-sans text-[11px] font-semibold leading-none text-white/55 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]"
+                  className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/20 bg-white/[0.08] px-1.5 font-sans text-[11px] font-semibold leading-none text-white/55 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
                   aria-hidden
                 >
                   /
@@ -907,49 +907,53 @@ export function HomePage() {
             ) : null}
           </div>
 
-          <Link
-            to="/launch"
-            className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
-          >
-            <Plus className="h-4 w-4" /> Submit CTO
-          </Link>
-          <ConnectWalletButton className="shrink-0" />
-          <button
-            type="button"
-            className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
-            aria-label="Notifications"
-            title="Notifications"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8ff3d]" aria-hidden />
-          </button>
-          <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
-            <Menu className="h-5 w-5" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+            <Link
+              to="/launch"
+              className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
+            >
+              <Plus className="h-4 w-4" /> Submit CTO
+            </Link>
+            <button
+              type="button"
+              className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8ff3d]" aria-hidden />
+            </button>
+            <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
+              <Menu className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </header>
 
       <nav className="border-b border-white/[0.06] bg-black">
-        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
-          {shortcuts.map((shortcut) => {
-            const Icon = shortcut.icon;
-            const active = activeShortcut === shortcut.label;
-            return (
-              <button
-                key={shortcut.label}
-                type="button"
-                onClick={() => selectShortcut(shortcut.label)}
-                className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
-                  active
-                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {shortcut.label}
-              </button>
-            );
-          })}
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:px-5">
+          <div className="hide-scrollbar flex min-w-0 flex-1 gap-2 overflow-x-auto">
+            {shortcuts.map((shortcut) => {
+              const Icon = shortcut.icon;
+              const active = activeShortcut === shortcut.label;
+              return (
+                <button
+                  key={shortcut.label}
+                  type="button"
+                  onClick={() => selectShortcut(shortcut.label)}
+                  className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
+                    active
+                      ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                      : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {shortcut.label}
+                </button>
+              );
+            })}
+          </div>
+          <ConnectWalletButton className="ml-auto shrink-0" />
         </div>
       </nav>
       </div>
