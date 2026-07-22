@@ -12,6 +12,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { LightningBundleArt } from '../components/services/LightningBundleArt';
+import { AppShell } from '../components/AppSidebar';
 import { LAUNCH_PACK, formatSolPrice, type DirectServiceId } from '../data/directServices';
 import { readImageFile } from '../utils/projectImageGenerate';
 import {
@@ -98,16 +99,17 @@ export function ServicesPage() {
   };
 
   return (
+    <AppShell>
     <div className="min-h-screen bg-black text-[#f5f7fb]">
       <header className="border-b border-white/[0.07] bg-black">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 pl-14 md:pl-4">
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white">
             <ArrowLeft className="h-4 w-4" />
             Home
           </Link>
           <p className="font-serif text-base font-bold">Services</p>
-          <Link to="/dashboard" className="text-sm text-[#c8ff3d] hover:text-[#d5ff69]">
-            Dashboard
+          <Link to="/fees" className="text-sm text-[#c8ff3d] hover:text-[#d5ff69]">
+            Fees
           </Link>
         </div>
       </header>
@@ -380,6 +382,7 @@ export function ServicesPage() {
         )}
       </main>
     </div>
+    </AppShell>
   );
 }
 

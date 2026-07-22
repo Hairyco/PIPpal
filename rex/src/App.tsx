@@ -14,6 +14,8 @@ import { AffiliatesCataloguePage } from './pages/AffiliatesCataloguePage';
 import { FounderDashboardPage } from './pages/FounderDashboardPage';
 import { TradePage } from './pages/TradePage';
 import { ServicesPage } from './pages/ServicesPage';
+import { FeesPage } from './pages/FeesPage';
+import { MarketingWalletPage } from './pages/MarketingWalletPage';
 
 export function App() {
   return (
@@ -25,6 +27,8 @@ export function App() {
           <Route path="/launch" element={<LaunchCtoPage />} />
           <Route path="/trade" element={<TradePage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/fees" element={<FeesPage />} />
+          <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
           <Route path="/category/:categoryId" element={<CategoryPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />

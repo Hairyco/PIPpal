@@ -27,6 +27,7 @@ import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWa
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
 import { OriginBadge } from '../components/OriginBadge';
+import { AppSidebar } from '../components/AppSidebar';
 import {
   HYBRID_FEED_TABS,
   ctoProjects,
@@ -770,7 +771,8 @@ export function HomePage() {
 
   return (
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
-      <div className="relative z-[1]">
+      <AppSidebar />
+      <div className="relative z-[1] md:pl-56">
       <div className="sticky top-0 z-40 bg-black">
       <div className="border-b border-white/[0.06] bg-black">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
@@ -996,14 +998,13 @@ export function HomePage() {
               >
                 Launch a CTO
               </Link>
-              <button
-                type="button"
-                onClick={() => setWalletExplainerOpen(true)}
+              <Link
+                to="/marketing-wallet"
                 className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
               >
                 <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Marketing wallet
-              </button>
+              </Link>
             </div>
             <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
               <Wallet className="h-3.5 w-3.5 shrink-0" />
@@ -1458,10 +1459,9 @@ export function HomePage() {
             <span>Solana CTO discovery</span>
           </div>
           <div className="flex gap-5">
+            <Link to="/fees" className="hover:text-white/50">Fees</Link>
+            <Link to="/marketing-wallet" className="hover:text-white/50">Marketing wallet</Link>
             <Link to="/services" className="hover:text-white/50">Services</Link>
-            <span>Terms</span>
-            <span>Privacy</span>
-            <span>Contact</span>
           </div>
         </div>
       </footer>
