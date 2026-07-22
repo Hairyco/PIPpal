@@ -3,14 +3,14 @@
 /** 1% Rex platform fee on buys and sells (basis points). */
 export const PLATFORM_FEE_BPS = 100;
 
-/** 5% marketing wallet fee on buys and sells (basis points). */
-export const MARKETING_FEE_BPS = 500;
+/** 0.5% marketing wallet fee on buys and sells (basis points). */
+export const MARKETING_FEE_BPS = 50;
 
 export const TRADE_FEE_BPS = PLATFORM_FEE_BPS + MARKETING_FEE_BPS;
 
 export const BPS_DENOMINATOR = 10_000;
 
-export const TRADE_FEE_LABEL = '6% total (1% Rex + 5% marketing)';
+export const TRADE_FEE_LABEL = '1.5% total (1% Rex + 0.5% marketing)';
 
 export function splitTradeFeesLamports(grossLamports: number): {
   platform: number;

@@ -40,10 +40,16 @@ export type FounderProject = {
   projectAssets?: string[];
   /** Creative suite — landing page hosted via Vercel */
   landingPageUrl?: string | null;
-  landingPageSource?: 'upload' | 'generated';
-  landingPageFunding?: 'marketing-wallet' | 'rex-coin';
+  landingPageSource?: 'upload' | 'generated' | 'cloned';
+  landingPageFunding?: 'marketing-wallet' | 'pay-now' | 'rex-coin';
+  sourceWebsiteUrl?: string;
+  websiteMode?: 'clone' | 'simple' | null;
+  logoUrl?: string | null;
+  bannerUrl?: string | null;
   bannerAssets?: string[];
   queuedBannerCount?: number;
+  starterBundleSelected?: boolean;
+  starterBundleFunding?: 'pay-now' | 'wait-wallet' | null;
   telegramGroup: string;
   discordUrl?: string;
 };

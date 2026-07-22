@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,25 +12,31 @@ import {
   X,
 } from 'lucide-react';
 import {
-  REX_GENERATE_BANNER_COST,
-  REX_GENERATE_LANDING_COST,
-  REX_TOKEN_SYMBOL,
-} from '../../data/rexToken';
+  assessWebsiteCloneComplexity,
+  getMarketingBundle,
+  type BundleFunding,
+} from '../../data/marketingBundles';
 import { generateProjectImageDataUrl, readImageFile } from '../../utils/projectImageGenerate';
-import { getRexTokenBalance, spendRexTokens } from '../../utils/rexTokenWallet';
-import { BuyRexTokenModal, RexTokenBadge } from './BuyRexTokenModal';
 
-export type CreativeFunding = 'marketing-wallet' | 'rex-coin';
+export type CreativeFunding = 'marketing-wallet' | 'pay-now';
 
 export type CreativeSuiteState = {
+  sourceWebsiteUrl: string;
+  websiteMode: 'clone' | 'simple' | null;
   landingPageUrl: string | null;
-  landingPageSource: 'upload' | 'generated' | null;
+  landingPageSource: 'upload' | 'generated' | 'cloned' | null;
   landingPageFunding: CreativeFunding | null;
+  logoUrl: string | null;
+  bannerUrl: string | null;
+  /** @deprecated kept for older saved projects */
   bannerAssets: string[];
   queuedBannerCount: number;
+  starterBundleSelected: boolean;
+  starterBundleFunding: BundleFunding | null;
 };
 
-const MAX_BANNERS = 6;
+const EMPTY_PREVIEW_HINT =
+  'Paste the old site URL to preview a clone. Most meme sites clone fine — we only strip unsafe scripts and swap the CA/socials.';
 
 interface CreativeSuiteStepProps {
   projectName: string;
@@ -51,360 +57,308 @@ export function CreativeSuiteStep({
   onBack,
   onContinue,
 }: CreativeSuiteStepProps) {
-  const landingRef = useRef<HTMLInputElement>(null);
+  const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
-  const [rexBalance, setRexBalance] = useState(getRexTokenBalance);
-  const [buyModalOpen, setBuyModalOpen] = useState(false);
-  const [buyRequired, setBuyRequired] = useState<number | undefined>();
-  const [generatingLanding, setGeneratingLanding] = useState(false);
-  const [generatingBanner, setGeneratingBanner] = useState(false);
+  const [cloning, setCloning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const starter = getMarketingBundle('launch-starter')!;
   const patch = (partial: Partial<CreativeSuiteState>) => onChange({ ...value, ...partial });
+  const complexity = assessWebsiteCloneComplexity(value.sourceWebsiteUrl);
+  const hostSlug = projectName.trim()
+    ? `${projectName.trim().toLowerCase().replace(/\s+/g, '-')}.rex.app`
+    : 'your-ticker.rex.app';
 
-  const handleLandingUpload = async (file: File) => {
+  const runClonePreview = async () => {
+    setError(null);
+    const url = value.sourceWebsiteUrl.trim();
+    if (!url) {
+      setError('Add a website URL to clone, or choose the simple 1-pager.');
+      return;
+    }
+    setCloning(true);
+    await new Promise((r) => setTimeout(r, 700));
+    const preview = generateProjectImageDataUrl({
+      projectName: projectName || 'Cloned site',
+      description: description || `Preview clone of ${url}`,
+      categoryLabel,
+    });
+    setCloning(false);
+    patch({
+      websiteMode: 'clone',
+      landingPageUrl: preview,
+      landingPageSource: 'cloned',
+    });
+  };
+
+  const useSimplePage = async () => {
+    setError(null);
+    setCloning(true);
+    await new Promise((r) => setTimeout(r, 500));
+    const preview = generateProjectImageDataUrl({
+      projectName: projectName || 'Launch page',
+      description: description || 'Simple one-pager for your CTO',
+      categoryLabel,
+    });
+    setCloning(false);
+    patch({
+      websiteMode: 'simple',
+      sourceWebsiteUrl: value.sourceWebsiteUrl,
+      landingPageUrl: preview,
+      landingPageSource: 'generated',
+    });
+  };
+
+  const handleLogo = async (file: File) => {
+    setError(null);
+    try {
+      patch({ logoUrl: await readImageFile(file) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Logo upload failed');
+    }
+  };
+
+  const handleBanner = async (file: File) => {
     setError(null);
     try {
       const dataUrl = await readImageFile(file);
-      patch({
-        landingPageUrl: dataUrl,
-        landingPageSource: 'upload',
-        landingPageFunding: null,
-      });
+      patch({ bannerUrl: dataUrl, bannerAssets: [dataUrl] });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(err instanceof Error ? err.message : 'Banner upload failed');
     }
   };
 
-  const generateLanding = async (funding: CreativeFunding) => {
+  const generateBanner = async () => {
     setError(null);
-    if (!projectName.trim()) {
-      setError('Project name is required to generate a landing page');
-      return;
-    }
-
-    if (funding === 'marketing-wallet') {
-      patch({
-        landingPageUrl: null,
-        landingPageSource: 'generated',
-        landingPageFunding: 'marketing-wallet',
-      });
-      return;
-    }
-
-    const spend = spendRexTokens(REX_GENERATE_LANDING_COST);
-    if (!spend.ok) {
-      setBuyRequired(REX_GENERATE_LANDING_COST);
-      setBuyModalOpen(true);
-      return;
-    }
-    setRexBalance(spend.balance);
-
-    setGeneratingLanding(true);
-    await new Promise((r) => setTimeout(r, 900));
+    setCloning(true);
+    await new Promise((r) => setTimeout(r, 600));
     const dataUrl = generateProjectImageDataUrl({
-      projectName,
+      projectName: `${projectName || 'CTO'} banner`,
       description,
       categoryLabel,
     });
-    setGeneratingLanding(false);
-
+    setCloning(false);
     if (dataUrl) {
-      patch({
-        landingPageUrl: dataUrl,
-        landingPageSource: 'generated',
-        landingPageFunding: 'rex-coin',
-      });
-    } else {
-      setError('Landing page generation failed — try again');
+      patch({ bannerUrl: dataUrl, bannerAssets: [dataUrl] });
     }
   };
 
-  const handleBannerUpload = async (files: FileList | null) => {
-    if (!files?.length) return;
-    setError(null);
-    const remaining = MAX_BANNERS - value.bannerAssets.length;
-    if (remaining <= 0) {
-      setError(`Maximum ${MAX_BANNERS} banners`);
-      return;
-    }
-    const toAdd: string[] = [];
-    for (const file of Array.from(files).slice(0, remaining)) {
-      try {
-        toAdd.push(await readImageFile(file));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed');
-        break;
-      }
-    }
-    if (toAdd.length) {
-      patch({ bannerAssets: [...value.bannerAssets, ...toAdd] });
-    }
-  };
-
-  const generateBanner = async (funding: CreativeFunding) => {
-    setError(null);
-    const total = value.bannerAssets.length + value.queuedBannerCount;
-    if (total >= MAX_BANNERS) {
-      setError(`Maximum ${MAX_BANNERS} banners`);
-      return;
-    }
-
-    if (funding === 'marketing-wallet') {
-      patch({ queuedBannerCount: value.queuedBannerCount + 1 });
-      return;
-    }
-
-    const spend = spendRexTokens(REX_GENERATE_BANNER_COST);
-    if (!spend.ok) {
-      setBuyRequired(REX_GENERATE_BANNER_COST);
-      setBuyModalOpen(true);
-      return;
-    }
-    setRexBalance(spend.balance);
-
-    setGeneratingBanner(true);
-    await new Promise((r) => setTimeout(r, 700));
-    const dataUrl = generateProjectImageDataUrl({
-      projectName: `${projectName} banner`,
-      description,
-      categoryLabel,
+  const selectBundleFunding = (funding: BundleFunding) => {
+    patch({
+      starterBundleSelected: true,
+      starterBundleFunding: funding,
+      landingPageFunding: funding === 'pay-now' ? 'pay-now' : 'marketing-wallet',
     });
-    setGeneratingBanner(false);
-
-    if (dataUrl) {
-      patch({ bannerAssets: [...value.bannerAssets, dataUrl] });
-    } else {
-      setError('Banner generation failed — try again');
-    }
   };
-
-  const removeBanner = (index: number) => {
-    patch({ bannerAssets: value.bannerAssets.filter((_, i) => i !== index) });
-  };
-
-  const landingQueued =
-    value.landingPageSource === 'generated' && value.landingPageFunding === 'marketing-wallet';
 
   return (
     <div className="space-y-5">
       <div className="dex-card">
         <div className="relative z-[1] space-y-5">
           <div>
-            <h2 className="font-semibold text-white">Creative suite</h2>
+            <h2 className="font-semibold text-white">Media & content</h2>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Build your launch assets — landing page hosted on Rex via Vercel, plus banners for
-              Telegram, DexScreener, and social. Upload your own or generate with Rex AI.
+              Preview your site, lock logo + banner, then choose how to fund the launch starter
+              bundle. Keep it light — most meme sites clone cleanly.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <RexTokenBadge balance={rexBalance} />
-            <p className="text-[10px] text-muted-foreground">
-              Pay with {REX_TOKEN_SYMBOL} for ready-on-launch, or wait for your marketing wallet
-            </p>
-          </div>
-
-          {/* Landing page */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
+          {/* 1. Website */}
+          <section className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <div className="flex items-start gap-2">
               <Globe className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
               <div>
-                <p className="text-sm font-medium text-white">Landing page</p>
+                <p className="text-sm font-medium text-white">1. Landing page</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Hosted at{' '}
-                  <span className="text-sky-400/90">
-                    {projectName.trim()
-                      ? `${projectName.trim().toLowerCase().replace(/\s+/g, '-')}.rex.app`
-                      : 'your-project.rex.app'}
-                  </span>{' '}
-                  via Vercel
+                  Hosted at <span className="text-sky-400/90">{hostSlug}</span>. We strip unsafe
+                  scripts and swap CA / social links — we do not hard-block clones.
                 </p>
               </div>
             </div>
 
-            {value.landingPageUrl && !landingQueued ? (
+            <label className="block text-xs font-medium text-muted-foreground">
+              Old website URL (optional)
+              <input
+                type="url"
+                value={value.sourceWebsiteUrl}
+                onChange={(e) => patch({ sourceWebsiteUrl: e.target.value })}
+                placeholder="https://old-meme-site.com"
+                className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+              />
+            </label>
+
+            {complexity === 'maybe-complex' && value.sourceWebsiteUrl.trim() ? (
+              <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
+                This URL looks like it might be a heavier app. We will still try a clone — if it
+                fails, we fall back to a simple 1-pager. No need to pivot unless you want a custom
+                build later.
+              </p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">{EMPTY_PREVIEW_HINT}</p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={cloning}
+                onClick={() => void runClonePreview()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-200 hover:bg-sky-500/15 disabled:opacity-40"
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                {cloning ? 'Working…' : 'Preview clone'}
+              </button>
+              <button
+                type="button"
+                disabled={cloning}
+                onClick={() => void useSimplePage()}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white hover:border-white/20 disabled:opacity-40"
+              >
+                Use simple 1-pager
+              </button>
+            </div>
+
+            {value.landingPageUrl ? (
               <div className="relative overflow-hidden rounded-lg border border-white/10">
                 <img
                   src={value.landingPageUrl}
                   alt="Landing page preview"
                   className="aspect-[16/10] w-full object-cover"
                 />
-                {value.landingPageSource === 'generated' && value.landingPageFunding === 'rex-coin' && (
-                  <span className="absolute left-2 top-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                    Ready on launch
-                  </span>
-                )}
+                <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white">
+                  {value.websiteMode === 'simple' ? 'Simple 1-pager preview' : 'Clone preview'}
+                </span>
                 <button
                   type="button"
                   onClick={() =>
                     patch({
                       landingPageUrl: null,
                       landingPageSource: null,
-                      landingPageFunding: null,
+                      websiteMode: null,
                     })
                   }
                   className="absolute right-2 top-2 rounded-full bg-black/70 p-1 text-white"
-                  aria-label="Remove landing page"
+                  aria-label="Clear preview"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
               </div>
-            ) : landingQueued ? (
-              <div className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-                <Clock className="h-5 w-5 shrink-0 text-amber-400" />
-                <div>
-                  <p className="text-xs font-medium text-amber-200">Queued — marketing wallet</p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">
-                    Landing page generates automatically when your marketing wallet reaches $300.
-                  </p>
-                </div>
-              </div>
             ) : null}
+          </section>
 
-            <div className="flex flex-wrap gap-2">
-              <input
-                ref={landingRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleLandingUpload(file);
-                  e.target.value = '';
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => landingRef.current?.click()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white hover:border-white/20"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                Upload design
-              </button>
-            </div>
-
-            <div className="border-t border-white/10 pt-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">Generate with Rex AI</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <FundingOption
-                  icon={Clock}
-                  title="Wait for marketing wallet"
-                  description="Free — landing page ready when wallet fills (~$300)"
-                  loading={generatingLanding}
-                  onClick={() => void generateLanding('marketing-wallet')}
-                />
-                <FundingOption
-                  icon={Coins}
-                  title={`Pay ${REX_GENERATE_LANDING_COST} ${REX_TOKEN_SYMBOL}`}
-                  description="Ready on launch — no waiting for trade tax"
-                  loading={generatingLanding}
-                  accent
-                  onClick={() => void generateLanding('rex-coin')}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Banners */}
-          <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-4">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-start gap-2">
-                <ImagePlus className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
-                <div>
-                  <p className="text-sm font-medium text-white">Launch banners</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Telegram headers, DexScreener promos, and social posts
-                  </p>
-                </div>
-              </div>
-              <span className="text-[10px] text-muted-foreground">
-                {value.bannerAssets.length + value.queuedBannerCount}/{MAX_BANNERS}
-              </span>
-            </div>
-
-            {value.bannerAssets.length > 0 && (
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                {value.bannerAssets.map((asset, index) => (
-                  <div
-                    key={`${index}-${asset.slice(0, 20)}`}
-                    className="group relative aspect-[3/1] overflow-hidden rounded-lg border border-white/10"
-                  >
-                    <img src={asset} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeBanner(index)}
-                      className="absolute right-1 top-1 rounded-full bg-black/70 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                      aria-label="Remove banner"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {value.queuedBannerCount > 0 && (
-              <div className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
-                <Clock className="h-4 w-4 shrink-0 text-amber-400" />
-                <p className="text-[11px] text-muted-foreground">
-                  {value.queuedBannerCount} banner{value.queuedBannerCount > 1 ? 's' : ''} queued
-                  — generate when marketing wallet reaches $300
+          {/* 2. Logo + banner */}
+          <section className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <div className="flex items-start gap-2">
+              <ImagePlus className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+              <div>
+                <p className="text-sm font-medium text-white">2. Logo & banner</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Copy from the old site when you can. No banner? Upload a reference or let Rex
+                  generate one for socials / DexScreener.
                 </p>
               </div>
-            )}
+            </div>
 
-            <div className="flex flex-wrap gap-2">
-              <input
-                ref={bannerRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  void handleBannerUpload(e.target.files);
-                  e.target.value = '';
-                }}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <AssetSlot
+                label="Logo"
+                imageUrl={value.logoUrl}
+                onClear={() => patch({ logoUrl: null })}
+                onUploadClick={() => logoRef.current?.click()}
               />
-              <button
-                type="button"
-                disabled={value.bannerAssets.length + value.queuedBannerCount >= MAX_BANNERS}
-                onClick={() => bannerRef.current?.click()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white hover:border-white/20 disabled:opacity-40"
-              >
-                <Upload className="h-3.5 w-3.5" />
-                Upload banners
-              </button>
+              <AssetSlot
+                label="Banner"
+                imageUrl={value.bannerUrl}
+                wide
+                onClear={() => patch({ bannerUrl: null, bannerAssets: [] })}
+                onUploadClick={() => bannerRef.current?.click()}
+                extraAction={
+                  <button
+                    type="button"
+                    disabled={cloning}
+                    onClick={() => void generateBanner()}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    Generate banner
+                  </button>
+                }
+              />
             </div>
 
-            <div className="border-t border-white/10 pt-3">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">Generate a banner</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <FundingOption
-                  icon={Wand2}
-                  title="Wait for marketing wallet"
-                  description="Free — added when wallet milestone hits"
-                  loading={generatingBanner}
-                  disabled={value.bannerAssets.length + value.queuedBannerCount >= MAX_BANNERS}
-                  onClick={() => void generateBanner('marketing-wallet')}
-                />
-                <FundingOption
-                  icon={Sparkles}
-                  title={`Pay ${REX_GENERATE_BANNER_COST} ${REX_TOKEN_SYMBOL}`}
-                  description="Generate and add now"
-                  loading={generatingBanner}
-                  disabled={value.bannerAssets.length + value.queuedBannerCount >= MAX_BANNERS}
-                  accent
-                  onClick={() => void generateBanner('rex-coin')}
-                />
-              </div>
+            <input
+              ref={logoRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleLogo(file);
+                e.target.value = '';
+              }}
+            />
+            <input
+              ref={bannerRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void handleBanner(file);
+                e.target.value = '';
+              }}
+            />
+          </section>
+
+          {/* 3. Launch starter bundle */}
+          <section className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
+            <div>
+              <p className="text-sm font-medium text-white">3. {starter.title}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{starter.summary}</p>
+              <p className="mt-2 text-[11px] text-sky-300/90">
+                {starter.approxSol} from marketing wallet · {starter.priceHint}
+              </p>
             </div>
-          </div>
+            <ul className="space-y-1.5">
+              {starter.includes.map((item) => (
+                <li key={item} className="flex gap-2 text-[11px] text-muted-foreground">
+                  <span className="text-sky-400">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              <FundingOption
+                icon={Clock}
+                title="Wait for marketing wallet"
+                description="Queue the bundle — runs when trade tax funds the vault"
+                selected={value.starterBundleFunding === 'wait-wallet'}
+                onClick={() => selectBundleFunding('wait-wallet')}
+              />
+              <FundingOption
+                icon={Coins}
+                title="Pay now"
+                description="Fund up-front — site + creatives + shoutout go live faster"
+                selected={value.starterBundleFunding === 'pay-now'}
+                accent
+                onClick={() => selectBundleFunding('pay-now')}
+              />
+            </div>
+
+            {value.starterBundleFunding ? (
+              <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-200/90">
+                {value.starterBundleFunding === 'pay-now'
+                  ? 'Pay-now selected. After payment you get a change-request form for site edits (fee TBD).'
+                  : 'Queued on the marketing wallet. Same change-request form unlocks once the bundle is paid from the vault.'}
+              </p>
+            ) : null}
+          </section>
 
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
           <p className="text-[10px] leading-relaxed text-muted-foreground">
-            You can skip creative assets for now and add them from your dashboard after launch.
+            Later bundles (CoinGecko CTO, DexScreener ads) appear on your dashboard after the coin
+            is live — pick the supplier you want to pay next.
           </p>
         </div>
       </div>
@@ -423,13 +377,51 @@ export function CreativeSuiteStep({
           <ArrowRight className="ml-2 inline h-4 w-4" />
         </button>
       </div>
+    </div>
+  );
+}
 
-      <BuyRexTokenModal
-        open={buyModalOpen}
-        onClose={() => setBuyModalOpen(false)}
-        requiredAmount={buyRequired}
-        onPurchased={(balance) => setRexBalance(balance)}
-      />
+function AssetSlot({
+  label,
+  imageUrl,
+  wide,
+  onClear,
+  onUploadClick,
+  extraAction,
+}: {
+  label: string;
+  imageUrl: string | null;
+  wide?: boolean;
+  onClear: () => void;
+  onUploadClick: () => void;
+  extraAction?: ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+      <p className="mb-2 text-xs font-medium text-muted-foreground">{label}</p>
+      {imageUrl ? (
+        <div className={`relative overflow-hidden rounded-md border border-white/10 ${wide ? 'aspect-[3/1]' : 'aspect-square max-w-[8rem]'}`}>
+          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            onClick={onClear}
+            className="absolute right-1 top-1 rounded-full bg-black/70 p-0.5 text-white"
+            aria-label={`Remove ${label}`}
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onUploadClick}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-white/15 bg-white/[0.03] px-3 py-2 text-xs text-white/70 hover:border-white/25"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Upload {label.toLowerCase()}
+        </button>
+      )}
+      {extraAction ? <div className="mt-2">{extraAction}</div> : null}
     </div>
   );
 }
@@ -438,35 +430,37 @@ function FundingOption({
   icon: Icon,
   title,
   description,
-  loading,
-  disabled,
+  selected,
   accent,
   onClick,
 }: {
   icon: typeof Clock;
   title: string;
   description: string;
-  loading?: boolean;
-  disabled?: boolean;
+  selected?: boolean;
   accent?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       type="button"
-      disabled={disabled || loading}
       onClick={onClick}
-      className={`rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
-        accent
-          ? 'border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15'
-          : 'border-white/10 bg-white/[0.03] hover:border-white/20'
+      aria-pressed={selected}
+      className={`rounded-xl border p-3 text-left transition-colors ${
+        selected
+          ? 'border-white bg-white text-[#090b14]'
+          : accent
+            ? 'border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/15'
+            : 'border-white/10 bg-white/[0.03] hover:border-white/20'
       }`}
     >
       <div className="flex items-start gap-2">
-        <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${accent ? 'text-sky-400' : 'text-muted-foreground'}`} />
+        <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${selected ? 'text-[#090b14]' : accent ? 'text-sky-400' : 'text-muted-foreground'}`} />
         <span>
-          <p className="text-xs font-medium text-white">{loading ? 'Generating…' : title}</p>
-          <p className="mt-0.5 text-[10px] leading-relaxed text-muted-foreground">{description}</p>
+          <p className={`text-xs font-medium ${selected ? 'text-[#090b14]' : 'text-white'}`}>{title}</p>
+          <p className={`mt-0.5 text-[10px] leading-relaxed ${selected ? 'text-[#090b14]/70' : 'text-muted-foreground'}`}>
+            {description}
+          </p>
         </span>
       </div>
     </button>

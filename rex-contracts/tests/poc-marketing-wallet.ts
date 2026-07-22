@@ -10,7 +10,7 @@ import { expect } from 'chai';
 import { RexMvp } from '../target/types/rex_mvp';
 
 const PLATFORM_BPS = 100n;
-const MARKETING_BPS = 500n;
+const MARKETING_BPS = 50n;
 const BPS = 10_000n;
 
 function splitFees(gross: bigint) {
@@ -121,7 +121,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     await provider.sendAndConfirm(tx, [investor]);
   });
 
-  it('buy: splits 1% platform + 5% marketing (6% total)', async () => {
+  it('buy: splits 1% platform + 0.5% marketing (1.5% total)', async () => {
     const solIn = 1 * LAMPORTS_PER_SOL;
     const { platform, marketing, net } = splitFees(BigInt(solIn));
 
@@ -164,7 +164,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     expect(Number(tokenBal.value.amount)).to.be.greaterThan(0);
   });
 
-  it('sell: taxes gross SOL (Option A) — 1% platform + 5% marketing', async () => {
+  it('sell: taxes gross SOL (Option A) — 1% platform + 0.5% marketing', async () => {
     const tokenBal = await provider.connection.getTokenAccountBalance(investorAta);
     const sellAmount = new anchor.BN(tokenBal.value.amount).div(new anchor.BN(2));
 

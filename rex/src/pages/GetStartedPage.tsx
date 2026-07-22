@@ -51,16 +51,22 @@ const STEPS: { id: Step; label: string }[] = [
   { id: 'analysis', label: 'Market analysis' },
   { id: 'summary', label: 'Rex summary' },
   { id: 'roadmap', label: 'Roadmap' },
-  { id: 'creative', label: 'Creative suite' },
+  { id: 'creative', label: 'Media & content' },
   { id: 'launch', label: 'Launch' },
 ];
 
 const EMPTY_CREATIVE: CreativeSuiteState = {
+  sourceWebsiteUrl: '',
+  websiteMode: null,
   landingPageUrl: null,
   landingPageSource: null,
   landingPageFunding: null,
+  logoUrl: null,
+  bannerUrl: null,
   bannerAssets: [],
   queuedBannerCount: 0,
+  starterBundleSelected: false,
+  starterBundleFunding: null,
 };
 
 export function GetStartedPage() {
@@ -186,8 +192,18 @@ export function GetStartedPage() {
       landingPageUrl: creativeSuite.landingPageUrl,
       landingPageSource: creativeSuite.landingPageSource ?? undefined,
       landingPageFunding: creativeSuite.landingPageFunding ?? undefined,
-      bannerAssets: creativeSuite.bannerAssets.length > 0 ? creativeSuite.bannerAssets : undefined,
+      sourceWebsiteUrl: creativeSuite.sourceWebsiteUrl || undefined,
+      websiteMode: creativeSuite.websiteMode,
+      logoUrl: creativeSuite.logoUrl,
+      bannerUrl: creativeSuite.bannerUrl,
+      bannerAssets: creativeSuite.bannerUrl
+        ? [creativeSuite.bannerUrl]
+        : creativeSuite.bannerAssets.length > 0
+          ? creativeSuite.bannerAssets
+          : undefined,
       queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
+      starterBundleSelected: creativeSuite.starterBundleSelected || undefined,
+      starterBundleFunding: creativeSuite.starterBundleFunding,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     }),
@@ -267,8 +283,18 @@ export function GetStartedPage() {
       landingPageUrl: creativeSuite.landingPageUrl,
       landingPageSource: creativeSuite.landingPageSource ?? undefined,
       landingPageFunding: creativeSuite.landingPageFunding ?? undefined,
-      bannerAssets: creativeSuite.bannerAssets.length > 0 ? creativeSuite.bannerAssets : undefined,
+      sourceWebsiteUrl: creativeSuite.sourceWebsiteUrl || undefined,
+      websiteMode: creativeSuite.websiteMode,
+      logoUrl: creativeSuite.logoUrl,
+      bannerUrl: creativeSuite.bannerUrl,
+      bannerAssets: creativeSuite.bannerUrl
+        ? [creativeSuite.bannerUrl]
+        : creativeSuite.bannerAssets.length > 0
+          ? creativeSuite.bannerAssets
+          : undefined,
       queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
+      starterBundleSelected: creativeSuite.starterBundleSelected || undefined,
+      starterBundleFunding: creativeSuite.starterBundleFunding,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     });
@@ -658,18 +684,18 @@ export function GetStartedPage() {
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">
                     <p className="text-xs font-medium uppercase tracking-wider text-sky-400">
-                      Creative suite
+                      Media & content
                     </p>
                     {creativeSuite.landingPageUrl ? (
                       <p className="mt-1 text-xs text-white">
-                        Landing page · {landingSlug}
-                        {creativeSuite.landingPageFunding === 'rex-coin' && (
-                          <span className="ml-1 text-emerald-400">· ready on launch</span>
+                        {creativeSuite.websiteMode === 'simple' ? 'Simple 1-pager' : 'Site clone'} ·{' '}
+                        {landingSlug}
+                        {creativeSuite.starterBundleFunding === 'pay-now' && (
+                          <span className="ml-1 text-emerald-400">· pay now</span>
                         )}
-                      </p>
-                    ) : creativeSuite.landingPageFunding === 'marketing-wallet' ? (
-                      <p className="mt-1 text-xs text-amber-300/90">
-                        Landing page queued — generates when marketing wallet fills
+                        {creativeSuite.starterBundleFunding === 'wait-wallet' && (
+                          <span className="ml-1 text-amber-300">· wait for wallet</span>
+                        )}
                       </p>
                     ) : (
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -677,11 +703,16 @@ export function GetStartedPage() {
                       </p>
                     )}
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {creativeSuite.bannerAssets.length} banner
-                      {creativeSuite.bannerAssets.length === 1 ? '' : 's'} uploaded
-                      {creativeSuite.queuedBannerCount > 0 &&
-                        ` · ${creativeSuite.queuedBannerCount} queued`}
+                      {[
+                        creativeSuite.logoUrl ? 'Logo ready' : 'No logo',
+                        creativeSuite.bannerUrl || creativeSuite.bannerAssets.length
+                          ? 'Banner ready'
+                          : 'No banner',
+                      ].join(' · ')}
                     </p>
+                    {creativeSuite.starterBundleSelected ? (
+                      <p className="mt-1 text-xs text-sky-300/90">Launch starter bundle selected</p>
+                    ) : null}
                   </div>
 
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4 text-sm">

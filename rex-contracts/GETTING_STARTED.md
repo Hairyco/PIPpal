@@ -9,7 +9,7 @@ This guide is for founders and investors who are **not developers**. It explains
 When someone buys or sells a project coin on Rex:
 
 1. **Rex earns 1%** — goes to the Rex protocol treasury  
-2. **5% goes to the project’s marketing wallet** — used to pay for ads, DexScreener, Telegram promos, etc.  
+2. **0.5% goes to the project’s marketing wallet** — used to pay for ads, DexScreener, Telegram promos, etc.  
 3. The rest powers the **bonding curve** (how the token price moves)
 
 Later, Rex can **pay a whitelisted supplier** (e.g. an ad vendor) directly from the marketing wallet — only if that supplier was pre-approved on-chain.
@@ -23,7 +23,7 @@ That is the proof investors care about: **trades fill the marketing wallet, and 
 | Wallet | What it is | What happens |
 |--------|------------|--------------|
 | **Investor wallet** | A normal Solana wallet (like a bank account) | Sends SOL to buy tokens, receives SOL when selling |
-| **Marketing wallet** | A secure vault controlled by the Rex program | Collects 5% of every buy and sell |
+| **Marketing wallet** | A secure vault controlled by the Rex program | Collects 0.5% of every buy and sell |
 | **Supplier wallet** | A vendor you trust (e.g. DexScreener, ad agency) | Must be whitelisted first; then Rex can pay them from the marketing wallet |
 
 There is also a **Rex treasury wallet** that collects the 1% platform fee.
@@ -36,7 +36,7 @@ When a developer runs `anchor test`, the computer automatically:
 
 1. Sets up Rex  
 2. Launches a test project  
-3. Simulates an investor **buying** tokens → checks marketing wallet grew by 5% and Rex treasury by 1%  
+3. Simulates an investor **buying** tokens → checks marketing wallet grew by 0.5% and Rex treasury by 1%  
 4. Simulates a **sell** → same tax split  
 5. **Whitelists** a supplier wallet  
 6. **Pays** the supplier from the marketing wallet → checks the supplier actually received SOL  
@@ -74,29 +74,13 @@ anchor test
 
 **Success looks like:** all tests green, ending with “disburses marketing SOL to whitelisted supplier”.
 
-### Step 3 — Deploy to devnet (public test network)
+### Step 3 — Demo for investors
 
-Devnet is Solana’s free test blockchain — real structure, fake money.
+A developer (or Rex team) can screen-record the automated test or share CI logs showing:
 
-```text
-anchor deploy --provider.cluster devnet
-```
-
-You get a **program ID** (the contract’s address on Solana). Investors can view it on [Solana Explorer](https://explorer.solana.com/?cluster=devnet).
-
-### Step 4 — Demo for investors
-
-A developer (or Rex team) will:
-
-1. Launch a test coin on devnet  
-2. Make a buy — show marketing wallet balance increasing on explorer  
-3. Pay a whitelisted supplier — show supplier wallet received SOL  
-
-You can screen-record this or share explorer links.
-
-### Step 5 — Mainnet (real money)
-
-Only after audit and legal review. Not part of MVP.
+1. Launch a test project  
+2. Make a buy — marketing wallet and Rex treasury receive the correct fee split  
+3. Pay a whitelisted supplier — supplier receives SOL from the marketing wallet  
 
 ---
 
@@ -110,7 +94,7 @@ rex-contracts/programs/rex-mvp/src/
 
 | File / folder | What to look at |
 |---------------|-----------------|
-| **`constants.rs`** | Fee rates: 1% Rex, 5% marketing |
+| **`constants.rs`** | Fee rates: 1% Rex, 0.5% marketing |
 | **`fees.rs`** | How tax is calculated — **start here** |
 | **`curve.rs`** | Token price math |
 | **`instructions/buy.rs`** | What happens when someone buys |
@@ -127,8 +111,8 @@ Full auditor-oriented overview: [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md)
 
 | When | Rex gets | Marketing wallet gets | Total tax |
 |------|----------|------------------------|-----------|
-| Someone **buys** | 1% | 5% | 6% |
-| Someone **sells** | 1% | 5% | 6% |
+| Someone **buys** | 1% | 0.5% | 1.5% |
+| Someone **sells** | 1% | 0.5% | 1.5% |
 
 On a 1 SOL buy: Rex gets 0.01 SOL, marketing gets 0.05 SOL, 0.94 SOL goes into the curve.
 

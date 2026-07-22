@@ -9,8 +9,8 @@ Proof-of-concept bonding curve with **marketing wallet tax routing** and **white
 
 | Action | Rex (platform) | Marketing wallet | Total |
 |--------|----------------|------------------|-------|
-| Buy    | 1%             | 5%               | 6%    |
-| Sell   | 1%             | 5%               | 6%    |
+| Buy    | 1%             | 0.5%             | 1.5%  |
+| Sell   | 1%             | 0.5%             | 1.5%  |
 
 ## Code layout (modular for review)
 
@@ -18,7 +18,7 @@ Proof-of-concept bonding curve with **marketing wallet tax routing** and **white
 programs/rex-mvp/src/
   lib.rs              ← entry point + instruction routing
   constants.rs        ← fee % and curve defaults ★ investors start here
-  fees.rs             ← 1% + 5% tax split + tests
+  fees.rs             ← 1% + 0.5% tax split + tests
   curve.rs            ← bonding curve math + tests
   state.rs            ← account struct definitions
   events.rs           ← on-chain event logs
@@ -51,8 +51,8 @@ anchor deploy --provider.cluster devnet
 |-------------|--------|---------|
 | `initialize` | Rex authority | Global config |
 | `launch_project` | Founder | New project + mint + vaults |
-| `buy` | Investor | Buy tokens (6% tax) |
-| `sell` | Investor | Sell tokens (6% tax) |
+| `buy` | Investor | Buy tokens (1.5% tax) |
+| `sell` | Investor | Sell tokens (1.5% tax) |
 | `add_whitelist_provider` | Rex authority | Whitelist supplier |
 | `disburse_marketing` | Rex authority | Pay supplier from marketing wallet |
 

@@ -12,6 +12,10 @@ import {
 import { Layout } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
+import {
+  PostLaunchBundlesPanel,
+  SiteChangeRequestCard,
+} from '../components/founder/MarketingBundlesPanel';
 import { ExitMarketplaceDemo } from '../components/founder/ExitMarketplaceDemo';
 import {
   FounderTokenomicsPanel,
@@ -269,6 +273,15 @@ export function FounderDashboardPage() {
                 </div>
               ))}
             </div>
+
+            <PostLaunchBundlesPanel starterFunding={project.starterBundleFunding} />
+            <SiteChangeRequestCard
+              unlocked={
+                project.starterBundleFunding === 'pay-now' ||
+                project.landingPageFunding === 'pay-now' ||
+                project.landingPageFunding === 'rex-coin'
+              }
+            />
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="dex-card">

@@ -3,14 +3,15 @@
 //! | Constant            | Value | Meaning                          |
 //! |---------------------|-------|----------------------------------|
 //! | PLATFORM_FEE_BPS    | 100   | 1% to Rex on every buy and sell  |
-//! | MARKETING_FEE_BPS   | 500   | 5% to marketing wallet           |
-//! | Total trade tax     | 600 bps = 6%                       |
+//! | MARKETING_FEE_BPS   | 50    | 0.5% to marketing wallet         |
+//! | Total trade tax     | 150 bps = 1.5%                     |
 
 /// 1% — Rex protocol fee on buys and sells (basis points).
 pub const PLATFORM_FEE_BPS: u64 = 100;
 
-/// 5% — project marketing wallet on buys and sells (basis points).
-pub const MARKETING_FEE_BPS: u64 = 500;
+/// 0.5% — project marketing wallet on buys and sells (basis points).
+/// Kept low so bot-heavy volume still nets meaningful curve liquidity.
+pub const MARKETING_FEE_BPS: u64 = 50;
 
 pub const BPS_DENOMINATOR: u64 = 10_000;
 

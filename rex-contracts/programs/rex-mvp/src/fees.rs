@@ -1,9 +1,9 @@
 //! Trade fee split — investors should review this file first.
 //!
 //! Every buy and sell applies the same split on gross lamports:
-//!   1% → Rex protocol treasury
-//!   5% → project marketing wallet
-//!  94% → net (into curve on buy, to user on sell after curve quote)
+//!   1.0% → Rex protocol treasury
+//!   0.5% → project marketing wallet
+//!  98.5% → net (into curve on buy, to user on sell after curve quote)
 
 use anchor_lang::prelude::*;
 
@@ -32,12 +32,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn one_percent_platform_and_five_percent_marketing() {
+    fn one_percent_platform_and_half_percent_marketing() {
         let gross = 1_000_000_000u64; // 1 SOL
         let (platform, marketing, net) = apply_trade_fees(gross).unwrap();
         assert_eq!(platform, 10_000_000);
-        assert_eq!(marketing, 50_000_000);
-        assert_eq!(net, 940_000_000);
+        assert_eq!(marketing, 5_000_000);
+        assert_eq!(net, 985_000_000);
         assert_eq!(platform + marketing + net, gross);
     }
 

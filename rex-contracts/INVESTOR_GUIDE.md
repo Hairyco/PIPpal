@@ -7,7 +7,7 @@ This document maps the contract architecture for technical due diligence.
 Rex MVP is a Solana program (Anchor 0.30.1) that:
 
 1. Launches project tokens on a **bonding curve**
-2. Splits **6% trade tax** on every buy and sell: **1% protocol** + **5% marketing**
+2. Splits **1.5% trade tax** on every buy and sell: **1% protocol** + **0.5% marketing**
 3. Holds marketing SOL in a **program-derived address (PDA)**
 4. Disburses to **whitelisted supplier wallets** only, via Rex authority
 
@@ -19,7 +19,7 @@ Defined in `programs/rex-mvp/src/constants.rs` and implemented in `fees.rs`:
 
 ```text
 platform_fee  = gross × 100 / 10_000   (1%)
-marketing_fee = gross × 500 / 10_000   (5%)
+marketing_fee = gross × 50 / 10_000    (0.5%)
 net           = gross - platform - marketing   (94%)
 ```
 
@@ -82,7 +82,7 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
 
 `tests/poc-marketing-wallet.ts` asserts:
 
-- Buy splits 1% / 5% / 94% correctly  
+- Buy splits 1% / 0.5% / 98.5% correctly  
 - Sell taxes gross SOL (platform : marketing ≈ 1 : 5)  
 - Whitelist + disburse credits supplier  
 - Non-whitelisted disburse fails  

@@ -5,7 +5,7 @@
 //! | Module        | Purpose                                      |
 //! |---------------|----------------------------------------------|
 //! | `constants`   | Fee percentages and curve defaults           |
-//! | `fees`        | 1% platform + 5% marketing split             |
+//! | `fees`        | 1% platform + 0.5% marketing split           |
 //! | `curve`       | Bonding curve pricing math                   |
 //! | `state`       | On-chain account layouts                     |
 //! | `accounts`    | Per-instruction account validation           |
@@ -58,12 +58,12 @@ pub mod rex_mvp {
         instructions::launch_project(ctx, trading_enabled)
     }
 
-    /// Investor buys project tokens with SOL (6% tax: 1% Rex + 5% marketing).
+    /// Investor buys project tokens with SOL (1.5% tax: 1% Rex + 0.5% marketing).
     pub fn buy(ctx: Context<Buy>, sol_amount: u64, min_tokens_out: u64) -> Result<()> {
         instructions::buy(ctx, sol_amount, min_tokens_out)
     }
 
-    /// Investor sells project tokens for SOL (6% tax on gross SOL out).
+    /// Investor sells project tokens for SOL (1.5% tax on gross SOL out).
     pub fn sell(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Result<()> {
         instructions::sell(ctx, token_amount, min_sol_out)
     }
