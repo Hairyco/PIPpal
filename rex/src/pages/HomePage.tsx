@@ -1007,7 +1007,7 @@ export function HomePage() {
         <section className="mt-7 min-w-0">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <h2 className="font-serif text-lg font-bold">Promoted CTOs</h2>
+              <h2 className="font-serif text-lg font-bold">Featured CTOs</h2>
               <HeartbeatTracker />
             </div>
             <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
