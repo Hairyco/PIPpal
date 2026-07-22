@@ -9,7 +9,7 @@ pub struct ProjectLaunched {
     pub trading_enabled: bool,
 }
 
-/// Emitted on every buy or sell — indexers use this to update marketing wallet UI.
+/// Emitted on every buy or sell — indexers use this to update marketing / creator UI.
 #[event]
 pub struct TradeExecuted {
     pub project: Pubkey,
@@ -17,6 +17,7 @@ pub struct TradeExecuted {
     pub is_buy: bool,
     pub gross_lamports: u64,
     pub platform_fee_lamports: u64,
+    pub creator_fee_lamports: u64,
     pub marketing_fee_lamports: u64,
     pub tokens: u64,
 }
@@ -32,5 +33,13 @@ pub struct ProviderWhitelisted {
 pub struct MarketingDisbursed {
     pub project: Pubkey,
     pub supplier: Pubkey,
+    pub lamports: u64,
+}
+
+/// Emitted when the founder withdraws SOL from the creator fee vault.
+#[event]
+pub struct CreatorFeesWithdrawn {
+    pub project: Pubkey,
+    pub founder: Pubkey,
     pub lamports: u64,
 }

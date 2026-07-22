@@ -26,11 +26,12 @@ pub struct Project {
     pub real_sol_reserves: u64,
     pub bump: u8,
     pub marketing_bump: u8,
+    pub creator_bump: u8,
     pub curve_bump: u8,
 }
 
 impl Project {
-    pub const LEN: usize = 8 + 32 + 32 + 8 + 1 + 8 + 8 + 8 + 1 + 1 + 1;
+    pub const LEN: usize = 8 + 32 + 32 + 8 + 1 + 8 + 8 + 8 + 1 + 1 + 1 + 1;
 }
 
 /// A supplier wallet approved by Rex to receive marketing wallet payments.

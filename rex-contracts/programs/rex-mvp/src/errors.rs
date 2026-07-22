@@ -14,6 +14,8 @@ pub enum RexError {
     InsufficientCurveLiquidity,
     #[msg("Marketing wallet has insufficient SOL")]
     InsufficientMarketingBalance,
+    #[msg("Creator vault has insufficient SOL")]
+    InsufficientCreatorBalance,
     #[msg("Math overflow")]
     MathOverflow,
     #[msg("Unauthorized — Rex authority only")]

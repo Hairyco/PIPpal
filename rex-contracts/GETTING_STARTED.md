@@ -8,9 +8,10 @@ This guide is for founders and investors who are **not developers**. It explains
 
 When someone buys or sells a project coin on Rex:
 
-1. **Rex earns 1%** — goes to the Rex protocol treasury  
-2. **0.5% goes to the project’s marketing wallet** — used to pay for ads, DexScreener, Telegram promos, etc.  
-3. The rest powers the **bonding curve** (how the token price moves)
+1. **Rex earns 0.35%** — goes to the Rex protocol treasury  
+2. **0.15% goes to the creator vault** — the founder (V2 CTO team) can withdraw to their wallet  
+3. **0.40% goes to the project’s marketing wallet** — used to pay for ads, DexScreener, Telegram promos, etc.  
+4. The rest powers the **bonding curve** (how the token price moves)
 
 Later, Rex can **pay a whitelisted supplier** (e.g. an ad vendor) directly from the marketing wallet — only if that supplier was pre-approved on-chain.
 
@@ -18,15 +19,16 @@ That is the proof investors care about: **trades fill the marketing wallet, and 
 
 ---
 
-## The three wallets in the demo
+## The wallets in the demo
 
 | Wallet | What it is | What happens |
 |--------|------------|--------------|
 | **Investor wallet** | A normal Solana wallet (like a bank account) | Sends SOL to buy tokens, receives SOL when selling |
-| **Marketing wallet** | A secure vault controlled by the Rex program | Collects 0.5% of every buy and sell |
+| **Creator vault** | Program vault for the V2 CTO / founder | Collects 0.15%; founder withdraws anytime |
+| **Marketing wallet** | A secure vault controlled by the Rex program | Collects 0.40% of every buy and sell |
 | **Supplier wallet** | A vendor you trust (e.g. DexScreener, ad agency) | Must be whitelisted first; then Rex can pay them from the marketing wallet |
 
-There is also a **Rex treasury wallet** that collects the 1% platform fee.
+There is also a **Rex treasury wallet** that collects the 0.35% platform fee.
 
 ---
 
@@ -36,10 +38,11 @@ When a developer runs `anchor test`, the computer automatically:
 
 1. Sets up Rex  
 2. Launches a test project  
-3. Simulates an investor **buying** tokens → checks marketing wallet grew by 0.5% and Rex treasury by 1%  
+3. Simulates an investor **buying** tokens → checks marketing (+0.40%), creator (+0.15%), and Rex treasury (+0.35%)  
 4. Simulates a **sell** → same tax split  
-5. **Whitelists** a supplier wallet  
-6. **Pays** the supplier from the marketing wallet → checks the supplier actually received SOL  
+5. **Founder withdraws** creator fees to their wallet  
+6. **Whitelists** a supplier wallet  
+7. **Pays** the supplier from the marketing wallet → checks the supplier actually received SOL  
 
 If all steps pass, the core mechanic works.
 
@@ -94,7 +97,7 @@ rex-contracts/programs/rex-mvp/src/
 
 | File / folder | What to look at |
 |---------------|-----------------|
-| **`constants.rs`** | Fee rates: 1% Rex, 0.5% marketing |
+| **`constants.rs`** | Fee rates: 0.35% Rex, 0.15% creator, 0.40% marketing |
 | **`fees.rs`** | How tax is calculated — **start here** |
 | **`curve.rs`** | Token price math |
 | **`instructions/buy.rs`** | What happens when someone buys |
@@ -109,12 +112,12 @@ Full auditor-oriented overview: [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md)
 
 ## Fees (simple version)
 
-| When | Rex gets | Marketing wallet gets | Total tax |
-|------|----------|------------------------|-----------|
-| Someone **buys** | 1% | 0.5% | 1.5% |
-| Someone **sells** | 1% | 0.5% | 1.5% |
+| When | Rex | Creator vault | Marketing | Total tax |
+|------|-----|---------------|-----------|-----------|
+| Someone **buys** | 0.35% | 0.15% | 0.40% | 0.90% |
+| Someone **sells** | 0.35% | 0.15% | 0.40% | 0.90% |
 
-On a 1 SOL buy: Rex gets 0.01 SOL, marketing gets 0.05 SOL, 0.94 SOL goes into the curve.
+On a 1 SOL buy: Rex gets 0.0035 SOL, creator vault 0.0015 SOL, marketing 0.004 SOL, 0.991 SOL goes into the curve.
 
 ---
 
@@ -137,6 +140,9 @@ It is a program-controlled vault (PDA). Only the Rex program can move funds out,
 
 **Can the founder drain the marketing wallet?**  
 Not in MVP — disbursement requires Rex authority signature + whitelist.
+
+**Can the founder withdraw creator fees?**  
+Yes — creator fees (0.15%) accumulate in the creator vault; the project founder withdraws to their wallet via `withdraw_creator_fees`.
 
 **Can fees change?**  
 Currently fixed in `constants.rs`. Any change requires deploying a new program version (visible on-chain).

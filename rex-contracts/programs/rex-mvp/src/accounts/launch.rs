@@ -27,7 +27,7 @@ pub struct LaunchProject<'info> {
     #[account(seeds = [b"mint_auth", project.key().as_ref()], bump)]
     pub mint_authority: UncheckedAccount<'info>,
 
-    /// CHECK: marketing wallet — holds SOL from 0.5% trade tax
+    /// CHECK: marketing wallet — holds SOL from 0.40% trade tax
     #[account(
         init,
         payer = founder,
@@ -36,6 +36,16 @@ pub struct LaunchProject<'info> {
         bump
     )]
     pub marketing_vault: UncheckedAccount<'info>,
+
+    /// CHECK: creator fee vault — holds SOL from 0.15% trade tax; founder withdraws
+    #[account(
+        init,
+        payer = founder,
+        space = 8,
+        seeds = [b"creator_vault", project.key().as_ref()],
+        bump
+    )]
+    pub creator_vault: UncheckedAccount<'info>,
 
     /// CHECK: bonding curve SOL vault
     #[account(

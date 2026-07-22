@@ -7,20 +7,20 @@ This document maps the contract architecture for technical due diligence.
 Rex MVP is a Solana program (Anchor 0.30.1) that:
 
 1. Launches project tokens on a **bonding curve**
-2. Splits **1.5% trade tax** on every buy and sell: **1% protocol** + **0.5% marketing**
+2. Splits **0.90% trade tax** on every buy and sell: **0.35% protocol** + **0.15% creator** + **0.40% marketing**
 3. Holds marketing SOL in a **program-derived address (PDA)**
-4. Disburses to **whitelisted supplier wallets** only, via Rex authority
-
-No marketplace. No custodial founder withdrawal in MVP.
+4. Holds creator fees in a **creator vault PDA**; founder withdraws to their wallet
+5. Disburses marketing SOL to **whitelisted supplier wallets** only, via Rex authority
 
 ## Fee logic (canonical)
 
 Defined in `programs/rex-mvp/src/constants.rs` and implemented in `fees.rs`:
 
 ```text
-platform_fee  = gross × 100 / 10_000   (1%)
-marketing_fee = gross × 50 / 10_000    (0.5%)
-net           = gross - platform - marketing   (94%)
+platform_fee  = gross × 35 / 10_000   (0.35%)
+creator_fee   = gross × 15 / 10_000   (0.15%)
+marketing_fee = gross × 40 / 10_000   (0.40%)
+net           = gross - platform - creator - marketing   (99.10%)
 ```
 
 Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from curve before user payout).
@@ -37,10 +37,12 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
   buy / sell ──────►│  fees.rs → curve.rs → transfer.rs   │
                     │       │         │                   │
                     │       ▼         ▼                   │
-                    │  treasury   marketing_vault         │
-                    │             curve_vault           │
+                    │  treasury   creator_vault           │
+                    │             marketing_vault         │
+                    │             curve_vault             │
                     │                                     │
-  disburse ────────►│  whitelist check → supplier pay   │
+  withdraw_creator ►│  founder ← creator_vault            │
+  disburse ────────►│  whitelist check → supplier pay     │
                     └─────────────────────────────────────┘
 ```
 
@@ -48,12 +50,13 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
 
 | Module | File | Lines of interest |
 |--------|------|-------------------|
-| Constants | `constants.rs` | `PLATFORM_FEE_BPS`, `MARKETING_FEE_BPS` |
+| Constants | `constants.rs` | `PLATFORM_FEE_BPS`, `CREATOR_FEE_BPS`, `MARKETING_FEE_BPS` |
 | Fee split | `fees.rs` | `apply_trade_fees()` + unit tests |
 | Curve math | `curve.rs` | `quote_buy_tokens`, `quote_sell_sol` |
 | Account layouts | `state.rs` | `Project`, `RexConfig`, `WhitelistedProvider` |
 | Buy logic | `instructions/buy.rs` | Tax transfers + mint |
 | Sell logic | `instructions/sell.rs` | Burn + tax from curve vault |
+| Creator withdraw | `instructions/withdraw_creator.rs` | Creator vault → founder |
 | Supplier pay | `instructions/disburse.rs` | Marketing → supplier |
 | Whitelist | `instructions/whitelist.rs` | Authority-gated |
 | Events | `events.rs` | `TradeExecuted` for indexers |
@@ -65,6 +68,7 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
 | `["config"]` | RexConfig | Config data |
 | `["project", mint]` | Project | Curve state |
 | `["marketing_vault", project]` | Vault | SOL (marketing) |
+| `["creator_vault", project]` | Vault | SOL (creator fees) |
 | `["curve_vault", project]` | Vault | SOL (curve reserves) |
 | `["mint_auth", project]` | Authority | Mint authority |
 | `["whitelist", provider]` | WhitelistedProvider | Flag |
@@ -76,14 +80,16 @@ Applied identically on **buy** (on incoming SOL) and **sell** (on gross SOL from
 | `initialize` / whitelist / disburse | `RexConfig.authority` |
 | `launch_project` | Founder (pays rent) |
 | `buy` / `sell` | Any user when `trading_enabled` |
+| Creator vault withdrawal | Project founder via `withdraw_creator_fees` |
 | Marketing vault withdrawal | Program only, via `disburse_marketing` |
 
 ## Test coverage
 
 `tests/poc-marketing-wallet.ts` asserts:
 
-- Buy splits 1% / 0.5% / 98.5% correctly  
-- Sell taxes gross SOL (platform : marketing ≈ 1 : 5)  
+- Buy splits 0.35% / 0.15% / 0.40% / 99.10% correctly  
+- Sell taxes gross SOL with the same split  
+- Founder can withdraw creator fees  
 - Whitelist + disburse credits supplier  
 - Non-whitelisted disburse fails  
 
@@ -108,5 +114,6 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 - [ ] Verify curve quotes match reserve updates  
 - [ ] Verify sell cannot drain more SOL than `curve_vault` holds  
 - [ ] Verify only whitelisted suppliers receive disburse  
+- [ ] Verify only project founder can withdraw creator fees  
 - [ ] Verify `protocol_treasury` constrained to config value on buy/sell  
 - [ ] Review authority centralization (expected for MVP)  

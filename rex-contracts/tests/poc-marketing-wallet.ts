@@ -9,15 +9,17 @@ import { Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram } from '@solana/web
 import { expect } from 'chai';
 import { RexMvp } from '../target/types/rex_mvp';
 
-const PLATFORM_BPS = 100n;
-const MARKETING_BPS = 50n;
+const PLATFORM_BPS = 35n;
+const CREATOR_BPS = 15n;
+const MARKETING_BPS = 40n;
 const BPS = 10_000n;
 
 function splitFees(gross: bigint) {
   const platform = (gross * PLATFORM_BPS) / BPS;
+  const creator = (gross * CREATOR_BPS) / BPS;
   const marketing = (gross * MARKETING_BPS) / BPS;
-  const net = gross - platform - marketing;
-  return { platform, marketing, net };
+  const net = gross - platform - creator - marketing;
+  return { platform, creator, marketing, net };
 }
 
 describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
@@ -36,6 +38,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
   let configPda: PublicKey;
   let projectPda: PublicKey;
   let marketingVaultPda: PublicKey;
+  let creatorVaultPda: PublicKey;
   let curveVaultPda: PublicKey;
   let whitelistPda: PublicKey;
   let investorAta: PublicKey;
@@ -69,13 +72,17 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     expect(config.protocolTreasury.toBase58()).to.equal(protocolTreasury.publicKey.toBase58());
   });
 
-  it('launches a project with marketing + curve vaults', async () => {
+  it('launches a project with marketing + creator + curve vaults', async () => {
     [projectPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('project'), mint.publicKey.toBuffer()],
       program.programId,
     );
     [marketingVaultPda] = PublicKey.findProgramAddressSync(
       [Buffer.from('marketing_vault'), projectPda.toBuffer()],
+      program.programId,
+    );
+    [creatorVaultPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from('creator_vault'), projectPda.toBuffer()],
       program.programId,
     );
     [curveVaultPda] = PublicKey.findProgramAddressSync(
@@ -96,6 +103,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
         mint: mint.publicKey,
         mintAuthority,
         marketingVault: marketingVaultPda,
+        creatorVault: creatorVaultPda,
         curveVault: curveVaultPda,
         tokenProgram: TOKEN_PROGRAM_ID,
         systemProgram: SystemProgram.programId,
@@ -121,11 +129,12 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     await provider.sendAndConfirm(tx, [investor]);
   });
 
-  it('buy: splits 1% platform + 0.5% marketing (1.5% total)', async () => {
+  it('buy: splits 0.35% platform + 0.15% creator + 0.40% marketing (0.90% total)', async () => {
     const solIn = 1 * LAMPORTS_PER_SOL;
-    const { platform, marketing, net } = splitFees(BigInt(solIn));
+    const { platform, creator, marketing, net } = splitFees(BigInt(solIn));
 
     const treasuryBefore = await provider.connection.getBalance(protocolTreasury.publicKey);
+    const creatorBefore = await provider.connection.getBalance(creatorVaultPda);
     const marketingBefore = await provider.connection.getBalance(marketingVaultPda);
     const curveBefore = await provider.connection.getBalance(curveVaultPda);
 
@@ -142,6 +151,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
         mint: mint.publicKey,
         buyerTokenAccount: investorAta,
         marketingVault: marketingVaultPda,
+        creatorVault: creatorVaultPda,
         protocolTreasury: protocolTreasury.publicKey,
         config: configPda,
         curveVault: curveVaultPda,
@@ -153,10 +163,12 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
       .rpc();
 
     const treasuryAfter = await provider.connection.getBalance(protocolTreasury.publicKey);
+    const creatorAfter = await provider.connection.getBalance(creatorVaultPda);
     const marketingAfter = await provider.connection.getBalance(marketingVaultPda);
     const curveAfter = await provider.connection.getBalance(curveVaultPda);
 
     expect(BigInt(treasuryAfter - treasuryBefore)).to.equal(platform);
+    expect(BigInt(creatorAfter - creatorBefore)).to.equal(creator);
     expect(BigInt(marketingAfter - marketingBefore)).to.equal(marketing);
     expect(BigInt(curveAfter - curveBefore)).to.equal(net);
 
@@ -164,11 +176,12 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
     expect(Number(tokenBal.value.amount)).to.be.greaterThan(0);
   });
 
-  it('sell: taxes gross SOL (Option A) — 1% platform + 0.5% marketing', async () => {
+  it('sell: taxes gross SOL — 0.35% platform + 0.15% creator + 0.40% marketing', async () => {
     const tokenBal = await provider.connection.getTokenAccountBalance(investorAta);
     const sellAmount = new anchor.BN(tokenBal.value.amount).div(new anchor.BN(2));
 
     const treasuryBefore = await provider.connection.getBalance(protocolTreasury.publicKey);
+    const creatorBefore = await provider.connection.getBalance(creatorVaultPda);
     const marketingBefore = await provider.connection.getBalance(marketingVaultPda);
     const investorBefore = await provider.connection.getBalance(investor.publicKey);
 
@@ -180,6 +193,7 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
         mint: mint.publicKey,
         sellerTokenAccount: investorAta,
         marketingVault: marketingVaultPda,
+        creatorVault: creatorVaultPda,
         protocolTreasury: protocolTreasury.publicKey,
         config: configPda,
         curveVault: curveVaultPda,
@@ -190,20 +204,47 @@ describe('rex-mvp POC — marketing wallet + supplier disburse', () => {
       .rpc();
 
     const treasuryAfter = await provider.connection.getBalance(protocolTreasury.publicKey);
+    const creatorAfter = await provider.connection.getBalance(creatorVaultPda);
     const marketingAfter = await provider.connection.getBalance(marketingVaultPda);
     const investorAfter = await provider.connection.getBalance(investor.publicKey);
 
     const investorGain = BigInt(investorAfter - investorBefore);
     const platformGain = BigInt(treasuryAfter - treasuryBefore);
+    const creatorGain = BigInt(creatorAfter - creatorBefore);
     const marketingGain = BigInt(marketingAfter - marketingBefore);
 
     expect(platformGain).to.be.greaterThan(0n);
+    expect(creatorGain).to.be.greaterThan(0n);
     expect(marketingGain).to.be.greaterThan(0n);
     expect(investorGain).to.be.greaterThan(0n);
 
-    // platform : marketing ≈ 1 : 5
+    // platform : marketing ≈ 35 : 40 = 0.875
     const ratio = Number(platformGain) / Number(marketingGain);
-    expect(ratio).to.be.closeTo(0.2, 0.05);
+    expect(ratio).to.be.closeTo(0.875, 0.05);
+  });
+
+  it('founder withdraws creator fees to their wallet', async () => {
+    const creatorBefore = await provider.connection.getBalance(creatorVaultPda);
+    const founderBefore = await provider.connection.getBalance(authority.publicKey);
+    expect(creatorBefore).to.be.greaterThan(0);
+
+    const withdrawAmount = Math.floor(creatorBefore / 2);
+
+    await program.methods
+      .withdrawCreatorFees(new anchor.BN(withdrawAmount))
+      .accounts({
+        founder: authority.publicKey,
+        project: projectPda,
+        creatorVault: creatorVaultPda,
+        systemProgram: SystemProgram.programId,
+      })
+      .rpc();
+
+    const creatorAfter = await provider.connection.getBalance(creatorVaultPda);
+    const founderAfter = await provider.connection.getBalance(authority.publicKey);
+
+    expect(creatorBefore - creatorAfter).to.equal(withdrawAmount);
+    expect(founderAfter - founderBefore).to.equal(withdrawAmount);
   });
 
   it('whitelists supplier wallet', async () => {

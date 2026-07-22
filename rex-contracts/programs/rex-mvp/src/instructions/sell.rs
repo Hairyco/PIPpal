@@ -14,7 +14,7 @@ pub fn handler(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Resul
 
     let project = &mut ctx.accounts.project;
     let gross_sol = quote_sell_sol(project, token_amount)?;
-    let (platform_fee, marketing_fee, user_sol) = apply_trade_fees(gross_sol)?;
+    let (platform_fee, creator_fee, marketing_fee, user_sol) = apply_trade_fees(gross_sol)?;
     require!(user_sol >= min_sol_out, RexError::SlippageExceeded);
 
     require!(
@@ -47,6 +47,13 @@ pub fn handler(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Resul
     )?;
     transfer_lamports_signed(
         &ctx.accounts.curve_vault.to_account_info(),
+        &ctx.accounts.creator_vault.to_account_info(),
+        &ctx.accounts.system_program.to_account_info(),
+        curve_signer,
+        creator_fee,
+    )?;
+    transfer_lamports_signed(
+        &ctx.accounts.curve_vault.to_account_info(),
         &ctx.accounts.marketing_vault.to_account_info(),
         &ctx.accounts.system_program.to_account_info(),
         curve_signer,
@@ -68,6 +75,7 @@ pub fn handler(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Resul
         is_buy: false,
         gross_lamports: gross_sol,
         platform_fee_lamports: platform_fee,
+        creator_fee_lamports: creator_fee,
         marketing_fee_lamports: marketing_fee,
         tokens: token_amount,
     });

@@ -16,6 +16,7 @@ pub fn handler(ctx: Context<LaunchProject>, trading_enabled: bool) -> Result<()>
     project.real_sol_reserves = 0;
     project.bump = ctx.bumps.project;
     project.marketing_bump = ctx.bumps.marketing_vault;
+    project.creator_bump = ctx.bumps.creator_vault;
     project.curve_bump = ctx.bumps.curve_vault;
 
     emit!(ProjectLaunched {

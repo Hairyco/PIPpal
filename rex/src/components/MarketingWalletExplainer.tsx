@@ -99,7 +99,7 @@ export function MarketingWalletProgressTracker({
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-white">{item.label}</p>
                   <p className="mt-0.5 text-[11px] text-white/40">
-                    Unlocks at {formatSpendCost(item.cost)}
+                    Unlocks at {formatSpendCost(item.unlockAt)} wallet
                   </p>
                 </div>
                 <span
@@ -162,9 +162,9 @@ export function MarketingWalletExplainer({
           ) : null}
         </div>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-          Every buy and sell takes {TRADE_FEE_LABEL}. The marketing share lands in a non-custodial
-          vault for this coin. As the balance rises, Rex unlocks supplier spends in order — you
-          track progress here the same way builds used to show on the Rex landing page.
+          Every buy and sell takes {TRADE_FEE_LABEL}. The marketing share (0.40%) lands in a
+          non-custodial vault for this coin. As the balance rises, Rex unlocks supplier spends in
+          order — you track progress here the same way builds used to show on the Rex landing page.
         </p>
       </div>
       <div className="p-4 sm:p-5">

@@ -2,17 +2,17 @@
 //!
 //! # Module map (for investors and auditors)
 //!
-//! | Module        | Purpose                                      |
-//! |---------------|----------------------------------------------|
-//! | `constants`   | Fee percentages and curve defaults           |
-//! | `fees`        | 1% platform + 0.5% marketing split           |
-//! | `curve`       | Bonding curve pricing math                   |
-//! | `state`       | On-chain account layouts                     |
-//! | `accounts`    | Per-instruction account validation           |
-//! | `instructions`| Business logic handlers                      |
-//! | `events`      | On-chain logs for indexers / UI              |
-//! | `transfer`    | SOL movement helpers                         |
-//! | `errors`      | Human-readable failure reasons               |
+//! | Module        | Purpose                                                    |
+//! |---------------|------------------------------------------------------------|
+//! | `constants`   | Fee percentages and curve defaults                         |
+//! | `fees`        | 0.35% platform + 0.15% creator + 0.40% marketing (0.90%)   |
+//! | `curve`       | Bonding curve pricing math                                 |
+//! | `state`       | On-chain account layouts                                   |
+//! | `accounts`    | Per-instruction account validation                         |
+//! | `instructions`| Business logic handlers                                    |
+//! | `events`      | On-chain logs for indexers / UI                            |
+//! | `transfer`    | SOL movement helpers                                       |
+//! | `errors`      | Human-readable failure reasons                             |
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -37,6 +37,7 @@ include!("accounts/buy.rs");
 include!("accounts/sell.rs");
 include!("accounts/whitelist.rs");
 include!("accounts/disburse.rs");
+include!("accounts/withdraw_creator.rs");
 
 pub use constants::*;
 pub use events::*;
@@ -53,17 +54,17 @@ pub mod rex_mvp {
         instructions::initialize(ctx)
     }
 
-    /// Founder launches a project: token mint + marketing wallet + curve.
+    /// Founder launches a project: token mint + marketing/creator vaults + curve.
     pub fn launch_project(ctx: Context<LaunchProject>, trading_enabled: bool) -> Result<()> {
         instructions::launch_project(ctx, trading_enabled)
     }
 
-    /// Investor buys project tokens with SOL (1.5% tax: 1% Rex + 0.5% marketing).
+    /// Investor buys project tokens with SOL (0.90% tax: 0.35% Rex + 0.15% creator + 0.40% marketing).
     pub fn buy(ctx: Context<Buy>, sol_amount: u64, min_tokens_out: u64) -> Result<()> {
         instructions::buy(ctx, sol_amount, min_tokens_out)
     }
 
-    /// Investor sells project tokens for SOL (1.5% tax on gross SOL out).
+    /// Investor sells project tokens for SOL (0.90% tax on gross SOL out).
     pub fn sell(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Result<()> {
         instructions::sell(ctx, token_amount, min_sol_out)
     }
@@ -76,5 +77,10 @@ pub mod rex_mvp {
     /// Rex authority pays a whitelisted supplier from the marketing wallet.
     pub fn disburse_marketing(ctx: Context<DisburseMarketing>, amount: u64) -> Result<()> {
         instructions::disburse_marketing(ctx, amount)
+    }
+
+    /// Founder withdraws accumulated creator fees to their wallet.
+    pub fn withdraw_creator_fees(ctx: Context<WithdrawCreatorFees>, amount: u64) -> Result<()> {
+        instructions::withdraw_creator_fees(ctx, amount)
     }
 }

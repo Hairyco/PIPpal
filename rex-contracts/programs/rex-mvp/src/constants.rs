@@ -1,19 +1,28 @@
 //! Fee and curve constants — single source of truth for investor review.
 //!
-//! | Constant            | Value | Meaning                          |
-//! |---------------------|-------|----------------------------------|
-//! | PLATFORM_FEE_BPS    | 100   | 1% to Rex on every buy and sell  |
-//! | MARKETING_FEE_BPS   | 50    | 0.5% to marketing wallet         |
-//! | Total trade tax     | 150 bps = 1.5%                     |
+//! Model A (0.90% total) from CTO launchpad economics spec:
+//! | Constant            | Value | Meaning                              |
+//! |---------------------|-------|--------------------------------------|
+//! | PLATFORM_FEE_BPS    | 35    | 0.35% to Rex protocol treasury       |
+//! | CREATOR_FEE_BPS     | 15    | 0.15% to V2 CTO / creator vault      |
+//! | MARKETING_FEE_BPS   | 40    | 0.40% to marketing wallet            |
+//! | Total trade tax     | 90 bps = 0.90%                       |
 
-/// 1% — Rex protocol fee on buys and sells (basis points).
-pub const PLATFORM_FEE_BPS: u64 = 100;
+/// 0.35% — Rex protocol fee on buys and sells (basis points).
+pub const PLATFORM_FEE_BPS: u64 = 35;
 
-/// 0.5% — project marketing wallet on buys and sells (basis points).
-/// Kept low so bot-heavy volume still nets meaningful curve liquidity.
-pub const MARKETING_FEE_BPS: u64 = 50;
+/// 0.15% — creator / V2 CTO vault on buys and sells (basis points).
+/// Accumulates in the creator vault; founder withdraws to their wallet.
+pub const CREATOR_FEE_BPS: u64 = 15;
+
+/// 0.40% — project marketing wallet on buys and sells (basis points).
+/// Hits $500 marketing target near ~$125k volume.
+pub const MARKETING_FEE_BPS: u64 = 40;
 
 pub const BPS_DENOMINATOR: u64 = 10_000;
+
+/// Total trade fee (platform + creator + marketing).
+pub const TRADE_FEE_BPS: u64 = PLATFORM_FEE_BPS + CREATOR_FEE_BPS + MARKETING_FEE_BPS;
 
 /// SPL token decimals for project coins.
 pub const TOKEN_DECIMALS: u8 = 6;

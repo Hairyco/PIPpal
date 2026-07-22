@@ -24,6 +24,14 @@ pub struct Sell<'info> {
     )]
     pub marketing_vault: UncheckedAccount<'info>,
 
+    /// CHECK: creator fee vault PDA
+    #[account(
+        mut,
+        seeds = [b"creator_vault", project.key().as_ref()],
+        bump = project.creator_bump,
+    )]
+    pub creator_vault: UncheckedAccount<'info>,
+
     /// CHECK: protocol treasury
     #[account(
         mut,
