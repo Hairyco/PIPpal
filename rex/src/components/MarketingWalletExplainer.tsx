@@ -249,6 +249,9 @@ export function MarketingWalletExplainer({
             <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
               {MARKETING_VAULT_SWEEP_RULE.v1Restart}
             </p>
+            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
+              {MARKETING_VAULT_SWEEP_RULE.v2Deadline}
+            </p>
           </div>
         </div>
 

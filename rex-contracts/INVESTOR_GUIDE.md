@@ -133,8 +133,9 @@ Mechanism (planned): Token-2022 transfer fee and/or AMM hooks route the same bps
 | 72h inactivity | Under $500 + $0 volume for 72h → sweep to Rex Protocol CTO Reserve |
 | Native V2 restoration | 100% of swept funds credited to the new V2 marketing vault |
 | V1 restart without V2 | Swept funds stay in reserve; V1 accrues fresh marketing fees |
+| 30-day V2 deadline | No Native V2 within 30 days of a Rex V1 mint → funds to Rex treasury |
 
-Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`.
+Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`, `MARKETING_V2_DEADLINE_DAYS = 30`.
 
 ## Security controls (anti-hack)
 

@@ -16,6 +16,7 @@
 //! Under $500 with $0 volume for 72h → sweep unspent SOL to Rex Protocol CTO Reserve.
 //! Native V2 CTO migration restores 100% of swept funds to the new V2 marketing vault.
 //! V1 volume restart without V2 leaves swept funds in the reserve; V1 accrues fresh fees.
+//! If no Native V2 within 30 days of a Rex V1 mint, reserve/unspent funds go to Rex treasury.
 //!
 //! # Post-migration (bonding curve → Raydium)
 //! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
@@ -57,6 +58,10 @@ pub const MARKETING_AUTO_SPEND_USD: u64 = 500;
 /// Hours of consecutive $0 volume before an under-threshold vault is swept
 /// into the Rex Protocol CTO Reserve.
 pub const MARKETING_INACTIVITY_HOURS: u64 = 72;
+
+/// Days after a Rex V1 mint without a Native V2 CTO before reserve/unspent
+/// marketing funds are sent to the Rex protocol treasury.
+pub const MARKETING_V2_DEADLINE_DAYS: u64 = 30;
 
 /// Product invariant: after Raydium graduation, trade tax must still apply.
 /// Migration instructions must keep platform + marketing (+ pool) routing live.

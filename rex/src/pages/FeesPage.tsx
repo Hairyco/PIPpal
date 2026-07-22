@@ -100,6 +100,12 @@ export function FeesPage() {
               </p>
               <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.v1Restart}</p>
             </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.v2DeadlineLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.v2Deadline}</p>
+            </div>
           </div>
         </section>
 

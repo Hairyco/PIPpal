@@ -125,13 +125,15 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
-  `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration).`,
+  `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
 /** Marketing vault auto-spend threshold (USD). */
 export const MARKETING_AUTO_SPEND_USD = 500;
 /** Hours of $0 volume before an under-threshold vault is swept. */
 export const MARKETING_INACTIVITY_HOURS = 72;
+/** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
+export const MARKETING_V2_DEADLINE_DAYS = 30;
 
 /**
  * Marketing Vault Inactivity & Sweep Lifecycle.
@@ -151,6 +153,9 @@ export const MARKETING_VAULT_SWEEP_RULE = {
   v1RestartLabel: 'V1 trading restart (without V2)',
   v1Restart:
     'If trading resumes on the old V1 token without migrating, swept funds remain in the reserve and V1 accumulates fresh marketing fees from new volume.',
+  v2DeadlineLabel: `${MARKETING_V2_DEADLINE_DAYS}-day V2 deadline`,
+  v2Deadline:
+    `If a V1 CTO was minted on Rex and no Native V2 CTO is created within ${MARKETING_V2_DEADLINE_DAYS} days, unspent / reserve funds for that V1 are automatically sent to the Rex protocol treasury.`,
 } as const;
 
 /** Confirmed product rule: graduation does not end Rex taxation. */
