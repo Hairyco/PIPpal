@@ -835,10 +835,10 @@ export function HomePage() {
               >
                 <div className="max-h-[min(70vh,420px)] overflow-y-auto py-2">
                   <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                    Promoted
+                    Featured
                   </p>
                   {searchSuggestions.promoted.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-white/35">No promoted matches</p>
+                    <p className="px-3 py-2 text-xs text-white/35">No featured matches</p>
                   ) : (
                     searchSuggestions.promoted.map((project) => (
                       <button
