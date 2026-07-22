@@ -12,6 +12,7 @@ import { CategoriesPage } from './pages/CategoriesPage';
 import { AffiliatesCataloguePage } from './pages/AffiliatesCataloguePage';
 import { FounderDashboardPage } from './pages/FounderDashboardPage';
 import { TradePage } from './pages/TradePage';
+import { ServicesPage } from './pages/ServicesPage';
 
 export function App() {
   return (
@@ -21,6 +22,7 @@ export function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/launch" element={<LaunchCtoPage />} />
         <Route path="/trade" element={<TradePage />} />
+        <Route path="/services" element={<ServicesPage />} />
         <Route path="/category/:categoryId" element={<CategoryPage />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />

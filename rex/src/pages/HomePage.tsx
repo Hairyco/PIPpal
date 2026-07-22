@@ -21,6 +21,8 @@ import {
   Clock3,
   TrendingUp,
 } from 'lucide-react';
+import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet';
+import { LightningBundleArt } from '../components/services/LightningBundleArt';
 
 type Project = {
   rank: number;
@@ -133,21 +135,26 @@ const rankingModes = [
 type RankingMode = (typeof rankingModes)[number]['id'];
 
 const shortcuts = [
+  { label: 'Trending', icon: Flame },
   { label: 'Top Today', icon: Clock3 },
   { label: 'Prelaunch', icon: Rocket },
   { label: 'New CTOs', icon: Sparkles },
   { label: 'Top All Time', icon: Trophy },
-  { label: 'Trending', icon: Flame },
-];
+] as const;
+type Shortcut = (typeof shortcuts)[number]['label'];
 
-const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
+const shortcutCopy: Record<Shortcut, { title: string; subtitle: string }> = {
+  Trending: {
+    title: 'Trending CTOs',
+    subtitle: 'Solana takeovers with the strongest momentum right now.',
+  },
   'Top Today': {
     title: 'Top CTOs Today',
-    subtitle: 'Solana community takeovers ranked by short-term price action.',
+    subtitle: 'Highest-voted Solana community takeovers today.',
   },
   Prelaunch: {
     title: 'Prelaunch CTOs',
-    subtitle: 'Forming Solana takeovers before launch — early communities and votes.',
+    subtitle: 'Forming and voting takeovers before launch — soonest launch first.',
   },
   'Top All Time': {
     title: 'Top CTOs All Time',
@@ -157,11 +164,72 @@ const shortcutCopy: Record<string, { title: string; subtitle: string }> = {
     title: 'New CTOs',
     subtitle: 'Recently forming Solana takeovers just entering the rankings.',
   },
-  Trending: {
-    title: 'Trending CTOs',
-    subtitle: 'Solana takeovers with the strongest 24h momentum right now.',
-  },
 };
+
+function matchesShortcut(project: Project, shortcut: Shortcut): boolean {
+  switch (shortcut) {
+    case 'Prelaunch':
+      return project.stage !== 'Live' && project.launchInHours != null;
+    case 'New CTOs':
+      return project.stage === 'Forming';
+    default:
+      return true;
+  }
+}
+
+function compareByShortcut(
+  a: Project,
+  b: Project,
+  shortcut: Shortcut,
+  mode: RankingMode,
+  window: TimeWindow,
+): number {
+  switch (shortcut) {
+    case 'Top Today':
+      return b.votesToday - a.votesToday || b.votes - a.votes || b.mph - a.mph;
+    case 'Top All Time':
+      return b.votes - a.votes || b.votesToday - a.votesToday;
+    case 'Prelaunch': {
+      const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+      const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+      if (launchA !== launchB) return launchA - launchB;
+      return b.votesToday - a.votesToday || b.votes - a.votes;
+    }
+    case 'New CTOs': {
+      const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+      const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+      if (launchA !== launchB) return launchA - launchB;
+      return b.votesToday - a.votesToday;
+    }
+    case 'Trending':
+    default:
+      if (mode === 'New') {
+        const stageRank = (stage: Project['stage']) =>
+          stage === 'Forming' ? 0 : stage === 'Voting' ? 1 : stage === 'Relaunching' ? 2 : 3;
+        const stageDiff = stageRank(a.stage) - stageRank(b.stage);
+        if (stageDiff !== 0) return stageDiff;
+        const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+        const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+        if (launchA !== launchB) return launchA - launchB;
+        return b.votesToday - a.votesToday;
+      }
+      if (mode === 'Hot') {
+        if (b.mph !== a.mph) return b.mph - a.mph;
+        if (b.raidsActive !== a.raidsActive) return b.raidsActive - a.raidsActive;
+        return b.votesToday - a.votesToday;
+      }
+      if (mode === 'Gainers') {
+        const changeA = changeForWindow(a, window);
+        const changeB = changeForWindow(b, window);
+        const scoreA = changeA ?? Number.NEGATIVE_INFINITY;
+        const scoreB = changeB ?? Number.NEGATIVE_INFINITY;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return b.votesToday - a.votesToday || b.mph - a.mph;
+      }
+      if (b.score !== a.score) return b.score - a.score;
+      return b.mph - a.mph;
+  }
+}
 
 const heroCoins = [
   {
@@ -520,11 +588,15 @@ function PromotedRail({ projects }: { projects: Project[] }) {
 
 export function HomePage() {
   const [query, setQuery] = useState('');
-  const [activeShortcut, setActiveShortcut] = useState('Top Today');
+  const [activeShortcut, setActiveShortcut] = useState<Shortcut>('Trending');
   const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
   const isPinnedView = activeWindow === 'Pinned';
   const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
+  const shortcutOwnsList =
+    activeShortcut === 'Top Today' ||
+    activeShortcut === 'Top All Time' ||
+    activeShortcut === 'Prelaunch';
   const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
@@ -571,40 +643,11 @@ export function HomePage() {
         !normalized ||
         project.name.toLowerCase().includes(normalized) ||
         project.ticker.toLowerCase().includes(normalized);
-      const matchesShortcut =
-        activeShortcut !== 'Prelaunch' || project.stage === 'Forming';
-      return matchesQuery && matchesShortcut;
+      return matchesQuery && matchesShortcut(project, activeShortcut);
     });
 
     const sorted = [...filtered];
-    sorted.sort((a, b) => {
-      if (activeMode === 'New') {
-        const stageRank = (stage: Project['stage']) =>
-          stage === 'Forming' ? 0 : stage === 'Voting' ? 1 : stage === 'Relaunching' ? 2 : 3;
-        const stageDiff = stageRank(a.stage) - stageRank(b.stage);
-        if (stageDiff !== 0) return stageDiff;
-        const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
-        const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
-        if (launchA !== launchB) return launchA - launchB;
-        return b.votesToday - a.votesToday;
-      }
-      if (activeMode === 'Hot') {
-        if (b.mph !== a.mph) return b.mph - a.mph;
-        if (b.raidsActive !== a.raidsActive) return b.raidsActive - a.raidsActive;
-        return b.votesToday - a.votesToday;
-      }
-      if (activeMode === 'Trending') {
-        if (b.score !== a.score) return b.score - a.score;
-        return b.mph - a.mph;
-      }
-      // Gainers — sort by selected time-window % change
-      const changeA = changeForWindow(a, activeTimeWindow);
-      const changeB = changeForWindow(b, activeTimeWindow);
-      const scoreA = changeA ?? Number.NEGATIVE_INFINITY;
-      const scoreB = changeB ?? Number.NEGATIVE_INFINITY;
-      if (scoreB !== scoreA) return scoreB - scoreA;
-      return b.votesToday - a.votesToday || b.mph - a.mph;
-    });
+    sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
   }, [query, activeTimeWindow, activeShortcut, activeMode]);
@@ -665,6 +708,9 @@ export function HomePage() {
         subtitle: 'Most recent pinned message from each Telegram group.',
       };
     }
+    if (activeShortcut !== 'Trending') {
+      return shortcutCopy[activeShortcut];
+    }
     const mode = rankingModes.find((tab) => tab.id === activeMode) ?? rankingModes[0];
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
@@ -673,11 +719,15 @@ export function HomePage() {
         subtitle: `Ranked by ${activeWindow} price change — ${windowTab?.title ?? 'active movers'}.`,
       };
     }
+    if (activeMode === 'Trending') return shortcutCopy.Trending;
     return { title: mode.title, subtitle: mode.subtitle };
   })();
 
-  const selectShortcut = (label: string) => {
+  const selectShortcut = (label: Shortcut) => {
     setActiveShortcut(label);
+    if (label === 'Trending') setActiveMode('Trending');
+    if (label === 'New CTOs') setActiveMode('New');
+    if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
     requestAnimationFrame(() => {
@@ -687,6 +737,7 @@ export function HomePage() {
 
   const selectRankingMode = (mode: RankingMode) => {
     setActiveMode(mode);
+    setActiveShortcut(mode === 'New' ? 'New CTOs' : 'Trending');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
@@ -772,7 +823,7 @@ export function HomePage() {
                 aria-keyshortcuts="/"
                 aria-expanded={showSearchPanel}
                 aria-controls="cto-search-panel"
-                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-sm text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-11 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
               />
               {!searchFocused && !query ? (
                 <kbd
@@ -949,7 +1000,7 @@ export function HomePage() {
         </section>
 
         <div className="mt-8">
-          <section id="cto-rankings" className="min-w-0 scroll-mt-4">
+          <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem]">
             <div className="mb-4">
               <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
               <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
@@ -958,20 +1009,25 @@ export function HomePage() {
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
               {rankingModes.map((mode) => {
                 const Icon = mode.icon;
-                const active = !isPinnedView && activeMode === mode.id;
+                const active =
+                  !isPinnedView &&
+                  !shortcutOwnsList &&
+                  (activeMode === mode.id ||
+                    (mode.id === 'New' && activeShortcut === 'New CTOs'));
                 return (
                   <button
                     key={mode.id}
                     type="button"
                     title={mode.subtitle}
+                    aria-pressed={active}
                     onClick={() => selectRankingMode(mode.id)}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition ${
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
                       active
-                        ? 'bg-white text-[#090b14]'
-                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                        ? 'border border-transparent bg-white text-[#090b14]'
+                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className={`h-3.5 w-3.5 ${active ? 'text-[#090b14]' : ''}`} />
                     {mode.label}
                   </button>
                 );
@@ -984,10 +1040,11 @@ export function HomePage() {
                   key={tab.id}
                   type="button"
                   title={tab.title}
+                  aria-pressed={activeWindow === tab.id}
                   onClick={() => setActiveWindow(tab.id)}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition ${
+                  className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
                     activeWindow === tab.id
-                      ? 'bg-white text-[#090b14]'
+                      ? 'border border-transparent bg-white text-[#090b14]'
                       : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
                   }`}
                 >
@@ -997,10 +1054,11 @@ export function HomePage() {
               <button
                 type="button"
                 title="Most recent pinned message in each Telegram group"
+                aria-pressed={isPinnedView}
                 onClick={() => setActiveWindow('Pinned')}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-semibold transition ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
                   isPinnedView
-                    ? 'bg-white text-[#090b14]'
+                    ? 'border border-transparent bg-white text-[#090b14]'
                     : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
                 }`}
               >
@@ -1226,7 +1284,7 @@ export function HomePage() {
                     onChange={(event) => setPageInput(event.target.value.replace(/[^\d]/g, ''))}
                     placeholder=""
                     aria-label="Enter page number"
-                    className="h-10 w-12 rounded-lg border border-white/[0.08] bg-white/[0.025] px-2 text-center text-xs text-white outline-none focus:border-[#c8ff3d]/40"
+                    className="h-10 w-12 rounded-lg border border-white/[0.08] bg-white/[0.025] px-2 text-center text-base text-white outline-none focus:border-[#c8ff3d]/40"
                   />
                   <button
                     type="submit"
@@ -1241,16 +1299,49 @@ export function HomePage() {
         </div>
       </main>
 
+      <section id="services" className="mx-auto mt-10 max-w-7xl scroll-mt-28 px-3 sm:px-5">
+        <div className="overflow-hidden rounded-2xl border border-[#c8ff3d]/20 bg-gradient-to-br from-[#c8ff3d]/[0.08] via-transparent to-transparent">
+          <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
+                Services
+              </p>
+              <h2 className="mt-1 font-serif text-2xl font-bold">Launch pack · 4 SOL</h2>
+              <p className="mt-2 max-w-lg text-xs leading-relaxed text-white/45">
+                Site clone or 1-pager, logo + banner, and a Rex channel callout — paid direct in SOL.
+                DexScreener is separate. Marketing-wallet spends stay on the CTO launch path.
+              </p>
+              <Link
+                to="/services"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-semibold text-[#090b14] hover:bg-[#d5ff69]"
+              >
+                <Zap className="h-3.5 w-3.5 fill-[#090b14]" />
+                View services
+              </Link>
+            </div>
+            <div className="hidden sm:block">
+              <LightningBundleArt className="h-28 w-48" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="mt-10 border-t border-white/[0.06] bg-black">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
             <span>Solana CTO discovery</span>
           </div>
-          <div className="flex gap-5"><span>Terms</span><span>Privacy</span><span>Contact</span></div>
+          <div className="flex gap-5">
+            <Link to="/services" className="hover:text-white/50">Services</Link>
+            <span>Terms</span>
+            <span>Privacy</span>
+            <span>Contact</span>
+          </div>
         </div>
       </footer>
       </div>
+      <ServicesBottomSheet />
     </div>
   );
 }

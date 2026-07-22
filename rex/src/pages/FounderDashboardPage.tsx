@@ -12,10 +12,8 @@ import {
 import { Layout } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
 import { MarketingRoadmapPanel } from '../components/founder/MarketingRoadmapPanel';
-import {
-  PostLaunchBundlesPanel,
-  SiteChangeRequestCard,
-} from '../components/founder/MarketingBundlesPanel';
+import { ServicesOrdersPanel } from '../components/founder/ServicesOrdersPanel';
+import { PostLaunchBundlesPanel } from '../components/founder/MarketingBundlesPanel';
 import { ExitMarketplaceDemo } from '../components/founder/ExitMarketplaceDemo';
 import {
   FounderTokenomicsPanel,
@@ -38,11 +36,13 @@ import { REX_TOKEN_SYMBOL } from '../data/rexToken';
 import { loadFounderProject, projectSymbol, saveFounderProject } from '../utils/founderProject';
 import { buildRecommendedRoadmap } from '../utils/recommendedRoadmap';
 import type { VendorChatTarget } from '../utils/vendorChat';
+import { hasAnyServiceOrders } from '../utils/serviceOrders';
 
-type DashboardTab = 'overview' | 'roadmap' | 'ownership' | 'vendors' | 'promote';
+type DashboardTab = 'overview' | 'services' | 'roadmap' | 'ownership' | 'vendors' | 'promote';
 
 const TABS: { id: DashboardTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'services', label: 'Services' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'ownership', label: 'Ownership' },
   { id: 'vendors', label: 'Vendors' },
@@ -51,7 +51,16 @@ const TABS: { id: DashboardTab; label: string }[] = [
 
 export function FounderDashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState<DashboardTab>('overview');
+  const tabParam = searchParams.get('tab');
+  const [tab, setTab] = useState<DashboardTab>(() =>
+    tabParam === 'services' ||
+    tabParam === 'roadmap' ||
+    tabParam === 'ownership' ||
+    tabParam === 'vendors' ||
+    tabParam === 'promote'
+      ? tabParam
+      : 'overview',
+  );
   const [chatTarget, setChatTarget] = useState<VendorChatTarget | null>(null);
   const [roadmapHorizon, setRoadmapHorizon] = useState<RoadmapHorizonId>(
     () => loadFounderProject()?.roadmapHorizon ?? '12-months',
@@ -72,36 +81,50 @@ export function FounderDashboardPage() {
   const project = loadFounderProject();
   const welcome = searchParams.get('welcome') === '1';
   const isStaging = project?.launchMode === 'staging';
-
-  const symbol = project ? projectSymbol(project.projectName) : 'COIN';
-  const industry = industries.find((i) => i.id === project?.categoryId);
-
-  const milestones = useMemo(
-    () =>
-      project
-        ? buildRecommendedRoadmap({
-            categoryId: project.categoryId,
-            projectName: project.projectName,
-            deliverables: project.deliverables,
-            horizon: roadmapHorizon,
-          })
-        : [],
-    [project, roadmapHorizon],
-  );
-
   if (!project) {
+    if (hasAnyServiceOrders()) {
+      return (
+        <Layout>
+          <div className="container py-8 pb-16">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <DemoPreviewBadge />
+                <h1 className="mt-3 font-serif text-3xl font-bold text-white">Services dashboard</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Track direct SOL orders. Launch a CTO anytime to unlock the full founder toolkit.
+                </p>
+              </div>
+              <Link to="/get-started" className="dex-btn-green shrink-0">
+                Launch a CTO
+              </Link>
+            </div>
+            <div className="mt-8">
+              <ServicesOrdersPanel />
+            </div>
+          </div>
+        </Layout>
+      );
+    }
+
     return (
       <Layout>
         <div className="container py-16 text-center">
           <Rocket className="mx-auto h-12 w-12 text-sky-400" />
           <h1 className="mt-6 font-serif text-2xl font-bold text-white">Founder dashboard</h1>
           <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-            Launch a project on Rex to unlock your dashboard — roadmap, vendors, chats, and
-            promotion tools live here.
+            Launch a CTO or buy a Rex service pack to unlock your dashboard.
           </p>
-          <Link to="/get-started" className="dex-btn mt-8 inline-flex">
-            Launch for $1
-          </Link>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link to="/get-started" className="dex-btn inline-flex">
+              Launch for $1
+            </Link>
+            <Link
+              to="/services"
+              className="inline-flex rounded-md border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-200"
+            >
+              Browse services
+            </Link>
+          </div>
         </div>
       </Layout>
     );
@@ -111,6 +134,28 @@ export function FounderDashboardPage() {
     searchParams.delete('welcome');
     setSearchParams(searchParams, { replace: true });
   };
+
+  const selectTab = (id: DashboardTab) => {
+    setTab(id);
+    const next = new URLSearchParams(searchParams);
+    if (id === 'overview') next.delete('tab');
+    else next.set('tab', id);
+    setSearchParams(next, { replace: true });
+  };
+
+  const symbol = projectSymbol(project.projectName);
+  const industry = industries.find((i) => i.id === project.categoryId);
+
+  const milestones = useMemo(
+    () =>
+      buildRecommendedRoadmap({
+        categoryId: project.categoryId,
+        projectName: project.projectName,
+        deliverables: project.deliverables,
+        horizon: roadmapHorizon,
+      }),
+    [project, roadmapHorizon],
+  );
 
   const handleProjectImageChange = (url: string | null, source: ProjectImageSource) => {
     if (!project) return;
@@ -232,7 +277,7 @@ export function FounderDashboardPage() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setTab(item.id)}
+                onClick={() => selectTab(item.id)}
                 className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4 ${
                   tab === item.id
                     ? 'border-sky-400 text-white'
@@ -275,13 +320,6 @@ export function FounderDashboardPage() {
             </div>
 
             <PostLaunchBundlesPanel starterFunding={project.starterBundleFunding} />
-            <SiteChangeRequestCard
-              unlocked={
-                project.starterBundleFunding === 'pay-now' ||
-                project.landingPageFunding === 'pay-now' ||
-                project.landingPageFunding === 'rex-coin'
-              }
-            />
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="dex-card">
@@ -345,6 +383,12 @@ export function FounderDashboardPage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {tab === 'services' && (
+          <div className="mt-6">
+            <ServicesOrdersPanel />
           </div>
         )}
 

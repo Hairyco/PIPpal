@@ -320,14 +320,17 @@ export function CreativeSuiteStep({
             </div>
             <ul className="space-y-1.5">
               {starter.includes.map((item) => (
-                <li key={item} className="flex gap-2 text-[11px] text-muted-foreground">
-                  <span className="text-sky-400">✓</span>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+                    <li key={item} className="flex gap-2 text-[11px] text-muted-foreground">
+                      <span className="text-sky-400">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] text-white/40">
+                  DexScreener is not in this pack — buy it separately from Services or after launch.
+                </p>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+                <div className="grid gap-2 sm:grid-cols-2">
               <FundingOption
                 icon={Clock}
                 title="Wait for marketing wallet"
