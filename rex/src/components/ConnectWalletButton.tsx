@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { Wallet } from 'lucide-react';
 
 const STORAGE_KEY = 'rex-connected-wallet';
@@ -40,7 +48,17 @@ function writeStored(address: string | null) {
   }
 }
 
-export function ConnectWalletButton({ className = '' }: { className?: string }) {
+type WalletContextValue = {
+  address: string | null;
+  connected: boolean;
+  busy: boolean;
+  connect: () => Promise<string | null>;
+  disconnect: () => Promise<void>;
+};
+
+const WalletContext = createContext<WalletContextValue | null>(null);
+
+export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -49,10 +67,10 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
     if (stored) setAddress(stored);
 
     const provider = getProvider();
-    if (!provider?.publicKey) return;
+    if (!provider) return;
 
     const sync = () => {
-      const next = provider.publicKey?.toString() ?? null;
+      const next = provider.publicKey?.toString() ?? readStored();
       setAddress(next);
       writeStored(next);
     };
@@ -77,14 +95,14 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
         const next = res.publicKey.toString();
         setAddress(next);
         writeStored(next);
-        return;
+        return next;
       }
-      // Demo fallback when no extension is installed
       const demo = `Demo${Math.random().toString(36).slice(2, 10)}Wallet111111111`;
       setAddress(demo);
       writeStored(demo);
+      return demo;
     } catch {
-      // user rejected — keep disconnected
+      return null;
     } finally {
       setBusy(false);
     }
@@ -102,6 +120,32 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
     writeStored(null);
     setBusy(false);
   }, []);
+
+  const value = useMemo(
+    () => ({
+      address,
+      connected: Boolean(address),
+      busy,
+      connect,
+      disconnect,
+    }),
+    [address, busy, connect, disconnect],
+  );
+
+  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+}
+
+/** Shared wallet connection — votes require `connected`. */
+export function useConnectedWallet(): WalletContextValue {
+  const ctx = useContext(WalletContext);
+  if (!ctx) {
+    throw new Error('useConnectedWallet must be used within WalletProvider');
+  }
+  return ctx;
+}
+
+export function ConnectWalletButton({ className = '' }: { className?: string }) {
+  const { address, busy, connect, disconnect } = useConnectedWallet();
 
   if (address) {
     return (

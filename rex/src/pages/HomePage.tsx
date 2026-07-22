@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet';
 import { LightningBundleArt } from '../components/services/LightningBundleArt';
-import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
 import { OriginBadge } from '../components/OriginBadge';
@@ -115,7 +115,7 @@ const shortcutCopy: Record<Shortcut, { title: string; subtitle: string }> = {
   },
   Prelaunch: {
     title: 'Prelaunch CTOs',
-    subtitle: 'Vote to set launch order — highest votes go live first.',
+    subtitle: 'Vote with a connected wallet to set launch order — highest votes go live first.',
   },
   'Top All Time': {
     title: 'Top CTOs All Time',
@@ -556,6 +556,8 @@ export function HomePage() {
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
+  const [voteNotice, setVoteNotice] = useState<string | null>(null);
+  const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
 
@@ -736,9 +738,21 @@ export function HomePage() {
     setPageInput('');
   };
 
-  const castVote = (ticker: string) => {
+  const castVote = async (ticker: string) => {
+    if (!connected) {
+      setVoteNotice('Connect your wallet to vote');
+      const address = await connect();
+      if (!address) return;
+    }
     setVoted((prev) => (prev[ticker] ? prev : { ...prev, [ticker]: true }));
+    setVoteNotice(null);
   };
+
+  useEffect(() => {
+    if (!voteNotice) return;
+    const id = window.setTimeout(() => setVoteNotice(null), 4000);
+    return () => window.clearTimeout(id);
+  }, [voteNotice]);
 
   const isPrelaunch = activeShortcut === 'Prelaunch';
   const rankingGridStyle = {
@@ -1021,6 +1035,15 @@ export function HomePage() {
               <div>
                 <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
                 <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+                {isPrelaunch ? (
+                  <p className="mt-1 text-[11px] text-white/40">
+                    Voting requires a connected wallet
+                    {connected ? ' · wallet connected' : ''}.
+                  </p>
+                ) : null}
+                {voteNotice ? (
+                  <p className="mt-1 text-[11px] font-medium text-amber-300">{voteNotice}</p>
+                ) : null}
               </div>
               <button
                 type="button"
@@ -1243,16 +1266,25 @@ export function HomePage() {
                               type="button"
                               onClick={(event) => {
                                 event.stopPropagation();
-                                castVote(project.ticker);
+                                void castVote(project.ticker);
                               }}
-                              disabled={hasVoted}
+                              disabled={hasVoted || walletBusy}
+                              title={
+                                hasVoted
+                                  ? 'Already voted'
+                                  : connected
+                                    ? 'Cast your vote'
+                                    : 'Connect wallet to vote'
+                              }
                               className={`w-[3.25rem] rounded-md px-0 py-1.5 text-center text-[11px] font-bold transition ${
                                 hasVoted
                                   ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                                  : 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
+                                  : connected
+                                    ? 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
+                                    : 'bg-white/15 text-white/70 hover:bg-white/20'
                               }`}
                             >
-                              {hasVoted ? 'Voted' : 'Vote'}
+                              {hasVoted ? 'Voted' : connected ? 'Vote' : 'Connect'}
                             </button>
                           </div>
                           <span
