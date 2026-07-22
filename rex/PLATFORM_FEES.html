@@ -203,7 +203,38 @@
     <li>Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.</li>
     <li>Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.</li>
     <li>Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.</li>
+    <li>After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.</li>
   </ol>
+
+  <h2>After Raydium migration</h2>
+  <div class="box" style="border-color:#c5d9a8;background:#f6faf0;">
+    <p><strong>Confirmed:</strong> Bonding-curve → Raydium graduation does <strong>not</strong> disable fees. Platform, marketing, and creator/trader pool cuts keep applying on post-migration volume.</p>
+    <p><strong>Mechanism (planned):</strong> Token-2022 transfer fee / AMM hooks continue routing to the same PDAs.</p>
+    <ul>
+      <li>Marketing floor stays on (never 0%) after graduation</li>
+      <li>Rex platform cut continues into the protocol treasury</li>
+      <li>Mode A / Mode B pool routing is unchanged by migration</li>
+      <li>Abandonment still applies post-migrate</li>
+      <li>No migration instruction may zero, pause, or redirect fees to an attacker wallet</li>
+    </ul>
+  </div>
+
+  <h2>Security controls (anti-hack)</h2>
+  <table>
+    <thead>
+      <tr><th>Control</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Fee schedule + Mode A/B lock at deploy</td><td>No silent fee-zero admin rug</td></tr>
+      <tr><td>Migration fee invariant</td><td>Graduation cannot disable tax</td></tr>
+      <tr><td>Mint authority revoke/lock</td><td>No post-migrate supply inflation</td></tr>
+      <tr><td>LP burn/lock on graduation</td><td>Founder cannot pull Raydium liquidity</td></tr>
+      <tr><td>Marketing vault PDA + whitelist disburse</td><td>Marketing SOL not a free deployer wallet</td></tr>
+      <tr><td>Creator withdraw gates</td><td>Mode B never pays founder; dumpers lose cut</td></tr>
+      <tr><td>Checked fee math + treasury constraint</td><td>Fees cannot be redirected mid-tx</td></tr>
+      <tr><td>Upgrade authority multisig / renounce</td><td>Hardens program-level compromise</td></tr>
+    </tbody>
+  </table>
 
   <h2>Final pre-flight verification</h2>
   <table>
@@ -223,9 +254,11 @@
       <tr><td>Mode choice</td><td>Irreversible on-chain</td><td><strong>YES</strong></td><td>fee_mode locked at launch</td></tr>
       <tr><td>CTO migration</td><td>100% V1 burn → V2 mint (no forms)</td><td><strong>YES</strong></td><td>Available in Mode A and Mode B</td></tr>
       <tr><td>Raydium graduation</td><td>Bonding curve → Raydium</td><td><strong>YES</strong></td><td>Not gated by fee mode</td></tr>
+      <tr><td>Post-migration tax</td><td>Fees continue after Raydium</td><td><strong>YES</strong></td><td>Platform + marketing + pool stay on</td></tr>
+      <tr><td>Security controls</td><td>Mint/LP lock, PDA vaults, fee invariant</td><td><strong>YES</strong></td><td>See Security controls</td></tr>
     </tbody>
   </table>
-  <p class="meta">Note: On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover.</p>
+  <p class="meta">Note: On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching and Token-2022 post-migration hooks need to ship before live cutover.</p>
 
   <p class="footer">Rex · Platform fees review · Generated from PLATFORM_FEES.md</p>
 </body>

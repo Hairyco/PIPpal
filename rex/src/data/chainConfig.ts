@@ -124,6 +124,75 @@ export const FEE_GUIDELINES = [
   'Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.',
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
+  'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
+] as const;
+
+/** Confirmed product rule: graduation does not end Rex taxation. */
+export const POST_MIGRATION_FEES = {
+  title: 'After Raydium migration',
+  summary:
+    'Bonding-curve → Raydium graduation does not disable fees. Platform, marketing, and creator/trader pool cuts keep applying on post-migration volume.',
+  mechanism:
+    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps on Raydium still route Rex + marketing + pool cuts to the same PDAs.',
+  rules: [
+    'Marketing floor stays on (never 0%) after graduation.',
+    'Rex platform cut continues into the protocol treasury.',
+    'Mode A / Mode B routing for the pool cut is unchanged by migration.',
+    'Abandonment still applies — dumped creators cannot keep collecting after migrate.',
+    'No migration instruction may zero, pause, or redirect fees to an attacker wallet.',
+  ],
+} as const;
+
+/** Required controls so fee continuity cannot be rug-pulled or hacked around. */
+export const SECURITY_CONTROLS = [
+  {
+    id: 'fee-lock',
+    title: 'Fee schedule lock',
+    detail:
+      'Launch/Growth/Scale bps and Mode A/B are set at deploy. No single-key admin path to silently cut marketing or platform fees to zero.',
+  },
+  {
+    id: 'migration-invariant',
+    title: 'Migration fee invariant',
+    detail:
+      'migrate_to_raydium (when shipped) must assert post-migration tax still equals the live tier split. Instruction fails if fee accounts are missing or zeroed.',
+  },
+  {
+    id: 'mint-authority',
+    title: 'Mint authority revoke / lock',
+    detail:
+      'After launch (and again at graduation), mint authority is revoked or held by a non-upgradeable PDA so nobody can inflate supply post-migration.',
+  },
+  {
+    id: 'lp-lock',
+    title: 'LP lock / burn on graduation',
+    detail:
+      'Raydium LP tokens from curve migration are burned or time-locked — founder cannot pull liquidity and dump against taxed holders.',
+  },
+  {
+    id: 'marketing-pda',
+    title: 'Marketing vault PDA + whitelist',
+    detail:
+      'Marketing SOL only leaves via whitelisted supplier disburse under Rex authority — not a free EOA the deployer can drain.',
+  },
+  {
+    id: 'creator-withdraw',
+    title: 'Creator withdraw gates',
+    detail:
+      'Mode A only, founder signer required, abandonment check diverts the cut if holdings < 10%. Mode B never pays the founder vault.',
+  },
+  {
+    id: 'checked-math',
+    title: 'Checked fee math',
+    detail:
+      'All fee splits use checked arithmetic; buy/sell constrain protocol_treasury to the config PDA so fees cannot be redirected mid-tx.',
+  },
+  {
+    id: 'upgrade-hygiene',
+    title: 'Upgrade / authority hygiene',
+    detail:
+      'Program upgrade authority on a multisig or renounced for production; migration and fee config changes require the same hardened authority path.',
+  },
 ] as const;
 
 export function splitTradeFeesLamports(

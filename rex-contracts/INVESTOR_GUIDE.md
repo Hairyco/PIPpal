@@ -107,12 +107,40 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 - Token age ≥ 6 months for product-build suppliers  
 - Roadmap wallet (separate PDA)  
 - Exit fee instruction  
-- Token-2022 transfer hooks (tax on wallet-to-wallet transfers)  
+- Token-2022 transfer hooks (tax on wallet-to-wallet transfers) — **required for post-Raydium fee continuity**  
+- `migrate_to_raydium` instruction with fee-invariant asserts + LP burn/lock  
 - Service fee on disbursements  
+
+## Post-migration fees (product invariant)
+
+Bonding-curve → Raydium graduation **does not end taxation**.
+
+| Requirement | Rule |
+|-------------|------|
+| Platform fee | Continues to Rex treasury after graduation |
+| Marketing fee | Continues to marketing vault PDA (never 0%) |
+| Creator/trader pool | Continues under locked Mode A or Mode B |
+| Abandonment | Still revokes dumped creator cut post-migration |
+| Migration instruction | Must fail if fee accounts missing, zeroed, or redirected to an EOA |
+
+Mechanism (planned): Token-2022 transfer fee and/or AMM hooks route the same bps split into the existing PDAs.
+
+## Security controls (anti-hack)
+
+| Control | Purpose |
+|---------|---------|
+| Fee schedule + Mode A/B lock at deploy | No silent fee-zero admin rug |
+| Migration fee invariant | Graduation cannot disable tax |
+| Mint authority revoke/lock | No post-migrate supply inflation |
+| LP burn/lock on graduation | Founder cannot pull Raydium liquidity |
+| Marketing vault PDA + whitelist disburse | Marketing SOL not a free deployer wallet |
+| Creator withdraw gates (Mode A + abandonment) | Mode B never pays founder; dumpers lose cut |
+| Checked fee math + treasury constraint | Fees cannot be redirected mid-tx |
+| Upgrade authority multisig / renounce | Hardens program-level compromise |
 
 ## Frontend alignment
 
-`rex/src/data/chainConfig.ts` mirrors `constants.rs` fee bps.
+`rex/src/data/chainConfig.ts` mirrors `constants.rs` fee bps, plus `POST_MIGRATION_FEES` and `SECURITY_CONTROLS`.
 
 ## Audit checklist
 
@@ -122,4 +150,7 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 - [ ] Verify only whitelisted suppliers receive disburse  
 - [ ] Verify only project founder can withdraw creator fees  
 - [ ] Verify `protocol_treasury` constrained to config value on buy/sell  
-- [ ] Review authority centralization (expected for MVP)  
+- [ ] Verify migration (when shipped) cannot zero platform or marketing fees  
+- [ ] Verify mint authority revoked/locked at launch and graduation  
+- [ ] Verify Raydium LP burned or time-locked on graduation  
+- [ ] Review authority centralization (expected for MVP; harden for prod)  

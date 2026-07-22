@@ -55,7 +55,8 @@ pub mod rex_mvp {
     }
 
     /// Founder launches a project: token mint + marketing/creator vaults + curve.
-    /// `fee_mode`: 0 = creator keeps fees (CTO enabled), 1 = trader cashback (CTO disabled).
+    /// `fee_mode`: 0 = creator keeps fees, 1 = trader cashback.
+    /// Mode does not block Raydium graduation; post-migration fees remain required.
     pub fn launch_project(
         ctx: Context<LaunchProject>,
         trading_enabled: bool,

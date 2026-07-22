@@ -86,6 +86,38 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 2. Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
+5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
+
+---
+
+## After Raydium migration
+
+Bonding-curve → Raydium graduation **does not disable fees**. Platform, marketing, and creator/trader pool cuts keep applying on post-migration volume.
+
+**Mechanism (planned):** Token-2022 transfer fee / AMM hooks continue routing to the same PDAs.
+
+| Rule |
+|------|
+| Marketing floor stays on (never 0%) after graduation |
+| Rex platform cut continues into the protocol treasury |
+| Mode A / Mode B pool routing is unchanged by migration |
+| Abandonment still applies post-migrate |
+| No migration instruction may zero, pause, or redirect fees to an attacker wallet |
+
+---
+
+## Security controls (anti-hack)
+
+| Control | Purpose |
+|---------|---------|
+| Fee schedule + Mode A/B lock at deploy | No silent fee-zero admin rug |
+| Migration fee invariant | Graduation cannot disable tax |
+| Mint authority revoke/lock | No post-migrate supply inflation |
+| LP burn/lock on graduation | Founder cannot pull Raydium liquidity |
+| Marketing vault PDA + whitelist disburse | Marketing SOL not a free deployer wallet |
+| Creator withdraw gates | Mode B never pays founder; dumpers lose cut |
+| Checked fee math + treasury constraint | Fees cannot be redirected mid-tx |
+| Upgrade authority multisig / renounce | Hardens program-level compromise |
 
 ---
 
@@ -100,5 +132,7 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 | Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
 | Raydium graduation | Bonding curve → Raydium | YES | Not gated by fee mode |
+| Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
+| Security controls | Mint lock, LP lock, PDA vaults, fee invariant | YES | See Security controls section |
 
 **Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover.

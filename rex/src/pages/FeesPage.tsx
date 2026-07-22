@@ -5,6 +5,8 @@ import {
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
   FEE_TIERS,
+  POST_MIGRATION_FEES,
+  SECURITY_CONTROLS,
   TRADE_FEE_LABEL,
   formatBpsPercent,
   totalFeeBps,
@@ -56,6 +58,20 @@ export function FeesPage() {
           ))}
         </section>
 
+        <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">
+          <h2 className="text-sm font-semibold text-[#d5ff69]">{POST_MIGRATION_FEES.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">{POST_MIGRATION_FEES.summary}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/45">{POST_MIGRATION_FEES.mechanism}</p>
+          <ul className="mt-3 space-y-1.5 text-[12px] text-white/55">
+            {POST_MIGRATION_FEES.rules.map((rule) => (
+              <li key={rule} className="flex gap-2">
+                <span className="text-[#c8ff3d]">✓</span>
+                <span>{rule}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section className="mt-8 rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">
           <h2 className="text-sm font-semibold text-rose-200">{ABANDONMENT_RULE.title}</h2>
           <p className="mt-1 text-sm font-medium text-white/85">{ABANDONMENT_RULE.thresholdLabel}</p>
@@ -64,6 +80,22 @@ export function FeesPage() {
             <li>{ABANDONMENT_RULE.redirectMarketing}</li>
             <li>{ABANDONMENT_RULE.redirectTraders}</li>
           </ul>
+        </section>
+
+        <section className="mt-8 space-y-2">
+          <h2 className="text-sm font-semibold text-white/80">Security controls</h2>
+          <p className="text-[12px] text-white/40">
+            Required so post-migration tax cannot be turned off or drained by a compromised key.
+          </p>
+          {SECURITY_CONTROLS.map((control) => (
+            <div
+              key={control.id}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
+            >
+              <p className="text-sm font-semibold text-white/85">{control.title}</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-white/50">{control.detail}</p>
+            </div>
+          ))}
         </section>
 
         <section className="mt-8">
