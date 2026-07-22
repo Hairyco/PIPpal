@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Rex platform fees — review</title>
+  <style>
+    @page { size: A4; margin: 16mm 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: #12141a;
+      font-size: 11pt;
+      line-height: 1.45;
+      margin: 0;
+    }
+    h1 {
+      font-size: 22pt;
+      margin: 0 0 6pt;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      font-size: 13pt;
+      margin: 18pt 0 8pt;
+      padding-bottom: 4pt;
+      border-bottom: 1px solid #d8dbe3;
+    }
+    p, li { margin: 0 0 6pt; }
+    .meta { color: #5a6070; font-size: 9.5pt; margin-bottom: 14pt; }
+    .meta code {
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 8.5pt;
+      background: #f3f4f7;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8pt 0 10pt;
+      font-size: 9.5pt;
+    }
+    th, td {
+      border: 1px solid #d8dbe3;
+      padding: 6pt 7pt;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: #f3f4f7; font-weight: 600; }
+    tr:nth-child(even) td { background: #fafbfc; }
+    .highlight td { background: #f0f7e8 !important; font-weight: 600; }
+    ul, ol { padding-left: 18pt; margin: 6pt 0 10pt; }
+    .box {
+      border: 1px solid #e2b4b4;
+      background: #fdf6f6;
+      padding: 10pt 12pt;
+      border-radius: 6px;
+      margin: 8pt 0 12pt;
+    }
+    .checklist li { list-style: none; margin-left: -6pt; }
+    .checklist li::before { content: "☐ "; }
+    .footer {
+      margin-top: 20pt;
+      padding-top: 8pt;
+      border-top: 1px solid #d8dbe3;
+      color: #5a6070;
+      font-size: 8.5pt;
+    }
+    strong { font-weight: 650; }
+  </style>
+</head>
+<body>
+  <h1>Rex platform fees — review</h1>
+  <p class="meta">
+    Dynamic per-trade tax on Native V2 CTOs.<br />
+    Sources: <code>rex/src/data/chainConfig.ts</code>,
+    <code>rex-contracts/programs/rex-mvp/src/constants.rs</code> · In-app: <code>/fees</code>
+  </p>
+
+  <h2>Summary</h2>
+  <table>
+    <tr><th>Item</th><th>Detail</th></tr>
+    <tr><td>Total trade tax</td><td><strong>0.40% – 0.95%</strong> (scales down with market cap)</td></tr>
+    <tr><td>Destinations</td><td>Marketing wallet + Creator/trader pool + Rex platform</td></tr>
+    <tr><td>Mode lock</td><td>Mode A or Mode B chosen at deploy (irreversible)</td></tr>
+    <tr><td>Abandonment</td><td>Creator dump 90%+ → only their pool cut revoked; Rex + marketing continue</td></tr>
+  </table>
+
+  <h2>Dynamic tiers (per buy/sell)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Tier</th>
+        <th>Market cap</th>
+        <th>Total</th>
+        <th>Marketing</th>
+        <th>Creator/trader pool</th>
+        <th>Rex</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>Launch</td>
+        <td>Under $100k</td>
+        <td>0.95%</td>
+        <td>0.40% (40 bps)</td>
+        <td>0.20% (20 bps)</td>
+        <td>0.35% (35 bps)</td>
+      </tr>
+      <tr>
+        <td>Growth</td>
+        <td>$100k – $500k</td>
+        <td>0.70%</td>
+        <td>0.25% (25 bps)</td>
+        <td>0.15% (15 bps)</td>
+        <td>0.30% (30 bps)</td>
+      </tr>
+      <tr>
+        <td>Scale</td>
+        <td>Over $500k</td>
+        <td>0.40%</td>
+        <td>0.15% (15 bps)</td>
+        <td>0.05% (5 bps)</td>
+        <td>0.20% (20 bps)</td>
+      </tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>1 bps = 0.01%</li>
+    <li>Marketing never turns off</li>
+    <li>On-chain MVP currently ships <strong>Launch</strong> constants; Growth/Scale need oracle/config for live tier switching</li>
+  </ul>
+
+  <h2>Mode A vs Mode B (locked at deploy)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Mode A — Keep creator fees</th>
+        <th>Mode B — Trader cashback</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Pool destination</td>
+        <td>Creator / deployer wallet (withdraw anytime)</td>
+        <td>Trader volume vault — rebates</td>
+      </tr>
+      <tr>
+        <td>CTO migration (V1→V2)</td>
+        <td><strong>Enabled</strong></td>
+        <td><strong>Disabled</strong></td>
+      </tr>
+      <tr>
+        <td>Best for</td>
+        <td>Active teams, narratives, long-term CTO</td>
+        <td>High-frequency / sniper / PVP volume</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Abandonment rule</h2>
+  <div class="box">
+    <p><strong>Trigger:</strong> Creator wallet holds under <strong>10%</strong> of initial allocation (dumped <strong>90%+</strong>).</p>
+    <p><strong>Action:</strong> Revoke <strong>only</strong> the creator/trader pool cut for that wallet. Rex platform fee and marketing wallet <strong>keep collecting</strong>. Total trade tax stays on.</p>
+    <p><strong>Redirect options for the revoked cut:</strong></p>
+    <ol>
+      <li><strong>Marketing (default)</strong> — e.g. at Launch, marketing rises 0.40% → 0.60%; total stays 0.95%</li>
+      <li><strong>Traders</strong> — revoked cut goes into the rebate / volume pool</li>
+    </ol>
+    <p><strong>Contrast:</strong> Unlike Pump.fun (dev can keep collecting until a manual fee-key change), Rex revokes the dump wallet’s cut on-chain automatically.</p>
+  </div>
+
+  <h2>Worked example — 10 SOL trade at Launch</h2>
+  <table>
+    <thead>
+      <tr><th>Destination</th><th>Rate</th><th>Amount</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Marketing wallet</td><td>0.40%</td><td>0.0400 SOL</td></tr>
+      <tr><td>Creator / trader pool</td><td>0.20%</td><td>0.0200 SOL</td></tr>
+      <tr><td>Rex treasury</td><td>0.35%</td><td>0.0350 SOL</td></tr>
+      <tr class="highlight"><td>Net to counterparty</td><td>99.05%</td><td>9.9050 SOL</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Review checklist</h2>
+  <ul class="checklist">
+    <li>Launch / Growth / Scale mcap breakpoints final ($100k / $500k)?</li>
+    <li>Rex Scale floor of <strong>0.20%</strong> correct long-term?</li>
+    <li>Default abandonment redirect: <strong>marketing</strong> (vs traders)?</li>
+    <li>Mode B forever disables CTO migration — still intended?</li>
+    <li>Timeline for on-chain Growth/Scale tier switching?</li>
+  </ul>
+
+  <h2>Fee guidelines (product copy)</h2>
+  <ol>
+    <li>Dynamic tiers: total trade tax scales down with market cap; marketing never turns off.</li>
+    <li>Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.</li>
+    <li>Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.</li>
+    <li>Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.</li>
+  </ol>
+
+  <p class="footer">Rex · Platform fees review · Generated from PLATFORM_FEES.md</p>
+</body>
+</html>
