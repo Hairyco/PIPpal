@@ -51,6 +51,7 @@ export function FeesPage() {
               <p className="text-sm font-semibold">{mode.title}</p>
               <p className="mt-0.5 text-[11px] text-white/40">{mode.subtitle}</p>
               <p className="mt-1 text-[12px] text-white/55">{mode.destination}</p>
+              <p className="mt-1 text-[11px] text-[#c8ff3d]/70">{mode.migration}</p>
             </div>
           ))}
         </section>

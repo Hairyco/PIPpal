@@ -62,8 +62,9 @@ export function formatBpsPercent(bps: number): string {
 
 /**
  * Irreversible on-chain toggle at deployment.
- * Mode A — creator keeps the creator/trader pool cut (CTO migration enabled).
- * Mode B — cut is auto-swept to trader cashback vault (CTO migration disabled).
+ * Mode A — creator keeps the creator/trader pool cut.
+ * Mode B — cut is auto-swept to trader cashback vault.
+ * Neither mode blocks bonding-curve → Raydium migration or V1→V2 CTO relaunch.
  */
 export type CreatorFeeMode = 'creator' | 'traders';
 
@@ -72,7 +73,7 @@ export const CREATOR_FEE_MODES: {
   title: string;
   subtitle: string;
   destination: string;
-  ctoMigration: string;
+  migration: string;
   useCase: string;
 }[] = [
   {
@@ -80,7 +81,7 @@ export const CREATOR_FEE_MODES: {
     title: 'Keep creator fees',
     subtitle: 'Mode A · Creator fee',
     destination: 'Creator / deployer wallet (withdraw anytime)',
-    ctoMigration: 'V1→V2 CTO migration enabled',
+    migration: 'Raydium graduation + V1→V2 CTO path available',
     useCase: 'Active teams, narratives, long-term CTO potential',
   },
   {
@@ -88,7 +89,7 @@ export const CREATOR_FEE_MODES: {
     title: 'Split with traders',
     subtitle: 'Mode B · Automated cashback',
     destination: 'Trader volume vault — rebates to traders',
-    ctoMigration: 'CTO migration disabled',
+    migration: 'Raydium graduation + V1→V2 CTO path available',
     useCase: 'High-frequency / sniper / PVP volume coins',
   },
 ];

@@ -36,8 +36,11 @@ Dynamic per-trade tax on Native V2 CTOs.
 | | Mode A — Keep creator fees | Mode B — Trader cashback |
 |---|---------------------------|--------------------------|
 | Pool destination | Creator / deployer wallet (withdraw anytime) | Trader volume vault — rebates |
-| CTO migration (V1→V2) | **Enabled** | **Disabled** |
+| Raydium / curve migration | **Available** | **Available** |
+| V1→V2 CTO path | **Available** | **Available** |
 | Best for | Active teams, narratives, long-term CTO | High-frequency / sniper / PVP volume |
+
+Mode A vs B only chooses who receives the creator/trader pool cut. It does **not** block graduation to Raydium or CTO relaunch.
 
 ---
 
@@ -73,7 +76,6 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 - [ ] Launch / Growth / Scale mcap breakpoints final ($100k / $500k)?
 - [ ] Rex Scale floor of **0.20%** correct long-term?
 - [ ] Default abandonment redirect: **marketing** (vs traders)?
-- [ ] Mode B forever disables CTO migration — still intended?
 - [ ] Timeline for on-chain Growth/Scale tier switching?
 
 ---
@@ -84,3 +86,19 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 2. Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
+
+---
+
+## Final pre-flight verification
+
+| Checkpoint | Target value | Verified in spec? | Code check |
+|------------|--------------|-------------------|------------|
+| Launch total fee | 0.95% | YES | 40 + 20 + 35 bps |
+| Growth total fee | 0.70% | YES | 25 + 15 + 30 bps |
+| Scale total fee | 0.40% | YES | 15 + 5 + 20 bps |
+| Marketing floor | 0.15% (never turns off) | YES | Scale `marketingBps: 15` |
+| Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
+| CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
+| Raydium graduation | Bonding curve → Raydium | YES | Not gated by fee mode |
+
+**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover.

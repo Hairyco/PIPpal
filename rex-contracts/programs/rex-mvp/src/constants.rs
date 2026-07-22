@@ -33,10 +33,11 @@ pub const BPS_DENOMINATOR: u64 = 10_000;
 /// Total launch-tier trade fee (platform + creator pool + marketing).
 pub const TRADE_FEE_BPS: u64 = PLATFORM_FEE_BPS + CREATOR_FEE_BPS + MARKETING_FEE_BPS;
 
-/// Mode A — creator keeps the pool cut; V1→V2 CTO migration enabled.
+/// Mode A — creator keeps the pool cut.
 pub const FEE_MODE_CREATOR: u8 = 0;
 
-/// Mode B — pool cut is trader cashback; CTO migration disabled.
+/// Mode B — pool cut is trader cashback (founder withdraw disabled).
+/// Does **not** block bonding-curve → Raydium migration or V1→V2 CTO relaunch.
 pub const FEE_MODE_TRADER_CASHBACK: u8 = 1;
 
 /// Creator must retain at least this share of initial allocation (basis points of 10_000).

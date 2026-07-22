@@ -430,7 +430,7 @@ export function LaunchCtoPage() {
                           </p>
                           <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-white/55">
                             <li>Pays to: {option.destination}</li>
-                            <li>{option.ctoMigration}</li>
+                            <li>{option.migration}</li>
                             <li>Best for: {option.useCase}</li>
                           </ul>
                         </div>
