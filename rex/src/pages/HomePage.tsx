@@ -1319,30 +1319,30 @@ export function HomePage() {
                         </p>
                         <p className="text-[10px] text-white/40">{project.raidsJoined} eng.</p>
                       </div>
-                      {project.marketingWallet ? (
-                        <a
-                          href={
-                            resolveMarketingWalletAddress(project)
-                              ? solscanAccountUrl(resolveMarketingWalletAddress(project)!)
-                              : undefined
-                          }
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={(event) => event.stopPropagation()}
-                          className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
-                          title={`View marketing wallet on Solscan`}
-                        >
-                          <Wallet className="h-3 w-3 shrink-0 text-[#c8ff3d]" />
-                          <span className="truncate text-[11px] font-medium text-[#c8ff3d]">
-                            {project.marketingWallet}
-                          </span>
-                          <span className="shrink-0 text-[11px] font-semibold text-white/85">
-                            {project.marketingBalance ?? '--'}
-                          </span>
-                        </a>
-                      ) : (
-                        <span className="text-[11px] text-white/25">No wallet</span>
-                      )}
+                      {(() => {
+                        const mktAddr = resolveMarketingWalletAddress(project);
+                        if (!project.marketingWallet || !mktAddr) {
+                          return <span className="text-[11px] text-white/25">No wallet</span>;
+                        }
+                        return (
+                          <a
+                            href={solscanAccountUrl(mktAddr)}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
+                            title={`View marketing wallet on Solscan`}
+                          >
+                            <Wallet className="h-3 w-3 shrink-0 text-[#c8ff3d]" />
+                            <span className="truncate text-[11px] font-medium text-[#c8ff3d]">
+                              {project.marketingWallet}
+                            </span>
+                            <span className="shrink-0 text-[11px] font-semibold text-white/85">
+                              {project.marketingBalance ?? '--'}
+                            </span>
+                          </a>
+                        );
+                      })()}
                       {isPrelaunch ? (
                         <div className="text-right">
                           <p className="text-xs font-bold text-[#4ea1ff]">{formatVotes(project.votes)}</p>
