@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Flame,
   LayoutGrid,
-  Menu,
   Pin,
   Plus,
   Rocket,
@@ -27,7 +26,7 @@ import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWa
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
 import { OriginBadge } from '../components/OriginBadge';
-import { AppSidebar } from '../components/AppSidebar';
+import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import {
   HYBRID_FEED_TABS,
   ctoProjects,
@@ -770,9 +769,10 @@ export function HomePage() {
   };
 
   return (
+    <AppSidebarProvider>
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
       <AppSidebar />
-      <div className="relative z-[1] md:pl-56">
+      <div className="relative z-[1]">
       <div className="sticky top-0 z-40 bg-black">
       <div className="border-b border-white/[0.06] bg-black">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
@@ -930,9 +930,7 @@ export function HomePage() {
               <Bell className="h-5 w-5" />
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8ff3d]" aria-hidden />
             </button>
-            <button type="button" className="grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5" aria-label="Open menu">
-              <Menu className="h-5 w-5" />
-            </button>
+            <AppSidebarMenuButton />
           </div>
         </div>
       </header>
@@ -1472,5 +1470,6 @@ export function HomePage() {
         onClose={() => setWalletExplainerOpen(false)}
       />
     </div>
+    </AppSidebarProvider>
   );
 }
