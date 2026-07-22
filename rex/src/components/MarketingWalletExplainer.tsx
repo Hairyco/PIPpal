@@ -3,6 +3,7 @@ import {
   ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
   FEE_TIERS,
+  MARKETING_VAULT_SWEEP_RULE,
   TRADE_FEE_LABEL,
   formatBpsPercent,
   totalFeeBps,
@@ -230,6 +231,23 @@ export function MarketingWalletExplainer({
             </p>
             <p className="mt-1 text-[10px] leading-relaxed text-white/50">
               {ABANDONMENT_RULE.action} {ABANDONMENT_RULE.redirectMarketing}
+            </p>
+          </div>
+          <div className="mt-3 rounded-lg border border-[#2aabee]/30 bg-[#2aabee]/[0.08] px-2.5 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-sky-300">
+              {MARKETING_VAULT_SWEEP_RULE.title}
+            </p>
+            <p className="mt-1 text-[10px] leading-relaxed text-white/55">
+              {MARKETING_VAULT_SWEEP_RULE.autoSpend}
+            </p>
+            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
+              {MARKETING_VAULT_SWEEP_RULE.inactivity}
+            </p>
+            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
+              {MARKETING_VAULT_SWEEP_RULE.ctoRestoration}
+            </p>
+            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
+              {MARKETING_VAULT_SWEEP_RULE.v1Restart}
             </p>
           </div>
         </div>

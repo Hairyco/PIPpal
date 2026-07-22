@@ -87,6 +87,18 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
+6. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration).
+
+---
+
+## Marketing vault inactivity & sweep
+
+| Rule | Detail |
+|------|--------|
+| **Automated threshold** | When a vault accumulates **$500**, programmatic spending (ads/trending) fires automatically — even if volume slows. |
+| **72-hour inactivity sweep** | Under **$500** with **$0** trading volume for **72 consecutive hours** → unspent funds sweep to the **Rex Protocol CTO Reserve**. |
+| **CTO restoration** | Native V2 CTO migration → reserve credits **100%** of swept funds into the fresh V2 marketing vault. |
+| **V1 restart (no V2)** | Trading resumes on old V1 without migrating → swept funds stay in the reserve; V1 accrues **fresh** marketing fees from new volume. |
 
 ---
 
@@ -133,6 +145,7 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
 | Raydium graduation | Bonding curve → Raydium | YES | Not gated by fee mode |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
+| Marketing vault sweep | $500 auto-spend · 72h inactivity → CTO Reserve | YES | 100% restore on Native V2 |
 | Security controls | Mint lock, LP lock, PDA vaults, fee invariant | YES | See Security controls section |
 
 **Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover.

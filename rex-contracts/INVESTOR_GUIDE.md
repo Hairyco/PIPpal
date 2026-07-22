@@ -125,6 +125,17 @@ Bonding-curve → Raydium graduation **does not end taxation**.
 
 Mechanism (planned): Token-2022 transfer fee and/or AMM hooks route the same bps split into the existing PDAs.
 
+## Marketing vault inactivity & sweep
+
+| Rule | Detail |
+|------|--------|
+| Auto-spend at $500 | Programmatic ads/trending fire even if volume slows |
+| 72h inactivity | Under $500 + $0 volume for 72h → sweep to Rex Protocol CTO Reserve |
+| Native V2 restoration | 100% of swept funds credited to the new V2 marketing vault |
+| V1 restart without V2 | Swept funds stay in reserve; V1 accrues fresh marketing fees |
+
+Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`.
+
 ## Security controls (anti-hack)
 
 | Control | Purpose |

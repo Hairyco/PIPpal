@@ -5,6 +5,7 @@ import {
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
   FEE_TIERS,
+  MARKETING_VAULT_SWEEP_RULE,
   POST_MIGRATION_FEES,
   SECURITY_CONTROLS,
   TRADE_FEE_LABEL,
@@ -70,6 +71,36 @@ export function FeesPage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-[#2aabee]/30 bg-[#2aabee]/[0.07] p-4">
+          <h2 className="text-sm font-semibold text-sky-200">{MARKETING_VAULT_SWEEP_RULE.title}</h2>
+          <div className="mt-3 space-y-3 text-[12px] leading-relaxed text-white/55">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.autoSpendLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.autoSpend}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.inactivityLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.inactivity}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.ctoRestorationLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.ctoRestoration}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.v1RestartLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.v1Restart}</p>
+            </div>
+          </div>
         </section>
 
         <section className="mt-8 rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">

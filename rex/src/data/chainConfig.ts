@@ -125,7 +125,33 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
+  `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration).`,
 ] as const;
+
+/** Marketing vault auto-spend threshold (USD). */
+export const MARKETING_AUTO_SPEND_USD = 500;
+/** Hours of $0 volume before an under-threshold vault is swept. */
+export const MARKETING_INACTIVITY_HOURS = 72;
+
+/**
+ * Marketing Vault Inactivity & Sweep Lifecycle.
+ * Unspent balances under the auto-spend threshold are not left stranded forever.
+ */
+export const MARKETING_VAULT_SWEEP_RULE = {
+  title: 'Marketing vault inactivity & sweep',
+  autoSpendLabel: `Automated threshold · $${MARKETING_AUTO_SPEND_USD}`,
+  autoSpend:
+    `When a vault accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) fires automatically — even if trading volume starts to slow.`,
+  inactivityLabel: `${MARKETING_INACTIVITY_HOURS}-hour inactivity sweep`,
+  inactivity:
+    `If a token accumulates under $${MARKETING_AUTO_SPEND_USD} and records $0 trading volume for ${MARKETING_INACTIVITY_HOURS} consecutive hours, unspent funds are swept into the Rex Protocol CTO Reserve.`,
+  ctoRestorationLabel: 'CTO restoration',
+  ctoRestoration:
+    'If the community executes a Native V2 CTO migration, Rex’s protocol reserve automatically credits 100% of the swept funds into the fresh V2 marketing vault.',
+  v1RestartLabel: 'V1 trading restart (without V2)',
+  v1Restart:
+    'If trading resumes on the old V1 token without migrating, swept funds remain in the reserve and V1 accumulates fresh marketing fees from new volume.',
+} as const;
 
 /** Confirmed product rule: graduation does not end Rex taxation. */
 export const POST_MIGRATION_FEES = {

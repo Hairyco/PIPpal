@@ -11,6 +11,12 @@
 //! Higher mcap tiers reduce fees on-chain via oracle/config (frontend mirrors FEE_TIERS).
 //! Fee destination mode (creator keep vs trader cashback) is locked at `launch_project`.
 //!
+//! # Marketing vault inactivity & sweep
+//! At $500 USD equivalent, programmatic ad/trending spend fires automatically.
+//! Under $500 with $0 volume for 72h → sweep unspent SOL to Rex Protocol CTO Reserve.
+//! Native V2 CTO migration restores 100% of swept funds to the new V2 marketing vault.
+//! V1 volume restart without V2 leaves swept funds in the reserve; V1 accrues fresh fees.
+//!
 //! # Post-migration (bonding curve → Raydium)
 //! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
 //! continue on post-migration volume (Token-2022 transfer fee / AMM hook → same PDAs).
@@ -44,6 +50,13 @@ pub const FEE_MODE_CREATOR: u8 = 0;
 /// Mode B — pool cut is trader cashback (founder withdraw disabled).
 /// Does **not** block bonding-curve → Raydium migration or V1→V2 CTO relaunch.
 pub const FEE_MODE_TRADER_CASHBACK: u8 = 1;
+
+/// USD equivalent threshold for automatic marketing spend (ads / trending).
+pub const MARKETING_AUTO_SPEND_USD: u64 = 500;
+
+/// Hours of consecutive $0 volume before an under-threshold vault is swept
+/// into the Rex Protocol CTO Reserve.
+pub const MARKETING_INACTIVITY_HOURS: u64 = 72;
 
 /// Product invariant: after Raydium graduation, trade tax must still apply.
 /// Migration instructions must keep platform + marketing (+ pool) routing live.
