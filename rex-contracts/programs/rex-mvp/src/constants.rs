@@ -10,6 +10,11 @@
 //!
 //! Higher mcap tiers reduce fees on-chain via oracle/config (frontend mirrors FEE_TIERS).
 //! Fee destination mode (creator keep vs trader cashback) is locked at `launch_project`.
+//!
+//! # Abandonment trigger
+//! If the creator wallet holds under `CREATOR_MIN_HOLD_BPS` of initial allocation
+//! (dumped 90%+), the creator cut is revoked permanently for that wallet and redirected
+//! (default: marketing boost). Platform + marketing fees continue — do not halt all tax.
 
 /// 0.35% — Rex protocol fee on buys and sells (basis points). Launch tier.
 pub const PLATFORM_FEE_BPS: u64 = 35;
@@ -17,6 +22,7 @@ pub const PLATFORM_FEE_BPS: u64 = 35;
 /// 0.20% — creator / trader pool on buys and sells (basis points). Launch tier.
 /// Mode A: accumulates in creator vault; founder withdraws.
 /// Mode B: same vault acts as trader rebate pool (founder withdraw disabled).
+/// After abandonment trigger, this cut is diverted away from the dumped wallet.
 pub const CREATOR_FEE_BPS: u64 = 20;
 
 /// 0.40% — project marketing wallet on buys and sells (basis points). Launch tier.
@@ -32,6 +38,14 @@ pub const FEE_MODE_CREATOR: u8 = 0;
 
 /// Mode B — pool cut is trader cashback; CTO migration disabled.
 pub const FEE_MODE_TRADER_CASHBACK: u8 = 1;
+
+/// Creator must retain at least this share of initial allocation (basis points of 10_000).
+/// Below 10% remaining (= dumped 90%+) → abandonment trigger fires.
+pub const CREATOR_MIN_HOLD_BPS: u64 = 1_000;
+
+/// Where revoked creator fees go after abandonment: 0 = marketing vault, 1 = trader pool.
+pub const CREATOR_FEE_REDIRECT_MARKETING: u8 = 0;
+pub const CREATOR_FEE_REDIRECT_TRADERS: u8 = 1;
 
 /// SPL token decimals for project coins.
 pub const TOKEN_DECIMALS: u8 = 6;
