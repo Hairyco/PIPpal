@@ -314,18 +314,20 @@ export function LaunchCtoPage() {
 
                 <label className="block">
                   <span className="text-[11px] font-semibold text-white/45">
-                    Existing Telegram <span className="font-normal text-white/30">(optional)</span>
+                    Old Telegram <span className="font-normal text-white/30">(optional)</span>
                   </span>
                   <input
                     value={telegram}
                     onChange={(event) => setTelegram(event.target.value)}
-                    placeholder="https://t.me/… legacy community"
+                    placeholder="https://t.me/…"
                     className={fieldClass}
                   />
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-semibold text-white/45">X / Twitter</span>
+                  <span className="text-[11px] font-semibold text-white/45">
+                    Old X / Twitter <span className="font-normal text-white/30">(optional)</span>
+                  </span>
                   <input
                     value={twitter}
                     onChange={(event) => setTwitter(event.target.value)}
@@ -335,7 +337,9 @@ export function LaunchCtoPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-semibold text-white/45">Website</span>
+                  <span className="text-[11px] font-semibold text-white/45">
+                    Old website <span className="font-normal text-white/30">(optional)</span>
+                  </span>
                   <input
                     value={website}
                     onChange={(event) => setWebsite(event.target.value)}
@@ -346,7 +350,7 @@ export function LaunchCtoPage() {
 
                 <label className="block">
                   <span className="text-[11px] font-semibold text-white/45">
-                    Notes <span className="font-normal text-white/25">(optional)</span>
+                    Description <span className="font-normal text-white/25">(optional)</span>
                   </span>
                   <textarea
                     value={note}
