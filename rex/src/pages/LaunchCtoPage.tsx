@@ -313,11 +313,13 @@ export function LaunchCtoPage() {
                 </label>
 
                 <label className="block">
-                  <span className="text-[11px] font-semibold text-white/45">Telegram</span>
+                  <span className="text-[11px] font-semibold text-white/45">
+                    Existing Telegram <span className="font-normal text-white/30">(optional)</span>
+                  </span>
                   <input
                     value={telegram}
                     onChange={(event) => setTelegram(event.target.value)}
-                    placeholder="https://t.me/…"
+                    placeholder="https://t.me/… legacy community"
                     className={fieldClass}
                   />
                 </label>
