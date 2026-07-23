@@ -119,6 +119,13 @@ export const ABANDONMENT_RULE = {
     'Unlike Pump.fun (dev keeps collecting until a manual fee-key change), Rex revokes the dump wallet’s cut on-chain automatically.',
 } as const;
 
+/** Marketing vault auto-spend threshold (USD). */
+export const MARKETING_AUTO_SPEND_USD = 500;
+/** Hours of $0 volume before an under-threshold vault is swept. */
+export const MARKETING_INACTIVITY_HOURS = 72;
+/** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
+export const MARKETING_V2_DEADLINE_DAYS = 30;
+
 export const FEE_GUIDELINES = [
   'Dynamic tiers: total trade tax scales down with market cap; marketing never turns off.',
   'Mode A / Mode B is locked at deploy — keep creator fees or auto-cashback traders.',
@@ -127,13 +134,6 @@ export const FEE_GUIDELINES = [
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
   `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
-
-/** Marketing vault auto-spend threshold (USD). */
-export const MARKETING_AUTO_SPEND_USD = 500;
-/** Hours of $0 volume before an under-threshold vault is swept. */
-export const MARKETING_INACTIVITY_HOURS = 72;
-/** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
-export const MARKETING_V2_DEADLINE_DAYS = 30;
 
 /**
  * Marketing Vault Inactivity & Sweep Lifecycle.
