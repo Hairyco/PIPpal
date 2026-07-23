@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { RexLogo } from './RexLogo';
+import { CtoGoLogo } from './CtoGoLogo';
 import { hasFounderProject } from '../utils/founderProject';
 
 export function Header() {
@@ -9,11 +9,11 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-black/75 backdrop-blur-md">
       <div className="container py-4">
         <div className="flex h-10 flex-row items-center justify-between">
-        <Link to="/" className="flex flex-row items-center space-x-2">
-          <RexLogo />
+        <Link to="/" className="flex flex-row items-center space-x-2" aria-label="CTOgo home">
+          <CtoGoLogo size={28} />
           <div className="flex flex-col items-baseline -space-y-0.5 md:flex-row md:space-x-2 md:space-y-0">
-            <span className="font-serif text-lg text-foreground">Rex</span>
-            <span className="text-sm text-white/50 md:text-base">Growth engine</span>
+            <span className="font-serif text-lg text-foreground">CTOgo</span>
+            <span className="text-sm text-white/50 md:text-base">Community takeovers</span>
           </div>
         </Link>
 

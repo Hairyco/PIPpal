@@ -263,7 +263,7 @@ export function MarketAnalysisStep({
                   }`}
                 >
                   {msg.role === 'rex' && (
-                    <span className="mb-1 block text-[10px] font-medium text-sky-400">Rex</span>
+                    <span className="mb-1 block text-[10px] font-medium text-sky-400">CTOgo</span>
                   )}
                   {msg.text}
                 </div>

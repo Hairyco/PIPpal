@@ -9,7 +9,6 @@ import {
   Pin,
   Plus,
   Rocket,
-  RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -27,6 +26,7 @@ import { MarketingWalletExplainerModal } from '../components/MarketingWalletExpl
 import { CtoTradeView } from '../components/CtoTradeView';
 import { OriginBadge } from '../components/OriginBadge';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
+import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
   HYBRID_FEED_TABS,
   ctoProjects,
@@ -808,12 +808,10 @@ export function HomePage() {
 
       <header className="border-b border-white/[0.07] bg-black">
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-5">
-          <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
-              <RotateCcw className="h-5 w-5 stroke-[2.6]" />
-            </span>
+          <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
+            <CtoGoLogo size={36} className="rounded-xl" />
             <div className="hidden sm:block">
-              <p className="font-serif text-lg font-bold leading-none tracking-tight">CTO</p>
+              <p className="font-serif text-lg font-bold leading-none tracking-tight">CTOgo</p>
               <p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/30">Community takeover</p>
             </div>
           </a>
@@ -1461,8 +1459,8 @@ export function HomePage() {
       <footer className="mt-10 border-t border-white/[0.06] bg-black">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d] text-[#090b14]"><RotateCcw className="h-3.5 w-3.5" /></span>
-            <span>Solana CTO discovery</span>
+            <CtoGoLogo size={24} className="rounded-md" />
+            <span>CTOgo · Solana CTO discovery</span>
           </div>
           <div className="flex gap-5">
             <Link to="/fees" className="hover:text-white/50">Fees</Link>

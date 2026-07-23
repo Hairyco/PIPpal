@@ -119,7 +119,7 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
             onClick={() => setOpen(false)}
             className="font-serif text-base font-bold tracking-tight text-white"
           >
-            CTO
+            CTOgo
           </NavLink>
           <button
             type="button"

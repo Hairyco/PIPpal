@@ -121,7 +121,7 @@ export function ServicesPage() {
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                 Direct pay
               </p>
-              <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Rex services</h1>
+              <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">CTOgo services</h1>
               <p className="mt-2 max-w-xl text-sm text-white/45">
                 Buy launch assets with SOL up front. Separate from the marketing wallet path when you
                 launch a CTO.

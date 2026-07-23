@@ -8,13 +8,13 @@ import {
   Globe,
   ImagePlus,
   Lock,
-  RotateCcw,
   ShieldAlert,
   Split,
   Upload,
   Users,
   Wallet,
 } from 'lucide-react';
+import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
   ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
@@ -155,11 +155,9 @@ export function LaunchCtoPage() {
       <div className="relative z-[1]">
         <header className="border-b border-white/[0.07] bg-[#090b14]">
           <div className="mx-auto flex h-14 max-w-xl items-center gap-3 px-3 sm:px-5">
-            <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="CTO home">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
-                <RotateCcw className="h-4 w-4 stroke-[2.6]" />
-              </span>
-              <span className="font-serif text-base font-bold tracking-tight">CTO</span>
+            <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
+              <CtoGoLogo size={32} className="rounded-xl" />
+              <span className="font-serif text-base font-bold tracking-tight">CTOgo</span>
             </Link>
             <Link
               to="/"
