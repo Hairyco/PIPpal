@@ -989,6 +989,9 @@ export function HomePage() {
             <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
               The home of community takeovers
             </h1>
+            <p className="mt-2 max-w-md text-sm leading-snug text-white/50 sm:text-[15px]">
+              Revive rugged coins &amp; trade with ready made communities
+            </p>
             <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
               <Link
                 to="/launch"
