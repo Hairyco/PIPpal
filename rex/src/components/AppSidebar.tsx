@@ -12,6 +12,8 @@ import {
   Wallet,
   Zap,
   Rocket,
+  HelpCircle,
+  Mail,
   X,
   Menu,
 } from 'lucide-react';
@@ -22,6 +24,8 @@ const NAV = [
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
   { to: '/services', label: 'Services', icon: Zap, end: false },
   { to: '/launch', label: 'Launch', icon: Rocket, end: false },
+  { to: '/faq', label: 'FAQ', icon: HelpCircle, end: false },
+  { to: '/contact', label: 'Contact', icon: Mail, end: false },
 ] as const;
 
 type SidebarContextValue = {
@@ -132,7 +136,7 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
         </div>
         <NavItems onNavigate={() => setOpen(false)} />
         <p className="mt-auto border-t border-white/[0.06] p-4 text-[10px] leading-relaxed text-white/30">
-          Fees · marketing wallet · services
+          Fees · marketing wallet · services · FAQ
         </p>
       </aside>
     </>

@@ -16,6 +16,8 @@ import { TradePage } from './pages/TradePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { FeesPage } from './pages/FeesPage';
 import { MarketingWalletPage } from './pages/MarketingWalletPage';
+import { FaqPage } from './pages/FaqPage';
+import { ContactPage } from './pages/ContactPage';
 
 export function App() {
   return (
@@ -29,6 +31,8 @@ export function App() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/fees" element={<FeesPage />} />
           <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/category/:categoryId" element={<CategoryPage />} />
           <Route path="/categories" element={<CategoriesPage />} />
           <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />

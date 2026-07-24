@@ -1469,6 +1469,8 @@ export function HomePage() {
             <Link to="/fees" className="hover:text-white/50">Fees</Link>
             <Link to="/marketing-wallet" className="hover:text-white/50">Marketing wallet</Link>
             <Link to="/services" className="hover:text-white/50">Services</Link>
+            <Link to="/faq" className="hover:text-white/50">FAQ</Link>
+            <Link to="/contact" className="hover:text-white/50">Contact</Link>
           </div>
         </div>
       </footer>
