@@ -18,7 +18,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
-import { CoinPagePreview } from '../components/CoinPagePreview';
+import { WebsitePreview } from '../components/WebsitePreview';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
@@ -33,7 +33,8 @@ import {
 import { formatMintPreview, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'coin' | 'fees' | 'burn' | 'page' | 'done';
+type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
+type WebsiteKind = 'onepager' | 'clone';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -54,13 +55,15 @@ const VESTING_SCHEDULE = [
   { label: 'Day 90', amount: '35%' },
 ];
 
+const DEMO_CONTRACT = 'CALL7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK';
+
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
-  const [contract, setContract] = useState('');
+  const [contract, setContract] = useState(DEMO_CONTRACT);
   const [telegram, setTelegram] = useState('');
   const [twitter, setTwitter] = useState('');
   const [website, setWebsite] = useState('');
@@ -82,6 +85,8 @@ export function LaunchCtoPage() {
   const [venueLabel, setVenueLabel] = useState('Solana');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [editArt, setEditArt] = useState(false);
+  const [websiteKind, setWebsiteKind] = useState<WebsiteKind>('onepager');
+  const [cloneUrl, setCloneUrl] = useState('');
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
@@ -123,12 +128,12 @@ export function LaunchCtoPage() {
           { id: 'coin' as const, label: 'Coin' },
           { id: 'fees' as const, label: 'Fees' },
           { id: 'burn' as const, label: 'Burn' },
-          { id: 'page' as const, label: 'Page' },
+          { id: 'website' as const, label: 'Website' },
         ]
       : [
           { id: 'coin' as const, label: 'Coin' },
           { id: 'burn' as const, label: 'Burn' },
-          { id: 'page' as const, label: 'Page' },
+          { id: 'website' as const, label: 'Website' },
         ];
   const stepIndex = steps.findIndex((s) => s.id === step);
   const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
@@ -139,7 +144,7 @@ export function LaunchCtoPage() {
     setStep('coin');
     setName('');
     setTicker('');
-    setContract('');
+    setContract(DEMO_CONTRACT);
     setTelegram('');
     setTwitter('');
     setWebsite('');
@@ -159,6 +164,8 @@ export function LaunchCtoPage() {
     setVenueLabel('Solana');
     setShowAdvanced(false);
     setEditArt(false);
+    setWebsiteKind('onepager');
+    setCloneUrl('');
     setFromCoinPage(false);
   };
 
@@ -205,9 +212,9 @@ export function LaunchCtoPage() {
     setStep('burn');
   };
 
-  const goToPage = () => setStep('page');
+  const goToWebsite = () => setStep('website');
 
-  const onMarketingFinish = (event: FormEvent) => {
+  const onWebsiteFinish = (event: FormEvent) => {
     event.preventDefault();
     setStep('done');
   };
@@ -257,9 +264,10 @@ export function LaunchCtoPage() {
   };
 
   useEffect(() => {
-    if (step !== 'page') return;
+    if (step !== 'website') return;
 
     if (!pageBlurb.trim() && note.trim()) setPageBlurb(note.trim());
+    if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
 
     const projectName = name || 'CTOgo Coin';
     const projectTicker = ticker || 'CTO';
@@ -728,7 +736,7 @@ export function LaunchCtoPage() {
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <button type="button" onClick={goToPage} className={`${primaryBtnClass} sm:flex-1`}>
+                <button type="button" onClick={goToWebsite} className={`${primaryBtnClass} sm:flex-1`}>
                   {burned ? 'Looks good' : 'Skip for now'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -736,22 +744,81 @@ export function LaunchCtoPage() {
             </div>
           ) : null}
 
-          {step === 'page' ? (
-            <form onSubmit={onMarketingFinish} className="mt-6 space-y-4">
+          {step === 'website' ? (
+            <form onSubmit={onWebsiteFinish} className="mt-6 space-y-4">
               <div>
-                <p className="text-sm font-bold text-white">Your CTOgo page is ready</p>
+                <p className="text-sm font-bold text-white">Your website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Hosted for you. Edit only if you want.
+                  CTOgo listing is included. Pick how your public site looks.
                 </p>
               </div>
 
-              <CoinPagePreview
+              <p className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[11px] text-white/45">
+                Platform page always live at{' '}
+                <span className="font-mono text-white/70">
+                  ctogo.app/coin/{ticker.trim().toLowerCase() || 'ticker'}
+                </span>
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setWebsiteKind('onepager')}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    websiteKind === 'onepager'
+                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
+                  }`}
+                >
+                  <p className="text-xs font-bold text-white">Simple 1-pager</p>
+                  <p className="mt-1 text-[10px] text-white/40">Fresh site from your logo &amp; blurb</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWebsiteKind('clone')}
+                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                    websiteKind === 'clone'
+                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
+                  }`}
+                >
+                  <p className="text-xs font-bold text-white">Clone old site</p>
+                  <p className="mt-1 text-[10px] text-white/40">Rebuild with new CA &amp; branding</p>
+                </button>
+              </div>
+
+              {websiteKind === 'clone' ? (
+                <label className="block">
+                  <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
+                  <input
+                    value={cloneUrl}
+                    onChange={(event) => setCloneUrl(event.target.value)}
+                    placeholder="https://…"
+                    className={fieldClass}
+                  />
+                </label>
+              ) : (
+                <label className="block">
+                  <span className="text-[11px] font-semibold text-white/45">Site blurb</span>
+                  <textarea
+                    value={pageBlurb}
+                    onChange={(event) => setPageBlurb(event.target.value)}
+                    rows={2}
+                    placeholder="One line about the takeover…"
+                    className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                  />
+                </label>
+              )}
+
+              <WebsitePreview
+                kind={websiteKind}
                 name={name}
                 ticker={ticker}
                 blurb={pageBlurb || note}
                 logoUrl={logoPreview}
                 bannerUrl={bannerPreview}
                 contract={contract}
+                cloneUrl={cloneUrl || website}
               />
 
               <button
@@ -759,59 +826,46 @@ export function LaunchCtoPage() {
                 onClick={() => setEditArt((v) => !v)}
                 className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-3 py-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
               >
-                {editArt ? 'Hide editor' : 'Edit blurb / art'}
+                {editArt ? 'Hide logo / banner' : 'Edit logo / banner'}
                 <ChevronDown className={`h-4 w-4 transition-transform ${editArt ? 'rotate-180' : ''}`} />
               </button>
 
               {editArt ? (
-                <div className="space-y-3">
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/45">Page blurb</span>
-                    <textarea
-                      value={pageBlurb}
-                      onChange={(event) => setPageBlurb(event.target.value)}
-                      rows={2}
-                      placeholder="One line about the takeover…"
-                      className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                    />
-                  </label>
-
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={regenerateLogo}
-                      disabled={generatingLogo}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Logo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => logoRef.current?.click()}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      Upload logo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={regenerateBanner}
-                      disabled={generatingBanner}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Banner
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => bannerRef.current?.click()}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                    >
-                      <Upload className="h-3.5 w-3.5" />
-                      Upload banner
-                    </button>
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={regenerateLogo}
+                    disabled={generatingLogo}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => logoRef.current?.click()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Upload logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={regenerateBanner}
+                    disabled={generatingBanner}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Banner
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => bannerRef.current?.click()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Upload banner
+                  </button>
                   <input
                     ref={logoRef}
                     type="file"
@@ -852,8 +906,9 @@ export function LaunchCtoPage() {
             <div className="mt-6 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-4 py-6 text-center">
               <p className="text-sm font-bold text-[#d5ff69]">CTO published</p>
               <p className="mt-1.5 text-xs text-white/50">
-                {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live in
-                review.
+                {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live on
+                CTOgo
+                {websiteKind === 'clone' ? ' with a cloned site' : ' with a 1-pager'}.
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link to="/" className={`${primaryBtnClass} sm:w-auto sm:px-6`}>
