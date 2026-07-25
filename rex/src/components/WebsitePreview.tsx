@@ -8,6 +8,7 @@ import {
   type OnePagerDesignTweaks,
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
+import { formatTokenSupplyShort } from '../data/tokenSupplyOptions';
 
 export type WebsiteKind = 'onepager' | 'clone';
 
@@ -23,6 +24,7 @@ type WebsitePreviewProps = {
   variant?: 'card' | 'fullscreen';
   themeId?: OnePagerThemeId;
   designTweaks?: OnePagerDesignTweaks;
+  tokenSupply?: string;
 };
 
 function formatCaChip(contract?: string): string {
@@ -56,6 +58,7 @@ function MemeOnePagerBody({
   logoUrl,
   themeId,
   designTweaks = DEFAULT_DESIGN_TWEAKS,
+  tokenSupply,
 }: {
   variant: 'card' | 'fullscreen';
   displayName: string;
@@ -66,6 +69,7 @@ function MemeOnePagerBody({
   logoUrl: string | null;
   themeId?: OnePagerThemeId;
   designTweaks?: OnePagerDesignTweaks;
+  tokenSupply?: string;
 }) {
   const full = variant === 'fullscreen';
   const theme = getOnePagerTheme(themeId ?? DEFAULT_ONE_PAGER_THEME_ID);
@@ -223,7 +227,7 @@ function MemeOnePagerBody({
               </h2>
               <div className="mx-auto mt-5 grid max-w-md grid-cols-3 gap-3">
                 {[
-                  { value: '1B', label: 'Supply' },
+                  { value: formatTokenSupplyShort(tokenSupply ?? '1000000000'), label: 'Supply' },
                   { value: 'Tax on', label: 'Fees' },
                   { value: 'Burnt', label: 'LP' },
                 ].map((stat) => (
@@ -245,7 +249,19 @@ function MemeOnePagerBody({
           ) : null}
 
           <p className="pb-6 text-center text-[11px] tracking-wide text-white/35">
-            Telegram · X · Chart · Copyright © {new Date().getFullYear()}
+            Telegram · X · Chart
+          </p>
+          <div className="text-center">
+            <span
+              className="inline-flex cursor-not-allowed items-center rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-white/45"
+              title="Your marketing wallet link goes live after launch"
+              aria-disabled="true"
+            >
+              Marketing wallet · Live after launch
+            </span>
+          </div>
+          <p className="pb-6 text-center text-[11px] tracking-wide text-white/35">
+            Copyright © {new Date().getFullYear()}
           </p>
         </div>
       ) : (
@@ -262,6 +278,12 @@ function MemeOnePagerBody({
           <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1.5 font-mono text-[10px] text-white/55">
             <SolanaLogo className="h-3 w-3" />
             {caLabel}
+          </span>
+          <span
+            className="rounded-full border border-white/15 px-2.5 py-1.5 text-[9px] font-bold text-white/40"
+            title="Live after launch"
+          >
+            Marketing wallet · Soon
           </span>
         </div>
       )}
@@ -327,14 +349,26 @@ function CloneBody({
               <span className="rounded-lg border border-white/20 px-3 py-2.5 text-xs text-white/70">
                 Restyled with new CA
               </span>
+              <span
+                className="cursor-not-allowed rounded-lg border border-white/20 px-3 py-2.5 text-xs text-white/45"
+                title="Your marketing wallet link goes live after launch"
+                aria-disabled="true"
+              >
+                Marketing wallet · Live after launch
+              </span>
             </div>
           ) : null}
         </div>
       </div>
       {!full ? (
-        <p className="text-[11px] leading-relaxed text-white/45">
-          We restyle the old site with the new CA, logo, and CTOgo trade links.
-        </p>
+        <div className="space-y-2">
+          <p className="text-[11px] leading-relaxed text-white/45">
+            We restyle the old site with the new CA, logo, and CTOgo trade links.
+          </p>
+          <span className="inline-flex rounded-full border border-white/15 px-2.5 py-1.5 text-[9px] font-bold text-white/40">
+            Marketing wallet · Soon
+          </span>
+        </div>
       ) : null}
     </div>
   );
@@ -382,6 +416,7 @@ export function WebsitePreview(props: WebsitePreviewProps) {
           logoUrl={props.logoUrl}
           themeId={props.themeId}
           designTweaks={props.designTweaks}
+          tokenSupply={props.tokenSupply}
         />
       )}
     </div>

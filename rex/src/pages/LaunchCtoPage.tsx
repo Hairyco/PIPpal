@@ -38,6 +38,11 @@ import {
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
 import {
+  DEFAULT_TOKEN_SUPPLY,
+  TOKEN_SUPPLY_OPTIONS,
+  type TokenSupplyValue,
+} from '../data/tokenSupplyOptions';
+import {
   generateCtoBannerWithLogo,
   generateCtoLogoDataUrl,
   readImageFile,
@@ -81,6 +86,7 @@ export function LaunchCtoPage() {
   const [twitter, setTwitter] = useState('');
   const [website, setWebsite] = useState('');
   const [note, setNote] = useState('');
+  const [tokenSupply, setTokenSupply] = useState<TokenSupplyValue>(DEFAULT_TOKEN_SUPPLY);
   const [feeMode, setFeeMode] = useState<CreatorFeeMode>('creator');
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
@@ -176,6 +182,7 @@ export function LaunchCtoPage() {
     setTwitter('');
     setWebsite('');
     setNote('');
+    setTokenSupply(DEFAULT_TOKEN_SUPPLY);
     setFeeMode('creator');
     setBurnAmount('');
     setVestingAccepted(false);
@@ -560,6 +567,29 @@ export function LaunchCtoPage() {
                       />
                     </label>
                   </div>
+                  {mode === 'launch' ? (
+                    <label className="mt-3 block">
+                      <span className="text-[10px] font-semibold text-white/40">
+                        Total token supply
+                      </span>
+                      <select
+                        value={tokenSupply}
+                        onChange={(event) =>
+                          setTokenSupply(event.target.value as TokenSupplyValue)
+                        }
+                        className={`${fieldClass} mt-1 h-10 cursor-pointer text-sm`}
+                      >
+                        {TOKEN_SUPPLY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value} className="bg-[#090b14]">
+                            {option.label} ({option.shortLabel})
+                          </option>
+                        ))}
+                      </select>
+                      <span className="mt-1 block text-[10px] leading-relaxed text-white/30">
+                        Fixed at launch. It changes the number of tokens, not the project’s value.
+                      </span>
+                    </label>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -904,6 +934,7 @@ export function LaunchCtoPage() {
                     cloneUrl={cloneUrl || website}
                     themeId={onePagerThemeId}
                     designTweaks={designTweaks}
+                    tokenSupply={tokenSupply}
                   />
                   <button
                     type="button"
@@ -1140,6 +1171,7 @@ export function LaunchCtoPage() {
         cloneUrl={cloneUrl || website}
         themeId={onePagerThemeId}
         designTweaks={designTweaks}
+        tokenSupply={tokenSupply}
       />
     </div>
   );
