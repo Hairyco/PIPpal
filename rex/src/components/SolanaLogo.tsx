@@ -1,4 +1,7 @@
+import { useId } from 'react';
+
 export function SolanaLogo({ className }: { className?: string }) {
+  const gradId = useId().replace(/:/g, '');
   return (
     <svg
       className={className}
@@ -10,7 +13,7 @@ export function SolanaLogo({ className }: { className?: string }) {
       <circle cx="32" cy="32" r="32" fill="#000" />
       <defs>
         <linearGradient
-          id="rex-solana-grad"
+          id={gradId}
           x1="10"
           y1="54"
           x2="54"
@@ -23,15 +26,15 @@ export function SolanaLogo({ className }: { className?: string }) {
       </defs>
       <g transform="translate(8 13.5) scale(0.121)">
         <path
-          fill="url(#rex-solana-grad)"
+          fill={`url(#${gradId})`}
           d="M64.6,237.9c2.4-2.4,5.7-3.8,9.2-3.8h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5c-5.8,0-8.7-7-4.6-11.1L64.6,237.9z"
         />
         <path
-          fill="url(#rex-solana-grad)"
+          fill={`url(#${gradId})`}
           d="M64.6,3.8C67.1,1.4,70.4,0,73.8,0h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5c-5.8,0-8.7-7-4.6-11.1L64.6,3.8z"
         />
         <path
-          fill="url(#rex-solana-grad)"
+          fill={`url(#${gradId})`}
           d="M333.1,120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8,0-8.7,7-4.6,11.1l62.7,62.7c2.4,2.4,5.7,3.8,9.2,3.8h317.4c5.8,0,8.7-7,4.6-11.1L333.1,120.1z"
         />
       </g>

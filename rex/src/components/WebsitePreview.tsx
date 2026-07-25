@@ -1,3 +1,5 @@
+import { SolanaLogo } from './SolanaLogo';
+
 type WebsiteKind = 'onepager' | 'clone';
 
 type WebsitePreviewProps = {
@@ -10,6 +12,13 @@ type WebsitePreviewProps = {
   contract?: string;
   cloneUrl?: string;
 };
+
+function formatCaChip(contract?: string): string {
+  const mint = contract?.trim();
+  if (!mint) return 'CA pending';
+  if (mint.length <= 10) return `CA ${mint}`;
+  return `CA ${mint.slice(0, 4)}…${mint.slice(-4)}`;
+}
 
 export function WebsitePreview({
   kind,
@@ -24,9 +33,7 @@ export function WebsitePreview({
   const displayName = name.trim() || 'Your coin';
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : '$TICKER';
   const slug = ticker.trim().toLowerCase() || 'ticker';
-  const shortCa = contract?.trim()
-    ? `${contract.trim().slice(0, 4)}…${contract.trim().slice(-4)}`
-    : 'Mint pending';
+  const caLabel = formatCaChip(contract);
   const hostLabel =
     kind === 'clone' && cloneUrl?.trim()
       ? cloneUrl.replace(/^https?:\/\//, '').split('/')[0]
@@ -113,8 +120,12 @@ export function WebsitePreview({
           <span className="rounded-lg bg-[#c8ff3d] px-3 py-2 text-[11px] font-bold text-[#090b14]">
             Buy on CTOgo
           </span>
-          <span className="rounded-lg border border-white/[0.1] px-3 py-2 font-mono text-[10px] text-white/45">
-            {shortCa}
+          <span
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 py-2 font-mono text-[10px] text-white/55"
+            title="Solana contract address"
+          >
+            <SolanaLogo className="h-3.5 w-3.5 shrink-0" />
+            <span>{caLabel}</span>
           </span>
         </div>
       </div>

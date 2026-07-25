@@ -55,7 +55,8 @@ const VESTING_SCHEDULE = [
   { label: 'Day 90', amount: '35%' },
 ];
 
-const DEMO_CONTRACT = 'CALL7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK';
+/** Demo mint — avoids a "CALL…" truncation that reads like the word Call. */
+const DEMO_CONTRACT = '7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK2mNp';
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();

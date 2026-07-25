@@ -1,3 +1,5 @@
+import { SolanaLogo } from './SolanaLogo';
+
 type CoinPagePreviewProps = {
   name: string;
   ticker: string;
@@ -6,6 +8,13 @@ type CoinPagePreviewProps = {
   bannerUrl: string | null;
   contract?: string;
 };
+
+function formatCaChip(contract?: string): string {
+  const mint = contract?.trim();
+  if (!mint) return 'CA pending';
+  if (mint.length <= 10) return `CA ${mint}`;
+  return `CA ${mint.slice(0, 4)}…${mint.slice(-4)}`;
+}
 
 export function CoinPagePreview({
   name,
@@ -17,9 +26,7 @@ export function CoinPagePreview({
 }: CoinPagePreviewProps) {
   const displayName = name.trim() || 'Your coin';
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : '$TICKER';
-  const shortCa = contract?.trim()
-    ? `${contract.trim().slice(0, 4)}…${contract.trim().slice(-4)}`
-    : 'Mint pending';
+  const caLabel = formatCaChip(contract);
 
   return (
     <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#07090f] shadow-[0_0_0_1px_rgba(200,255,61,0.08)]">
@@ -71,8 +78,12 @@ export function CoinPagePreview({
           <span className="rounded-md border border-white/[0.1] px-2.5 py-1.5 text-[10px] font-semibold text-white/60">
             Chart
           </span>
-          <span className="rounded-md border border-white/[0.1] px-2.5 py-1.5 font-mono text-[10px] text-white/40">
-            {shortCa}
+          <span
+            className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.1] px-2.5 py-1.5 font-mono text-[10px] text-white/45"
+            title="Solana contract address"
+          >
+            <SolanaLogo className="h-3.5 w-3.5 shrink-0" />
+            <span>{caLabel}</span>
           </span>
         </div>
 
