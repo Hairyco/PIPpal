@@ -406,9 +406,7 @@ export function LaunchCtoPage() {
               ) : null}
 
               <label className="block">
-                <span className="text-[11px] font-semibold text-white/45">
-                  Mint / contract address
-                </span>
+                <span className="text-[11px] font-semibold text-white/45">Contract address</span>
                 <div className="mt-1.5 flex gap-2">
                   <input
                     value={contract}
@@ -417,7 +415,7 @@ export function LaunchCtoPage() {
                       setCoinReady(false);
                       setLookupError(null);
                     }}
-                    placeholder="Paste Solana mint…"
+                    placeholder="Contract address"
                     className={`${fieldClass} mt-0 font-mono text-[12px]`}
                   />
                   <button
