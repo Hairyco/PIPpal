@@ -28,6 +28,15 @@ type FlowStep = 'details' | 'fees' | 'burn' | 'marketing' | 'done';
 const fieldClass =
   'mt-1.5 h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
 
+const primaryBtnClass =
+  'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]';
+
+const secondaryBurnBtnClass =
+  'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-400 text-sm font-bold text-[#090b14] transition hover:bg-orange-300';
+
+const backBtnClass =
+  'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
+
 const VESTING_SCHEDULE = [
   { label: 'At launch', amount: '10%', note: 'Liquidity + community unlock' },
   { label: 'Day 7', amount: '20%', note: 'First cliff release' },
@@ -354,10 +363,7 @@ export function LaunchCtoPage() {
                   />
                 </label>
 
-                <button
-                  type="submit"
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
-                >
+                <button type="submit" className={primaryBtnClass}>
                   {mode === 'launch' ? 'Continue to fees' : 'Continue to burn'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -453,19 +459,16 @@ export function LaunchCtoPage() {
                 })}
               </div>
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
                   type="button"
                   onClick={() => setStep('details')}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 text-xs font-semibold text-white/45 hover:text-white"
+                  className={backBtnClass}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <button
-                  type="submit"
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-6"
-                >
+                <button type="submit" className={`${primaryBtnClass} sm:flex-1`}>
                   Continue to burn
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -592,11 +595,7 @@ export function LaunchCtoPage() {
               </div>
 
               {!burned ? (
-                <button
-                  type="button"
-                  onClick={onConfirmBurn}
-                  className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-orange-400 text-sm font-bold text-[#090b14] transition hover:bg-orange-300"
-                >
+                <button type="button" onClick={onConfirmBurn} className={secondaryBurnBtnClass}>
                   <Flame className="h-4 w-4" />
                   Burn V1 &amp; mint V2
                 </button>
@@ -612,20 +611,16 @@ export function LaunchCtoPage() {
                 </div>
               )}
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
                   type="button"
                   onClick={() => setStep(mode === 'launch' ? 'fees' : 'details')}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 text-xs font-semibold text-white/45 hover:text-white"
+                  className={backBtnClass}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <button
-                  type="button"
-                  onClick={onBurnContinue}
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-6"
-                >
+                <button type="button" onClick={onBurnContinue} className={`${primaryBtnClass} sm:flex-1`}>
                   Continue to marketing
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -736,19 +731,16 @@ export function LaunchCtoPage() {
                 </button>
               </div>
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
                   type="button"
                   onClick={() => setStep('burn')}
-                  className="inline-flex h-10 items-center justify-center gap-1.5 text-xs font-semibold text-white/45 hover:text-white"
+                  className={backBtnClass}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <button
-                  type="submit"
-                  className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-6"
-                >
+                <button type="submit" className={`${primaryBtnClass} sm:flex-1`}>
                   Finish launch
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -766,14 +758,14 @@ export function LaunchCtoPage() {
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link
                   to="/"
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
+                  className={`${primaryBtnClass} sm:w-auto sm:px-6`}
                 >
                   Back to home
                 </Link>
                 <button
                   type="button"
                   onClick={resetFlow}
-                  className="inline-flex h-10 items-center justify-center rounded-lg border border-white/[0.1] px-4 text-xs font-semibold text-white/60 hover:text-white"
+                  className={backBtnClass}
                 >
                   Start another
                 </button>
