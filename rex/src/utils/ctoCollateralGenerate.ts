@@ -87,7 +87,7 @@ export function generateCtoBannerDataUrl(input: {
 }): string {
   const name = input.projectName.trim() || 'Community Takeover';
   const ticker = input.ticker.trim().replace(/^\$/, '') || 'CTO';
-  const tagline = input.tagline?.trim() || 'Community takeover on CTOgo';
+  const tagline = input.tagline?.trim() || 'New mint. Same community.';
   const seed = hashSeed(name + ticker + tagline) + (input.salt ?? 0) * 17;
   const { hue, hue2 } = palette(seed);
 

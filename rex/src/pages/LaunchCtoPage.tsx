@@ -26,6 +26,11 @@ import {
   type CreatorFeeMode,
 } from '../data/chainConfig';
 import {
+  COLLATERAL_EXTRA_USD,
+  collateralBillSummary,
+  formatCollateralUsd,
+} from '../data/collateralPricing';
+import {
   generateCtoBannerWithLogo,
   generateCtoLogoDataUrl,
   readImageFile,
@@ -88,6 +93,9 @@ export function LaunchCtoPage() {
   const [editArt, setEditArt] = useState(false);
   const [websiteKind, setWebsiteKind] = useState<WebsiteKind>('onepager');
   const [cloneUrl, setCloneUrl] = useState('');
+  /** Extra gens after the free first logo/banner — billed at publish. */
+  const [extraLogoGens, setExtraLogoGens] = useState(0);
+  const [extraBannerGens, setExtraBannerGens] = useState(0);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
@@ -140,6 +148,10 @@ export function LaunchCtoPage() {
   const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
   const launchTier = FEE_TIERS[0];
   const canContinueCoin = coinReady && Boolean(name.trim() && ticker.trim());
+  const artBill = collateralBillSummary({
+    extraLogos: extraLogoGens,
+    extraBanners: extraBannerGens,
+  });
 
   const resetFlow = () => {
     setStep('coin');
@@ -167,6 +179,8 @@ export function LaunchCtoPage() {
     setEditArt(false);
     setWebsiteKind('onepager');
     setCloneUrl('');
+    setExtraLogoGens(0);
+    setExtraBannerGens(0);
     setFromCoinPage(false);
   };
 
@@ -254,13 +268,16 @@ export function LaunchCtoPage() {
   const regenerateLogo = () => {
     const next = logoSalt + 1;
     setLogoSalt(next);
+    setExtraLogoGens((n) => n + 1);
     const url = makeLogo(next);
+    // Refresh banner composite with the new logo only — not an extra banner charge.
     void makeBanner(bannerSalt, url);
   };
 
   const regenerateBanner = () => {
     const next = bannerSalt + 1;
     setBannerSalt(next);
+    setExtraBannerGens((n) => n + 1);
     void makeBanner(next);
   };
 
@@ -832,62 +849,96 @@ export function LaunchCtoPage() {
               </button>
 
               {editArt ? (
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={regenerateLogo}
-                    disabled={generatingLogo}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Logo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => logoRef.current?.click()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Upload logo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={regenerateBanner}
-                    disabled={generatingBanner}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    Banner
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => bannerRef.current?.click()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Upload banner
-                  </button>
-                  <input
-                    ref={logoRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(event) => {
-                      void onUploadLogo(event.target.files?.[0]);
-                      event.target.value = '';
-                    }}
-                  />
-                  <input
-                    ref={bannerRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(event) => {
-                      void onUploadBanner(event.target.files?.[0]);
-                      event.target.value = '';
-                    }}
-                  />
+                <div className="space-y-2">
+                  <p className="text-[11px] leading-relaxed text-white/40">
+                    First logo &amp; banner are free. Extra generates are added to your bill at
+                    publish ({formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)} / logo ·{' '}
+                    {formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)} / banner). Uploads stay free.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={regenerateLogo}
+                      disabled={generatingLogo}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                    >
+                      <Sparkles className="h-3.5 w-3.5" />
+                      New logo
+                      <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
+                        +{formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => logoRef.current?.click()}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload logo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={regenerateBanner}
+                      disabled={generatingBanner}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      New banner
+                      <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
+                        +{formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => bannerRef.current?.click()}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      Upload banner
+                    </button>
+                    <input
+                      ref={logoRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        void onUploadLogo(event.target.files?.[0]);
+                        event.target.value = '';
+                      }}
+                    />
+                    <input
+                      ref={bannerRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        void onUploadBanner(event.target.files?.[0]);
+                        event.target.value = '';
+                      }}
+                    />
+                  </div>
+                  {artBill.hasExtras ? (
+                    <div className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[#c8ff3d]/80">
+                        Added at publish
+                      </p>
+                      <ul className="mt-1 space-y-0.5 text-[11px] text-white/55">
+                        {artBill.lines.map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                      <p className="mt-1.5 text-[12px] font-bold text-[#d5ff69]">
+                        Est. {formatCollateralUsd(artBill.totalUsd)}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
+              ) : null}
+
+              {artBill.hasExtras && !editArt ? (
+                <p className="text-center text-[11px] text-white/40">
+                  Extra art on bill · est. {formatCollateralUsd(artBill.totalUsd)} at publish
+                </p>
               ) : null}
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -911,6 +962,21 @@ export function LaunchCtoPage() {
                 CTOgo
                 {websiteKind === 'clone' ? ' with a cloned site' : ' with a 1-pager'}.
               </p>
+              {artBill.hasExtras ? (
+                <div className="mx-auto mt-4 max-w-sm rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-left">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-white/40">
+                    Creative extras
+                  </p>
+                  <ul className="mt-1 space-y-0.5 text-[11px] text-white/55">
+                    {artBill.lines.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-1.5 text-[12px] font-bold text-[#d5ff69]">
+                    Est. {formatCollateralUsd(artBill.totalUsd)} · charged with launch
+                  </p>
+                </div>
+              ) : null}
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link to="/" className={`${primaryBtnClass} sm:w-auto sm:px-6`}>
                   Back to home
