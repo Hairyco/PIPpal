@@ -18,7 +18,6 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
-  TRADE_FEE_LABEL,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
@@ -172,8 +171,8 @@ export function LaunchCtoPage() {
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'launch'
-              ? 'Start a Solana community takeover. Marketing wallet included.'
-              : 'List an existing Solana coin or CTO that is already live.'}
+              ? 'Relaunch a Solana coin as a community takeover.'
+              : 'List a coin that is already live.'}
           </p>
 
           {step !== 'done' ? (
@@ -233,19 +232,16 @@ export function LaunchCtoPage() {
                     <div>
                       <p className="text-sm font-bold text-[#d5ff69]">Marketing wallet included</p>
                       <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                        Every launch creates a dedicated wallet. {TRADE_FEE_LABEL} on trades fills
-                        it. Next you choose whether creator fees stay with you or cashback traders —
-                        locked at deploy.
+                        Trade fees auto-fund marketing. Set up in the next steps.
                       </p>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="mt-5 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
-                  <p className="text-sm font-semibold text-white/80">Already a CTO?</p>
+                  <p className="text-sm font-semibold text-white/80">Already live?</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/45">
-                    Paste the mint address and community link. If it has no marketing wallet yet,
-                    you can enable one after listing.
+                    Paste the mint and socials. Add a marketing wallet later.
                   </p>
                 </div>
               )}
@@ -256,16 +252,12 @@ export function LaunchCtoPage() {
                     Prefilled from coin page
                   </p>
                   <p className="mt-1 text-[12px] text-white/55">
-                    Name, ticker, and V1 mint were copied from the listing. Review and continue.
+                    Review and continue.
                   </p>
                 </div>
               ) : null}
 
               <form onSubmit={onDetailsContinue} className="mt-6 space-y-4">
-                <p className="text-[11px] text-white/35">
-                  Demo: continue with empty fields — nothing is required to walk the flow.
-                </p>
-
                 <label className="block">
                   <span className="text-[11px] font-semibold text-white/45">Project name</span>
                   <input
@@ -383,9 +375,8 @@ export function LaunchCtoPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-[#d5ff69]">Creator fee destination</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                      Choose who receives the creator/trader pool cut (
-                      {formatBpsPercent(launchTier.creatorPoolBps)} at launch). This is locked
-                      on-chain at deploy and cannot be changed later.
+                      Where the {formatBpsPercent(launchTier.creatorPoolBps)} pool cut goes. Locked
+                      at deploy.
                     </p>
                     <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
                       <Link
@@ -452,9 +443,8 @@ export function LaunchCtoPage() {
                             {option.subtitle}
                           </p>
                           <ul className="mt-2 space-y-1 text-[11px] leading-relaxed text-white/55">
-                            <li>Pays to: {option.destination}</li>
-                            <li>{option.migration}</li>
-                            <li>Best for: {option.useCase}</li>
+                            <li>{option.destination}</li>
+                            <li className="text-white/40">Best for {option.useCase.toLowerCase()}</li>
                           </ul>
                         </div>
                       </div>
@@ -493,7 +483,7 @@ export function LaunchCtoPage() {
                   <div>
                     <p className="text-sm font-bold text-orange-200">Burn V1 → receive V2</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                      Connect the wallet that holds the old {displayTicker} mint
+                      Connect the wallet holding old {displayTicker}
                       {contract.trim() ? (
                         <>
                           {' '}
@@ -503,7 +493,7 @@ export function LaunchCtoPage() {
                           )
                         </>
                       ) : null}
-                      . Burning V1 mints matching V2 supply for the CTO relaunch.
+                      . Burn V1 to mint the same amount of V2.
                     </p>
                   </div>
                 </div>
@@ -554,7 +544,7 @@ export function LaunchCtoPage() {
                     {burnAmount || '0'} {ticker.trim() || 'TOKEN'}
                   </span>
                 </div>
-                <p className="mt-2 text-[11px] text-white/35">1:1 burn ratio for this demo.</p>
+                <p className="mt-2 text-[11px] text-white/35">1:1 ratio.</p>
               </div>
 
               <div className="rounded-xl border border-amber-400/30 bg-amber-400/[0.07] p-4">
@@ -563,11 +553,9 @@ export function LaunchCtoPage() {
                     <ShieldAlert className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-bold text-amber-100">Vesting disclaimer</p>
+                    <p className="text-sm font-bold text-amber-100">V2 is vested</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                      V2 tokens from the V1 burn are <strong className="text-white/80">vested</strong>.
-                      They cannot be sold immediately. This protects new investors from an instant
-                      dump by old holders at relaunch.
+                      Burned holders unlock on the schedule below — no instant dump at relaunch.
                     </p>
                   </div>
                 </div>
@@ -598,8 +586,7 @@ export function LaunchCtoPage() {
                     className="mt-0.5 h-4 w-4 rounded border-white/20 bg-white/5 accent-[#c8ff3d]"
                   />
                   <span className="text-[12px] leading-relaxed text-white/60">
-                    I understand my V2 allocation is vested and I cannot dump unlocked tokens on new
-                    buyers at launch.
+                    I understand my V2 is vested.
                   </span>
                 </label>
               </div>
@@ -620,7 +607,7 @@ export function LaunchCtoPage() {
                     Burn recorded (demo)
                   </p>
                   <p className="mt-1 text-[11px] text-white/50">
-                    Vested V2 queued for {displayTicker}. Unlock follows the schedule above.
+                    Vested V2 queued for {displayTicker}.
                   </p>
                 </div>
               )}
@@ -643,9 +630,6 @@ export function LaunchCtoPage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-              <p className="text-center text-[11px] text-white/30">
-                Demo: you can continue without burning or accepting vesting.
-              </p>
             </div>
           ) : null}
 
@@ -659,8 +643,7 @@ export function LaunchCtoPage() {
                   <div>
                     <p className="text-sm font-bold text-[#d5ff69]">Launch marketing</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                      Clone or rebuild the site, upload a logo and banner. You can skip anything
-                      for this demo.
+                      Add a site, logo, and banner. Skip anything.
                     </p>
                   </div>
                 </div>
@@ -683,7 +666,7 @@ export function LaunchCtoPage() {
                 >
                   <p className="text-xs font-bold text-white/85">Clone site</p>
                   <p className="mt-1 text-[11px] text-white/40">
-                    Preview a CTO-ready clone with new CA / socials.
+                    Rebuild with new CA and socials.
                   </p>
                 </button>
                 <button
@@ -692,7 +675,7 @@ export function LaunchCtoPage() {
                 >
                   <p className="text-xs font-bold text-white/85">Simple 1-pager</p>
                   <p className="mt-1 text-[11px] text-white/40">
-                    Clean landing page if the old site is messy.
+                    Fresh landing page.
                   </p>
                 </button>
               </div>
@@ -777,15 +760,8 @@ export function LaunchCtoPage() {
             <div className="mt-6 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-4 py-6 text-center">
               <p className="text-sm font-bold text-[#d5ff69]">CTO launch queued</p>
               <p className="mt-1.5 text-xs leading-relaxed text-white/50">
-                {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is set for
-                review — V1 burn / vested V2
-                {burned ? ' recorded' : ' skipped in demo'}
-                {mode === 'launch' ? (
-                  <>
-                    , fee mode: {selectedFeeMode.title.toLowerCase()}
-                  </>
-                ) : null}
-                , marketing assets saved.
+                {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is in for
+                review.
               </p>
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link
