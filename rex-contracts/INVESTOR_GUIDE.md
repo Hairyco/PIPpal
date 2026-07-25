@@ -114,6 +114,7 @@ Rust unit tests in `fees.rs` and `curve.rs`.
   5. Assert post-migration fee accounts still route platform + marketing + pool cuts  
 - Rex migration protocol fee: **2 SOL** to Rex treasury (CTOgo revenue) — charged once at graduate  
 - Migration create fee: **~0.20 SOL** (**0.15 SOL** Raydium create + rent buffer; cap **0.25 SOL**) — **required** or pool creation fails  
+- **Investor migration notification (product — do not ship migrate without this):** when a coin starts graduating to Raydium, notify holders/investors (in-app + optional push/email/Telegram) that the coin is migrating, with clear status (migrating → live on Raydium) and a link to the new pool/chart  
 
 **Later / not prioritized:**
 

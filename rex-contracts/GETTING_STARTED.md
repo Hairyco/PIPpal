@@ -141,6 +141,7 @@ This is stricter than Pump.fun, where dumped creators can keep collecting until 
 - Post-Raydium fee continuity (Token-2022 / AMM hooks) so marketing tax survives graduation  
 - Rex migration protocol fee: **2 SOL** from curve → Rex treasury (CTOgo migration revenue)  
 - Migrate create fee: **~0.20 SOL** from curve (**0.15 SOL** Raydium CPMM create + rent buffer; cap **0.25 SOL**) — **required** or Raydium pool creation fails  
+- **Notify investors when a coin migrates** — in-app (and optional push) so holders know graduation is happening and where to trade after Raydium  
 
 **Later:**
 
