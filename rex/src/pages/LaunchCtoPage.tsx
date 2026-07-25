@@ -5,22 +5,29 @@ import {
   ArrowRight,
   Check,
   Flame,
-  Globe,
   ImagePlus,
   Lock,
+  RefreshCw,
   ShieldAlert,
   Split,
+  Sparkles,
   Upload,
   Users,
   Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
+import { CoinPagePreview } from '../components/CoinPagePreview';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
+import {
+  generateCtoBannerWithLogo,
+  generateCtoLogoDataUrl,
+  readImageFile,
+} from '../utils/ctoCollateralGenerate';
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'details' | 'fees' | 'burn' | 'marketing' | 'done';
@@ -59,9 +66,13 @@ export function LaunchCtoPage() {
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
   const [burned, setBurned] = useState(false);
-  const [sourceSiteUrl, setSourceSiteUrl] = useState('');
+  const [pageBlurb, setPageBlurb] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [logoSalt, setLogoSalt] = useState(0);
+  const [bannerSalt, setBannerSalt] = useState(0);
+  const [generatingLogo, setGeneratingLogo] = useState(false);
+  const [generatingBanner, setGeneratingBanner] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
@@ -113,9 +124,11 @@ export function LaunchCtoPage() {
     setBurnAmount('');
     setVestingAccepted(false);
     setBurned(false);
-    setSourceSiteUrl('');
+    setPageBlurb('');
     setLogoPreview(null);
     setBannerPreview(null);
+    setLogoSalt(0);
+    setBannerSalt(0);
   };
 
   const switchMode = (next: LaunchMode) => {
@@ -146,13 +159,109 @@ export function LaunchCtoPage() {
     setStep('done');
   };
 
-  const readPreview = (file: File | undefined, setter: (url: string | null) => void) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') setter(reader.result);
+  const makeLogo = (salt = logoSalt) => {
+    setGeneratingLogo(true);
+    try {
+      const url = generateCtoLogoDataUrl({
+        projectName: name || 'CTOgo Coin',
+        ticker: ticker || 'CTO',
+        salt,
+      });
+      setLogoPreview(url);
+      return url;
+    } finally {
+      setGeneratingLogo(false);
+    }
+  };
+
+  const makeBanner = async (salt = bannerSalt, logoUrl?: string | null) => {
+    setGeneratingBanner(true);
+    try {
+      const url = await generateCtoBannerWithLogo({
+        projectName: name || 'Community Takeover',
+        ticker: ticker || 'CTO',
+        logoDataUrl: logoUrl ?? logoPreview,
+        tagline: pageBlurb || note || 'Community takeover on CTOgo',
+        salt,
+      });
+      setBannerPreview(url);
+    } finally {
+      setGeneratingBanner(false);
+    }
+  };
+
+  const regenerateLogo = () => {
+    const next = logoSalt + 1;
+    setLogoSalt(next);
+    const url = makeLogo(next);
+    void makeBanner(bannerSalt, url);
+  };
+
+  const regenerateBanner = () => {
+    const next = bannerSalt + 1;
+    setBannerSalt(next);
+    void makeBanner(next);
+  };
+
+  useEffect(() => {
+    if (step !== 'marketing') return;
+
+    if (!pageBlurb.trim() && note.trim()) {
+      setPageBlurb(note.trim());
+    }
+
+    const projectName = name || 'CTOgo Coin';
+    const projectTicker = ticker || 'CTO';
+    const tagline = (pageBlurb || note || 'Community takeover on CTOgo').trim();
+
+    let logo = logoPreview;
+    if (!logo) {
+      logo = generateCtoLogoDataUrl({
+        projectName,
+        ticker: projectTicker,
+        salt: logoSalt,
+      });
+      setLogoPreview(logo);
+    }
+
+    if (bannerPreview) return;
+
+    let cancelled = false;
+    void generateCtoBannerWithLogo({
+      projectName: name || 'Community Takeover',
+      ticker: projectTicker,
+      logoDataUrl: logo,
+      tagline,
+      salt: bannerSalt,
+    }).then((banner) => {
+      if (!cancelled) setBannerPreview(banner);
+    });
+
+    return () => {
+      cancelled = true;
     };
-    reader.readAsDataURL(file);
+    // Seed once when entering marketing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const onUploadLogo = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const url = await readImageFile(file);
+      setLogoPreview(url);
+      void makeBanner(bannerSalt, url);
+    } catch {
+      // ignore invalid uploads in demo
+    }
+  };
+
+  const onUploadBanner = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      setBannerPreview(await readImageFile(file));
+    } catch {
+      // ignore invalid uploads in demo
+    }
   };
 
   return (
@@ -630,106 +739,145 @@ export function LaunchCtoPage() {
 
           {step === 'marketing' ? (
             <form onSubmit={onMarketingFinish} className="mt-6 space-y-4">
-              <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.07] p-4">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
-                    <Globe className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold text-[#d5ff69]">Launch marketing</p>
-                    <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                      Add a site, logo, and banner. Skip anything.
-                    </p>
+              <div>
+                <p className="text-sm font-bold text-white">Build your CTOgo page</p>
+                <p className="mt-1 text-[12px] text-white/45">
+                  We host this for you. Preview updates as you go.
+                </p>
+              </div>
+
+              <CoinPagePreview
+                name={name}
+                ticker={ticker}
+                blurb={pageBlurb || note}
+                logoUrl={logoPreview}
+                bannerUrl={bannerPreview}
+                contract={contract}
+              />
+
+              <label className="block">
+                <span className="text-[11px] font-semibold text-white/45">Page blurb</span>
+                <textarea
+                  value={pageBlurb}
+                  onChange={(event) => setPageBlurb(event.target.value)}
+                  rows={2}
+                  placeholder="One line about the takeover…"
+                  className="mt-1.5 w-full resize-y rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                />
+              </label>
+
+              <div className="space-y-3">
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] font-semibold text-white/70">Logo</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={regenerateLogo}
+                        disabled={generatingLogo}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2.5 text-[10px] font-bold text-[#d5ff69] disabled:opacity-50"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        Generate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => logoRef.current?.click()}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] px-2.5 text-[10px] font-semibold text-white/60 hover:text-white"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Upload
+                      </button>
+                      {logoPreview ? (
+                        <button
+                          type="button"
+                          onClick={regenerateLogo}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.1] text-white/45 hover:text-white"
+                          title="Regenerate"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                  <input
+                    ref={logoRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      void onUploadLogo(event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                  <div className="mt-2 flex h-20 items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/[0.1] bg-black/20">
+                    {logoPreview ? (
+                      <img src={logoPreview} alt="" className="h-16 w-16 rounded-xl object-cover" />
+                    ) : (
+                      <span className="text-[11px] text-white/30">No logo yet</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] font-semibold text-white/70">Banner</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={regenerateBanner}
+                        disabled={generatingBanner}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2.5 text-[10px] font-bold text-[#d5ff69] disabled:opacity-50"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        Generate
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => bannerRef.current?.click()}
+                        className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] px-2.5 text-[10px] font-semibold text-white/60 hover:text-white"
+                      >
+                        <Upload className="h-3 w-3" />
+                        Upload
+                      </button>
+                      {bannerPreview ? (
+                        <button
+                          type="button"
+                          onClick={regenerateBanner}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.1] text-white/45 hover:text-white"
+                          title="Regenerate"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                  <input
+                    ref={bannerRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      void onUploadBanner(event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                  <div className="mt-2 flex h-24 items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/[0.1] bg-black/20">
+                    {bannerPreview ? (
+                      <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] text-white/30">
+                        <ImagePlus className="h-3.5 w-3.5" />
+                        No banner yet
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <label className="block">
-                <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
-                <input
-                  value={sourceSiteUrl}
-                  onChange={(event) => setSourceSiteUrl(event.target.value)}
-                  placeholder="https://old-meme-site.com"
-                  className={fieldClass}
-                />
-              </label>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-left transition hover:border-[#c8ff3d]/30"
-                >
-                  <p className="text-xs font-bold text-white/85">Clone site</p>
-                  <p className="mt-1 text-[11px] text-white/40">
-                    Rebuild with new CA and socials.
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-left transition hover:border-[#c8ff3d]/30"
-                >
-                  <p className="text-xs font-bold text-white/85">Simple 1-pager</p>
-                  <p className="mt-1 text-[11px] text-white/40">
-                    Fresh landing page.
-                  </p>
-                </button>
-              </div>
-
-              <div>
-                <span className="text-[11px] font-semibold text-white/45">Logo</span>
-                <input
-                  ref={logoRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    readPreview(event.target.files?.[0], setLogoPreview);
-                    event.target.value = '';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => logoRef.current?.click()}
-                  className="mt-1.5 flex h-28 w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-white/[0.12] bg-white/[0.03] transition hover:border-[#c8ff3d]/35"
-                >
-                  {logoPreview ? (
-                    <img src={logoPreview} alt="" className="h-full w-full object-contain p-3" />
-                  ) : (
-                    <>
-                      <Upload className="h-4 w-4 text-white/35" />
-                      <span className="text-[11px] text-white/40">Upload logo</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div>
-                <span className="text-[11px] font-semibold text-white/45">Banner</span>
-                <input
-                  ref={bannerRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    readPreview(event.target.files?.[0], setBannerPreview);
-                    event.target.value = '';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => bannerRef.current?.click()}
-                  className="mt-1.5 flex h-32 w-full flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-dashed border-white/[0.12] bg-white/[0.03] transition hover:border-[#c8ff3d]/35"
-                >
-                  {bannerPreview ? (
-                    <img src={bannerPreview} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <>
-                      <ImagePlus className="h-4 w-4 text-white/35" />
-                      <span className="text-[11px] text-white/40">Upload banner</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <p className="text-[11px] text-white/30">
+                Generate is instant for now. AI image models can plug into the same buttons later.
+              </p>
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
