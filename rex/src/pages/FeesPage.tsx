@@ -21,8 +21,8 @@ export function FeesPage() {
         <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Fee guidelines</h1>
         <p className="mt-2 text-sm text-white/50">{TRADE_FEE_LABEL}</p>
 
-        <section className="mt-8 space-y-2">
-          <h2 className="text-sm font-semibold text-white/80">Dynamic tiers</h2>
+        <section id="dynamic-tiers" className="mt-8 scroll-mt-20 space-y-2">
+          <h2 className="text-sm font-semibold text-white/80">Dynamic trade fees</h2>
           {FEE_TIERS.map((tier) => (
             <div
               key={tier.id}
@@ -109,7 +109,7 @@ export function FeesPage() {
           </div>
         </section>
 
-        <section className="mt-8 rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">
+        <section id="abandonment" className="mt-8 scroll-mt-20 rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">
           <h2 className="text-sm font-semibold text-rose-200">{ABANDONMENT_RULE.title}</h2>
           <p className="mt-1 text-sm font-medium text-white/85">{ABANDONMENT_RULE.thresholdLabel}</p>
           <p className="mt-2 text-[12px] leading-relaxed text-white/55">{ABANDONMENT_RULE.action}</p>
@@ -135,8 +135,8 @@ export function FeesPage() {
           ))}
         </section>
 
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold text-white/80">Summary</h2>
+        <section id="fee-guidelines" className="mt-8 scroll-mt-20">
+          <h2 className="text-sm font-semibold text-white/80">Fee guidelines</h2>
           <ul className="mt-2 space-y-2 text-[13px] text-white/50">
             {FEE_GUIDELINES.map((line) => (
               <li key={line} className="rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2">

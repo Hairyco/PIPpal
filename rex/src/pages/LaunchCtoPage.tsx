@@ -16,13 +16,10 @@ import {
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
-  ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
-  FEE_GUIDELINES,
   FEE_TIERS,
   TRADE_FEE_LABEL,
   formatBpsPercent,
-  totalFeeBps,
   type CreatorFeeMode,
 } from '../data/chainConfig';
 
@@ -383,13 +380,35 @@ export function LaunchCtoPage() {
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
                     <Split className="h-4 w-4" />
                   </span>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-sm font-bold text-[#d5ff69]">Creator fee destination</p>
                     <p className="mt-1 text-[12px] leading-relaxed text-white/55">
                       Choose who receives the creator/trader pool cut (
                       {formatBpsPercent(launchTier.creatorPoolBps)} at launch). This is locked
                       on-chain at deploy and cannot be changed later.
                     </p>
+                    <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
+                      <Link
+                        to="/fees#dynamic-tiers"
+                        className="text-[#c8ff3d] underline-offset-2 hover:underline"
+                      >
+                        Dynamic trade fees
+                      </Link>
+                      <span className="text-white/20">·</span>
+                      <Link
+                        to="/fees#fee-guidelines"
+                        className="text-[#c8ff3d] underline-offset-2 hover:underline"
+                      >
+                        Fee guidelines
+                      </Link>
+                      <span className="text-white/20">·</span>
+                      <Link
+                        to="/fees#abandonment"
+                        className="text-[#c8ff3d] underline-offset-2 hover:underline"
+                      >
+                        Abandonment trigger
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -442,60 +461,6 @@ export function LaunchCtoPage() {
                     </button>
                   );
                 })}
-              </div>
-
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
-                  Dynamic trade fees
-                </p>
-                <p className="mt-1 text-[12px] text-white/50">
-                  Total tax scales with market cap. Marketing never turns off.
-                </p>
-                <ul className="mt-3 space-y-2">
-                  {FEE_TIERS.map((tier) => (
-                    <li
-                      key={tier.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-white/[0.06] bg-black/20 px-3 py-2"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-white/85">{tier.label}</p>
-                        <p className="text-[10px] text-white/40">{tier.marketCap}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-bold tabular-nums text-[#d5ff69]">
-                          {formatBpsPercent(totalFeeBps(tier))}
-                        </p>
-                        <p className="text-[10px] text-white/35">
-                          {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
-                          {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
-                          {formatBpsPercent(tier.platformBps)} Rex
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="rounded-xl border border-rose-400/30 bg-rose-500/[0.07] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-rose-300">
-                  Fee guidelines · {ABANDONMENT_RULE.title}
-                </p>
-                <p className="mt-1.5 text-sm font-semibold text-white/85">
-                  {ABANDONMENT_RULE.thresholdLabel}
-                </p>
-                <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                  {ABANDONMENT_RULE.action}
-                </p>
-                <ul className="mt-3 space-y-1.5 text-[11px] leading-relaxed text-white/50">
-                  <li>{ABANDONMENT_RULE.redirectMarketing}</li>
-                  <li>{ABANDONMENT_RULE.redirectTraders}</li>
-                  <li>{ABANDONMENT_RULE.contrast}</li>
-                </ul>
-                <ul className="mt-3 space-y-1 border-t border-white/[0.06] pt-3 text-[11px] text-white/45">
-                  {FEE_GUIDELINES.map((line) => (
-                    <li key={line}>· {line}</li>
-                  ))}
-                </ul>
               </div>
 
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between">
