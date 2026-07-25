@@ -14,8 +14,8 @@ Dynamic per-trade tax on Native V2 CTOs.
 | Destinations | Marketing wallet + Creator/trader pool + Rex platform |
 | Mode lock | Mode A or Mode B chosen at deploy (irreversible) |
 | Abandonment | Creator dump 90%+ → only their pool cut revoked; Rex + marketing continue |
-| Graduation | **Raydium-first** (not a private CTOgo AMM) |
-| Migration fee | **~0.20 SOL** required (Raydium CPMM 0.15 + rent buffer) · cap **0.25 SOL** |
+| Graduation | **Raydium-first** — curve SOL/tokens seed pool · **LP burned** |
+| Migration create fee | **~0.20 SOL** Raydium CPMM create + rent (cap 0.25) — rest of curve SOL is **pool liquidity** |
 
 ---
 
@@ -89,7 +89,7 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
-6. Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is **~0.20 SOL** from curve reserves to pay Raydium CPMM create fee (0.15 SOL) + rent/tx buffer — **required** or coins cannot graduate.
+6. Graduation is Raydium-first (Pump-style): remaining curve SOL + tokens **seed the Raydium pool**; **LP is burned/locked**. ~0.20 SOL only pays Raydium’s create-pool fee — required or the pool cannot open.
 7. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
 
 ---
@@ -116,22 +116,40 @@ Coins graduate from the CTOgo bonding curve to a **Raydium** pool. CTOgo is **no
 | Shared Solana routing depth | High build, audit, and MEV risk |
 | Traders expect graduated coins on aggregators | Private pools feel like a dead end for CTOs |
 
-**Engineering priority:** ship `migrate_to_raydium` with LP burn/lock and post-migration fee hooks (Token-2022 / AMM hooks) **before** any custom AMM.
+**Engineering priority:** ship `migrate_to_raydium` that **(1)** pays Raydium create fee, **(2)** seeds the pool with remaining curve SOL + tokens, **(3)** burns LP, **(4)** keeps post-migration fee hooks — **before** any custom AMM.
 
 Revisit an owned AMM only when graduating volume is steady, most volume already happens on CTOgo UI, Raydium fee leakage is material vs build cost, and custom pools can still be indexed.
 
-### Migration fee policy (required for Raydium)
+### Graduation liquidity (required — Pump-style)
 
-Raydium **will not** open a CPMM pool without paying their create-pool fee. CTOgo must reserve this from curve SOL at graduate or migration fails.
+This is the core graduate feature. Missing it means empty charts and rug risk.
+
+| Step | What happens |
+|------|----------------|
+| 1 | Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL |
+| 2 | Deposit **remaining** curve SOL + remaining bonding-curve tokens into the Raydium pool |
+| 3 | **Burn (or permanently lock) 100% of LP tokens** |
+| 4 | Close the bonding curve — trading continues on Raydium / Jupiter |
+
+| Rule |
+|------|
+| Migrate **fails** if liquidity is not seeded into the pool |
+| Migrate **fails** if LP remains withdrawable by any EOA |
+| Only the create-pool cost leaves the curve outside the pool; the rest is locked liquidity |
+| Same guarantee traders expect from Pump.fun graduation |
+
+### Migration create-fee (Raydium pass-through)
+
+Raydium **will not** open a CPMM pool without paying their create-pool fee. That fee is **not** a substitute for seeding liquidity.
 
 | | |
 |---|---|
 | Raydium CPMM create-pool fee | **0.15 SOL** (protocol) |
 | Rent + priority-fee buffer | **~0.05 SOL** |
-| **Total reserved at migrate** | **~0.20 SOL** |
+| **Create cost at migrate** | **~0.20 SOL** |
 | Cap | **0.25 SOL** if Raydium raises fees / congestion |
 | Paid from | Bonding-curve SOL reserves |
-| Nature | Pass-through Raydium cost — **not** a CTOgo revenue skim |
+| Remaining curve SOL | **Deposited as Raydium pool liquidity** (then LP burned) |
 
 Sources: [Raydium fee comparison](https://docs.raydium.io/reference/fee-comparison), [Protocol fees](https://docs.raydium.io/ray/protocol-fees).
 
@@ -161,6 +179,7 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Migration fee invariant | Graduation cannot disable tax |
 | Mint authority revoke/lock | No post-migrate supply inflation |
 | LP burn/lock on graduation | Founder cannot pull Raydium liquidity |
+| Curve → pool liquidity seed | Remaining curve SOL + tokens must fund the Raydium pool |
 | Marketing vault PDA + whitelist disburse | Marketing SOL not a free deployer wallet |
 | Creator withdraw gates | Mode B never pays founder; dumpers lose cut |
 | Checked fee math + treasury constraint | Fees cannot be redirected mid-tx |
@@ -178,10 +197,10 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Marketing floor | 0.15% (never turns off) | YES | Scale `marketingBps: 15` |
 | Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
-| Raydium graduation | Bonding curve → Raydium (Raydium-first) | YES | Not gated by fee mode; no private AMM yet |
-| Migration fee | ~0.20 SOL required (0.15 Raydium + buffer) · cap 0.25 | YES | Pass-through; without it migrate fails |
+| Raydium graduation | Bonding curve → Raydium pool seed + LP burn | YES | Pump-style locked liquidity |
+| Migration create fee | ~0.20 SOL Raydium create + buffer · cap 0.25 | YES | Pass-through; rest of curve SOL is LP |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
 | Marketing vault sweep | $500 auto-spend · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |
-| Security controls | Mint lock, LP lock, PDA vaults, fee invariant | YES | See Security controls section |
+| Security controls | Mint lock, LP seed+burn, PDA vaults, fee invariant | YES | See Security controls section |
 
-**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` (must fund Raydium create-pool fee from curve) + post-grad fee hooks — not a custom AMM.
+**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` (**seed pool + burn LP** + pay Raydium create fee + post-grad fee hooks) — not a custom AMM.

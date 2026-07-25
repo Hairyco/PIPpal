@@ -5,6 +5,7 @@ import {
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
   FEE_TIERS,
+  GRADUATION_LIQUIDITY_POLICY,
   GRADUATION_POLICY,
   MARKETING_VAULT_SWEEP_RULE,
   MIGRATION_FEE_POLICY,
@@ -68,6 +69,26 @@ export function FeesPage() {
           <p className="mt-3 text-[11px] font-semibold text-[#c8ff3d]/80">
             {GRADUATION_POLICY.engineeringPriority}
           </p>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">
+          <h2 className="text-sm font-semibold text-[#d5ff69]">{GRADUATION_LIQUIDITY_POLICY.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">
+            {GRADUATION_LIQUIDITY_POLICY.summary}
+          </p>
+          <ol className="mt-3 list-decimal space-y-1.5 pl-4 text-[12px] text-white/55">
+            {GRADUATION_LIQUIDITY_POLICY.steps.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+          <ul className="mt-3 space-y-1.5 text-[12px] text-white/55">
+            {GRADUATION_LIQUIDITY_POLICY.rules.map((rule) => (
+              <li key={rule} className="flex gap-2">
+                <span className="text-[#c8ff3d]">✓</span>
+                <span>{rule}</span>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">

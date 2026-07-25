@@ -137,9 +137,9 @@ This is stricter than Pump.fun, where dumped creators can keep collecting until 
 
 **Next (Raydium-first priority):**
 
-- `migrate_to_raydium` + LP burn/lock  
+- `migrate_to_raydium` that **seeds the Raydium pool** with remaining curve SOL + tokens, **burns LP**, and pays Raydium’s create fee  
 - Post-Raydium fee continuity (Token-2022 / AMM hooks) so marketing tax survives graduation  
-- Migrate fee: **~0.20 SOL** from curve reserves (**0.15 SOL** Raydium CPMM create + rent buffer; cap **0.25 SOL**) — **required** or Raydium pool creation fails  
+- Migrate create fee: **~0.20 SOL** from curve (**0.15 SOL** Raydium CPMM create + rent buffer; cap **0.25 SOL**) — **required** or Raydium pool creation fails  
 
 **Later:**
 
@@ -169,10 +169,10 @@ In Mode A, yes — the 0.20% pool accumulates in the creator vault and the found
 Currently fixed in `constants.rs`. Any change requires deploying a new program version (visible on-chain).
 
 **Where do coins graduate?**  
-**Raydium** — CTOgo is Raydium-first for visibility (Jupiter, charts, bots). There is no private CTOgo DEX yet. Trade tax is designed to continue after migration so the marketing wallet keeps filling.
+**Raydium** — CTOgo is Raydium-first for visibility (Jupiter, charts, bots). There is no private CTOgo DEX yet. At graduate, **remaining curve SOL and tokens become the Raydium pool**, and **LP is burned** so liquidity cannot be pulled (same core idea as Pump.fun). Trade tax continues after migration so the marketing wallet keeps filling.
 
 **Is there a migration fee?**  
-**Yes — required.** Raydium charges about **0.15 SOL** to create a CPMM pool, plus rent. CTOgo reserves about **0.20 SOL** from bonding-curve liquidity at graduation to pay that (cap **0.25 SOL**). Without it, the pool cannot open and the coin cannot migrate. This is a Raydium pass-through cost, not a CTOgo skim.
+**Yes — Raydium’s create-pool cost only (~0.20 SOL).** That opens the pool. It is **not** CTOgo taking the liquidity. The rest of the curve SOL stays in the pool as locked liquidity.
 
 **Has it been audited?**  
 Not yet — this is MVP / proof of concept. Budget for audit before mainnet.

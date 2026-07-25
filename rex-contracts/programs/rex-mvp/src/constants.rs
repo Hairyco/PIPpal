@@ -21,15 +21,22 @@
 //! # Post-migration (bonding curve → Raydium)
 //! CTOgo is **Raydium-first**: graduate to Raydium for Jupiter / DexScreener visibility.
 //! Do **not** prioritize a private CTOgo AMM until organic volume justifies it.
+//!
+//! # Graduation liquidity (Pump-style — required)
+//! 1. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL.
+//! 2. Deposit **remaining** curve SOL + remaining curve tokens into the Raydium pool.
+//! 3. **Burn (or permanently lock) 100% of LP tokens** — migrate must fail otherwise.
+//! 4. Close the bonding curve. Further trades go through Raydium / Jupiter.
+//! Without seeding liquidity + burning LP, graduation is broken (empty pool / rug risk).
+//!
 //! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
 //! continue on post-migration volume (Token-2022 transfer fee / AMM hook → same PDAs).
 //! Migration must not zero taxes, revoke marketing, or hand fee authority to a free EOA.
-//! Migrate fee: **~0.20 SOL** from curve reserves — **required**.
-//! Raydium CPMM create-pool fee is **0.15 SOL** + ~0.05 SOL rent/priority buffer (cap 0.25 SOL).
-//! Without funding Raydium's fee, `migrate_to_raydium` cannot open the pool.
+//! Migrate create fee: **~0.20 SOL** from curve — **required** for Raydium pool open
+//! (0.15 SOL create-pool fee + ~0.05 SOL rent/priority; cap 0.25 SOL).
 //!
 //! # Engineering priority
-//! Ship `migrate_to_raydium` (pay Raydium create fee from curve) + post-grad fee hooks + LP burn/lock before any custom AMM.
+//! Ship `migrate_to_raydium` (create fee + **seed pool** + **burn LP** + fee hooks) before any custom AMM.
 //!
 //! # Abandonment trigger
 //! If the creator wallet holds under `CREATOR_MIN_HOLD_BPS` of initial allocation
@@ -88,6 +95,12 @@ pub const MIGRATION_FEE_LAMPORTS: u64 =
 
 /// Hard cap if Raydium raises create fee or congestion needs more priority fees (~0.25 SOL).
 pub const MIGRATION_FEE_LAMPORTS_CAP: u64 = 250_000_000;
+
+/// Product invariant: remaining curve SOL + tokens must seed the Raydium pool at graduate.
+pub const GRADUATION_SEED_POOL_REQUIRED: bool = true;
+
+/// Product invariant: 100% of Raydium LP from graduation must be burned or permanently locked.
+pub const GRADUATION_BURN_LP_REQUIRED: bool = true;
 
 /// Creator must retain at least this share of initial allocation (basis points of 10_000).
 /// Below 10% remaining (= dumped 90%+) → abandonment trigger fires.

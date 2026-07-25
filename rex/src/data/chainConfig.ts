@@ -132,7 +132,7 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
-  'Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is ~0.20 SOL paid from curve reserves to cover Raydium CPMM pool creation (0.15 SOL fee + rent/tx buffer) — required or coins cannot graduate.',
+  'Graduation is Raydium-first. ~0.20 SOL pays Raydium pool creation; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
   `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
@@ -171,7 +171,7 @@ export const GRADUATION_POLICY = {
   why:
     'For a standalone CTO platform, post-graduate discovery matters more than owning the AMM. Pump.fun built PumpSwap after it already owned the attention funnel; CTOgo does not.',
   engineeringPriority:
-    'Ship migrate_to_raydium with LP burn/lock and post-migration fee hooks before any custom AMM.',
+    'Ship migrate_to_raydium that (1) pays Raydium create fee, (2) seeds the pool with remaining curve SOL + tokens, (3) burns LP, (4) keeps post-migration fee hooks — before any custom AMM.',
   revisitWhen: [
     'Steady graduating volume (not a handful of coins)',
     'Most volume already happens on CTOgo UI rather than Jupiter',
@@ -202,10 +202,32 @@ export const MIGRATION_FEE_POLICY = {
   raydiumCreatePoolSol: RAYDIUM_CREATE_POOL_FEE_SOL,
   rentBufferSol: RAYDIUM_MIGRATE_RENT_BUFFER_SOL,
   summary:
-    'Raydium requires a pool-creation fee (~0.15 SOL for CPMM) plus account rent. CTOgo reserves ~0.20 SOL from curve liquidity at graduation to pay that — otherwise the migrate instruction cannot open the pool and the coin is stuck on the curve.',
+    'Raydium requires a pool-creation fee (~0.15 SOL for CPMM) plus account rent. CTOgo pays ~0.20 SOL from curve reserves at graduation for that create cost only — then the remaining curve SOL and unsold tokens seed the Raydium pool as locked liquidity.',
   contrast:
-    'This is a pass-through Raydium cost, not a CTOgo skim. Legacy Pump→Raydium once took ~6 SOL; PumpSwap today is ~0.015 SOL because they own the AMM. On Raydium we must budget their real create-pool fee.',
-  paidFrom: 'Bonding-curve SOL reserves at migrate_to_raydium',
+    'This create fee is a pass-through Raydium cost, not CTOgo taking the pool. The core graduate step (Pump-style) is still: curve liquidity → AMM pool → burn LP.',
+  paidFrom: 'Bonding-curve SOL reserves at migrate_to_raydium (create cost only)',
+} as const;
+
+/**
+ * Core graduation invariant (Pump.fun-style): curve reserves become Raydium liquidity; LP is burned.
+ * Without this, graduated coins have no tradable pool and founders could rug LP.
+ */
+export const GRADUATION_LIQUIDITY_POLICY = {
+  title: 'Graduation liquidity (required)',
+  summary:
+    'When a coin graduates, almost all bonding-curve SOL and the remaining curve tokens move into a Raydium pool as initial liquidity. The LP tokens are burned (or permanently locked) so nobody — founder or CTOgo — can pull that liquidity.',
+  steps: [
+    'Pay Raydium create-pool fee (~0.20 SOL) from curve SOL.',
+    'Deposit remaining curve SOL + remaining bonding-curve tokens into the new Raydium CPMM pool.',
+    'Burn (or permanently lock) 100% of LP tokens received.',
+    'Close the bonding curve — further trades go through Raydium / Jupiter.',
+  ],
+  rules: [
+    'Liquidity seed is mandatory — migrate must fail if curve SOL/tokens are not deposited into the pool.',
+    'LP burn/lock is mandatory — migrate must fail if LP remains withdrawable by any EOA.',
+    'Only the Raydium create-pool cost (~0.20 SOL) is spent outside the pool; the rest of curve SOL is pool liquidity.',
+    'Same model Pump.fun used: graduate with deep locked liquidity, not an empty chart.',
+  ],
 } as const;
 
 /** Confirmed product rule: graduation does not end Rex taxation. */
@@ -214,10 +236,11 @@ export const POST_MIGRATION_FEES = {
   summary:
     'Bonding-curve → Raydium graduation does not disable fees. Platform, marketing, and creator/trader pool cuts keep applying on post-migration volume.',
   mechanism:
-    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps on Raydium still route Rex + marketing + pool cuts to the same PDAs. Engineering priority: migrate_to_raydium + these hooks — not a custom AMM.',
+    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps on Raydium still route Rex + marketing + pool cuts to the same PDAs. Engineering priority: migrate_to_raydium (seed pool + burn LP + fee hooks) — not a custom AMM.',
   rules: [
     'Destination is Raydium (Raydium-first) — not a private CTOgo AMM.',
-    'Migrate reserves ~0.20 SOL from the curve for Raydium CPMM create fee + rent (required; cap 0.25 SOL).',
+    'Curve SOL + remaining tokens seed the Raydium pool; LP is burned/locked (required).',
+    'Only ~0.20 SOL of curve SOL pays Raydium create fee; the rest is pool liquidity.',
     'Marketing floor stays on (never 0%) after graduation.',
     'Rex platform cut continues into the protocol treasury.',
     'Mode A / Mode B routing for the pool cut is unchanged by migration.',
@@ -248,9 +271,9 @@ export const SECURITY_CONTROLS = [
   },
   {
     id: 'lp-lock',
-    title: 'LP lock / burn on graduation',
+    title: 'LP seed + burn on graduation',
     detail:
-      'Raydium LP tokens from curve migration are burned or time-locked — founder cannot pull liquidity and dump against taxed holders.',
+      'migrate_to_raydium deposits remaining curve SOL and curve tokens into Raydium, then burns or permanently locks 100% of LP. Instruction fails if liquidity is not seeded or LP remains withdrawable — same core guarantee as Pump.fun graduation.',
   },
   {
     id: 'marketing-pda',

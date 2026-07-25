@@ -95,13 +95,19 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'raydium-first',
         question: 'Where do coins go when they graduate?',
         answer:
-          'Raydium. CTOgo is Raydium-first: the bonding curve migrates into a Raydium pool so coins stay visible on Jupiter, DexScreener, and Solana routers. We are not building a private CTOgo DEX yet — discovery matters more than owning the AMM for a standalone CTO platform.',
+          'Raydium. The bonding curve’s remaining SOL and tokens become the Raydium pool’s liquidity, and the LP tokens are burned so nobody can pull that liquidity — the same core graduate model Pump.fun used. We are not building a private CTOgo DEX yet; Raydium keeps coins visible on Jupiter and DexScreener.',
+      },
+      {
+        id: 'graduation-liquidity',
+        question: 'What happens to the bonding-curve money at graduation?',
+        answer:
+          'Almost all of it becomes locked Raydium liquidity. A small slice (~0.20 SOL) pays Raydium’s pool-creation fee so the pool can open. Everything else from the curve SOL vault, plus remaining curve tokens, is deposited into the pool. The LP tokens are burned (or permanently locked). If liquidity is not seeded or LP is not burned, migration must fail — otherwise the coin would graduate with no depth and could be rugged.',
       },
       {
         id: 'migration-fee',
         question: 'Is there a migration fee like Pump.fun?',
         answer:
-          'Yes — because we graduate to Raydium, not a private AMM. Raydium charges about 0.15 SOL to create a CPMM pool, plus rent. CTOgo reserves about 0.20 SOL from the bonding-curve liquidity at graduation to pay that (cap 0.25 SOL). Without it, the pool cannot open and the coin cannot migrate. This is a Raydium pass-through cost, not a CTOgo skim.',
+          'Yes for Raydium’s create-pool cost only (~0.15 SOL + rent ≈ 0.20 SOL, cap 0.25 SOL), paid from curve SOL. That is not CTOgo taking the liquidity. The important part is still Pump-style: remaining curve funds seed the pool and LP is burned.',
       },
       {
         id: 'after-migration',
@@ -119,7 +125,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'own-amm',
         question: 'Will CTOgo build its own PumpSwap-style DEX?',
         answer:
-          'Not now. Pump built PumpSwap after it already owned the attention funnel. CTOgo ships Raydium graduation plus fee continuity first. A private AMM is only worth revisiting when most volume already happens on CTOgo and fee leakage on Raydium outweighs build cost.',
+          'Not now. Pump built PumpSwap after it already owned the attention funnel. CTOgo ships Raydium graduation (seed pool + burn LP + fee continuity) first. A private AMM is only worth revisiting when most volume already happens on CTOgo and fee leakage on Raydium outweighs build cost.',
       },
     ],
   },
@@ -131,7 +137,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'investor-basics',
         question: 'What basic protections do Native CTOgo coins have?',
         answer:
-          'Mint authority is revoked or locked (nobody can print more supply). Freeze authority is revoked (nobody can freeze wallets). Token metadata is locked so name, ticker, and logo cannot be silently changed later. On graduation, LP is burned or locked so liquidity cannot be pulled as a rug.',
+          'Mint authority is revoked or locked (nobody can print more supply). Freeze authority is revoked (nobody can freeze wallets). Token metadata is locked so name, ticker, and logo cannot be silently changed later. On graduation, curve liquidity seeds the Raydium pool and LP is burned or locked so liquidity cannot be pulled as a rug.',
       },
       {
         id: 'safety-vs-marketing',
