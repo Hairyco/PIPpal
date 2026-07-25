@@ -116,7 +116,7 @@ export function LaunchCtoPage() {
         ticker: qTicker.replace(/^\$/, '') || 'CTO',
       });
       setLogoPreview(logo);
-      setPageBlurb(`${qName || 'This coin'} community takeover on CTOgo.`);
+      setPageBlurb(`${qName || 'This coin'}. New mint. Same community.`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -241,7 +241,7 @@ export function LaunchCtoPage() {
         projectName: name || 'Community Takeover',
         ticker: ticker || 'CTO',
         logoDataUrl: logoUrl ?? logoPreview,
-        tagline: pageBlurb || note || 'Community takeover on CTOgo',
+        tagline: pageBlurb || note || 'New mint. Same community.',
         salt,
       });
       setBannerPreview(url);
@@ -288,7 +288,7 @@ export function LaunchCtoPage() {
       projectName: name || 'Community Takeover',
       ticker: projectTicker,
       logoDataUrl: logo,
-      tagline: (pageBlurb || note || 'Community takeover on CTOgo').trim(),
+      tagline: (pageBlurb || note || 'New mint. Same community.').trim(),
       salt: bannerSalt,
     }).then((banner) => {
       if (!cancelled) setBannerPreview(banner);
