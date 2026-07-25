@@ -75,8 +75,11 @@ export function FeesPage() {
           <p className="mt-2 text-[13px] leading-relaxed text-white/70">{MIGRATION_FEE_POLICY.summary}</p>
           <p className="mt-2 text-[11px] leading-relaxed text-white/40">{MIGRATION_FEE_POLICY.contrast}</p>
           <p className="mt-3 font-mono text-[12px] text-[#d5ff69]">
-            Default {MIGRATION_FEE_POLICY.defaultSol} SOL · cap {MIGRATION_FEE_POLICY.capSol} SOL
+            ~{MIGRATION_FEE_POLICY.defaultSol} SOL (Raydium{' '}
+            {MIGRATION_FEE_POLICY.raydiumCreatePoolSol} + rent buffer{' '}
+            {MIGRATION_FEE_POLICY.rentBufferSol}) · cap {MIGRATION_FEE_POLICY.capSol} SOL
           </p>
+          <p className="mt-1 text-[10px] text-white/35">{MIGRATION_FEE_POLICY.paidFrom}</p>
         </section>
 
         <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">

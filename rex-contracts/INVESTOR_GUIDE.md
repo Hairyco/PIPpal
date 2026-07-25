@@ -107,7 +107,7 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 
 - Token-2022 transfer hooks (tax on wallet-to-wallet transfers) — **required for post-Raydium fee continuity**  
 - `migrate_to_raydium` instruction with fee-invariant asserts + LP burn/lock  
-- Migration fee: default **0 SOL**, cap **~0.015 SOL** for pool creation only (not a liquidity skim)
+- Migration fee: **~0.20 SOL** from curve reserves (**0.15 SOL** Raydium CPMM create fee + rent buffer; cap **0.25 SOL**) — **required** or pool creation fails  
 
 **Later / not prioritized:**
 
@@ -129,7 +129,7 @@ Bonding-curve → **Raydium** graduation **does not end taxation**. CTOgo does *
 | Creator/trader pool | Continues under locked Mode A or Mode B |
 | Abandonment | Still revokes dumped creator cut post-migration |
 | Migration instruction | Must fail if fee accounts missing, zeroed, or redirected to an EOA |
-| Migration fee | Default 0 SOL; cap ~0.015 SOL for pool creation only |
+| Migration fee | ~0.20 SOL from curve (0.15 Raydium create + buffer); cap 0.25 — required |
 | Destination | Raydium (Raydium-first) — not a private CTOgo AMM |
 
 Mechanism (planned): Token-2022 transfer fee and/or AMM hooks route the same bps split into the existing PDAs.
@@ -172,7 +172,8 @@ Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`, 
 - [ ] Verify only project founder can withdraw creator fees  
 - [ ] Verify `protocol_treasury` constrained to config value on buy/sell  
 - [ ] Verify migration (when shipped) cannot zero platform or marketing fees  
-- [ ] Verify migrate fee is 0 or ≤0.015 SOL pool-cost only (no multi-SOL skim)  
+- [ ] Verify migrate fee funds Raydium create-pool (~0.15 SOL) + rent from curve; fail migrate if underfunded  
+- [ ] Verify migrate fee ≤ 0.25 SOL cap and is not diverted as CTOgo treasury skim  
 - [ ] Verify mint authority revoked/locked at launch and graduation  
 - [ ] Verify Raydium LP burned or time-locked on graduation  
 - [ ] Review authority centralization (expected for MVP; harden for prod)  

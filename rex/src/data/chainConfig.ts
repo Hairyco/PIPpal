@@ -132,7 +132,7 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
-  'Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is 0 SOL by default, or up to ~0.015 SOL only if needed for pool creation — not a liquidity skim.',
+  'Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is ~0.20 SOL paid from curve reserves to cover Raydium CPMM pool creation (0.15 SOL fee + rent/tx buffer) — required or coins cannot graduate.',
   `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
@@ -181,20 +181,31 @@ export const GRADUATION_POLICY = {
 } as const;
 
 /**
- * One-time migrate fee — pool creation cost only, not a Pump-style liquidity skim.
- * Default 0; may charge up to ~0.015 SOL if Raydium pool creation requires it.
+ * One-time migrate fee — required to create the Raydium CPMM pool.
+ * Without this, graduation fails: Raydium charges ~0.15 SOL create-pool fee + rent.
+ * Paid from bonding-curve SOL reserves at migrate (not a CTOgo revenue skim).
+ * Source: https://docs.raydium.io/reference/fee-comparison · protocol-fees
  */
-export const MIGRATION_FEE_SOL = 0;
-export const MIGRATION_FEE_SOL_CAP = 0.015;
+export const RAYDIUM_CREATE_POOL_FEE_SOL = 0.15;
+/** Account rent + priority-fee buffer on top of Raydium's create-pool fee. */
+export const RAYDIUM_MIGRATE_RENT_BUFFER_SOL = 0.05;
+/** Total reserved from curve at graduate (~0.20 SOL typical). */
+export const MIGRATION_FEE_SOL =
+  RAYDIUM_CREATE_POOL_FEE_SOL + RAYDIUM_MIGRATE_RENT_BUFFER_SOL;
+/** Hard ceiling if Raydium raises create fee or congestion needs more priority fees. */
+export const MIGRATION_FEE_SOL_CAP = 0.25;
 
 export const MIGRATION_FEE_POLICY = {
-  title: 'Migration fee',
+  title: 'Migration fee (required)',
   defaultSol: MIGRATION_FEE_SOL,
   capSol: MIGRATION_FEE_SOL_CAP,
+  raydiumCreatePoolSol: RAYDIUM_CREATE_POOL_FEE_SOL,
+  rentBufferSol: RAYDIUM_MIGRATE_RENT_BUFFER_SOL,
   summary:
-    'No large graduation skim. Default migrate fee is 0 SOL. If pool creation needs a network/pool cost, charge at most ~0.015 SOL (PumpSwap-scale) — never a multi-SOL take from curve liquidity.',
+    'Raydium requires a pool-creation fee (~0.15 SOL for CPMM) plus account rent. CTOgo reserves ~0.20 SOL from curve liquidity at graduation to pay that — otherwise the migrate instruction cannot open the pool and the coin is stuck on the curve.',
   contrast:
-    'Legacy Pump→Raydium paths once took ~6 SOL from the pool. CTOgo keeps almost all curve SOL as Raydium liquidity so marketing-funded coins stay deep.',
+    'This is a pass-through Raydium cost, not a CTOgo skim. Legacy Pump→Raydium once took ~6 SOL; PumpSwap today is ~0.015 SOL because they own the AMM. On Raydium we must budget their real create-pool fee.',
+  paidFrom: 'Bonding-curve SOL reserves at migrate_to_raydium',
 } as const;
 
 /** Confirmed product rule: graduation does not end Rex taxation. */
@@ -206,7 +217,7 @@ export const POST_MIGRATION_FEES = {
     'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps on Raydium still route Rex + marketing + pool cuts to the same PDAs. Engineering priority: migrate_to_raydium + these hooks — not a custom AMM.',
   rules: [
     'Destination is Raydium (Raydium-first) — not a private CTOgo AMM.',
-    'Migrate fee defaults to 0 SOL (cap ~0.015 SOL for pool creation only).',
+    'Migrate reserves ~0.20 SOL from the curve for Raydium CPMM create fee + rent (required; cap 0.25 SOL).',
     'Marketing floor stays on (never 0%) after graduation.',
     'Rex platform cut continues into the protocol treasury.',
     'Mode A / Mode B routing for the pool cut is unchanged by migration.',

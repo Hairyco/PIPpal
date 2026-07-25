@@ -15,7 +15,7 @@ Dynamic per-trade tax on Native V2 CTOs.
 | Mode lock | Mode A or Mode B chosen at deploy (irreversible) |
 | Abandonment | Creator dump 90%+ → only their pool cut revoked; Rex + marketing continue |
 | Graduation | **Raydium-first** (not a private CTOgo AMM) |
-| Migration fee | **0 SOL** default · cap **~0.015 SOL** for pool creation only |
+| Migration fee | **~0.20 SOL** required (Raydium CPMM 0.15 + rent buffer) · cap **0.25 SOL** |
 
 ---
 
@@ -89,7 +89,7 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
-6. Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is 0 SOL by default, or up to ~0.015 SOL only if needed for pool creation — not a liquidity skim.
+6. Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is **~0.20 SOL** from curve reserves to pay Raydium CPMM create fee (0.15 SOL) + rent/tx buffer — **required** or coins cannot graduate.
 7. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
 
 ---
@@ -120,13 +120,20 @@ Coins graduate from the CTOgo bonding curve to a **Raydium** pool. CTOgo is **no
 
 Revisit an owned AMM only when graduating volume is steady, most volume already happens on CTOgo UI, Raydium fee leakage is material vs build cost, and custom pools can still be indexed.
 
-### Migration fee policy
+### Migration fee policy (required for Raydium)
+
+Raydium **will not** open a CPMM pool without paying their create-pool fee. CTOgo must reserve this from curve SOL at graduate or migration fails.
 
 | | |
 |---|---|
-| Default | **0 SOL** |
-| Cap | **~0.015 SOL** — pool creation / network cost only |
-| Not allowed | Multi-SOL skim from curve liquidity (legacy Pump→Raydium ~6 SOL style) |
+| Raydium CPMM create-pool fee | **0.15 SOL** (protocol) |
+| Rent + priority-fee buffer | **~0.05 SOL** |
+| **Total reserved at migrate** | **~0.20 SOL** |
+| Cap | **0.25 SOL** if Raydium raises fees / congestion |
+| Paid from | Bonding-curve SOL reserves |
+| Nature | Pass-through Raydium cost — **not** a CTOgo revenue skim |
+
+Sources: [Raydium fee comparison](https://docs.raydium.io/reference/fee-comparison), [Protocol fees](https://docs.raydium.io/ray/protocol-fees).
 
 ---
 
@@ -172,9 +179,9 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
 | Raydium graduation | Bonding curve → Raydium (Raydium-first) | YES | Not gated by fee mode; no private AMM yet |
-| Migration fee | 0 SOL default · ≤0.015 SOL pool-cost cap | YES | Not a liquidity skim |
+| Migration fee | ~0.20 SOL required (0.15 Raydium + buffer) · cap 0.25 | YES | Pass-through; without it migrate fails |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
 | Marketing vault sweep | $500 auto-spend · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |
 | Security controls | Mint lock, LP lock, PDA vaults, fee invariant | YES | See Security controls section |
 
-**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` + post-grad fee hooks — not a custom AMM.
+**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` (must fund Raydium create-pool fee from curve) + post-grad fee hooks — not a custom AMM.

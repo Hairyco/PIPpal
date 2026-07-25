@@ -101,7 +101,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'migration-fee',
         question: 'Is there a migration fee like Pump.fun?',
         answer:
-          'No large skim. The migrate fee defaults to 0 SOL. If Raydium pool creation needs a small network/pool cost, we may charge at most about 0.015 SOL — similar to Pump’s current PumpSwap graduate fee — never a multi-SOL take from your curve liquidity.',
+          'Yes — because we graduate to Raydium, not a private AMM. Raydium charges about 0.15 SOL to create a CPMM pool, plus rent. CTOgo reserves about 0.20 SOL from the bonding-curve liquidity at graduation to pay that (cap 0.25 SOL). Without it, the pool cannot open and the coin cannot migrate. This is a Raydium pass-through cost, not a CTOgo skim.',
       },
       {
         id: 'after-migration',

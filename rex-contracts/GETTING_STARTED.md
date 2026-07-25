@@ -139,7 +139,7 @@ This is stricter than Pump.fun, where dumped creators can keep collecting until 
 
 - `migrate_to_raydium` + LP burn/lock  
 - Post-Raydium fee continuity (Token-2022 / AMM hooks) so marketing tax survives graduation  
-- Migrate fee: **0 SOL** by default, at most **~0.015 SOL** if pool creation needs it  
+- Migrate fee: **~0.20 SOL** from curve reserves (**0.15 SOL** Raydium CPMM create + rent buffer; cap **0.25 SOL**) — **required** or Raydium pool creation fails  
 
 **Later:**
 
@@ -171,8 +171,8 @@ Currently fixed in `constants.rs`. Any change requires deploying a new program v
 **Where do coins graduate?**  
 **Raydium** — CTOgo is Raydium-first for visibility (Jupiter, charts, bots). There is no private CTOgo DEX yet. Trade tax is designed to continue after migration so the marketing wallet keeps filling.
 
-**Is there a big migration fee?**  
-No. Default is **0 SOL**. Cap is about **0.015 SOL** only if pool creation needs it — not a skim of curve liquidity.
+**Is there a migration fee?**  
+**Yes — required.** Raydium charges about **0.15 SOL** to create a CPMM pool, plus rent. CTOgo reserves about **0.20 SOL** from bonding-curve liquidity at graduation to pay that (cap **0.25 SOL**). Without it, the pool cannot open and the coin cannot migrate. This is a Raydium pass-through cost, not a CTOgo skim.
 
 **Has it been audited?**  
 Not yet — this is MVP / proof of concept. Budget for audit before mainnet.
