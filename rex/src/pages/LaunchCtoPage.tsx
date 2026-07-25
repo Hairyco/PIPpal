@@ -31,6 +31,13 @@ import {
   formatCollateralUsd,
 } from '../data/collateralPricing';
 import {
+  DEFAULT_ONE_PAGER_THEME_ID,
+  ONE_PAGER_DESIGN_LIMITS,
+  ONE_PAGER_THEMES,
+  parseOnePagerDesignNote,
+  type OnePagerThemeId,
+} from '../data/onePagerTheme';
+import {
   generateCtoBannerWithLogo,
   generateCtoLogoDataUrl,
   readImageFile,
@@ -99,6 +106,10 @@ export function LaunchCtoPage() {
   const [siteGenerated, setSiteGenerated] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
+  const [onePagerThemeId, setOnePagerThemeId] = useState<OnePagerThemeId>(
+    DEFAULT_ONE_PAGER_THEME_ID,
+  );
+  const [designNote, setDesignNote] = useState('');
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
@@ -155,7 +166,7 @@ export function LaunchCtoPage() {
     extraLogos: extraLogoGens,
     extraBanners: extraBannerGens,
   });
-
+  const designTweaks = parseOnePagerDesignNote(designNote);
   const resetFlow = () => {
     setStep('coin');
     setName('');
@@ -187,6 +198,8 @@ export function LaunchCtoPage() {
     setSiteGenerated(false);
     setPreviewOpen(false);
     setGeneratingSite(false);
+    setOnePagerThemeId(DEFAULT_ONE_PAGER_THEME_ID);
+    setDesignNote('');
     setFromCoinPage(false);
   };
 
@@ -889,6 +902,8 @@ export function LaunchCtoPage() {
                     bannerUrl={bannerPreview}
                     contract={contract}
                     cloneUrl={cloneUrl || website}
+                    themeId={onePagerThemeId}
+                    designTweaks={designTweaks}
                   />
                   <button
                     type="button"
@@ -897,6 +912,59 @@ export function LaunchCtoPage() {
                   >
                     View full page
                   </button>
+
+                  {websiteKind === 'onepager' ? (
+                    <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                      <div>
+                        <p className="text-[11px] font-semibold text-white/55">Colour scheme</p>
+                        <p className="mt-0.5 text-[10px] text-white/35">
+                          Free — template stays the same, only accents change.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {ONE_PAGER_THEMES.map((theme) => {
+                            const active = onePagerThemeId === theme.id;
+                            return (
+                              <button
+                                key={theme.id}
+                                type="button"
+                                title={theme.label}
+                                onClick={() => setOnePagerThemeId(theme.id)}
+                                className={`h-8 w-8 rounded-full border-2 transition ${
+                                  active
+                                    ? 'border-white scale-110'
+                                    : 'border-white/20 hover:border-white/50'
+                                }`}
+                                style={{ backgroundColor: theme.swatch }}
+                                aria-label={theme.label}
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/55">
+                          Design note for AI
+                        </span>
+                        <p className="mt-0.5 text-[10px] leading-relaxed text-white/35">
+                          {ONE_PAGER_DESIGN_LIMITS.allowed} {ONE_PAGER_DESIGN_LIMITS.blocked}
+                        </p>
+                        <textarea
+                          value={designNote}
+                          onChange={(event) =>
+                            setDesignNote(event.target.value.slice(0, ONE_PAGER_DESIGN_LIMITS.maxChars))
+                          }
+                          rows={2}
+                          maxLength={ONE_PAGER_DESIGN_LIMITS.maxChars}
+                          placeholder="e.g. louder title, bigger mascot, hide tokenomics…"
+                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                        />
+                        <span className="mt-1 block text-right font-mono text-[10px] text-white/30">
+                          {designNote.length}/{ONE_PAGER_DESIGN_LIMITS.maxChars}
+                        </span>
+                      </label>
+                    </div>
+                  ) : null}
 
                   <button
                     type="button"
@@ -1070,6 +1138,8 @@ export function LaunchCtoPage() {
         bannerUrl={bannerPreview}
         contract={contract}
         cloneUrl={cloneUrl || website}
+        themeId={onePagerThemeId}
+        designTweaks={designTweaks}
       />
     </div>
   );

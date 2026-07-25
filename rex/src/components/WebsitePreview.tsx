@@ -1,5 +1,13 @@
 import { X } from 'lucide-react';
 import { SolanaLogo } from './SolanaLogo';
+import {
+  applyPunchyBlurb,
+  DEFAULT_DESIGN_TWEAKS,
+  DEFAULT_ONE_PAGER_THEME_ID,
+  getOnePagerTheme,
+  type OnePagerDesignTweaks,
+  type OnePagerThemeId,
+} from '../data/onePagerTheme';
 
 export type WebsiteKind = 'onepager' | 'clone';
 
@@ -12,8 +20,9 @@ type WebsitePreviewProps = {
   bannerUrl: string | null;
   contract?: string;
   cloneUrl?: string;
-  /** Compact wizard card vs full-viewport site mock. */
   variant?: 'card' | 'fullscreen';
+  themeId?: OnePagerThemeId;
+  designTweaks?: OnePagerDesignTweaks;
 };
 
 function formatCaChip(contract?: string): string {
@@ -25,104 +34,238 @@ function formatCaChip(contract?: string): string {
 
 function usePreviewLabels(props: WebsitePreviewProps) {
   const displayName = props.name.trim() || 'Your coin';
-  const displayTicker = props.ticker.trim()
-    ? `$${props.ticker.trim().toUpperCase()}`
-    : '$TICKER';
-  const slug = props.ticker.trim().toLowerCase() || 'ticker';
+  const rawTicker = props.ticker.trim().replace(/^\$/, '').toUpperCase() || 'TICKER';
+  const displayTicker = `$${rawTicker}`;
+  const slug = rawTicker.toLowerCase() || 'ticker';
   const caLabel = formatCaChip(props.contract);
   const hostLabel =
     props.kind === 'clone' && props.cloneUrl?.trim()
       ? props.cloneUrl.replace(/^https?:\/\//, '').split('/')[0]
       : `${slug}.ctogo.app`;
-  const blurbText = props.blurb.trim() || 'New mint. Same community.';
-  return { displayName, displayTicker, slug, caLabel, hostLabel, blurbText };
+  return { displayName, displayTicker, rawTicker, slug, caLabel, hostLabel };
 }
 
-function OnePagerBody({
+/** Meme-coin 1-pager — SHIBCAT-style fixed layout, theme colors only. */
+function MemeOnePagerBody({
   variant,
   displayName,
   displayTicker,
-  blurbText,
+  rawTicker,
+  blurb,
   caLabel,
   logoUrl,
-  bannerUrl,
+  themeId,
+  designTweaks = DEFAULT_DESIGN_TWEAKS,
 }: {
   variant: 'card' | 'fullscreen';
   displayName: string;
   displayTicker: string;
-  blurbText: string;
+  rawTicker: string;
+  blurb: string;
   caLabel: string;
   logoUrl: string | null;
-  bannerUrl: string | null;
+  themeId?: OnePagerThemeId;
+  designTweaks?: OnePagerDesignTweaks;
 }) {
   const full = variant === 'fullscreen';
+  const theme = getOnePagerTheme(themeId ?? DEFAULT_ONE_PAGER_THEME_ID);
+  const blurbText = designTweaks.punchyBlurb
+    ? applyPunchyBlurb(blurb, rawTicker)
+    : blurb.trim() || 'New mint. Same community.';
+  const heroLine = blurbText.toUpperCase();
+  const titleSize = designTweaks.loudTitle
+    ? full
+      ? 'text-5xl sm:text-7xl'
+      : 'text-3xl'
+    : full
+      ? 'text-4xl sm:text-5xl'
+      : 'text-2xl';
+  const mascotSize = designTweaks.bigMascot
+    ? full
+      ? 'h-52 w-52 sm:h-64 sm:w-64'
+      : 'h-28 w-28'
+    : full
+      ? 'h-40 w-40 sm:h-48 sm:w-48'
+      : 'h-20 w-20';
+
   return (
-    <>
-      <div className={`relative w-full bg-[#0c0f18] ${full ? 'h-[42vh] min-h-[220px] sm:h-[48vh]' : 'h-32'}`}>
-        {bannerUrl ? (
-          <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[11px] text-white/25">
-            Banner
+    <div style={{ backgroundColor: theme.bg, color: theme.text }} className="min-h-full">
+      {/* Nav */}
+      <div
+        className={`flex items-center justify-between gap-3 border-b border-white/10 ${
+          full ? 'px-4 py-3 sm:px-6' : 'px-3 py-2'
+        }`}
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <div
+            className={`shrink-0 overflow-hidden rounded-full border-2 ${
+              full ? 'h-9 w-9' : 'h-7 w-7'
+            }`}
+            style={{ borderColor: theme.accent }}
+          >
+            {logoUrl ? (
+              <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full w-full place-items-center text-[8px] font-bold opacity-40">
+                GO
+              </div>
+            )}
           </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#07090f] via-[#07090f]/20 to-transparent" />
+          <span
+            className={`truncate font-black uppercase tracking-tight ${
+              full ? 'text-base sm:text-lg' : 'text-xs'
+            }`}
+            style={{ color: theme.accent }}
+          >
+            {displayName}
+          </span>
+        </div>
+        <span
+          className={`shrink-0 rounded-full font-black uppercase ${
+            full ? 'px-4 py-2 text-xs sm:text-sm' : 'px-2.5 py-1.5 text-[10px]'
+          }`}
+          style={{
+            background: `linear-gradient(180deg, ${theme.accentSoft}, ${theme.accent})`,
+            color: theme.buyText,
+          }}
+        >
+          Buy {displayTicker}
+        </span>
       </div>
 
-      <div className={`relative text-center ${full ? '-mt-16 px-6 pb-16 sm:-mt-20' : '-mt-10 px-4 pb-4'}`}>
-        <div
-          className={`mx-auto grid place-items-center overflow-hidden rounded-2xl border-2 border-[#07090f] bg-white/[0.06] ${
-            full ? 'h-24 w-24 sm:h-28 sm:w-28' : 'h-16 w-16'
+      {/* Hero */}
+      <div className={`text-center ${full ? 'px-4 pb-8 pt-8 sm:pt-10' : 'px-3 pb-4 pt-4'}`}>
+        <p
+          className={`mx-auto max-w-lg font-black uppercase leading-tight tracking-wide ${
+            full ? 'text-sm sm:text-base' : 'text-[10px]'
           }`}
+          style={{ color: theme.muted }}
         >
-          {logoUrl ? (
-            <img src={logoUrl} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <span className="text-xs font-bold text-white/30">Logo</span>
-          )}
-        </div>
-        <h2
-          className={`mt-3 font-serif font-bold text-white ${
-            full ? 'text-3xl sm:text-4xl' : 'text-xl'
-          }`}
+          {heroLine}
+        </p>
+        <h1
+          className={`mt-3 font-black uppercase leading-none tracking-tight ${titleSize}`}
+          style={{ color: theme.accent }}
         >
           {displayName}
-        </h2>
-        <p className={`font-semibold text-[#c8ff3d] ${full ? 'mt-1 text-lg' : 'text-sm'}`}>
-          {displayTicker}
-        </p>
-        <p
-          className={`mx-auto mt-2 max-w-md leading-relaxed text-white/55 ${
-            full ? 'text-sm sm:text-base' : 'text-[12px]'
-          }`}
-        >
-          {blurbText}
-        </p>
-        <div className={`mt-4 flex flex-wrap items-center justify-center gap-2 ${full ? 'mt-6 gap-3' : ''}`}>
+        </h1>
+
+        <div className={`mx-auto mt-5 grid place-items-center ${mascotSize}`}>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-full w-full object-contain drop-shadow-[0_12px_40px_rgba(0,0,0,0.55)]"
+            />
+          ) : (
+            <div
+              className="grid h-full w-full place-items-center rounded-full text-2xl font-black"
+              style={{ backgroundColor: theme.accent, color: theme.buyText }}
+            >
+              {rawTicker.slice(0, 2)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Accent bar */}
+      <div className={full ? 'h-3' : 'h-2'} style={{ backgroundColor: theme.accent }} />
+
+      {full ? (
+        <div className="space-y-10 px-4 py-10 sm:px-8">
+          <section className="text-center">
+            <h2
+              className="text-2xl font-black uppercase tracking-tight sm:text-3xl"
+              style={{ color: theme.accent }}
+            >
+              What you should know
+            </h2>
+            <p
+              className="mx-auto mt-3 max-w-xl text-sm leading-relaxed sm:text-base"
+              style={{ color: theme.muted }}
+            >
+              {blurbText} Community-driven meme energy — no gimmicks, just the coin that refuses to
+              be ignored.
+            </p>
+          </section>
+
+          <section className="text-center">
+            <h2
+              className="text-xl font-black uppercase tracking-tight"
+              style={{ color: theme.accent }}
+            >
+              {rawTicker} CA
+            </h2>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 font-mono text-xs text-white/80">
+              <SolanaLogo className="h-4 w-4 shrink-0" />
+              <span>{caLabel}</span>
+            </div>
+            <div className="mt-4">
+              <span
+                className="inline-block rounded-full px-5 py-3 text-sm font-black uppercase"
+                style={{
+                  background: `linear-gradient(180deg, ${theme.accentSoft}, ${theme.accent})`,
+                  color: theme.buyText,
+                }}
+              >
+                Buy on CTOgo
+              </span>
+            </div>
+          </section>
+
+          {designTweaks.showTokenomics ? (
+            <section className="text-center">
+              <h2
+                className="text-xl font-black uppercase tracking-tight"
+                style={{ color: theme.accent }}
+              >
+                Tokenomics
+              </h2>
+              <div className="mx-auto mt-5 grid max-w-md grid-cols-3 gap-3">
+                {[
+                  { value: '1B', label: 'Supply' },
+                  { value: 'Tax on', label: 'Fees' },
+                  { value: 'Burnt', label: 'LP' },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-xl border border-white/10 px-2 py-4"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <p className="text-lg font-black" style={{ color: theme.accent }}>
+                      {stat.value}
+                    </p>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-white/45">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <p className="pb-6 text-center text-[11px] tracking-wide text-white/35">
+            Telegram · X · Chart · Copyright © {new Date().getFullYear()}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-3">
           <span
-            className={`rounded-lg bg-[#c8ff3d] font-bold text-[#090b14] ${
-              full ? 'px-5 py-3 text-sm' : 'px-3 py-2 text-[11px]'
-            }`}
+            className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase"
+            style={{
+              background: `linear-gradient(180deg, ${theme.accentSoft}, ${theme.accent})`,
+              color: theme.buyText,
+            }}
           >
             Buy on CTOgo
           </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-lg border border-white/[0.1] font-mono text-white/55 ${
-              full ? 'px-3 py-3 text-xs' : 'px-2.5 py-2 text-[10px]'
-            }`}
-            title="Solana contract address"
-          >
-            <SolanaLogo className={full ? 'h-4 w-4 shrink-0' : 'h-3.5 w-3.5 shrink-0'} />
-            <span>{caLabel}</span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1.5 font-mono text-[10px] text-white/55">
+            <SolanaLogo className="h-3 w-3" />
+            {caLabel}
           </span>
         </div>
-        {full ? (
-          <p className="mt-10 text-[12px] tracking-wide text-white/30">
-            Telegram · X · Chart
-          </p>
-        ) : null}
-      </div>
-    </>
+      )}
+    </div>
   );
 }
 
@@ -143,7 +286,7 @@ function CloneBody({
 }) {
   const full = variant === 'fullscreen';
   return (
-    <div className={full ? 'space-y-4 p-4 sm:p-6' : 'space-y-3 p-3'}>
+    <div className={`bg-[#07090f] ${full ? 'space-y-4 p-4 sm:p-6' : 'space-y-3 p-3'}`}>
       <div className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2">
         <p className="text-[10px] font-semibold text-white/35">Source</p>
         <p className="mt-0.5 truncate text-[12px] text-white/70">
@@ -199,17 +342,19 @@ function CloneBody({
 
 export function WebsitePreview(props: WebsitePreviewProps) {
   const variant = props.variant ?? 'card';
-  const { displayName, displayTicker, caLabel, hostLabel, blurbText } = usePreviewLabels(props);
+  const { displayName, displayTicker, rawTicker, caLabel, hostLabel } = usePreviewLabels(props);
   const title = props.kind === 'clone' ? 'Cloned site preview' : '1-pager preview';
 
   return (
     <div
-      className={`overflow-hidden bg-[#07090f] ${
-        variant === 'fullscreen' ? 'min-h-full' : 'rounded-xl border border-white/[0.1]'
+      className={`overflow-hidden ${
+        variant === 'fullscreen'
+          ? 'min-h-full'
+          : 'rounded-xl border border-white/[0.1] bg-[#07090f]'
       }`}
     >
       {variant === 'card' ? (
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
+        <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#07090f] px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
             {title}
           </p>
@@ -227,14 +372,16 @@ export function WebsitePreview(props: WebsitePreviewProps) {
           cloneUrl={props.cloneUrl}
         />
       ) : (
-        <OnePagerBody
+        <MemeOnePagerBody
           variant={variant}
           displayName={displayName}
           displayTicker={displayTicker}
-          blurbText={blurbText}
+          rawTicker={rawTicker}
+          blurb={props.blurb}
           caLabel={caLabel}
           logoUrl={props.logoUrl}
-          bannerUrl={props.bannerUrl}
+          themeId={props.themeId}
+          designTweaks={props.designTweaks}
         />
       )}
     </div>
@@ -247,7 +394,6 @@ type WebsitePreviewOverlayProps = WebsitePreviewProps & {
   onContinue: () => void;
 };
 
-/** Full-page site preview so founders can see how the public page will look. */
 export function WebsitePreviewOverlay({
   open,
   onClose,
