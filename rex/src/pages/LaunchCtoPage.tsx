@@ -79,7 +79,7 @@ export function LaunchCtoPage() {
   const [lookupBusy, setLookupBusy] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [coinReady, setCoinReady] = useState(false);
-  const [venueLabel, setVenueLabel] = useState('Pump.fun');
+  const [venueLabel, setVenueLabel] = useState('Solana');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [editArt, setEditArt] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -156,7 +156,7 @@ export function LaunchCtoPage() {
     setLookupBusy(false);
     setLookupError(null);
     setCoinReady(false);
-    setVenueLabel('Pump.fun');
+    setVenueLabel('Solana');
     setShowAdvanced(false);
     setEditArt(false);
     setFromCoinPage(false);
@@ -339,7 +339,7 @@ export function LaunchCtoPage() {
             {mode === 'launch' ? 'Launch a CTO' : 'Add a coin'}
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
-            Paste the mint. We handle the rest.
+            Paste any Solana mint. We pull what we can.
           </p>
 
           {step !== 'done' ? (
@@ -407,7 +407,7 @@ export function LaunchCtoPage() {
 
               <label className="block">
                 <span className="text-[11px] font-semibold text-white/45">
-                  {mode === 'launch' ? 'Paste Pump / V1 mint' : 'Paste mint'}
+                  Mint / contract address
                 </span>
                 <div className="mt-1.5 flex gap-2">
                   <input
@@ -417,7 +417,7 @@ export function LaunchCtoPage() {
                       setCoinReady(false);
                       setLookupError(null);
                     }}
-                    placeholder="So1111… or paste mint"
+                    placeholder="Paste Solana mint…"
                     className={`${fieldClass} mt-0 font-mono text-[12px]`}
                   />
                   <button
