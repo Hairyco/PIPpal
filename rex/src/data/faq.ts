@@ -23,6 +23,12 @@ export const FAQ_SECTIONS: FaqSection[] = [
     label: 'Basics',
     items: [
       {
+        id: 'what-is-ctogo',
+        question: 'What is CTOgo?',
+        answer:
+          'CTOgo is the home of Solana community takeovers. Discover abandoned or rugged coins, relaunch them with a marketing wallet funded by trade fees, and trade with communities that are already ready to move.',
+      },
+      {
         id: 'what-is-cto',
         question: 'What is a CTO?',
         answer:
