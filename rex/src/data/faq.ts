@@ -100,6 +100,36 @@ export const FAQ_SECTIONS: FaqSection[] = [
     ],
   },
   {
+    id: 'token-safety',
+    label: 'Token safety',
+    items: [
+      {
+        id: 'investor-basics',
+        question: 'What basic protections do Native CTOgo coins have?',
+        answer:
+          'Mint authority is revoked or locked (nobody can print more supply). Freeze authority is revoked (nobody can freeze wallets). Token metadata is locked so name, ticker, and logo cannot be silently changed later. On graduation, LP is burned or locked so liquidity cannot be pulled as a rug.',
+      },
+      {
+        id: 'safety-vs-marketing',
+        question: 'Do those locks turn off the marketing wallet or fees?',
+        answer:
+          'No. Mint, freeze, and metadata locks protect the coin — they do not control trade fees. Every trade still fills the marketing vault and the platform cut. We lock dangerous founder powers; we keep the fee engine on so growth spend keeps working.',
+      },
+      {
+        id: 'what-stays-on',
+        question: 'What stays on for the business model?',
+        answer:
+          'The trade tax schedule (marketing never turns off), the marketing vault (protocol-controlled, not a free founder wallet), Mode A / Mode B routing, the abandonment rule if a creator dumps, and fees after Raydium migration. Those are protocol rules — not something a founder key can turn off.',
+      },
+      {
+        id: 'vs-pump',
+        question: 'Isn’t this already true on Pump.fun?',
+        answer:
+          'Pump coins usually revoke mint and freeze at launch, but that alone is not a full safety story. Metadata is often still mutable, and a dumped creator can keep collecting fees until someone changes keys manually. CTOgo adds locked metadata, a non-drainable marketing vault, fees that survive migration, and automatic creator-fee revoke on dump.',
+      },
+    ],
+  },
+  {
     id: 'community',
     label: 'Community',
     items: [
