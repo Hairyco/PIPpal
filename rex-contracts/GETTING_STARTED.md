@@ -139,6 +139,7 @@ This is stricter than Pump.fun, where dumped creators can keep collecting until 
 
 - `migrate_to_raydium` that **seeds the Raydium pool** with remaining curve SOL + tokens, **burns LP**, and pays Raydium’s create fee  
 - Post-Raydium fee continuity (Token-2022 / AMM hooks) so marketing tax survives graduation  
+- Rex migration protocol fee: **2 SOL** from curve → Rex treasury (CTOgo migration revenue)  
 - Migrate create fee: **~0.20 SOL** from curve (**0.15 SOL** Raydium CPMM create + rent buffer; cap **0.25 SOL**) — **required** or Raydium pool creation fails  
 
 **Later:**
@@ -172,7 +173,7 @@ Currently fixed in `constants.rs`. Any change requires deploying a new program v
 **Raydium** — CTOgo is Raydium-first for visibility (Jupiter, charts, bots). There is no private CTOgo DEX yet. At graduate, **remaining curve SOL and tokens become the Raydium pool**, and **LP is burned** so liquidity cannot be pulled (same core idea as Pump.fun). Trade tax continues after migration so the marketing wallet keeps filling.
 
 **Is there a migration fee?**  
-**Yes — Raydium’s create-pool cost only (~0.20 SOL).** That opens the pool. It is **not** CTOgo taking the liquidity. The rest of the curve SOL stays in the pool as locked liquidity.
+**Yes — two parts.** CTOgo charges a **Rex migration protocol fee of 2 SOL**, and **~0.20 SOL** is passed through to Raydium to open the pool (about 2.2 SOL total). Everything else from the curve stays in the pool as locked liquidity.
 
 **Has it been audited?**  
 Not yet — this is MVP / proof of concept. Budget for audit before mainnet.

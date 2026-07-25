@@ -95,11 +95,27 @@ export function FeesPage() {
           <h2 className="text-sm font-semibold text-white/85">{MIGRATION_FEE_POLICY.title}</h2>
           <p className="mt-2 text-[13px] leading-relaxed text-white/70">{MIGRATION_FEE_POLICY.summary}</p>
           <p className="mt-2 text-[11px] leading-relaxed text-white/40">{MIGRATION_FEE_POLICY.contrast}</p>
-          <p className="mt-3 font-mono text-[12px] text-[#d5ff69]">
-            ~{MIGRATION_FEE_POLICY.defaultSol} SOL (Raydium{' '}
-            {MIGRATION_FEE_POLICY.raydiumCreatePoolSol} + rent buffer{' '}
-            {MIGRATION_FEE_POLICY.rentBufferSol}) · cap {MIGRATION_FEE_POLICY.capSol} SOL
-          </p>
+          <dl className="mt-3 space-y-1.5 text-[12px]">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-white/55">Rex migration protocol fee</dt>
+              <dd className="font-mono font-bold text-[#d5ff69]">
+                {MIGRATION_FEE_POLICY.rexProtocolSol} SOL
+              </dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-white/55">
+                Raydium pool creation ({MIGRATION_FEE_POLICY.raydiumCreatePoolSol} + rent{' '}
+                {MIGRATION_FEE_POLICY.rentBufferSol})
+              </dt>
+              <dd className="font-mono text-white/70">~{MIGRATION_FEE_POLICY.defaultSol} SOL</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] pt-1.5">
+              <dt className="font-semibold text-white/75">Total at graduation</dt>
+              <dd className="font-mono font-bold text-[#d5ff69]">
+                ~{MIGRATION_FEE_POLICY.totalSol} SOL
+              </dd>
+            </div>
+          </dl>
           <p className="mt-1 text-[10px] text-white/35">{MIGRATION_FEE_POLICY.paidFrom}</p>
         </section>
 

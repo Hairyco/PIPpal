@@ -107,10 +107,12 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 
 - Token-2022 transfer hooks (tax on wallet-to-wallet transfers) — **required for post-Raydium fee continuity**  
 - `migrate_to_raydium` instruction that **must**:
-  1. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL  
-  2. **Deposit remaining curve SOL + remaining curve tokens into the Raydium pool**  
-  3. **Burn (or permanently lock) 100% of LP** — fail if LP is withdrawable  
-  4. Assert post-migration fee accounts still route platform + marketing + pool cuts  
+  1. Transfer the **Rex migration protocol fee (2 SOL)** from curve SOL to the protocol treasury  
+  2. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL  
+  3. **Deposit remaining curve SOL + remaining curve tokens into the Raydium pool**  
+  4. **Burn (or permanently lock) 100% of LP** — fail if LP is withdrawable  
+  5. Assert post-migration fee accounts still route platform + marketing + pool cuts  
+- Rex migration protocol fee: **2 SOL** to Rex treasury (CTOgo revenue) — charged once at graduate  
 - Migration create fee: **~0.20 SOL** (**0.15 SOL** Raydium create + rent buffer; cap **0.25 SOL**) — **required** or pool creation fails  
 
 **Later / not prioritized:**
@@ -130,6 +132,7 @@ Bonding-curve → **Raydium** graduation **does not end taxation**. CTOgo does *
 
 | Step | Rule |
 |------|------|
+| Rex migration fee | 2 SOL from curve → Rex protocol treasury |
 | Create fee | ~0.20 SOL from curve pays Raydium CPMM open cost |
 | Seed pool | **Remaining** curve SOL + remaining curve tokens deposit into Raydium |
 | Burn LP | **100%** of LP burned or permanently locked — migrate fails otherwise |
@@ -144,6 +147,7 @@ Without seed + burn, graduation is broken (no depth / rug risk). This matches ho
 | Creator/trader pool | Continues under locked Mode A or Mode B |
 | Abandonment | Still revokes dumped creator cut post-migration |
 | Migration instruction | Must fail if fee accounts missing, zeroed, or redirected to an EOA |
+| Rex migration protocol fee | 2 SOL from curve → Rex treasury, once at graduate |
 | Migration create fee | ~0.20 SOL from curve (0.15 Raydium create + buffer); cap 0.25 — required |
 | Liquidity seed + LP burn | Remaining curve reserves → Raydium pool; LP burned — required |
 | Destination | Raydium (Raydium-first) — not a private CTOgo AMM |
@@ -193,6 +197,7 @@ Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`, 
 - [ ] Verify remaining curve SOL + tokens are deposited into the Raydium pool (liquidity seed)  
 - [ ] Verify 100% of graduation LP is burned or permanently locked (not withdrawable by any EOA)  
 - [ ] Verify migrate fee ≤ 0.25 SOL cap and create-fee SOL is not diverted as CTOgo treasury skim  
+- [ ] Verify Rex migration protocol fee is exactly 2 SOL, goes to the treasury PDA, and cannot be raised without a program upgrade  
 - [ ] Verify mint authority revoked/locked at launch and graduation  
 - [ ] Verify Raydium LP burned or time-locked on graduation  
 - [ ] Review authority centralization (expected for MVP; harden for prod)  

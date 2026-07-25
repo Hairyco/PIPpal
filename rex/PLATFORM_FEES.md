@@ -15,6 +15,7 @@ Dynamic per-trade tax on Native V2 CTOs.
 | Mode lock | Mode A or Mode B chosen at deploy (irreversible) |
 | Abandonment | Creator dump 90%+ → only their pool cut revoked; Rex + marketing continue |
 | Graduation | **Raydium-first** — curve SOL/tokens seed pool · **LP burned** |
+| Rex migration protocol fee | **2 SOL** one-time at graduation (CTOgo revenue) |
 | Migration create fee | **~0.20 SOL** Raydium CPMM create + rent (cap 0.25) — rest of curve SOL is **pool liquidity** |
 
 ---
@@ -89,7 +90,7 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
-6. Graduation is Raydium-first (Pump-style): remaining curve SOL + tokens **seed the Raydium pool**; **LP is burned/locked**. ~0.20 SOL only pays Raydium’s create-pool fee — required or the pool cannot open.
+6. Graduation is Raydium-first (Pump-style): remaining curve SOL + tokens **seed the Raydium pool**; **LP is burned/locked**. A **2 SOL Rex migration protocol fee** plus ~0.20 SOL for Raydium’s create-pool fee come off the curve first — the create fee is required or the pool cannot open.
 7. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
 
 ---
@@ -126,30 +127,34 @@ This is the core graduate feature. Missing it means empty charts and rug risk.
 
 | Step | What happens |
 |------|----------------|
-| 1 | Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL |
-| 2 | Deposit **remaining** curve SOL + remaining bonding-curve tokens into the Raydium pool |
-| 3 | **Burn (or permanently lock) 100% of LP tokens** |
-| 4 | Close the bonding curve — trading continues on Raydium / Jupiter |
+| 1 | Take **Rex migration protocol fee (2 SOL)** from curve SOL → protocol treasury |
+| 2 | Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL |
+| 3 | Deposit **remaining** curve SOL + remaining bonding-curve tokens into the Raydium pool |
+| 4 | **Burn (or permanently lock) 100% of LP tokens** |
+| 5 | Close the bonding curve — trading continues on Raydium / Jupiter |
 
 | Rule |
 |------|
 | Migrate **fails** if liquidity is not seeded into the pool |
 | Migrate **fails** if LP remains withdrawable by any EOA |
-| Only the create-pool cost leaves the curve outside the pool; the rest is locked liquidity |
+| Only the Rex migration fee + create-pool cost leave the curve; the rest is locked liquidity |
 | Same guarantee traders expect from Pump.fun graduation |
 
-### Migration create-fee (Raydium pass-through)
+### Migration fees
 
-Raydium **will not** open a CPMM pool without paying their create-pool fee. That fee is **not** a substitute for seeding liquidity.
+Two separate charges at graduation: CTOgo's own migration fee, and Raydium's unavoidable create-pool cost.
 
 | | |
 |---|---|
-| Raydium CPMM create-pool fee | **0.15 SOL** (protocol) |
+| **Rex migration protocol fee** | **2 SOL** → Rex protocol treasury (CTOgo revenue) |
+| Raydium CPMM create-pool fee | **0.15 SOL** (protocol pass-through) |
 | Rent + priority-fee buffer | **~0.05 SOL** |
-| **Create cost at migrate** | **~0.20 SOL** |
-| Cap | **0.25 SOL** if Raydium raises fees / congestion |
+| Raydium create cost at migrate | **~0.20 SOL** (cap **0.25 SOL**) |
+| **Total off the curve at graduate** | **~2.20 SOL** |
 | Paid from | Bonding-curve SOL reserves |
 | Remaining curve SOL | **Deposited as Raydium pool liquidity** (then LP burned) |
+
+Raydium **will not** open a CPMM pool without their create-pool fee, and neither charge is a substitute for seeding liquidity.
 
 Sources: [Raydium fee comparison](https://docs.raydium.io/reference/fee-comparison), [Protocol fees](https://docs.raydium.io/ray/protocol-fees).
 
@@ -198,6 +203,7 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
 | Raydium graduation | Bonding curve → Raydium pool seed + LP burn | YES | Pump-style locked liquidity |
+| Rex migration protocol fee | 2 SOL one-time at graduate | YES | CTOgo revenue, paid from curve SOL |
 | Migration create fee | ~0.20 SOL Raydium create + buffer · cap 0.25 | YES | Pass-through; rest of curve SOL is LP |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
 | Marketing vault sweep | $500 auto-spend · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |

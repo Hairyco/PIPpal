@@ -132,7 +132,7 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
-  'Graduation is Raydium-first. ~0.20 SOL pays Raydium pool creation; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
+  'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
   `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
@@ -171,7 +171,7 @@ export const GRADUATION_POLICY = {
   why:
     'For a standalone CTO platform, post-graduate discovery matters more than owning the AMM. Pump.fun built PumpSwap after it already owned the attention funnel; CTOgo does not.',
   engineeringPriority:
-    'Ship migrate_to_raydium that (1) pays Raydium create fee, (2) seeds the pool with remaining curve SOL + tokens, (3) burns LP, (4) keeps post-migration fee hooks — before any custom AMM.',
+    'Ship migrate_to_raydium that (1) takes the 2 SOL Rex migration fee, (2) pays Raydium create fee, (3) seeds the pool with remaining curve SOL + tokens, (4) burns LP, (5) keeps post-migration fee hooks — before any custom AMM.',
   revisitWhen: [
     'Steady graduating volume (not a handful of coins)',
     'Most volume already happens on CTOgo UI rather than Jupiter',
@@ -183,7 +183,8 @@ export const GRADUATION_POLICY = {
 /**
  * One-time migrate fee — required to create the Raydium CPMM pool.
  * Without this, graduation fails: Raydium charges ~0.15 SOL create-pool fee + rent.
- * Paid from bonding-curve SOL reserves at migrate (not a CTOgo revenue skim).
+ * Paid from bonding-curve SOL reserves at migrate — pass-through only. CTOgo's own
+ * migration revenue is REX_MIGRATION_PROTOCOL_FEE_SOL below, charged separately.
  * Source: https://docs.raydium.io/reference/fee-comparison · protocol-fees
  */
 export const RAYDIUM_CREATE_POOL_FEE_SOL = 0.15;
@@ -195,17 +196,26 @@ export const MIGRATION_FEE_SOL =
 /** Hard ceiling if Raydium raises create fee or congestion needs more priority fees. */
 export const MIGRATION_FEE_SOL_CAP = 0.25;
 
+/** Rex protocol revenue charged once at graduation, on top of the Raydium pass-through cost. */
+export const REX_MIGRATION_PROTOCOL_FEE_SOL = 2;
+
+/** Everything taken out of curve SOL at graduate: Rex fee + Raydium create cost. */
+export const TOTAL_MIGRATION_COST_SOL =
+  REX_MIGRATION_PROTOCOL_FEE_SOL + MIGRATION_FEE_SOL;
+
 export const MIGRATION_FEE_POLICY = {
-  title: 'Migration fee (required)',
+  title: 'Migration fees (required)',
+  rexProtocolSol: REX_MIGRATION_PROTOCOL_FEE_SOL,
   defaultSol: MIGRATION_FEE_SOL,
   capSol: MIGRATION_FEE_SOL_CAP,
+  totalSol: TOTAL_MIGRATION_COST_SOL,
   raydiumCreatePoolSol: RAYDIUM_CREATE_POOL_FEE_SOL,
   rentBufferSol: RAYDIUM_MIGRATE_RENT_BUFFER_SOL,
   summary:
-    'Raydium requires a pool-creation fee (~0.15 SOL for CPMM) plus account rent. CTOgo pays ~0.20 SOL from curve reserves at graduation for that create cost only — then the remaining curve SOL and unsold tokens seed the Raydium pool as locked liquidity.',
+    'Graduation deducts two things from curve SOL: the Rex migration protocol fee (2 SOL, CTOgo revenue) and the Raydium pool-creation cost (~0.20 SOL, pass-through). Everything left plus the remaining tokens seeds the Raydium pool as locked liquidity.',
   contrast:
-    'This create fee is a pass-through Raydium cost, not CTOgo taking the pool. The core graduate step (Pump-style) is still: curve liquidity → AMM pool → burn LP.',
-  paidFrom: 'Bonding-curve SOL reserves at migrate_to_raydium (create cost only)',
+    'The 2 SOL is CTOgo’s migration charge; the ~0.20 SOL simply pays Raydium to open the pool. The core graduate step (Pump-style) is unchanged: curve liquidity → AMM pool → burn LP.',
+  paidFrom: 'Bonding-curve SOL reserves at migrate_to_raydium',
 } as const;
 
 /**
@@ -217,7 +227,8 @@ export const GRADUATION_LIQUIDITY_POLICY = {
   summary:
     'When a coin graduates, almost all bonding-curve SOL and the remaining curve tokens move into a Raydium pool as initial liquidity. The LP tokens are burned (or permanently locked) so nobody — founder or CTOgo — can pull that liquidity.',
   steps: [
-    'Pay Raydium create-pool fee (~0.20 SOL) from curve SOL.',
+    `Deduct the Rex migration protocol fee (${REX_MIGRATION_PROTOCOL_FEE_SOL} SOL) to the protocol treasury.`,
+    'Pay Raydium create-pool cost (~0.20 SOL) from curve SOL.',
     'Deposit remaining curve SOL + remaining bonding-curve tokens into the new Raydium CPMM pool.',
     'Burn (or permanently lock) 100% of LP tokens received.',
     'Close the bonding curve — further trades go through Raydium / Jupiter.',
@@ -225,7 +236,7 @@ export const GRADUATION_LIQUIDITY_POLICY = {
   rules: [
     'Liquidity seed is mandatory — migrate must fail if curve SOL/tokens are not deposited into the pool.',
     'LP burn/lock is mandatory — migrate must fail if LP remains withdrawable by any EOA.',
-    'Only the Raydium create-pool cost (~0.20 SOL) is spent outside the pool; the rest of curve SOL is pool liquidity.',
+    `Only the Rex migration fee (${REX_MIGRATION_PROTOCOL_FEE_SOL} SOL) and Raydium create cost (~0.20 SOL) leave the curve; the rest is pool liquidity.`,
     'Same model Pump.fun used: graduate with deep locked liquidity, not an empty chart.',
   ],
 } as const;
@@ -240,6 +251,7 @@ export const POST_MIGRATION_FEES = {
   rules: [
     'Destination is Raydium (Raydium-first) — not a private CTOgo AMM.',
     'Curve SOL + remaining tokens seed the Raydium pool; LP is burned/locked (required).',
+    `Rex migration protocol fee is ${REX_MIGRATION_PROTOCOL_FEE_SOL} SOL, taken once at graduate.`,
     'Only ~0.20 SOL of curve SOL pays Raydium create fee; the rest is pool liquidity.',
     'Marketing floor stays on (never 0%) after graduation.',
     'Rex platform cut continues into the protocol treasury.',

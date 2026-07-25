@@ -101,13 +101,13 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'graduation-liquidity',
         question: 'What happens to the bonding-curve money at graduation?',
         answer:
-          'Almost all of it becomes locked Raydium liquidity. A small slice (~0.20 SOL) pays Raydium’s pool-creation fee so the pool can open. Everything else from the curve SOL vault, plus remaining curve tokens, is deposited into the pool. The LP tokens are burned (or permanently locked). If liquidity is not seeded or LP is not burned, migration must fail — otherwise the coin would graduate with no depth and could be rugged.',
+          'Almost all of it becomes locked Raydium liquidity. Two amounts come off the top: the 2 SOL Rex migration protocol fee and ~0.20 SOL for Raydium’s pool-creation cost. Everything else from the curve SOL vault, plus remaining curve tokens, is deposited into the pool. The LP tokens are burned (or permanently locked). If liquidity is not seeded or LP is not burned, migration must fail — otherwise the coin would graduate with no depth and could be rugged.',
       },
       {
         id: 'migration-fee',
-        question: 'Is there a migration fee like Pump.fun?',
+        question: 'Is there a migration fee?',
         answer:
-          'Yes for Raydium’s create-pool cost only (~0.15 SOL + rent ≈ 0.20 SOL, cap 0.25 SOL), paid from curve SOL. That is not CTOgo taking the liquidity. The important part is still Pump-style: remaining curve funds seed the pool and LP is burned.',
+          'Yes. CTOgo charges a 2 SOL Rex migration protocol fee when a coin graduates. On top of that, ~0.20 SOL (0.15 create + rent) is passed through to Raydium so the pool can open — so about 2.2 SOL total leaves the curve. Everything remaining seeds the Raydium pool and the LP is burned.',
       },
       {
         id: 'after-migration',

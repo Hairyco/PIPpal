@@ -23,10 +23,11 @@
 //! Do **not** prioritize a private CTOgo AMM until organic volume justifies it.
 //!
 //! # Graduation liquidity (Pump-style — required)
-//! 1. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL.
-//! 2. Deposit **remaining** curve SOL + remaining curve tokens into the Raydium pool.
-//! 3. **Burn (or permanently lock) 100% of LP tokens** — migrate must fail otherwise.
-//! 4. Close the bonding curve. Further trades go through Raydium / Jupiter.
+//! 1. Take the **Rex migration protocol fee (2 SOL)** from curve SOL → protocol treasury.
+//! 2. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL.
+//! 3. Deposit **remaining** curve SOL + remaining curve tokens into the Raydium pool.
+//! 4. **Burn (or permanently lock) 100% of LP tokens** — migrate must fail otherwise.
+//! 5. Close the bonding curve. Further trades go through Raydium / Jupiter.
 //! Without seeding liquidity + burning LP, graduation is broken (empty pool / rug risk).
 //!
 //! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
@@ -34,6 +35,8 @@
 //! Migration must not zero taxes, revoke marketing, or hand fee authority to a free EOA.
 //! Migrate create fee: **~0.20 SOL** from curve — **required** for Raydium pool open
 //! (0.15 SOL create-pool fee + ~0.05 SOL rent/priority; cap 0.25 SOL).
+//! Rex migration protocol fee: **2 SOL** from curve → Rex treasury (CTOgo revenue),
+//! charged on top of the Raydium pass-through (~2.20 SOL total off the curve).
 //!
 //! # Engineering priority
 //! Ship `migrate_to_raydium` (create fee + **seed pool** + **burn LP** + fee hooks) before any custom AMM.
@@ -95,6 +98,14 @@ pub const MIGRATION_FEE_LAMPORTS: u64 =
 
 /// Hard cap if Raydium raises create fee or congestion needs more priority fees (~0.25 SOL).
 pub const MIGRATION_FEE_LAMPORTS_CAP: u64 = 250_000_000;
+
+/// Rex migration protocol fee (2 SOL) — CTOgo revenue charged once at graduate,
+/// paid from curve SOL to the protocol treasury before the pool is seeded.
+pub const REX_MIGRATION_PROTOCOL_FEE_LAMPORTS: u64 = 2_000_000_000;
+
+/// Total SOL leaving the curve at graduate: Rex migration fee + Raydium create cost (~2.20 SOL).
+pub const TOTAL_MIGRATION_COST_LAMPORTS: u64 =
+    REX_MIGRATION_PROTOCOL_FEE_LAMPORTS + MIGRATION_FEE_LAMPORTS;
 
 /// Product invariant: remaining curve SOL + tokens must seed the Raydium pool at graduate.
 pub const GRADUATION_SEED_POOL_REQUIRED: bool = true;
