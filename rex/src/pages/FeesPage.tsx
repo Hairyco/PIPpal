@@ -5,7 +5,9 @@ import {
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
   FEE_TIERS,
+  GRADUATION_POLICY,
   MARKETING_VAULT_SWEEP_RULE,
+  MIGRATION_FEE_POLICY,
   POST_MIGRATION_FEES,
   SECURITY_CONTROLS,
   TRADE_FEE_LABEL,
@@ -57,6 +59,24 @@ export function FeesPage() {
               <p className="mt-1 text-[11px] text-[#c8ff3d]/70">{mode.migration}</p>
             </div>
           ))}
+        </section>
+
+        <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">
+          <h2 className="text-sm font-semibold text-[#d5ff69]">{GRADUATION_POLICY.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">{GRADUATION_POLICY.summary}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/45">{GRADUATION_POLICY.why}</p>
+          <p className="mt-3 text-[11px] font-semibold text-[#c8ff3d]/80">
+            {GRADUATION_POLICY.engineeringPriority}
+          </p>
+        </section>
+
+        <section className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+          <h2 className="text-sm font-semibold text-white/85">{MIGRATION_FEE_POLICY.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/70">{MIGRATION_FEE_POLICY.summary}</p>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/40">{MIGRATION_FEE_POLICY.contrast}</p>
+          <p className="mt-3 font-mono text-[12px] text-[#d5ff69]">
+            Default {MIGRATION_FEE_POLICY.defaultSol} SOL · cap {MIGRATION_FEE_POLICY.capSol} SOL
+          </p>
         </section>
 
         <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">

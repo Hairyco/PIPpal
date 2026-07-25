@@ -103,17 +103,24 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 
 ## Deferred (documented, not implemented)
 
+**Engineering priority (Raydium-first — ship before any custom AMM):**
+
+- Token-2022 transfer hooks (tax on wallet-to-wallet transfers) — **required for post-Raydium fee continuity**  
+- `migrate_to_raydium` instruction with fee-invariant asserts + LP burn/lock  
+- Migration fee: default **0 SOL**, cap **~0.015 SOL** for pool creation only (not a liquidity skim)
+
+**Later / not prioritized:**
+
 - KYC flag gating Tier 2+ disburse  
 - Token age ≥ 6 months for product-build suppliers  
 - Roadmap wallet (separate PDA)  
 - Exit fee instruction  
-- Token-2022 transfer hooks (tax on wallet-to-wallet transfers) — **required for post-Raydium fee continuity**  
-- `migrate_to_raydium` instruction with fee-invariant asserts + LP burn/lock  
 - Service fee on disbursements  
+- Private CTOgo AMM (“CTOgoSwap”) — only after scale metrics (steady graduates, CTOgo-UI volume dominance, material Raydium fee leakage)
 
 ## Post-migration fees (product invariant)
 
-Bonding-curve → Raydium graduation **does not end taxation**.
+Bonding-curve → **Raydium** graduation **does not end taxation**. CTOgo does **not** graduate to a private AMM for now — Raydium keeps coins visible on Jupiter / DexScreener / routers.
 
 | Requirement | Rule |
 |-------------|------|
@@ -122,6 +129,8 @@ Bonding-curve → Raydium graduation **does not end taxation**.
 | Creator/trader pool | Continues under locked Mode A or Mode B |
 | Abandonment | Still revokes dumped creator cut post-migration |
 | Migration instruction | Must fail if fee accounts missing, zeroed, or redirected to an EOA |
+| Migration fee | Default 0 SOL; cap ~0.015 SOL for pool creation only |
+| Destination | Raydium (Raydium-first) — not a private CTOgo AMM |
 
 Mechanism (planned): Token-2022 transfer fee and/or AMM hooks route the same bps split into the existing PDAs.
 
@@ -152,7 +161,7 @@ Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`, 
 
 ## Frontend alignment
 
-`rex/src/data/chainConfig.ts` mirrors `constants.rs` fee bps, plus `POST_MIGRATION_FEES` and `SECURITY_CONTROLS`.
+`rex/src/data/chainConfig.ts` mirrors `constants.rs` fee bps, plus `GRADUATION_POLICY`, `MIGRATION_FEE_POLICY`, `POST_MIGRATION_FEES`, and `SECURITY_CONTROLS`.
 
 ## Audit checklist
 
@@ -163,6 +172,7 @@ Constants: `MARKETING_AUTO_SPEND_USD = 500`, `MARKETING_INACTIVITY_HOURS = 72`, 
 - [ ] Verify only project founder can withdraw creator fees  
 - [ ] Verify `protocol_treasury` constrained to config value on buy/sell  
 - [ ] Verify migration (when shipped) cannot zero platform or marketing fees  
+- [ ] Verify migrate fee is 0 or ≤0.015 SOL pool-cost only (no multi-SOL skim)  
 - [ ] Verify mint authority revoked/locked at launch and graduation  
 - [ ] Verify Raydium LP burned or time-locked on graduation  
 - [ ] Review authority centralization (expected for MVP; harden for prod)  

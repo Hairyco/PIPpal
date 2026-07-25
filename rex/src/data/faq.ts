@@ -92,16 +92,34 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: `${TRADE_FEE_LABEL}. The rate scales down as market cap grows, and the marketing share never turns off.`,
       },
       {
+        id: 'raydium-first',
+        question: 'Where do coins go when they graduate?',
+        answer:
+          'Raydium. CTOgo is Raydium-first: the bonding curve migrates into a Raydium pool so coins stay visible on Jupiter, DexScreener, and Solana routers. We are not building a private CTOgo DEX yet — discovery matters more than owning the AMM for a standalone CTO platform.',
+      },
+      {
+        id: 'migration-fee',
+        question: 'Is there a migration fee like Pump.fun?',
+        answer:
+          'No large skim. The migrate fee defaults to 0 SOL. If Raydium pool creation needs a small network/pool cost, we may charge at most about 0.015 SOL — similar to Pump’s current PumpSwap graduate fee — never a multi-SOL take from your curve liquidity.',
+      },
+      {
         id: 'after-migration',
         question: 'Do fees stop after Raydium migration?',
         answer:
-          'No. Graduating off the bonding curve does not disable tax. Platform, marketing, and creator/trader pool cuts keep applying to post-migration volume.',
+          'No. Graduating off the bonding curve does not disable tax. Platform, marketing, and creator/trader pool cuts keep applying to post-migration volume so the marketing wallet keeps funding growth.',
       },
       {
         id: 'dev-dumps',
         question: 'What if the creator dumps?',
         answer:
           'Their fee cut is revoked on-chain and redirected to the marketing wallet (or the trader rebate pool). The total trade tax stays on, so recovery spend keeps getting funded.',
+      },
+      {
+        id: 'own-amm',
+        question: 'Will CTOgo build its own PumpSwap-style DEX?',
+        answer:
+          'Not now. Pump built PumpSwap after it already owned the attention funnel. CTOgo ships Raydium graduation plus fee continuity first. A private AMM is only worth revisiting when most volume already happens on CTOgo and fee leakage on Raydium outweighs build cost.',
       },
     ],
   },

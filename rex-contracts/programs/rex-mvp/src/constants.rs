@@ -19,9 +19,15 @@
 //! If no Native V2 within 30 days of a Rex V1 mint, reserve/unspent funds go to Rex treasury.
 //!
 //! # Post-migration (bonding curve → Raydium)
+//! CTOgo is **Raydium-first**: graduate to Raydium for Jupiter / DexScreener visibility.
+//! Do **not** prioritize a private CTOgo AMM until organic volume justifies it.
 //! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
 //! continue on post-migration volume (Token-2022 transfer fee / AMM hook → same PDAs).
 //! Migration must not zero taxes, revoke marketing, or hand fee authority to a free EOA.
+//! Migrate fee: default **0 SOL**, cap **~0.015 SOL** for pool creation only (not a liquidity skim).
+//!
+//! # Engineering priority
+//! Ship `migrate_to_raydium` + post-grad fee hooks + LP burn/lock before any custom AMM.
 //!
 //! # Abandonment trigger
 //! If the creator wallet holds under `CREATOR_MIN_HOLD_BPS` of initial allocation
@@ -65,7 +71,14 @@ pub const MARKETING_V2_DEADLINE_DAYS: u64 = 30;
 
 /// Product invariant: after Raydium graduation, trade tax must still apply.
 /// Migration instructions must keep platform + marketing (+ pool) routing live.
+/// Destination is Raydium (Raydium-first). Migrate fee default 0; cap ~0.015 SOL pool-cost only.
 pub const POST_MIGRATION_FEES_REQUIRED: bool = true;
+
+/// Default one-time migrate fee in lamports (0 = free graduate).
+pub const MIGRATION_FEE_LAMPORTS: u64 = 0;
+
+/// Soft cap for migrate fee (~0.015 SOL) — pool creation cost only, not a liquidity skim.
+pub const MIGRATION_FEE_LAMPORTS_CAP: u64 = 15_000_000;
 
 /// Creator must retain at least this share of initial allocation (basis points of 10_000).
 /// Below 10% remaining (= dumped 90%+) → abandonment trigger fires.

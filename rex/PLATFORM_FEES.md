@@ -14,6 +14,8 @@ Dynamic per-trade tax on Native V2 CTOs.
 | Destinations | Marketing wallet + Creator/trader pool + Rex platform |
 | Mode lock | Mode A or Mode B chosen at deploy (irreversible) |
 | Abandonment | Creator dump 90%+ → only their pool cut revoked; Rex + marketing continue |
+| Graduation | **Raydium-first** (not a private CTOgo AMM) |
+| Migration fee | **0 SOL** default · cap **~0.015 SOL** for pool creation only |
 
 ---
 
@@ -87,7 +89,8 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 3. Abandonment: if the creator dumps 90%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
-6. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
+6. Graduation is Raydium-first (not a private CTOgo DEX). Migrate fee is 0 SOL by default, or up to ~0.015 SOL only if needed for pool creation — not a liquidity skim.
+7. Marketing vault: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
 
 ---
 
@@ -100,6 +103,30 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 | **CTO restoration** | Native V2 CTO migration → reserve credits **100%** of swept funds into the fresh V2 marketing vault. |
 | **V1 restart (no V2)** | Trading resumes on old V1 without migrating → swept funds stay in the reserve; V1 accrues **fresh** marketing fees from new volume. |
 | **30-day V2 deadline** | V1 CTO minted on Rex and **no Native V2** within **30 days** → unspent / reserve funds automatically go to the **Rex protocol treasury**. |
+
+---
+
+## Raydium-first graduation (product decision)
+
+Coins graduate from the CTOgo bonding curve to a **Raydium** pool. CTOgo is **not** building a private PumpSwap-style DEX yet.
+
+| Why Raydium | Why not own AMM yet |
+|-------------|---------------------|
+| Jupiter / DexScreener / bot visibility | Weak discovery until platform is huge |
+| Shared Solana routing depth | High build, audit, and MEV risk |
+| Traders expect graduated coins on aggregators | Private pools feel like a dead end for CTOs |
+
+**Engineering priority:** ship `migrate_to_raydium` with LP burn/lock and post-migration fee hooks (Token-2022 / AMM hooks) **before** any custom AMM.
+
+Revisit an owned AMM only when graduating volume is steady, most volume already happens on CTOgo UI, Raydium fee leakage is material vs build cost, and custom pools can still be indexed.
+
+### Migration fee policy
+
+| | |
+|---|---|
+| Default | **0 SOL** |
+| Cap | **~0.015 SOL** — pool creation / network cost only |
+| Not allowed | Multi-SOL skim from curve liquidity (legacy Pump→Raydium ~6 SOL style) |
 
 ---
 
@@ -144,9 +171,10 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Marketing floor | 0.15% (never turns off) | YES | Scale `marketingBps: 15` |
 | Mode choice | Irreversible on-chain | YES | `fee_mode` locked at launch |
 | CTO migration | 100% V1 burn → V2 mint (no forms) | YES | Available in Mode A and Mode B |
-| Raydium graduation | Bonding curve → Raydium | YES | Not gated by fee mode |
+| Raydium graduation | Bonding curve → Raydium (Raydium-first) | YES | Not gated by fee mode; no private AMM yet |
+| Migration fee | 0 SOL default · ≤0.015 SOL pool-cost cap | YES | Not a liquidity skim |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
 | Marketing vault sweep | $500 auto-spend · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |
 | Security controls | Mint lock, LP lock, PDA vaults, fee invariant | YES | See Security controls section |
 
-**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover.
+**Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` + post-grad fee hooks — not a custom AMM.

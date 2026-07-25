@@ -135,11 +135,20 @@ This is stricter than Pump.fun, where dumped creators can keep collecting until 
 
 ## What is NOT in the MVP yet
 
-- KYC checks on-chain (coming later)  
+**Next (Raydium-first priority):**
+
+- `migrate_to_raydium` + LP burn/lock  
+- Post-Raydium fee continuity (Token-2022 / AMM hooks) so marketing tax survives graduation  
+- Migrate fee: **0 SOL** by default, at most **~0.015 SOL** if pool creation needs it  
+
+**Later:**
+
+- KYC checks on-chain  
 - Tier 2 / Tier 3 spend limits ($5k / $25k)  
 - 6-month rule before product-build suppliers  
 - Exit / acquisition fee  
 - Roadmap wallet (separate from marketing)  
+- Private CTOgo AMM — not planned until volume justifies it  
 
 These are in the product roadmap and will be added in later contract versions.
 
@@ -154,10 +163,16 @@ It is a program-controlled vault (PDA). Only the Rex program can move funds out,
 Not in MVP — disbursement requires Rex authority signature + whitelist.
 
 **Can the founder withdraw creator fees?**  
-In Mode A, yes — the 0.20% pool accumulates in the creator vault and the founder withdraws via `withdraw_creator_fees`. In Mode B (trader cashback), founder withdraw is disabled.
+In Mode A, yes — the 0.20% pool accumulates in the creator vault and the founder withdraws via `withdraw_creator_fees`. In Mode B (trader cashback), founder withdraw is disabled. If the founder dumps 90%+ of their tokens, the abandonment trigger revokes their cut (redirected to marketing/traders); platform and marketing fees continue.
 
 **Can fees change?**  
 Currently fixed in `constants.rs`. Any change requires deploying a new program version (visible on-chain).
+
+**Where do coins graduate?**  
+**Raydium** — CTOgo is Raydium-first for visibility (Jupiter, charts, bots). There is no private CTOgo DEX yet. Trade tax is designed to continue after migration so the marketing wallet keeps filling.
+
+**Is there a big migration fee?**  
+No. Default is **0 SOL**. Cap is about **0.015 SOL** only if pool creation needs it — not a skim of curve liquidity.
 
 **Has it been audited?**  
 Not yet — this is MVP / proof of concept. Budget for audit before mainnet.
