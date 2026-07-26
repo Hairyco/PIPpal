@@ -2,7 +2,31 @@
 
 export type ProjectOrigin = 'native_cto' | 'external_cto' | 'native_launch';
 
-export type SourceVenue = 'Rex' | 'Pump.fun' | 'Raydium' | 'Moonshot' | 'LetsBonk';
+/** Launchpads / DEXes we index for the hybrid feed (DexScreener-style filter). */
+export type SourceVenue =
+  | 'Rex'
+  | 'PumpSwap'
+  | 'Pump.fun'
+  | 'Raydium'
+  | 'Moonshot'
+  | 'LetsBonk';
+
+export type SourceVenueFilter = 'all' | SourceVenue;
+
+/** Platforms shown above the coin board — “All” plus every venue we scan. */
+export const SOURCE_VENUE_FILTERS: {
+  id: SourceVenueFilter;
+  label: string;
+  title: string;
+}[] = [
+  { id: 'all', label: 'All exchanges', title: 'Coins from every venue we scan' },
+  { id: 'Rex', label: 'CTOgo', title: 'Native CTOgo curve and graduated coins' },
+  { id: 'PumpSwap', label: 'PumpSwap', title: 'Coins trading on PumpSwap' },
+  { id: 'Pump.fun', label: 'Pump.fun', title: 'Coins still on the Pump.fun bonding curve' },
+  { id: 'Raydium', label: 'Raydium', title: 'Coins trading on Raydium' },
+  { id: 'Moonshot', label: 'Moonshot', title: 'Coins sourced from Moonshot' },
+  { id: 'LetsBonk', label: 'LetsBonk', title: 'Coins sourced from LetsBonk' },
+];
 
 export type FeeModeKind = 'creator' | 'traders';
 
@@ -136,6 +160,14 @@ export const HYBRID_FEED_TABS: {
 export function matchesHybridTab(project: CtoProject, tab: HybridFeedTab): boolean {
   if (tab === 'all') return true;
   return project.origin === tab;
+}
+
+export function matchesSourceVenue(
+  project: CtoProject,
+  venue: SourceVenueFilter,
+): boolean {
+  if (venue === 'all') return true;
+  return project.sourceVenue === venue;
 }
 
 /** Day-one hybrid catalog — fills the board with native + tracked external CTOs. */
@@ -470,7 +502,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Forming',
     origin: 'external_cto',
-    sourceVenue: 'Pump.fun',
+    sourceVenue: 'PumpSwap',
     devDumpedPct: 99,
     community: '9.1K',
     votes: 890,

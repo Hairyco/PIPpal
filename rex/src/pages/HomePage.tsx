@@ -29,12 +29,15 @@ import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../compone
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
   HYBRID_FEED_TABS,
+  SOURCE_VENUE_FILTERS,
   ctoProjects,
   matchesHybridTab,
+  matchesSourceVenue,
   resolveMarketingWalletAddress,
   solscanAccountUrl,
   type CtoProject,
   type HybridFeedTab,
+  type SourceVenueFilter,
 } from '../data/ctoProjects';
 
 type Project = CtoProject;
@@ -543,6 +546,7 @@ export function HomePage() {
   const [activeShortcut, setActiveShortcut] = useState<Shortcut>('Trending');
   const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
   const [hybridTab, setHybridTab] = useState<HybridFeedTab>('all');
+  const [venueFilter, setVenueFilter] = useState<SourceVenueFilter>('all');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
   const isPinnedView = activeWindow === 'Pinned';
   const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
@@ -604,7 +608,8 @@ export function HomePage() {
       return (
         matchesQuery &&
         matchesShortcut(project, activeShortcut) &&
-        matchesHybridTab(project, hybridTab)
+        matchesHybridTab(project, hybridTab) &&
+        matchesSourceVenue(project, venueFilter)
       );
     });
 
@@ -621,7 +626,7 @@ export function HomePage() {
     sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, hybridTab]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, hybridTab, venueFilter]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -666,7 +671,7 @@ export function HomePage() {
   useEffect(() => {
     setPage(1);
     setPageInput('');
-  }, [query, activeWindow, activeShortcut, activeMode, hybridTab]);
+  }, [query, activeWindow, activeShortcut, activeMode, hybridTab, venueFilter]);
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -702,14 +707,18 @@ export function HomePage() {
       return shortcutCopy[activeShortcut];
     }
     const hybrid = HYBRID_FEED_TABS.find((tab) => tab.id === hybridTab) ?? HYBRID_FEED_TABS[0];
+    const venue =
+      SOURCE_VENUE_FILTERS.find((item) => item.id === venueFilter) ?? SOURCE_VENUE_FILTERS[0];
+    const venueNote =
+      venueFilter === 'all' ? hybrid.subtitle : `${hybrid.subtitle} Filtered to ${venue.label}.`;
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
       return {
         title: hybrid.title,
-        subtitle: `Sorted by ${activeWindow} gainers — ${windowTab?.title ?? 'active movers'}.`,
+        subtitle: `Sorted by ${activeWindow} gainers — ${windowTab?.title ?? 'active movers'}. ${venueFilter === 'all' ? '' : `Venue: ${venue.label}.`}`.trim(),
       };
     }
-    return { title: hybrid.title, subtitle: hybrid.subtitle };
+    return { title: hybrid.title, subtitle: venueNote };
   })();
 
   const selectShortcut = (label: Shortcut) => {
@@ -722,6 +731,14 @@ export function HomePage() {
     requestAnimationFrame(() => {
       document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  };
+
+  const selectVenueFilter = (venue: SourceVenueFilter) => {
+    setVenueFilter(venue);
+    setActiveShortcut('Trending');
+    if (isPinnedView) setActiveWindow('5m');
+    setPage(1);
+    setPageInput('');
   };
 
   const selectHybridTab = (tab: HybridFeedTab) => {
@@ -1056,6 +1073,28 @@ export function HomePage() {
                 <LayoutGrid className="h-3.5 w-3.5" />
                 Change view
               </button>
+            </div>
+
+            <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
+              {SOURCE_VENUE_FILTERS.map((venue) => {
+                const active = !isPinnedView && venueFilter === venue.id;
+                return (
+                  <button
+                    key={venue.id}
+                    type="button"
+                    title={venue.title}
+                    aria-pressed={active}
+                    onClick={() => selectVenueFilter(venue.id)}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                      active
+                        ? 'border border-[#c8ff3d]/40 bg-[#c8ff3d]/15 text-[#d5ff69]'
+                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
+                    }`}
+                  >
+                    {venue.label}
+                  </button>
+                );
+              })}
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
