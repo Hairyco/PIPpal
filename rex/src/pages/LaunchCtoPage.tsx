@@ -6,8 +6,10 @@ import {
   Check,
   ChevronDown,
   Flame,
+  Globe,
   Loader2,
   Lock,
+  MessageCircle,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -19,6 +21,7 @@ import {
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
+import { CLAIM_FEE } from '../data/claimPricing';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
@@ -481,6 +484,45 @@ export function LaunchCtoPage() {
                   Launch on CTOgo
                 </button>
               </div>
+
+              {mode === 'launch' ? (
+                <div className="rounded-xl border border-[#c8ff3d]/30 bg-gradient-to-br from-[#c8ff3d]/12 to-transparent p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                        Included with launch
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-white">Everything you need to go live</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-serif text-3xl font-bold leading-none text-[#d5ff69]">
+                        ${CLAIM_FEE}
+                      </p>
+                      <p className="mt-1 text-[10px] font-medium text-white/40">one-time</p>
+                    </div>
+                  </div>
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {[
+                      { icon: Wallet, label: 'Marketing wallet' },
+                      { icon: Globe, label: 'New website' },
+                      { icon: MessageCircle, label: 'New socials' },
+                      { icon: Sparkles, label: 'Logo & banner' },
+                      { icon: Flame, label: 'Bonding curve mint' },
+                      { icon: Users, label: 'Board listing' },
+                    ].map(({ icon: Icon, label }) => (
+                      <li
+                        key={label}
+                        className="inline-flex items-center gap-2 text-[12px] font-medium text-white/75"
+                      >
+                        <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d]/15 text-[#d5ff69]">
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        {label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
 
               {mode === 'add' ? (
                 <p className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2 text-[11px] leading-relaxed text-white/65">
