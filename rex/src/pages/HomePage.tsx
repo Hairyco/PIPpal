@@ -188,7 +188,7 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '30px 190px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
+  '190px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
   '30px 190px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
 
@@ -848,12 +848,12 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1090px]'}>
+                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1060px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
                   >
-                    <span className="text-center">#</span>
+                    {isPrelaunch ? <span className="text-center">#</span> : null}
                     <span>Asset</span>
                     {isPrelaunch ? (
                       <>
@@ -895,7 +895,9 @@ export function HomePage() {
                       className="grid cursor-pointer items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
                       style={rankingGridStyle}
                     >
-                      <span className="text-center text-xs text-white/35">{project.rank}</span>
+                      {isPrelaunch ? (
+                        <span className="text-center text-xs text-white/35">{project.rank}</span>
+                      ) : null}
                       <div className="flex w-[190px] items-start gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
