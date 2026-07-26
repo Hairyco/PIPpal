@@ -93,6 +93,13 @@ const rankingModes = [
   { id: 'Trending', label: 'Trending', icon: Flame, title: 'Trending', subtitle: 'Strongest momentum right now.' },
   { id: 'Hot', label: 'Hot', icon: Zap, title: 'Hot', subtitle: 'Highest raid and messaging activity.' },
   { id: 'Gainers', label: 'Gainers', icon: TrendingUp, title: 'Gainers', subtitle: 'Biggest price movers in the selected window.' },
+  {
+    id: 'Prelaunch',
+    label: 'Prelaunch',
+    icon: Rocket,
+    title: 'Prelaunch',
+    subtitle: 'Vote with a connected wallet to set launch order — highest votes go live first.',
+  },
 ] as const;
 type RankingMode = (typeof rankingModes)[number]['id'];
 
@@ -451,8 +458,8 @@ export function HomePage() {
   };
 
   const selectRankingMode = (mode: RankingMode) => {
-    setActiveMode(mode);
-    setActiveShortcut('Trending');
+    setActiveMode(mode === 'Prelaunch' ? 'Trending' : mode);
+    setActiveShortcut(mode === 'Prelaunch' ? 'Prelaunch' : 'Trending');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
@@ -742,7 +749,11 @@ export function HomePage() {
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
               {rankingModes.map((mode) => {
                 const Icon = mode.icon;
-                const active = !isPinnedView && !shortcutOwnsList && activeMode === mode.id;
+                const active =
+                  !isPinnedView &&
+                  (mode.id === 'Prelaunch'
+                    ? activeShortcut === 'Prelaunch'
+                    : !shortcutOwnsList && activeMode === mode.id);
                 return (
                   <button
                     key={mode.id}
