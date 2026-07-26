@@ -20,6 +20,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
+import { useConnectedWallet } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE } from '../data/claimPricing';
 import {
@@ -80,8 +81,10 @@ const DEMO_CONTRACT = '7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK2mNp';
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
+  const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
+  const [listNotice, setListNotice] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
   const [contract, setContract] = useState(DEMO_CONTRACT);
@@ -169,11 +172,7 @@ export function LaunchCtoPage() {
           { id: 'burn' as const, label: 'Burn' },
           { id: 'website' as const, label: 'Website' },
         ]
-      : [
-          { id: 'coin' as const, label: 'Coin' },
-          { id: 'burn' as const, label: 'Burn' },
-          { id: 'website' as const, label: 'Website' },
-        ];
+      : [{ id: 'coin' as const, label: 'Coin' }];
   const stepIndex = steps.findIndex((s) => s.id === step);
   const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
   const launchTier = FEE_TIERS[0];
@@ -218,6 +217,7 @@ export function LaunchCtoPage() {
     setOnePagerThemeId(DEFAULT_ONE_PAGER_THEME_ID);
     setDesignNote('');
     setFromCoinPage(false);
+    setListNotice(null);
   };
 
   const switchMode = (next: LaunchMode) => {
@@ -252,10 +252,20 @@ export function LaunchCtoPage() {
     }
   }
 
-  const onCoinContinue = (event: FormEvent) => {
+  const onCoinContinue = async (event: FormEvent) => {
     event.preventDefault();
     if (!canContinueCoin) return;
-    setStep(mode === 'launch' ? 'fees' : 'burn');
+    if (mode === 'add') {
+      setListNotice(null);
+      if (!connected) {
+        setListNotice('Connect your wallet to claim this listing');
+        const next = await connect();
+        if (!next) return;
+      }
+      setStep('done');
+      return;
+    }
+    setStep('fees');
   };
 
   const onFeesContinue = (event: FormEvent) => {
@@ -424,11 +434,11 @@ export function LaunchCtoPage() {
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'add'
-              ? 'Add an existing Solana coin to the board so communities can find it.'
+              ? 'Paste the contract, connect your wallet, and you’re on the board.'
               : 'Paste any Solana mint. We pull what we can.'}
           </p>
 
-          {step !== 'done' ? (
+          {step !== 'done' && mode === 'launch' ? (
             <div className="mt-5 flex gap-1.5">
               {steps.map((s, i) => (
                 <div key={s.id} className="flex flex-1 flex-col gap-1.5">
@@ -539,8 +549,8 @@ export function LaunchCtoPage() {
 
               {mode === 'add' ? (
                 <p className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2 text-[11px] leading-relaxed text-white/65">
-                  Listing gets you on the board for discovery. Want a marketing wallet and Native
-                  fees? Switch to{' '}
+                  Free board listing for discovery. Your connected wallet owns the page. Want a
+                  marketing wallet and Native fees? Switch to{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('launch')}
@@ -672,62 +682,102 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="flex w-full items-center justify-between rounded-xl border border-white/[0.06] px-3 py-2.5 text-left text-[11px] font-semibold text-white/45 hover:text-white/70"
-              >
-                Advanced (old socials)
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                />
-              </button>
+              {mode === 'launch' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((v) => !v)}
+                    className="flex w-full items-center justify-between rounded-xl border border-white/[0.06] px-3 py-2.5 text-left text-[11px] font-semibold text-white/45 hover:text-white/70"
+                  >
+                    Advanced (old socials)
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+                    />
+                  </button>
 
-              {showAdvanced ? (
-                <div className="space-y-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/40">Old Telegram</span>
-                    <input
-                      value={telegram}
-                      onChange={(event) => setTelegram(event.target.value)}
-                      placeholder="https://t.me/…"
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/40">Old X / Twitter</span>
-                    <input
-                      value={twitter}
-                      onChange={(event) => setTwitter(event.target.value)}
-                      placeholder="https://x.com/…"
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/40">Old website</span>
-                    <input
-                      value={website}
-                      onChange={(event) => setWebsite(event.target.value)}
-                      placeholder="https://…"
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/40">Notes</span>
-                    <textarea
-                      value={note}
-                      onChange={(event) => setNote(event.target.value)}
-                      rows={2}
-                      placeholder="Optional"
-                      className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                    />
-                  </label>
+                  {showAdvanced ? (
+                    <div className="space-y-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/40">Old Telegram</span>
+                        <input
+                          value={telegram}
+                          onChange={(event) => setTelegram(event.target.value)}
+                          placeholder="https://t.me/…"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/40">Old X / Twitter</span>
+                        <input
+                          value={twitter}
+                          onChange={(event) => setTwitter(event.target.value)}
+                          placeholder="https://x.com/…"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/40">Old website</span>
+                        <input
+                          value={website}
+                          onChange={(event) => setWebsite(event.target.value)}
+                          placeholder="https://…"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/40">Notes</span>
+                        <textarea
+                          value={note}
+                          onChange={(event) => setNote(event.target.value)}
+                          rows={2}
+                          placeholder="Optional"
+                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+                </>
+              ) : (
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
+                    <p className="text-[12px] font-semibold text-white/80">Listing owner</p>
+                  </div>
+                  <p className="mt-1 text-[11px] leading-relaxed text-white/45">
+                    {connected && address
+                      ? `Connected · ${address.slice(0, 4)}…${address.slice(-4)} will control this page.`
+                      : 'Connect your wallet to claim and manage this listing.'}
+                  </p>
                 </div>
+              )}
+
+              {listNotice && mode === 'add' ? (
+                <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              <button type="submit" disabled={!canContinueCoin} className={primaryBtnClass}>
-                Looks good
-                <ArrowRight className="h-4 w-4" />
+              <button
+                type="submit"
+                disabled={!canContinueCoin || (mode === 'add' && walletBusy)}
+                className={primaryBtnClass}
+              >
+                {mode === 'add' ? (
+                  connected ? (
+                    <>
+                      List on CTOgo
+                      <Check className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      Connect wallet &amp; list
+                      <Wallet className="h-4 w-4" />
+                    </>
+                  )
+                ) : (
+                  <>
+                    Looks good
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
               </button>
             </form>
           ) : null}
@@ -1202,13 +1252,27 @@ export function LaunchCtoPage() {
 
           {step === 'done' ? (
             <div className="mt-6 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-4 py-6 text-center">
-              <p className="text-sm font-bold text-[#d5ff69]">CTO published</p>
-              <p className="mt-1.5 text-xs text-white/50">
-                {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live on
-                CTOgo
-                {websiteKind === 'clone' ? ' with a cloned site' : ' with a 1-pager'}.
+              <p className="text-sm font-bold text-[#d5ff69]">
+                {mode === 'add' ? 'CTO listed' : 'CTO published'}
               </p>
-              {artBill.hasExtras ? (
+              <p className="mt-1.5 text-xs text-white/50">
+                {mode === 'add' ? (
+                  <>
+                    {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your coin'} is on the
+                    board
+                    {address
+                      ? ` · managed by ${address.slice(0, 4)}…${address.slice(-4)}`
+                      : ''}.
+                  </>
+                ) : (
+                  <>
+                    {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live on
+                    CTOgo
+                    {websiteKind === 'clone' ? ' with a cloned site' : ' with a 1-pager'}.
+                  </>
+                )}
+              </p>
+              {mode === 'launch' && artBill.hasExtras ? (
                 <div className="mx-auto mt-4 max-w-sm rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-left">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-white/40">
                     Creative extras
@@ -1223,12 +1287,24 @@ export function LaunchCtoPage() {
                   </p>
                 </div>
               ) : null}
+              {mode === 'add' ? (
+                <p className="mx-auto mt-4 max-w-sm text-[11px] leading-relaxed text-white/40">
+                  Want a marketing wallet, new site, and Native fees?{' '}
+                  <button
+                    type="button"
+                    onClick={() => switchMode('launch')}
+                    className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                  >
+                    Launch on CTOgo
+                  </button>
+                </p>
+              ) : null}
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link to="/" className={`${primaryBtnClass} sm:w-auto sm:px-6`}>
                   Back to home
                 </Link>
                 <button type="button" onClick={resetFlow} className={backBtnClass}>
-                  Launch another
+                  {mode === 'add' ? 'List another' : 'Launch another'}
                 </button>
               </div>
             </div>
