@@ -414,13 +414,15 @@ export function LaunchCtoPage() {
 
         <main className="mx-auto max-w-xl px-3 py-8 sm:px-5">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-            CTO Launch Wizard
+            {mode === 'add' ? 'List for exposure' : 'CTO Launch Wizard'}
           </p>
           <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
-            {mode === 'launch' ? 'Launch a CTO' : 'Add a coin'}
+            {mode === 'launch' ? 'Launch a CTO' : 'List a CTO'}
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
-            Paste any Solana mint. We pull what we can.
+            {mode === 'add'
+              ? 'Add an existing Solana coin to the board so communities can find it.'
+              : 'Paste any Solana mint. We pull what we can.'}
           </p>
 
           {step !== 'done' ? (
@@ -458,17 +460,6 @@ export function LaunchCtoPage() {
               <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1">
                 <button
                   type="button"
-                  onClick={() => switchMode('launch')}
-                  className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition ${
-                    mode === 'launch'
-                      ? 'bg-[#c8ff3d] text-[#090b14]'
-                      : 'text-white/50 hover:text-white'
-                  }`}
-                >
-                  Launch CTO
-                </button>
-                <button
-                  type="button"
                   onClick={() => switchMode('add')}
                   className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition ${
                     mode === 'add'
@@ -476,9 +467,35 @@ export function LaunchCtoPage() {
                       : 'text-white/50 hover:text-white'
                   }`}
                 >
-                  Add coin
+                  List a CTO
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('launch')}
+                  className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition ${
+                    mode === 'launch'
+                      ? 'bg-[#c8ff3d] text-[#090b14]'
+                      : 'text-white/50 hover:text-white'
+                  }`}
+                >
+                  Launch on CTOgo
                 </button>
               </div>
+
+              {mode === 'add' ? (
+                <p className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2 text-[11px] leading-relaxed text-white/65">
+                  Listing gets you on the board for discovery. Want a marketing wallet and Native
+                  fees? Switch to{' '}
+                  <button
+                    type="button"
+                    onClick={() => switchMode('launch')}
+                    className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                  >
+                    Launch on CTOgo
+                  </button>
+                  .
+                </p>
+              ) : null}
 
               {fromCoinPage ? (
                 <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-[11px] text-sky-200">
