@@ -500,6 +500,7 @@ export function HomePage() {
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
       <AppSidebar />
       <div className="relative z-[1]">
+      {viewMode !== 'trade' ? (
       <div className="sticky top-0 z-40 bg-black">
       <div className="border-b border-white/[0.06] bg-black">
         <div className="mx-auto flex h-10 max-w-7xl items-center overflow-hidden px-3 sm:px-5">
@@ -711,10 +712,11 @@ export function HomePage() {
         </div>
       </nav>
       </div>
+      ) : null}
 
       <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : 'py-3'}`}>
         {viewMode === 'trade' && selectedProject ? (
-          <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem] pt-2">
+          <section id="cto-rankings" className="min-w-0 scroll-mt-4 pt-2">
             <CtoTradeView
               project={selectedProject}
               projects={visibleProjects}
