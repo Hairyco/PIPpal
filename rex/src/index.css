@@ -13,6 +13,8 @@
     width: 100%;
     overflow-x: clip;
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: manipulation;
   }
 
   body,
@@ -28,14 +30,16 @@
     background-color: #000000;
     color: #f5f7fb;
     font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    overscroll-behavior-x: none;
+    touch-action: manipulation;
   }
+}
 
-  /* iOS Safari zooms focused inputs below 16px — keep page scale fixed */
-  input,
-  textarea,
-  select {
-    font-size: 16px;
-  }
+/* iOS zooms focused controls under 16px — beat Tailwind text-* utilities */
+input,
+textarea,
+select {
+  font-size: 16px !important;
 }
 
 @layer components {

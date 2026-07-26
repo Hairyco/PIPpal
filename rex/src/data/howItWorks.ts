@@ -1,7 +1,7 @@
-import { Wallet, BadgeCheck, Map, Building2, Rocket, Gift, Hourglass } from 'lucide-react';
+import { Wallet, Map, Building2, Rocket, Gift } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { TRADE_FEE_LABEL } from './chainConfig';
-import { CLAIM_FEE, premiumFeatures } from './claimPricing';
+import { premiumFeatures } from './claimPricing';
 import { LAUNCH_NOTE, LAUNCH_TRADE_NOTE } from './launchTerms';
 
 export interface HowItWorksStep {
@@ -15,7 +15,7 @@ export interface HowItWorksStep {
   highlight?: string;
 }
 
-/** Short 5-step flow for the landing timeline. */
+/** Short 3-step flow for the landing timeline. */
 export const landingTimelineSteps: Pick<HowItWorksStep, 'id' | 'icon' | 'title' | 'subtitle'>[] = [
   {
     id: 'launch',
@@ -30,22 +30,10 @@ export const landingTimelineSteps: Pick<HowItWorksStep, 'id' | 'icon' | 'title' 
     subtitle: 'Milestones define what gets built and when',
   },
   {
-    id: 'staging',
-    icon: Hourglass,
-    title: 'Launch now or stage',
-    subtitle: 'Go live immediately — or list in Launching Soon',
-  },
-  {
     id: 'wallet',
     icon: Wallet,
     title: 'Automated marketing wallet',
     subtitle: 'Buy/sell tax grows your marketing wallet to fund your project',
-  },
-  {
-    id: 'payout',
-    icon: Building2,
-    title: 'Suppliers get paid',
-    subtitle: 'Rex releases funds to vetted suppliers at each milestone',
   },
 ];
 
@@ -83,23 +71,8 @@ export const howItWorksSteps: HowItWorksStep[] = [
     ],
   },
   {
-    id: 'staging',
-    step: 3,
-    icon: Hourglass,
-    title: 'Launch now or stage',
-    subtitle: 'Trade immediately or build buzz first',
-    description:
-      'Choose to go live on Rex right away, or list in Launching Soon to grow community interest before trading opens.',
-    bullets: [
-      'Launch right away — your coin is ready to trade from day one',
-      'Join staging — featured in Launching Soon with a target go-live date',
-      'Followers get notified when staging projects flip to live',
-      'Switch from staging to live anytime from your founder dashboard',
-    ],
-  },
-  {
     id: 'marketing',
-    step: 4,
+    step: 3,
     icon: Wallet,
     title: 'Automated marketing wallet',
     subtitle: 'Trades fund the wallet — milestones pay providers',
@@ -114,24 +87,8 @@ export const howItWorksSteps: HowItWorksStep[] = [
     ],
   },
   {
-    id: 'claim',
-    step: 5,
-    icon: BadgeCheck,
-    title: 'Claim ownership — KYC',
-    subtitle: 'Become the verified founder',
-    description:
-      'This is where the owner can officially claim the role of founder — set new milestones, identify marketing, and put it to community vote.',
-    bullets: [
-      'Complete KYC to verify your identity as founder',
-      'Unlock vesting on your 15% founder allocation (share pool uses the same rules)',
-      'Set roadmap milestones and propose marketing spend',
-      'Community vote on major founder decisions',
-      `One-time $${CLAIM_FEE} claim fee plus optional premium perks from $${Math.min(...premiumFeatures.map((p) => p.price))} each`,
-    ],
-  },
-  {
     id: 'supplier',
-    step: 6,
+    step: 4,
     icon: Building2,
     title: 'Founder & supplier delivery',
     subtitle: 'Your build, your choice',
@@ -146,7 +103,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
   },
   {
     id: 'perks',
-    step: 7,
+    step: 5,
     icon: Gift,
     title: 'Investor perks',
     subtitle: 'Optional paid add-ons',

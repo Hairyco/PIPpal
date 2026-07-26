@@ -4,7 +4,7 @@ import { HowItWorksModal } from './HowItWorksModal';
 import { HowItWorksStepCard } from './HowItWorksStepCard';
 
 const landingSteps = howItWorksSteps.filter((s) =>
-  ['launch', 'marketing', 'claim'].includes(s.id),
+  ['launch', 'roadmap', 'marketing'].includes(s.id),
 );
 
 export function Pillars() {
