@@ -18,14 +18,46 @@ export const SOURCE_VENUE_FILTERS: {
   id: SourceVenueFilter;
   label: string;
   title: string;
+  /** Local mark under /images/exchanges — omitted for “All”. */
+  logoSrc?: string;
 }[] = [
   { id: 'all', label: 'All exchanges', title: 'Coins from every venue we scan' },
-  { id: 'Rex', label: 'CTOgo', title: 'Native CTOgo curve and graduated coins' },
-  { id: 'PumpSwap', label: 'PumpSwap', title: 'Coins trading on PumpSwap' },
-  { id: 'Pump.fun', label: 'Pump.fun', title: 'Coins still on the Pump.fun bonding curve' },
-  { id: 'Raydium', label: 'Raydium', title: 'Coins trading on Raydium' },
-  { id: 'Moonshot', label: 'Moonshot', title: 'Coins sourced from Moonshot' },
-  { id: 'LetsBonk', label: 'LetsBonk', title: 'Coins sourced from LetsBonk' },
+  {
+    id: 'Rex',
+    label: 'CTOgo',
+    title: 'Native CTOgo curve and graduated coins',
+    logoSrc: '/images/exchanges/ctogo.svg',
+  },
+  {
+    id: 'PumpSwap',
+    label: 'PumpSwap',
+    title: 'Coins trading on PumpSwap',
+    logoSrc: '/images/exchanges/pumpswap.png',
+  },
+  {
+    id: 'Pump.fun',
+    label: 'Pump.fun',
+    title: 'Coins still on the Pump.fun bonding curve',
+    logoSrc: '/images/exchanges/pumpfun.png',
+  },
+  {
+    id: 'Raydium',
+    label: 'Raydium',
+    title: 'Coins trading on Raydium',
+    logoSrc: '/images/exchanges/raydium.png',
+  },
+  {
+    id: 'Moonshot',
+    label: 'Moonshot',
+    title: 'Coins sourced from Moonshot',
+    logoSrc: '/images/exchanges/moonshot.png',
+  },
+  {
+    id: 'LetsBonk',
+    label: 'LetsBonk',
+    title: 'Coins sourced from LetsBonk',
+    logoSrc: '/images/exchanges/letsbonk.png',
+  },
 ];
 
 export type FeeModeKind = 'creator' | 'traders';

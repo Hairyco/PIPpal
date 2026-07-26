@@ -123,6 +123,13 @@ export function LaunchCtoPage() {
   const lookupSeq = useRef(0);
 
   useEffect(() => {
+    const qMode = searchParams.get('mode')?.trim().toLowerCase();
+    if (qMode === 'add' || qMode === 'list') {
+      setMode('add');
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
     if (prefillApplied.current) return;
     const qName = searchParams.get('name')?.trim() ?? '';
     const qTicker = searchParams.get('ticker')?.trim() ?? '';

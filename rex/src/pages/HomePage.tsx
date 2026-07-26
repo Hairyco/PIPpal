@@ -371,9 +371,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  '28px 36px 200px 72px 56px 56px 52px 72px 64px 48px 64px 148px';
+  '36px 280px 72px 56px 56px 52px 72px 64px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '28px 36px 200px 68px 56px 72px 56px 56px 52px 72px 64px 48px 64px 148px 64px';
+  '36px 280px 68px 56px 72px 56px 56px 52px 72px 64px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -955,29 +955,6 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav className="border-b border-white/[0.06] bg-black">
-        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-3 sm:px-5">
-          {shortcuts.map((shortcut) => {
-            const Icon = shortcut.icon;
-            const active = activeShortcut === shortcut.label;
-            return (
-              <button
-                key={shortcut.label}
-                type="button"
-                onClick={() => selectShortcut(shortcut.label)}
-                className={`flex shrink-0 items-center gap-2 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition ${
-                  active
-                    ? 'border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                    : 'border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {shortcut.label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
       <nav aria-label="Filter coins by exchange" className="border-b border-white/[0.06] bg-black">
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-2 sm:px-5">
           {SOURCE_VENUE_FILTERS.map((venue) => {
@@ -989,16 +966,43 @@ export function HomePage() {
                 title={venue.title}
                 aria-pressed={active}
                 onClick={() => selectVenueFilter(venue.id)}
-                className={`inline-flex shrink-0 items-center rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
                   active
                     ? 'border border-[#c8ff3d]/40 bg-[#c8ff3d]/15 text-[#d5ff69]'
                     : 'border border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
                 }`}
               >
+                {venue.logoSrc ? (
+                  <img
+                    src={venue.logoSrc}
+                    alt=""
+                    className="h-4 w-4 shrink-0 rounded-[4px] bg-black/40 object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <LayoutGrid
+                    className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-[#d5ff69]' : 'text-white/45'}`}
+                    aria-hidden
+                  />
+                )}
                 {venue.label}
               </button>
             );
           })}
+        </div>
+        <div className="mx-auto flex max-w-7xl gap-2 px-3 pb-2.5 sm:px-5">
+          <Link
+            to="/launch"
+            className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 text-xs font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-4"
+          >
+            Launch CTO
+          </Link>
+          <Link
+            to="/launch?mode=add"
+            className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:border-[#c8ff3d]/35 hover:text-[#d5ff69] sm:flex-none sm:px-4"
+          >
+            List a CTO
+          </Link>
         </div>
       </nav>
       </div>
@@ -1226,12 +1230,11 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1180px]' : 'min-w-[1080px]'}>
+                <div className={isPrelaunch ? 'min-w-[1260px]' : 'min-w-[1160px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
                   >
-                    <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                     <span className="text-center">#</span>
                     <span>Asset</span>
                     {isPrelaunch ? (
@@ -1254,6 +1257,7 @@ export function HomePage() {
                     {isPrelaunch ? (
                       <span className="text-right">Votes ▾</span>
                     ) : null}
+                    <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                   </div>
                   {pagedProjects.map((project) => {
                     const hasVoted = Boolean(voted[project.ticker]);
@@ -1272,23 +1276,12 @@ export function HomePage() {
                       className="grid cursor-pointer items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
                       style={rankingGridStyle}
                     >
-                      <button
-                        type="button"
-                        aria-label={`Star ${project.ticker}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }));
-                        }}
-                        className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
-                      >
-                        <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
-                      </button>
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex w-[200px] items-center gap-2.5">
+                      <div className="flex w-[280px] items-start gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-sm font-bold">{project.ticker}</p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="text-sm font-bold">{project.ticker}</p>
                             <OriginBadge origin={project.origin} compact />
                             {project.verified && (
                               <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
@@ -1299,9 +1292,9 @@ export function HomePage() {
                               </span>
                             )}
                           </div>
-                          <p className="truncate text-[11px] text-white/35">{project.name}</p>
+                          <p className="text-[11px] leading-snug text-white/55">{project.name}</p>
                           {project.origin === 'external_cto' ? (
-                            <p className="mt-0.5 truncate text-[10px] font-medium text-rose-300/80">
+                            <p className="mt-0.5 text-[10px] font-medium leading-snug text-rose-300/80">
                               {project.sourceVenue}
                               {project.devDumpedPct != null ? ` · Dev dumped ${project.devDumpedPct}%` : ''}
                             </p>
@@ -1398,6 +1391,17 @@ export function HomePage() {
                           <p className="text-[10px] text-white/35">+{project.votesToday} today</p>
                         </div>
                       ) : null}
+                      <button
+                        type="button"
+                        aria-label={`Star ${project.ticker}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }));
+                        }}
+                        className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                      >
+                        <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+                      </button>
                     </article>
                     );
                   })}
