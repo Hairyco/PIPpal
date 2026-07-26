@@ -697,16 +697,16 @@ export function HomePage() {
         </div>
         <div className="mx-auto flex max-w-7xl gap-2 px-3 pb-2.5 sm:px-5">
           <Link
-            to="/launch"
-            className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 text-xs font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-4"
-          >
-            Launch a CTO
-          </Link>
-          <Link
             to="/launch?mode=list"
             className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:border-[#c8ff3d]/35 hover:text-[#d5ff69] sm:flex-none sm:px-4"
           >
             List a CTO
+          </Link>
+          <Link
+            to="/launch"
+            className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 text-xs font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none sm:px-4"
+          >
+            Launch a CTO
           </Link>
         </div>
       </nav>
