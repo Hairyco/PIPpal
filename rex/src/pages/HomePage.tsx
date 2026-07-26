@@ -24,19 +24,15 @@ import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
-import { OriginBadge } from '../components/OriginBadge';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
-  HYBRID_FEED_TABS,
   SOURCE_VENUE_FILTERS,
   ctoProjects,
-  matchesHybridTab,
   matchesSourceVenue,
   resolveMarketingWalletAddress,
   solscanAccountUrl,
   type CtoProject,
-  type HybridFeedTab,
   type SourceVenueFilter,
 } from '../data/ctoProjects';
 
@@ -506,7 +502,6 @@ function PromotedRail({ projects }: { projects: Project[] }) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="truncate text-sm font-bold">${project.ticker}</p>
-                      <OriginBadge origin={project.origin} compact />
                       <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
                     </div>
                     <p className="truncate text-[11px] text-white/35">{project.name}</p>
@@ -545,7 +540,6 @@ export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState<Shortcut>('Trending');
   const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
-  const [hybridTab, setHybridTab] = useState<HybridFeedTab>('all');
   const [venueFilter, setVenueFilter] = useState<SourceVenueFilter>('all');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
   const isPinnedView = activeWindow === 'Pinned';
@@ -609,7 +603,6 @@ export function HomePage() {
       return (
         matchesQuery &&
         matchesShortcut(project, activeShortcut) &&
-        matchesHybridTab(project, hybridTab) &&
         matchesSourceVenue(project, venueFilter)
       );
     });
@@ -627,7 +620,7 @@ export function HomePage() {
     sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, hybridTab, venueFilter]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, venueFilter]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -674,7 +667,7 @@ export function HomePage() {
   useEffect(() => {
     setPage(1);
     setPageInput('');
-  }, [query, activeWindow, activeShortcut, activeMode, hybridTab, venueFilter]);
+  }, [query, activeWindow, activeShortcut, activeMode, venueFilter]);
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -709,25 +702,25 @@ export function HomePage() {
     if (activeShortcut !== 'Trending') {
       return shortcutCopy[activeShortcut];
     }
-    const hybrid = HYBRID_FEED_TABS.find((tab) => tab.id === hybridTab) ?? HYBRID_FEED_TABS[0];
     const venue =
       SOURCE_VENUE_FILTERS.find((item) => item.id === venueFilter) ?? SOURCE_VENUE_FILTERS[0];
+    const baseSubtitle =
+      'Hybrid mix — Native V2 CTOs, Native Launches, and high-volume External CTOs.';
     const venueNote =
-      venueFilter === 'all' ? hybrid.subtitle : `${hybrid.subtitle} Filtered to ${venue.label}.`;
+      venueFilter === 'all' ? baseSubtitle : `${baseSubtitle} Filtered to ${venue.label}.`;
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
       return {
-        title: hybrid.title,
+        title: 'All tokens',
         subtitle: `Sorted by ${activeWindow} gainers — ${windowTab?.title ?? 'active movers'}. ${venueFilter === 'all' ? '' : `Venue: ${venue.label}.`}`.trim(),
       };
     }
-    return { title: hybrid.title, subtitle: venueNote };
+    return { title: 'All tokens', subtitle: venueNote };
   })();
 
   const selectShortcut = (label: Shortcut) => {
     setActiveShortcut(label);
     if (label === 'Trending') setActiveMode('Trending');
-    if (label === 'New CTOs') setHybridTab('native_launch');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
     setPageInput('');
@@ -738,14 +731,6 @@ export function HomePage() {
 
   const selectVenueFilter = (venue: SourceVenueFilter) => {
     setVenueFilter(venue);
-    setActiveShortcut('Trending');
-    if (isPinnedView) setActiveWindow('5m');
-    setPage(1);
-    setPageInput('');
-  };
-
-  const selectHybridTab = (tab: HybridFeedTab) => {
-    setHybridTab(tab);
     setActiveShortcut('Trending');
     if (isPinnedView) setActiveWindow('5m');
     setPage(1);
@@ -1111,28 +1096,6 @@ export function HomePage() {
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
-              {HYBRID_FEED_TABS.map((tab) => {
-                const active = !isPinnedView && !shortcutOwnsList && hybridTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    title={tab.subtitle}
-                    aria-pressed={active}
-                    onClick={() => selectHybridTab(tab.id)}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
-                      active
-                        ? 'border border-transparent bg-white text-[#090b14]'
-                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
               {rankingModes.map((mode) => {
                 const Icon = mode.icon;
                 const active = !isPinnedView && !shortcutOwnsList && activeMode === mode.id;
@@ -1282,7 +1245,6 @@ export function HomePage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <p className="text-sm font-bold">{project.ticker}</p>
-                            <OriginBadge origin={project.origin} compact />
                             {project.verified && (
                               <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
                             )}
