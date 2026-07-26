@@ -501,25 +501,38 @@ export function LaunchCtoPage() {
                       <p className="mt-1 text-[10px] font-medium text-white/40">one-time</p>
                     </div>
                   </div>
-                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                    {[
-                      { icon: Wallet, label: 'Marketing wallet' },
-                      { icon: Globe, label: 'New website' },
-                      { icon: MessageCircle, label: 'New socials' },
-                      { icon: Sparkles, label: 'Logo & banner' },
-                      { icon: Flame, label: 'Bonding curve mint' },
-                      { icon: Users, label: 'Board listing' },
-                    ].map(({ icon: Icon, label }) => (
-                      <li
-                        key={label}
-                        className="inline-flex items-center gap-2 text-[12px] font-medium text-white/75"
+                  <ul className="mt-3 space-y-2">
+                    <li className="flex items-center gap-2 text-[12px] font-medium text-white/75">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Wallet className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="min-w-0 flex-1">Marketing wallet</span>
+                      <Link
+                        to="/marketing-wallet"
+                        className="shrink-0 text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2 transition hover:text-white"
                       >
-                        <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d]/15 text-[#d5ff69]">
-                          <Icon className="h-3.5 w-3.5" />
-                        </span>
-                        {label}
-                      </li>
-                    ))}
+                        How it works
+                      </Link>
+                    </li>
+                    <li className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        { icon: Globe, label: 'New website' },
+                        { icon: MessageCircle, label: 'New socials' },
+                        { icon: Sparkles, label: 'Logo & banner' },
+                        { icon: ShieldAlert, label: 'Stop dev fees' },
+                        { icon: Users, label: 'Board listing' },
+                      ].map(({ icon: Icon, label }) => (
+                        <div
+                          key={label}
+                          className="inline-flex items-center gap-2 text-[12px] font-medium text-white/75"
+                        >
+                          <span className="grid h-6 w-6 place-items-center rounded-md bg-[#c8ff3d]/15 text-[#d5ff69]">
+                            <Icon className="h-3.5 w-3.5" />
+                          </span>
+                          {label}
+                        </div>
+                      ))}
+                    </li>
                   </ul>
                 </div>
               ) : null}
