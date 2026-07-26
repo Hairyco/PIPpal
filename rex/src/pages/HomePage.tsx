@@ -367,9 +367,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  '36px 260px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
+  '30px 190px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '36px 260px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
+  '30px 190px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -987,12 +987,18 @@ export function HomePage() {
             );
           })}
         </div>
-        <div className="mx-auto flex max-w-7xl px-3 pb-2 sm:px-5">
+        <div className="mx-auto flex max-w-7xl gap-2 px-3 pb-2 sm:px-5">
           <Link
             to="/launch?mode=list"
             className="inline-flex h-8 items-center justify-center rounded-md border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 px-3 text-[11px] font-semibold text-[#d5ff69] transition hover:border-[#c8ff3d]/55 hover:bg-[#c8ff3d]/15"
           >
             List a CTO
+          </Link>
+          <Link
+            to="/launch"
+            className="inline-flex h-8 items-center justify-center rounded-md bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+          >
+            Launch a CTO
           </Link>
         </div>
       </nav>
@@ -1199,7 +1205,7 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1260px]' : 'min-w-[1160px]'}>
+                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1090px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
@@ -1247,7 +1253,7 @@ export function HomePage() {
                       style={rankingGridStyle}
                     >
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex w-[260px] items-start gap-2.5">
+                      <div className="flex w-[190px] items-start gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
