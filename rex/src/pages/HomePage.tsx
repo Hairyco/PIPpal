@@ -367,9 +367,9 @@ function MarketingAdProgress({ project }: { project: Project }) {
 }
 
 const tableCols =
-  '36px 280px 72px 56px 56px 52px 72px 64px 48px 64px 148px 28px';
+  '36px 260px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '36px 280px 68px 56px 72px 56px 56px 52px 72px 64px 48px 64px 148px 64px 28px';
+  '36px 260px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -400,10 +400,22 @@ function ProjectMark({
   );
 }
 
-function ChainPill() {
+function TxVolumeBar({ project }: { project: Project }) {
+  let hash = 0;
+  for (let i = 0; i < project.ticker.length; i += 1) {
+    hash = (hash * 31 + project.ticker.charCodeAt(i)) % 1000;
+  }
+  const bias = project.change24h >= 0 ? 12 : -12;
+  const buyPct = Math.min(88, Math.max(12, 38 + (hash % 40) + bias));
+  const sellPct = 100 - buyPct;
   return (
-    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/[0.06] text-[10px] font-bold text-white/55" title="Solana">
-      ◎
+    <span
+      className="inline-flex h-7 w-1.5 shrink-0 flex-col overflow-hidden rounded-[2px]"
+      title={`Buys ${buyPct}% · Sells ${sellPct}%`}
+      aria-hidden
+    >
+      <span className="w-full bg-emerald-400" style={{ flexGrow: buyPct, flexBasis: 0 }} />
+      <span className="w-full bg-rose-500" style={{ flexGrow: sellPct, flexBasis: 0 }} />
     </span>
   );
 }
@@ -1203,11 +1215,12 @@ export function HomePage() {
                       </>
                     ) : null}
                     <span className="text-right">Market Cap</span>
+                    <span className="text-right">Volume</span>
                     <span className="text-right">TXs</span>
-                    <span className="text-right">Holders</span>
-                    <span className="text-right">Launch</span>
                     <span className="text-right">Price</span>
                     <span className="text-right">%{activeTimeWindow}</span>
+                    <span className="text-right">Age</span>
+                    <span className="text-right">Holders</span>
                     <span className="text-right" title="Messages per hour">MPH</span>
                     <span className="text-right" title="Raids and people engaging">Raids</span>
                     <span>Marketing wallet</span>
@@ -1234,7 +1247,7 @@ export function HomePage() {
                       style={rankingGridStyle}
                     >
                       <span className="text-center text-xs text-white/35">{project.rank}</span>
-                      <div className="flex w-[280px] items-start gap-2.5">
+                      <div className="flex w-[260px] items-start gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
@@ -1256,7 +1269,6 @@ export function HomePage() {
                             </p>
                           ) : null}
                         </div>
-                        <ChainPill />
                       </div>
                       {isPrelaunch ? (
                         <>
@@ -1297,8 +1309,13 @@ export function HomePage() {
                         </>
                       ) : null}
                       <span className="text-right text-xs font-semibold text-white/90">{project.marketCap}</span>
-                      <span className="text-right text-xs text-white/70">{project.txs}</span>
-                      <span className="text-right text-xs text-white/70">{project.holders}</span>
+                      <span className="text-right text-xs font-semibold text-white/80">{project.volume24h}</span>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <span className="text-xs text-white/70">{project.txs}</span>
+                        <TxVolumeBar project={project} />
+                      </div>
+                      <span className="text-right text-xs font-medium">{project.price}</span>
+                      <span className="text-right text-xs"><Pct value={changeForWindow(project, activeTimeWindow)} /></span>
                       <span
                         className={`text-right text-xs font-semibold ${
                           project.launchInHours == null ? 'text-emerald-300' : 'text-white/75'
@@ -1306,8 +1323,7 @@ export function HomePage() {
                       >
                         {formatLaunchLabel(project.launchInHours)}
                       </span>
-                      <span className="text-right text-xs font-medium">{project.price}</span>
-                      <span className="text-right text-xs"><Pct value={changeForWindow(project, activeTimeWindow)} /></span>
+                      <span className="text-right text-xs text-white/70">{project.holders}</span>
                       <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
                         {project.mph}
                       </span>
