@@ -561,6 +561,7 @@ export function HomePage() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
+  const [boardExpanded, setBoardExpanded] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
   const [voteNotice, setVoteNotice] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
@@ -663,9 +664,11 @@ export function HomePage() {
     });
   };
 
-  const toggleViewMode = () => {
-    if (viewMode === 'list') openTradeView();
-    else setViewMode('list');
+  const toggleBoardExpanded = () => {
+    setBoardExpanded((expanded) => !expanded);
+    requestAnimationFrame(() => {
+      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   };
 
   useEffect(() => {
@@ -975,9 +978,32 @@ export function HomePage() {
           })}
         </div>
       </nav>
+      <nav aria-label="Filter coins by exchange" className="border-b border-white/[0.06] bg-black">
+        <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-2 sm:px-5">
+          {SOURCE_VENUE_FILTERS.map((venue) => {
+            const active = !isPinnedView && venueFilter === venue.id;
+            return (
+              <button
+                key={venue.id}
+                type="button"
+                title={venue.title}
+                aria-pressed={active}
+                onClick={() => selectVenueFilter(venue.id)}
+                className={`inline-flex shrink-0 items-center rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                  active
+                    ? 'border border-[#c8ff3d]/40 bg-[#c8ff3d]/15 text-[#d5ff69]'
+                    : 'border border-white/[0.07] bg-white/[0.025] text-white/55 hover:text-white'
+                }`}
+              >
+                {venue.label}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
       </div>
 
-      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : 'py-5'}`}>
+      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : boardExpanded ? 'py-3' : 'py-5'}`}>
         {viewMode === 'trade' && selectedProject ? (
           <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem] pt-2">
             <CtoTradeView
@@ -996,6 +1022,8 @@ export function HomePage() {
             />
           </section>
         ) : (
+          <>
+        {!boardExpanded ? (
           <>
         <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
@@ -1047,9 +1075,11 @@ export function HomePage() {
           </div>
           <PromotedRail projects={promotedProjects} />
         </section>
+          </>
+        ) : null}
 
-        <div className="mt-8">
-          <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem]">
+        <div className={boardExpanded ? '' : 'mt-8'}>
+          <section id="cto-rankings" className="min-w-0 scroll-mt-[13.5rem]">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
@@ -1066,35 +1096,14 @@ export function HomePage() {
               </div>
               <button
                 type="button"
-                onClick={toggleViewMode}
-                title="Switch to trade terminal view"
+                onClick={toggleBoardExpanded}
+                title={boardExpanded ? 'Restore homepage sections' : 'Expand coin board to fill the page'}
+                aria-pressed={boardExpanded}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
               >
                 <LayoutGrid className="h-3.5 w-3.5" />
-                Change view
+                {boardExpanded ? 'Standard view' : 'Change view'}
               </button>
-            </div>
-
-            <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
-              {SOURCE_VENUE_FILTERS.map((venue) => {
-                const active = !isPinnedView && venueFilter === venue.id;
-                return (
-                  <button
-                    key={venue.id}
-                    type="button"
-                    title={venue.title}
-                    aria-pressed={active}
-                    onClick={() => selectVenueFilter(venue.id)}
-                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition [-webkit-tap-highlight-color:transparent] ${
-                      active
-                        ? 'border border-[#c8ff3d]/40 bg-[#c8ff3d]/15 text-[#d5ff69]'
-                        : 'border border-white/[0.07] bg-white/[0.025] text-white/55'
-                    }`}
-                  >
-                    {venue.label}
-                  </button>
-                );
-              })}
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
