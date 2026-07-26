@@ -180,192 +180,6 @@ function compareByShortcut(
   }
 }
 
-const heroCoins = [
-  {
-    src: 'https://assets.coingecko.com/coins/images/11939/small/shiba.png',
-    alt: 'SHIB',
-    rim: 'from-orange-300 via-orange-500 to-amber-800',
-    className: 'left-[4%] top-[4%] z-[1] h-[54px] w-[54px] rotate-[-8deg] sm:h-[62px] sm:w-[62px]',
-    float: 'animate-float-a',
-  },
-  {
-    src: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg',
-    alt: 'BONK',
-    rim: 'from-rose-300 via-red-500 to-red-900',
-    className: 'left-[46%] top-[0%] z-[2] h-[56px] w-[56px] rotate-[10deg] sm:h-[64px] sm:w-[64px]',
-    float: 'animate-float-b',
-  },
-  {
-    src: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
-    alt: 'DOGE',
-    rim: 'from-yellow-200 via-amber-400 to-yellow-800',
-    className: 'left-[26%] top-[26%] z-[3] h-[58px] w-[58px] rotate-[-2deg] sm:h-[66px] sm:w-[66px]',
-    float: 'animate-float-c',
-  },
-  {
-    src: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg',
-    alt: 'PEPE',
-    rim: 'from-lime-300 via-emerald-500 to-green-900',
-    className: 'left-[2%] top-[46%] z-[5] h-[56px] w-[56px] rotate-[-12deg] sm:h-[64px] sm:w-[64px]',
-    float: 'animate-float-b',
-  },
-  {
-    src: 'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png',
-    alt: 'FLOKI',
-    rim: 'from-white via-zinc-300 to-zinc-600',
-    className: 'left-[44%] top-[48%] z-[4] h-[58px] w-[58px] rotate-[8deg] sm:h-[66px] sm:w-[66px]',
-    float: 'animate-float-a',
-  },
-];
-
-function FloatingCoin({
-  src,
-  rim,
-  className,
-  float,
-  delay,
-}: {
-  src: string;
-  rim: string;
-  className: string;
-  float: string;
-  delay: string;
-}) {
-  return (
-    <div className={`absolute ${className} ${float}`} style={{ animationDelay: delay }}>
-      <div className={`h-full w-full rounded-full bg-gradient-to-br ${rim} p-[3px] shadow-[0_12px_24px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.4)]`}>
-        <div className="h-full w-full overflow-hidden rounded-full bg-[#12141f] p-[2px] shadow-[inset_0_2px_5px_rgba(0,0,0,0.5)]">
-          <img src={src} alt="" className="h-full w-full rounded-full object-cover" loading="eager" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HeroLogoCollage() {
-  return (
-    <div className="relative h-[132px] w-[130px] sm:h-[152px] sm:w-[150px]" aria-hidden>
-      <div className="pointer-events-none absolute inset-x-[10%] top-[18%] h-[70%] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.28),transparent_68%)] blur-md" />
-      {heroCoins.map((coin, index) => (
-        <FloatingCoin
-          key={coin.alt}
-          src={coin.src}
-          rim={coin.rim}
-          className={coin.className}
-          float={coin.float}
-          delay={`${index * 0.12}s`}
-        />
-      ))}
-      <div className="pointer-events-none absolute -bottom-1 left-1/2 h-12 w-[115%] -translate-x-1/2">
-        <div className="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.22),rgba(200,255,61,0.08),transparent_70%)] blur-md" />
-        <div className="absolute inset-x-[8%] bottom-0 h-6 animate-pulse rounded-full bg-[radial-gradient(ellipse_at_center,rgba(148,163,184,0.35),transparent_72%)] blur-lg" />
-        <div className="absolute inset-x-[18%] bottom-1 h-4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.18),transparent_75%)] blur-md" />
-      </div>
-    </div>
-  );
-}
-
-function HeartbeatTracker() {
-  return (
-    <svg className="h-5 w-[4.5rem]" viewBox="0 0 84 24" aria-hidden>
-      <path
-        className="heartbeat-line"
-        d="M0 12 H14 L18 12 L22 5 L27 19 L31 9 L35 12 H84"
-      />
-    </svg>
-  );
-}
-
-function ElectricBridge() {
-  return (
-    <div className="electric-bridge pointer-events-none" aria-hidden>
-      <svg className="h-[72px] w-3.5 overflow-visible" viewBox="0 0 14 72">
-        <path className="electric-bolt" d="M7 2 L4 16 L9 28 L3 42 L10 54 L7 70" />
-        <path className="electric-bolt electric-bolt-alt" d="M7 6 L10 20 L5 34 L11 48 L6 62" />
-      </svg>
-    </div>
-  );
-}
-
-function parseUsdAmount(balance?: string) {
-  if (!balance) return 0;
-  const match = balance.replace(/,/g, '').match(/([\d.]+)/);
-  return match ? Number(match[1]) : 0;
-}
-
-function formatUsd(amount: number) {
-  if (amount >= 1000) return `$${(amount / 1000).toFixed(amount % 1000 === 0 ? 0 : 1)}K`;
-  return `$${Math.round(amount)}`;
-}
-
-function MarketingAdProgress({ project }: { project: Project }) {
-  const hasWallet = Boolean(
-    project.marketingWallet && project.marketingBalance && project.nextAdTargetUsd,
-  );
-
-  if (!hasWallet) {
-    return (
-      <div className="mt-2.5 flex h-[44px] items-center rounded-lg border border-dashed border-white/[0.08] bg-black/15 px-2">
-        <p className="text-[10px] font-medium text-white/30">No marketing wallet</p>
-      </div>
-    );
-  }
-
-  const balance = parseUsdAmount(project.marketingBalance);
-  const target = project.nextAdTargetUsd!;
-  const pct = Math.min(100, Math.round((balance / target) * 100));
-  const ready = balance >= target;
-  const spendLabel = project.nextAdSpend ?? 'DexScreener';
-  const remaining = Math.max(0, target - balance);
-
-  return (
-    <div
-      className="mt-2.5 rounded-lg border border-white/[0.06] bg-black/25 px-2 py-1.5"
-      title={`Marketing wallet: ${project.marketingBalance} of ${formatUsd(target)} toward ${spendLabel}`}
-    >
-      <div className="mb-1 flex items-center gap-2">
-        <p className="min-w-0 truncate text-[9px] font-semibold text-white/50">Mkt wallet</p>
-        <p className="ml-auto shrink-0 tabular-nums text-[9px] font-semibold text-white/70">
-          {formatUsd(balance)}/{formatUsd(target)}
-        </p>
-        <span
-          className={`relative grid h-4 w-4 shrink-0 place-items-center rounded-full border ${
-            ready
-              ? 'border-[#c8ff3d]/55 bg-[#c8ff3d]/15'
-              : 'border-white/12 bg-[#12141f]'
-          }`}
-          aria-label={`Next ad spend: ${spendLabel}`}
-        >
-          <img
-            src="/images/partners/dexscreener.ico"
-            alt=""
-            className="h-2.5 w-2.5"
-            loading="lazy"
-          />
-        </span>
-      </div>
-
-      <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-        <div
-          className={`marketing-fill absolute inset-y-0 left-0 rounded-full ${
-            ready
-              ? 'bg-[#c8ff3d] shadow-[0_0_10px_rgba(200,255,61,0.4)]'
-              : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
-          }`}
-          style={{ width: `${Math.max(pct, 4)}%` }}
-        />
-      </div>
-      {!ready ? (
-        <p className="mt-1 truncate text-[9px] text-white/35">
-          {formatUsd(remaining)} to {spendLabel}
-        </p>
-      ) : (
-        <p className="mt-1 text-[9px] font-medium text-[#d5ff69]">Ready · {spendLabel}</p>
-      )}
-    </div>
-  );
-}
-
 const tableCols =
   '30px 190px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
@@ -454,100 +268,6 @@ function forceNightTheme(): ThemeMode {
   return 'dark';
 }
 
-function PromotedRail({ projects }: { projects: Project[] }) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
-  const offsetRef = useRef(0);
-  const loop = [...projects, ...projects];
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track || projects.length === 0) return;
-
-    let frame = 0;
-    const speed = 0.6;
-    const tick = () => {
-      if (!pausedRef.current) {
-        offsetRef.current += speed;
-        const half = track.scrollWidth / 2;
-        if (half > 0 && offsetRef.current >= half) {
-          offsetRef.current -= half;
-        }
-        track.style.transform = `translate3d(-${offsetRef.current}px, 0, 0)`;
-      }
-      frame = window.requestAnimationFrame(tick);
-    };
-    frame = window.requestAnimationFrame(tick);
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [projects.length]);
-
-  const pause = () => {
-    pausedRef.current = true;
-  };
-  const resume = () => {
-    pausedRef.current = false;
-  };
-
-  return (
-    <div
-      className="relative min-w-0 overflow-hidden"
-      onMouseEnter={pause}
-      onMouseLeave={resume}
-      onTouchStart={pause}
-      onTouchEnd={resume}
-      onTouchCancel={resume}
-    >
-      <div
-        ref={trackRef}
-        className="flex w-max max-w-none items-stretch gap-0 will-change-transform"
-        style={{ transform: 'translate3d(0,0,0)' }}
-      >
-        {loop.map((project, index) => (
-          <div key={`${project.ticker}-${index}`} className="flex shrink-0 items-stretch">
-            {index > 0 ? <ElectricBridge /> : null}
-            <article className="group relative flex w-[248px] shrink-0 overflow-hidden rounded-xl">
-              <div className="promoted-chase" />
-              <div className="gloss-panel relative flex w-full flex-col rounded-xl border border-white/[0.08] p-3 transition group-hover:border-[#c8ff3d]/15">
-                <div className="flex items-center gap-2.5">
-                  <ProjectMark project={project} size="h-10 w-10" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate text-sm font-bold">${project.ticker}</p>
-                      <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                    </div>
-                    <p className="truncate text-[11px] text-white/35">{project.name}</p>
-                    <span
-                      className="mt-1 flex items-center gap-1 text-[10px] font-medium text-white/45"
-                      title={`${project.community} Telegram members`}
-                    >
-                      <img
-                        src="/images/partners/telegram.svg"
-                        alt=""
-                        className="h-3 w-3"
-                        loading="lazy"
-                      />
-                      {project.community}
-                    </span>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-xs font-semibold">{project.votes.toLocaleString()}</p>
-                    <p className={`text-[10px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                      {project.change24h >= 0 ? '+' : ''}{project.change24h}%
-                    </p>
-                  </div>
-                  <Star className="h-3.5 w-3.5 shrink-0 text-white/20 group-hover:text-[#c8ff3d]" />
-                </div>
-                <MarketingAdProgress project={project} />
-              </div>
-            </article>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function HomePage() {
   const [query, setQuery] = useState('');
   const [activeShortcut, setActiveShortcut] = useState<Shortcut>('Trending');
@@ -567,7 +287,6 @@ export function HomePage() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
-  const [boardExpanded, setBoardExpanded] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
   const [voteNotice, setVoteNotice] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
@@ -669,13 +388,6 @@ export function HomePage() {
     });
   };
 
-  const toggleBoardExpanded = () => {
-    setBoardExpanded((expanded) => !expanded);
-    requestAnimationFrame(() => {
-      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
-
   useEffect(() => {
     setPage(1);
     setPageInput('');
@@ -729,17 +441,6 @@ export function HomePage() {
     }
     return { title: 'All tokens', subtitle: venueNote };
   })();
-
-  const selectShortcut = (label: Shortcut) => {
-    setActiveShortcut(label);
-    if (label === 'Trending') setActiveMode('Trending');
-    if (isPinnedView) setActiveWindow('5m');
-    setPage(1);
-    setPageInput('');
-    requestAnimationFrame(() => {
-      document.getElementById('cto-rankings')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  };
 
   const selectVenueFilter = (venue: SourceVenueFilter) => {
     setVenueFilter(venue);
@@ -1004,7 +705,7 @@ export function HomePage() {
       </nav>
       </div>
 
-      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : boardExpanded ? 'py-3' : 'py-5'}`}>
+      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : 'py-3'}`}>
         {viewMode === 'trade' && selectedProject ? (
           <section id="cto-rankings" className="min-w-0 scroll-mt-[10.5rem] pt-2">
             <CtoTradeView
@@ -1023,88 +724,19 @@ export function HomePage() {
             />
           </section>
         ) : (
-          <>
-        {!boardExpanded ? (
-          <>
-        <section className="gloss-panel-soft relative overflow-hidden rounded-xl border border-white/[0.1]">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_40%,rgba(200,255,61,0.12),transparent_42%),radial-gradient(circle_at_88%_28%,rgba(96,165,250,0.14),transparent_44%)]" />
-          <div className="pointer-events-none absolute right-2 top-6 z-0 sm:right-4 sm:top-7">
-            <HeroLogoCollage />
-          </div>
-          <div className="relative z-10 px-4 py-4 pr-[7.25rem] sm:max-w-[min(100%,26rem)] sm:px-6 sm:py-5 sm:pr-6 md:max-w-md">
-            <h1 className="font-serif text-[1.65rem] font-bold leading-[1.12] tracking-[-0.03em] sm:text-3xl">
-              The home of community takeovers
-            </h1>
-            <p className="mt-2 max-w-md text-sm leading-snug text-white/50 sm:text-[15px]">
-              Revive rugged coins &amp; trade with ready made communities
-            </p>
-            <div className="mt-4 flex flex-nowrap items-center gap-2 sm:gap-3">
-              <Link
-                to="/launch"
-                className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-3 py-2 text-xs font-semibold text-[#090b14] transition hover:bg-[#d5ff69] sm:px-4 sm:py-2.5 sm:text-sm"
-              >
-                Launch a CTO
-              </Link>
-              <Link
-                to="/marketing-wallet"
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#2aabee] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#3bb5f5] sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
-              >
-                <Wallet className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Marketing wallet
-              </Link>
-            </div>
-            <p className="mt-2.5 flex w-max max-w-full items-center gap-1.5 whitespace-nowrap text-[10px] font-medium text-[#d5ff69]/90 sm:text-[11px]">
-              <Wallet className="h-3.5 w-3.5 shrink-0" />
-              Marketing wallets included
-            </p>
-            <ul className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-white/55">
-              <li className="inline-flex items-center gap-1">
-                <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#c8ff3d] text-[8px] font-black text-black">✓</span>
-                Community owned
-              </li>
-            </ul>
-          </div>
-        </section>
-
-        <section className="mt-7 min-w-0">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <h2 className="font-serif text-lg font-bold">Featured CTOs</h2>
-              <HeartbeatTracker />
-            </div>
-            <button type="button" className="text-xs font-semibold text-[#c8ff3d]">Advertise</button>
-          </div>
-          <PromotedRail projects={promotedProjects} />
-        </section>
-          </>
-        ) : null}
-
-        <div className={boardExpanded ? '' : 'mt-8'}>
           <section id="cto-rankings" className="min-w-0 scroll-mt-[13.5rem]">
-            <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
-                <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
-                {isPrelaunch ? (
-                  <p className="mt-1 text-[11px] text-white/40">
-                    Voting requires a connected wallet
-                    {connected ? ' · wallet connected' : ''}.
-                  </p>
-                ) : null}
-                {voteNotice ? (
-                  <p className="mt-1 text-[11px] font-medium text-amber-300">{voteNotice}</p>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={toggleBoardExpanded}
-                title={boardExpanded ? 'Restore homepage sections' : 'Expand coin board to fill the page'}
-                aria-pressed={boardExpanded}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2 text-xs font-semibold text-white/70 transition hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                {boardExpanded ? 'Standard view' : 'Change view'}
-              </button>
+            <div className="mb-4">
+              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
+              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+              {isPrelaunch ? (
+                <p className="mt-1 text-[11px] text-white/40">
+                  Voting requires a connected wallet
+                  {connected ? ' · wallet connected' : ''}.
+                </p>
+              ) : null}
+              {voteNotice ? (
+                <p className="mt-1 text-[11px] font-medium text-amber-300">{voteNotice}</p>
+              ) : null}
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">
@@ -1457,8 +1089,6 @@ export function HomePage() {
               </div>
             ) : null}
           </section>
-        </div>
-          </>
         )}
       </main>
 
