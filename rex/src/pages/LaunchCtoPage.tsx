@@ -139,6 +139,15 @@ export function LaunchCtoPage() {
     }
   }, [searchParams]);
 
+  /** Prefill demo / pasted mint should resolve without forcing a Find click. */
+  useEffect(() => {
+    if (mode !== 'add' || step !== 'coin') return;
+    const mint = contract.trim();
+    if (mint.length < 32 || coinReady || lookupBusy) return;
+    void runLookup(mint);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, step]);
+
   useEffect(() => {
     if (prefillApplied.current) return;
     const qName = searchParams.get('name')?.trim() ?? '';
