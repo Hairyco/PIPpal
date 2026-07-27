@@ -22,7 +22,7 @@ import {
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { useConnectedWallet } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, MARKETING_WALLET_ATTACH_POLICY } from '../data/claimPricing';
+import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
@@ -54,7 +54,7 @@ import {
 import { formatMintPreview, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'marketing' | 'done';
+type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
 type WebsiteKind = 'onepager' | 'clone';
 
 const fieldClass =
@@ -87,6 +87,8 @@ export function LaunchCtoPage() {
   const [listNotice, setListNotice] = useState<string | null>(null);
   const [marketingAttached, setMarketingAttached] = useState(false);
   const [marketingAttachBusy, setMarketingAttachBusy] = useState(false);
+  /** Checkbox on the single-page List flow — opt in to $1 vault attach. */
+  const [listMarketingOptIn, setListMarketingOptIn] = useState(false);
   /** Stub invite — real Telegram Bot API create comes later; CTOgo remains chat admin. */
   const [telegramInvite, setTelegramInvite] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -185,10 +187,7 @@ export function LaunchCtoPage() {
           { id: 'burn' as const, label: 'Burn' },
           { id: 'website' as const, label: 'Website' },
         ]
-      : [
-          { id: 'coin' as const, label: 'Coin' },
-          { id: 'marketing' as const, label: 'Wallet' },
-        ];
+      : [];
   const stepIndex = steps.findIndex((s) => s.id === step);
   const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
   const launchTier = FEE_TIERS[0];
@@ -236,6 +235,7 @@ export function LaunchCtoPage() {
     setListNotice(null);
     setMarketingAttached(false);
     setMarketingAttachBusy(false);
+    setListMarketingOptIn(false);
     setTelegramInvite(null);
   };
 
@@ -288,21 +288,21 @@ export function LaunchCtoPage() {
         const next = await connect();
         if (!next) return;
       }
-      setStep('marketing');
+      if (listMarketingOptIn) {
+        setMarketingAttachBusy(true);
+        try {
+          // Demo: $1 covers rent + tx; remainder → treasury.
+          await new Promise((r) => window.setTimeout(r, 600));
+          finishList(true);
+        } finally {
+          setMarketingAttachBusy(false);
+        }
+        return;
+      }
+      finishList(false);
       return;
     }
     setStep('fees');
-  };
-
-  const onAttachMarketingWallet = async () => {
-    setMarketingAttachBusy(true);
-    try {
-      // Demo: $1 covers rent + tx; remainder → treasury (see MARKETING_WALLET_ATTACH_POLICY).
-      await new Promise((r) => window.setTimeout(r, 600));
-      finishList(true);
-    } finally {
-      setMarketingAttachBusy(false);
-    }
   };
 
   const onFeesContinue = (event: FormEvent) => {
@@ -475,7 +475,7 @@ export function LaunchCtoPage() {
               : 'Paste any Solana mint. We pull what we can.'}
           </p>
 
-          {step !== 'done' ? (
+          {step !== 'done' && mode === 'launch' ? (
             <div className="mt-5 flex gap-1.5">
               {steps.map((s, i) => (
                 <div key={s.id} className="flex flex-1 flex-col gap-1.5">
@@ -586,9 +586,8 @@ export function LaunchCtoPage() {
 
               {mode === 'add' ? (
                 <p className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2 text-[11px] leading-relaxed text-white/65">
-                  Free to claim the page. Want a marketing vault that fills from CTOgo trades? Add
-                  one next for ${MARKETING_WALLET_ATTACH_FEE_USD}. Prefer a new mint with vault
-                  included?{' '}
+                  Free to claim the page. Tick the box below to add a marketing vault for $
+                  {MARKETING_WALLET_ATTACH_FEE_USD}. Prefer a new mint with vault included?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('launch')}
@@ -776,51 +775,78 @@ export function LaunchCtoPage() {
                   ) : null}
                 </>
               ) : (
-                <div
-                  className={`rounded-xl px-3 py-3 ${
-                    connected && address
-                      ? 'border border-[#c8ff3d]/35 bg-[#c8ff3d]/[0.08]'
-                      : 'border border-white/[0.08] bg-white/[0.03]'
+                <label
+                  className={`flex cursor-pointer items-start gap-3 rounded-xl px-3 py-3 transition ${
+                    listMarketingOptIn
+                      ? 'border border-[#c8ff3d]/40 bg-[#c8ff3d]/[0.1]'
+                      : 'border border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    {connected && address ? (
-                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#c8ff3d] text-[#090b14]">
-                        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                  <input
+                    type="checkbox"
+                    checked={listMarketingOptIn}
+                    onChange={(event) => setListMarketingOptIn(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 rounded accent-[#c8ff3d]"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-[12px] font-semibold text-white/90">
+                        Add marketing wallet
                       </span>
-                    ) : (
-                      <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
-                    )}
-                    <p className="text-[12px] font-semibold text-white/80">
-                      {connected && address ? 'Owner confirmed' : 'Listing owner'}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-[11px] leading-relaxed text-white/45">
-                    {connected && address
-                      ? `${address.slice(0, 4)}…${address.slice(-4)} controls this CTOgo page. CTOgo remains admin of the Telegram group.`
-                      : 'Connect your wallet to claim and manage this listing.'}
-                  </p>
-                </div>
+                      <span className="shrink-0 font-mono text-[12px] font-bold text-[#d5ff69]">
+                        ${MARKETING_WALLET_ATTACH_FEE_USD}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
+                      Optional. Opens an on-chain vault — rent/tx from the $
+                      {MARKETING_WALLET_ATTACH_FEE_USD}, remainder to treasury. CTOgo trades fill it;
+                      platform fee still applies if you skip.
+                    </span>
+                    <Link
+                      to="/marketing-wallet"
+                      onClick={(event) => event.stopPropagation()}
+                      className="mt-1.5 inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                    >
+                      How it works
+                    </Link>
+                  </span>
+                </label>
               )}
 
               {listNotice && mode === 'add' ? (
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
+              {mode === 'add' && connected && address ? (
+                <p className="text-center text-[11px] text-white/40">
+                  Listing as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
+                  group
+                </p>
+              ) : null}
+
               <button
                 type="submit"
-                disabled={!canContinueCoin || (mode === 'add' && walletBusy)}
+                disabled={
+                  !canContinueCoin || (mode === 'add' && (walletBusy || marketingAttachBusy))
+                }
                 className={primaryBtnClass}
               >
                 {mode === 'add' ? (
-                  connected ? (
+                  marketingAttachBusy ? (
                     <>
-                      Continue
-                      <ArrowRight className="h-4 w-4" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Listing…
+                    </>
+                  ) : connected ? (
+                    <>
+                      {listMarketingOptIn
+                        ? `List · $${MARKETING_WALLET_ATTACH_FEE_USD} vault`
+                        : 'List on CTOgo'}
+                      <Check className="h-4 w-4" />
                     </>
                   ) : (
                     <>
-                      Connect wallet &amp; continue
+                      Connect wallet &amp; list
                       <Wallet className="h-4 w-4" />
                     </>
                   )
@@ -832,85 +858,6 @@ export function LaunchCtoPage() {
                 )}
               </button>
             </form>
-          ) : null}
-
-          {step === 'marketing' && mode === 'add' ? (
-            <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-[#c8ff3d]/30 bg-gradient-to-br from-[#c8ff3d]/12 to-transparent p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                      Optional
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-white">Add a marketing wallet</p>
-                    <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">
-                      Opens an on-chain vault for this coin. CTOgo trades fill it with a marketing
-                      cut; the platform fee still applies either way.
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="font-serif text-3xl font-bold leading-none text-[#d5ff69]">
-                      ${MARKETING_WALLET_ATTACH_FEE_USD}
-                    </p>
-                    <p className="mt-1 text-[10px] font-medium text-white/40">one-time</p>
-                  </div>
-                </div>
-                <p className="mt-3 text-[11px] leading-relaxed text-white/40">
-                  {MARKETING_WALLET_ATTACH_POLICY.summary}
-                </p>
-                <Link
-                  to="/marketing-wallet"
-                  className="mt-2 inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                >
-                  How marketing wallets work
-                </Link>
-              </div>
-
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 shrink-0 text-[#d5ff69]" />
-                  <p className="text-[12px] font-semibold text-white/80">Telegram group</p>
-                </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-white/45">
-                  CTOgo creates the official group when you list. We stay chat admin; bot tools
-                  (one-click trades, easy listings) come later.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => void onAttachMarketingWallet()}
-                disabled={marketingAttachBusy}
-                className={primaryBtnClass}
-              >
-                {marketingAttachBusy ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Opening vault…
-                  </>
-                ) : (
-                  <>
-                    Add marketing wallet · ${MARKETING_WALLET_ATTACH_FEE_USD}
-                    <Wallet className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <button type="button" onClick={() => setStep('coin')} className={backBtnClass}>
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() => finishList(false)}
-                  disabled={marketingAttachBusy}
-                  className={`${backBtnClass} sm:flex-1 border-white/[0.12] text-white/70`}
-                >
-                  Skip — list without vault
-                </button>
-              </div>
-            </div>
           ) : null}
 
           {step === 'fees' ? (
