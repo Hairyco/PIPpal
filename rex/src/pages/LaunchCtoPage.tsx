@@ -584,21 +584,6 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              {mode === 'add' ? (
-                <p className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2 text-[11px] leading-relaxed text-white/65">
-                  Free to claim the page. Tick the box below to add a marketing vault for $
-                  {MARKETING_WALLET_ATTACH_FEE_USD}. Prefer a new mint with vault included?{' '}
-                  <button
-                    type="button"
-                    onClick={() => switchMode('launch')}
-                    className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                  >
-                    Launch on CTOgo
-                  </button>
-                  .
-                </p>
-              ) : null}
-
               {fromCoinPage ? (
                 <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-[11px] text-sky-200">
                   Prefilling from the coin page…
