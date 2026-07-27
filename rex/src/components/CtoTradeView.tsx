@@ -469,7 +469,7 @@ export function CtoTradeView({
             <p className="mt-2.5 text-[11px] leading-relaxed text-white/40">
               {isNativeV2
                 ? 'V1 CA is retained for history after burn. Creator fees and marketing wallet run on Native V2.'
-                : 'Sourced from external APIs for discovery. Launch a Native V2 CTO to burn V1, cut the original dev, and route fees to the community marketing wallet.'}
+                : 'Trade this coin on CTOgo anytime — we take a platform fee. Attach a marketing wallet (List a CTO, $1) so CTOgo-routed volume also fills growth. Launch Native V2 if you want a new mint that cuts the old dev.'}
             </p>
           </div>
         </div>
@@ -638,13 +638,25 @@ export function CtoTradeView({
             )}
 
             {isExternal ? (
-              <Link
-                to={launchHref}
-                className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
-              >
-                <Flame className="h-4 w-4" />
-                Launch a CTO
-              </Link>
+              <>
+                <button
+                  type="button"
+                  className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold ${
+                    side === 'buy'
+                      ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                      : 'bg-rose-400 text-black hover:bg-rose-300'
+                  }`}
+                >
+                  {side === 'buy' ? `Buy $${project.ticker}` : `Sell $${project.ticker}`}
+                </button>
+                <Link
+                  to={launchHref}
+                  className="mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] text-xs font-semibold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
+                >
+                  <Flame className="h-3.5 w-3.5" />
+                  Or launch Native V2
+                </Link>
+              </>
             ) : (
               <button
                 type="button"
@@ -659,7 +671,9 @@ export function CtoTradeView({
             )}
             <p className="mt-2 text-center text-[10px] text-white/30">
               {isExternal
-                ? 'External listing — launch Native V2 to reclaim creator fees'
+                ? `Demo · CTOgo takes a platform fee on every trade${
+                    marketingAddress ? ' · marketing cut fills the vault' : ''
+                  }`
                 : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
           </div>
@@ -693,9 +707,20 @@ export function CtoTradeView({
               </a>
             ) : (
               <p className="mt-1 text-[11px] text-white/40">
-                {isExternal
-                  ? 'Created on Native V2 launch'
-                  : 'No marketing wallet on this listing'}
+                {isExternal ? (
+                  <>
+                    No vault yet —{' '}
+                    <Link
+                      to="/launch?mode=list"
+                      className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                    >
+                      List this coin
+                    </Link>{' '}
+                    to add one for $1. Trades still take a CTOgo platform fee.
+                  </>
+                ) : (
+                  'No marketing wallet on this listing'
+                )}
               </p>
             )}
             {project.marketingBalance && mktTarget > 0 ? (

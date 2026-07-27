@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppSidebar';
 import {
+  MARKETING_WALLET_ATTACH_FEE_USD,
+  MARKETING_WALLET_ATTACH_POLICY,
+} from '../data/claimPricing';
+import {
   ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
@@ -23,6 +27,30 @@ export function FeesPage() {
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">Fees</p>
         <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Fee guidelines</h1>
         <p className="mt-2 text-sm text-white/50">{TRADE_FEE_LABEL}</p>
+
+        <section className="mt-8 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4">
+          <h2 className="text-sm font-semibold text-[#d5ff69]">Trading on CTOgo</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">
+            External coins (PumpSwap, Pump.fun, Raydium, etc.) are tradeable on CTOgo. Every trade
+            through our UI takes a platform fee. A marketing wallet is optional on List a CTO —
+            when attached, CTOgo-routed volume also fills that vault.
+          </p>
+          <dl className="mt-3 space-y-1.5 text-[12px]">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-white/55">List a CTO (claim page)</dt>
+              <dd className="font-mono font-bold text-[#d5ff69]">Free</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-white/55">Add marketing wallet (optional)</dt>
+              <dd className="font-mono font-bold text-[#d5ff69]">
+                ${MARKETING_WALLET_ATTACH_FEE_USD}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-2 text-[11px] leading-relaxed text-white/40">
+            {MARKETING_WALLET_ATTACH_POLICY.summary}
+          </p>
+        </section>
 
         <section id="dynamic-tiers" className="mt-8 scroll-mt-20 space-y-2">
           <h2 className="text-sm font-semibold text-white/80">Dynamic trade fees</h2>

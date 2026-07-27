@@ -122,8 +122,12 @@ Rust unit tests in `fees.rs` and `curve.rs`.
 - Token age ≥ 6 months for product-build suppliers  
 - Roadmap wallet (separate PDA)  
 - Exit fee instruction  
-- Service fee on disbursements  
+- Service fee on disbursements (take-rate when marketing wallet pays suppliers — iron out %)  
+- Manual marketing-wallet top-ups (user deposits SOL/USDC into vault)  
+- Telegram bot for listed groups (one-click trades, easy listings) — groups are provisioned now; CTOgo stays chat admin  
+- Listing ownership governance beyond first-claimer (bonds/challenges) — deliberately low-friction for MVP  
 - Private CTOgo AMM (“CTOgoSwap”) — only after scale metrics (steady graduates, CTOgo-UI volume dominance, material Raydium fee leakage)
+- Jupiter (or equivalent) swap + integrator fee collection for external board coins — UI enables trade; wire fee capture end-to-end 
 
 ## Post-migration fees (product invariant)
 

@@ -17,6 +17,9 @@ Dynamic per-trade tax on Native V2 CTOs.
 | Graduation | **Raydium-first** — curve SOL/tokens seed pool · **LP burned** |
 | Rex migration protocol fee | **2 SOL** one-time at graduation (CTOgo revenue) |
 | Migration create fee | **~0.20 SOL** Raydium CPMM create + rent (cap 0.25) — rest of curve SOL is **pool liquidity** |
+| List a CTO (claim page) | **Free** — wallet connects; low-friction ownership |
+| Add marketing wallet (List, optional) | **$1** — covers vault rent/tx; remainder → treasury |
+| External trades on CTOgo | Platform fee on every CTOgo-routed trade; MW fill only if vault attached |
 
 ---
 

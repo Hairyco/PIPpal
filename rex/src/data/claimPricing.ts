@@ -1,6 +1,21 @@
 export const CLAIM_FEE = 1;
 export const KYC_FEE = 150;
 
+/**
+ * Optional marketing-wallet attach on List a CTO (external / indexed coins).
+ * Flat $1 covers on-chain rent + tx; any remainder goes to the CTOgo treasury.
+ * Launch a CTO still includes the vault in the launch pack (CLAIM_FEE path).
+ */
+export const MARKETING_WALLET_ATTACH_FEE_USD = 1;
+
+export const MARKETING_WALLET_ATTACH_POLICY = {
+  feeUsd: MARKETING_WALLET_ATTACH_FEE_USD,
+  summary:
+    'Attaching a marketing wallet to a listed coin costs $1. On-chain rent and transaction fees come out of that; whatever is left goes to the CTOgo treasury.',
+  paidWhen: 'Optional step on List a CTO — skip to list without a vault',
+  fillsFrom: 'CTOgo-routed trades only (platform fee always; marketing cut when vault is attached)',
+} as const;
+
 export interface PremiumFeature {
   id: string;
   name: string;

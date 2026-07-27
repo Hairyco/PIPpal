@@ -38,13 +38,13 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'native-vs-external',
         question: 'What is the difference between Native V2, External, and Launch?',
         answer:
-          'Native V2 coins were relaunched on CTOgo and have a marketing vault attached. External coins are tracked from other venues (Pump.fun, LetsBonk, Moonshot) so you can watch them before a takeover happens. Launch coins are new CTOgo mints still on the bonding curve.',
+          'External coins are indexed from other venues (PumpSwap, Pump.fun, Raydium, etc.) and are tradeable on CTOgo immediately — we take a platform fee on every CTOgo trade. List a CTO claims the page (wallet) and optionally attaches a marketing wallet for $1 so CTOgo-routed volume also fills growth. Native V2 / Launch coins are minted on CTOgo with a marketing vault included automatically.',
       },
       {
         id: 'who-can-start',
         question: 'Who can start a CTO?',
         answer:
-          'Anyone. Submit the coin from the Launch page with the old contract address and the old socials, and it enters the board where holders can vote and organise.',
+          'Anyone. List an existing coin from the board (low friction — connect wallet, optional $1 marketing vault) or Launch a new mint on CTOgo. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
       },
     ],
   },
@@ -56,7 +56,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'what-is-vault',
         question: 'What is the marketing wallet?',
         answer:
-          'A non-custodial vault attached to the coin. A share of every trade flows into it and is spent on growth — trending spots, banners, and Telegram placements — instead of going to a founder wallet.',
+          'A non-custodial vault attached to the coin. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this vault.',
       },
       {
         id: 'who-controls',
@@ -89,7 +89,13 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'trade-fee',
         question: 'What is the trade fee?',
-        answer: `${TRADE_FEE_LABEL}. The rate scales down as market cap grows, and the marketing share never turns off.`,
+        answer: `${TRADE_FEE_LABEL} on Native CTOgo coins. For any coin traded through CTOgo (including external listings), CTOgo always takes a platform/integrator fee. If a marketing wallet is attached, a marketing cut of CTOgo-routed volume also fills that vault.`,
+      },
+      {
+        id: 'list-marketing-wallet-fee',
+        question: 'What does it cost to add a marketing wallet when I List a CTO?',
+        answer:
+          '$1 one-time. That covers opening the on-chain vault (rent + transaction). Whatever is left from the $1 goes to the CTOgo treasury. Listing the page itself is free — the vault is optional.',
       },
       {
         id: 'raydium-first',
@@ -173,7 +179,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'new-telegram',
         question: 'Do members get moved into a new Telegram automatically?',
         answer:
-          'No — Telegram does not allow bulk member transfers. CTOgo provisions an official group and gives you a share link; holders join from that link or from the coin page.',
+          'No — Telegram does not allow bulk member transfers. When you List or Launch, CTOgo provisions an official group (we remain chat admin) and gives you a share link; holders join from that link or the coin page. Bot tools for one-click trades and easy listings come later.',
       },
       {
         id: 'raids',
