@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Sparkles, Wallet } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
 import { MarketingWalletHeroVisual } from '../components/MarketingWalletHeroVisual';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import { formatBpsPercent, FEE_TIERS } from '../data/chainConfig';
 
 const LAUNCH_MKT = formatBpsPercent(FEE_TIERS[0].marketingBps);
@@ -30,9 +31,11 @@ export function MarketingWalletPage() {
           <div className="overflow-hidden rounded-2xl border border-[#2aabee]/30 bg-gradient-to-br from-[#2aabee]/[0.16] via-[#2aabee]/[0.04] to-transparent">
             <div className="p-5 sm:p-6">
               <div className="flex items-start gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#2aabee]/20 text-[#2aabee]">
-                  <Wallet className="h-5 w-5" />
-                </span>
+                <PolessiaLogo
+                  variant="mark"
+                  size="md"
+                  className="mt-0.5 shrink-0 [&_img]:h-11 [&_img]:w-11 [&_img]:rounded-xl"
+                />
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-300/90">
                     Automated growth
@@ -101,6 +104,10 @@ export function MarketingWalletPage() {
                 >
                   FAQ
                 </Link>
+              </div>
+
+              <div className="mt-6 flex justify-center border-t border-white/[0.06] pt-4">
+                <PolessiaLogo variant="powered" size="sm" />
               </div>
             </div>
           </div>
