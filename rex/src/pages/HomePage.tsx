@@ -587,6 +587,19 @@ export function HomePage() {
 
   const activeFilterCount = countActiveDiscoveryFilters(discoveryFilters);
 
+  const copyTradeMint = async (project: Project) => {
+    const mint = resolveTradeMint(project);
+    try {
+      await navigator.clipboard.writeText(mint);
+      setCopiedCaTicker(project.ticker);
+      window.setTimeout(() => {
+        setCopiedCaTicker((prev) => (prev === project.ticker ? null : prev));
+      }, 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const toggleSort = (key: SortKey) => {
     if (sortKey !== key) {
       setSortKey(key);
