@@ -248,7 +248,7 @@ function socialSheetStats(project: Project) {
       label: 'Likes',
       value: formatEngagement(likes),
       title: 'Latest post likes (demo — X API is paid)',
-      icon: null,
+      icon: 'x' as const,
     },
     {
       label: 'MPH',
