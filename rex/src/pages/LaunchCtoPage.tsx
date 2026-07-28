@@ -860,7 +860,7 @@ export function LaunchCtoPage() {
                         Fees
                       </Link>
                       <span className="text-white/20">·</span>
-                      <Link to="/fees#abandonment" className="text-[#c8ff3d] hover:underline">
+                      <Link to="/faq#marketing-wallet" className="text-[#c8ff3d] hover:underline">
                         Abandonment
                       </Link>
                     </div>
