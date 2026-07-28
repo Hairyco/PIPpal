@@ -42,9 +42,9 @@ export function MarketingWalletPage() {
                     Ads that fund themselves
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
-                    Every trade on CTOgo puts {LAUNCH_MKT} into your coin’s marketing vault at
-                    launch. When the balance hits a milestone, spend unlocks — socials, callouts,
-                    more — without you chasing invoices or draining a founder wallet.
+                    Thinks, builds and markets your product autonomously. Every trade on CTOgo puts{' '}
+                    {LAUNCH_MKT} into your coin’s marketing wallet. When you reach each milestone,
+                    spend unlocks — socials, callouts, more — automatically.
                   </p>
                 </div>
               </div>
