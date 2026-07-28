@@ -134,39 +134,65 @@ function BuyPill({
   );
 }
 
+type SectionTone = 'dark' | 'light' | 'brutal' | 'noir';
+
 function TokenomicsStrip({
   theme,
   tokenSupply,
   full,
+  tone = 'dark',
 }: {
   theme: OnePagerTheme;
   tokenSupply?: string;
   full: boolean;
+  tone?: SectionTone;
 }) {
   const stats = [
     { value: formatTokenSupplyShort(tokenSupply ?? '1000000000'), label: 'Supply' },
     { value: 'On', label: 'Trade tax' },
     { value: 'Burnt', label: 'LP' },
   ];
+  const light = tone === 'light';
+  const brutal = tone === 'brutal';
+  const noir = tone === 'noir';
   return (
     <div className={`mx-auto grid max-w-lg grid-cols-3 ${full ? 'gap-3' : 'gap-2'}`}>
       {stats.map((stat) => (
         <div
           key={stat.label}
-          className={`border text-center ${full ? 'rounded-2xl px-3 py-5' : 'rounded-xl px-2 py-3'}`}
+          className={`text-center ${
+            brutal
+              ? 'rounded-none border-2 border-black px-2 py-4'
+              : noir
+                ? 'rounded-none border border-white/30 px-2 py-4'
+                : full
+                  ? 'rounded-2xl border px-3 py-5'
+                  : 'rounded-xl border px-2 py-3'
+          }`}
           style={{
-            borderColor: `${theme.accent}33`,
-            background: 'rgba(255,255,255,0.03)',
-            backdropFilter: 'blur(12px)',
+            borderColor: brutal || noir ? undefined : light ? 'rgba(0,0,0,0.12)' : `${theme.accent}33`,
+            background: brutal
+              ? theme.accent
+              : light
+                ? '#fff'
+                : noir
+                  ? 'transparent'
+                  : 'rgba(255,255,255,0.03)',
           }}
         >
           <p
-            className={`font-display font-bold ${full ? 'text-xl' : 'text-sm'}`}
-            style={{ color: theme.accent }}
+            className={`font-display font-bold ${full ? 'text-xl' : 'text-sm'} ${
+              brutal ? 'text-black' : ''
+            }`}
+            style={{ color: brutal ? undefined : light ? '#111' : theme.accent }}
           >
             {stat.value}
           </p>
-          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/40">
+          <p
+            className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+              brutal ? 'text-black/55' : light ? 'text-black/40' : 'text-white/40'
+            }`}
+          >
             {stat.label}
           </p>
         </div>
@@ -188,6 +214,7 @@ function SharedSections({
   extraTitle,
   extraBody,
   chartId = 'site',
+  tone = 'dark',
 }: {
   full: boolean;
   theme: OnePagerTheme;
@@ -201,14 +228,42 @@ function SharedSections({
   extraTitle: string;
   extraBody: string;
   chartId?: string;
+  tone?: SectionTone;
 }) {
   if (!full) return null;
+  const light = tone === 'light';
+  const brutal = tone === 'brutal';
+  const noir = tone === 'noir';
+  const labelCls = light
+    ? 'text-black/40'
+    : brutal
+      ? 'text-black/50'
+      : 'text-white/35';
+  const bodyColor = light || brutal ? 'rgba(0,0,0,0.62)' : theme.muted;
+  const headColor = light ? '#111' : brutal ? '#000' : theme.accent;
+  const panelBg = light ? '#fff' : brutal ? '#f4f4f0' : noir ? 'transparent' : 'rgba(0,0,0,0.35)';
+  const panelBorder = light
+    ? 'rgba(0,0,0,0.1)'
+    : brutal
+      ? '#000'
+      : noir
+        ? 'rgba(255,255,255,0.28)'
+        : `${theme.accent}28`;
+
   return (
-    <div className="space-y-16">
-      <section className="mx-auto max-w-2xl text-center">
+    <div className={`space-y-16 ${brutal ? 'space-y-10' : ''}`}>
+      <section className={`mx-auto max-w-2xl ${light || brutal ? 'text-left sm:text-center' : 'text-center'}`}>
         <h2
-          className="font-display text-2xl font-bold tracking-tight sm:text-3xl"
-          style={{ color: theme.accent }}
+          className={`tracking-tight ${
+            brutal
+              ? 'font-display text-3xl font-black uppercase sm:text-4xl'
+              : light
+                ? 'font-editorial text-3xl sm:text-4xl'
+                : noir
+                  ? 'font-display text-2xl font-bold uppercase tracking-[0.08em] sm:text-3xl'
+                  : 'font-display text-2xl font-bold sm:text-3xl'
+          }`}
+          style={{ color: headColor }}
         >
           {headline || 'The story'}
         </h2>
@@ -217,14 +272,14 @@ function SharedSections({
             paragraphs.map((p) => (
               <p
                 key={p.slice(0, 32)}
-                className="text-[15px] leading-relaxed sm:text-base"
-                style={{ color: theme.muted }}
+                className={`leading-relaxed ${light ? 'text-base sm:text-lg' : 'text-[15px] sm:text-base'}`}
+                style={{ color: bodyColor }}
               >
                 {p}
               </p>
             ))
           ) : (
-            <p className="text-[15px] leading-relaxed sm:text-base" style={{ color: theme.muted }}>
+            <p className="text-[15px] leading-relaxed sm:text-base" style={{ color: bodyColor }}>
               Clean mint, live trade links, and a page built to look like the project means it.
             </p>
           )}
@@ -233,43 +288,68 @@ function SharedSections({
 
       {includes.chart ? (
         <section className="mx-auto max-w-xl">
-          <p className="mb-3 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/35">
+          <p className={`mb-3 text-center text-[11px] font-bold uppercase tracking-[0.2em] ${labelCls}`}>
             Price action
           </p>
           <div
-            className="overflow-hidden rounded-3xl border px-4 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
-            style={{ borderColor: `${theme.accent}28`, background: 'rgba(0,0,0,0.35)' }}
+            className={`overflow-hidden px-4 py-5 ${
+              brutal ? 'rounded-none border-2' : noir ? 'rounded-none border' : 'rounded-3xl border shadow-[0_20px_60px_rgba(0,0,0,0.12)]'
+            }`}
+            style={{ borderColor: panelBorder, background: panelBg }}
           >
-            <MiniChart accent={theme.accent} full chartId={chartId} />
+            <MiniChart
+              accent={light || brutal ? (theme.accent === '#ffffff' ? '#111' : theme.accent) : theme.accent}
+              full
+              chartId={chartId}
+            />
           </div>
         </section>
       ) : null}
 
       <section className="text-center">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35">
+        <p className={`text-[11px] font-bold uppercase tracking-[0.2em] ${labelCls}`}>
           {rawTicker} contract
         </p>
-        <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2.5 font-mono text-xs text-white/80">
+        <div
+          className={`mt-3 inline-flex items-center gap-2 px-4 py-2.5 font-mono text-xs ${
+            brutal
+              ? 'rounded-none border-2 border-black bg-white text-black'
+              : light
+                ? 'rounded-full border border-black/15 bg-white text-black/70'
+                : noir
+                  ? 'rounded-none border border-white/30 text-white/80'
+                  : 'rounded-full border border-white/15 bg-white/[0.04] text-white/80'
+          }`}
+        >
           <SolanaLogo className="h-4 w-4 shrink-0" />
           <span>{caLabel}</span>
         </div>
         <div className="mt-6">
-          <BuyPill label={`Buy ${displayTicker}`} theme={theme} large />
+          {brutal ? (
+            <span
+              className="inline-flex rounded-none px-7 py-3.5 font-display text-sm font-black uppercase text-black"
+              style={{ backgroundColor: theme.accent === '#ffffff' || theme.accent === '#111111' ? '#c8ff3d' : theme.accent }}
+            >
+              Buy {displayTicker}
+            </span>
+          ) : (
+            <BuyPill label={`Buy ${displayTicker}`} theme={theme} large />
+          )}
         </div>
       </section>
 
       {includes.tokenomics ? (
         <section>
-          <p className="mb-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/35">
+          <p className={`mb-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] ${labelCls}`}>
             Tokenomics
           </p>
-          <TokenomicsStrip theme={theme} tokenSupply={tokenSupply} full />
+          <TokenomicsStrip theme={theme} tokenSupply={tokenSupply} full tone={tone} />
         </section>
       ) : null}
 
       {includes.howto ? (
         <section className="mx-auto max-w-md">
-          <p className="mb-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] text-white/35">
+          <p className={`mb-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] ${labelCls}`}>
             How to buy
           </p>
           <ol className="space-y-2">
@@ -280,12 +360,25 @@ function SharedSections({
             ].map((step, i) => (
               <li
                 key={step}
-                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm"
-                style={{ color: theme.muted }}
+                className={`flex items-center gap-3 px-3 py-3 text-sm ${
+                  brutal
+                    ? 'rounded-none border-2 border-black bg-white'
+                    : light
+                      ? 'rounded-2xl border border-black/10 bg-white'
+                      : noir
+                        ? 'rounded-none border border-white/20'
+                        : 'rounded-2xl border border-white/10 bg-white/[0.03]'
+                }`}
+                style={{ color: bodyColor }}
               >
                 <span
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full font-display text-xs font-bold"
-                  style={{ backgroundColor: theme.accent, color: theme.buyText }}
+                  className={`grid h-7 w-7 shrink-0 place-items-center font-display text-xs font-bold ${
+                    brutal || noir ? 'rounded-none' : 'rounded-full'
+                  }`}
+                  style={{
+                    backgroundColor: light || brutal ? (theme.accent === '#ffffff' ? '#111' : theme.accent) : theme.accent,
+                    color: theme.buyText,
+                  }}
                 >
                   {i + 1}
                 </span>
@@ -299,12 +392,18 @@ function SharedSections({
       {includes.community ? (
         <section className="mx-auto max-w-lg text-center">
           <p
-            className="font-display text-xl font-bold tracking-tight sm:text-2xl"
-            style={{ color: theme.accent }}
+            className={`tracking-tight ${
+              brutal
+                ? 'font-display text-2xl font-black uppercase'
+                : light
+                  ? 'font-editorial text-2xl sm:text-3xl'
+                  : 'font-display text-xl font-bold sm:text-2xl'
+            }`}
+            style={{ color: headColor }}
           >
             Same holders. Louder chapter.
           </p>
-          <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.muted }}>
+          <p className="mt-3 text-sm leading-relaxed" style={{ color: bodyColor }}>
             Join the group, keep the narrative sharp, and trade where the page lives.
           </p>
         </section>
@@ -314,8 +413,10 @@ function SharedSections({
         <section className="mx-auto max-w-2xl text-center">
           {extraTitle ? (
             <h2
-              className="font-display text-2xl font-bold tracking-tight"
-              style={{ color: theme.accent }}
+              className={`tracking-tight ${
+                light ? 'font-editorial text-3xl' : brutal ? 'font-display text-2xl font-black uppercase' : 'font-display text-2xl font-bold'
+              }`}
+              style={{ color: headColor }}
             >
               {extraTitle}
             </h2>
@@ -323,11 +424,7 @@ function SharedSections({
           {extraBody ? (
             <div className="mt-4 space-y-3">
               {splitSiteCopy(extraBody).map((p) => (
-                <p
-                  key={p.slice(0, 24)}
-                  className="text-sm leading-relaxed"
-                  style={{ color: theme.muted }}
-                >
+                <p key={p.slice(0, 24)} className="text-sm leading-relaxed" style={{ color: bodyColor }}>
                   {p}
                 </p>
               ))}
@@ -337,16 +434,22 @@ function SharedSections({
       ) : null}
 
       {includes.socials ? (
-        <p className="text-center text-[11px] tracking-[0.18em] text-white/30">
-          TELEGRAM · X · CHART
-        </p>
+        <p className={`text-center text-[11px] tracking-[0.18em] ${labelCls}`}>TELEGRAM · X · CHART</p>
       ) : null}
 
       <div className="pb-12 text-center">
-        <span className="inline-flex rounded-full border border-white/12 px-4 py-2 text-[11px] font-semibold text-white/40">
+        <span
+          className={`inline-flex px-4 py-2 text-[11px] font-semibold ${
+            brutal
+              ? 'rounded-none border-2 border-black text-black'
+              : light
+                ? 'rounded-full border border-black/15 text-black/45'
+                : 'rounded-full border border-white/12 text-white/40'
+          }`}
+        >
           Marketing wallet · Live after launch
         </span>
-        <p className="mt-6 text-[10px] tracking-wide text-white/25">
+        <p className={`mt-6 text-[10px] tracking-wide ${light || brutal ? 'text-black/30' : 'text-white/25'}`}>
           © {new Date().getFullYear()} {displayTicker}
         </p>
       </div>
@@ -485,7 +588,7 @@ function LayoutAurora(p: LayoutProps) {
 
         {p.full ? (
           <div className="mt-20 sm:mt-24">
-            <SharedSections {...p} chartId="aurora" />
+            <SharedSections {...p} chartId="aurora" tone="dark" />
           </div>
         ) : (
           <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
@@ -498,58 +601,72 @@ function LayoutAurora(p: LayoutProps) {
 }
 
 function LayoutEditorial(p: LayoutProps) {
+  const ink = p.theme.accent === '#ffffff' ? '#111111' : p.theme.accent;
   return (
-    <div className="min-h-full" style={{ backgroundColor: '#f3eee4', color: '#14110e' }}>
+    <div className="min-h-full" style={{ backgroundColor: '#f6f1e8', color: '#14110e' }}>
       <div
-        className={`border-b-2 border-black ${p.full ? 'px-6 py-6 sm:px-12' : 'px-3 py-3'}`}
+        className={`border-b border-black/80 ${p.full ? 'px-5 py-5 sm:px-10' : 'px-3 py-3'}`}
       >
-        <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-black/45">
-          Editorial · {p.displayTicker}
-        </p>
-        <div className="mt-3 flex items-end justify-between gap-3">
-          <h1
-            className={`font-editorial leading-[0.9] ${p.full ? 'text-5xl sm:text-7xl' : 'text-3xl'}`}
-          >
-            {p.displayName}
-          </h1>
+        <div className="flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.28em] text-black/45">
+          <span>Vol. {p.rawTicker}</span>
+          <span>Editorial issue</span>
+          <span>Live</span>
+        </div>
+        <h1
+          className={`mt-6 font-editorial leading-[0.88] tracking-tight ${
+            p.full ? 'text-[clamp(3.2rem,12vw,6.5rem)]' : 'text-3xl'
+          }`}
+        >
+          {p.displayName}
+        </h1>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-black/15 pt-4">
+          <p className={`max-w-md font-editorial italic leading-snug ${p.full ? 'text-xl' : 'text-sm'}`}>
+            {p.headline || `${p.displayName} — a page with presence.`}
+          </p>
           <span
-            className="shrink-0 rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wide text-white"
-            style={{ backgroundColor: p.theme.accent === '#ffffff' ? '#111' : p.theme.accent }}
+            className="shrink-0 rounded-full px-5 py-2.5 text-[11px] font-bold uppercase tracking-wide text-white"
+            style={{ backgroundColor: ink }}
           >
-            Buy
+            Buy {p.displayTicker}
           </span>
         </div>
       </div>
 
-      <div className={`grid ${p.full ? 'gap-10 px-6 py-10 sm:grid-cols-2 sm:px-12' : 'gap-3 px-3 py-4'}`}>
+      <div className={`${p.full ? 'px-5 py-8 sm:px-10' : 'px-3 py-4'}`}>
         <div
-          className={`grid place-items-center border border-black/10 bg-white ${
-            p.full ? 'min-h-[320px] rounded-3xl' : 'h-28 rounded-2xl'
+          className={`relative overflow-hidden border border-black/10 bg-[#1a1814] ${
+            p.full ? 'aspect-[4/5] max-h-[520px] w-full' : 'h-36'
           }`}
         >
           {p.logoUrl ? (
-            <img src={p.logoUrl} alt="" className={`${p.full ? 'h-56 w-56' : 'h-20 w-20'} object-contain`} />
+            <img
+              src={p.logoUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-95"
+            />
           ) : null}
-        </div>
-        <div className="flex flex-col justify-center">
-          <p className={`font-editorial italic leading-snug ${p.full ? 'text-2xl' : 'text-sm'}`}>
-            {p.headline || `${p.displayName} — a page with presence.`}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+          <p className="absolute bottom-4 left-4 font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">
+            Cover · {p.displayTicker}
           </p>
-          {p.full && p.paragraphs[0] ? (
-            <p className="mt-4 text-sm leading-relaxed text-black/65">{p.paragraphs[0]}</p>
-          ) : null}
-          <div className="mt-5 inline-flex items-center gap-2 font-mono text-[11px] text-black/50">
-            <SolanaLogo className="h-3.5 w-3.5" />
-            {p.caLabel}
-          </div>
+        </div>
+        {p.full && p.paragraphs[0] ? (
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-black/65">{p.paragraphs[0]}</p>
+        ) : null}
+        <div className="mt-4 inline-flex items-center gap-2 font-mono text-[11px] text-black/45">
+          <SolanaLogo className="h-3.5 w-3.5" />
+          {p.caLabel}
         </div>
       </div>
 
       {p.full ? (
-        <div className="px-6 pb-12 sm:px-12" style={{ backgroundColor: '#111', color: '#f5f5f5' }}>
-          <div className="pt-12">
-            <SharedSections {...p} paragraphs={p.paragraphs.slice(1)} chartId="editorial" />
-          </div>
+        <div className="border-t border-black/10 bg-[#efe8dc] px-5 py-12 sm:px-10">
+          <SharedSections
+            {...p}
+            paragraphs={p.paragraphs.slice(1)}
+            chartId="editorial"
+            tone="light"
+          />
         </div>
       ) : null}
     </div>
@@ -620,7 +737,7 @@ function LayoutNoir(p: LayoutProps) {
 
         {p.full ? (
           <div className="mt-16">
-            <SharedSections {...p} paragraphs={p.paragraphs.slice(1)} chartId="noir" />
+            <SharedSections {...p} paragraphs={p.paragraphs.slice(1)} chartId="noir" tone="noir" />
           </div>
         ) : null}
       </div>
@@ -629,52 +746,61 @@ function LayoutNoir(p: LayoutProps) {
 }
 
 function LayoutBrutal(p: LayoutProps) {
-  const accent = p.theme.accent === '#ffffff' || p.theme.accent === '#111111' ? '#c8ff3d' : p.theme.accent;
+  const accent =
+    p.theme.accent === '#ffffff' || p.theme.accent === '#111111' ? '#c8ff3d' : p.theme.accent;
   return (
-    <div className="min-h-full bg-black text-white">
-      <div className={`${p.full ? 'px-4 py-5 sm:px-8' : 'px-3 py-3'}`} style={{ backgroundColor: accent }}>
-        <p className="font-display text-[10px] font-black uppercase tracking-[0.25em] text-black">
-          Brutal · {p.displayTicker}
-        </p>
+    <div className="min-h-full bg-[#f2f0ea] text-black">
+      <div className={`${p.full ? 'px-4 py-6 sm:px-6' : 'px-3 py-3'}`} style={{ backgroundColor: accent }}>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-display text-[10px] font-black uppercase tracking-[0.25em] text-black">
+            Brutal · {p.displayTicker}
+          </p>
+          <p className="font-mono text-[10px] font-bold uppercase text-black/60">No soft edges</p>
+        </div>
         <h1
-          className={`mt-2 font-display font-black uppercase leading-[0.85] text-black ${
-            p.full ? 'text-5xl sm:text-7xl' : 'text-3xl'
+          className={`mt-3 font-display font-black uppercase leading-[0.8] tracking-tighter text-black ${
+            p.full ? 'text-[clamp(3rem,16vw,7rem)]' : 'text-3xl'
           }`}
         >
           {p.displayName}
         </h1>
       </div>
-      <div className={`grid border-b-4 border-white ${p.full ? 'sm:grid-cols-[1fr_1.1fr]' : ''}`}>
+
+      <div className="grid border-b-4 border-black sm:grid-cols-2">
         <div
-          className={`grid place-items-center border-b-4 border-white sm:border-b-0 sm:border-r-4 ${
-            p.full ? 'min-h-[260px] p-8' : 'h-28 p-3'
+          className={`grid place-items-center border-b-4 border-black bg-black sm:border-b-0 sm:border-r-4 ${
+            p.full ? 'min-h-[280px] p-6' : 'h-28 p-3'
           }`}
-          style={{ background: `${accent}22` }}
         >
           {p.logoUrl ? (
-            <img src={p.logoUrl} alt="" className={`${p.full ? 'h-48 w-48' : 'h-20 w-20'} object-contain`} />
+            <img
+              src={p.logoUrl}
+              alt=""
+              className={`${p.full ? 'h-48 w-48' : 'h-20 w-20'} object-contain`}
+            />
           ) : null}
         </div>
-        <div className={p.full ? 'p-8' : 'p-3'}>
-          <p className={`font-display font-bold uppercase leading-tight ${p.full ? 'text-2xl' : 'text-sm'}`}>
+        <div className={`flex flex-col justify-between ${p.full ? 'p-6' : 'p-3'}`}>
+          <p className={`font-display font-black uppercase leading-[0.95] ${p.full ? 'text-2xl' : 'text-sm'}`}>
             {p.headline || 'NEW MINT. NO NOISE.'}
           </p>
           {p.full && p.paragraphs[0] ? (
-            <p className="mt-4 text-sm leading-relaxed text-white/60">{p.paragraphs[0]}</p>
+            <p className="mt-4 text-sm leading-relaxed text-black/60">{p.paragraphs[0]}</p>
           ) : null}
           <div className="mt-6">
             <span
-              className="inline-flex rounded-none px-5 py-3 font-display text-sm font-black uppercase text-black"
+              className="inline-flex rounded-none border-2 border-black px-5 py-3 font-display text-sm font-black uppercase text-black"
               style={{ backgroundColor: accent }}
             >
-              Buy {p.displayTicker}
+              Buy {p.displayTicker} →
             </span>
           </div>
         </div>
       </div>
+
       {p.full ? (
-        <div className="border-t-4 border-white px-4 py-12 sm:px-8">
-          <SharedSections {...p} paragraphs={p.paragraphs.slice(1)} chartId="brutal" />
+        <div className="px-4 py-12 sm:px-6">
+          <SharedSections {...p} paragraphs={p.paragraphs.slice(1)} chartId="brutal" tone="brutal" />
         </div>
       ) : null}
     </div>
@@ -682,54 +808,54 @@ function LayoutBrutal(p: LayoutProps) {
 }
 
 function LayoutGallery(p: LayoutProps) {
+  const ink = p.theme.accent === '#ffffff' ? '#161616' : p.theme.accent;
   return (
-    <div className="min-h-full bg-[#ece8e1]" style={{ color: '#161616' }}>
-      <div className={`text-center ${p.full ? 'px-6 pb-4 pt-12 sm:pt-16' : 'px-3 pb-2 pt-5'}`}>
-        <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-black/40">
-          Gallery · {p.displayTicker}
+    <div className="min-h-full bg-[#f7f5f1]" style={{ color: '#161616' }}>
+      <div className={`text-center ${p.full ? 'px-6 pb-2 pt-14 sm:pt-16' : 'px-3 pb-2 pt-5'}`}>
+        <p className="text-[10px] font-medium uppercase tracking-[0.4em] text-black/35">
+          Gallery presentation · {p.displayTicker}
         </p>
         <h1
-          className={`mt-4 font-editorial leading-none ${p.full ? 'text-5xl sm:text-7xl' : 'text-3xl'}`}
+          className={`mx-auto mt-5 max-w-xl font-editorial leading-[0.95] ${
+            p.full ? 'text-[clamp(2.8rem,10vw,5.5rem)]' : 'text-3xl'
+          }`}
         >
           {p.displayName}
         </h1>
-        <p className={`mx-auto mt-4 max-w-md text-black/55 ${p.full ? 'text-base' : 'text-xs'}`}>
+        <p className={`mx-auto mt-4 max-w-sm text-black/50 ${p.full ? 'text-base' : 'text-xs'}`}>
           {p.headline || `${p.displayName} — presented simply.`}
         </p>
       </div>
-      <div className={`mx-auto ${p.full ? 'max-w-xl px-6' : 'px-3'}`}>
+
+      <div className={`mx-auto ${p.full ? 'max-w-lg px-6' : 'px-3'}`}>
         <div
-          className={`relative overflow-hidden rounded-[2rem] border border-black/10 bg-white ${
-            p.full ? 'aspect-square' : 'h-36'
+          className={`relative mx-auto overflow-hidden bg-white shadow-[0_40px_80px_rgba(0,0,0,0.08)] ring-1 ring-black/5 ${
+            p.full ? 'aspect-[3/4] p-8' : 'h-40 p-4'
           }`}
-          style={{ boxShadow: '0 24px 60px rgba(0,0,0,0.12)' }}
         >
-          {p.logoUrl ? (
-            <img
-              src={p.logoUrl}
-              alt=""
-              className="absolute inset-[12%] h-[76%] w-[76%] object-contain"
-            />
-          ) : null}
+          <div className="flex h-full items-center justify-center bg-[#eceae4]">
+            {p.logoUrl ? (
+              <img src={p.logoUrl} alt="" className="h-[78%] w-[78%] object-contain" />
+            ) : null}
+          </div>
         </div>
       </div>
-      <div className={`flex justify-center ${p.full ? 'mt-8' : 'mt-3'}`}>
+
+      <div className={`flex flex-col items-center gap-3 ${p.full ? 'mt-10' : 'mt-4'}`}>
         <span
-          className="inline-flex rounded-full px-5 py-3 text-sm font-bold text-white"
-          style={{ backgroundColor: p.theme.accent === '#ffffff' ? '#111' : p.theme.accent }}
+          className="inline-flex rounded-full px-6 py-3 text-sm font-semibold text-white"
+          style={{ backgroundColor: ink }}
         >
           Buy {p.displayTicker}
         </span>
+        <p className="font-mono text-[10px] text-black/35">{p.caLabel}</p>
       </div>
+
       {p.full ? (
-        <div className="mt-16 bg-[#111] px-6 text-white sm:px-10">
-          <div className="pt-12">
-            <SharedSections {...p} chartId="gallery" />
-          </div>
+        <div className="mt-16 border-t border-black/8 bg-[#f7f5f1] px-6 py-12 sm:px-10">
+          <SharedSections {...p} chartId="gallery" tone="light" />
         </div>
-      ) : (
-        <p className="mt-3 pb-3 text-center font-mono text-[10px] text-black/40">{p.caLabel}</p>
-      )}
+      ) : null}
     </div>
   );
 }

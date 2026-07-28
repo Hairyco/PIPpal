@@ -316,7 +316,28 @@ export function LaunchCtoPage() {
     setLayoutSeed(cycle);
     setOnePagerThemeId(nextTheme.id);
     setDesignNonce(cycle);
-    return nextLayout;
+    return { layout: nextLayout, cycle, themeId: nextTheme.id };
+  };
+
+  const refreshCollateralForLook = (cycle: number) => {
+    const projectName = name || 'Pepe Coin';
+    const projectTicker = ticker || 'PEPE';
+    setLogoSalt(cycle);
+    setBannerSalt(cycle);
+    const logo = generateCtoLogoDataUrl({
+      projectName,
+      ticker: projectTicker,
+      salt: cycle * 17 + 3,
+    });
+    setLogoPreview(logo);
+    void generateCtoBannerWithLogo({
+      projectName,
+      ticker: projectTicker,
+      logoDataUrl: logo,
+      tagline: (siteHeadline || pageBlurb || note || `${projectTicker} on CTOgo`).trim(),
+      salt: cycle * 13 + 7,
+    }).then((banner) => setBannerPreview(banner));
+    return logo;
   };
 
   const resetFlow = () => {
@@ -542,36 +563,9 @@ export function LaunchCtoPage() {
         community: true,
       }));
 
-      // Always advance to a concrete unique layout.
-      advanceUniqueDesign();
-
-      let logo = logoPreview;
-      if (!logo) {
-        logo = generateCtoLogoDataUrl({
-          projectName,
-          ticker: projectTicker,
-          salt: logoSalt,
-        });
-        setLogoPreview(logo);
-      }
-
-      let banner = bannerPreview;
-      if (!banner) {
-        banner = await generateCtoBannerWithLogo({
-          projectName,
-          ticker: projectTicker,
-          logoDataUrl: logo,
-          tagline: (
-            siteHeadline ||
-            defaults.headline ||
-            pageBlurb ||
-            note ||
-            `${projectTicker} on CTOgo`
-          ).trim(),
-          salt: bannerSalt,
-        });
-        setBannerPreview(banner);
-      }
+      // Always advance to a concrete unique layout + fresh art.
+      const look = advanceUniqueDesign();
+      refreshCollateralForLook(look.cycle);
 
       await new Promise((r) => window.setTimeout(r, 450));
       setSiteGenerated(true);
@@ -582,7 +576,8 @@ export function LaunchCtoPage() {
   };
 
   const regenerateDesign = () => {
-    advanceUniqueDesign();
+    const look = advanceUniqueDesign();
+    refreshCollateralForLook(look.cycle);
     setPreviewOpen(true);
   };
 

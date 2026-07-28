@@ -24,8 +24,9 @@ export function generateCtoLogoDataUrl(input: {
 }): string {
   const name = input.projectName.trim() || 'CTOgo Coin';
   const ticker = input.ticker.trim().replace(/^\$/, '') || 'CTO';
-  const seed = hashSeed(name + ticker) + (input.salt ?? 0);
+  const seed = hashSeed(name + ticker) + (input.salt ?? 0) * 97;
   const { hue, hue2 } = palette(seed);
+  const style = Math.abs(seed) % 4;
 
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -33,14 +34,42 @@ export function generateCtoLogoDataUrl(input: {
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
-  const grad = ctx.createLinearGradient(0, 0, 512, 512);
-  grad.addColorStop(0, `hsl(${hue} 70% 48%)`);
-  grad.addColorStop(0.55, `hsl(${hue2} 55% 28%)`);
-  grad.addColorStop(1, '#090b14');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 512, 512);
+  if (style === 0) {
+    const grad = ctx.createLinearGradient(0, 0, 512, 512);
+    grad.addColorStop(0, `hsl(${hue} 72% 52%)`);
+    grad.addColorStop(0.55, `hsl(${hue2} 55% 28%)`);
+    grad.addColorStop(1, '#090b14');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 512, 512);
+  } else if (style === 1) {
+    ctx.fillStyle = `hsl(${hue} 18% 10%)`;
+    ctx.fillRect(0, 0, 512, 512);
+    const radial = ctx.createRadialGradient(256, 200, 40, 256, 280, 280);
+    radial.addColorStop(0, `hsl(${hue} 80% 55%)`);
+    radial.addColorStop(1, 'transparent');
+    ctx.fillStyle = radial;
+    ctx.fillRect(0, 0, 512, 512);
+  } else if (style === 2) {
+    ctx.fillStyle = `hsl(${hue2} 40% 92%)`;
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.fillStyle = `hsl(${hue} 70% 45%)`;
+    ctx.beginPath();
+    ctx.moveTo(0, 512);
+    ctx.lineTo(512, 120);
+    ctx.lineTo(512, 512);
+    ctx.closePath();
+    ctx.fill();
+  } else {
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, 512, 512);
+    ctx.strokeStyle = `hsl(${hue} 75% 55%)`;
+    ctx.lineWidth = 18;
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeRect(40 + i * 28, 40 + i * 28, 432 - i * 56, 432 - i * 56);
+    }
+  }
 
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha = style === 2 ? 0.12 : 0.18;
   for (let i = 0; i < 6; i++) {
     const x = ((seed * (i + 5)) % 380) + 60;
     const y = ((seed * (i + 11)) % 380) + 60;
@@ -52,26 +81,26 @@ export function generateCtoLogoDataUrl(input: {
   }
   ctx.globalAlpha = 1;
 
-  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.fillStyle = style === 2 ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.28)';
   ctx.beginPath();
   ctx.arc(256, 256, 168, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.strokeStyle = 'rgba(200,255,61,0.55)';
+  ctx.strokeStyle = style === 2 ? `hsl(${hue} 70% 40%)` : 'rgba(200,255,61,0.55)';
   ctx.lineWidth = 6;
   ctx.beginPath();
   ctx.arc(256, 256, 168, 0, Math.PI * 2);
   ctx.stroke();
 
   const initials = initialsFrom(name, ticker);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = style === 2 ? '#111111' : '#ffffff';
   ctx.font = 'bold 140px ui-sans-serif, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(initials, 256, 248);
 
   ctx.font = '700 28px ui-sans-serif, system-ui, sans-serif';
-  ctx.fillStyle = '#c8ff3d';
+  ctx.fillStyle = style === 2 ? `hsl(${hue} 70% 35%)` : '#c8ff3d';
   ctx.fillText(`$${ticker.toUpperCase().slice(0, 10)}`, 256, 360);
 
   return canvas.toDataURL('image/png');
