@@ -40,7 +40,6 @@ import {
   DEFAULT_ONE_PAGER_THEME_ID,
   ONE_PAGER_BESPOKE_THEMES,
   ONE_PAGER_INCLUDE_OPTIONS,
-  ONE_PAGER_LAYOUTS,
   ONE_PAGER_PRIMARY_THEMES,
   defaultGeneratedSiteCopy,
   isBespokeOnePagerTheme,
@@ -1202,7 +1201,7 @@ export function LaunchCtoPage() {
               <div>
                 <p className="text-sm font-bold text-white">Your website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Write your copy, pick a vibe, generate a simple 1-pager — regenerate until it
+                  Write your copy, generate a simple 1-pager — regenerate until it
                   feels right.
                 </p>
               </div>
@@ -1321,48 +1320,6 @@ export function LaunchCtoPage() {
                   ) : null}
 
                   <div>
-                    <p className="text-[11px] font-semibold text-white/55">Design direction</p>
-                    <p className="mt-0.5 text-[10px] text-white/35">
-                      Auto picks a fresh creative layout each generate.
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setLayoutPreference('auto');
-                          setForcedLayoutId(null);
-                        }}
-                        className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                          layoutPreference === 'auto' && !forcedLayoutId
-                            ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                            : 'border-white/[0.08] text-white/45 hover:text-white'
-                        }`}
-                      >
-                        Auto
-                      </button>
-                      {ONE_PAGER_LAYOUTS.map((layout) => (
-                        <button
-                          key={layout.id}
-                          type="button"
-                          title={layout.hint}
-                          onClick={() => {
-                            setLayoutPreference(layout.id);
-                            setForcedLayoutId(layout.id);
-                            setDesignNonce((n) => n + 1);
-                          }}
-                          className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                            (forcedLayoutId ?? layoutPreference) === layout.id
-                              ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                              : 'border-white/[0.08] text-white/45 hover:text-white'
-                          }`}
-                        >
-                          {layout.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
                     <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
                     <div className="mt-2 flex flex-wrap gap-2">
                       {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
@@ -1386,8 +1343,6 @@ export function LaunchCtoPage() {
                       })}
                     </div>
                   </div>
-
-                  <ColourPalettePicker value={onePagerThemeId} onChange={setOnePagerThemeId} />
                 </div>
               ) : null}
 
@@ -1518,43 +1473,6 @@ export function LaunchCtoPage() {
                               className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
                             />
                           </label>
-                          <div>
-                            <p className="text-[11px] font-semibold text-white/55">Design direction</p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setLayoutPreference('auto');
-                                  setForcedLayoutId(null);
-                                }}
-                                className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                                  layoutPreference === 'auto' && !forcedLayoutId
-                                    ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                    : 'border-white/[0.08] text-white/45'
-                                }`}
-                              >
-                                Auto
-                              </button>
-                              {ONE_PAGER_LAYOUTS.map((layout) => (
-                                <button
-                                  key={layout.id}
-                                  type="button"
-                                  onClick={() => {
-                                    setLayoutPreference(layout.id);
-                                    setForcedLayoutId(layout.id);
-                                    setDesignNonce((n) => n + 1);
-                                  }}
-                                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                                    (forcedLayoutId ?? layoutPreference) === layout.id
-                                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                      : 'border-white/[0.08] text-white/45'
-                                  }`}
-                                >
-                                  {layout.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
                           <div className="flex flex-wrap gap-2">
                             {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
                               const on = siteIncludes[opt.id];
