@@ -2,11 +2,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { Link } from 'react-router-dom';
 import {
   Bell,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
   Clock3,
+  Copy,
   ExternalLink,
   Flame,
   Globe,
@@ -43,6 +45,7 @@ import {
   ctoProjects,
   matchesSourceVenue,
   resolveMarketingWalletAddress,
+  resolveTradeMint,
   solscanAccountUrl,
   type CtoProject,
   type SourceVenueFilter,
@@ -200,9 +203,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '176px 80px 72px 64px 88px 72px 56px 148px 28px';
+  '188px 80px 72px 64px 88px 72px 56px 148px 28px';
 const tableColsPrelaunch =
-  '30px 176px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
+  '30px 188px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -460,6 +463,7 @@ export function HomePage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [discoveryFilters, setDiscoveryFilters] =
     useState<DiscoveryFilterState>(DEFAULT_DISCOVERY_FILTERS);
+  const [copiedCaTicker, setCopiedCaTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
@@ -1216,12 +1220,32 @@ export function HomePage() {
                       {isPrelaunch ? (
                         <span className="text-center text-xs text-white/35">{project.rank}</span>
                       ) : null}
-                      <div className="flex w-[176px] items-start gap-2">
+                      <div className="flex w-[188px] items-start gap-2">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex min-w-0 items-baseline gap-1.5">
+                          <div className="flex min-w-0 items-center gap-1">
                             <p className="shrink-0 text-sm font-bold tracking-tight">{project.ticker}</p>
-                            <p className="truncate text-[11px] text-white/45">{project.name}</p>
+                            <p className="min-w-0 truncate text-[11px] text-white/45">{project.name}</p>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                void copyTradeMint(project);
+                              }}
+                              className={`ml-auto grid h-5 w-5 shrink-0 place-items-center rounded transition ${
+                                copiedCaTicker === project.ticker
+                                  ? 'text-[#c8ff3d]'
+                                  : 'text-white/35 hover:bg-white/[0.08] hover:text-white'
+                              }`}
+                              aria-label={`Copy CTOgo contract for ${project.ticker}`}
+                              title="Copy CTOgo contract — trades on any exchange still route fees here"
+                            >
+                              {copiedCaTicker === project.ticker ? (
+                                <Check className="h-3 w-3" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
                           </div>
                           <div className="mt-1 flex items-center gap-2">
                             <span

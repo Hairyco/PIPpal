@@ -856,6 +856,20 @@ export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): str
   return demoAddress(`${project.ticker}-v1`);
 }
 
+/**
+ * Contract users should copy from discovery.
+ * External coins get a CTOgo wrap mint so trades on other venues still route platform fees.
+ * Native CTOgo coins use the live CTOgo mint.
+ */
+export function resolveTradeMint(
+  project: Pick<V1Source, 'ticker' | 'v1Mint' | 'origin'>,
+): string {
+  if (project.origin === 'external_cto') {
+    return demoAddress(`${project.ticker}-ctogo-wrap`);
+  }
+  return resolveV1Mint(project);
+}
+
 export function resolveV1Liquidity(project: Pick<V1Source, 'v1Liquidity' | 'volume24h' | 'origin'>): string {
   if (project.v1Liquidity) return project.v1Liquidity;
   if (project.origin === 'native_cto') return 'Burned';
