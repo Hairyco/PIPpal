@@ -10,6 +10,7 @@ import {
   Loader2,
   Lock,
   MessageCircle,
+  Pencil,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -35,10 +36,14 @@ import {
   formatCollateralUsd,
 } from '../data/collateralPricing';
 import {
+  DEFAULT_ONE_PAGER_INCLUDES,
   DEFAULT_ONE_PAGER_THEME_ID,
   ONE_PAGER_DESIGN_LIMITS,
+  ONE_PAGER_INCLUDE_OPTIONS,
   ONE_PAGER_THEMES,
   parseOnePagerDesignNote,
+  type OnePagerIncludeId,
+  type OnePagerIncludes,
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
 import {
@@ -127,7 +132,11 @@ export function LaunchCtoPage() {
   const [onePagerThemeId, setOnePagerThemeId] = useState<OnePagerThemeId>(
     DEFAULT_ONE_PAGER_THEME_ID,
   );
+  const [siteIncludes, setSiteIncludes] = useState<OnePagerIncludes>({
+    ...DEFAULT_ONE_PAGER_INCLUDES,
+  });
   const [designNote, setDesignNote] = useState('');
+  const [editSite, setEditSite] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
@@ -230,7 +239,9 @@ export function LaunchCtoPage() {
     setPreviewOpen(false);
     setGeneratingSite(false);
     setOnePagerThemeId(DEFAULT_ONE_PAGER_THEME_ID);
+    setSiteIncludes({ ...DEFAULT_ONE_PAGER_INCLUDES });
     setDesignNote('');
+    setEditSite(false);
     setFromCoinPage(false);
     setListNotice(null);
     setMarketingAttached(false);
@@ -369,6 +380,16 @@ export function LaunchCtoPage() {
     setWebsiteKind(kind);
     setSiteGenerated(false);
     setPreviewOpen(false);
+    setEditSite(false);
+  };
+
+  const toggleSiteInclude = (id: OnePagerIncludeId) => {
+    setSiteIncludes((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const openSiteEditor = () => {
+    setPreviewOpen(false);
+    setEditSite(true);
   };
 
   /** First site generate is free — builds logo/banner then opens full-page preview. */
@@ -1080,16 +1101,90 @@ export function LaunchCtoPage() {
                   />
                 </label>
               ) : (
-                <label className="block">
-                  <span className="text-[11px] font-semibold text-white/45">Site blurb</span>
-                  <textarea
-                    value={pageBlurb}
-                    onChange={(event) => setPageBlurb(event.target.value)}
-                    rows={2}
-                    placeholder="One line about the coin…"
-                    className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                  />
-                </label>
+                <>
+                  {!siteGenerated ? (
+                    <>
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/45">Site blurb</span>
+                        <textarea
+                          value={pageBlurb}
+                          onChange={(event) => setPageBlurb(event.target.value)}
+                          rows={2}
+                          placeholder="One line about the coin…"
+                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                        />
+                      </label>
+
+                      <div>
+                        <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
+                        <p className="mt-0.5 text-[10px] text-white/35">
+                          Quick picks — chart, stats, links. Nothing fancy.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
+                            const on = siteIncludes[opt.id];
+                            return (
+                              <button
+                                key={opt.id}
+                                type="button"
+                                title={opt.hint}
+                                onClick={() => toggleSiteInclude(opt.id)}
+                                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                                  on
+                                    ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                    : 'border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white'
+                                }`}
+                              >
+                                {on ? <Check className="h-3 w-3" /> : null}
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
+                        <p className="mt-0.5 text-[10px] text-white/35">
+                          Same layout — pick the accent you want.
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {ONE_PAGER_THEMES.map((theme) => {
+                            const active = onePagerThemeId === theme.id;
+                            return (
+                              <button
+                                key={theme.id}
+                                type="button"
+                                title={theme.label}
+                                onClick={() => setOnePagerThemeId(theme.id)}
+                                className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
+                                  active
+                                    ? 'border-white/50 bg-white/[0.06]'
+                                    : 'border-white/[0.08] hover:border-white/25'
+                                }`}
+                              >
+                                <span
+                                  className={`h-6 w-6 rounded-full border-2 ${
+                                    active ? 'border-white' : 'border-white/20'
+                                  }`}
+                                  style={{ backgroundColor: theme.swatch }}
+                                  aria-hidden
+                                />
+                                <span
+                                  className={`text-[11px] font-semibold ${
+                                    active ? 'text-white' : 'text-white/45'
+                                  }`}
+                                >
+                                  {theme.label}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </>
               )}
 
               {!siteGenerated ? (
@@ -1124,169 +1219,243 @@ export function LaunchCtoPage() {
                     cloneUrl={cloneUrl || website}
                     themeId={onePagerThemeId}
                     designTweaks={designTweaks}
+                    includes={siteIncludes}
                     tokenSupply={tokenSupply}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setPreviewOpen(true)}
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[12px] font-bold text-[#d5ff69]"
-                  >
-                    View full page
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={openSiteEditor}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.1] text-[12px] font-bold text-white/70 hover:border-white/25 hover:text-white"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit site
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewOpen(true)}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-[12px] font-bold text-[#d5ff69]"
+                    >
+                      View full page
+                    </button>
+                  </div>
 
-                  {websiteKind === 'onepager' ? (
+                  {editSite ? (
                     <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
-                      <div>
-                        <p className="text-[11px] font-semibold text-white/55">Colour scheme</p>
-                        <p className="mt-0.5 text-[10px] text-white/35">
-                          Free — template stays the same, only accents change.
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-white/45">
+                          Editing
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {ONE_PAGER_THEMES.map((theme) => {
-                            const active = onePagerThemeId === theme.id;
-                            return (
-                              <button
-                                key={theme.id}
-                                type="button"
-                                title={theme.label}
-                                onClick={() => setOnePagerThemeId(theme.id)}
-                                className={`h-8 w-8 rounded-full border-2 transition ${
-                                  active
-                                    ? 'border-white scale-110'
-                                    : 'border-white/20 hover:border-white/50'
-                                }`}
-                                style={{ backgroundColor: theme.swatch }}
-                                aria-label={theme.label}
-                              />
-                            );
-                          })}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setEditSite(false)}
+                          className="text-[10px] font-semibold text-white/40 hover:text-white"
+                        >
+                          Done
+                        </button>
                       </div>
 
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/55">
-                          Design note for AI
-                        </span>
-                        <p className="mt-0.5 text-[10px] leading-relaxed text-white/35">
-                          {ONE_PAGER_DESIGN_LIMITS.allowed} {ONE_PAGER_DESIGN_LIMITS.blocked}
-                        </p>
-                        <textarea
-                          value={designNote}
-                          onChange={(event) =>
-                            setDesignNote(event.target.value.slice(0, ONE_PAGER_DESIGN_LIMITS.maxChars))
-                          }
-                          rows={2}
-                          maxLength={ONE_PAGER_DESIGN_LIMITS.maxChars}
-                          placeholder="e.g. louder title, bigger mascot, hide tokenomics…"
-                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                        />
-                        <span className="mt-1 block text-right font-mono text-[10px] text-white/30">
-                          {designNote.length}/{ONE_PAGER_DESIGN_LIMITS.maxChars}
-                        </span>
-                      </label>
-                    </div>
-                  ) : null}
+                      {websiteKind === 'onepager' ? (
+                        <>
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-white/55">Site blurb</span>
+                            <textarea
+                              value={pageBlurb}
+                              onChange={(event) => setPageBlurb(event.target.value)}
+                              rows={2}
+                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
+                            />
+                          </label>
 
-                  <button
-                    type="button"
-                    onClick={() => setEditArt((v) => !v)}
-                    className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-3 py-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
-                  >
-                    {editArt ? 'Hide logo / banner' : 'Edit logo / banner'}
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${editArt ? 'rotate-180' : ''}`}
-                    />
-                  </button>
+                          <div>
+                            <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
+                                const on = siteIncludes[opt.id];
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    type="button"
+                                    title={opt.hint}
+                                    onClick={() => toggleSiteInclude(opt.id)}
+                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                                      on
+                                        ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                        : 'border-white/[0.08] text-white/45 hover:border-white/20'
+                                    }`}
+                                  >
+                                    {on ? <Check className="h-3 w-3" /> : null}
+                                    {opt.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
 
-                  {editArt ? (
-                    <div className="space-y-2">
-                      <p className="text-[11px] leading-relaxed text-white/40">
-                        First logo &amp; banner are free. Extra generates are added to your bill at
-                        publish ({formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)} / logo ·{' '}
-                        {formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)} / banner). Uploads stay
-                        free.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={regenerateLogo}
-                          disabled={generatingLogo}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                          New logo
-                          <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
-                            +{formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)}
+                          <div>
+                            <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {ONE_PAGER_THEMES.map((theme) => {
+                                const active = onePagerThemeId === theme.id;
+                                return (
+                                  <button
+                                    key={theme.id}
+                                    type="button"
+                                    title={theme.label}
+                                    onClick={() => setOnePagerThemeId(theme.id)}
+                                    className={`h-8 w-8 rounded-full border-2 transition ${
+                                      active
+                                        ? 'scale-110 border-white'
+                                        : 'border-white/20 hover:border-white/50'
+                                    }`}
+                                    style={{ backgroundColor: theme.swatch }}
+                                    aria-label={theme.label}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-white/55">
+                              Design note for AI
+                            </span>
+                            <p className="mt-0.5 text-[10px] leading-relaxed text-white/35">
+                              {ONE_PAGER_DESIGN_LIMITS.allowed} {ONE_PAGER_DESIGN_LIMITS.blocked}
+                            </p>
+                            <textarea
+                              value={designNote}
+                              onChange={(event) =>
+                                setDesignNote(
+                                  event.target.value.slice(0, ONE_PAGER_DESIGN_LIMITS.maxChars),
+                                )
+                              }
+                              rows={2}
+                              maxLength={ONE_PAGER_DESIGN_LIMITS.maxChars}
+                              placeholder="e.g. louder title, bigger mascot…"
+                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                            />
+                            <span className="mt-1 block text-right font-mono text-[10px] text-white/30">
+                              {designNote.length}/{ONE_PAGER_DESIGN_LIMITS.maxChars}
+                            </span>
+                          </label>
+                        </>
+                      ) : (
+                        <label className="block">
+                          <span className="text-[11px] font-semibold text-white/55">
+                            Old website URL
                           </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => logoRef.current?.click()}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                        >
-                          <Upload className="h-3.5 w-3.5" />
-                          Upload logo
-                        </button>
-                        <button
-                          type="button"
-                          onClick={regenerateBanner}
-                          disabled={generatingBanner}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                        >
-                          <RefreshCw className="h-3.5 w-3.5" />
-                          New banner
-                          <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
-                            +{formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => bannerRef.current?.click()}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                        >
-                          <Upload className="h-3.5 w-3.5" />
-                          Upload banner
-                        </button>
-                        <input
-                          ref={logoRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => {
-                            void onUploadLogo(event.target.files?.[0]);
-                            event.target.value = '';
-                          }}
+                          <input
+                            value={cloneUrl}
+                            onChange={(event) => setCloneUrl(event.target.value)}
+                            placeholder="https://…"
+                            className={fieldClass}
+                          />
+                        </label>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setEditArt((v) => !v)}
+                        className="flex w-full items-center justify-between rounded-xl border border-white/[0.08] px-3 py-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
+                      >
+                        {editArt ? 'Hide logo / banner' : 'Edit logo / banner'}
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform ${editArt ? 'rotate-180' : ''}`}
                         />
-                        <input
-                          ref={bannerRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => {
-                            void onUploadBanner(event.target.files?.[0]);
-                            event.target.value = '';
-                          }}
-                        />
-                      </div>
-                      {artBill.hasExtras ? (
-                        <div className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-[#c8ff3d]/80">
-                            Added at publish
+                      </button>
+
+                      {editArt ? (
+                        <div className="space-y-2">
+                          <p className="text-[11px] leading-relaxed text-white/40">
+                            First logo &amp; banner are free. Extra generates are added to your bill
+                            at publish ({formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)} / logo ·{' '}
+                            {formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)} / banner). Uploads
+                            stay free.
                           </p>
-                          <ul className="mt-1 space-y-0.5 text-[11px] text-white/55">
-                            {artBill.lines.map((line) => (
-                              <li key={line}>{line}</li>
-                            ))}
-                          </ul>
-                          <p className="mt-1.5 text-[12px] font-bold text-[#d5ff69]">
-                            Est. {formatCollateralUsd(artBill.totalUsd)}
-                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={regenerateLogo}
+                              disabled={generatingLogo}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                              New logo
+                              <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
+                                +{formatCollateralUsd(COLLATERAL_EXTRA_USD.logo)}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => logoRef.current?.click()}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                            >
+                              <Upload className="h-3.5 w-3.5" />
+                              Upload logo
+                            </button>
+                            <button
+                              type="button"
+                              onClick={regenerateBanner}
+                              disabled={generatingBanner}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                              New banner
+                              <span className="font-mono text-[9px] font-semibold text-[#c8ff3d]/70">
+                                +{formatCollateralUsd(COLLATERAL_EXTRA_USD.banner)}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => bannerRef.current?.click()}
+                              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                            >
+                              <Upload className="h-3.5 w-3.5" />
+                              Upload banner
+                            </button>
+                            <input
+                              ref={logoRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(event) => {
+                                void onUploadLogo(event.target.files?.[0]);
+                                event.target.value = '';
+                              }}
+                            />
+                            <input
+                              ref={bannerRef}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(event) => {
+                                void onUploadBanner(event.target.files?.[0]);
+                                event.target.value = '';
+                              }}
+                            />
+                          </div>
+                          {artBill.hasExtras ? (
+                            <div className="rounded-lg border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3 py-2">
+                              <p className="text-[10px] font-bold uppercase tracking-wide text-[#c8ff3d]/80">
+                                Added at publish
+                              </p>
+                              <ul className="mt-1 space-y-0.5 text-[11px] text-white/55">
+                                {artBill.lines.map((line) => (
+                                  <li key={line}>{line}</li>
+                                ))}
+                              </ul>
+                              <p className="mt-1.5 text-[12px] font-bold text-[#d5ff69]">
+                                Est. {formatCollateralUsd(artBill.totalUsd)}
+                              </p>
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
                     </div>
                   ) : null}
 
-                  {artBill.hasExtras && !editArt ? (
+                  {artBill.hasExtras && !editSite ? (
                     <p className="text-center text-[11px] text-white/40">
                       Extra art on bill · est. {formatCollateralUsd(artBill.totalUsd)} at publish
                     </p>
@@ -1398,7 +1567,7 @@ export function LaunchCtoPage() {
 
       <WebsitePreviewOverlay
         open={previewOpen && step === 'website'}
-        onClose={() => setPreviewOpen(false)}
+        onClose={openSiteEditor}
         onContinue={() => setPreviewOpen(false)}
         kind={websiteKind}
         name={name}
@@ -1410,6 +1579,7 @@ export function LaunchCtoPage() {
         cloneUrl={cloneUrl || website}
         themeId={onePagerThemeId}
         designTweaks={designTweaks}
+        includes={siteIncludes}
         tokenSupply={tokenSupply}
       />
     </div>

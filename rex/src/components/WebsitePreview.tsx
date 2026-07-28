@@ -3,9 +3,11 @@ import { SolanaLogo } from './SolanaLogo';
 import {
   applyPunchyBlurb,
   DEFAULT_DESIGN_TWEAKS,
+  DEFAULT_ONE_PAGER_INCLUDES,
   DEFAULT_ONE_PAGER_THEME_ID,
   getOnePagerTheme,
   type OnePagerDesignTweaks,
+  type OnePagerIncludes,
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
 import { formatTokenSupplyShort } from '../data/tokenSupplyOptions';
@@ -24,6 +26,7 @@ type WebsitePreviewProps = {
   variant?: 'card' | 'fullscreen';
   themeId?: OnePagerThemeId;
   designTweaks?: OnePagerDesignTweaks;
+  includes?: OnePagerIncludes;
   tokenSupply?: string;
 };
 
@@ -48,6 +51,37 @@ function usePreviewLabels(props: WebsitePreviewProps) {
 }
 
 /** Meme-coin 1-pager — SHIBCAT-style fixed layout, theme colors only. */
+function MiniChart({ accent, full }: { accent: string; full: boolean }) {
+  const h = full ? 120 : 56;
+  const points = [28, 34, 30, 42, 38, 48, 44, 58, 52, 66, 60, 72];
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const span = max - min || 1;
+  const w = 320;
+  const path = points
+    .map((p, i) => {
+      const x = (i / (points.length - 1)) * w;
+      const y = h - 8 - ((p - min) / span) * (h - 20);
+      return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+  return (
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      className="w-full"
+      style={{ height: h }}
+      aria-hidden
+    >
+      <path d={path} fill="none" stroke={accent} strokeWidth={full ? 3 : 2.5} strokeLinecap="round" />
+      <path
+        d={`${path} L${w},${h} L0,${h} Z`}
+        fill={accent}
+        opacity={0.12}
+      />
+    </svg>
+  );
+}
+
 function MemeOnePagerBody({
   variant,
   displayName,
@@ -58,6 +92,7 @@ function MemeOnePagerBody({
   logoUrl,
   themeId,
   designTweaks = DEFAULT_DESIGN_TWEAKS,
+  includes = DEFAULT_ONE_PAGER_INCLUDES,
   tokenSupply,
 }: {
   variant: 'card' | 'fullscreen';
@@ -69,6 +104,7 @@ function MemeOnePagerBody({
   logoUrl: string | null;
   themeId?: OnePagerThemeId;
   designTweaks?: OnePagerDesignTweaks;
+  includes?: OnePagerIncludes;
   tokenSupply?: string;
 }) {
   const full = variant === 'fullscreen';
@@ -91,6 +127,7 @@ function MemeOnePagerBody({
     : full
       ? 'h-40 w-40 sm:h-48 sm:w-48'
       : 'h-20 w-20';
+  const showTokenomics = includes.tokenomics && designTweaks.showTokenomics;
 
   return (
     <div style={{ backgroundColor: theme.bg, color: theme.text }} className="min-h-full">
@@ -193,6 +230,23 @@ function MemeOnePagerBody({
             </p>
           </section>
 
+          {includes.chart ? (
+            <section className="mx-auto max-w-lg text-center">
+              <h2
+                className="text-xl font-black uppercase tracking-tight"
+                style={{ color: theme.accent }}
+              >
+                Chart
+              </h2>
+              <div
+                className="mt-4 overflow-hidden rounded-xl border border-white/10 px-3 py-3"
+                style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+              >
+                <MiniChart accent={theme.accent} full />
+              </div>
+            </section>
+          ) : null}
+
           <section className="text-center">
             <h2
               className="text-xl font-black uppercase tracking-tight"
@@ -217,7 +271,7 @@ function MemeOnePagerBody({
             </div>
           </section>
 
-          {designTweaks.showTokenomics ? (
+          {showTokenomics ? (
             <section className="text-center">
               <h2
                 className="text-xl font-black uppercase tracking-tight"
@@ -248,9 +302,62 @@ function MemeOnePagerBody({
             </section>
           ) : null}
 
-          <p className="pb-6 text-center text-[11px] tracking-wide text-white/35">
-            Telegram · X · Chart
-          </p>
+          {includes.howto ? (
+            <section className="mx-auto max-w-md text-center">
+              <h2
+                className="text-xl font-black uppercase tracking-tight"
+                style={{ color: theme.accent }}
+              >
+                How to buy
+              </h2>
+              <ol className="mt-4 space-y-2 text-left text-sm" style={{ color: theme.muted }}>
+                {[
+                  'Connect a Solana wallet',
+                  `Open $${rawTicker} on CTOgo`,
+                  'Buy with SOL — done',
+                ].map((step, i) => (
+                  <li
+                    key={step}
+                    className="flex items-start gap-3 rounded-xl border border-white/10 px-3 py-2.5"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+                  >
+                    <span
+                      className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-black"
+                      style={{ backgroundColor: theme.accent, color: theme.buyText }}
+                    >
+                      {i + 1}
+                    </span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ) : null}
+
+          {includes.community ? (
+            <section className="text-center">
+              <h2
+                className="text-xl font-black uppercase tracking-tight"
+                style={{ color: theme.accent }}
+              >
+                Community
+              </h2>
+              <p
+                className="mx-auto mt-3 max-w-md text-sm leading-relaxed"
+                style={{ color: theme.muted }}
+              >
+                Same holders. New mint. Join the group and stay loud with {displayTicker}.
+              </p>
+            </section>
+          ) : null}
+
+          {includes.socials ? (
+            <p className="pb-2 text-center text-[11px] tracking-wide text-white/35">
+              Telegram · X · Chart
+            </p>
+          ) : (
+            <p className="pb-2 text-center text-[11px] tracking-wide text-white/35">Chart</p>
+          )}
           <div className="text-center">
             <span
               className="inline-flex cursor-not-allowed items-center rounded-full border border-white/15 px-4 py-2 text-xs font-bold text-white/45"
@@ -265,26 +372,41 @@ function MemeOnePagerBody({
           </p>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-center gap-2 px-3 py-3">
-          <span
-            className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase"
-            style={{
-              background: `linear-gradient(180deg, ${theme.accentSoft}, ${theme.accent})`,
-              color: theme.buyText,
-            }}
-          >
-            Buy on CTOgo
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1.5 font-mono text-[10px] text-white/55">
-            <SolanaLogo className="h-3 w-3" />
-            {caLabel}
-          </span>
-          <span
-            className="rounded-full border border-white/15 px-2.5 py-1.5 text-[9px] font-bold text-white/40"
-            title="Live after launch"
-          >
-            Marketing wallet · Soon
-          </span>
+        <div className="space-y-2 px-3 py-3">
+          {includes.chart ? (
+            <div
+              className="overflow-hidden rounded-lg border border-white/10 px-2 py-1.5"
+              style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
+            >
+              <MiniChart accent={theme.accent} full={false} />
+            </div>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span
+              className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase"
+              style={{
+                background: `linear-gradient(180deg, ${theme.accentSoft}, ${theme.accent})`,
+                color: theme.buyText,
+              }}
+            >
+              Buy on CTOgo
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1.5 font-mono text-[10px] text-white/55">
+              <SolanaLogo className="h-3 w-3" />
+              {caLabel}
+            </span>
+            {includes.socials ? (
+              <span className="rounded-full border border-white/15 px-2.5 py-1.5 text-[9px] font-bold text-white/40">
+                TG · X
+              </span>
+            ) : null}
+            <span
+              className="rounded-full border border-white/15 px-2.5 py-1.5 text-[9px] font-bold text-white/40"
+              title="Live after launch"
+            >
+              Marketing wallet · Soon
+            </span>
+          </div>
         </div>
       )}
     </div>
@@ -416,6 +538,7 @@ export function WebsitePreview(props: WebsitePreviewProps) {
           logoUrl={props.logoUrl}
           themeId={props.themeId}
           designTweaks={props.designTweaks}
+          includes={props.includes}
           tokenSupply={props.tokenSupply}
         />
       )}

@@ -135,3 +135,33 @@ export function applyPunchyBlurb(blurb: string, ticker: string): string {
   if (/community|meme|degen|based/i.test(base)) return base.slice(0, 80);
   return `${base} $${tick} stays loud.`.slice(0, 80);
 }
+
+/** Optional blocks on the simple 1-pager — keep these light, not product features. */
+export type OnePagerIncludeId =
+  | 'chart'
+  | 'tokenomics'
+  | 'socials'
+  | 'howto'
+  | 'community';
+
+export type OnePagerIncludes = Record<OnePagerIncludeId, boolean>;
+
+export const ONE_PAGER_INCLUDE_OPTIONS: {
+  id: OnePagerIncludeId;
+  label: string;
+  hint: string;
+}[] = [
+  { id: 'chart', label: 'Chart', hint: 'Simple price chart' },
+  { id: 'tokenomics', label: 'Tokenomics', hint: 'Supply & fees' },
+  { id: 'socials', label: 'Socials', hint: 'Telegram & X' },
+  { id: 'howto', label: 'How to buy', hint: 'Short steps' },
+  { id: 'community', label: 'Community', hint: 'Holder callout' },
+];
+
+export const DEFAULT_ONE_PAGER_INCLUDES: OnePagerIncludes = {
+  chart: true,
+  tokenomics: true,
+  socials: true,
+  howto: false,
+  community: false,
+};
