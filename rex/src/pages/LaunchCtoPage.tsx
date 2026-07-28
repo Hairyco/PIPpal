@@ -1229,7 +1229,7 @@ export function LaunchCtoPage() {
                       beta
                     </span>
                   </p>
-                  <p className="mt-1 text-[10px] text-white/40">Creative layouts, your copy</p>
+                  <p className="mt-1 text-[10px] text-white/40">Auto design, your copy</p>
                 </button>
                 <button
                   type="button"
