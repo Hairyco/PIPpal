@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Sparkles, Wallet } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
 import { MarketingWalletExplainer } from '../components/MarketingWalletExplainer';
+import { MarketingWalletHeroVisual } from '../components/MarketingWalletHeroVisual';
 import { formatBpsPercent, FEE_TIERS } from '../data/chainConfig';
 
 const LAUNCH_MKT = formatBpsPercent(FEE_TIERS[0].marketingBps);
@@ -48,7 +49,9 @@ export function MarketingWalletPage() {
                 </div>
               </div>
 
-              <ul className="mt-5 grid gap-2 sm:grid-cols-3">
+              <MarketingWalletHeroVisual />
+
+              <ul className="mt-6 grid gap-2 sm:grid-cols-3">
                 {[
                   {
                     title: 'Fills from trades',
