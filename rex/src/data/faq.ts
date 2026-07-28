@@ -1,8 +1,10 @@
 import {
+  FEE_TIERS,
   MARKETING_AUTO_SPEND_USD,
   MARKETING_INACTIVITY_HOURS,
   MARKETING_V2_DEADLINE_DAYS,
   TRADE_FEE_LABEL,
+  formatBpsPercent,
 } from './chainConfig';
 
 export type FaqItem = {
@@ -57,6 +59,11 @@ export const FAQ_SECTIONS: FaqSection[] = [
         question: 'What is the marketing wallet?',
         answer:
           'A non-custodial vault attached to the coin. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this vault.',
+      },
+      {
+        id: 'vault-fill-rate',
+        question: 'What is the vault fill rate?',
+        answer: `A slice of each CTOgo trade lands in the marketing vault automatically. At launch it is ${formatBpsPercent(FEE_TIERS[0].marketingBps)} of volume (${FEE_TIERS[0].marketCap} mcap). As market cap grows the rate steps down — ${FEE_TIERS.map((t) => `${t.label}: ${formatBpsPercent(t.marketingBps)} (${t.marketCap})`).join('; ')}. Growth keeps funding without you wiring ads by hand. Full trade fee split is on the Fees page.`,
       },
       {
         id: 'who-controls',

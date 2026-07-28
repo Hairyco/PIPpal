@@ -1,9 +1,6 @@
-import { CheckCircle2, Circle, Clock, Wallet, X } from 'lucide-react';
+import { Wallet, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { MARKETING_SPEND_FLOW, formatSpendCost } from '../data/marketingSpendFlow';
-
-const LAUNCH_TIER = FEE_TIERS[0];
 
 type SpendStatus = 'complete' | 'in-progress' | 'upcoming';
 
@@ -56,82 +53,49 @@ export function MarketingWalletProgressTracker({
     return { ...node, status, progress, unlockAt };
   });
 
-  const overall = Math.round(rows.reduce((sum, r) => sum + r.progress, 0) / rows.length);
-  const funded = rows.filter((r) => r.status === 'complete').length;
-  const filling = rows.filter((r) => r.status === 'in-progress').length;
-  const queued = rows.filter((r) => r.status === 'upcoming').length;
-
   return (
-    <div className={compact ? 'space-y-3' : 'space-y-3.5'}>
-      <div className="flex flex-wrap items-end justify-between gap-3 rounded-xl border border-[#2aabee]/25 bg-[#2aabee]/[0.07] p-3.5">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-sky-300/90">
-            Wallet fill
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{overall}%</p>
-          <p className="mt-0.5 text-[11px] text-white/50">
-            {formatSpendCost(balanceUsd)} in vault · next unlocks as trades fill it
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[10px] text-emerald-200">
-            <CheckCircle2 className="h-3 w-3" />
-            {funded} done
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-1 text-[10px] text-[#d5ff69]">
-            <Clock className="h-3 w-3" />
-            {filling} next
-          </span>
-          <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[10px] text-white/45">
-            <Circle className="h-3 w-3" />
-            {queued} queued
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-2.5">
-        {rows.map((item) => {
-          const styles = statusStyles(item.status);
-          return (
-            <div
-              key={item.id}
-              className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-white">{item.label}</p>
-                  <p className="mt-0.5 text-[11px] text-white/40">
-                    Unlocks at {formatSpendCost(item.unlockAt)}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium ${styles.badge}`}
-                >
-                  {styles.label}
-                </span>
+    <div className={compact ? 'space-y-2.5' : 'space-y-2.5'}>
+      {rows.map((item) => {
+        const styles = statusStyles(item.status);
+        return (
+          <div
+            key={item.id}
+            className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white">{item.label}</p>
+                <p className="mt-0.5 text-[11px] text-white/40">
+                  Unlocks at {formatSpendCost(item.unlockAt)}
+                </p>
               </div>
-              <div className="mt-3 flex items-center gap-3">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={`h-full rounded-full transition-all ${styles.bar}`}
-                    style={{ width: `${Math.max(item.progress, 3)}%` }}
-                  />
-                </div>
-                <span className="w-9 shrink-0 text-right text-xs font-semibold tabular-nums text-white/90">
-                  {item.progress}%
-                </span>
-              </div>
+              <span
+                className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium ${styles.badge}`}
+              >
+                {styles.label}
+              </span>
             </div>
-          );
-        })}
-      </div>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/10">
+                <div
+                  className={`h-full rounded-full transition-all ${styles.bar}`}
+                  style={{ width: `${Math.max(item.progress, 3)}%` }}
+                />
+              </div>
+              <span className="w-9 shrink-0 text-right text-xs font-semibold tabular-nums text-white/90">
+                {item.progress}%
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 /**
- * Marketing vault story — fill rate + spend unlocks.
- * Full platform fee math lives on /fees.
+ * Marketing vault story — live milestone tracking.
+ * Fill-rate schedule lives in FAQ; full fee math on /fees.
  */
 export function MarketingWalletExplainer({
   balanceUsd,
@@ -162,47 +126,7 @@ export function MarketingWalletExplainer({
       <div className="space-y-5 p-4 sm:p-5">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
-            Vault fill rate
-          </p>
-          <p className="mt-1.5 text-2xl font-semibold tabular-nums text-white">
-            {formatBpsPercent(LAUNCH_TIER.marketingBps)}{' '}
-            <span className="text-sm font-medium text-white/45">of each CTOgo trade at launch</span>
-          </p>
-          <p className="mt-1.5 max-w-lg text-[12px] leading-relaxed text-white/50">
-            That slice lands in your coin’s vault automatically. As market cap grows, the fill rate
-            steps down — growth keeps funding without you wiring ads by hand.
-          </p>
-
-          <ul className="mt-3 space-y-2">
-            {FEE_TIERS.map((tier) => (
-              <li
-                key={tier.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.06] bg-white/[0.03] px-3 py-2.5"
-              >
-                <div>
-                  <p className="text-[12px] font-semibold text-white/85">{tier.label}</p>
-                  <p className="text-[10px] text-white/40">{tier.marketCap} mcap</p>
-                </div>
-                <p className="text-right">
-                  <span className="text-sm font-bold tabular-nums text-[#d5ff69]">
-                    {formatBpsPercent(tier.marketingBps)}
-                  </span>
-                  <span className="mt-0.5 block text-[10px] text-white/35">→ vault</span>
-                </p>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-2 text-[11px] text-white/35">
-            Full trade fee split →{' '}
-            <Link to="/fees" className="font-semibold text-[#d5ff69] hover:underline">
-              Fees
-            </Link>
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
-            What unlocks as it fills
+            Live tracking
           </p>
           <p className="mt-1 text-[12px] text-white/50">
             Milestones fire in order — no founder wallet to drain, no chasing suppliers.
@@ -213,9 +137,13 @@ export function MarketingWalletExplainer({
         </div>
 
         <p className="text-[11px] text-white/35">
-          Dump / quiet-coin rules →{' '}
+          Vault fill rate & dump / quiet-coin rules →{' '}
           <Link to="/faq#marketing-wallet" className="font-semibold text-[#d5ff69] hover:underline">
             FAQ
+          </Link>
+          {' · '}
+          <Link to="/fees" className="font-semibold text-[#d5ff69] hover:underline">
+            Fees
           </Link>
         </p>
       </div>
