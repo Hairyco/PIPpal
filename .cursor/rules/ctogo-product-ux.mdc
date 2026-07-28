@@ -20,7 +20,7 @@ Act as senior PM + UI/UX + copywriter on every design change.
 - **Logo top-left** (home/back to board). No “List” chrome.
 - No origin tags (Native CTO / External / venue chips) — exchanges handle that.
 - Boost lightning → **Advertise** (promote / board boost).
-- Marketing wallet sits **below the chart**. Contract details behind a small info control.
+- Marketing wallet sits **under Buy/Sell**. Contract details behind a small info control.
 
 ## Advertise (not “Services”)
 - Nav/footer: **Advertise**. Route `/advertise` (`/services` redirects).

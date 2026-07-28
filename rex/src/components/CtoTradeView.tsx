@@ -461,80 +461,6 @@ export function CtoTradeView({
               </div>
             ) : null}
           </div>
-
-          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
-                Marketing wallet
-              </p>
-              <Link
-                to="/marketing-wallet"
-                className="text-[10px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
-              >
-                How it works
-              </Link>
-            </div>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
-              {project.marketingBalance ?? '—'}
-            </p>
-            {marketingSolscan && marketingShort ? (
-              <a
-                href={marketingSolscan}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                title={`View ${marketingAddress} on Solscan`}
-              >
-                {marketingShort}
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="font-sans text-[10px] font-semibold">Solscan</span>
-              </a>
-            ) : (
-              <p className="mt-1 text-[11px] text-white/40">
-                {isExternal ? (
-                  <>
-                    No vault yet —{' '}
-                    <Link
-                      to="/launch?mode=list"
-                      className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                    >
-                      List this coin
-                    </Link>{' '}
-                    to add one for $1.
-                  </>
-                ) : (
-                  'No marketing wallet on this listing'
-                )}
-              </p>
-            )}
-            {project.marketingBalance && mktTarget > 0 ? (
-              <div className="mt-3">
-                <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
-                  <span className="text-white/40">
-                    Next: {project.nextAdSpend ?? 'Update socials'}
-                  </span>
-                  <span className="tabular-nums font-semibold text-white/70">
-                    {formatUsd(mktBalance)}/{formatUsd(mktTarget)}
-                  </span>
-                </div>
-                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                  <div
-                    className={`absolute inset-y-0 left-0 rounded-full ${
-                      mktReady
-                        ? 'bg-[#c8ff3d]'
-                        : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
-                    }`}
-                    style={{ width: `${Math.max(mktPct, 4)}%` }}
-                  />
-                </div>
-                <p className="mt-1.5 text-[10px] text-white/35">
-                  {mktReady
-                    ? `Ready to deploy ${project.nextAdSpend ?? 'Update socials'}`
-                    : `${formatUsd(Math.max(0, mktTarget - mktBalance))} to next spend`}
-                </p>
-              </div>
-            ) : null}
-          </div>
         </div>
 
         <aside className="flex flex-col gap-3">
@@ -739,6 +665,80 @@ export function CtoTradeView({
                   }`
                 : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
+          </div>
+
+          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
+                Marketing wallet
+              </p>
+              <Link
+                to="/marketing-wallet"
+                className="text-[10px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
+              >
+                How it works
+              </Link>
+            </div>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
+              {project.marketingBalance ?? '—'}
+            </p>
+            {marketingSolscan && marketingShort ? (
+              <a
+                href={marketingSolscan}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                title={`View ${marketingAddress} on Solscan`}
+              >
+                {marketingShort}
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="font-sans text-[10px] font-semibold">Solscan</span>
+              </a>
+            ) : (
+              <p className="mt-1 text-[11px] text-white/40">
+                {isExternal ? (
+                  <>
+                    No vault yet —{' '}
+                    <Link
+                      to="/launch?mode=list"
+                      className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                    >
+                      List this coin
+                    </Link>{' '}
+                    to add one for $1.
+                  </>
+                ) : (
+                  'No marketing wallet on this listing'
+                )}
+              </p>
+            )}
+            {project.marketingBalance && mktTarget > 0 ? (
+              <div className="mt-3">
+                <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
+                  <span className="text-white/40">
+                    Next: {project.nextAdSpend ?? 'Update socials'}
+                  </span>
+                  <span className="tabular-nums font-semibold text-white/70">
+                    {formatUsd(mktBalance)}/{formatUsd(mktTarget)}
+                  </span>
+                </div>
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full ${
+                      mktReady
+                        ? 'bg-[#c8ff3d]'
+                        : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
+                    }`}
+                    style={{ width: `${Math.max(mktPct, 4)}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-[10px] text-white/35">
+                  {mktReady
+                    ? `Ready to deploy ${project.nextAdSpend ?? 'Update socials'}`
+                    : `${formatUsd(Math.max(0, mktTarget - mktBalance))} to next spend`}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {!isExternal ? (
