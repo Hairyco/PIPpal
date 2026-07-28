@@ -1133,19 +1133,19 @@ export function HomePage() {
 
             {activeFilterCount > 0 ? (
               <div className="mb-3 flex flex-wrap items-center gap-1.5">
-                {discoveryFilters.age !== 'any' ? (
+                {formatRangeLabel(discoveryFilters.age, AGE_STEPS) !== 'Any' ? (
                   <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
-                    Age · {discoveryFilters.age === 'live' ? 'Live' : discoveryFilters.age.replace('lt', '<')}
+                    Age · {formatRangeLabel(discoveryFilters.age, AGE_STEPS)}
                   </span>
                 ) : null}
-                {discoveryFilters.marketCap !== 'any' ? (
+                {formatRangeLabel(discoveryFilters.marketCap, MCAP_STEPS) !== 'Any' ? (
                   <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
-                    Mcap · {discoveryFilters.marketCap.replace('_', '–').replace('lt', '<').replace('gt', '>')}
+                    Mcap · {formatRangeLabel(discoveryFilters.marketCap, MCAP_STEPS)}
                   </span>
                 ) : null}
-                {discoveryFilters.holders !== 'any' ? (
+                {formatRangeLabel(discoveryFilters.holders, HOLDERS_STEPS) !== 'Any' ? (
                   <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
-                    Holders · {discoveryFilters.holders.replace('_', '–').replace('lt', '<').replace('gt', '>')}
+                    Holders · {formatRangeLabel(discoveryFilters.holders, HOLDERS_STEPS)}
                   </span>
                 ) : null}
                 {discoveryFilters.volume !== 'any' ? (
@@ -1556,6 +1556,18 @@ export function HomePage() {
         open={walletExplainerOpen}
         onClose={() => setWalletExplainerOpen(false)}
       />
+      {copiedCaTicker ? (
+        <div
+          className="pointer-events-none fixed inset-x-0 bottom-6 z-[80] flex justify-center px-4"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#c8ff3d]/35 bg-[#0a0c12]/95 px-3.5 py-2 text-[12px] font-semibold text-[#d5ff69] shadow-[0_12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
+            <Check className="h-3.5 w-3.5" />
+            Contract copied
+          </div>
+        </div>
+      ) : null}
       <DiscoveryFiltersPanel
         open={filtersOpen}
         filters={discoveryFilters}
