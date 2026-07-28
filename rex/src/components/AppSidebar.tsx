@@ -18,6 +18,7 @@ import {
   Menu,
   Star,
 } from 'lucide-react';
+import { useWatchlist } from '../hooks/useWatchlist';
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },

@@ -216,12 +216,27 @@ const tableCols =
 const tableColsPrelaunch =
   '30px 200px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
-function formatLaunchLabel(hours: number | null): string {
-  if (hours == null) return 'Live';
-  if (hours < 1) return '<1h';
-  if (hours < 24) return `${hours}h`;
-  const days = Math.round(hours / 24);
-  return `${days}d`;
+function formatEngagement(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}K`;
+  return String(n);
+}
+
+/** Stats for the socials sheet. X RTs/likes are demo until a paid X API key is wired. */
+function socialSheetStats(project: Project) {
+  let seed = 0;
+  for (let i = 0; i < project.ticker.length; i += 1) {
+    seed = (seed * 31 + project.ticker.charCodeAt(i)) >>> 0;
+  }
+  const rts = 28 + (seed % 240);
+  const likes = 90 + (seed % 980);
+  return [
+    { label: 'RTs', value: formatEngagement(rts), title: 'Latest post retweets (demo — X API is paid)' },
+    { label: 'Likes', value: formatEngagement(likes), title: 'Latest post likes (demo — X API is paid)' },
+    { label: 'MPH', value: String(project.mph), title: 'Messages per hour' },
+    { label: 'Holders', value: project.holders, title: 'Token holders' },
+    { label: 'Mcap', value: project.marketCap, title: 'Market cap' },
+    { label: 'Vol 24h', value: project.volume24h, title: '24h volume' },
+  ];
 }
 
 function projectSocialLinks(project: Project) {
@@ -1665,6 +1680,22 @@ export function HomePage() {
               >
                 <X className="h-4 w-4" />
               </button>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              {socialSheetStats(socialsProject).map((stat) => (
+                <div
+                  key={stat.label}
+                  title={stat.title}
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-2 text-center"
+                >
+                  <p className="font-mono text-[13px] font-semibold tabular-nums text-white">
+                    {stat.value}
+                  </p>
+                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/35">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
             <p className="mt-3 text-[11px] text-white/35">Open a link</p>
             <div className="mt-2 space-y-2">
