@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 export type RangeFilter = { min: number; max: number };
@@ -228,8 +229,9 @@ function DualRangeSlider({
   const last = steps.length - 1;
   const active = !isFullRange(value, steps.length);
   const spanLabel = formatRangeLabel(value, steps);
-  const fillLeft = (value.min / last) * 100;
-  const fillRight = (value.max / last) * 100;
+  const fillLeft = last === 0 ? 0 : (value.min / last) * 100;
+  const fillRight = last === 0 ? 100 : (value.max / last) * 100;
+  const [activeThumb, setActiveThumb] = useState<'min' | 'max'>('max');
 
   const setMin = (raw: number) => {
     const next = Math.min(Math.max(0, raw), value.max);
@@ -238,6 +240,16 @@ function DualRangeSlider({
   const setMax = (raw: number) => {
     const next = Math.max(Math.min(last, raw), value.min);
     onChange({ min: value.min, max: next });
+  };
+
+  const preferThumbNearPointer = (clientX: number, track: HTMLElement) => {
+    const rect = track.getBoundingClientRect();
+    if (rect.width <= 0) return;
+    const pos = ((clientX - rect.left) / rect.width) * last;
+    const distMin = Math.abs(pos - value.min);
+    const distMax = Math.abs(pos - value.max);
+    // Prefer min when equal so the left thumb stays grabable when stacked.
+    setActiveThumb(distMin <= distMax ? 'min' : 'max');
   };
 
   return (
@@ -249,12 +261,19 @@ function DualRangeSlider({
         </p>
       </div>
 
-      <div className="relative mt-4 h-6 overflow-hidden">
-        <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/[0.08]" />
-        <div
-          className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#c8ff3d]/70"
-          style={{ left: `${fillLeft}%`, right: `${100 - fillRight}%` }}
-        />
+      <div
+        className="relative mt-4 h-11 touch-none px-1"
+        onPointerDown={(event) => {
+          preferThumbNearPointer(event.clientX, event.currentTarget);
+        }}
+      >
+        <div className="pointer-events-none absolute inset-x-1 top-1/2 h-1.5 -translate-y-1/2">
+          <div className="absolute inset-0 rounded-full bg-white/[0.08]" />
+          <div
+            className="absolute inset-y-0 rounded-full bg-[#c8ff3d]/70"
+            style={{ left: `${fillLeft}%`, right: `${100 - fillRight}%` }}
+          />
+        </div>
         <input
           type="range"
           min={0}
@@ -262,7 +281,9 @@ function DualRangeSlider({
           step={1}
           value={value.min}
           onChange={(event) => setMin(Number(event.target.value))}
-          className="discovery-range absolute inset-0 z-[2] w-full appearance-none bg-transparent"
+          onPointerDown={() => setActiveThumb('min')}
+          className="discovery-range absolute inset-x-0 top-0 h-11 w-full appearance-none bg-transparent"
+          style={{ zIndex: activeThumb === 'min' ? 4 : 2 }}
           aria-label={`${label} minimum`}
         />
         <input
@@ -272,12 +293,14 @@ function DualRangeSlider({
           step={1}
           value={value.max}
           onChange={(event) => setMax(Number(event.target.value))}
-          className="discovery-range absolute inset-0 z-[3] w-full appearance-none bg-transparent"
+          onPointerDown={() => setActiveThumb('max')}
+          className="discovery-range absolute inset-x-0 top-0 h-11 w-full appearance-none bg-transparent"
+          style={{ zIndex: activeThumb === 'max' ? 4 : 2 }}
           aria-label={`${label} maximum`}
         />
       </div>
 
-      <div className="mt-1.5 flex justify-between text-[9px] font-medium text-white/25">
+      <div className="mt-0.5 flex justify-between px-1 text-[9px] font-medium text-white/25">
         <span>{steps[0].label}</span>
         <span>{steps[last].label}</span>
       </div>
@@ -436,40 +459,42 @@ export function DiscoveryFiltersPanel({
         <style>{`
           .discovery-range {
             pointer-events: none;
-            height: 1.5rem;
             margin: 0;
+            touch-action: none;
           }
           .discovery-range::-webkit-slider-thumb {
             pointer-events: auto;
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 28px;
+            height: 28px;
             border-radius: 9999px;
             background: #c8ff3d;
             border: 2px solid #090b14;
             box-shadow: 0 0 0 1px rgba(200, 255, 61, 0.35);
-            cursor: pointer;
+            cursor: grab;
             position: relative;
-            z-index: 5;
+            /* Expand hit area beyond the visible thumb on touch devices */
+            box-sizing: border-box;
           }
           .discovery-range::-moz-range-thumb {
             pointer-events: auto;
-            width: 18px;
-            height: 18px;
+            width: 28px;
+            height: 28px;
             border-radius: 9999px;
             background: #c8ff3d;
             border: 2px solid #090b14;
             box-shadow: 0 0 0 1px rgba(200, 255, 61, 0.35);
-            cursor: pointer;
+            cursor: grab;
+            box-sizing: border-box;
           }
           .discovery-range::-webkit-slider-runnable-track {
             background: transparent;
-            height: 1.5rem;
+            height: 2.75rem;
           }
           .discovery-range::-moz-range-track {
             background: transparent;
-            height: 1.5rem;
+            height: 2.75rem;
           }
         `}</style>
       </div>
