@@ -224,62 +224,30 @@ function formatLaunchLabel(hours: number | null): string {
   return `${days}d`;
 }
 
-function formatEngagement(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}K`;
-  return String(n);
-}
-
-/** Stats for the socials sheet. X RTs/likes are demo until a paid X API key is wired. */
 function socialSheetStats(project: Project) {
   let seed = 0;
   for (let i = 0; i < project.ticker.length; i += 1) {
     seed = (seed * 31 + project.ticker.charCodeAt(i)) >>> 0;
   }
-  const rts = 28 + (seed % 240);
-  const likes = 90 + (seed % 980);
   /** Demo 24h volume delta until we have live vol history. */
   const volChange = Number((((seed % 1800) / 100 - 9) * (project.change24h >= 0 ? 1 : -1)).toFixed(2));
   return [
     {
-      label: 'RTs',
-      value: formatEngagement(rts),
-      title: 'Latest post retweets (demo — X API is paid)',
-      icon: 'x' as const,
-      change: null as number | null,
-    },
-    {
-      label: 'Likes',
-      value: formatEngagement(likes),
-      title: 'Latest post likes (demo — X API is paid)',
-      icon: 'x' as const,
-      change: null as number | null,
-    },
-    {
-      label: 'MPH',
-      value: String(project.mph),
-      title: 'Telegram messages per hour',
-      icon: 'telegram' as const,
-      change: null as number | null,
-    },
-    {
       label: 'Holders',
       value: project.holders,
       title: 'Token holders',
-      icon: null,
       change: null as number | null,
     },
     {
       label: 'Mcap',
       value: project.marketCap,
       title: 'Market cap · 24h change',
-      icon: null,
       change: project.change24h,
     },
     {
       label: 'Vol 24h',
       value: project.volume24h,
       title: '24h volume · change vs prior day (demo)',
-      icon: null,
       change: volChange,
     },
   ];
@@ -1754,19 +1722,10 @@ export function HomePage() {
                       {stat.change.toFixed(2)}%
                     </p>
                   ) : null}
-                  <div className="mt-0.5 flex h-3.5 items-center justify-center gap-1 text-white/45">
-                    {stat.icon ? (
-                      <>
-                        <SocialGlyph id={stat.icon} className="h-3 w-3 shrink-0" />
-                        <span className="text-[9px] font-semibold uppercase tracking-wide text-white/35">
-                          {stat.label}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-[10px] uppercase tracking-wide text-white/35">
-                        {stat.label}
-                      </span>
-                    )}
+                  <div className="mt-0.5 flex h-3.5 items-center justify-center text-white/45">
+                    <span className="text-[10px] uppercase tracking-wide text-white/35">
+                      {stat.label}
+                    </span>
                   </div>
                 </div>
               ))}
