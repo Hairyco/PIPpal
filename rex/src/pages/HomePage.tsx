@@ -1607,12 +1607,12 @@ export function HomePage() {
       </main>
 
       <footer className="mt-10 border-t border-white/[0.06] bg-black">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-7 text-center text-[11px] text-white/25">
+          <div className="flex items-center justify-center gap-2">
             <CtoGoLogo size={24} className="rounded-md" />
-            <span>CTOgo · Solana CTO discovery</span>
+            <span>CTOgo · CTO discovery</span>
           </div>
-          <div className="flex gap-5">
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link to="/fees" className="hover:text-white/50">Fees</Link>
             <Link to="/marketing-wallet" className="hover:text-white/50">Marketing wallet</Link>
             <Link to="/advertise" className="hover:text-white/50">Advertise</Link>
