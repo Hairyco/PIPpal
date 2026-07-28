@@ -6,7 +6,10 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  Clock3,
+  ExternalLink,
   Flame,
+  Globe,
   LayoutGrid,
   Pin,
   Plus,
@@ -16,10 +19,10 @@ import {
   Sparkles,
   Star,
   Trophy,
-  Wallet,
-  Zap,
-  Clock3,
   TrendingUp,
+  Wallet,
+  X,
+  Zap,
 } from 'lucide-react';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
@@ -189,9 +192,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '190px 80px 72px 64px 88px 72px 56px 148px 28px';
+  '220px 80px 72px 64px 88px 72px 56px 148px 28px';
 const tableColsPrelaunch =
-  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
+  '30px 220px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -199,6 +202,54 @@ function formatLaunchLabel(hours: number | null): string {
   if (hours < 24) return `${hours}h`;
   const days = Math.round(hours / 24);
   return `${days}d`;
+}
+
+function projectSocialLinks(project: Project) {
+  const slug = project.ticker.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return [
+    {
+      id: 'x' as const,
+      label: 'X / Twitter',
+      href: `https://x.com/${slug}`,
+      hint: `@${slug}`,
+    },
+    {
+      id: 'telegram' as const,
+      label: 'Telegram',
+      href: `https://t.me/${slug}`,
+      hint: `${project.community} members`,
+    },
+    {
+      id: 'website' as const,
+      label: 'Website',
+      href: `https://${slug}.fun`,
+      hint: `${slug}.fun`,
+    },
+  ];
+}
+
+function XMarkIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function SocialGlyph({
+  id,
+  className,
+}: {
+  id: 'x' | 'telegram' | 'website';
+  className?: string;
+}) {
+  if (id === 'telegram') {
+    return <img src="/images/partners/telegram.svg" alt="" className={className} />;
+  }
+  if (id === 'website') {
+    return <Globe className={className} />;
+  }
+  return <XMarkIcon className={className} />;
 }
 
 function ProjectMark({
@@ -407,6 +458,7 @@ export function HomePage() {
   const [voteNotice, setVoteNotice] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [socialsTicker, setSocialsTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
@@ -530,6 +582,11 @@ export function HomePage() {
     setSortKey(null);
     setSortDir('desc');
   };
+
+  const socialsProject =
+    socialsTicker != null
+      ? projects.find((project) => project.ticker === socialsTicker) ?? null
+      : null;
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -999,7 +1056,7 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1160px]' : 'min-w-[980px]'}>
+                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1010px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
@@ -1102,21 +1159,37 @@ export function HomePage() {
                       {isPrelaunch ? (
                         <span className="text-center text-xs text-white/35">{project.rank}</span>
                       ) : null}
-                      <div className="flex w-[190px] items-start gap-2.5">
+                      <div className="flex w-[220px] items-start gap-2.5">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <p className="text-sm font-bold">{project.ticker}</p>
-                            <span
-                              className={`text-[10px] font-semibold tabular-nums ${
-                                project.launchInHours == null ? 'text-emerald-300/80' : 'text-white/40'
-                              }`}
-                              title="Age"
-                            >
-                              {formatLaunchLabel(project.launchInHours)}
-                            </span>
+                          <div className="flex min-w-0 items-baseline gap-1.5">
+                            <p className="shrink-0 text-sm font-bold">{project.ticker}</p>
+                            <p className="truncate text-[11px] text-white/45">({project.name})</p>
                           </div>
-                          <p className="text-[11px] leading-snug text-white/55">{project.name}</p>
+                          <p
+                            className={`mt-0.5 text-[11px] font-semibold tabular-nums ${
+                              project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
+                            }`}
+                          >
+                            {formatLaunchLabel(project.launchInHours)}
+                          </p>
+                          <div className="mt-1 flex items-center gap-1">
+                            {projectSocialLinks(project).map((link) => (
+                              <button
+                                key={link.id}
+                                type="button"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setSocialsTicker(project.ticker);
+                                }}
+                                className="grid h-5 w-5 place-items-center rounded text-white/40 transition hover:bg-white/[0.08] hover:text-white"
+                                aria-label={`${link.label} for ${project.ticker}`}
+                                title={link.label}
+                              >
+                                <SocialGlyph id={link.id} className="h-3 w-3" />
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                       <div className="flex justify-center">
@@ -1317,6 +1390,64 @@ export function HomePage() {
         open={walletExplainerOpen}
         onClose={() => setWalletExplainerOpen(false)}
       />
+      {socialsProject ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center"
+          role="dialog"
+          aria-modal
+          aria-labelledby="coin-socials-title"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+            aria-label="Close"
+            onClick={() => setSocialsTicker(null)}
+          />
+          <div className="relative z-[1] w-full max-w-sm rounded-t-2xl border border-white/10 bg-[#0a0c12] p-4 shadow-[0_-20px_60px_rgba(0,0,0,0.65)] sm:rounded-2xl sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <ProjectMark project={socialsProject} size="h-10 w-10" rounded="rounded-lg" />
+                <div className="min-w-0">
+                  <p id="coin-socials-title" className="truncate font-serif text-lg font-bold">
+                    ${socialsProject.ticker}
+                  </p>
+                  <p className="truncate text-xs text-white/45">{socialsProject.name}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSocialsTicker(null)}
+                className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/50 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-3 text-[11px] text-white/35">Open a link</p>
+            <div className="mt-2 space-y-2">
+              {projectSocialLinks(socialsProject).map((link) => (
+                <a
+                  key={link.id}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setSocialsTicker(null)}
+                  className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 transition hover:border-white/20 hover:bg-white/[0.06]"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-lg bg-white/[0.06] text-white/80">
+                    <SocialGlyph id={link.id} className="h-5 w-5" />
+                  </span>
+                  <span className="min-w-0 flex-1 text-left">
+                    <span className="block text-sm font-semibold text-white">{link.label}</span>
+                    <span className="block truncate text-[11px] text-white/40">{link.hint}</span>
+                  </span>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-white/30" />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
     </AppSidebarProvider>
   );
