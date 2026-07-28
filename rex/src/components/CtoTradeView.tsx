@@ -8,8 +8,8 @@ import {
   Settings2,
   Star,
   Wallet,
+  X,
 } from 'lucide-react';
-import { CtoGoLogo } from './CtoGoLogo';
 import { MigrateToV2Banner } from './OriginBadge';
 import {
   launchCtoHref,
@@ -253,7 +253,7 @@ export function CtoTradeView({
     { label: 'Market Cap', value: project.marketCap },
     { label: 'TXs', value: project.txs },
     { label: 'Holders', value: project.holders },
-    { label: 'Launch', value: formatLaunchLabel(project.launchInHours) },
+    { label: 'Age', value: formatLaunchLabel(project.launchInHours) },
     { label: 'Vol 24h', value: project.volume24h },
     { label: 'FDV', value: project.fdv },
   ];
@@ -298,24 +298,8 @@ export function CtoTradeView({
   return (
     <div className="-mx-3 sm:-mx-5">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-3 py-3 sm:gap-4 sm:px-5">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex shrink-0 items-center gap-2 rounded-lg pr-1 transition hover:opacity-90"
-            aria-label="CTOgo home"
-            title="Back to board"
-          >
-            <CtoGoLogo size={32} />
-            <span className="hidden items-center gap-1.5 font-serif text-sm font-bold tracking-tight text-white sm:inline-flex">
-              CTOgo
-              <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                beta
-              </span>
-            </span>
-          </button>
-
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-3 sm:gap-4 sm:px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
               className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
             >
@@ -325,23 +309,21 @@ export function CtoTradeView({
               <h2 className="truncate font-serif text-xl font-bold tracking-tight">${project.ticker}</h2>
               <p className="truncate text-xs text-white/45">{project.name}</p>
             </div>
+            <div className="hidden flex-wrap items-baseline gap-x-3 gap-y-1 sm:flex">
+              <p className="text-2xl font-semibold tabular-nums tracking-tight">{project.price}</p>
+              <p className="text-sm font-semibold">
+                <Pct value={change} />
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <p className="text-2xl font-semibold tabular-nums tracking-tight">{project.price}</p>
-            <p className="text-sm font-semibold">
-              <Pct value={change} />
-            </p>
-          </div>
-
-          <div className="ml-auto flex items-center gap-2">
-            <Link
-              to={launchHref}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"
-            >
-              <Flame className="h-3.5 w-3.5" />
-              Launch a CTO
-            </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-col items-end sm:hidden">
+              <p className="text-base font-semibold tabular-nums tracking-tight">{project.price}</p>
+              <p className="text-xs font-semibold">
+                <Pct value={change} />
+              </p>
+            </div>
             <button
               type="button"
               onClick={onToggleStar}
@@ -368,40 +350,15 @@ export function CtoTradeView({
               <Copy className="h-3.5 w-3.5" />
               {copied ? 'Copied' : 'CA'}
             </button>
-          </div>
-        </div>
-
-        <div className="border-t border-white/[0.05]">
-          <div className="mx-auto flex max-w-7xl gap-0 overflow-x-auto px-1 sm:px-2">
-            {stats.map((stat) => (
-              <div
-                key={stat.label}
-                className="min-w-[5.5rem] flex-1 border-r border-white/[0.05] px-3 py-2.5 last:border-r-0"
-              >
-                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">{stat.label}</p>
-                <p className="mt-0.5 text-sm font-semibold tabular-nums text-white/90">{stat.value}</p>
-              </div>
-            ))}
-            <div className="min-w-[9rem] flex-1 px-3 py-2.5">
-              <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                Marketing
-              </p>
-              <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#d5ff69]">
-                <Wallet className="h-3.5 w-3.5 shrink-0" />
-                {project.marketingBalance ?? '—'}
-                {marketingSolscan && marketingShort ? (
-                  <a
-                    href={marketingSolscan}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="truncate text-[11px] font-medium text-[#c8ff3d]/80 underline-offset-2 hover:underline"
-                    title={`View ${marketingAddress} on Solscan`}
-                  >
-                    {marketingShort}
-                  </a>
-                ) : null}
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white"
+              aria-label="Back to board"
+              title="Back to board"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
@@ -709,6 +666,40 @@ export function CtoTradeView({
                   }`
                 : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
+          </div>
+
+          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+            <div className="flex gap-0 overflow-x-auto">
+              {stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="min-w-[5.5rem] flex-1 border-r border-white/[0.05] px-3 py-2.5 last:border-r-0"
+                >
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">{stat.label}</p>
+                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-white/90">{stat.value}</p>
+                </div>
+              ))}
+              <div className="min-w-[9rem] flex-1 px-3 py-2.5">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                  Marketing
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#d5ff69]">
+                  <Wallet className="h-3.5 w-3.5 shrink-0" />
+                  {project.marketingBalance ?? '—'}
+                  {marketingSolscan && marketingShort ? (
+                    <a
+                      href={marketingSolscan}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate text-[11px] font-medium text-[#c8ff3d]/80 underline-offset-2 hover:underline"
+                      title={`View ${marketingAddress} on Solscan`}
+                    >
+                      {marketingShort}
+                    </a>
+                  ) : null}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
