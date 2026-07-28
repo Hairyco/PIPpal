@@ -187,9 +187,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '190px 80px 72px 64px 88px 72px 56px 48px 64px 148px 28px';
+  '190px 80px 72px 64px 88px 72px 56px 148px 28px';
 const tableColsPrelaunch =
-  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 48px 64px 148px 64px 28px';
+  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -868,7 +868,7 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1280px]' : 'min-w-[1150px]'}>
+                <div className={isPrelaunch ? 'min-w-[1160px]' : 'min-w-[980px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
@@ -889,8 +889,6 @@ export function HomePage() {
                     <span className="text-right">TXs</span>
                     <span className="text-right">Price</span>
                     <span className="text-right">Holders</span>
-                    <span className="text-right" title="Messages per hour">MPH</span>
-                    <span className="text-right" title="Raids and people engaging">Raids</span>
                     <span>Marketing wallet</span>
                     {isPrelaunch ? (
                       <span className="text-right">Votes ▾</span>
@@ -991,15 +989,6 @@ export function HomePage() {
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
                       <span className="text-right text-xs text-white/70">{project.holders}</span>
-                      <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
-                        {project.mph}
-                      </span>
-                      <div className="text-right">
-                        <p className={`text-xs font-semibold ${project.raidsActive > 0 ? 'text-[#c8ff3d]' : 'text-white/25'}`}>
-                          {project.raidsActive > 0 ? `${project.raidsActive} raids` : '0 raids'}
-                        </p>
-                        <p className="text-[10px] text-white/40">{project.raidsJoined} eng.</p>
-                      </div>
                       {(() => {
                         const mktAddr = resolveMarketingWalletAddress(project);
                         if (!project.marketingWallet || !mktAddr) {

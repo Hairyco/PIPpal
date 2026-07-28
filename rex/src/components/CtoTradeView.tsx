@@ -256,11 +256,6 @@ export function CtoTradeView({
     { label: 'Launch', value: formatLaunchLabel(project.launchInHours) },
     { label: 'Vol 24h', value: project.volume24h },
     { label: 'FDV', value: project.fdv },
-    { label: 'MPH', value: String(project.mph) },
-    {
-      label: 'Raids',
-      value: project.raidsActive > 0 ? `${project.raidsActive}` : '0',
-    },
   ];
 
   const copyV1 = async () => {
