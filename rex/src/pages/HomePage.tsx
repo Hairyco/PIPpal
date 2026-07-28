@@ -35,7 +35,11 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
   DEFAULT_DISCOVERY_FILTERS,
   DiscoveryFiltersPanel,
+  AGE_STEPS,
+  MCAP_STEPS,
+  HOLDERS_STEPS,
   countActiveDiscoveryFilters,
+  formatRangeLabel,
   matchesDiscoveryFilters,
   parseCompactAmount,
   type DiscoveryFilterState,
@@ -1299,7 +1303,7 @@ export function HomePage() {
                       {isPrelaunch ? (
                         <span className="text-center text-xs text-white/35">{project.rank}</span>
                       ) : null}
-                      <div className="flex w-[188px] items-start gap-2">
+                      <div className="flex w-[200px] items-start gap-2">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex min-w-0 items-center gap-1">
