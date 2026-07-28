@@ -16,7 +16,7 @@ function palette(seed: number) {
   return { hue, hue2 };
 }
 
-/** Square token logo — filled mark on transparent canvas (no outer backdrop). */
+/** Square coin mark — full-bleed tile like discovery board logos (no hollow ring). */
 export function generateCtoLogoDataUrl(input: {
   projectName: string;
   ticker: string;
@@ -33,42 +33,37 @@ export function generateCtoLogoDataUrl(input: {
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
-  // Transparent outside the mark — logo fills the frame.
-  ctx.clearRect(0, 0, 512, 512);
-
-  const cx = 256;
-  const cy = 256;
-  const r = 248;
-
-  const grad = ctx.createRadialGradient(cx - 60, cy - 80, 40, cx, cy, r);
-  grad.addColorStop(0, `hsl(${hue} 78% 52%)`);
-  grad.addColorStop(0.55, `hsl(${hue2} 62% 36%)`);
-  grad.addColorStop(1, `hsl(${hue} 55% 18%)`);
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  // Edge-to-edge fill — discovery logos are square art cropped by the UI radius.
+  const grad = ctx.createLinearGradient(0, 0, 512, 512);
+  grad.addColorStop(0, `hsl(${hue} 72% 48%)`);
+  grad.addColorStop(0.5, `hsl(${hue2} 58% 32%)`);
+  grad.addColorStop(1, `hsl(${hue} 50% 16%)`);
   ctx.fillStyle = grad;
-  ctx.fill();
+  ctx.fillRect(0, 0, 512, 512);
 
-  // Soft inner highlight — still inside the filled disc.
-  const shine = ctx.createRadialGradient(cx - 70, cy - 90, 10, cx - 40, cy - 50, 160);
-  shine.addColorStop(0, 'rgba(255,255,255,0.22)');
-  shine.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = shine;
-  ctx.fill();
+  // Soft character-like blob so it reads as a meme mark, not a text badge.
+  ctx.globalAlpha = 0.35;
+  for (let i = 0; i < 4; i++) {
+    const x = 140 + ((seed * (i + 3)) % 240);
+    const y = 120 + ((seed * (i + 7)) % 220);
+    const r = 90 + ((seed + i * 23) % 80);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${(hue + 40 + i * 25) % 360} 70% 55%)`;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 
   const initials = initialsFrom(name, ticker);
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 168px ui-sans-serif, system-ui, sans-serif';
+  ctx.font = 'bold 180px ui-sans-serif, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(initials, cx, cy - 18);
+  ctx.fillText(initials, 256, 250);
 
-  ctx.font = '700 34px ui-sans-serif, system-ui, sans-serif';
-  ctx.fillStyle = '#c8ff3d';
-  ctx.fillText(`$${ticker.toUpperCase().slice(0, 10)}`, cx, cy + 92);
+  ctx.font = '700 36px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText(`$${ticker.toUpperCase().slice(0, 10)}`, 256, 380);
 
   return canvas.toDataURL('image/png');
 }

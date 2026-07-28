@@ -15,15 +15,20 @@ function hashSeed(input: string): number {
   return input.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
 }
 
-const DEMO_COINS: { name: string; ticker: string; venue: SourceVenue }[] = [
-  { name: 'Pepe Coin', ticker: 'PEPE', venue: 'Pump.fun' },
-  { name: 'Ghost Founder', ticker: 'GHOST', venue: 'Moonshot' },
-  { name: 'Dump Daily', ticker: 'DUMP', venue: 'Pump.fun' },
-  { name: 'Exit Liquidity', ticker: 'EXIT', venue: 'Raydium' },
-  { name: 'Moon Pigeon', ticker: 'MPEG', venue: 'LetsBonk' },
-  { name: 'Pixel Goblin', ticker: 'GOB', venue: 'Pump.fun' },
-  { name: 'Night Shift', ticker: 'NITE', venue: 'Moonshot' },
-  { name: 'Cashback Cat', ticker: 'CBACK', venue: 'Raydium' },
+const DEMO_COINS: {
+  name: string;
+  ticker: string;
+  venue: SourceVenue;
+  logo: string;
+}[] = [
+  { name: 'Pepe Coin', ticker: 'PEPE', venue: 'Pump.fun', logo: '/meme-logos/peponk.png' },
+  { name: 'Ghost Founder', ticker: 'GHOST', venue: 'Moonshot', logo: '/meme-logos/lunar-lad.png' },
+  { name: 'Dump Daily', ticker: 'DUMP', venue: 'Pump.fun', logo: '/meme-logos/tendies.png' },
+  { name: 'Exit Liquidity', ticker: 'EXIT', venue: 'Raydium', logo: '/meme-logos/unicorn-fart-dust.png' },
+  { name: 'Moon Pigeon', ticker: 'MPEG', venue: 'LetsBonk', logo: '/meme-logos/batcat.png' },
+  { name: 'Pixel Goblin', ticker: 'GOB', venue: 'Pump.fun', logo: '/meme-logos/choctopus.png' },
+  { name: 'Night Shift', ticker: 'NITE', venue: 'Moonshot', logo: '/meme-logos/robinhood-dog.png' },
+  { name: 'Cashback Cat', ticker: 'CBACK', venue: 'Raydium', logo: '/meme-logos/wiki-cat.png' },
 ];
 
 /** Launch wizard default mint — always resolves to Pepe for a clear demo. */
@@ -41,16 +46,12 @@ export async function resolveLaunchCoin(mintRaw: string): Promise<LaunchCoinMeta
   await new Promise((r) => setTimeout(r, 450));
 
   if (mint === LAUNCH_DEMO_MINT) {
-    const logoUrl = generateCtoLogoDataUrl({
-      projectName: 'Pepe Coin',
-      ticker: 'PEPE',
-      salt: 7,
-    });
     return {
       mint,
       name: 'Pepe Coin',
       ticker: 'PEPE',
-      logoUrl,
+      /** Same class of asset as board / discovery rows — full-bleed meme art. */
+      logoUrl: '/meme-logos/peponk.png',
       source: 'demo',
       venueLabel: 'Pump.fun',
       blurb: '',
@@ -78,17 +79,12 @@ export async function resolveLaunchCoin(mintRaw: string): Promise<LaunchCoinMeta
 
   const seed = hashSeed(mint);
   const demo = DEMO_COINS[seed % DEMO_COINS.length];
-  const logoUrl = generateCtoLogoDataUrl({
-    projectName: demo.name,
-    ticker: demo.ticker,
-    salt: seed,
-  });
 
   return {
     mint,
     name: demo.name,
     ticker: demo.ticker,
-    logoUrl,
+    logoUrl: demo.logo,
     source: 'demo',
     venueLabel: demo.venue,
     blurb: '',

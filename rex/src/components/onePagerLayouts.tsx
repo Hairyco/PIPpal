@@ -216,7 +216,7 @@ function LayoutPulse(p: LayoutProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {p.logoUrl ? (
-              <img src={p.logoUrl} alt="" className="h-10 w-10 rounded-full object-contain ring-2 ring-white/20" />
+              <img src={p.logoUrl} alt="" className="h-10 w-10 rounded-lg object-cover ring-1 ring-white/15" />
             ) : null}
             <div>
               <p className="text-sm font-bold">{p.displayName}</p>
@@ -278,7 +278,7 @@ function LayoutPulse(p: LayoutProps) {
               <img
                 src={p.logoUrl}
                 alt=""
-                className="relative h-full w-full rounded-full object-contain drop-shadow-2xl"
+                className="relative h-full w-full rounded-2xl object-cover shadow-2xl ring-1 ring-white/15"
               />
             ) : null}
           </div>
@@ -352,7 +352,7 @@ function LayoutStadium(p: LayoutProps) {
             <img
               src={p.logoUrl}
               alt=""
-              className={`${p.full ? 'h-48 w-48' : 'h-24 w-24'} rounded-full object-contain`}
+              className={`${p.full ? 'h-48 w-48' : 'h-24 w-24'} rounded-2xl object-cover ring-1 ring-white/15`}
               style={{ boxShadow: `0 0 0 4px ${accent}` }}
             />
           ) : null}
@@ -444,7 +444,7 @@ function LayoutNeon(p: LayoutProps) {
                 <img
                   src={p.logoUrl}
                   alt=""
-                  className="h-full w-full rounded-full object-contain bg-transparent"
+                  className="h-full w-full rounded-full object-cover"
                 />
               </div>
             </div>
@@ -481,7 +481,7 @@ function LayoutPump(p: LayoutProps) {
             <img
               src={p.logoUrl}
               alt=""
-              className={`${p.full ? 'h-16 w-16' : 'h-12 w-12'} rounded-full object-contain ring-2 ring-emerald-400/40`}
+              className={`${p.full ? 'h-16 w-16' : 'h-12 w-12'} rounded-lg object-cover ring-1 ring-emerald-400/40`}
             />
           ) : null}
         </div>
@@ -555,7 +555,7 @@ function LayoutGlass(p: LayoutProps) {
                 <img
                   src={p.logoUrl}
                   alt=""
-                  className={`${p.full ? 'h-20 w-20' : 'h-14 w-14'} rounded-full object-contain ring-1 ring-white/25`}
+                  className={`${p.full ? 'h-20 w-20' : 'h-14 w-14'} rounded-xl object-cover ring-1 ring-white/25`}
                 />
               ) : null}
             </div>
