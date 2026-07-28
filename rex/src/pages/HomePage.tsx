@@ -216,6 +216,14 @@ const tableCols =
 const tableColsPrelaunch =
   '30px 200px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
+function formatLaunchLabel(hours: number | null): string {
+  if (hours == null) return 'Live';
+  if (hours < 1) return '<1h';
+  if (hours < 24) return `${hours}h`;
+  const days = Math.round(hours / 24);
+  return `${days}d`;
+}
+
 function formatEngagement(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}K`;
   return String(n);
