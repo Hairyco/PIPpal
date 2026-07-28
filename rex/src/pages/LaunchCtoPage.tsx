@@ -304,18 +304,20 @@ export function LaunchCtoPage() {
 
   /** Guaranteed unique look: cycle layout + colour, bump nonce for remount. */
   const advanceUniqueDesign = () => {
-    designCycleRef.current += 1;
     const cycle = designCycleRef.current;
-    const nextLayout = layoutIdFromCycle(cycle);
+    designCycleRef.current += 1;
+    // Mix time so back-to-back generates never feel stuck on the same skin.
+    const mixed = cycle + (Date.now() % 17);
+    const nextLayout = layoutIdFromCycle(mixed);
     const nextTheme =
-      ONE_PAGER_PRIMARY_THEMES[cycle % ONE_PAGER_PRIMARY_THEMES.length] ??
+      ONE_PAGER_PRIMARY_THEMES[mixed % ONE_PAGER_PRIMARY_THEMES.length] ??
       ONE_PAGER_PRIMARY_THEMES[0];
     setForcedLayoutId(nextLayout);
     setLayoutPreference(nextLayout);
-    setLayoutSeed(cycle);
+    setLayoutSeed(mixed);
     setOnePagerThemeId(nextTheme.id);
-    setDesignNonce(cycle);
-    return { layout: nextLayout, cycle, themeId: nextTheme.id };
+    setDesignNonce(mixed + 1);
+    return { layout: nextLayout, cycle: mixed + 1, themeId: nextTheme.id };
   };
 
   const refreshCollateralForLook = (cycle: number) => {
@@ -1407,16 +1409,6 @@ export function LaunchCtoPage() {
                       View full page
                     </button>
                   </div>
-                  {websiteKind === 'onepager' ? (
-                    <button
-                      type="button"
-                      onClick={regenerateDesign}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] text-[12px] font-bold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
-                    >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Regenerate design
-                    </button>
-                  ) : null}
 
                   {editSite ? (
                     <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
@@ -1726,7 +1718,7 @@ export function LaunchCtoPage() {
         open={previewOpen && step === 'website'}
         onClose={openSiteEditor}
         onContinue={() => setPreviewOpen(false)}
-        onRegenerate={regenerateDesign}
+        onRegenerate={websiteKind === 'onepager' ? regenerateDesign : undefined}
         kind={websiteKind}
         name={name}
         ticker={ticker}

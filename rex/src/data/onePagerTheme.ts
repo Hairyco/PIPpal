@@ -179,21 +179,29 @@ export const DEFAULT_ONE_PAGER_INCLUDES: OnePagerIncludes = {
   community: false,
 };
 
-/** Creative layout directions — generate picks freely; not one locked meme template. */
-export type OnePagerLayoutId = 'aurora' | 'editorial' | 'noir' | 'brutal' | 'gallery';
+/** Creative meme-coin layout directions — every look is dark / high-energy. */
+export type OnePagerLayoutId = 'pulse' | 'stadium' | 'neon' | 'pump' | 'glass';
 
-/** Order is intentional: consecutive regenerates flip light ↔ dark / soft ↔ hard. */
 export const ONE_PAGER_LAYOUTS: {
   id: OnePagerLayoutId;
   label: string;
   hint: string;
 }[] = [
-  { id: 'aurora', label: 'Aurora', hint: 'Glow, depth, modern crypto' },
-  { id: 'editorial', label: 'Editorial', hint: 'Cream magazine polish' },
-  { id: 'brutal', label: 'Brutal', hint: 'Solid accent header, hard edges' },
-  { id: 'noir', label: 'Noir', hint: 'Cinematic letterbox' },
-  { id: 'gallery', label: 'Gallery', hint: 'Light art-first frame' },
+  { id: 'pulse', label: 'Pulse', hint: 'Neon live meme hero' },
+  { id: 'stadium', label: 'Stadium', hint: 'Loud lime degen energy' },
+  { id: 'neon', label: 'Neon', hint: 'Cyber grid night market' },
+  { id: 'pump', label: 'Pump', hint: 'Chart-first launch page' },
+  { id: 'glass', label: 'Glass', hint: 'Dark glass trading page' },
 ];
+
+/** Legacy ids from older drafts map onto the new meme layouts. */
+const LEGACY_LAYOUT_MAP: Record<string, OnePagerLayoutId> = {
+  aurora: 'pulse',
+  editorial: 'stadium',
+  brutal: 'neon',
+  noir: 'pump',
+  gallery: 'glass',
+};
 
 export type OnePagerLayoutPreference = OnePagerLayoutId | 'auto';
 
@@ -201,19 +209,23 @@ export function resolveOnePagerLayout(
   preference: OnePagerLayoutPreference | undefined,
   seed: number,
 ): OnePagerLayoutId {
-  if (preference && preference !== 'auto') return preference;
+  if (preference && preference !== 'auto') {
+    return LEGACY_LAYOUT_MAP[preference] ?? (preference as OnePagerLayoutId);
+  }
   return ONE_PAGER_LAYOUTS[Math.abs(seed) % ONE_PAGER_LAYOUTS.length].id;
 }
 
 /** Advance to the next layout — used by “Try another look” so the page visibly changes. */
 export function nextOnePagerLayout(current: OnePagerLayoutId): OnePagerLayoutId {
-  const idx = ONE_PAGER_LAYOUTS.findIndex((l) => l.id === current);
+  const resolved = LEGACY_LAYOUT_MAP[current] ?? current;
+  const idx = ONE_PAGER_LAYOUTS.findIndex((l) => l.id === resolved);
   const safe = idx >= 0 ? idx : 0;
   return ONE_PAGER_LAYOUTS[(safe + 1) % ONE_PAGER_LAYOUTS.length].id;
 }
 
-export function onePagerLayoutLabel(id: OnePagerLayoutId): string {
-  return ONE_PAGER_LAYOUTS.find((l) => l.id === id)?.label ?? id;
+export function onePagerLayoutLabel(id: OnePagerLayoutId | string): string {
+  const resolved = LEGACY_LAYOUT_MAP[id] ?? id;
+  return ONE_PAGER_LAYOUTS.find((l) => l.id === resolved)?.label ?? String(resolved);
 }
 
 /** Layout index from an incrementing counter — guaranteed different each step. */
@@ -235,16 +247,16 @@ export function defaultGeneratedSiteCopy(name: string, ticker: string) {
   const coin = name.trim() || 'This coin';
   const tick = ticker.trim().replace(/^\$/, '').toUpperCase() || 'CTO';
   return {
-    headline: `${coin} is live`,
+    headline: `${coin} just hit the board`,
     body: [
-      `${coin} ($${tick}) — new mint, clean page, and a clear way to buy.`,
-      `Trade on CTOgo. Share the link. Keep the story sharp without the noise.`,
-      `Contract, chart, and buy — all on one page.`,
+      `$${tick} is live on Solana — clean mint, loud page, one tap to buy.`,
+      `Chart, contract, and socials in one place. Share the link and let it cook.`,
+      `Built for holders who want the story and the trade without the fluff.`,
     ].join('\n\n'),
-    extraTitle: 'Why this page',
+    extraTitle: 'Why now',
     extraBody: [
-      'One place for the coin, the story, and the trade link.',
-      'Keep it simple. Keep it loud where it matters.',
+      'Fresh mint. Clear CA. Buy button that actually goes somewhere.',
+      'This is the page you send when someone asks “where do I ape?”',
     ].join('\n\n'),
   };
 }
