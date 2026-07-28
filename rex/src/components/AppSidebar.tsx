@@ -136,7 +136,7 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
         </div>
         <NavItems onNavigate={() => setOpen(false)} />
         <p className="mt-auto border-t border-white/[0.06] p-4 text-[10px] leading-relaxed text-white/30">
-          Fees · marketing wallet · services · FAQ
+          Fees · marketing wallet · advertise · FAQ
         </p>
       </aside>
     </>
