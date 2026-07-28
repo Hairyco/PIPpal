@@ -31,6 +31,14 @@ import { Sparkline } from '../components/Sparkline';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
+  DEFAULT_DISCOVERY_FILTERS,
+  DiscoveryFiltersPanel,
+  countActiveDiscoveryFilters,
+  matchesDiscoveryFilters,
+  parseCompactAmount,
+  type DiscoveryFilterState,
+} from '../components/DiscoveryFilters';
+import {
   SOURCE_VENUE_FILTERS,
   ctoProjects,
   matchesSourceVenue,
@@ -319,16 +327,6 @@ type SortKey =
   | 'votes';
 type SortDir = 'asc' | 'desc';
 
-function parseCompactAmount(value: string): number {
-  const cleaned = value.replace(/[$,\s]/g, '').toUpperCase();
-  const match = cleaned.match(/^([\d.]+)([KMB])?$/);
-  if (!match) return Number(cleaned) || 0;
-  const n = Number(match[1]);
-  if (!Number.isFinite(n)) return 0;
-  const mult = match[2] === 'K' ? 1e3 : match[2] === 'M' ? 1e6 : match[2] === 'B' ? 1e9 : 1;
-  return n * mult;
-}
-
 function compareByColumn(
   a: Project,
   b: Project,
@@ -459,6 +457,9 @@ export function HomePage() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [socialsTicker, setSocialsTicker] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [discoveryFilters, setDiscoveryFilters] =
+    useState<DiscoveryFilterState>(DEFAULT_DISCOVERY_FILTERS);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
@@ -504,7 +505,8 @@ export function HomePage() {
       return (
         matchesQuery &&
         matchesShortcut(project, activeShortcut) &&
-        matchesSourceVenue(project, venueFilter)
+        matchesSourceVenue(project, venueFilter) &&
+        matchesDiscoveryFilters(project, discoveryFilters)
       );
     });
 
@@ -525,7 +527,17 @@ export function HomePage() {
     }
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, venueFilter, sortKey, sortDir]);
+  }, [
+    query,
+    activeTimeWindow,
+    activeShortcut,
+    activeMode,
+    voted,
+    venueFilter,
+    sortKey,
+    sortDir,
+    discoveryFilters,
+  ]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -567,7 +579,9 @@ export function HomePage() {
     setPageInput('');
     setSortKey(null);
     setSortDir('desc');
-  }, [query, activeWindow, activeShortcut, activeMode, venueFilter]);
+  }, [query, activeWindow, activeShortcut, activeMode, venueFilter, discoveryFilters]);
+
+  const activeFilterCount = countActiveDiscoveryFilters(discoveryFilters);
 
   const toggleSort = (key: SortKey) => {
     if (sortKey !== key) {
@@ -1012,12 +1026,55 @@ export function HomePage() {
               </button>
               <button
                 type="button"
-                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] text-white/45"
+                onClick={() => setFiltersOpen(true)}
+                aria-pressed={filtersOpen || activeFilterCount > 0}
+                className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-2 text-[11px] font-semibold transition ${
+                  activeFilterCount > 0
+                    ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/12 text-[#d5ff69]'
+                    : 'border-white/[0.07] text-white/45 hover:text-white'
+                }`}
               >
-                <SlidersHorizontal className="h-3 w-3" /> Filters
+                <SlidersHorizontal className="h-3 w-3" />
+                Filters
+                {activeFilterCount > 0 ? (
+                  <span className="grid h-4 min-w-4 place-items-center rounded-full bg-[#c8ff3d] px-1 text-[9px] font-bold text-[#090b14]">
+                    {activeFilterCount}
+                  </span>
+                ) : null}
               </button>
             </div>
 
+            {activeFilterCount > 0 ? (
+              <div className="mb-3 flex flex-wrap items-center gap-1.5">
+                {discoveryFilters.age !== 'any' ? (
+                  <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
+                    Age · {discoveryFilters.age === 'live' ? 'Live' : discoveryFilters.age.replace('lt', '<')}
+                  </span>
+                ) : null}
+                {discoveryFilters.marketCap !== 'any' ? (
+                  <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
+                    Mcap · {discoveryFilters.marketCap.replace('_', '–').replace('lt', '<').replace('gt', '>')}
+                  </span>
+                ) : null}
+                {discoveryFilters.holders !== 'any' ? (
+                  <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
+                    Holders · {discoveryFilters.holders.replace('_', '–').replace('lt', '<').replace('gt', '>')}
+                  </span>
+                ) : null}
+                {discoveryFilters.volume !== 'any' ? (
+                  <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
+                    Vol · {discoveryFilters.volume.replace('gt', '>')}
+                  </span>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS)}
+                  className="px-1.5 text-[10px] font-semibold text-white/40 hover:text-[#d5ff69]"
+                >
+                  Clear all
+                </button>
+              </div>
+            ) : null}
             {isPinnedView ? (
               <div className="gloss-panel space-y-3 rounded-xl border border-white/[0.1] p-3 sm:p-4">
                 <p className="px-1 text-[11px] text-white/40">
@@ -1391,6 +1448,14 @@ export function HomePage() {
       <MarketingWalletExplainerModal
         open={walletExplainerOpen}
         onClose={() => setWalletExplainerOpen(false)}
+      />
+      <DiscoveryFiltersPanel
+        open={filtersOpen}
+        filters={discoveryFilters}
+        onChange={setDiscoveryFilters}
+        onClose={() => setFiltersOpen(false)}
+        onClear={() => setDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS)}
+        resultCount={visibleProjects.length}
       />
       {socialsProject ? (
         <div
