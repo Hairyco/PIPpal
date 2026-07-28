@@ -267,25 +267,33 @@ function LayoutStadium(p: LayoutProps) {
   const accent = accentOr(p.theme, '#c8ff3d');
   return (
     <div className="min-h-full bg-black text-white">
-      <div
-        className={`relative overflow-hidden ${p.full ? 'px-4 pb-8 pt-5 sm:px-6' : 'px-3 pb-4 pt-3'}`}
-        style={{
-          background: `linear-gradient(145deg, ${accent} 0%, #9be015 40%, #111 40.2%, #000 100%)`,
-        }}
-      >
-        <p className="font-display text-[10px] font-black uppercase tracking-[0.28em] text-black/70">
-          Stadium · {p.displayTicker}
-        </p>
-        <h1
-          className={`mt-3 max-w-[12ch] font-display font-black uppercase leading-[0.82] tracking-tighter text-black ${
-            p.full ? 'text-[clamp(3.2rem,15vw,6.5rem)]' : 'text-4xl'
-          }`}
-        >
-          {p.displayName}
-        </h1>
-        <p className={`mt-4 max-w-sm font-semibold text-black/70 ${p.full ? 'text-base' : 'text-xs'}`}>
-          {p.headline || 'New mint. Loud page. Tap buy.'}
-        </p>
+      <div className={`relative overflow-hidden ${p.full ? 'px-4 pb-10 pt-5 sm:px-6' : 'px-3 pb-5 pt-3'}`}>
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `linear-gradient(160deg, ${accent} 0%, ${accent} 42%, #0a0a0a 42.2%, #000 100%)`,
+          }}
+        />
+        <div className="relative">
+          <p className="font-display text-[10px] font-black uppercase tracking-[0.28em] text-black/70">
+            Stadium · {p.displayTicker}
+          </p>
+          <h1
+            className={`mt-3 max-w-[11ch] font-display font-black uppercase leading-[0.82] tracking-tighter ${
+              p.full ? 'text-[clamp(3.2rem,15vw,6.5rem)]' : 'text-4xl'
+            }`}
+          >
+            <span className="text-black">{p.displayName.split(' ')[0] || p.displayName}</span>
+            {p.displayName.includes(' ') ? (
+              <span className="block text-white">
+                {p.displayName.split(' ').slice(1).join(' ')}
+              </span>
+            ) : null}
+          </h1>
+          <p className={`mt-5 max-w-sm font-semibold text-white/70 ${p.full ? 'text-base' : 'text-xs'}`}>
+            {p.headline || 'New mint. Loud page. Tap buy.'}
+          </p>
+        </div>
       </div>
 
       <div className={`grid bg-[#0a0a0a] ${p.full ? 'sm:grid-cols-2' : ''}`}>
