@@ -93,7 +93,7 @@ export function BuyRexTokenModal({
         </div>
 
         <p className="mt-4 text-[10px] leading-relaxed text-muted-foreground">
-          Demo checkout — no charge. On mainnet, {REX_TOKEN_SYMBOL} will be purchased via your
+          Checkout — no charge. On mainnet, {REX_TOKEN_SYMBOL} will be purchased via your
           connected wallet on Solana.
         </p>
 

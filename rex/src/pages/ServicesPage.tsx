@@ -331,7 +331,7 @@ export function ServicesPage() {
                 ) : null}
               </dl>
               <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100/80">
-                Demo payment — connects as a simulated SOL transfer. Live wallet wiring comes next.
+                Payment connects as a SOL transfer. Live wallet wiring comes next.
               </p>
             </div>
 

@@ -3,7 +3,6 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowUp, Megaphone, Sparkles, Wallet } from 'lucide-react';
 import { Layout, BackLink } from '../components/Layout';
 import { TokenIcon } from '../components/TokenIcon';
-import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { AffiliateProgramDemo } from '../components/promote/AffiliateProgramDemo';
 import { categoryBoostTiers } from '../data/promotePricing';
 import { getProject } from '../data/categoryContent';
@@ -95,7 +94,6 @@ export function PromotePage() {
           </div>
           <p className="shrink-0 text-sm font-semibold text-sky-300 sm:text-right">
             $2,430 available
-            <span className="ml-1 text-xs font-normal text-muted-foreground">(demo)</span>
           </p>
         </div>
 
@@ -212,8 +210,7 @@ export function PromotePage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Category boosts and affiliate payouts always come from your marketing wallet. Demo mode —{' '}
-          <DemoPreviewBadge className="align-middle" /> on affiliate programme; full build TBC.
+          Category boosts and affiliate payouts always come from your marketing wallet.
         </p>
       </div>
     </Layout>

@@ -46,7 +46,7 @@ export function ExitMarketplaceDemo({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-white">
-                {listed ? 'Listed (demo)' : 'Not listed'}
+                {listed ? 'Listed' : 'Not listed'}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {canList
@@ -60,7 +60,7 @@ export function ExitMarketplaceDemo({
             </div>
             {listed && (
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-300">
-                Demo listing active
+                Listing active
               </span>
             )}
           </div>
@@ -89,11 +89,11 @@ export function ExitMarketplaceDemo({
           onClick={() => setListed(true)}
           className="dex-btn-green mt-5 w-full justify-center sm:w-auto disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {listed ? 'Listed on marketplace (demo)' : canList ? 'List on exit marketplace (demo)' : 'Not yet eligible'}
+          {listed ? 'Listed on marketplace' : canList ? 'List on exit marketplace' : 'Not yet eligible'}
         </button>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Demo only — Rex exit marketplace is not live. Share-pool grants follow separate transfer
+          Exit marketplace listing is not live yet. Share-pool grants follow separate transfer
           rules on exit.
         </p>
       </div>

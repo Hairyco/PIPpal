@@ -78,7 +78,7 @@ const MILESTONE_TEMPLATES: Pick<Milestone, 'title' | 'target' | 'unlocks'>[] = [
   { title: 'Roadmap wallet unlock', target: '$100K MCAP', unlocks: 'Supplier build begins' },
   { title: 'Supplier assigned', target: 'Vetted studio', unlocks: 'Kickoff & spec locked' },
   { title: 'Wireframes approved', target: 'Design sign-off', unlocks: 'UI build starts' },
-  { title: 'Alpha prototype', target: 'Internal demo', unlocks: 'Stakeholder review' },
+  { title: 'Alpha prototype', target: 'Internal review', unlocks: 'Stakeholder review' },
   { title: 'Beta release', target: '$500K MCAP', unlocks: 'Beta release to holders' },
   { title: 'Marketing wave 2', target: 'Wallet refill', unlocks: 'Paid user acquisition' },
   { title: 'Public launch', target: '$1M MCAP', unlocks: 'Product goes live' },

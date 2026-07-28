@@ -376,7 +376,7 @@ export function FounderDashboardPage() {
                         onClick={handleCompleteKyc}
                         className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-sm font-medium text-amber-200"
                       >
-                        Complete KYC — ${KYC_FEE} (demo)
+                        Complete KYC — ${KYC_FEE}
                       </button>
                     )}
                   </div>
@@ -555,8 +555,7 @@ export function FounderDashboardPage() {
               <div className="min-w-0">
                 <p className="text-sm font-medium text-white">Marketing wallet</p>
                 <p className="mt-0.5 break-words text-xs text-muted-foreground">
-                  Category boosts and affiliate payouts always come from here — $2,430 available
-                  (demo).
+                  Category boosts and affiliate payouts always come from here — $2,430 available.
                 </p>
               </div>
             </div>

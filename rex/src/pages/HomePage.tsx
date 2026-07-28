@@ -247,7 +247,7 @@ function socialSheetStats(project: Project) {
     {
       label: 'Vol 24h',
       value: project.volume24h,
-      title: '24h volume · change vs prior day (demo)',
+      title: '24h volume · change vs prior day',
       change: volChange,
     },
   ];

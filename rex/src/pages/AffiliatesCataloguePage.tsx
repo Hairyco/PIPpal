@@ -24,8 +24,8 @@ export function AffiliatesCataloguePage() {
         </div>
 
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          Demo catalogue — tracking and payouts are not live yet. This preview shows how promoters
-          will discover and join programmes.
+          Tracking and payouts are not live yet. This catalogue shows how promoters will discover
+          and join programmes.
         </div>
 
         <div className="mt-6 space-y-3 md:hidden">
@@ -57,7 +57,7 @@ export function AffiliatesCataloguePage() {
                 disabled
                 className="mt-3 w-full rounded-md bg-[#c8f542] py-2 text-xs font-semibold text-black opacity-60"
               >
-                + Join (demo)
+                + Join
               </button>
             </div>
           ))}

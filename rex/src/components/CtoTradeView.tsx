@@ -429,7 +429,7 @@ export function CtoTradeView({
                 ))}
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
-                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
+                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart</p>
                 <button
                   type="button"
                   onClick={() => setTokenInfoOpen((open) => !open)}
@@ -695,10 +695,10 @@ export function CtoTradeView({
             )}
             <p className="mt-2 text-center text-[10px] text-white/30">
               {isExternal
-                ? `Demo · CTOgo takes a platform fee on every trade${
+                ? `CTOgo takes a platform fee on every trade${
                     marketingAddress ? ' · marketing cut fills the vault' : ''
                   }`
-                : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
+                : `Max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
           </div>
 
@@ -804,7 +804,7 @@ export function CtoTradeView({
               <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
                 Trades
               </p>
-              <p className="text-[10px] text-white/30">Live · demo</p>
+              <p className="text-[10px] text-white/30">Live</p>
             </div>
             <ul className="mt-2 divide-y divide-white/[0.05]">
               {demoTrades.map((trade) => (

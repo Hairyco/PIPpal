@@ -97,7 +97,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         writeStored(next);
         return next;
       }
-      const demo = `Demo${Math.random().toString(36).slice(2, 10)}Wallet111111111`;
+      const demo = `${Math.random().toString(36).slice(2, 10)}Wallet111111111`;
       setAddress(demo);
       writeStored(demo);
       return demo;

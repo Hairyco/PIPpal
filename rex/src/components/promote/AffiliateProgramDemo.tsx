@@ -86,7 +86,7 @@ export function AffiliateProgramDemo({
   const [commission, setCommission] = useState(affiliateProgramDefaults.defaultCommission);
   const [copied, setCopied] = useState(false);
 
-  const sampleLink = `https://rex.app/project/${symbol.toLowerCase()}?ref=demo_promoter`;
+  const sampleLink = `https://rex.app/project/${symbol.toLowerCase()}?ref=promoter`;
 
   const copyLink = () => {
     void navigator.clipboard.writeText(sampleLink);
@@ -265,7 +265,7 @@ export function AffiliateProgramDemo({
 
             {enabled && (
               <div className="mt-4 border-t border-white/10 pt-4">
-                <p className="text-xs font-medium text-muted-foreground">Active promoters (demo)</p>
+                <p className="text-xs font-medium text-muted-foreground">Active promoters</p>
                 <ul className="mt-2 space-y-2">
                   {DEMO_AFFILIATES.map((row) => (
                     <li
