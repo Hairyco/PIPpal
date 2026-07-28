@@ -1,4 +1,4 @@
-import { SlidersHorizontal, X } from 'lucide-react';
+import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 export type RangeFilter = { min: number; max: number };
 export type VolumeFilter = 'any' | 'gt10k' | 'gt50k' | 'gt100k';
@@ -59,6 +59,64 @@ export const DEFAULT_DISCOVERY_FILTERS: DiscoveryFilterState = {
   holders: { min: 0, max: HOLDERS_STEPS.length - 1 },
   volume: 'any',
 };
+
+const FILTERS_STORAGE_KEY = 'ctogo-discovery-filters';
+const REMEMBER_STORAGE_KEY = 'ctogo-discovery-filters-remember';
+
+function clampRange(range: unknown, stepCount: number): RangeFilter {
+  if (!range || typeof range !== 'object') return { min: 0, max: stepCount - 1 };
+  const raw = range as { min?: unknown; max?: unknown };
+  const min = Math.max(0, Math.min(stepCount - 1, Number(raw.min) || 0));
+  const max = Math.max(min, Math.min(stepCount - 1, Number(raw.max) || stepCount - 1));
+  return { min, max };
+}
+
+function isVolumeFilter(value: unknown): value is VolumeFilter {
+  return value === 'any' || value === 'gt10k' || value === 'gt50k' || value === 'gt100k';
+}
+
+export function readRememberFilters(): boolean {
+  try {
+    return localStorage.getItem(REMEMBER_STORAGE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function writeRememberFilters(remember: boolean) {
+  try {
+    localStorage.setItem(REMEMBER_STORAGE_KEY, remember ? '1' : '0');
+    if (!remember) localStorage.removeItem(FILTERS_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+export function loadDiscoveryFilters(): DiscoveryFilterState {
+  if (!readRememberFilters()) return DEFAULT_DISCOVERY_FILTERS;
+  try {
+    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return DEFAULT_DISCOVERY_FILTERS;
+    const parsed = JSON.parse(raw) as Partial<DiscoveryFilterState>;
+    return {
+      age: clampRange(parsed.age, AGE_STEPS.length),
+      marketCap: clampRange(parsed.marketCap, MCAP_STEPS.length),
+      holders: clampRange(parsed.holders, HOLDERS_STEPS.length),
+      volume: isVolumeFilter(parsed.volume) ? parsed.volume : 'any',
+    };
+  } catch {
+    return DEFAULT_DISCOVERY_FILTERS;
+  }
+}
+
+export function saveDiscoveryFilters(filters: DiscoveryFilterState) {
+  if (!readRememberFilters()) return;
+  try {
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  } catch {
+    // ignore
+  }
+}
 
 function isFullRange(range: RangeFilter, stepCount: number) {
   return range.min === 0 && range.max === stepCount - 1;
@@ -231,6 +289,8 @@ type DiscoveryFiltersProps = {
   onClose: () => void;
   onClear: () => void;
   resultCount: number;
+  remember: boolean;
+  onRememberChange: (remember: boolean) => void;
 };
 
 export function DiscoveryFiltersPanel({
@@ -240,6 +300,8 @@ export function DiscoveryFiltersPanel({
   onClose,
   onClear,
   resultCount,
+  remember,
+  onRememberChange,
 }: DiscoveryFiltersProps) {
   if (!open) return null;
 
@@ -328,7 +390,30 @@ export function DiscoveryFiltersPanel({
           </div>
         </div>
 
-        <div className="mt-5 flex gap-2">
+        <label className="mt-4 flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+          <span
+            className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
+              remember
+                ? 'border-[#c8ff3d]/50 bg-[#c8ff3d] text-[#090b14]'
+                : 'border-white/20 bg-transparent text-transparent'
+            }`}
+            aria-hidden
+          >
+            <Check className="h-3.5 w-3.5" strokeWidth={3} />
+          </span>
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(event) => onRememberChange(event.target.checked)}
+            className="sr-only"
+          />
+          <span className="min-w-0">
+            <span className="block text-[12px] font-semibold text-white/85">Remember settings</span>
+            <span className="block text-[10px] text-white/40">Keep these filters next time you visit</span>
+          </span>
+        </label>
+
+        <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={onClear}

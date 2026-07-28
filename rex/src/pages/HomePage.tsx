@@ -40,8 +40,12 @@ import {
   HOLDERS_STEPS,
   countActiveDiscoveryFilters,
   formatRangeLabel,
+  loadDiscoveryFilters,
   matchesDiscoveryFilters,
   parseCompactAmount,
+  readRememberFilters,
+  saveDiscoveryFilters,
+  writeRememberFilters,
   type DiscoveryFilterState,
 } from '../components/DiscoveryFilters';
 import { useWatchlist } from '../hooks/useWatchlist';
@@ -526,8 +530,10 @@ export function HomePage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [socialsTicker, setSocialsTicker] = useState<string | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [discoveryFilters, setDiscoveryFilters] =
-    useState<DiscoveryFilterState>(DEFAULT_DISCOVERY_FILTERS);
+  const [discoveryFilters, setDiscoveryFilters] = useState<DiscoveryFilterState>(() =>
+    loadDiscoveryFilters(),
+  );
+  const [rememberFilters, setRememberFilters] = useState(() => readRememberFilters());
   const [copiedCaTicker, setCopiedCaTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const { starred, toggle: toggleWatchlist } = useWatchlist();
