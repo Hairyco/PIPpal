@@ -18,6 +18,7 @@ import { FeesPage } from './pages/FeesPage';
 import { MarketingWalletPage } from './pages/MarketingWalletPage';
 import { FaqPage } from './pages/FaqPage';
 import { ContactPage } from './pages/ContactPage';
+import { WatchlistPage } from './pages/WatchlistPage';
 
 export function App() {
   return (
@@ -26,6 +27,7 @@ export function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/watchlist" element={<WatchlistPage />} />
           <Route path="/launch" element={<LaunchCtoPage />} />
           <Route path="/trade" element={<TradePage />} />
           <Route path="/advertise" element={<ServicesPage />} />

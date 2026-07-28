@@ -16,10 +16,12 @@ import {
   Mail,
   X,
   Menu,
+  Star,
 } from 'lucide-react';
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
+  { to: '/watchlist', label: 'Watchlist', icon: Star, end: false },
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
   { to: '/advertise', label: 'Advertise', icon: Zap, end: false },
@@ -59,10 +61,12 @@ export function AppSidebarProvider({ children }: { children: ReactNode }) {
 }
 
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+  const { count } = useWatchlist();
   return (
     <nav className="flex flex-col gap-1 p-3">
       {NAV.map((item) => {
         const Icon = item.icon;
+        const showCount = item.to === '/watchlist' && count > 0;
         return (
           <NavLink
             key={item.to}
@@ -77,8 +81,13 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
               }`
             }
           >
-            <Icon className="h-4 w-4 shrink-0" />
-            {item.label}
+            <Icon className={`h-4 w-4 shrink-0 ${item.to === '/watchlist' && count > 0 ? 'fill-current' : ''}`} />
+            <span className="flex-1">{item.label}</span>
+            {showCount ? (
+              <span className="rounded-full bg-[#c8ff3d]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#d5ff69]">
+                {count}
+              </span>
+            ) : null}
           </NavLink>
         );
       })}

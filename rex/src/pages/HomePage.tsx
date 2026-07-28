@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Bell,
   Check,
@@ -40,6 +40,7 @@ import {
   parseCompactAmount,
   type DiscoveryFilterState,
 } from '../components/DiscoveryFilters';
+import { useWatchlist } from '../hooks/useWatchlist';
 import {
   SOURCE_VENUE_FILTERS,
   ctoProjects,
@@ -448,7 +449,6 @@ export function HomePage() {
     activeShortcut === 'Top Today' ||
     activeShortcut === 'Top All Time' ||
     activeShortcut === 'Prelaunch';
-  const [starred, setStarred] = useState<Record<string, boolean>>({});
   const [voted, setVoted] = useState<Record<string, boolean>>({});
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
@@ -465,6 +465,8 @@ export function HomePage() {
     useState<DiscoveryFilterState>(DEFAULT_DISCOVERY_FILTERS);
   const [copiedCaTicker, setCopiedCaTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
+  const { starred, toggle: toggleWatchlist } = useWatchlist();
+  const [searchParams] = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
 
@@ -484,6 +486,15 @@ export function HomePage() {
   useLayoutEffect(() => {
     forceNightTheme();
   }, []);
+
+  useEffect(() => {
+    const ticker = searchParams.get('ticker')?.trim().toUpperCase();
+    if (!ticker) return;
+    const match = projects.find((project) => project.ticker.toUpperCase() === ticker);
+    if (!match) return;
+    setSelectedTicker(match.ticker);
+    setViewMode('trade');
+  }, [searchParams]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -947,12 +958,7 @@ export function HomePage() {
               onSelect={setSelectedTicker}
               onBack={() => setViewMode('list')}
               starred={Boolean(starred[selectedProject.ticker])}
-              onToggleStar={() =>
-                setStarred((prev) => ({
-                  ...prev,
-                  [selectedProject.ticker]: !prev[selectedProject.ticker],
-                }))
-              }
+              onToggleStar={() => toggleWatchlist(selectedProject.ticker)}
             />
           </section>
         ) : (
@@ -1380,7 +1386,7 @@ export function HomePage() {
                         aria-label={`Star ${project.ticker}`}
                         onClick={(event) => {
                           event.stopPropagation();
-                          setStarred((prev) => ({ ...prev, [project.ticker]: !prev[project.ticker] }));
+                          toggleWatchlist(project.ticker);
                         }}
                         className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
                       >
