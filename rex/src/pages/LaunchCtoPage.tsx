@@ -38,12 +38,15 @@ import {
 import {
   DEFAULT_ONE_PAGER_INCLUDES,
   DEFAULT_ONE_PAGER_THEME_ID,
+  ONE_PAGER_BESPOKE_THEMES,
   ONE_PAGER_DESIGN_LIMITS,
   ONE_PAGER_INCLUDE_OPTIONS,
-  ONE_PAGER_THEMES,
+  ONE_PAGER_PRIMARY_THEMES,
+  isBespokeOnePagerTheme,
   parseOnePagerDesignNote,
   type OnePagerIncludeId,
   type OnePagerIncludes,
+  type OnePagerTheme,
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
 import {
@@ -83,6 +86,87 @@ const VESTING_SCHEDULE = [
 
 /** Demo mint — avoids a "CALL…" truncation that reads like the word Call. */
 const DEMO_CONTRACT = '7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK2mNp';
+
+function ColourPalettePicker({
+  value,
+  onChange,
+  compact = false,
+}: {
+  value: OnePagerThemeId;
+  onChange: (id: OnePagerThemeId) => void;
+  compact?: boolean;
+}) {
+  const [showMore, setShowMore] = useState(() => isBespokeOnePagerTheme(value));
+  const expanded = showMore || isBespokeOnePagerTheme(value);
+
+  const renderSwatch = (theme: OnePagerTheme, labeled: boolean) => {
+    const active = value === theme.id;
+    if (!labeled) {
+      return (
+        <button
+          key={theme.id}
+          type="button"
+          title={theme.label}
+          onClick={() => onChange(theme.id)}
+          className={`h-8 w-8 rounded-full border-2 transition ${
+            active ? 'scale-110 border-white' : 'border-white/20 hover:border-white/50'
+          }`}
+          style={{ backgroundColor: theme.swatch }}
+          aria-label={theme.label}
+        />
+      );
+    }
+    return (
+      <button
+        key={theme.id}
+        type="button"
+        title={theme.label}
+        onClick={() => onChange(theme.id)}
+        className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
+          active ? 'border-white/50 bg-white/[0.06]' : 'border-white/[0.08] hover:border-white/25'
+        }`}
+      >
+        <span
+          className={`h-6 w-6 rounded-full border-2 ${active ? 'border-white' : 'border-white/20'}`}
+          style={{ backgroundColor: theme.swatch }}
+          aria-hidden
+        />
+        <span className={`text-[11px] font-semibold ${active ? 'text-white' : 'text-white/45'}`}>
+          {theme.label}
+        </span>
+      </button>
+    );
+  };
+
+  return (
+    <div>
+      <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
+      <p className="mt-0.5 text-[10px] text-white/35">
+        Primary colours first — open more if you want something bespoke.
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {ONE_PAGER_PRIMARY_THEMES.map((theme) => renderSwatch(theme, !compact))}
+      </div>
+      {expanded ? (
+        <div className="mt-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-white/30">
+            More colours
+          </p>
+          <div className="mt-1.5 flex flex-wrap gap-2">
+            {ONE_PAGER_BESPOKE_THEMES.map((theme) => renderSwatch(theme, false))}
+          </div>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => setShowMore((v) => !v)}
+        className="mt-2 text-[11px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
+      >
+        {expanded ? 'Hide extra colours' : 'More colours…'}
+      </button>
+    </div>
+  );
+}
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
@@ -1143,45 +1227,7 @@ export function LaunchCtoPage() {
                         </div>
                       </div>
 
-                      <div>
-                        <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
-                        <p className="mt-0.5 text-[10px] text-white/35">
-                          Same layout — pick the accent you want.
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {ONE_PAGER_THEMES.map((theme) => {
-                            const active = onePagerThemeId === theme.id;
-                            return (
-                              <button
-                                key={theme.id}
-                                type="button"
-                                title={theme.label}
-                                onClick={() => setOnePagerThemeId(theme.id)}
-                                className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
-                                  active
-                                    ? 'border-white/50 bg-white/[0.06]'
-                                    : 'border-white/[0.08] hover:border-white/25'
-                                }`}
-                              >
-                                <span
-                                  className={`h-6 w-6 rounded-full border-2 ${
-                                    active ? 'border-white' : 'border-white/20'
-                                  }`}
-                                  style={{ backgroundColor: theme.swatch }}
-                                  aria-hidden
-                                />
-                                <span
-                                  className={`text-[11px] font-semibold ${
-                                    active ? 'text-white' : 'text-white/45'
-                                  }`}
-                                >
-                                  {theme.label}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      <ColourPalettePicker value={onePagerThemeId} onChange={setOnePagerThemeId} />
                     </>
                   ) : null}
                 </>
@@ -1292,29 +1338,11 @@ export function LaunchCtoPage() {
                             </div>
                           </div>
 
-                          <div>
-                            <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {ONE_PAGER_THEMES.map((theme) => {
-                                const active = onePagerThemeId === theme.id;
-                                return (
-                                  <button
-                                    key={theme.id}
-                                    type="button"
-                                    title={theme.label}
-                                    onClick={() => setOnePagerThemeId(theme.id)}
-                                    className={`h-8 w-8 rounded-full border-2 transition ${
-                                      active
-                                        ? 'scale-110 border-white'
-                                        : 'border-white/20 hover:border-white/50'
-                                    }`}
-                                    style={{ backgroundColor: theme.swatch }}
-                                    aria-label={theme.label}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
+                          <ColourPalettePicker
+                            value={onePagerThemeId}
+                            onChange={setOnePagerThemeId}
+                            compact
+                          />
 
                           <label className="block">
                             <span className="text-[11px] font-semibold text-white/55">

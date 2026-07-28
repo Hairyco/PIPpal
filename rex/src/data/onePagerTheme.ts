@@ -1,16 +1,32 @@
 /** Fixed meme-coin 1-pager theme — structure stays locked; colors + light design notes vary. */
 
 export type OnePagerThemeId =
-  | 'shib-red'
-  | 'lime'
+  | 'red'
+  | 'blue'
+  | 'yellow'
+  | 'green'
   | 'orange'
+  | 'purple'
+  | 'pink'
   | 'cyan'
-  | 'hot-pink'
-  | 'gold';
+  | 'lime'
+  | 'gold'
+  | 'teal'
+  | 'magenta'
+  | 'coral'
+  | 'indigo'
+  | 'white'
+  | 'violet'
+  /** Legacy aliases kept for older drafts / previews. */
+  | 'shib-red'
+  | 'hot-pink';
+
+export type OnePagerThemeTier = 'primary' | 'bespoke';
 
 export type OnePagerTheme = {
   id: OnePagerThemeId;
   label: string;
+  tier: OnePagerThemeTier;
   /** Swatch shown in the color bar. */
   swatch: string;
   bg: string;
@@ -21,79 +37,73 @@ export type OnePagerTheme = {
   buyText: string;
 };
 
-export const ONE_PAGER_THEMES: OnePagerTheme[] = [
-  {
-    id: 'shib-red',
-    label: 'Red',
-    swatch: '#e11d2e',
-    bg: '#141414',
-    accent: '#e11d2e',
-    accentSoft: '#ff3b4a',
-    text: '#ffffff',
-    muted: 'rgba(255,255,255,0.78)',
-    buyText: '#ffffff',
-  },
-  {
-    id: 'lime',
-    label: 'Lime',
-    swatch: '#c8ff3d',
-    bg: '#090b14',
-    accent: '#c8ff3d',
-    accentSoft: '#d5ff69',
-    text: '#ffffff',
-    muted: 'rgba(255,255,255,0.72)',
-    buyText: '#090b14',
-  },
-  {
-    id: 'orange',
-    label: 'Orange',
-    swatch: '#ff7a1a',
-    bg: '#120e0a',
-    accent: '#ff7a1a',
-    accentSoft: '#ff9a4d',
+function theme(
+  id: OnePagerThemeId,
+  label: string,
+  tier: OnePagerThemeTier,
+  accent: string,
+  accentSoft: string,
+  bg: string,
+  buyText: string,
+): OnePagerTheme {
+  return {
+    id,
+    label,
+    tier,
+    swatch: accent,
+    bg,
+    accent,
+    accentSoft,
     text: '#ffffff',
     muted: 'rgba(255,255,255,0.75)',
-    buyText: '#120e0a',
-  },
-  {
-    id: 'cyan',
-    label: 'Cyan',
-    swatch: '#2ee6ff',
-    bg: '#071018',
-    accent: '#2ee6ff',
-    accentSoft: '#7af0ff',
-    text: '#ffffff',
-    muted: 'rgba(255,255,255,0.72)',
-    buyText: '#071018',
-  },
-  {
-    id: 'hot-pink',
-    label: 'Pink',
-    swatch: '#ff2d95',
-    bg: '#140810',
-    accent: '#ff2d95',
-    accentSoft: '#ff6bb5',
-    text: '#ffffff',
-    muted: 'rgba(255,255,255,0.75)',
-    buyText: '#ffffff',
-  },
-  {
-    id: 'gold',
-    label: 'Gold',
-    swatch: '#f5c518',
-    bg: '#12100a',
-    accent: '#f5c518',
-    accentSoft: '#ffd84d',
-    text: '#ffffff',
-    muted: 'rgba(255,255,255,0.75)',
-    buyText: '#12100a',
-  },
+    buyText,
+  };
+}
+
+/** Classic primary accents — shown first. */
+export const ONE_PAGER_PRIMARY_THEMES: OnePagerTheme[] = [
+  theme('red', 'Red', 'primary', '#e11d2e', '#ff3b4a', '#141414', '#ffffff'),
+  theme('blue', 'Blue', 'primary', '#2563eb', '#60a5fa', '#0a1020', '#ffffff'),
+  theme('yellow', 'Yellow', 'primary', '#f5c518', '#ffe566', '#12100a', '#12100a'),
+  theme('green', 'Green', 'primary', '#22c55e', '#4ade80', '#0a1410', '#0a1410'),
 ];
 
-export const DEFAULT_ONE_PAGER_THEME_ID: OnePagerThemeId = 'shib-red';
+/** Extra accents when they want something more bespoke. */
+export const ONE_PAGER_BESPOKE_THEMES: OnePagerTheme[] = [
+  theme('orange', 'Orange', 'bespoke', '#ff7a1a', '#ff9a4d', '#120e0a', '#120e0a'),
+  theme('purple', 'Purple', 'bespoke', '#8b5cf6', '#a78bfa', '#100a18', '#ffffff'),
+  theme('pink', 'Pink', 'bespoke', '#ff2d95', '#ff6bb5', '#140810', '#ffffff'),
+  theme('cyan', 'Cyan', 'bespoke', '#2ee6ff', '#7af0ff', '#071018', '#071018'),
+  theme('lime', 'Lime', 'bespoke', '#c8ff3d', '#d5ff69', '#090b14', '#090b14'),
+  theme('gold', 'Gold', 'bespoke', '#d4a017', '#f0c14b', '#12100a', '#12100a'),
+  theme('teal', 'Teal', 'bespoke', '#14b8a6', '#5eead4', '#071412', '#071412'),
+  theme('magenta', 'Magenta', 'bespoke', '#d946ef', '#e879f9', '#140814', '#ffffff'),
+  theme('coral', 'Coral', 'bespoke', '#ff6b4a', '#ff8f75', '#14100e', '#14100e'),
+  theme('indigo', 'Indigo', 'bespoke', '#6366f1', '#818cf8', '#0c0e1a', '#ffffff'),
+  theme('violet', 'Violet', 'bespoke', '#a855f7', '#c084fc', '#120a18', '#ffffff'),
+  theme('white', 'White', 'bespoke', '#f5f5f5', '#ffffff', '#0c0c0c', '#0c0c0c'),
+];
+
+export const ONE_PAGER_THEMES: OnePagerTheme[] = [
+  ...ONE_PAGER_PRIMARY_THEMES,
+  ...ONE_PAGER_BESPOKE_THEMES,
+];
+
+const LEGACY_THEME_MAP: Record<string, OnePagerThemeId> = {
+  'shib-red': 'red',
+  'hot-pink': 'pink',
+};
+
+export const DEFAULT_ONE_PAGER_THEME_ID: OnePagerThemeId = 'red';
 
 export function getOnePagerTheme(id: OnePagerThemeId | string | undefined): OnePagerTheme {
-  return ONE_PAGER_THEMES.find((t) => t.id === id) ?? ONE_PAGER_THEMES[0];
+  const resolved = (id && LEGACY_THEME_MAP[id]) || id;
+  return ONE_PAGER_THEMES.find((t) => t.id === resolved) ?? ONE_PAGER_PRIMARY_THEMES[0];
+}
+
+export function isBespokeOnePagerTheme(id: OnePagerThemeId | string | undefined): boolean {
+  const themeMatch = getOnePagerTheme(id);
+  return themeMatch.tier === 'bespoke';
 }
 
 /** Design notes the AI (or local parser) may honor — template structure never changes. */
