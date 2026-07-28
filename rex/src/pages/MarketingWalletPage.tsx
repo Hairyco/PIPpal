@@ -38,7 +38,7 @@ export function MarketingWalletPage() {
                     Automated growth
                   </p>
                   <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-white">
-                    Ads that fund themselves
+                    One-click marketing
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
                     Thinks, builds and markets your product autonomously. Every trade on CTOgo puts{' '}
