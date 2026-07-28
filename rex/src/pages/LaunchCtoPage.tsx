@@ -39,13 +39,14 @@ import {
   DEFAULT_ONE_PAGER_INCLUDES,
   DEFAULT_ONE_PAGER_THEME_ID,
   ONE_PAGER_BESPOKE_THEMES,
-  ONE_PAGER_DESIGN_LIMITS,
   ONE_PAGER_INCLUDE_OPTIONS,
+  ONE_PAGER_LAYOUTS,
   ONE_PAGER_PRIMARY_THEMES,
   isBespokeOnePagerTheme,
-  parseOnePagerDesignNote,
+  resolveOnePagerLayout,
   type OnePagerIncludeId,
   type OnePagerIncludes,
+  type OnePagerLayoutPreference,
   type OnePagerTheme,
   type OnePagerThemeId,
 } from '../data/onePagerTheme';
@@ -193,6 +194,12 @@ export function LaunchCtoPage() {
   const [vestingAccepted, setVestingAccepted] = useState(false);
   const [burned, setBurned] = useState(false);
   const [pageBlurb, setPageBlurb] = useState('');
+  const [siteHeadline, setSiteHeadline] = useState('');
+  const [siteExtraTitle, setSiteExtraTitle] = useState('');
+  const [siteExtraBody, setSiteExtraBody] = useState('');
+  const [showExtraCopy, setShowExtraCopy] = useState(false);
+  const [layoutPreference, setLayoutPreference] = useState<OnePagerLayoutPreference>('auto');
+  const [layoutSeed, setLayoutSeed] = useState(0);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [logoSalt, setLogoSalt] = useState(0);
@@ -219,7 +226,6 @@ export function LaunchCtoPage() {
   const [siteIncludes, setSiteIncludes] = useState<OnePagerIncludes>({
     ...DEFAULT_ONE_PAGER_INCLUDES,
   });
-  const [designNote, setDesignNote] = useState('');
   const [editSite, setEditSite] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -288,7 +294,7 @@ export function LaunchCtoPage() {
     extraLogos: extraLogoGens,
     extraBanners: extraBannerGens,
   });
-  const designTweaks = parseOnePagerDesignNote(designNote);
+  const activeLayoutId = resolveOnePagerLayout(layoutPreference, layoutSeed);
   const resetFlow = () => {
     setStep('coin');
     setName('');
@@ -304,6 +310,12 @@ export function LaunchCtoPage() {
     setVestingAccepted(false);
     setBurned(false);
     setPageBlurb('');
+    setSiteHeadline('');
+    setSiteExtraTitle('');
+    setSiteExtraBody('');
+    setShowExtraCopy(false);
+    setLayoutPreference('auto');
+    setLayoutSeed(0);
     setLogoPreview(null);
     setBannerPreview(null);
     setLogoSalt(0);
@@ -323,7 +335,6 @@ export function LaunchCtoPage() {
     setGeneratingSite(false);
     setOnePagerThemeId(DEFAULT_ONE_PAGER_THEME_ID);
     setSiteIncludes({ ...DEFAULT_ONE_PAGER_INCLUDES });
-    setDesignNote('');
     setEditSite(false);
     setFromCoinPage(false);
     setListNotice(null);
@@ -434,7 +445,7 @@ export function LaunchCtoPage() {
         projectName: name || 'Community Takeover',
         ticker: ticker || 'CTO',
         logoDataUrl: logoUrl ?? logoPreview,
-        tagline: pageBlurb || note || 'New mint. Same community.',
+        tagline: siteHeadline || pageBlurb || note || `${ticker || 'CTO'} on CTOgo`,
         salt,
       });
       setBannerPreview(url);
@@ -475,6 +486,10 @@ export function LaunchCtoPage() {
     setEditSite(true);
   };
 
+  const bumpLayoutSeed = () => {
+    setLayoutSeed((s) => s + 1 + Math.floor(Math.random() * 7));
+  };
+
   /** First site generate is free — builds logo/banner then opens full-page preview. */
   const generateWebsite = async () => {
     if (websiteKind === 'clone' && !cloneUrl.trim() && !website.trim()) {
@@ -484,6 +499,7 @@ export function LaunchCtoPage() {
     try {
       if (!pageBlurb.trim() && note.trim()) setPageBlurb(note.trim());
       if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
+      bumpLayoutSeed();
 
       const projectName = name || 'CTOgo Coin';
       const projectTicker = ticker || 'CTO';
@@ -503,7 +519,7 @@ export function LaunchCtoPage() {
           projectName: name || 'Community Takeover',
           ticker: projectTicker,
           logoDataUrl: logo,
-          tagline: (pageBlurb || note || 'New mint. Same community.').trim(),
+          tagline: (siteHeadline || pageBlurb || note || `${projectTicker} on CTOgo`).trim(),
           salt: bannerSalt,
         });
         setBannerPreview(banner);
@@ -514,6 +530,11 @@ export function LaunchCtoPage() {
     } finally {
       setGeneratingSite(false);
     }
+  };
+
+  const regenerateDesign = () => {
+    bumpLayoutSeed();
+    setPreviewOpen(true);
   };
 
   useEffect(() => {
@@ -1132,7 +1153,8 @@ export function LaunchCtoPage() {
               <div>
                 <p className="text-sm font-bold text-white">Your website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  CTOgo listing is included. Pick how your public site looks.
+                  Write your copy, pick a vibe, generate a premium 1-pager — regenerate until it
+                  feels right.
                 </p>
               </div>
 
@@ -1153,8 +1175,8 @@ export function LaunchCtoPage() {
                       : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                   }`}
                 >
-                  <p className="text-xs font-bold text-white">Simple 1-pager</p>
-                  <p className="mt-1 text-[10px] text-white/40">Fresh site from your logo &amp; blurb</p>
+                  <p className="text-xs font-bold text-white">Premium 1-pager</p>
+                  <p className="mt-1 text-[10px] text-white/40">Creative layouts, your copy</p>
                 </button>
                 <button
                   type="button"
@@ -1183,54 +1205,130 @@ export function LaunchCtoPage() {
                     className={fieldClass}
                   />
                 </label>
-              ) : (
-                <>
-                  {!siteGenerated ? (
-                    <>
+              ) : !siteGenerated ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[11px] font-semibold text-white/55">Your copy</p>
+                    <p className="mt-0.5 text-[10px] text-white/35">
+                      Headline, story, manifesto — use as much text as you want. Line breaks become
+                      paragraphs.
+                    </p>
+                  </div>
+                  <label className="block">
+                    <span className="text-[11px] font-semibold text-white/45">Headline</span>
+                    <input
+                      value={siteHeadline}
+                      onChange={(event) => setSiteHeadline(event.target.value)}
+                      placeholder="Short hook (optional)"
+                      className={fieldClass}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-[11px] font-semibold text-white/45">Page copy</span>
+                    <textarea
+                      value={pageBlurb}
+                      onChange={(event) => setPageBlurb(event.target.value)}
+                      rows={5}
+                      placeholder="Tell the story. Add as many paragraphs as you need…"
+                      className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowExtraCopy((v) => !v)}
+                    className="text-[11px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
+                  >
+                    {showExtraCopy || siteExtraTitle || siteExtraBody
+                      ? 'Custom section'
+                      : '+ Add a custom section'}
+                  </button>
+                  {showExtraCopy || siteExtraTitle || siteExtraBody ? (
+                    <div className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                       <label className="block">
-                        <span className="text-[11px] font-semibold text-white/45">Site blurb</span>
+                        <span className="text-[11px] font-semibold text-white/45">Section title</span>
+                        <input
+                          value={siteExtraTitle}
+                          onChange={(event) => setSiteExtraTitle(event.target.value)}
+                          placeholder="e.g. Roadmap, Lore, Rules…"
+                          className={fieldClass}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/45">Section text</span>
                         <textarea
-                          value={pageBlurb}
-                          onChange={(event) => setPageBlurb(event.target.value)}
-                          rows={2}
-                          placeholder=""
+                          value={siteExtraBody}
+                          onChange={(event) => setSiteExtraBody(event.target.value)}
+                          rows={3}
+                          placeholder="Anything else you want on the page…"
                           className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                         />
                       </label>
-
-                      <div>
-                        <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
-                        <p className="mt-0.5 text-[10px] text-white/35">
-                          Quick picks — chart, stats, links. Nothing fancy.
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
-                            const on = siteIncludes[opt.id];
-                            return (
-                              <button
-                                key={opt.id}
-                                type="button"
-                                title={opt.hint}
-                                onClick={() => toggleSiteInclude(opt.id)}
-                                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                                  on
-                                    ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                    : 'border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white'
-                                }`}
-                              >
-                                {on ? <Check className="h-3 w-3" /> : null}
-                                {opt.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <ColourPalettePicker value={onePagerThemeId} onChange={setOnePagerThemeId} />
-                    </>
+                    </div>
                   ) : null}
-                </>
-              )}
+
+                  <div>
+                    <p className="text-[11px] font-semibold text-white/55">Design direction</p>
+                    <p className="mt-0.5 text-[10px] text-white/35">
+                      Auto picks a fresh creative layout each generate.
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setLayoutPreference('auto')}
+                        className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                          layoutPreference === 'auto'
+                            ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                            : 'border-white/[0.08] text-white/45 hover:text-white'
+                        }`}
+                      >
+                        Auto
+                      </button>
+                      {ONE_PAGER_LAYOUTS.map((layout) => (
+                        <button
+                          key={layout.id}
+                          type="button"
+                          title={layout.hint}
+                          onClick={() => setLayoutPreference(layout.id)}
+                          className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                            layoutPreference === layout.id
+                              ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                              : 'border-white/[0.08] text-white/45 hover:text-white'
+                          }`}
+                        >
+                          {layout.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
+                        const on = siteIncludes[opt.id];
+                        return (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            title={opt.hint}
+                            onClick={() => toggleSiteInclude(opt.id)}
+                            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                              on
+                                ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                : 'border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white'
+                            }`}
+                          >
+                            {on ? <Check className="h-3 w-3" /> : null}
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <ColourPalettePicker value={onePagerThemeId} onChange={setOnePagerThemeId} />
+                </div>
+              ) : null}
 
               {!siteGenerated ? (
                 <button
@@ -1242,12 +1340,12 @@ export function LaunchCtoPage() {
                   {generatingSite ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating…
+                      Designing…
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Generate {websiteKind === 'clone' ? 'clone preview' : '1-pager'}
+                      Generate {websiteKind === 'clone' ? 'clone preview' : 'premium 1-pager'}
                     </>
                   )}
                 </button>
@@ -1257,16 +1355,23 @@ export function LaunchCtoPage() {
                     kind={websiteKind}
                     name={name}
                     ticker={ticker}
-                    blurb={pageBlurb || note}
+                    headline={siteHeadline}
+                    body={pageBlurb || note}
+                    extraTitle={siteExtraTitle}
+                    extraBody={siteExtraBody}
                     logoUrl={logoPreview}
                     bannerUrl={bannerPreview}
                     contract={contract}
                     cloneUrl={cloneUrl || website}
                     themeId={onePagerThemeId}
-                    designTweaks={designTweaks}
+                    layoutPreference={layoutPreference}
+                    layoutSeed={layoutSeed}
                     includes={siteIncludes}
                     tokenSupply={tokenSupply}
                   />
+                  <p className="text-center text-[10px] capitalize text-white/30">
+                    Layout · {activeLayoutId}
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -1274,7 +1379,7 @@ export function LaunchCtoPage() {
                       className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.1] text-[12px] font-bold text-white/70 hover:border-white/25 hover:text-white"
                     >
                       <Pencil className="h-3.5 w-3.5" />
-                      Edit site
+                      Edit
                     </button>
                     <button
                       type="button"
@@ -1284,6 +1389,16 @@ export function LaunchCtoPage() {
                       View full page
                     </button>
                   </div>
+                  {websiteKind === 'onepager' ? (
+                    <button
+                      type="button"
+                      onClick={regenerateDesign}
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] text-[12px] font-bold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Regenerate design
+                    </button>
+                  ) : null}
 
                   {editSite ? (
                     <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
@@ -1301,72 +1416,100 @@ export function LaunchCtoPage() {
                       </div>
 
                       {websiteKind === 'onepager' ? (
-                        <>
+                        <div className="space-y-3">
                           <label className="block">
-                            <span className="text-[11px] font-semibold text-white/55">Site blurb</span>
+                            <span className="text-[11px] font-semibold text-white/45">Headline</span>
+                            <input
+                              value={siteHeadline}
+                              onChange={(event) => setSiteHeadline(event.target.value)}
+                              className={fieldClass}
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-white/45">Page copy</span>
                             <textarea
                               value={pageBlurb}
                               onChange={(event) => setPageBlurb(event.target.value)}
-                              rows={2}
+                              rows={4}
                               className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
                             />
                           </label>
-
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-white/45">
+                              Custom section title
+                            </span>
+                            <input
+                              value={siteExtraTitle}
+                              onChange={(event) => setSiteExtraTitle(event.target.value)}
+                              className={fieldClass}
+                            />
+                          </label>
+                          <label className="block">
+                            <span className="text-[11px] font-semibold text-white/45">
+                              Custom section text
+                            </span>
+                            <textarea
+                              value={siteExtraBody}
+                              onChange={(event) => setSiteExtraBody(event.target.value)}
+                              rows={3}
+                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
+                            />
+                          </label>
                           <div>
-                            <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
+                            <p className="text-[11px] font-semibold text-white/55">Design direction</p>
                             <div className="mt-2 flex flex-wrap gap-2">
-                              {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
-                                const on = siteIncludes[opt.id];
-                                return (
-                                  <button
-                                    key={opt.id}
-                                    type="button"
-                                    title={opt.hint}
-                                    onClick={() => toggleSiteInclude(opt.id)}
-                                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                                      on
-                                        ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                        : 'border-white/[0.08] text-white/45 hover:border-white/20'
-                                    }`}
-                                  >
-                                    {on ? <Check className="h-3 w-3" /> : null}
-                                    {opt.label}
-                                  </button>
-                                );
-                              })}
+                              <button
+                                type="button"
+                                onClick={() => setLayoutPreference('auto')}
+                                className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                                  layoutPreference === 'auto'
+                                    ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                    : 'border-white/[0.08] text-white/45'
+                                }`}
+                              >
+                                Auto
+                              </button>
+                              {ONE_PAGER_LAYOUTS.map((layout) => (
+                                <button
+                                  key={layout.id}
+                                  type="button"
+                                  onClick={() => setLayoutPreference(layout.id)}
+                                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                                    layoutPreference === layout.id
+                                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                      : 'border-white/[0.08] text-white/45'
+                                  }`}
+                                >
+                                  {layout.label}
+                                </button>
+                              ))}
                             </div>
                           </div>
-
+                          <div className="flex flex-wrap gap-2">
+                            {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
+                              const on = siteIncludes[opt.id];
+                              return (
+                                <button
+                                  key={opt.id}
+                                  type="button"
+                                  onClick={() => toggleSiteInclude(opt.id)}
+                                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
+                                    on
+                                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                                      : 'border-white/[0.08] text-white/45'
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
                           <ColourPalettePicker
                             value={onePagerThemeId}
                             onChange={setOnePagerThemeId}
                             compact
                           />
-
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-white/55">
-                              Design note for AI
-                            </span>
-                            <p className="mt-0.5 text-[10px] leading-relaxed text-white/35">
-                              {ONE_PAGER_DESIGN_LIMITS.allowed} {ONE_PAGER_DESIGN_LIMITS.blocked}
-                            </p>
-                            <textarea
-                              value={designNote}
-                              onChange={(event) =>
-                                setDesignNote(
-                                  event.target.value.slice(0, ONE_PAGER_DESIGN_LIMITS.maxChars),
-                                )
-                              }
-                              rows={2}
-                              maxLength={ONE_PAGER_DESIGN_LIMITS.maxChars}
-                              placeholder="e.g. louder title, bigger mascot…"
-                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                            />
-                            <span className="mt-1 block text-right font-mono text-[10px] text-white/30">
-                              {designNote.length}/{ONE_PAGER_DESIGN_LIMITS.maxChars}
-                            </span>
-                          </label>
-                        </>
+                        </div>
                       ) : (
                         <label className="block">
                           <span className="text-[11px] font-semibold text-white/55">
@@ -1375,7 +1518,6 @@ export function LaunchCtoPage() {
                           <input
                             value={cloneUrl}
                             onChange={(event) => setCloneUrl(event.target.value)}
-                            placeholder="https://…"
                             className={fieldClass}
                           />
                         </label>
@@ -1599,13 +1741,17 @@ export function LaunchCtoPage() {
         kind={websiteKind}
         name={name}
         ticker={ticker}
-        blurb={pageBlurb || note}
+        headline={siteHeadline}
+        body={pageBlurb || note}
+        extraTitle={siteExtraTitle}
+        extraBody={siteExtraBody}
         logoUrl={logoPreview}
         bannerUrl={bannerPreview}
         contract={contract}
         cloneUrl={cloneUrl || website}
         themeId={onePagerThemeId}
-        designTweaks={designTweaks}
+        layoutPreference={layoutPreference}
+        layoutSeed={layoutSeed}
         includes={siteIncludes}
         tokenSupply={tokenSupply}
       />

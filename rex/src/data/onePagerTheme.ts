@@ -176,3 +176,36 @@ export const DEFAULT_ONE_PAGER_INCLUDES: OnePagerIncludes = {
   howto: false,
   community: false,
 };
+
+/** Creative layout directions — generate picks freely; not one locked meme template. */
+export type OnePagerLayoutId = 'aurora' | 'editorial' | 'noir' | 'brutal' | 'gallery';
+
+export const ONE_PAGER_LAYOUTS: {
+  id: OnePagerLayoutId;
+  label: string;
+  hint: string;
+}[] = [
+  { id: 'aurora', label: 'Aurora', hint: 'Glow, depth, modern crypto' },
+  { id: 'editorial', label: 'Editorial', hint: 'Magazine polish' },
+  { id: 'noir', label: 'Noir', hint: 'Cinematic & sharp' },
+  { id: 'brutal', label: 'Brutal', hint: 'Oversized type energy' },
+  { id: 'gallery', label: 'Gallery', hint: 'Art-first, quiet luxury' },
+];
+
+export type OnePagerLayoutPreference = OnePagerLayoutId | 'auto';
+
+export function resolveOnePagerLayout(
+  preference: OnePagerLayoutPreference | undefined,
+  seed: number,
+): OnePagerLayoutId {
+  if (preference && preference !== 'auto') return preference;
+  return ONE_PAGER_LAYOUTS[Math.abs(seed) % ONE_PAGER_LAYOUTS.length].id;
+}
+
+/** Split multifunctional site copy into paragraphs for layout. */
+export function splitSiteCopy(body: string): string[] {
+  return body
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}

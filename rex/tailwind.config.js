@@ -24,6 +24,8 @@ export default {
       fontFamily: {
         sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         serif: ['"Space Grotesk"', 'ui-serif', 'Georgia', 'serif'],
+        display: ['Syne', 'Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        editorial: ['"Instrument Serif"', 'Georgia', 'ui-serif', 'serif'],
       },
       colors: {
         background: '#030711',
