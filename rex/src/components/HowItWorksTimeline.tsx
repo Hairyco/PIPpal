@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Search } from 'lucide-react';
 import { landingTimelineSteps } from '../data/howItWorks';
 import { HowItWorksModal } from './HowItWorksModal';
+import { PolessiaLogo } from './PolessiaLogo';
 import { VendorProgressIllustration } from './VendorProgressIllustration';
 
 function SearchMarketplaceButton({ className = '' }: { className?: string }) {
@@ -36,6 +37,9 @@ export function HowItWorksTimeline() {
             <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground sm:text-base">
               Programmatic marketing wallets funding every step of your roadmap journey — automatically.
             </p>
+            <div className="mt-3 flex justify-center">
+              <PolessiaLogo variant="powered" size="xs" />
+            </div>
           </div>
 
           <ol className="relative mt-10 hidden md:grid md:grid-cols-5 md:gap-3">

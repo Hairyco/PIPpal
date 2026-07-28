@@ -21,6 +21,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import { useConnectedWallet } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
@@ -963,13 +964,16 @@ export function LaunchCtoPage() {
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
                       Optional. CTOgo trades fill it to pay for ads and growth.
                     </span>
-                    <Link
-                      to="/marketing-wallet"
-                      onClick={(event) => event.stopPropagation()}
-                      className="mt-1.5 inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                    >
-                      How it works
-                    </Link>
+                    <span className="mt-2 flex flex-wrap items-center gap-3">
+                      <Link
+                        to="/marketing-wallet"
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                      >
+                        How it works
+                      </Link>
+                      <PolessiaLogo variant="powered" size="xs" />
+                    </span>
                   </span>
                 </label>
               )}

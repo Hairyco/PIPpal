@@ -2,7 +2,7 @@ type PolessiaLogoProps = {
   className?: string;
   /** mark only | wordmark with mark | compact powered-by row */
   variant?: 'mark' | 'full' | 'powered';
-  size?: 'sm' | 'md';
+  size?: 'xs' | 'sm' | 'md';
 };
 
 /**
@@ -14,11 +14,15 @@ export function PolessiaLogo({
   variant = 'full',
   size = 'md',
 }: PolessiaLogoProps) {
-  const markPx = size === 'sm' ? 22 : 28;
+  const markPx = size === 'xs' ? 16 : size === 'sm' ? 22 : 28;
   const wordClass =
-    size === 'sm'
-      ? 'text-[13px] tracking-[-0.02em]'
-      : 'text-[15px] tracking-[-0.02em]';
+    size === 'xs'
+      ? 'text-[11px] tracking-[-0.02em]'
+      : size === 'sm'
+        ? 'text-[13px] tracking-[-0.02em]'
+        : 'text-[15px] tracking-[-0.02em]';
+  const poweredLabelClass =
+    size === 'xs' ? 'text-[9px] tracking-[0.12em]' : 'text-[10px] tracking-[0.14em]';
 
   const mark = (
     <img
@@ -26,7 +30,7 @@ export function PolessiaLogo({
       alt=""
       width={markPx}
       height={markPx}
-      className="shrink-0 rounded-[6px]"
+      className={`shrink-0 ${size === 'xs' ? 'rounded-[4px]' : 'rounded-[6px]'}`}
       draggable={false}
     />
   );
@@ -42,11 +46,11 @@ export function PolessiaLogo({
   if (variant === 'powered') {
     return (
       <span
-        className={`inline-flex items-center gap-2 text-white/45 ${className}`}
+        className={`inline-flex items-center gap-1.5 text-white/45 sm:gap-2 ${className}`}
         aria-label="Powered by Polessia"
       >
-        <span className="text-[10px] font-medium uppercase tracking-[0.14em]">Powered by</span>
-        <span className="inline-flex items-center gap-1.5">
+        <span className={`font-medium uppercase ${poweredLabelClass}`}>Powered by</span>
+        <span className="inline-flex items-center gap-1 sm:gap-1.5">
           {mark}
           <span className={`font-semibold text-white/85 ${wordClass}`}>Polessia</span>
         </span>

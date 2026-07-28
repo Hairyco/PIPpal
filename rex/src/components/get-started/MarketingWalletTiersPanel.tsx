@@ -8,6 +8,7 @@ import {
   MARKETING_WALLET_TIER_2_MIN_USD,
   MARKETING_WALLET_TIER_3_MIN_USD,
 } from '../../data/marketingWalletTiers';
+import { PolessiaLogo } from '../PolessiaLogo';
 
 interface MarketingWalletTiersPanelProps {
   compact?: boolean;
@@ -16,15 +17,18 @@ interface MarketingWalletTiersPanelProps {
 export function MarketingWalletTiersPanel({ compact = false }: MarketingWalletTiersPanelProps) {
   return (
     <div className="space-y-4">
-      <div>
-        <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-sky-400">
-          <Wallet className="h-3.5 w-3.5" />
-          Marketing wallet spend tiers
-        </p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Buy/sell tax on every trade fills your marketing wallet. Rex auto-buys placements at
-          thresholds — bigger spends unlock in Tier 2 and Tier 3 (provisional limits below).
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-sky-400">
+            <Wallet className="h-3.5 w-3.5" />
+            Marketing wallet spend tiers
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Buy/sell tax on every trade fills your marketing wallet. Polessia auto-buys placements at
+            thresholds — bigger spends unlock in Tier 2 and Tier 3 (provisional limits below).
+          </p>
+        </div>
+        <PolessiaLogo variant="powered" size="xs" className="shrink-0" />
       </div>
 
       {!compact && <WalletTierBar />}

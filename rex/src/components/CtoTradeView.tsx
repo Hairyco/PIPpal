@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
+import { PolessiaLogo } from './PolessiaLogo';
 import {
   launchCtoHref,
   resolveMarketingWalletAddress,
@@ -797,6 +798,9 @@ export function CtoTradeView({
                 </p>
               </div>
             ) : null}
+            <div className="mt-3 border-t border-white/[0.06] pt-2.5">
+              <PolessiaLogo variant="powered" size="xs" />
+            </div>
           </div>
 
           <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">

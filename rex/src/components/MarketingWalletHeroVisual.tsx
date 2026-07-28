@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { MarketingWalletProgressTracker } from './MarketingWalletExplainer';
+import { PolessiaLogo } from './PolessiaLogo';
 
 const SLIDES = [
   { id: 'ads', label: 'Ads live' },
@@ -234,6 +235,9 @@ function LiveTrackingVisual() {
 
         <div className="p-3.5">
           <MarketingWalletProgressTracker balanceUsd={420} compact />
+          <div className="mt-3 flex justify-end border-t border-white/[0.06] pt-3">
+            <PolessiaLogo variant="powered" size="xs" />
+          </div>
         </div>
       </div>
     </div>

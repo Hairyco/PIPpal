@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { AppShell } from '../components/AppSidebar';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import {
   MARKETING_WALLET_ATTACH_FEE_USD,
   MARKETING_WALLET_ATTACH_POLICY,
@@ -234,7 +235,7 @@ export function FeesPage() {
           </ul>
         </section>
 
-        <div className="mt-8 flex flex-wrap gap-2">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
             to="/marketing-wallet"
             className="rounded-lg bg-[#2aabee] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#3bb5f5]"
@@ -247,6 +248,7 @@ export function FeesPage() {
           >
             Launch a CTO
           </Link>
+          <PolessiaLogo variant="powered" size="xs" className="ml-auto" />
         </div>
       </main>
     </AppShell>

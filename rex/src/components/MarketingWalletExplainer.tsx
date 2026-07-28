@@ -1,6 +1,7 @@
-import { Wallet, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { MARKETING_SPEND_FLOW, formatSpendCost } from '../data/marketingSpendFlow';
+import { PolessiaLogo } from './PolessiaLogo';
 
 type SpendStatus = 'complete' | 'in-progress' | 'upcoming';
 
@@ -108,17 +109,21 @@ export function MarketingWalletExplainer({
   return (
     <div className="overflow-hidden rounded-2xl border border-white/[0.1] bg-[#050505]">
       {showChrome ? (
-        <div className="flex items-start gap-3 border-b border-white/[0.06] p-4 sm:p-5">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#2aabee]/15 text-[#2aabee]">
-            <Wallet className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2aabee]/90">
-              Marketing wallet
-            </p>
-            <h3 className="mt-0.5 font-serif text-lg font-bold text-white sm:text-xl">
-              Trades fund growth
-            </h3>
+        <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <PolessiaLogo
+              variant="mark"
+              size="md"
+              className="shrink-0 [&_img]:h-10 [&_img]:w-10 [&_img]:rounded-xl"
+            />
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2aabee]/90">
+                Marketing wallet
+              </p>
+              <h3 className="mt-0.5 font-serif text-lg font-bold text-white sm:text-xl">
+                Trades fund growth
+              </h3>
+            </div>
           </div>
         </div>
       ) : null}
@@ -136,16 +141,19 @@ export function MarketingWalletExplainer({
           </div>
         </div>
 
-        <p className="text-[11px] text-white/35">
-          Vault fill rate & dump / quiet-coin rules →{' '}
-          <Link to="/faq#marketing-wallet" className="font-semibold text-[#d5ff69] hover:underline">
-            FAQ
-          </Link>
-          {' · '}
-          <Link to="/fees" className="font-semibold text-[#d5ff69] hover:underline">
-            Fees
-          </Link>
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+          <p className="text-[11px] text-white/35">
+            Vault fill rate & dump / quiet-coin rules →{' '}
+            <Link to="/faq#marketing-wallet" className="font-semibold text-[#d5ff69] hover:underline">
+              FAQ
+            </Link>
+            {' · '}
+            <Link to="/fees" className="font-semibold text-[#d5ff69] hover:underline">
+              Fees
+            </Link>
+          </p>
+          <PolessiaLogo variant="powered" size="xs" />
+        </div>
       </div>
     </div>
   );
@@ -169,7 +177,10 @@ export function MarketingWalletExplainerModal({
       <button type="button" className="absolute inset-0 bg-black/70" aria-label="Close" onClick={onClose} />
       <div className="relative z-[1] max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-white/10 bg-[#050505] shadow-2xl sm:rounded-2xl">
         <div className="sticky top-0 z-[1] flex items-center justify-between border-b border-white/[0.06] bg-[#050505]/95 px-4 py-3 backdrop-blur">
-          <p className="text-sm font-semibold text-white">Marketing wallet</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-white">Marketing wallet</p>
+            <PolessiaLogo variant="powered" size="xs" className="mt-1" />
+          </div>
           <button
             type="button"
             onClick={onClose}

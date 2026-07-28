@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import { FAQ_SECTIONS } from '../data/faq';
 
 export function FaqPage() {
@@ -18,9 +19,14 @@ export function FaqPage() {
 
         {FAQ_SECTIONS.map((section) => (
           <section key={section.id} id={section.id} className="mt-8 scroll-mt-20">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-              {section.label}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                {section.label}
+              </h2>
+              {section.id === 'marketing-wallet' ? (
+                <PolessiaLogo variant="powered" size="xs" />
+              ) : null}
+            </div>
             <div className="mt-2 space-y-2">
               {section.items.map((item) => {
                 const open = openId === item.id;
