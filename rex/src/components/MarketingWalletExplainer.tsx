@@ -64,11 +64,21 @@ export function MarketingWalletProgressTracker({
             className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-white">{item.label}</p>
-                <p className="mt-0.5 text-[11px] text-white/40">
-                  Unlocks at {formatSpendCost(item.unlockAt)}
-                </p>
+              <div className="flex min-w-0 items-start gap-2.5">
+                <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-lg border border-white/[0.08] bg-white/[0.04]">
+                  <img
+                    src={item.logo}
+                    alt=""
+                    className="h-5 w-5 object-contain"
+                    draggable={false}
+                  />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white">{item.label}</p>
+                  <p className="mt-0.5 text-[11px] text-white/40">
+                    Unlocks at {formatSpendCost(item.unlockAt)}
+                  </p>
+                </div>
               </div>
               <span
                 className={`shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-medium ${styles.badge}`}

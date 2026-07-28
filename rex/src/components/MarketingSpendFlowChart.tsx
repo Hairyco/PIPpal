@@ -218,8 +218,9 @@ export function MarketingSpendFlowChart() {
           {MARKETING_SPEND_FLOW.map((node) => (
             <span
               key={node.id}
-              className="rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[10px] text-emerald-200/90"
+              className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[10px] text-emerald-200/90"
             >
+              <img src={node.logo} alt="" className="h-3.5 w-3.5 object-contain" />
               {node.label} · {formatSpendCost(node.cost)}
             </span>
           ))}
