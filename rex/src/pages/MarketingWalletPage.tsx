@@ -41,9 +41,12 @@ export function MarketingWalletPage() {
                     One-click marketing
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
-                    Thinks, builds and markets your product autonomously. Every trade on CTOgo puts{' '}
-                    {LAUNCH_MKT} into your coin’s marketing wallet. When you reach each milestone,
-                    spend unlocks — socials, callouts, more — automatically.
+                    Thinks, builds and markets your coin autonomously.
+                  </p>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
+                    Every trade on CTOgo puts {LAUNCH_MKT} into your coin’s marketing wallet. When
+                    you reach each milestone, spend unlocks — socials, callouts, more — managed
+                    automatically.
                   </p>
                 </div>
               </div>
