@@ -238,12 +238,27 @@ function socialSheetStats(project: Project) {
   const rts = 28 + (seed % 240);
   const likes = 90 + (seed % 980);
   return [
-    { label: 'RTs', value: formatEngagement(rts), title: 'Latest post retweets (demo — X API is paid)' },
-    { label: 'Likes', value: formatEngagement(likes), title: 'Latest post likes (demo — X API is paid)' },
-    { label: 'MPH', value: String(project.mph), title: 'Messages per hour' },
-    { label: 'Holders', value: project.holders, title: 'Token holders' },
-    { label: 'Mcap', value: project.marketCap, title: 'Market cap' },
-    { label: 'Vol 24h', value: project.volume24h, title: '24h volume' },
+    {
+      label: 'RTs',
+      value: formatEngagement(rts),
+      title: 'Latest post retweets (demo — X API is paid)',
+      icon: 'x' as const,
+    },
+    {
+      label: 'Likes',
+      value: formatEngagement(likes),
+      title: 'Latest post likes (demo — X API is paid)',
+      icon: null,
+    },
+    {
+      label: 'MPH',
+      value: String(project.mph),
+      title: 'Telegram messages per hour',
+      icon: 'telegram' as const,
+    },
+    { label: 'Holders', value: project.holders, title: 'Token holders', icon: null },
+    { label: 'Mcap', value: project.marketCap, title: 'Market cap', icon: null },
+    { label: 'Vol 24h', value: project.volume24h, title: '24h volume', icon: null },
   ];
 }
 
@@ -1674,8 +1689,15 @@ export function HomePage() {
               <div className="flex min-w-0 items-center gap-3">
                 <ProjectMark project={socialsProject} size="h-10 w-10" rounded="rounded-lg" />
                 <div className="min-w-0">
-                  <p id="coin-socials-title" className="truncate font-serif text-lg font-bold">
-                    ${socialsProject.ticker}
+                  <p id="coin-socials-title" className="flex items-baseline gap-2 truncate font-serif text-lg font-bold">
+                    <span>${socialsProject.ticker}</span>
+                    <span
+                      className={`font-sans text-[12px] font-semibold tabular-nums ${
+                        socialsProject.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
+                      }`}
+                    >
+                      {formatLaunchLabel(socialsProject.launchInHours)}
+                    </span>
                   </p>
                   <p className="truncate text-xs text-white/45">{socialsProject.name}</p>
                 </div>
@@ -1699,9 +1721,15 @@ export function HomePage() {
                   <p className="font-mono text-[13px] font-semibold tabular-nums text-white">
                     {stat.value}
                   </p>
-                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-white/35">
-                    {stat.label}
-                  </p>
+                  <div className="mt-0.5 flex h-3.5 items-center justify-center text-white/45">
+                    {stat.icon ? (
+                      <SocialGlyph id={stat.icon} className="h-3 w-3" />
+                    ) : (
+                      <span className="text-[10px] uppercase tracking-wide text-white/35">
+                        {stat.label}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
