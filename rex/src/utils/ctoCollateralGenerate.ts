@@ -16,7 +16,7 @@ function palette(seed: number) {
   return { hue, hue2 };
 }
 
-/** Square token logo from name / ticker. Instant, offline, always works. */
+/** Square token logo — filled mark on transparent canvas (no outer backdrop). */
 export function generateCtoLogoDataUrl(input: {
   projectName: string;
   ticker: string;
@@ -26,7 +26,6 @@ export function generateCtoLogoDataUrl(input: {
   const ticker = input.ticker.trim().replace(/^\$/, '') || 'CTO';
   const seed = hashSeed(name + ticker) + (input.salt ?? 0) * 97;
   const { hue, hue2 } = palette(seed);
-  const style = Math.abs(seed) % 4;
 
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -34,74 +33,42 @@ export function generateCtoLogoDataUrl(input: {
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
-  if (style === 0) {
-    const grad = ctx.createLinearGradient(0, 0, 512, 512);
-    grad.addColorStop(0, `hsl(${hue} 72% 52%)`);
-    grad.addColorStop(0.55, `hsl(${hue2} 55% 28%)`);
-    grad.addColorStop(1, '#090b14');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 512, 512);
-  } else if (style === 1) {
-    ctx.fillStyle = `hsl(${hue} 18% 10%)`;
-    ctx.fillRect(0, 0, 512, 512);
-    const radial = ctx.createRadialGradient(256, 200, 40, 256, 280, 280);
-    radial.addColorStop(0, `hsl(${hue} 80% 55%)`);
-    radial.addColorStop(1, 'transparent');
-    ctx.fillStyle = radial;
-    ctx.fillRect(0, 0, 512, 512);
-  } else if (style === 2) {
-    ctx.fillStyle = `hsl(${hue2} 40% 92%)`;
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.fillStyle = `hsl(${hue} 70% 45%)`;
-    ctx.beginPath();
-    ctx.moveTo(0, 512);
-    ctx.lineTo(512, 120);
-    ctx.lineTo(512, 512);
-    ctx.closePath();
-    ctx.fill();
-  } else {
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, 512, 512);
-    ctx.strokeStyle = `hsl(${hue} 75% 55%)`;
-    ctx.lineWidth = 18;
-    for (let i = 0; i < 5; i++) {
-      ctx.strokeRect(40 + i * 28, 40 + i * 28, 432 - i * 56, 432 - i * 56);
-    }
-  }
+  // Transparent outside the mark — logo fills the frame.
+  ctx.clearRect(0, 0, 512, 512);
 
-  ctx.globalAlpha = style === 2 ? 0.12 : 0.18;
-  for (let i = 0; i < 6; i++) {
-    const x = ((seed * (i + 5)) % 380) + 60;
-    const y = ((seed * (i + 11)) % 380) + 60;
-    const r = 50 + ((seed + i * 19) % 90);
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fillStyle = `hsl(${(hue + i * 28) % 360} 75% 58%)`;
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
+  const cx = 256;
+  const cy = 256;
+  const r = 248;
 
-  ctx.fillStyle = style === 2 ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.28)';
+  const grad = ctx.createRadialGradient(cx - 60, cy - 80, 40, cx, cy, r);
+  grad.addColorStop(0, `hsl(${hue} 78% 52%)`);
+  grad.addColorStop(0.55, `hsl(${hue2} 62% 36%)`);
+  grad.addColorStop(1, `hsl(${hue} 55% 18%)`);
+
   ctx.beginPath();
-  ctx.arc(256, 256, 168, 0, Math.PI * 2);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
   ctx.fill();
 
-  ctx.strokeStyle = style === 2 ? `hsl(${hue} 70% 40%)` : 'rgba(200,255,61,0.55)';
-  ctx.lineWidth = 6;
+  // Soft inner highlight — still inside the filled disc.
+  const shine = ctx.createRadialGradient(cx - 70, cy - 90, 10, cx - 40, cy - 50, 160);
+  shine.addColorStop(0, 'rgba(255,255,255,0.22)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.beginPath();
-  ctx.arc(256, 256, 168, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = shine;
+  ctx.fill();
 
   const initials = initialsFrom(name, ticker);
-  ctx.fillStyle = style === 2 ? '#111111' : '#ffffff';
-  ctx.font = 'bold 140px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 168px ui-sans-serif, system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(initials, 256, 248);
+  ctx.fillText(initials, cx, cy - 18);
 
-  ctx.font = '700 28px ui-sans-serif, system-ui, sans-serif';
-  ctx.fillStyle = style === 2 ? `hsl(${hue} 70% 35%)` : '#c8ff3d';
-  ctx.fillText(`$${ticker.toUpperCase().slice(0, 10)}`, 256, 360);
+  ctx.font = '700 34px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillStyle = '#c8ff3d';
+  ctx.fillText(`$${ticker.toUpperCase().slice(0, 10)}`, cx, cy + 92);
 
   return canvas.toDataURL('image/png');
 }

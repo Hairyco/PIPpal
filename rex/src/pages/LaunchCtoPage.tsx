@@ -809,9 +809,9 @@ export function LaunchCtoPage() {
               {coinReady && !lookupBusy ? (
                 <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
                   <div className="flex items-center gap-3">
-                    <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-black/30">
+                    <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full bg-transparent">
                       {logoPreview ? (
-                        <img src={logoPreview} alt="" className="h-full w-full object-cover" />
+                        <img src={logoPreview} alt="" className="h-full w-full object-contain" />
                       ) : (
                         <span className="text-[10px] text-white/30">Logo</span>
                       )}
