@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Sparkles, Wallet } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
-import { MarketingWalletExplainer } from '../components/MarketingWalletExplainer';
 import { MarketingWalletHeroVisual } from '../components/MarketingWalletHeroVisual';
 import { formatBpsPercent, FEE_TIERS } from '../data/chainConfig';
 
@@ -93,12 +92,14 @@ export function MarketingWalletPage() {
                 >
                   Advertise
                 </Link>
+                <Link
+                  to="/faq#marketing-wallet"
+                  className="inline-flex items-center rounded-lg border border-white/[0.12] px-4 py-2.5 text-xs font-semibold text-white/70 hover:text-white"
+                >
+                  FAQ
+                </Link>
               </div>
             </div>
-          </div>
-
-          <div className="mt-6">
-            <MarketingWalletExplainer balanceUsd={420} showChrome={false} />
           </div>
         </main>
       </div>

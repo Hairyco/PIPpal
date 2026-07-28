@@ -1,8 +1,13 @@
-/**
- * Screenshot-style illustration: rising chart + Telegram bot confirming a DexScreener ad.
- * Pure CSS/SVG so it matches CTOgo dark UI without external image assets.
- */
-export function MarketingWalletHeroVisual() {
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { MarketingWalletProgressTracker } from './MarketingWalletExplainer';
+
+const SLIDES = [
+  { id: 'ads', label: 'Ads live' },
+  { id: 'tracking', label: 'Live tracking' },
+] as const;
+
+function AdsUnlockVisual() {
   const candles = [
     { o: 62, c: 55, h: 68, l: 52 },
     { o: 55, c: 58, h: 64, l: 50 },
@@ -37,10 +42,9 @@ export function MarketingWalletHeroVisual() {
   const linePath = `M ${linePts.join(' L ')}`;
 
   return (
-    <div className="mkt-hero-visual relative mx-auto mt-6 w-full max-w-lg select-none" aria-hidden>
+    <div className="mkt-hero-visual relative w-full select-none" aria-hidden>
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_60%_40%,rgba(42,171,238,0.22),transparent_60%)]" />
 
-      {/* Chart panel */}
       <div className="mkt-hero-chart relative z-[1] mr-6 sm:mr-10">
         <div className="overflow-hidden rounded-2xl border border-white/[0.12] bg-[#070a10] shadow-[0_24px_60px_rgba(0,0,0,0.55)] ring-1 ring-[#2aabee]/20">
           <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.03] px-3 py-2">
@@ -136,7 +140,6 @@ export function MarketingWalletHeroVisual() {
         </div>
       </div>
 
-      {/* Telegram panel */}
       <div className="mkt-hero-tg relative z-[2] -mt-16 ml-auto w-[min(100%,17.5rem)] sm:-mt-20 sm:w-[18.5rem]">
         <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.14] bg-[#0e1621] shadow-[0_28px_70px_rgba(0,0,0,0.65)] ring-1 ring-[#2aabee]/25">
           <div className="flex items-center justify-between bg-[#17212b] px-4 pb-1.5 pt-2.5">
@@ -204,6 +207,117 @@ export function MarketingWalletHeroVisual() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function LiveTrackingVisual() {
+  return (
+    <div className="mkt-hero-track relative w-full select-none" aria-hidden>
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_40%_30%,rgba(200,255,61,0.12),transparent_55%)]" />
+
+      <div className="overflow-hidden rounded-2xl border border-white/[0.12] bg-[#070a10] shadow-[0_24px_60px_rgba(0,0,0,0.55)] ring-1 ring-[#c8ff3d]/20">
+        <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] bg-white/[0.03] px-3.5 py-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#d5ff69]/90">
+              Live tracking
+            </p>
+            <p className="mt-0.5 text-[12px] text-white/50">
+              Milestones unlock as the vault fills
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-right">
+            <p className="text-[9px] font-medium uppercase tracking-wide text-white/35">Vault</p>
+            <p className="font-mono text-sm font-bold tabular-nums text-white">$420</p>
+          </div>
+        </div>
+
+        <div className="p-3.5">
+          <MarketingWalletProgressTracker balanceUsd={420} compact />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Hero carousel: DexScreener ad unlock → live spend tracker.
+ */
+export function MarketingWalletHeroVisual() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % SLIDES.length);
+    }, 6500);
+    return () => window.clearInterval(id);
+  }, [paused]);
+
+  const go = (next: number) => {
+    setIndex(((next % SLIDES.length) + SLIDES.length) % SLIDES.length);
+  };
+
+  return (
+    <div
+      className="relative mx-auto mt-6 w-full max-w-lg"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+    >
+      <div className="overflow-hidden">
+        <div
+          className="flex transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          <div className="w-full shrink-0 px-0.5 pb-1">
+            <AdsUnlockVisual />
+          </div>
+          <div className="w-full shrink-0 px-0.5 pb-1">
+            <LiveTrackingVisual />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={() => go(index - 1)}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-white/55 hover:text-white"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-center gap-2" role="tablist" aria-label="Marketing wallet visuals">
+          {SLIDES.map((slide, i) => (
+            <button
+              key={slide.id}
+              type="button"
+              role="tab"
+              aria-selected={i === index}
+              aria-label={slide.label}
+              onClick={() => go(i)}
+              className={`h-1.5 rounded-full transition-all ${
+                i === index ? 'w-6 bg-[#c8ff3d]' : 'w-1.5 bg-white/25 hover:bg-white/40'
+              }`}
+            />
+          ))}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => go(index + 1)}
+          className="grid h-8 w-8 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-white/55 hover:text-white"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      <p className="mt-2 text-center text-[11px] font-medium text-white/40">{SLIDES[index].label}</p>
 
       <style>{`
         .mkt-hero-chart {
@@ -214,6 +328,9 @@ export function MarketingWalletHeroVisual() {
         }
         .mkt-hero-bubble {
           animation: mktBubbleIn 0.55s ease-out 0.55s both;
+        }
+        .mkt-hero-track {
+          animation: mktChartIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
         @keyframes mktChartIn {
           from { opacity: 0; transform: translateY(12px) scale(0.98); }
@@ -228,7 +345,7 @@ export function MarketingWalletHeroVisual() {
           to { opacity: 1; transform: translateY(0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .mkt-hero-chart, .mkt-hero-tg, .mkt-hero-bubble { animation: none; }
+          .mkt-hero-chart, .mkt-hero-tg, .mkt-hero-bubble, .mkt-hero-track { animation: none; }
         }
       `}</style>
     </div>
