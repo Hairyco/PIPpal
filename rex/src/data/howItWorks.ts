@@ -47,7 +47,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Launch for $1',
     subtitle: 'Low barrier entry',
     description:
-      'Bring an idea to life in minutes — your coin launches on Rex for $1, no LP or coding required.',
+      'Bring an idea to life in minutes — your coin launches on CTOgo for $1, no LP or coding required.',
     bullets: [
       'Pick a category or claim a generated idea',
       'Launch right away — or join staging in Launching Soon',
@@ -77,7 +77,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Automated marketing wallet',
     subtitle: 'Trades fund the wallet — milestones pay providers',
     description:
-      `Built-in buy/sell tax on every trade — ${TRADE_FEE_LABEL} — flows into a dedicated marketing wallet. When milestones are reached, Rex pays vetted suppliers for the services your project needs.`,
+      `Built-in buy/sell tax on every trade — ${TRADE_FEE_LABEL} — flows into a dedicated marketing wallet. When milestones are reached, CTOgo pays vetted suppliers for the services your project needs.`,
     bullets: [
       `${TRADE_FEE_LABEL} on buys and sells`,
       LAUNCH_TRADE_NOTE,
@@ -93,12 +93,12 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Founder & supplier delivery',
     subtitle: 'Your build, your choice',
     description:
-      'As founder, you are responsible for getting the product built. Search our active list of vetted suppliers — or bring your own team and have them onboarded by Rex.',
+      'As founder, you are responsible for getting the product built. Search our active list of vetted suppliers — or bring your own team and have them onboarded by CTOgo.',
     bullets: [
-      'Browse Rex partner studios by specialty and assign one to your roadmap',
+      'Browse CTOgo partner studios by specialty and assign one to your roadmap',
       'Roadmap wallet pays the supplier automatically when milestones are met',
-      'Bringing your own supplier? They must pass Rex vetting before receiving funds',
-      'Rex audits all delivery before milestone payouts release',
+      'Bringing your own supplier? They must pass CTOgo vetting before receiving funds',
+      'CTOgo audits all delivery before milestone payouts release',
     ],
   },
   {

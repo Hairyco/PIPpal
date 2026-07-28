@@ -35,7 +35,7 @@ export function ServicesOrdersPanel() {
               </p>
             </div>
             <Link
-              to="/services"
+              to="/advertise"
               className="inline-flex items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-200"
             >
               <Zap className="h-3.5 w-3.5" />
@@ -73,7 +73,7 @@ export function ServicesOrdersPanel() {
                     </div>
                     {order.status === 'awaiting_payment' ? (
                       <Link
-                        to={`/services?order=${order.id}`}
+                        to={`/advertise?order=${order.id}`}
                         className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-sky-300"
                       >
                         Complete payment <ExternalLink className="h-3 w-3" />

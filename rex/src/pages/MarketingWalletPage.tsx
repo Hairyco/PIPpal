@@ -47,10 +47,10 @@ export function MarketingWalletPage() {
             Fee guidelines
           </Link>
           <Link
-            to="/services"
+            to="/advertise"
             className="rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
           >
-            Services
+            Advertise
           </Link>
         </div>
       </main>

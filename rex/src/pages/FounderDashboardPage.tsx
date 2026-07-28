@@ -42,7 +42,7 @@ type DashboardTab = 'overview' | 'services' | 'roadmap' | 'ownership' | 'vendors
 
 const TABS: { id: DashboardTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
-  { id: 'services', label: 'Services' },
+  { id: 'services', label: 'Advertise' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'ownership', label: 'Ownership' },
   { id: 'vendors', label: 'Vendors' },
@@ -89,7 +89,7 @@ export function FounderDashboardPage() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <DemoPreviewBadge />
-                <h1 className="mt-3 font-serif text-3xl font-bold text-white">Services dashboard</h1>
+                <h1 className="mt-3 font-serif text-3xl font-bold text-white">Advertise dashboard</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Track direct SOL orders. Launch a CTO anytime to unlock the full founder toolkit.
                 </p>
@@ -112,17 +112,17 @@ export function FounderDashboardPage() {
           <Rocket className="mx-auto h-12 w-12 text-sky-400" />
           <h1 className="mt-6 font-serif text-2xl font-bold text-white">Founder dashboard</h1>
           <p className="mx-auto mt-3 max-w-md text-muted-foreground">
-            Launch a CTO or buy a Rex service pack to unlock your dashboard.
+            Launch a CTO or buy an Advertise pack to unlock your dashboard.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/get-started" className="dex-btn inline-flex">
               Launch for $1
             </Link>
             <Link
-              to="/services"
+              to="/advertise"
               className="inline-flex rounded-md border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-200"
             >
-              Browse services
+              Advertise
             </Link>
           </div>
         </div>
@@ -215,7 +215,7 @@ export function FounderDashboardPage() {
                         ? ` until ${formatLaunchDate(project.stagingLaunchDate)}`
                         : ''
                     }. Build community interest, then flip to live when ready.`
-                  : 'Your coin is on Rex. Use this dashboard to track the roadmap, chat with vendors, and promote your launch.'}
+                  : 'Your coin is on CTOgo. Track the roadmap, vendors, and Advertise boosts here.'}
               </p>
             </div>
             <button

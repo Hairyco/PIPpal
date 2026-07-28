@@ -4,7 +4,7 @@ export type ProjectOrigin = 'native_cto' | 'external_cto' | 'native_launch';
 
 /** Launchpads / DEXes we index for the hybrid feed (DexScreener-style filter). */
 export type SourceVenue =
-  | 'Rex'
+  | 'CTOgo'
   | 'PumpSwap'
   | 'Pump.fun'
   | 'Raydium'
@@ -23,7 +23,7 @@ export const SOURCE_VENUE_FILTERS: {
 }[] = [
   { id: 'all', label: 'All exchanges', title: 'Coins from every venue we scan' },
   {
-    id: 'Rex',
+    id: 'CTOgo',
     label: 'CTOgo',
     title: 'Native CTOgo curve and graduated coins',
     logoSrc: '/images/exchanges/ctogo.svg',
@@ -131,7 +131,7 @@ export const ORIGIN_META: Record<
     label: 'Native CTO',
     emoji: '🔥',
     title: 'Native CTO (V2)',
-    description: 'Migrated or launched on Rex. V1 burned → V2. Creator fees to the community wallet.',
+    description: 'Migrated or launched on CTOgo. V1 burned → V2. Creator fees to the community wallet.',
     badgeClass: 'border-orange-400/35 bg-orange-400/15 text-orange-200',
   },
   external_cto: {
@@ -139,7 +139,7 @@ export const ORIGIN_META: Record<
     label: 'External CTO',
     emoji: '🚨',
     title: 'External CTO (V1 Tracked)',
-    description: 'Abandoned coin elsewhere. Chart & socials indexed. Migrate to Native V2 to cut the scammer.',
+    description: 'Abandoned coin on another venue. Trade on CTOgo anytime — or Launch Native V2 for a fresh mint with a marketing wallet.',
     badgeClass: 'border-rose-400/40 bg-rose-500/15 text-rose-200',
   },
   native_launch: {
@@ -147,13 +147,13 @@ export const ORIGIN_META: Record<
     label: 'Native Launch',
     emoji: '⚡',
     title: 'Native Launch',
-    description: 'Deployed on Rex with Mode A or Mode B fees. Dynamic 0.95%→0.40% schedule.',
+    description: 'Deployed on CTOgo with Mode A or Mode B fees. Dynamic 0.95%→0.40% schedule.',
     badgeClass: 'border-sky-400/35 bg-sky-400/15 text-sky-200',
   },
 };
 
 export const MIGRATE_BANNER =
-  'Is the original dev still stealing creator fees on this token? Launch a Native V2 CTO to burn V1 tokens, cut off the scammer, and route 100% of creator fees to the community.';
+  'Still on another venue? Launch a Native V2 on CTOgo with a marketing wallet built in — and keep discovery here.';
 
 export type HybridFeedTab = 'all' | 'native_cto' | 'external_cto' | 'native_launch';
 
@@ -167,25 +167,25 @@ export const HYBRID_FEED_TABS: {
     id: 'all',
     label: 'All Tokens',
     title: 'All tokens',
-    subtitle: 'Hybrid mix — Native V2 CTOs, Native Launches, and high-volume External CTOs.',
+    subtitle: 'Discover new coins & trade with ready made communities',
   },
   {
     id: 'native_cto',
     label: 'Native CTOs',
     title: 'Native CTOs (V2)',
-    subtitle: 'Only tokens on the trustless V1 burn → V2 mint contract.',
+    subtitle: 'Coins on CTOgo with marketing wallets and community fees.',
   },
   {
     id: 'external_cto',
     label: 'External Watch',
     title: 'External CTO Watch',
-    subtitle: 'External coins where the original dev dumped 90%+ and communities are forming.',
+    subtitle: 'Coins from other venues — tradeable on CTOgo today.',
   },
   {
     id: 'native_launch',
     label: 'New Launches',
     title: 'New Launches',
-    subtitle: 'Fresh Mode A & Mode B deployments on Rex.',
+    subtitle: 'Fresh Mode A & Mode B deployments on CTOgo.',
   },
 ];
 
@@ -212,7 +212,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Voting',
     origin: 'native_cto',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '4.8K',
     votes: 3660,
@@ -253,7 +253,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Forming',
     origin: 'native_cto',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '2.1K',
     votes: 1860,
@@ -294,7 +294,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'AI',
     stage: 'Relaunching',
     origin: 'native_cto',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '8.4K',
     votes: 1190,
@@ -373,7 +373,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'AI',
     stage: 'Forming',
     origin: 'native_launch',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'traders',
     community: '6.2K',
     votes: 341,
@@ -452,7 +452,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'DeFi',
     stage: 'Voting',
     origin: 'native_launch',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '980',
     votes: 264,
@@ -493,7 +493,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Forming',
     origin: 'native_cto',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '1.2K',
     votes: 215,
@@ -678,7 +678,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Live',
     origin: 'native_launch',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'traders',
     community: '1.9K',
     votes: 180,
@@ -720,7 +720,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'DeFi',
     stage: 'Live',
     origin: 'native_launch',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '740',
     votes: 95,
@@ -761,7 +761,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'Meme',
     stage: 'Forming',
     origin: 'native_launch',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '1.1K',
     votes: 140,
@@ -801,7 +801,7 @@ export const ctoProjects: CtoProject[] = [
     category: 'AI',
     stage: 'Relaunching',
     origin: 'native_cto',
-    sourceVenue: 'Rex',
+    sourceVenue: 'CTOgo',
     feeMode: 'creator',
     community: '4.1K',
     votes: 980,

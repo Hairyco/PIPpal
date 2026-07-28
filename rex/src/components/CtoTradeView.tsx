@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowLeft,
   Copy,
   ExternalLink,
   Flame,
@@ -11,7 +10,8 @@ import {
   Wallet,
   Zap,
 } from 'lucide-react';
-import { MigrateToV2Banner, OriginBadge } from './OriginBadge';
+import { CtoGoLogo } from './CtoGoLogo';
+import { MigrateToV2Banner } from './OriginBadge';
 import {
   launchCtoHref,
   resolveMarketingWalletAddress,
@@ -257,10 +257,14 @@ export function CtoTradeView({
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
+            className="flex shrink-0 items-center gap-2 rounded-lg pr-1 transition hover:opacity-90"
+            aria-label="CTOgo home"
+            title="Back to board"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            List
+            <CtoGoLogo size={32} />
+            <span className="hidden font-serif text-sm font-bold tracking-tight text-white sm:inline">
+              CTOgo
+            </span>
           </button>
 
           <div className="flex min-w-0 items-center gap-3">
@@ -270,33 +274,8 @@ export function CtoTradeView({
               <img src={project.logo} alt="" className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h2 className="truncate font-serif text-xl font-bold tracking-tight">${project.ticker}</h2>
-                <OriginBadge origin={project.origin} />
-                {project.verified ? (
-                  <span className="grid h-4 w-4 place-items-center rounded-full bg-amber-300 text-[9px] font-black text-black">
-                    ✓
-                  </span>
-                ) : null}
-                {project.boost != null ? (
-                  <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-amber-300">
-                    <Zap className="h-3 w-3 fill-amber-300" />
-                    {project.boost}
-                  </span>
-                ) : null}
-                <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-white/50">
-                  {project.sourceVenue}
-                </span>
-              </div>
-              <p className="truncate text-xs text-white/40">
-                {project.name}
-                {project.origin === 'native_launch' && project.feeMode
-                  ? ` · Mode ${project.feeMode === 'creator' ? 'A' : 'B'}`
-                  : ''}
-                {isExternal && project.devDumpedPct != null
-                  ? ` · Dev dumped ${project.devDumpedPct}%`
-                  : ''}
-              </p>
+              <h2 className="truncate font-serif text-xl font-bold tracking-tight">${project.ticker}</h2>
+              <p className="truncate text-xs text-white/45">{project.name}</p>
             </div>
           </div>
 
@@ -308,6 +287,14 @@ export function CtoTradeView({
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <Link
+              to={`/advertise${project.ticker ? `?ticker=${encodeURIComponent(project.ticker)}` : ''}`}
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300/30 bg-amber-300/10 px-2.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-300/15"
+              title="Boost this coin on CTOgo"
+            >
+              <Zap className="h-3.5 w-3.5 fill-amber-200" />
+              {project.boost != null ? project.boost : 'Boost'}
+            </Link>
             <Link
               to={launchHref}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"
@@ -338,8 +325,8 @@ export function CtoTradeView({
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
               title={v1Mint}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
-              {copied ? 'Copied' : 'V1 CA'}
+              <Copy className="h-3.5 w-3.5" />
+              {copied ? 'Copied' : 'CA'}
             </button>
           </div>
         </div>

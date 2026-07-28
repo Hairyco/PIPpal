@@ -9,7 +9,7 @@ export const MARKETING_FEE_BPS = 40;
 export const TRADE_FEE_BPS = PLATFORM_FEE_BPS + CREATOR_FEE_BPS + MARKETING_FEE_BPS;
 
 export const TRADE_FEE_LABEL =
-  '0.40%–0.95% dynamic (marketing + creator/trader pool + Rex)';
+  '0.40%–0.95% dynamic (marketing + creator/trader pool + CTOgo)';
 
 export type FeeTierId = 'launch' | 'growth' | 'scale';
 

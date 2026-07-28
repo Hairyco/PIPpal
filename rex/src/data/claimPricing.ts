@@ -52,13 +52,13 @@ export const premiumFeatures: PremiumFeature[] = [
 
 export const founderSupplierOptions = [
   {
-    title: 'Browse Rex suppliers',
+    title: 'Browse CTOgo suppliers',
     description:
       'Search our active list of vetted dev studios. Assign one to your roadmap — they are paid automatically when milestones hit.',
   },
   {
     title: 'Bring your own supplier',
     description:
-      'Source your own team or agency. They must complete Rex onboarding and pass our vetting before they can fulfil your project or receive roadmap funds.',
+      'Source your own team or agency. They must complete CTOgo onboarding and pass our vetting before they can fulfil your project or receive roadmap funds.',
   },
 ];

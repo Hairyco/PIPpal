@@ -68,7 +68,7 @@ export function FeesPage() {
                 <p className="text-[10px] text-white/35">
                   {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
                   {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
-                  {formatBpsPercent(tier.platformBps)} Rex
+                  {formatBpsPercent(tier.platformBps)} CTOgo
                 </p>
               </div>
             </div>
@@ -125,7 +125,7 @@ export function FeesPage() {
           <p className="mt-2 text-[11px] leading-relaxed text-white/40">{MIGRATION_FEE_POLICY.contrast}</p>
           <dl className="mt-3 space-y-1.5 text-[12px]">
             <div className="flex items-center justify-between gap-3">
-              <dt className="text-white/55">Rex migration protocol fee</dt>
+              <dt className="text-white/55">CTOgo migration protocol fee</dt>
               <dd className="font-mono font-bold text-[#d5ff69]">
                 {MIGRATION_FEE_POLICY.rexProtocolSol} SOL
               </dd>

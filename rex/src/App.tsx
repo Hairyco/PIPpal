@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ScrollToTop } from './components/ScrollToTop';
 import { WalletProvider } from './components/ConnectWalletButton';
 import { HomePage } from './pages/HomePage';
@@ -28,7 +28,8 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/launch" element={<LaunchCtoPage />} />
           <Route path="/trade" element={<TradePage />} />
-          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/advertise" element={<ServicesPage />} />
+          <Route path="/services" element={<Navigate to="/advertise" replace />} />
           <Route path="/fees" element={<FeesPage />} />
           <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
           <Route path="/faq" element={<FaqPage />} />

@@ -119,8 +119,8 @@ export function IndustryGrid({ showAll = false }: IndustryGridProps) {
           {showAll
             ? query.trim()
               ? `${displayed.length} of ${industries.length} sectors`
-              : `${industries.length} sectors where Rex projects launch, fundraise, and deliver.`
-            : 'Curated sectors where Rex projects launch, fundraise, and deliver within the ecosystem'}
+              : `${industries.length} sectors where CTOgo projects launch, fundraise, and deliver.`
+            : 'Curated sectors where CTOgo projects launch, fundraise, and deliver within the ecosystem'}
         </p>
       </div>
 

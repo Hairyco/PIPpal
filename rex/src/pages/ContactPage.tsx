@@ -52,9 +52,9 @@ const TOPICS = [
   {
     id: 'promote',
     label: 'Advertise or promote',
-    detail: 'Featured slots, banners, and trending placements.',
-    to: '/services',
-    cta: 'View services',
+    detail: 'Board boosts and launch creatives — pay with SOL or marketing wallet.',
+    to: '/advertise',
+    cta: 'Advertise',
   },
 ] as const;
 

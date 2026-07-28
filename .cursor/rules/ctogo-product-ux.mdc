@@ -1,0 +1,32 @@
+---
+description: CTOgo branding, Advertise, and senior UX standards for product UI
+globs: rex/**/*
+alwaysApply: false
+---
+
+# CTOgo product & UX standards
+
+Act as senior PM + UI/UX + copywriter on every design change.
+
+## Brand
+- The product is **CTOgo** — never show “Rex” in user-facing UI, fees, FAQ, or nav.
+- Native venue label is **CTOgo** (exchange filters already cover origin).
+
+## Copy & friction
+- Short, appealing, customer-facing — not eng/internal notes.
+- Detail behind How it works / FAQ / Fees. Primary screens: do / cost / next.
+
+## Coin page
+- **Logo top-left** (home/back to board). No “List” chrome.
+- No origin tags (Native CTO / External / venue chips) — exchanges handle that.
+- Boost lightning → **Advertise** (promote / board boost).
+- Marketing wallet sits **below the chart**. Contract details behind a small info control.
+
+## Advertise (not “Services”)
+- Nav/footer: **Advertise**. Route `/advertise` (`/services` redirects).
+- Users promote coins and buy boosts. Pay **direct (SOL)** or via **marketing wallet**.
+- Launch pack / creatives live here — not on the landing or coin board.
+
+## Business model reminders
+- Platform fee on CTOgo trades; marketing vault optional on List ($1), included on Launch.
+- Boosts amplify board visibility; MW funds growth spends as balance unlocks.

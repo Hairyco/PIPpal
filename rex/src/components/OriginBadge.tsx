@@ -23,7 +23,6 @@ export function OriginBadge({
 export function MigrateToV2Banner({
   ticker,
   sourceVenue,
-  devDumpedPct,
   href = '/launch',
 }: {
   ticker: string;
@@ -32,19 +31,18 @@ export function MigrateToV2Banner({
   href?: string;
 }) {
   return (
-    <div className="rounded-xl border border-rose-400/35 bg-gradient-to-br from-rose-500/15 via-rose-500/5 to-transparent p-4">
+    <div className="rounded-xl border border-[#c8ff3d]/25 bg-gradient-to-br from-[#c8ff3d]/10 via-transparent to-transparent p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-rose-300">
-            External CTO · migrate to Native V2
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+            Want a fresh start?
           </p>
           <p className="mt-1.5 text-sm font-semibold text-white">
-            ${ticker} is still on {sourceVenue ?? 'an external launchpad'}
-            {devDumpedPct != null ? ` — original dev dumped ${devDumpedPct}%` : ''}.
+            Launch ${ticker} as a Native V2 on CTOgo
           </p>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">
-            Is the original dev still stealing creator fees on this token? Launch a Native V2 CTO to
-            burn V1 tokens, cut off the scammer, and route 100% of creator fees to the community.
+            Still trading on {sourceVenue ?? 'another venue'}? Mint a CTOgo version with a marketing
+            wallet built in — and keep discovery here.
           </p>
         </div>
         <Link

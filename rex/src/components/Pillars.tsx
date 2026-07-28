@@ -13,7 +13,7 @@ export function Pillars() {
   return (
     <>
       <section className="container my-20">
-        <h2 className="mb-3 font-serif text-4xl text-white">How Rex Works</h2>
+        <h2 className="mb-3 font-serif text-4xl text-white">How CTOgo Works</h2>
         <p className="mb-8 max-w-2xl text-lg text-sky-400 sm:text-xl">
           Your coin builds and markets itself.
         </p>

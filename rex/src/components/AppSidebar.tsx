@@ -22,7 +22,7 @@ const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
-  { to: '/services', label: 'Services', icon: Zap, end: false },
+  { to: '/advertise', label: 'Advertise', icon: Zap, end: false },
   { to: '/launch', label: 'Launch', icon: Rocket, end: false },
   { to: '/faq', label: 'FAQ', icon: HelpCircle, end: false },
   { to: '/contact', label: 'Contact', icon: Mail, end: false },

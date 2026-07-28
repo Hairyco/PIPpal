@@ -11,9 +11,8 @@ import {
   X,
   Zap,
 } from 'lucide-react';
-import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { AppShell } from '../components/AppSidebar';
-import { LAUNCH_PACK, formatSolPrice, type DirectServiceId } from '../data/directServices';
+import { LAUNCH_PACK, BOARD_BOOST, formatSolPrice, type DirectServiceId } from '../data/directServices';
 import { readImageFile } from '../utils/projectImageGenerate';
 import {
   createServiceOrderDraft,
@@ -37,8 +36,11 @@ export function ServicesPage() {
     resumeId ? getServiceOrder(resumeId) : null,
   );
 
+  const [serviceId, setServiceId] = useState<DirectServiceId>('board-boost');
+  const service = serviceId === 'board-boost' ? BOARD_BOOST : LAUNCH_PACK;
+
   const [projectName, setProjectName] = useState('');
-  const [ticker, setTicker] = useState('');
+  const [ticker, setTicker] = useState(() => params.get('ticker')?.trim() ?? '');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [telegram, setTelegram] = useState('');
   const [xHandle, setXHandle] = useState('');
@@ -51,9 +53,6 @@ export function ServicesPage() {
 
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
-
-  const serviceId: DirectServiceId = 'launch-pack';
-  const service = LAUNCH_PACK;
 
   const canSubmitForm = useMemo(() => {
     return projectName.trim().length > 1 && email.includes('@');
@@ -80,7 +79,7 @@ export function ServicesPage() {
     });
     setOrder(draft);
     setStep('pay');
-    navigate(`/services?order=${draft.id}`, { replace: true });
+    navigate(`/advertise?order=${draft.id}`, { replace: true });
   };
 
   const completePayment = async () => {
@@ -107,7 +106,7 @@ export function ServicesPage() {
             <ArrowLeft className="h-4 w-4" />
             Home
           </Link>
-          <p className="font-serif text-base font-bold">Services</p>
+          <p className="font-serif text-base font-bold">Advertise</p>
           <Link to="/fees" className="text-sm text-[#c8ff3d] hover:text-[#d5ff69]">
             Fees
           </Link>
@@ -119,31 +118,53 @@ export function ServicesPage() {
           <section className="space-y-5">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                Direct pay
+                Grow on CTOgo
               </p>
-              <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">CTOgo services</h1>
+              <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Advertise</h1>
               <p className="mt-2 max-w-xl text-sm text-white/45">
-                Buy launch assets with SOL up front. Separate from the marketing wallet path when you
-                launch a CTO.
+                Boost your coin on the board or grab launch creatives. Pay with SOL — or use your
+                marketing wallet when it has balance.
               </p>
             </div>
 
-            <LightningBundleArt className="mx-auto h-36 w-full max-w-md" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[BOARD_BOOST, LAUNCH_PACK].map((item) => {
+                const selected = serviceId === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setServiceId(item.id)}
+                    className={`rounded-2xl border p-4 text-left transition ${
+                      selected
+                        ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/[0.1]'
+                        : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Zap className="h-4 w-4 fill-[#d5ff69]" />
+                      </span>
+                      <span className="rounded-md bg-[#c8ff3d] px-2 py-0.5 text-[11px] font-bold text-[#090b14]">
+                        {formatSolPrice(item.priceSol)}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm font-bold text-white">{item.title}</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-white/45">{item.tagline}</p>
+                    <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                      {item.payOptions.includes('marketing-wallet')
+                        ? 'SOL or marketing wallet'
+                        : 'Pay with SOL'}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
 
             <article className="overflow-hidden rounded-2xl border border-[#c8ff3d]/25 bg-gradient-to-b from-[#c8ff3d]/10 to-transparent">
-              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/[0.06] p-5">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#c8ff3d] text-[#090b14]">
-                    <Zap className="h-5 w-5 fill-[#090b14]" />
-                  </span>
-                  <div>
-                    <h2 className="text-lg font-bold">{service.title}</h2>
-                    <p className="mt-0.5 text-xs text-white/45">{service.tagline}</p>
-                  </div>
-                </div>
-                <p className="rounded-lg bg-[#c8ff3d] px-3 py-1.5 text-sm font-bold text-[#090b14]">
-                  {formatSolPrice(service.priceSol)}
-                </p>
+              <div className="border-b border-white/[0.06] p-5">
+                <h2 className="text-lg font-bold">{service.title}</h2>
+                <p className="mt-0.5 text-xs text-white/45">{service.tagline}</p>
               </div>
 
               <div className="grid gap-4 p-5 sm:grid-cols-2">
@@ -181,7 +202,7 @@ export function ServicesPage() {
                   onClick={() => setStep('form')}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-3 text-sm font-semibold text-[#090b14] hover:bg-[#d5ff69] sm:w-auto"
                 >
-                  Order launch pack
+                  Continue · {formatSolPrice(service.priceSol)}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
