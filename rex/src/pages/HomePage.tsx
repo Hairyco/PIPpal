@@ -19,8 +19,6 @@ import {
   Clock3,
   TrendingUp,
 } from 'lucide-react';
-import { ServicesBottomSheet } from '../components/services/ServicesBottomSheet';
-import { LightningBundleArt } from '../components/services/LightningBundleArt';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
@@ -1100,33 +1098,6 @@ export function HomePage() {
         )}
       </main>
 
-      <section id="services" className="mx-auto mt-10 max-w-7xl scroll-mt-28 px-3 sm:px-5">
-        <div className="overflow-hidden rounded-2xl border border-[#c8ff3d]/20 bg-gradient-to-br from-[#c8ff3d]/[0.08] via-transparent to-transparent">
-          <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
-                Services
-              </p>
-              <h2 className="mt-1 font-serif text-2xl font-bold">Launch pack · 4 SOL</h2>
-              <p className="mt-2 max-w-lg text-xs leading-relaxed text-white/45">
-                Site clone or 1-pager, logo + banner, and a Rex channel callout — paid direct in SOL.
-                DexScreener is separate. Marketing-wallet spends stay on the CTO launch path.
-              </p>
-              <Link
-                to="/services"
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-semibold text-[#090b14] hover:bg-[#d5ff69]"
-              >
-                <Zap className="h-3.5 w-3.5 fill-[#090b14]" />
-                View services
-              </Link>
-            </div>
-            <div className="hidden sm:block">
-              <LightningBundleArt className="h-28 w-48" />
-            </div>
-          </div>
-        </div>
-      </section>
-
       <footer className="mt-10 border-t border-white/[0.06] bg-black">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-7 text-[11px] text-white/25 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
@@ -1143,7 +1114,6 @@ export function HomePage() {
         </div>
       </footer>
       </div>
-      <ServicesBottomSheet />
       <MarketingWalletExplainerModal
         open={walletExplainerOpen}
         onClose={() => setWalletExplainerOpen(false)}

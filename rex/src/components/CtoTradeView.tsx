@@ -5,6 +5,7 @@ import {
   Copy,
   ExternalLink,
   Flame,
+  Info,
   Settings2,
   Star,
   Wallet,
@@ -190,6 +191,7 @@ export function CtoTradeView({
   const [chartWindow, setChartWindow] = useState('5m');
   const [copied, setCopied] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
   const positive = (change ?? project.change24h) >= 0;
@@ -408,69 +410,143 @@ export function CtoTradeView({
                   </button>
                 ))}
               </div>
-              <p className="text-[10px] text-white/30">Price chart · demo</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] text-white/30">Price chart · demo</p>
+                <button
+                  type="button"
+                  onClick={() => setTokenInfoOpen((open) => !open)}
+                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
+                    tokenInfoOpen
+                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                      : 'border-white/[0.08] text-white/40 hover:text-white'
+                  }`}
+                  aria-expanded={tokenInfoOpen}
+                  aria-label="Contract details"
+                  title="Contract details"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
             <div className="h-[320px] px-1 py-2 sm:h-[380px]">
               <CandleChart positive={positive} />
             </div>
+            {tokenInfoOpen ? (
+              <div className="border-t border-white/[0.06] px-3 py-3">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Contract
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <p
+                        className="truncate font-mono text-xs font-semibold text-white/85"
+                        title={v1Mint}
+                      >
+                        {shortMint(v1Mint)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={copyV1}
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Copy contract"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Venue
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      {isNativeV2 ? 'Status' : 'Liquidity'}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
+                  </div>
+                </div>
+                {copied ? (
+                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
-          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
-                  V1 token · API source
-                </p>
-                <p className="mt-1 text-sm font-semibold text-white">
-                  {isNativeV2
-                    ? `Historical V1 for $${project.ticker} (burned on Rex)`
-                    : `Live V1 listing on ${project.sourceVenue}`}
-                </p>
-              </div>
-              {!isNativeV2 ? (
-                <Link
-                  to={launchHref}
-                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"
-                >
-                  <Flame className="h-3.5 w-3.5" />
-                  Launch a CTO
-                </Link>
-              ) : null}
+          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
+                Marketing wallet
+              </p>
+              <Link
+                to="/marketing-wallet"
+                className="text-[10px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
+              >
+                How it works
+              </Link>
             </div>
-
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">Mint</p>
-                <div className="mt-1 flex items-center gap-1.5">
-                  <p className="truncate font-mono text-xs font-semibold text-white/85" title={v1Mint}>
-                    {shortMint(v1Mint)}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={copyV1}
-                    className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
-                    aria-label="Copy V1 mint"
-                  >
-                    <Copy className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">Venue</p>
-                <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
-              </div>
-              <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                  {isNativeV2 ? 'V1 status' : 'Liquidity'}
-                </p>
-                <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
-              </div>
-            </div>
-            <p className="mt-2.5 text-[11px] leading-relaxed text-white/40">
-              {isNativeV2
-                ? 'V1 CA is retained for history after burn. Creator fees and marketing wallet run on Native V2.'
-                : 'Trade this coin on CTOgo anytime — we take a platform fee. Attach a marketing wallet (List a CTO, $1) so CTOgo-routed volume also fills growth. Launch Native V2 if you want a new mint that cuts the old dev.'}
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
+              {project.marketingBalance ?? '—'}
             </p>
+            {marketingSolscan && marketingShort ? (
+              <a
+                href={marketingSolscan}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                title={`View ${marketingAddress} on Solscan`}
+              >
+                {marketingShort}
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="font-sans text-[10px] font-semibold">Solscan</span>
+              </a>
+            ) : (
+              <p className="mt-1 text-[11px] text-white/40">
+                {isExternal ? (
+                  <>
+                    No vault yet —{' '}
+                    <Link
+                      to="/launch?mode=list"
+                      className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                    >
+                      List this coin
+                    </Link>{' '}
+                    to add one for $1.
+                  </>
+                ) : (
+                  'No marketing wallet on this listing'
+                )}
+              </p>
+            )}
+            {project.marketingBalance && mktTarget > 0 ? (
+              <div className="mt-3">
+                <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
+                  <span className="text-white/40">
+                    Next: {project.nextAdSpend ?? 'Update socials'}
+                  </span>
+                  <span className="tabular-nums font-semibold text-white/70">
+                    {formatUsd(mktBalance)}/{formatUsd(mktTarget)}
+                  </span>
+                </div>
+                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+                  <div
+                    className={`absolute inset-y-0 left-0 rounded-full ${
+                      mktReady
+                        ? 'bg-[#c8ff3d]'
+                        : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
+                    }`}
+                    style={{ width: `${Math.max(mktPct, 4)}%` }}
+                  />
+                </div>
+                <p className="mt-1.5 text-[10px] text-white/35">
+                  {mktReady
+                    ? `Ready to deploy ${project.nextAdSpend ?? 'Update socials'}`
+                    : `${formatUsd(Math.max(0, mktTarget - mktBalance))} to next spend`}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -676,80 +752,6 @@ export function CtoTradeView({
                   }`
                 : `Demo · max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
-          </div>
-
-          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
-                Marketing wallet
-              </p>
-              <Link
-                to="/marketing-wallet"
-                className="text-[10px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
-              >
-                How it works
-              </Link>
-            </div>
-            <p className="mt-1 text-2xl font-semibold tabular-nums text-[#d5ff69]">
-              {project.marketingBalance ?? '—'}
-            </p>
-            {marketingSolscan && marketingShort ? (
-              <a
-                href={marketingSolscan}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                title={`View ${marketingAddress} on Solscan`}
-              >
-                {marketingShort}
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="font-sans text-[10px] font-semibold">Solscan</span>
-              </a>
-            ) : (
-              <p className="mt-1 text-[11px] text-white/40">
-                {isExternal ? (
-                  <>
-                    No vault yet —{' '}
-                    <Link
-                      to="/launch?mode=list"
-                      className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                    >
-                      List this coin
-                    </Link>{' '}
-                    to add one for $1. Trades still take a CTOgo platform fee.
-                  </>
-                ) : (
-                  'No marketing wallet on this listing'
-                )}
-              </p>
-            )}
-            {project.marketingBalance && mktTarget > 0 ? (
-              <div className="mt-3">
-                <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">
-                  <span className="text-white/40">
-                    Next: {project.nextAdSpend ?? 'DexScreener'}
-                  </span>
-                  <span className="tabular-nums font-semibold text-white/70">
-                    {formatUsd(mktBalance)}/{formatUsd(mktTarget)}
-                  </span>
-                </div>
-                <div className="relative h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
-                  <div
-                    className={`absolute inset-y-0 left-0 rounded-full ${
-                      mktReady
-                        ? 'bg-[#c8ff3d]'
-                        : 'bg-gradient-to-r from-[#3b82f6] via-[#7dd3fc] to-[#c8ff3d]'
-                    }`}
-                    style={{ width: `${Math.max(mktPct, 4)}%` }}
-                  />
-                </div>
-                <p className="mt-1.5 text-[10px] text-white/35">
-                  {mktReady
-                    ? `Ready to deploy ${project.nextAdSpend ?? 'ad'}`
-                    : `${formatUsd(Math.max(0, mktTarget - mktBalance))} to next spend`}
-                </p>
-              </div>
-            ) : null}
           </div>
 
           {!isExternal ? (
