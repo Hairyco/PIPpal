@@ -915,12 +915,6 @@ export function HomePage() {
                             )}
                           </div>
                           <p className="text-[11px] leading-snug text-white/55">{project.name}</p>
-                          {project.origin === 'external_cto' ? (
-                            <p className="mt-0.5 text-[10px] font-medium leading-snug text-rose-300/80">
-                              {project.sourceVenue}
-                              {project.devDumpedPct != null ? ` · Dev dumped ${project.devDumpedPct}%` : ''}
-                            </p>
-                          ) : null}
                         </div>
                       </div>
                       {isPrelaunch ? (
