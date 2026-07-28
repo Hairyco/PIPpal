@@ -8,7 +8,6 @@ import {
   Settings2,
   Star,
   Wallet,
-  Zap,
 } from 'lucide-react';
 import { CtoGoLogo } from './CtoGoLogo';
 import { MigrateToV2Banner } from './OriginBadge';
@@ -341,14 +340,6 @@ export function CtoTradeView({
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <Link
-              to={`/advertise${project.ticker ? `?ticker=${encodeURIComponent(project.ticker)}` : ''}`}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300/30 bg-amber-300/10 px-2.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-300/15"
-              title="Boost this coin on CTOgo"
-            >
-              <Zap className="h-3.5 w-3.5 fill-amber-200" />
-              {project.boost != null ? project.boost : 'Boost'}
-            </Link>
             <Link
               to={launchHref}
               className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14] hover:bg-[#d5ff69]"

@@ -88,7 +88,7 @@ export function MarketingWalletPage() {
                   to="/advertise"
                   className="inline-flex items-center rounded-lg border border-white/[0.12] px-4 py-2.5 text-xs font-semibold text-white/70 hover:text-white"
                 >
-                  Advertise / boost
+                  Advertise
                 </Link>
               </div>
             </div>

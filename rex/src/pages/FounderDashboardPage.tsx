@@ -215,7 +215,7 @@ export function FounderDashboardPage() {
                         ? ` until ${formatLaunchDate(project.stagingLaunchDate)}`
                         : ''
                     }. Build community interest, then flip to live when ready.`
-                  : 'Your coin is on CTOgo. Track the roadmap, vendors, and Advertise boosts here.'}
+                  : 'Your coin is on CTOgo. Track the roadmap, vendors, and Advertise packs here.'}
               </p>
             </div>
             <button

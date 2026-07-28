@@ -187,9 +187,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '190px 80px 72px 64px 88px 72px 52px 56px 48px 64px 148px 28px';
+  '190px 80px 72px 64px 88px 72px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '30px 190px 80px 68px 56px 72px 64px 88px 72px 52px 56px 48px 64px 148px 64px 28px';
+  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -888,7 +888,6 @@ export function HomePage() {
                     <span className="text-right">Volume</span>
                     <span className="text-right">TXs</span>
                     <span className="text-right">Price</span>
-                    <span className="text-right">Age</span>
                     <span className="text-right">Holders</span>
                     <span className="text-right" title="Messages per hour">MPH</span>
                     <span className="text-right" title="Raids and people engaging">Raids</span>
@@ -923,14 +922,14 @@ export function HomePage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <p className="text-sm font-bold">{project.ticker}</p>
-                            {project.verified && (
-                              <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-amber-300 text-[8px] font-black text-black">✓</span>
-                            )}
-                            {project.boost != null && (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-300">
-                                <Zap className="h-3 w-3 fill-amber-300" />{project.boost}
-                              </span>
-                            )}
+                            <span
+                              className={`text-[10px] font-semibold tabular-nums ${
+                                project.launchInHours == null ? 'text-emerald-300/80' : 'text-white/40'
+                              }`}
+                              title="Age"
+                            >
+                              {formatLaunchLabel(project.launchInHours)}
+                            </span>
                           </div>
                           <p className="text-[11px] leading-snug text-white/55">{project.name}</p>
                         </div>
@@ -991,13 +990,6 @@ export function HomePage() {
                         <TxVolumeBar project={project} />
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
-                      <span
-                        className={`text-right text-xs font-semibold ${
-                          project.launchInHours == null ? 'text-emerald-300' : 'text-white/75'
-                        }`}
-                      >
-                        {formatLaunchLabel(project.launchInHours)}
-                      </span>
                       <span className="text-right text-xs text-white/70">{project.holders}</span>
                       <span className="text-right text-xs font-semibold text-[#c8ff3d]" title="Messages per hour">
                         {project.mph}

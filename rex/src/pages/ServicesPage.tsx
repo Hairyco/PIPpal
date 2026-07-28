@@ -6,13 +6,13 @@ import {
   Check,
   Globe,
   Mail,
+  Sparkles,
   Upload,
   Wallet,
   X,
-  Zap,
 } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
-import { LAUNCH_PACK, BOARD_BOOST, formatSolPrice, type DirectServiceId } from '../data/directServices';
+import { LAUNCH_PACK, formatSolPrice } from '../data/directServices';
 import { readImageFile } from '../utils/projectImageGenerate';
 import {
   createServiceOrderDraft,
@@ -36,8 +36,8 @@ export function ServicesPage() {
     resumeId ? getServiceOrder(resumeId) : null,
   );
 
-  const [serviceId, setServiceId] = useState<DirectServiceId>('board-boost');
-  const service = serviceId === 'board-boost' ? BOARD_BOOST : LAUNCH_PACK;
+  const service = LAUNCH_PACK;
+  const serviceId = LAUNCH_PACK.id;
 
   const [projectName, setProjectName] = useState('');
   const [ticker, setTicker] = useState(() => params.get('ticker')?.trim() ?? '');
@@ -122,49 +122,27 @@ export function ServicesPage() {
               </p>
               <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Advertise</h1>
               <p className="mt-2 max-w-xl text-sm text-white/45">
-                Boost your coin on the board or grab launch creatives. Pay with SOL — or use your
-                marketing wallet when it has balance.
+                Launch creatives to ship with — site, logo, banner, and a CTOgo channel callout. Pay
+                with SOL.
               </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[BOARD_BOOST, LAUNCH_PACK].map((item) => {
-                const selected = serviceId === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setServiceId(item.id)}
-                    className={`rounded-2xl border p-4 text-left transition ${
-                      selected
-                        ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/[0.1]'
-                        : 'border-white/[0.08] bg-white/[0.02] hover:border-white/20'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
-                        <Zap className="h-4 w-4 fill-[#d5ff69]" />
-                      </span>
-                      <span className="rounded-md bg-[#c8ff3d] px-2 py-0.5 text-[11px] font-bold text-[#090b14]">
-                        {formatSolPrice(item.priceSol)}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-sm font-bold text-white">{item.title}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-white/45">{item.tagline}</p>
-                    <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                      {item.payOptions.includes('marketing-wallet')
-                        ? 'SOL or marketing wallet'
-                        : 'Pay with SOL'}
-                    </p>
-                  </button>
-                );
-              })}
             </div>
 
             <article className="overflow-hidden rounded-2xl border border-[#c8ff3d]/25 bg-gradient-to-b from-[#c8ff3d]/10 to-transparent">
               <div className="border-b border-white/[0.06] p-5">
-                <h2 className="text-lg font-bold">{service.title}</h2>
-                <p className="mt-0.5 text-xs text-white/45">{service.tagline}</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <h2 className="text-lg font-bold">{service.title}</h2>
+                      <p className="mt-0.5 text-xs text-white/45">{service.tagline}</p>
+                    </div>
+                  </div>
+                  <span className="shrink-0 rounded-md bg-[#c8ff3d] px-2.5 py-1 text-[11px] font-bold text-[#090b14]">
+                    {formatSolPrice(service.priceSol)}
+                  </span>
+                </div>
               </div>
 
               <div className="grid gap-4 p-5 sm:grid-cols-2">

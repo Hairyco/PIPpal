@@ -1,5 +1,5 @@
 /**
- * Advertise on CTOgo — board boosts + launch creatives.
+ * Advertise on CTOgo — launch creatives for now (audience first; board boosts later).
  * Pay with SOL directly, or route spend from a marketing wallet when available.
  */
 
@@ -18,7 +18,7 @@ export type DirectService = {
   payOptions: Array<'sol' | 'marketing-wallet'>;
 };
 
-/** Pin / amplify a coin on the CTOgo board (boosts). */
+/** @deprecated Kept for historical orders only — not offered while we build audience. */
 export const BOARD_BOOST: DirectService = {
   id: 'board-boost',
   title: 'Board boost',
@@ -30,7 +30,7 @@ export const BOARD_BOOST: DirectService = {
     'Pay with SOL or your marketing wallet',
   ],
   excludes: ['Off-platform ads (Telegram, Coinzilla, etc.)'],
-  available: true,
+  available: false,
   payOptions: ['sol', 'marketing-wallet'],
 };
 
@@ -46,14 +46,16 @@ export const LAUNCH_PACK: DirectService = {
     'Social banner (clone, upload, or generate)',
     'One callout in the CTOgo master Telegram channel',
   ],
-  excludes: ['Board boosts (buy separately)', 'CoinGecko CTO fee'],
+  excludes: ['CoinGecko CTO fee', 'Off-platform ads'],
   available: true,
   payOptions: ['sol'],
 };
 
-export const directServices: DirectService[] = [BOARD_BOOST, LAUNCH_PACK];
+/** Services currently offered on Advertise. */
+export const directServices: DirectService[] = [LAUNCH_PACK];
 
 export function getDirectService(id: DirectServiceId): DirectService | undefined {
+  if (id === 'board-boost') return BOARD_BOOST;
   return directServices.find((s) => s.id === id);
 }
 
