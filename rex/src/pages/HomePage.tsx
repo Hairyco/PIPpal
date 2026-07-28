@@ -1721,9 +1721,14 @@ export function HomePage() {
                   <p className="font-mono text-[13px] font-semibold tabular-nums text-white">
                     {stat.value}
                   </p>
-                  <div className="mt-0.5 flex h-3.5 items-center justify-center text-white/45">
+                  <div className="mt-0.5 flex h-3.5 items-center justify-center gap-1 text-white/45">
                     {stat.icon ? (
-                      <SocialGlyph id={stat.icon} className="h-3 w-3" />
+                      <>
+                        <SocialGlyph id={stat.icon} className="h-3 w-3 shrink-0" />
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-white/35">
+                          {stat.label}
+                        </span>
+                      </>
                     ) : (
                       <span className="text-[10px] uppercase tracking-wide text-white/35">
                         {stat.label}
