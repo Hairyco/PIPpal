@@ -296,23 +296,20 @@ export function CtoTradeView({
   };
 
   return (
-    <div className="-mx-3 sm:-mx-5">
+    <div className="w-full max-w-[100vw] min-w-0 overflow-x-clip">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
             <div
-              className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
+              className={`h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10 sm:h-11 sm:w-11`}
             >
               <img src={project.logo} alt="" className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-baseline gap-2">
-                <h2 className="truncate font-serif text-xl font-bold tracking-tight">
-                  ${project.ticker}
-                </h2>
-                <p className="hidden truncate text-xs text-white/45 sm:inline">{project.name}</p>
-              </div>
-              <p className="truncate text-xs text-white/45 sm:hidden">{project.name}</p>
+              <h2 className="truncate font-serif text-lg font-bold tracking-tight sm:text-xl">
+                ${project.ticker}
+              </h2>
+              <p className="truncate text-xs text-white/45">{project.name}</p>
               <div className="mt-0.5 flex items-baseline gap-2 sm:hidden">
                 <p className="text-base font-semibold tabular-nums tracking-tight">{project.price}</p>
                 <p className="text-xs font-semibold">
@@ -337,7 +334,7 @@ export function CtoTradeView({
             </button>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:shrink-0 sm:gap-2">
             <button
               type="button"
               onClick={onToggleStar}
@@ -390,17 +387,17 @@ export function CtoTradeView({
         </div>
       ) : null}
 
-      <div className="mx-auto grid max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px]">
         <div className="flex min-w-0 flex-col gap-3">
-          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
-            <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
-              <div className="flex gap-1">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
                   <button
                     key={w}
                     type="button"
                     onClick={() => setChartWindow(w)}
-                    className={`rounded-md px-2 py-1 text-[10px] font-semibold ${
+                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold ${
                       chartWindow === w
                         ? 'bg-white text-[#090b14]'
                         : 'text-white/40 hover:text-white'
@@ -410,8 +407,8 @@ export function CtoTradeView({
                   </button>
                 ))}
               </div>
-              <div className="flex items-center gap-1.5">
-                <p className="text-[10px] text-white/30">Price chart · demo</p>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
                 <button
                   type="button"
                   onClick={() => setTokenInfoOpen((open) => !open)}

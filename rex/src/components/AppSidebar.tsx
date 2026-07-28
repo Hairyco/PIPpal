@@ -123,9 +123,10 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 right-0 z-[56] flex w-56 flex-col border-l border-white/[0.08] bg-[#05070d] transition-transform ${
-          open ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed inset-y-0 right-0 z-[56] flex w-56 max-w-[min(14rem,100vw)] flex-col border-l border-white/[0.08] bg-[#05070d] transition-transform ${
+          open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
+        aria-hidden={!open}
       >
         <div className="flex h-14 items-center justify-between border-b border-white/[0.06] px-4">
           <NavLink

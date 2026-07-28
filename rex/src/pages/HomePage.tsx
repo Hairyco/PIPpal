@@ -843,9 +843,9 @@ export function HomePage() {
 
   return (
     <AppSidebarProvider>
-    <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
+    <div className="page-shell theme-dark min-h-screen max-w-[100vw] overflow-x-clip text-[#f5f7fb]">
       <AppSidebar />
-      <div className="relative z-[1]">
+      <div className="relative z-[1] min-w-0 max-w-[100vw] overflow-x-clip">
       {viewMode !== 'trade' ? (
       <div className="sticky top-0 z-40 bg-black">
       <div className="border-b border-white/[0.06] bg-black">
@@ -1065,9 +1065,13 @@ export function HomePage() {
       </div>
       ) : null}
 
-      <main className={`mx-auto max-w-7xl px-3 sm:px-5 ${viewMode === 'trade' ? 'py-0' : 'py-3'}`}>
+      <main
+        className={`mx-auto min-w-0 max-w-7xl ${
+          viewMode === 'trade' ? 'px-0 py-0' : 'px-3 py-3 sm:px-5'
+        }`}
+      >
         {viewMode === 'trade' && selectedProject ? (
-          <section id="cto-rankings" className="min-w-0 scroll-mt-4 pt-2">
+          <section id="cto-rankings" className="min-w-0 max-w-[100vw] scroll-mt-4 overflow-x-clip pt-2">
             <CtoTradeView
               project={selectedProject}
               projects={visibleProjects}
