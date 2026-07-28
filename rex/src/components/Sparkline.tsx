@@ -13,32 +13,41 @@ function hashSeed(input: string): number {
 /**
  * Build a short price path biased by recent change %.
  * Demo / offline-friendly — no paid market-data API.
+ * Intentionally noisy so it reads like a real tape, not a smooth slope.
  */
-function buildSeries(seed: string, changePct: number | null, points = 18): number[] {
+function buildSeries(seed: string, changePct: number | null, points = 28): number[] {
   const positive = (changePct ?? 0) >= 0;
-  let t = hashSeed(seed);
+  const absChange = Math.abs(changePct ?? 5);
+  let t = hashSeed(`${seed}:${absChange.toFixed(2)}`);
   const rand = () => {
     t = (t * 16807 + 0.123456789) % 1;
     return t;
   };
 
   const values: number[] = [];
-  let v = 0.45 + rand() * 0.15;
-  const drift = positive ? 0.012 : -0.012;
-  const magnitude = Math.min(0.04, Math.abs(changePct ?? 5) / 400);
+  // Start mid-band; winners open a bit lower, losers a bit higher
+  let v = positive ? 0.28 + rand() * 0.22 : 0.52 + rand() * 0.22;
+  const drift = positive ? 0.006 + absChange / 2500 : -(0.006 + absChange / 2500);
+  const volatility = 0.055 + Math.min(0.09, absChange / 180);
 
   for (let i = 0; i < points; i += 1) {
-    const noise = (rand() - 0.5) * 0.08;
-    v = Math.max(0.08, Math.min(0.92, v + drift + noise + (positive ? magnitude : -magnitude)));
+    // Fat-tailed steps: mostly small, sometimes a sharp tick
+    const u = rand();
+    const spike = u > 0.86 ? (rand() - 0.5) * volatility * 2.8 : (rand() - 0.5) * volatility;
+    // Occasional brief counter-trend so the line zigzags
+    const counter = u < 0.18 ? -drift * (1.4 + rand()) : 0;
+    // Mild mean reversion keeps it on-canvas without flattening
+    const pull = (0.5 - v) * 0.04;
+    v = Math.max(0.06, Math.min(0.94, v + drift + spike + counter + pull));
     values.push(v);
   }
 
-  // Anchor end higher/lower so colour matches the % column
-  const endBias = positive ? 0.12 : -0.12;
-  values[values.length - 1] = Math.max(
-    0.08,
-    Math.min(0.92, values[values.length - 1] + endBias),
-  );
+  // Soft end bias (no hard jump) so colour still matches the %
+  const last = values[values.length - 1];
+  const target = positive
+    ? Math.max(last, 0.55 + rand() * 0.25)
+    : Math.min(last, 0.45 - rand() * 0.25);
+  values[values.length - 1] = last * 0.55 + target * 0.45;
   return values;
 }
 
@@ -91,7 +100,14 @@ export function Sparkline({
         </linearGradient>
       </defs>
       <path d={area} fill={`url(#${fillId})`} />
-      <path d={line} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d={line}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.35"
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
+      />
     </svg>
   );
 }
