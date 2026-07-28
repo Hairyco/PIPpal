@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Copy,
@@ -166,6 +166,37 @@ const SLIPPAGE_PRESETS = [1, 5, 10, 20];
 const DEFAULT_SLIPPAGE = 5;
 const DEFAULT_PRIORITY_FEE = '0.0005';
 
+type DemoTrade = {
+  id: string;
+  side: 'buy' | 'sell';
+  sol: string;
+  usd: string;
+  ago: string;
+  wallet: string;
+};
+
+function demoTradesForTicker(ticker: string): DemoTrade[] {
+  const seed = ticker.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const sides: Array<'buy' | 'sell'> = ['buy', 'sell', 'buy', 'buy', 'sell', 'buy', 'sell', 'buy'];
+  const sols = [2.4, 0.85, 5.1, 0.32, 1.7, 3.05, 0.6, 1.15];
+  const agos = ['2s', '14s', '41s', '1m', '2m', '3m', '5m', '8m'];
+  return sides.map((side, i) => {
+    const sol = sols[(seed + i) % sols.length];
+    const usd = Math.round(sol * (118 + ((seed + i * 7) % 24)));
+    const wallet = `${String.fromCharCode(97 + ((seed + i) % 26))}${((seed * 13 + i * 17) % 90)
+      .toString(36)
+      .slice(0, 3)}…${((seed + i * 9) % 36).toString(36).slice(0, 2)}`;
+    return {
+      id: `${ticker}-${i}`,
+      side,
+      sol: sol.toFixed(sol < 1 ? 2 : 1),
+      usd: `$${usd.toLocaleString()}`,
+      ago: agos[i],
+      wallet,
+    };
+  });
+}
+
 type CtoTradeViewProps = {
   project: TradeViewProject;
   projects: TradeViewProject[];
@@ -194,7 +225,11 @@ export function CtoTradeView({
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
+  const [showStickyTrade, setShowStickyTrade] = useState(false);
+  const tradePanelRef = useRef<HTMLDivElement>(null);
   const positive = (change ?? project.change24h) >= 0;
+
+  const demoTrades = useMemo(() => demoTradesForTicker(project.ticker), [project.ticker]);
 
   const v1Mint = resolveV1Mint(project);
   const v1Liquidity = resolveV1Liquidity(project);
@@ -248,6 +283,22 @@ export function CtoTradeView({
     const n = Number(cleaned);
     if (!Number.isFinite(n)) return;
     setSlippage(String(Math.min(99, Math.max(0, n))));
+  };
+
+  useEffect(() => {
+    const el = tradePanelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyTrade(!entry.isIntersecting),
+      { threshold: 0.12, rootMargin: '-12px 0px 0px 0px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [project.ticker]);
+
+  const scrollToTrade = (next: 'buy' | 'sell') => {
+    setSide(next);
+    tradePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
@@ -464,7 +515,11 @@ export function CtoTradeView({
         </div>
 
         <aside className="flex flex-col gap-3">
-          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
+          <div
+            id="trade-panel"
+            ref={tradePanelRef}
+            className="scroll-mt-4 rounded-xl border border-white/[0.1] bg-[#05070d] p-3"
+          >
             <div className="grid grid-cols-2 gap-1 rounded-lg bg-white/[0.03] p-1">
               <button
                 type="button"
@@ -741,20 +796,41 @@ export function CtoTradeView({
             ) : null}
           </div>
 
-          {!isExternal ? (
-            <Link
-              to={launchHref}
-              className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.1] bg-white/[0.02] px-3 py-3 transition hover:border-[#c8ff3d]/30 hover:bg-[#c8ff3d]/5"
-            >
-              <div>
-                <p className="text-xs font-bold text-white">Launch a CTO</p>
-                <p className="mt-0.5 text-[10px] text-white/40">
-                  Prefills ${project.ticker} + V1 mint
-                </p>
-              </div>
-              <Flame className="h-4 w-4 shrink-0 text-[#c8ff3d]" />
-            </Link>
-          ) : null}
+          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
+                Trades
+              </p>
+              <p className="text-[10px] text-white/30">Live · demo</p>
+            </div>
+            <ul className="mt-2 divide-y divide-white/[0.05]">
+              {demoTrades.map((trade) => (
+                <li
+                  key={trade.id}
+                  className="flex items-center justify-between gap-2 py-2 first:pt-0 last:pb-0"
+                >
+                  <div className="min-w-0">
+                    <p
+                      className={`text-[11px] font-bold uppercase tracking-wide ${
+                        trade.side === 'buy' ? 'text-emerald-400' : 'text-rose-400'
+                      }`}
+                    >
+                      {trade.side}
+                    </p>
+                    <p className="truncate font-mono text-[10px] text-white/35">{trade.wallet}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-semibold tabular-nums text-white/90">
+                      {trade.sol} SOL
+                    </p>
+                    <p className="text-[10px] tabular-nums text-white/35">
+                      {trade.usd} · {trade.ago}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </aside>
       </div>
 
@@ -790,6 +866,28 @@ export function CtoTradeView({
           })}
         </div>
       </div>
+
+      {showStickyTrade ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
+          <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-2xl border border-white/[0.1] bg-[#05070d]/95 p-2 shadow-[0_-12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
+            <button
+              type="button"
+              onClick={() => scrollToTrade('buy')}
+              className="flex h-11 items-center justify-center rounded-xl bg-emerald-400 text-sm font-bold text-black hover:bg-emerald-300"
+            >
+              Buy
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollToTrade('sell')}
+              className="flex h-11 items-center justify-center rounded-xl bg-rose-400 text-sm font-bold text-black hover:bg-rose-300"
+            >
+              Sell
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {showStickyTrade ? <div className="h-20" aria-hidden /> : null}
     </div>
   );
 }
