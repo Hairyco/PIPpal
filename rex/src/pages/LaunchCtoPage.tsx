@@ -1201,7 +1201,7 @@ export function LaunchCtoPage() {
               <div>
                 <p className="text-sm font-bold text-white">Your website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Write your copy, pick a vibe, generate a premium 1-pager — regenerate until it
+                  Write your copy, pick a vibe, generate a simple 1-pager — regenerate until it
                   feels right.
                 </p>
               </div>
@@ -1223,7 +1223,12 @@ export function LaunchCtoPage() {
                       : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                   }`}
                 >
-                  <p className="text-xs font-bold text-white">Premium 1-pager</p>
+                  <p className="flex items-center gap-1.5 text-xs font-bold text-white">
+                    Simple 1-pager
+                    <span className="rounded bg-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/50">
+                      beta
+                    </span>
+                  </p>
                   <p className="mt-1 text-[10px] text-white/40">Creative layouts, your copy</p>
                 </button>
                 <button
@@ -1393,7 +1398,7 @@ export function LaunchCtoPage() {
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Generate {websiteKind === 'clone' ? 'clone preview' : 'premium 1-pager'}
+                      Generate {websiteKind === 'clone' ? 'clone preview' : '1-pager'}
                     </>
                   )}
                 </button>
