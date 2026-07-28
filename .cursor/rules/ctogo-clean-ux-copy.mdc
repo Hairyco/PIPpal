@@ -1,0 +1,25 @@
+---
+description: CTOgo UX copy — keep instructions short, low-friction, and non-internal
+globs: rex/**/*
+alwaysApply: false
+---
+
+# CTOgo: clean, low-friction copy
+
+People skim. They do not want to read unless they choose to.
+
+## Do
+- Prefer one short sentence over paragraphs on primary UI (forms, checkboxes, CTAs, tooltips).
+- Put detail behind optional links: “How it works”, Fees, FAQ.
+- Keep product surfaces focused: what to do next, what it costs, what happens.
+- Move protocol edge cases (abandonment, inactivity sweeps, treasury routing, rent math) to FAQ / Fees — not into the main flow.
+
+## Don’t
+- Write like an internal eng/product note (“rent/tx from the $1, remainder to treasury”, “platform fee still applies if you skip”).
+- Stack long explainer boxes, rule dumps, or multi-step policy text on List / Launch / claim screens.
+- Overwhelm first-time users with every protocol rule at once.
+
+## Pattern
+1. **Inline** — shortest helpful line.
+2. **How it works** — only the mental model (fees → vault fill → spends unlock).
+3. **FAQ / Fees** — abandonment, inactivity, fee math, edge cases.

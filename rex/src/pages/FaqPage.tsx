@@ -17,7 +17,7 @@ export function FaqPage() {
         </p>
 
         {FAQ_SECTIONS.map((section) => (
-          <section key={section.id} className="mt-8">
+          <section key={section.id} id={section.id} className="mt-8 scroll-mt-20">
             <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
               {section.label}
             </h2>

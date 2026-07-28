@@ -70,6 +70,12 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: `At $${MARKETING_AUTO_SPEND_USD} the automated spend fires and buys placements without anyone signing off.`,
       },
       {
+        id: 'abandonment',
+        question: 'What if the creator dumps?',
+        answer:
+          'Their fee cut is revoked on-chain and redirected to the marketing wallet (or the trader rebate pool). The total trade tax stays on, so recovery spend keeps getting funded.',
+      },
+      {
         id: 'inactive',
         question: 'What happens if the coin goes quiet?',
         answer: `If the vault is under $${MARKETING_AUTO_SPEND_USD} and records $0 volume for ${MARKETING_INACTIVITY_HOURS} hours, the balance is swept into the protocol CTO Reserve. A Native V2 takeover restores 100% of it into the new vault. If no Native V2 happens within ${MARKETING_V2_DEADLINE_DAYS} days of the V1 mint, the funds go to the protocol treasury.`,
@@ -120,12 +126,6 @@ export const FAQ_SECTIONS: FaqSection[] = [
         question: 'Do fees stop after Raydium migration?',
         answer:
           'No. Graduating off the bonding curve does not disable tax. Platform, marketing, and creator/trader pool cuts keep applying to post-migration volume so the marketing wallet keeps funding growth.',
-      },
-      {
-        id: 'dev-dumps',
-        question: 'What if the creator dumps?',
-        answer:
-          'Their fee cut is revoked on-chain and redirected to the marketing wallet (or the trader rebate pool). The total trade tax stays on, so recovery spend keeps getting funded.',
       },
       {
         id: 'own-amm',

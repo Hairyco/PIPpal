@@ -1,9 +1,7 @@
 import { CheckCircle2, Circle, Clock, Wallet, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
-  ABANDONMENT_RULE,
-  CREATOR_FEE_MODES,
   FEE_TIERS,
-  MARKETING_VAULT_SWEEP_RULE,
   TRADE_FEE_LABEL,
   formatBpsPercent,
   totalFeeBps,
@@ -78,7 +76,7 @@ export function MarketingWalletProgressTracker({
           <p className="text-[10px] uppercase tracking-wider text-white/40">Wallet fill</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums text-white">{overall}%</p>
           <p className="mt-0.5 text-[11px] text-white/45">
-            Balance {formatSpendCost(balanceUsd)} · next unlocks as tax fills the vault
+            Balance {formatSpendCost(balanceUsd)} · unlocks as trades fill the vault
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -200,7 +198,7 @@ export function MarketingWalletExplainer({
                   <p className="mt-0.5 text-[10px] text-white/30">
                     {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
                     {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
-                    {formatBpsPercent(tier.platformBps)} Rex
+                    {formatBpsPercent(tier.platformBps)} CTOgo
                   </p>
                 </div>
                 <p className="text-sm font-bold tabular-nums text-[#d5ff69]">
@@ -209,60 +207,16 @@ export function MarketingWalletExplainer({
               </li>
             ))}
           </ul>
-          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-            {CREATOR_FEE_MODES.map((mode) => (
-              <li
-                key={mode.id}
-                className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2.5 py-2"
-              >
-                <p className="text-[10px] font-semibold text-white/70">{mode.title}</p>
-                <p className="mt-0.5 text-[10px] leading-relaxed text-white/40">
-                  {mode.destination}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 rounded-lg border border-rose-400/25 bg-rose-500/[0.07] px-2.5 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-rose-300">
-              {ABANDONMENT_RULE.title}
-            </p>
-            <p className="mt-1 text-[11px] font-semibold text-white/80">
-              {ABANDONMENT_RULE.thresholdLabel}
-            </p>
-            <p className="mt-1 text-[10px] leading-relaxed text-white/50">
-              {ABANDONMENT_RULE.action} {ABANDONMENT_RULE.redirectMarketing}
-            </p>
-          </div>
-          <div className="mt-3 rounded-lg border border-[#2aabee]/30 bg-[#2aabee]/[0.08] px-2.5 py-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-sky-300">
-              {MARKETING_VAULT_SWEEP_RULE.title}
-            </p>
-            <p className="mt-1 text-[10px] leading-relaxed text-white/55">
-              {MARKETING_VAULT_SWEEP_RULE.autoSpend}
-            </p>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
-              {MARKETING_VAULT_SWEEP_RULE.inactivity}
-            </p>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
-              {MARKETING_VAULT_SWEEP_RULE.ctoRestoration}
-            </p>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
-              {MARKETING_VAULT_SWEEP_RULE.v1Restart}
-            </p>
-            <p className="mt-1.5 text-[10px] leading-relaxed text-white/55">
-              {MARKETING_VAULT_SWEEP_RULE.v2Deadline}
-            </p>
-          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-white/45">
+            A cut of each CTOgo trade goes into this vault. As it fills, spends unlock in order.
+          </p>
+          <p className="mt-2 text-[11px] text-white/35">
+            Dump / inactivity rules →{' '}
+            <Link to="/faq#marketing-wallet" className="font-semibold text-[#d5ff69] hover:underline">
+              FAQ
+            </Link>
+          </p>
         </div>
-
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/55">
-          Marketing ({formatBpsPercent(LAUNCH_TIER.marketingBps)} at launch) lands in a non-custodial
-          vault for this coin. The creator/trader pool (
-          {formatBpsPercent(LAUNCH_TIER.creatorPoolBps)}) is set at deploy — keep it as creator fees
-          or auto-cashback traders. Dump 90%+ and that cut is revoked from the wallet, not the whole
-          trade tax — Rex and marketing keep funding recovery. As the marketing balance rises, Rex
-          unlocks supplier spends in order.
-        </p>
       </div>
       <div className="p-4 sm:p-5">
         <MarketingWalletProgressTracker balanceUsd={balanceUsd} />

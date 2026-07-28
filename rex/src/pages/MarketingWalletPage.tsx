@@ -16,8 +16,7 @@ export function MarketingWalletPage() {
               How spend gets funded
             </h1>
             <p className="mt-2 text-sm text-white/50">
-              Trade tax fills a non-custodial vault. When milestones hit, Rex pays suppliers for
-              growth.
+              Trades fill the vault. Spends unlock as the balance grows.
             </p>
           </div>
           <Link

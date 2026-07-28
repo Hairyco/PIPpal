@@ -146,7 +146,7 @@ export function MarketingSpendFlowChart() {
             viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
             className="min-w-[320px] w-full"
             role="img"
-            aria-label="Marketing wallet chart showing automated spend at Telegram, DexScreener, trending bar, and Coinzilla"
+            aria-label="Marketing wallet chart showing automated spend at Telegram, update socials, trending bar, and Coinzilla"
           >
             <defs>
               <linearGradient id={lineGradientId} x1="0" y1="0" x2="1" y2="0">

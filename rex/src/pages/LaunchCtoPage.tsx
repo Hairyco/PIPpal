@@ -783,9 +783,7 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      Optional. Opens an on-chain vault — rent/tx from the $
-                      {MARKETING_WALLET_ATTACH_FEE_USD}, remainder to treasury. CTOgo trades fill it;
-                      platform fee still applies if you skip.
+                      Optional. CTOgo trades fill it to pay for ads and growth.
                     </span>
                     <Link
                       to="/marketing-wallet"
