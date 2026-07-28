@@ -187,9 +187,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '190px 80px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
+  '190px 80px 72px 64px 88px 72px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
+  '30px 190px 80px 68px 56px 72px 64px 88px 72px 52px 56px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -244,6 +244,7 @@ function Pct({ value }: { value: number | null }) {
   if (value === null) return <span className="text-white/25">--</span>;
   return (
     <span className={value >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+      {value >= 0 ? '+' : ''}
       {value.toFixed(2)}%
     </span>
   );
@@ -868,7 +869,6 @@ export function HomePage() {
                     <span className="text-right">Volume</span>
                     <span className="text-right">TXs</span>
                     <span className="text-right">Price</span>
-                    <span className="text-right">%{activeTimeWindow}</span>
                     <span className="text-right">Age</span>
                     <span className="text-right">Holders</span>
                     <span className="text-right" title="Messages per hour">MPH</span>
@@ -960,14 +960,18 @@ export function HomePage() {
                           </span>
                         </>
                       ) : null}
-                      <span className="text-right text-xs font-semibold text-white/90">{project.marketCap}</span>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-white/90">{project.marketCap}</p>
+                        <p className="text-[10px] leading-none">
+                          <Pct value={changeForWindow(project, activeTimeWindow)} />
+                        </p>
+                      </div>
                       <span className="text-right text-xs font-semibold text-white/80">{project.volume24h}</span>
                       <div className="flex items-center justify-end gap-1.5">
                         <span className="text-xs text-white/70">{project.txs}</span>
                         <TxVolumeBar project={project} />
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
-                      <span className="text-right text-xs"><Pct value={changeForWindow(project, activeTimeWindow)} /></span>
                       <span
                         className={`text-right text-xs font-semibold ${
                           project.launchInHours == null ? 'text-emerald-300' : 'text-white/75'
