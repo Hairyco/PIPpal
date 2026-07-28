@@ -313,8 +313,11 @@ export function CtoTradeView({
             title="Back to board"
           >
             <CtoGoLogo size={32} />
-            <span className="hidden font-serif text-sm font-bold tracking-tight text-white sm:inline">
+            <span className="hidden items-center gap-1.5 font-serif text-sm font-bold tracking-tight text-white sm:inline-flex">
               CTOgo
+              <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                beta
+              </span>
             </span>
           </button>
 

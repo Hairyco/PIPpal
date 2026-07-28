@@ -575,7 +575,12 @@ export function LaunchCtoPage() {
           <div className="mx-auto flex h-14 max-w-xl items-center gap-3 px-3 sm:px-5">
             <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
               <CtoGoLogo size={32} className="rounded-xl" />
-              <span className="font-serif text-base font-bold tracking-tight">CTOgo</span>
+              <span className="flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
+                CTOgo
+                <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                  beta
+                </span>
+              </span>
             </Link>
             <Link
               to="/"

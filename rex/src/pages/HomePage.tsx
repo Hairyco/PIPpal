@@ -536,7 +536,12 @@ export function HomePage() {
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
             <CtoGoLogo size={36} className="rounded-xl" />
             <div className="hidden sm:block">
-              <p className="font-serif text-lg font-bold leading-none tracking-tight">CTOgo</p>
+              <p className="flex items-center gap-1.5 font-serif text-lg font-bold leading-none tracking-tight">
+                CTOgo
+                <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                  beta
+                </span>
+              </p>
               <p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/30">Community takeover</p>
             </div>
           </a>

@@ -121,9 +121,12 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
           <NavLink
             to="/"
             onClick={() => setOpen(false)}
-            className="font-serif text-base font-bold tracking-tight text-white"
+            className="inline-flex items-center gap-1.5 font-serif text-base font-bold tracking-tight text-white"
           >
             CTOgo
+            <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+              beta
+            </span>
           </NavLink>
           <button
             type="button"
