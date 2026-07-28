@@ -592,7 +592,7 @@ export function LaunchCtoPage() {
 
               <label className="block">
                 <span className="text-[11px] font-semibold text-white/45">Contract address</span>
-                <div className="mt-1.5 flex gap-2">
+                <div className="mt-1.5 flex items-center gap-2">
                   <input
                     value={contract}
                     onChange={(event) => {
@@ -601,7 +601,7 @@ export function LaunchCtoPage() {
                       setLookupError(null);
                     }}
                     placeholder="Contract address"
-                    className={`${fieldClass} mt-0 font-mono text-[12px]`}
+                    className="h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 font-mono text-[12px] text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                   />
                   <button
                     type="button"
