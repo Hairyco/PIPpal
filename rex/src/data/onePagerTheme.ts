@@ -182,16 +182,17 @@ export const DEFAULT_ONE_PAGER_INCLUDES: OnePagerIncludes = {
 /** Creative layout directions — generate picks freely; not one locked meme template. */
 export type OnePagerLayoutId = 'aurora' | 'editorial' | 'noir' | 'brutal' | 'gallery';
 
+/** Order is intentional: consecutive regenerates flip light ↔ dark / soft ↔ hard. */
 export const ONE_PAGER_LAYOUTS: {
   id: OnePagerLayoutId;
   label: string;
   hint: string;
 }[] = [
   { id: 'aurora', label: 'Aurora', hint: 'Glow, depth, modern crypto' },
-  { id: 'editorial', label: 'Editorial', hint: 'Magazine polish' },
-  { id: 'noir', label: 'Noir', hint: 'Cinematic & sharp' },
-  { id: 'brutal', label: 'Brutal', hint: 'Oversized type energy' },
-  { id: 'gallery', label: 'Gallery', hint: 'Art-first, quiet luxury' },
+  { id: 'editorial', label: 'Editorial', hint: 'Cream magazine polish' },
+  { id: 'brutal', label: 'Brutal', hint: 'Solid accent header, hard edges' },
+  { id: 'noir', label: 'Noir', hint: 'Cinematic letterbox' },
+  { id: 'gallery', label: 'Gallery', hint: 'Light art-first frame' },
 ];
 
 export type OnePagerLayoutPreference = OnePagerLayoutId | 'auto';
@@ -209,6 +210,16 @@ export function nextOnePagerLayout(current: OnePagerLayoutId): OnePagerLayoutId 
   const idx = ONE_PAGER_LAYOUTS.findIndex((l) => l.id === current);
   const safe = idx >= 0 ? idx : 0;
   return ONE_PAGER_LAYOUTS[(safe + 1) % ONE_PAGER_LAYOUTS.length].id;
+}
+
+export function onePagerLayoutLabel(id: OnePagerLayoutId): string {
+  return ONE_PAGER_LAYOUTS.find((l) => l.id === id)?.label ?? id;
+}
+
+/** Layout index from an incrementing counter — guaranteed different each step. */
+export function layoutIdFromCycle(cycle: number): OnePagerLayoutId {
+  const n = ONE_PAGER_LAYOUTS.length;
+  return ONE_PAGER_LAYOUTS[((cycle % n) + n) % n].id;
 }
 
 /** Split multifunctional site copy into paragraphs for layout. */

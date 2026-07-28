@@ -44,10 +44,11 @@ import {
   ONE_PAGER_PRIMARY_THEMES,
   defaultGeneratedSiteCopy,
   isBespokeOnePagerTheme,
-  nextOnePagerLayout,
+  layoutIdFromCycle,
   resolveOnePagerLayout,
   type OnePagerIncludeId,
   type OnePagerIncludes,
+  type OnePagerLayoutId,
   type OnePagerLayoutPreference,
   type OnePagerTheme,
   type OnePagerThemeId,
@@ -202,6 +203,9 @@ export function LaunchCtoPage() {
   const [showExtraCopy, setShowExtraCopy] = useState(false);
   const [layoutPreference, setLayoutPreference] = useState<OnePagerLayoutPreference>('auto');
   const [layoutSeed, setLayoutSeed] = useState(0);
+  const [forcedLayoutId, setForcedLayoutId] = useState<OnePagerLayoutId | null>(null);
+  const [designNonce, setDesignNonce] = useState(0);
+  const designCycleRef = useRef(0);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [logoSalt, setLogoSalt] = useState(0);
@@ -296,7 +300,25 @@ export function LaunchCtoPage() {
     extraLogos: extraLogoGens,
     extraBanners: extraBannerGens,
   });
-  const activeLayoutId = resolveOnePagerLayout(layoutPreference, layoutSeed);
+  const activeLayoutId =
+    forcedLayoutId ?? resolveOnePagerLayout(layoutPreference, layoutSeed);
+
+  /** Guaranteed unique look: cycle layout + colour, bump nonce for remount. */
+  const advanceUniqueDesign = () => {
+    designCycleRef.current += 1;
+    const cycle = designCycleRef.current;
+    const nextLayout = layoutIdFromCycle(cycle);
+    const nextTheme =
+      ONE_PAGER_PRIMARY_THEMES[cycle % ONE_PAGER_PRIMARY_THEMES.length] ??
+      ONE_PAGER_PRIMARY_THEMES[0];
+    setForcedLayoutId(nextLayout);
+    setLayoutPreference(nextLayout);
+    setLayoutSeed(cycle);
+    setOnePagerThemeId(nextTheme.id);
+    setDesignNonce(cycle);
+    return nextLayout;
+  };
+
   const resetFlow = () => {
     setStep('coin');
     setName('');
@@ -318,6 +340,9 @@ export function LaunchCtoPage() {
     setShowExtraCopy(false);
     setLayoutPreference('auto');
     setLayoutSeed(0);
+    setForcedLayoutId(null);
+    setDesignNonce(0);
+    designCycleRef.current = 0;
     setLogoPreview(null);
     setBannerPreview(null);
     setLogoSalt(0);
@@ -488,12 +513,6 @@ export function LaunchCtoPage() {
     setEditSite(true);
   };
 
-  const bumpLayoutSeed = () => {
-    const next = Date.now() % 10007;
-    setLayoutSeed(next);
-    return next;
-  };
-
   /** Builds a finished site and opens the real full-page viewer. */
   const generateWebsite = async () => {
     if (websiteKind === 'clone' && !cloneUrl.trim() && !website.trim()) {
@@ -507,7 +526,6 @@ export function LaunchCtoPage() {
       const projectTicker = ticker || 'PEPE';
       const defaults = defaultGeneratedSiteCopy(projectName, projectTicker);
 
-      // Always land a finished-looking page — fill blanks so generate never looks empty.
       if (!siteHeadline.trim()) setSiteHeadline(defaults.headline);
       if (!pageBlurb.trim()) setPageBlurb(note.trim() || defaults.body);
       if (!siteExtraTitle.trim() && !siteExtraBody.trim()) {
@@ -524,10 +542,8 @@ export function LaunchCtoPage() {
         community: true,
       }));
 
-      // Fresh layout each generate when on Auto.
-      if (layoutPreference === 'auto') {
-        bumpLayoutSeed();
-      }
+      // Always advance to a concrete unique layout.
+      advanceUniqueDesign();
 
       let logo = logoPreview;
       if (!logo) {
@@ -565,18 +581,8 @@ export function LaunchCtoPage() {
     }
   };
 
-  /** Always advance to a different layout — seed-only updates looked identical before. */
   const regenerateDesign = () => {
-    const current = resolveOnePagerLayout(layoutPreference, layoutSeed);
-    const next = nextOnePagerLayout(current);
-    setLayoutPreference(next);
-    setLayoutSeed((s) => s + 1);
-    // Rotate primary theme so colour changes too.
-    const themeIdx = ONE_PAGER_PRIMARY_THEMES.findIndex((t) => t.id === onePagerThemeId);
-    const nextTheme =
-      ONE_PAGER_PRIMARY_THEMES[(themeIdx + 1) % ONE_PAGER_PRIMARY_THEMES.length] ??
-      ONE_PAGER_PRIMARY_THEMES[0];
-    setOnePagerThemeId(nextTheme.id);
+    advanceUniqueDesign();
     setPreviewOpen(true);
   };
 
@@ -1327,9 +1333,12 @@ export function LaunchCtoPage() {
                     <div className="mt-2 flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => setLayoutPreference('auto')}
+                        onClick={() => {
+                          setLayoutPreference('auto');
+                          setForcedLayoutId(null);
+                        }}
                         className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                          layoutPreference === 'auto'
+                          layoutPreference === 'auto' && !forcedLayoutId
                             ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
                             : 'border-white/[0.08] text-white/45 hover:text-white'
                         }`}
@@ -1341,9 +1350,13 @@ export function LaunchCtoPage() {
                           key={layout.id}
                           type="button"
                           title={layout.hint}
-                          onClick={() => setLayoutPreference(layout.id)}
+                          onClick={() => {
+                            setLayoutPreference(layout.id);
+                            setForcedLayoutId(layout.id);
+                            setDesignNonce((n) => n + 1);
+                          }}
                           className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                            layoutPreference === layout.id
+                            (forcedLayoutId ?? layoutPreference) === layout.id
                               ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
                               : 'border-white/[0.08] text-white/45 hover:text-white'
                           }`}
@@ -1419,11 +1432,13 @@ export function LaunchCtoPage() {
                     themeId={onePagerThemeId}
                     layoutPreference={layoutPreference}
                     layoutSeed={layoutSeed}
+                    layoutId={activeLayoutId}
+                    designNonce={designNonce}
                     includes={siteIncludes}
                     tokenSupply={tokenSupply}
                   />
                   <p className="text-center text-[10px] capitalize text-white/30">
-                    Layout · {activeLayoutId}
+                    Layout · {activeLayoutId} · look {designNonce || 1}
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -1513,9 +1528,12 @@ export function LaunchCtoPage() {
                             <div className="mt-2 flex flex-wrap gap-2">
                               <button
                                 type="button"
-                                onClick={() => setLayoutPreference('auto')}
+                                onClick={() => {
+                                  setLayoutPreference('auto');
+                                  setForcedLayoutId(null);
+                                }}
                                 className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                                  layoutPreference === 'auto'
+                                  layoutPreference === 'auto' && !forcedLayoutId
                                     ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
                                     : 'border-white/[0.08] text-white/45'
                                 }`}
@@ -1526,9 +1544,13 @@ export function LaunchCtoPage() {
                                 <button
                                   key={layout.id}
                                   type="button"
-                                  onClick={() => setLayoutPreference(layout.id)}
+                                  onClick={() => {
+                                    setLayoutPreference(layout.id);
+                                    setForcedLayoutId(layout.id);
+                                    setDesignNonce((n) => n + 1);
+                                  }}
                                   className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                                    layoutPreference === layout.id
+                                    (forcedLayoutId ?? layoutPreference) === layout.id
                                       ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
                                       : 'border-white/[0.08] text-white/45'
                                   }`}
@@ -1806,6 +1828,8 @@ export function LaunchCtoPage() {
         themeId={onePagerThemeId}
         layoutPreference={layoutPreference}
         layoutSeed={layoutSeed}
+        layoutId={activeLayoutId}
+        designNonce={designNonce}
         includes={siteIncludes}
         tokenSupply={tokenSupply}
       />
