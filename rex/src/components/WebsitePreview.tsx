@@ -111,8 +111,8 @@ function MemeOnePagerBody({
   const theme = getOnePagerTheme(themeId ?? DEFAULT_ONE_PAGER_THEME_ID);
   const blurbText = designTweaks.punchyBlurb
     ? applyPunchyBlurb(blurb, rawTicker)
-    : blurb.trim() || 'New mint. Same community.';
-  const heroLine = blurbText.toUpperCase();
+    : blurb.trim();
+  const heroLine = blurbText ? blurbText.toUpperCase() : '';
   const titleSize = designTweaks.loudTitle
     ? full
       ? 'text-5xl sm:text-7xl'
@@ -176,16 +176,18 @@ function MemeOnePagerBody({
 
       {/* Hero */}
       <div className={`text-center ${full ? 'px-4 pb-8 pt-8 sm:pt-10' : 'px-3 pb-4 pt-4'}`}>
-        <p
-          className={`mx-auto max-w-lg font-black uppercase leading-tight tracking-wide ${
-            full ? 'text-sm sm:text-base' : 'text-[10px]'
-          }`}
-          style={{ color: theme.muted }}
-        >
-          {heroLine}
-        </p>
+        {heroLine ? (
+          <p
+            className={`mx-auto max-w-lg font-black uppercase leading-tight tracking-wide ${
+              full ? 'text-sm sm:text-base' : 'text-[10px]'
+            }`}
+            style={{ color: theme.muted }}
+          >
+            {heroLine}
+          </p>
+        ) : null}
         <h1
-          className={`mt-3 font-black uppercase leading-none tracking-tight ${titleSize}`}
+          className={`font-black uppercase leading-none tracking-tight ${heroLine ? 'mt-3' : ''} ${titleSize}`}
           style={{ color: theme.accent }}
         >
           {displayName}
@@ -225,8 +227,9 @@ function MemeOnePagerBody({
               className="mx-auto mt-3 max-w-xl text-sm leading-relaxed sm:text-base"
               style={{ color: theme.muted }}
             >
-              {blurbText} Community-driven meme energy — no gimmicks, just the coin that refuses to
-              be ignored.
+              {blurbText
+                ? `${blurbText} Community-driven meme energy — no gimmicks, just the coin that refuses to be ignored.`
+                : 'Community-driven meme energy — no gimmicks, just the coin that refuses to be ignored.'}
             </p>
           </section>
 

@@ -140,7 +140,8 @@ export function parseOnePagerDesignNote(note: string): OnePagerDesignTweaks {
 }
 
 export function applyPunchyBlurb(blurb: string, ticker: string): string {
-  const base = blurb.trim() || 'New mint. Same community.';
+  const base = blurb.trim();
+  if (!base) return '';
   const tick = ticker.trim().replace(/^\$/, '').toUpperCase() || 'TOKEN';
   if (/community|meme|degen|based/i.test(base)) return base.slice(0, 80);
   return `${base} $${tick} stays loud.`.slice(0, 80);

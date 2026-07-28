@@ -266,7 +266,6 @@ export function LaunchCtoPage() {
         ticker: qTicker.replace(/^\$/, '') || 'CTO',
       });
       setLogoPreview(logo);
-      setPageBlurb(`${qName || 'This coin'}. New mint. Same community.`);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -1194,7 +1193,7 @@ export function LaunchCtoPage() {
                           value={pageBlurb}
                           onChange={(event) => setPageBlurb(event.target.value)}
                           rows={2}
-                          placeholder="One line about the coin…"
+                          placeholder=""
                           className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                         />
                       </label>

@@ -52,7 +52,7 @@ export async function resolveLaunchCoin(mintRaw: string): Promise<LaunchCoinMeta
       logoUrl,
       source: 'catalog',
       venueLabel: catalogHit.sourceVenue ?? 'Solana',
-      blurb: `${catalogHit.name}. New mint. Same community.`,
+      blurb: '',
     };
   }
 
@@ -71,7 +71,7 @@ export async function resolveLaunchCoin(mintRaw: string): Promise<LaunchCoinMeta
     logoUrl,
     source: 'demo',
     venueLabel: demo.venue,
-    blurb: `${demo.name}. New mint. Same community.`,
+    blurb: '',
   };
 }
 
