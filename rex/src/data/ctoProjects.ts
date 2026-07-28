@@ -113,6 +113,8 @@ export type CtoProject = {
   verified?: boolean;
   boost?: number;
   promoted?: boolean;
+  /** Discord invite URL. Omit for auto demo; set '' to hide. */
+  discordUrl?: string;
 };
 
 export const ORIGIN_META: Record<
