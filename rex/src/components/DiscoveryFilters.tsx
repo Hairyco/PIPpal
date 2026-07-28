@@ -77,9 +77,12 @@ function isVolumeFilter(value: unknown): value is VolumeFilter {
 
 export function readRememberFilters(): boolean {
   try {
-    return localStorage.getItem(REMEMBER_STORAGE_KEY) === '1';
+    const raw = localStorage.getItem(REMEMBER_STORAGE_KEY);
+    // Default on — only off when user explicitly unchecks.
+    if (raw === null) return true;
+    return raw !== '0';
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -246,7 +249,7 @@ function DualRangeSlider({
         </p>
       </div>
 
-      <div className="relative mt-4 h-6">
+      <div className="relative mt-4 h-6 overflow-hidden">
         <div className="absolute left-0 right-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/[0.08]" />
         <div
           className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#c8ff3d]/70"
@@ -390,28 +393,27 @@ export function DiscoveryFiltersPanel({
           </div>
         </div>
 
-        <label className="mt-4 flex cursor-pointer items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+        <button
+          type="button"
+          onClick={() => onRememberChange(!remember)}
+          className="relative z-10 mt-4 flex w-full items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
+          aria-pressed={remember}
+        >
           <span
             className={`grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${
               remember
                 ? 'border-[#c8ff3d]/50 bg-[#c8ff3d] text-[#090b14]'
-                : 'border-white/20 bg-transparent text-transparent'
+                : 'border-white/25 bg-black/40 text-transparent'
             }`}
             aria-hidden
           >
             <Check className="h-3.5 w-3.5" strokeWidth={3} />
           </span>
-          <input
-            type="checkbox"
-            checked={remember}
-            onChange={(event) => onRememberChange(event.target.checked)}
-            className="sr-only"
-          />
           <span className="min-w-0">
             <span className="block text-[12px] font-semibold text-white/85">Remember settings</span>
             <span className="block text-[10px] text-white/40">Keep these filters next time you visit</span>
           </span>
-        </label>
+        </button>
 
         <div className="mt-4 flex gap-2">
           <button
