@@ -435,10 +435,9 @@ export function HomePage() {
     }
     const venue =
       SOURCE_VENUE_FILTERS.find((item) => item.id === venueFilter) ?? SOURCE_VENUE_FILTERS[0];
-    const baseSubtitle =
-      'Hybrid mix — Native V2 CTOs, Native Launches, and high-volume External CTOs.';
+    const baseSubtitle = 'Discover new coins & trade with ready made communities';
     const venueNote =
-      venueFilter === 'all' ? baseSubtitle : `${baseSubtitle} Filtered to ${venue.label}.`;
+      venueFilter === 'all' ? baseSubtitle : `${baseSubtitle} · ${venue.label}`;
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
       return {
