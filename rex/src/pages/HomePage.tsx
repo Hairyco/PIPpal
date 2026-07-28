@@ -507,6 +507,7 @@ export function HomePage() {
   const [activeMode, setActiveMode] = useState<RankingMode>('Trending');
   const [venueFilter, setVenueFilter] = useState<SourceVenueFilter>('all');
   const [activeWindow, setActiveWindow] = useState<RankingFilter>('5m');
+  const windowBeforePinned = useRef<TimeWindow>('5m');
   const isPinnedView = activeWindow === 'Pinned';
   const activeTimeWindow: TimeWindow = isPinnedView ? '5m' : activeWindow;
   const shortcutOwnsList =
