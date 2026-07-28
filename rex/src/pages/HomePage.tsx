@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Bell,
   Check,
@@ -536,7 +536,8 @@ export function HomePage() {
   const [rememberFilters, setRememberFilters] = useState(() => readRememberFilters());
   const [copiedCaTicker, setCopiedCaTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
-  const { starred, toggle: toggleWatchlist } = useWatchlist();
+  const { starred, toggle: toggleWatchlist, count: watchlistCount } = useWatchlist();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
@@ -668,6 +669,22 @@ export function HomePage() {
   }, [query, activeWindow, activeShortcut, activeMode, venueFilter, discoveryFilters]);
 
   const activeFilterCount = countActiveDiscoveryFilters(discoveryFilters);
+
+  const updateDiscoveryFilters = (next: DiscoveryFilterState) => {
+    setDiscoveryFilters(next);
+    if (rememberFilters) saveDiscoveryFilters(next);
+  };
+
+  const clearDiscoveryFilters = () => {
+    setDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS);
+    if (rememberFilters) saveDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS);
+  };
+
+  const toggleRememberFilters = (remember: boolean) => {
+    setRememberFilters(remember);
+    writeRememberFilters(remember);
+    if (remember) saveDiscoveryFilters(discoveryFilters);
+  };
 
   const copyTradeMint = async (project: Project) => {
     const mint = resolveTradeMint(project);
@@ -1074,6 +1091,20 @@ export function HomePage() {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                title="Coins you’ve starred"
+                onClick={() => navigate('/watchlist')}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.06] bg-transparent px-3 py-1.5 text-[11px] font-semibold text-white/40 transition hover:border-white/15 hover:text-white [-webkit-tap-highlight-color:transparent]"
+              >
+                <Star className="h-3 w-3" />
+                Watchlist
+                {watchlistCount > 0 ? (
+                  <span className="rounded-full bg-[#c8ff3d]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#d5ff69]">
+                    {watchlistCount}
+                  </span>
+                ) : null}
+              </button>
             </div>
 
             <div className="mb-3 flex items-center gap-2">
@@ -1179,7 +1210,7 @@ export function HomePage() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => setDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS)}
+                  onClick={clearDiscoveryFilters}
                   className="px-1.5 text-[10px] font-semibold text-white/40 hover:text-[#d5ff69]"
                 >
                   Clear all
@@ -1595,10 +1626,12 @@ export function HomePage() {
       <DiscoveryFiltersPanel
         open={filtersOpen}
         filters={discoveryFilters}
-        onChange={setDiscoveryFilters}
+        onChange={updateDiscoveryFilters}
         onClose={() => setFiltersOpen(false)}
-        onClear={() => setDiscoveryFilters(DEFAULT_DISCOVERY_FILTERS)}
+        onClear={clearDiscoveryFilters}
         resultCount={visibleProjects.length}
+        remember={rememberFilters}
+        onRememberChange={toggleRememberFilters}
       />
       {socialsProject ? (
         <div
