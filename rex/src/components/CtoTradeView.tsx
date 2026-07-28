@@ -4,6 +4,7 @@ import {
   Copy,
   ExternalLink,
   Flame,
+  Globe,
   Info,
   Settings2,
   Star,
@@ -22,6 +23,22 @@ import {
   type ProjectOrigin,
   type SourceVenue,
 } from '../data/ctoProjects';
+
+function XMarkIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function DiscordGlyph({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="#5865F2">
+      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+    </svg>
+  );
+}
 
 export type TradeViewProject = {
   name: string;
@@ -204,6 +221,7 @@ type CtoTradeViewProps = {
   onBack: () => void;
   starred?: boolean;
   onToggleStar?: () => void;
+  onOpenSocials?: () => void;
 };
 
 export function CtoTradeView({
@@ -214,6 +232,7 @@ export function CtoTradeView({
   onBack,
   starred,
   onToggleStar,
+  onOpenSocials,
 }: CtoTradeViewProps) {
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
@@ -281,75 +300,94 @@ export function CtoTradeView({
   return (
     <div className="w-full min-w-0">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
-          <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
-            <div
-              className={`h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10 sm:h-11 sm:w-11`}
-            >
-              <img src={project.logo} alt="" className="h-full w-full object-cover" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate font-serif text-lg font-bold tracking-tight sm:text-xl">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+          <div
+            className={`h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
+          >
+            <img src={project.logo} alt="" className="h-full w-full object-cover" />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-baseline gap-2">
+              <h2 className="truncate font-serif text-base font-bold tracking-tight sm:text-xl">
                 ${project.ticker}
               </h2>
-              <p className="truncate text-xs text-white/45">{project.name}</p>
-              <div className="mt-0.5 flex items-baseline gap-2 sm:hidden">
-                <p className="text-base font-semibold tabular-nums tracking-tight">{project.price}</p>
-                <p className="text-xs font-semibold">
-                  <Pct value={change} />
-                </p>
-              </div>
+              <p className="truncate text-[11px] text-white/45 sm:text-xs">{project.name}</p>
             </div>
-            <div className="hidden flex-wrap items-baseline gap-x-3 gap-y-1 sm:flex">
-              <p className="text-2xl font-semibold tabular-nums tracking-tight">{project.price}</p>
-              <p className="text-sm font-semibold">
+            <div className="mt-0.5 flex items-baseline gap-2">
+              <p className="text-sm font-semibold tabular-nums tracking-tight sm:text-lg">
+                {project.price}
+              </p>
+              <p className="text-[11px] font-semibold sm:text-sm">
                 <Pct value={change} />
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onBack}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white sm:hidden"
-              aria-label="Back to board"
-              title="Back to board"
-            >
-              <X className="h-4 w-4" />
-            </button>
           </div>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5 sm:shrink-0 sm:gap-2">
-            <button
-              type="button"
-              onClick={onToggleStar}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/35 hover:text-[#c8ff3d]"
-              aria-label={`Star ${project.ticker}`}
-            >
-              <Star className={`h-4 w-4 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
-            </button>
-            <a
-              href={`https://t.me`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
-              aria-label={`Telegram · ${project.community}`}
-              title={`Telegram · ${project.community}`}
-            >
-              <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{project.community}</span>
-            </a>
+          <div className="flex shrink-0 items-center gap-1">
+            {onToggleStar ? (
+              <button
+                type="button"
+                onClick={onToggleStar}
+                className="grid h-8 w-8 place-items-center rounded-lg text-white/35 hover:bg-white/[0.06] hover:text-[#c8ff3d]"
+                aria-label={`Star ${project.ticker}`}
+              >
+                <Star className={`h-4 w-4 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
+              </button>
+            ) : null}
+            {onOpenSocials ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onOpenSocials}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
+                  aria-label="Open X"
+                  title="X / Twitter"
+                >
+                  <XMarkIcon className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenSocials}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
+                  aria-label="Open Telegram"
+                  title="Telegram"
+                >
+                  <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenSocials}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
+                  aria-label="Open Discord"
+                  title="Discord"
+                >
+                  <DiscordGlyph className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenSocials}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
+                  aria-label="Open website"
+                  title="Website"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               onClick={copyV1}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
+              className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.08] px-2 text-[10px] font-semibold text-white/55 hover:text-white"
               title={v1Mint}
             >
-              <Copy className="h-3.5 w-3.5" />
-              {copied ? 'Copied' : 'CA'}
+              <Copy className="h-3 w-3" />
+              {copied ? 'OK' : 'CA'}
             </button>
             <button
               type="button"
               onClick={onBack}
-              className="hidden h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white sm:grid"
+              className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white"
               aria-label="Back to board"
               title="Back to board"
             >
@@ -371,8 +409,92 @@ export function CtoTradeView({
       ) : null}
 
       <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
-        {/* Trade first on mobile so Buy/Sell + amount aren't below the fold / clipped */}
-        <aside className="order-1 flex min-w-0 flex-col gap-3 lg:order-2">
+        <div className="order-1 flex min-w-0 flex-col gap-3">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
+                {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => setChartWindow(w)}
+                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold ${
+                      chartWindow === w
+                        ? 'bg-white text-[#090b14]'
+                        : 'text-white/40 hover:text-white'
+                    }`}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
+                <button
+                  type="button"
+                  onClick={() => setTokenInfoOpen((open) => !open)}
+                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
+                    tokenInfoOpen
+                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                      : 'border-white/[0.08] text-white/40 hover:text-white'
+                  }`}
+                  aria-expanded={tokenInfoOpen}
+                  aria-label="Contract details"
+                  title="Contract details"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="h-[220px] px-1 py-2 sm:h-[320px] lg:h-[380px]">
+              <CandleChart positive={positive} />
+            </div>
+            {tokenInfoOpen ? (
+              <div className="border-t border-white/[0.06] px-3 py-3">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Contract
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <p
+                        className="truncate font-mono text-xs font-semibold text-white/85"
+                        title={v1Mint}
+                      >
+                        {shortMint(v1Mint)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={copyV1}
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Copy contract"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Venue
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      {isNativeV2 ? 'Status' : 'Liquidity'}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
+                  </div>
+                </div>
+                {copied ? (
+                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <aside className="order-2 flex min-w-0 flex-col gap-3">
           <div
             id="trade-panel"
             ref={tradePanelRef}
@@ -581,34 +703,23 @@ export function CtoTradeView({
           </div>
 
           <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
-            <div className="flex gap-0 overflow-x-auto">
+            <div className="grid grid-cols-3 gap-px bg-white/[0.05] sm:flex sm:gap-0 sm:overflow-x-auto sm:bg-transparent">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="min-w-[5.5rem] flex-1 border-r border-white/[0.05] px-3 py-2.5 last:border-r-0"
+                  className="bg-[#05070d] px-2.5 py-2.5 sm:min-w-[5.5rem] sm:flex-1 sm:border-r sm:border-white/[0.05] sm:px-3 sm:last:border-r-0"
                 >
                   <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">{stat.label}</p>
                   <p className="mt-0.5 text-sm font-semibold tabular-nums text-white/90">{stat.value}</p>
                 </div>
               ))}
-              <div className="min-w-[9rem] flex-1 px-3 py-2.5">
+              <div className="bg-[#05070d] px-2.5 py-2.5 sm:min-w-[9rem] sm:flex-1 sm:px-3">
                 <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
                   Marketing
                 </p>
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#d5ff69]">
                   <Wallet className="h-3.5 w-3.5 shrink-0" />
                   {project.marketingBalance ?? '—'}
-                  {marketingSolscan && marketingShort ? (
-                    <a
-                      href={marketingSolscan}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="truncate text-[11px] font-medium text-[#c8ff3d]/80 underline-offset-2 hover:underline"
-                      title={`View ${marketingAddress} on Solscan`}
-                    >
-                      {marketingShort}
-                    </a>
-                  ) : null}
                 </p>
               </div>
             </div>
@@ -724,91 +835,6 @@ export function CtoTradeView({
             </ul>
           </div>
         </aside>
-
-        <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
-          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
-            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
-              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
-                {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
-                  <button
-                    key={w}
-                    type="button"
-                    onClick={() => setChartWindow(w)}
-                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold ${
-                      chartWindow === w
-                        ? 'bg-white text-[#090b14]'
-                        : 'text-white/40 hover:text-white'
-                    }`}
-                  >
-                    {w}
-                  </button>
-                ))}
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
-                <button
-                  type="button"
-                  onClick={() => setTokenInfoOpen((open) => !open)}
-                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
-                    tokenInfoOpen
-                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-white/[0.08] text-white/40 hover:text-white'
-                  }`}
-                  aria-expanded={tokenInfoOpen}
-                  aria-label="Contract details"
-                  title="Contract details"
-                >
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <div className="h-[200px] px-1 py-2 sm:h-[320px] lg:h-[380px]">
-              <CandleChart positive={positive} />
-            </div>
-            {tokenInfoOpen ? (
-              <div className="border-t border-white/[0.06] px-3 py-3">
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Contract
-                    </p>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <p
-                        className="truncate font-mono text-xs font-semibold text-white/85"
-                        title={v1Mint}
-                      >
-                        {shortMint(v1Mint)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={copyV1}
-                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
-                        aria-label="Copy contract"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Venue
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      {isNativeV2 ? 'Status' : 'Liquidity'}
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
-                  </div>
-                </div>
-                {copied ? (
-                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-3 pb-4 sm:px-5">

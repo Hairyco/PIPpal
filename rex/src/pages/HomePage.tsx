@@ -1080,6 +1080,7 @@ export function HomePage() {
               onBack={() => setViewMode('list')}
               starred={Boolean(starred[selectedProject.ticker])}
               onToggleStar={() => toggleWatchlist(selectedProject.ticker)}
+              onOpenSocials={() => setSocialsTicker(selectedProject.ticker)}
             />
           </section>
         ) : (
