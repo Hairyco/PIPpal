@@ -107,7 +107,7 @@ function PremiumOnePager(props: {
   const Layout = ONE_PAGER_LAYOUT_COMPONENTS[layoutId] ?? ONE_PAGER_LAYOUT_COMPONENTS.pulse;
   return (
     <Layout
-      key={`${layoutId}-${props.designNonce ?? 0}-${props.themeId ?? 'theme'}`}
+      key={`${layoutId}-${props.designNonce ?? 0}-${props.themeId ?? 'theme'}-${props.headline}-${props.logoUrl?.slice(-24) ?? 'nologo'}`}
       full={full}
       theme={theme}
       displayName={props.displayName}
@@ -190,7 +190,7 @@ export function WebsitePreview(props: WebsitePreviewProps) {
   );
   const pager = (
     <PremiumOnePager
-      key={`pager-${layoutId}-${props.designNonce ?? 0}`}
+      key={`pager-${layoutId}-${props.designNonce ?? 0}-${props.themeId ?? 't'}-${labels.headline}-${labels.body.slice(0, 48)}-${JSON.stringify(props.includes ?? {})}`}
       variant="fullscreen"
       themeId={props.themeId}
       layoutPreference={props.layoutPreference}
@@ -314,7 +314,7 @@ export function WebsitePreviewOverlay({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto" key={`scroll-${preview.designNonce ?? 0}-${layoutId}`}>
+      <div className="min-h-0 flex-1 overflow-y-auto" key={`scroll-${preview.designNonce ?? 0}-${layoutId}-${preview.themeId ?? 't'}-${preview.headline ?? ''}`}>
         <WebsitePreview {...preview} layoutId={layoutId} variant="fullscreen" />
       </div>
 

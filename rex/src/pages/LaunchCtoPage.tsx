@@ -234,6 +234,7 @@ export function LaunchCtoPage() {
   const [editSite, setEditSite] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const sitePreviewRef = useRef<HTMLDivElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
   const prefillApplied = useRef(false);
   const lookupSeq = useRef(0);
@@ -1369,29 +1370,35 @@ export function LaunchCtoPage() {
                 </button>
               ) : (
                 <>
-                  <WebsitePreview
-                    kind={websiteKind}
-                    name={name}
-                    ticker={ticker}
-                    headline={siteHeadline}
-                    body={pageBlurb || note}
-                    extraTitle={siteExtraTitle}
-                    extraBody={siteExtraBody}
-                    logoUrl={logoPreview}
-                    bannerUrl={bannerPreview}
-                    contract={contract}
-                    cloneUrl={cloneUrl || website}
-                    themeId={onePagerThemeId}
-                    layoutPreference={layoutPreference}
-                    layoutSeed={layoutSeed}
-                    layoutId={activeLayoutId}
-                    designNonce={designNonce}
-                    includes={siteIncludes}
-                    tokenSupply={tokenSupply}
-                  />
-                  <p className="text-center text-[10px] capitalize text-white/30">
-                    Layout · {activeLayoutId} · look {designNonce || 1}
-                  </p>
+                  <div
+                    ref={sitePreviewRef}
+                    className={editSite ? 'sticky top-0 z-20 -mx-1 mb-2 space-y-2 bg-[#090b14]/95 pb-2 pt-1 backdrop-blur-md' : 'space-y-2'}
+                  >
+                    <WebsitePreview
+                      kind={websiteKind}
+                      name={name}
+                      ticker={ticker}
+                      headline={siteHeadline}
+                      body={pageBlurb || note}
+                      extraTitle={siteExtraTitle}
+                      extraBody={siteExtraBody}
+                      logoUrl={logoPreview}
+                      bannerUrl={bannerPreview}
+                      contract={contract}
+                      cloneUrl={cloneUrl || website}
+                      themeId={onePagerThemeId}
+                      layoutPreference={layoutPreference}
+                      layoutSeed={layoutSeed}
+                      layoutId={activeLayoutId}
+                      designNonce={designNonce}
+                      includes={siteIncludes}
+                      tokenSupply={tokenSupply}
+                    />
+                    <p className="text-center text-[10px] capitalize text-white/30">
+                      Layout · {activeLayoutId} · {onePagerThemeId}
+                      {editSite ? ' · live preview' : ` · look ${designNonce || 1}`}
+                    </p>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -1486,7 +1493,15 @@ export function LaunchCtoPage() {
                           </div>
                           <ColourPalettePicker
                             value={onePagerThemeId}
-                            onChange={setOnePagerThemeId}
+                            onChange={(id) => {
+                              setOnePagerThemeId(id);
+                              window.requestAnimationFrame(() => {
+                                sitePreviewRef.current?.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'start',
+                                });
+                              });
+                            }}
                             compact
                           />
                         </div>

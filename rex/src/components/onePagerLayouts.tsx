@@ -23,9 +23,19 @@ type LayoutProps = {
   extraBody: string;
 };
 
-function accentOr(theme: OnePagerTheme, fallback: string) {
-  if (theme.accent === '#ffffff' || theme.accent === '#111111') return fallback;
+function pageAccent(theme: OnePagerTheme): string {
+  // Keep neon readable on near-black pages when accent is pure white.
+  if (theme.accent === '#ffffff' && !isLightBg(theme.bg)) return '#f4f4f5';
   return theme.accent;
+}
+
+function isLightBg(bg: string): boolean {
+  const h = bg.replace('#', '');
+  if (h.length < 6) return false;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 160;
 }
 
 function MiniChart({ accent, chartId }: { accent: string; chartId: string }) {
@@ -66,12 +76,13 @@ function MemeFooter({
 }) {
   if (!p.full) return null;
   const body = p.paragraphs.slice(1);
+  const label = p.theme.muted;
   return (
     <div className="space-y-12 px-5 pb-14 sm:px-8">
       {body.length ? (
         <section className="mx-auto max-w-xl space-y-3 text-center">
           {body.map((para) => (
-            <p key={para.slice(0, 28)} className="text-[15px] leading-relaxed text-white/60">
+            <p key={para.slice(0, 28)} className="text-[15px] leading-relaxed" style={{ color: label }}>
               {para}
             </p>
           ))}
@@ -79,8 +90,14 @@ function MemeFooter({
       ) : null}
 
       {p.includes.chart ? (
-        <section className="mx-auto max-w-lg overflow-hidden rounded-3xl border border-white/10 bg-black/40 p-4">
-          <p className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
+        <section
+          className="mx-auto max-w-lg overflow-hidden rounded-3xl border p-4"
+          style={{ borderColor: `${accent}33`, backgroundColor: 'rgba(0,0,0,0.25)' }}
+        >
+          <p
+            className="mb-2 text-center text-[10px] font-bold uppercase tracking-[0.22em]"
+            style={{ color: label }}
+          >
             Live chart
           </p>
           <MiniChart accent={accent} chartId={`${p.rawTicker}-chart`} />
@@ -96,12 +113,16 @@ function MemeFooter({
           ].map((s) => (
             <div
               key={s.l}
-              className="rounded-2xl border border-white/10 bg-white/[0.04] px-2 py-4 text-center"
+              className="rounded-2xl border px-2 py-4 text-center"
+              style={{ borderColor: `${accent}33`, backgroundColor: 'rgba(255,255,255,0.04)' }}
             >
               <p className="font-display text-lg font-extrabold" style={{ color: accent }}>
                 {s.v}
               </p>
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+              <p
+                className="mt-1 text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: label }}
+              >
                 {s.l}
               </p>
             </div>
@@ -111,17 +132,25 @@ function MemeFooter({
 
       {p.includes.howto ? (
         <section className="mx-auto max-w-md space-y-2">
-          <p className="text-center text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
+          <p
+            className="text-center text-[10px] font-bold uppercase tracking-[0.22em]"
+            style={{ color: label }}
+          >
             How to ape
           </p>
           {['Connect wallet', `Open ${p.displayTicker} on CTOgo`, 'Buy with SOL'].map((step, i) => (
             <div
               key={step}
-              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3 text-sm text-white/70"
+              className="flex items-center gap-3 rounded-2xl border px-3 py-3 text-sm"
+              style={{
+                borderColor: `${accent}28`,
+                backgroundColor: 'rgba(255,255,255,0.03)',
+                color: label,
+              }}
             >
               <span
-                className="grid h-7 w-7 place-items-center rounded-full text-xs font-black text-black"
-                style={{ backgroundColor: accent }}
+                className="grid h-7 w-7 place-items-center rounded-full text-xs font-black"
+                style={{ backgroundColor: accent, color: p.theme.buyText }}
               >
                 {i + 1}
               </span>
@@ -139,7 +168,10 @@ function MemeFooter({
             </h2>
           ) : null}
           {p.extraBody ? (
-            <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-white/55">
+            <p
+              className="mt-3 whitespace-pre-line text-sm leading-relaxed"
+              style={{ color: label }}
+            >
               {p.extraBody}
             </p>
           ) : null}
@@ -147,12 +179,15 @@ function MemeFooter({
       )}
 
       {p.includes.socials ? (
-        <p className="text-center text-[11px] font-semibold tracking-[0.2em] text-white/30">
+        <p
+          className="text-center text-[11px] font-semibold tracking-[0.2em]"
+          style={{ color: label }}
+        >
           TG · X · CHART
         </p>
       ) : null}
 
-      <p className="text-center text-[10px] text-white/25">
+      <p className="text-center text-[10px]" style={{ color: label }}>
         © {new Date().getFullYear()} {p.displayTicker} · CTOgo
       </p>
     </div>
@@ -161,16 +196,19 @@ function MemeFooter({
 
 /** Neon live meme — huge ticker, floating coin, pulse badge. */
 function LayoutPulse(p: LayoutProps) {
-  const accent = accentOr(p.theme, '#c8ff3d');
+  const accent = pageAccent(p.theme);
   return (
-    <div className="relative min-h-full overflow-hidden bg-[#05060a] text-white">
+    <div
+      className="relative min-h-full overflow-hidden"
+      style={{ backgroundColor: p.theme.bg, color: p.theme.text }}
+    >
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background: `
-            radial-gradient(ellipse 90% 60% at 50% -20%, ${accent}44, transparent 55%),
-            radial-gradient(ellipse 50% 40% at 100% 60%, #7c3aed33, transparent 50%),
-            linear-gradient(180deg, #05060a 0%, #0a0c14 100%)
+            radial-gradient(ellipse 90% 60% at 50% -20%, ${accent}55, transparent 55%),
+            radial-gradient(ellipse 50% 40% at 100% 60%, ${p.theme.accentSoft}33, transparent 50%),
+            linear-gradient(180deg, ${p.theme.bg} 0%, ${p.theme.bg} 100%)
           `,
         }}
       />
@@ -215,13 +253,17 @@ function LayoutPulse(p: LayoutProps) {
             {p.displayTicker}
           </p>
           <h1
-            className={`mt-2 font-display font-extrabold leading-none tracking-tight text-white ${
+            className={`mt-2 font-display font-extrabold leading-none tracking-tight ${
               p.full ? 'text-3xl sm:text-5xl' : 'text-xl'
             }`}
+            style={{ color: p.theme.text }}
           >
             {p.displayName}
           </h1>
-          <p className={`mx-auto mt-4 max-w-md text-white/55 ${p.full ? 'text-base' : 'text-xs'}`}>
+          <p
+            className={`mx-auto mt-4 max-w-md ${p.full ? 'text-base' : 'text-xs'}`}
+            style={{ color: p.theme.muted }}
+          >
             {p.headline || `${p.displayName} just hit the board.`}
           </p>
 
@@ -243,8 +285,12 @@ function LayoutPulse(p: LayoutProps) {
 
           <div className={`flex flex-wrap items-center justify-center gap-3 ${p.full ? 'mt-10' : 'mt-5'}`}>
             <span
-              className="inline-flex rounded-2xl px-7 py-3.5 text-sm font-black uppercase tracking-wide text-black shadow-lg"
-              style={{ backgroundColor: accent, boxShadow: `0 16px 48px ${accent}55` }}
+              className="inline-flex rounded-2xl px-7 py-3.5 text-sm font-black uppercase tracking-wide shadow-lg"
+              style={{
+                backgroundColor: accent,
+                color: p.theme.buyText,
+                boxShadow: `0 16px 48px ${accent}55`,
+              }}
             >
               Buy {p.displayTicker}
             </span>
@@ -264,9 +310,9 @@ function LayoutPulse(p: LayoutProps) {
 
 /** Loud lime stadium — degen billboard energy. */
 function LayoutStadium(p: LayoutProps) {
-  const accent = accentOr(p.theme, '#c8ff3d');
+  const accent = pageAccent(p.theme);
   return (
-    <div className="min-h-full bg-black text-white">
+    <div className="min-h-full" style={{ backgroundColor: p.theme.bg, color: p.theme.text }}>
       <div className={`relative overflow-hidden ${p.full ? 'px-4 pb-10 pt-5 sm:px-6' : 'px-3 pb-5 pt-3'}`}>
         <div
           className="pointer-events-none absolute inset-0"
@@ -332,9 +378,12 @@ function LayoutStadium(p: LayoutProps) {
 
 /** Cyber neon night market. */
 function LayoutNeon(p: LayoutProps) {
-  const accent = accentOr(p.theme, '#2ee6ff');
+  const accent = pageAccent(p.theme);
   return (
-    <div className="relative min-h-full overflow-hidden bg-[#06010f] text-white">
+    <div
+      className="relative min-h-full overflow-hidden"
+      style={{ backgroundColor: p.theme.bg, color: p.theme.text }}
+    >
       <div
         className="pointer-events-none absolute inset-0 opacity-80"
         style={{
@@ -411,9 +460,9 @@ function LayoutNeon(p: LayoutProps) {
 
 /** Chart-first pump page. */
 function LayoutPump(p: LayoutProps) {
-  const accent = accentOr(p.theme, '#22c55e');
+  const accent = pageAccent(p.theme);
   return (
-    <div className="min-h-full bg-[#040a06] text-white">
+    <div className="min-h-full" style={{ backgroundColor: p.theme.bg, color: p.theme.text }}>
       <div className={`${p.full ? 'px-5 pt-6 sm:px-8' : 'px-3 pt-3'}`}>
         <div className="flex items-center justify-between">
           <div>
@@ -474,13 +523,13 @@ function LayoutPump(p: LayoutProps) {
 
 /** Dark glass trading page. */
 function LayoutGlass(p: LayoutProps) {
-  const accent = accentOr(p.theme, '#a78bfa');
+  const accent = pageAccent(p.theme);
   return (
     <div
-      className="relative min-h-full overflow-hidden text-white"
+      className="relative min-h-full overflow-hidden"
       style={{
-        background:
-          'radial-gradient(ellipse at top, #1a1030 0%, #07070c 45%, #030308 100%)',
+        color: p.theme.text,
+        background: `radial-gradient(ellipse at top, ${p.theme.accentSoft}33 0%, ${p.theme.bg} 45%, ${p.theme.bg} 100%)`,
       }}
     >
       <div className={`relative ${p.full ? 'px-5 pt-10 sm:px-10' : 'px-3 pt-5'}`}>
