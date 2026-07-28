@@ -209,3 +209,22 @@ export function splitSiteCopy(body: string): string[] {
     .map((p) => p.trim())
     .filter(Boolean);
 }
+
+/** Finished-looking copy when the founder leaves fields blank — so generate never looks empty. */
+export function defaultGeneratedSiteCopy(name: string, ticker: string) {
+  const coin = name.trim() || 'This coin';
+  const tick = ticker.trim().replace(/^\$/, '').toUpperCase() || 'CTO';
+  return {
+    headline: `The community is taking ${coin} further`,
+    body: [
+      `${coin} ($${tick}) relaunches with a clean mint, live trade page, and holders who already know the story.`,
+      `Every CTOgo trade can fill the marketing vault — so growth spend comes from volume, not a free founder wallet.`,
+      `This page is your public face: buy link, contract, and the narrative in one place.`,
+    ].join('\n\n'),
+    extraTitle: 'Built for the takeover',
+    extraBody: [
+      'Trade on CTOgo. Share the page. Keep socials and ads moving as the vault fills.',
+      'No clutter — just the coin, the story, and a clear way in.',
+    ].join('\n\n'),
+  };
+}

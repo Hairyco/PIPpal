@@ -76,9 +76,9 @@ function usePreviewLabels(props: WebsitePreviewProps) {
   };
 }
 
-function MiniChart({ accent, full }: { accent: string; full: boolean }) {
-  const h = full ? 140 : 52;
-  const points = [22, 28, 26, 38, 34, 48, 42, 58, 52, 70, 62, 78, 72, 88];
+function MiniChart({ accent, full, chartId = 'chart' }: { accent: string; full: boolean; chartId?: string }) {
+  const h = full ? 160 : 52;
+  const points = [22, 28, 26, 38, 34, 48, 42, 58, 52, 70, 62, 78, 72, 88, 84, 96];
   const max = Math.max(...points);
   const min = Math.min(...points);
   const span = max - min || 1;
@@ -90,15 +90,16 @@ function MiniChart({ accent, full }: { accent: string; full: boolean }) {
       return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(' ');
+  const fillId = `${chartId}-fill`;
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: h }} aria-hidden>
       <defs>
-        <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={accent} stopOpacity="0.35" />
+        <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={accent} stopOpacity="0.4" />
           <stop offset="100%" stopColor={accent} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={`${path} L${w},${h} L0,${h} Z`} fill="url(#chartFill)" />
+      <path d={`${path} L${w},${h} L0,${h} Z`} fill={`url(#${fillId})`} />
       <path d={path} fill="none" stroke={accent} strokeWidth={full ? 2.75 : 2} strokeLinecap="round" />
     </svg>
   );
@@ -182,6 +183,7 @@ function SharedSections({
   headline,
   extraTitle,
   extraBody,
+  chartId = 'site',
 }: {
   full: boolean;
   theme: OnePagerTheme;
@@ -194,47 +196,37 @@ function SharedSections({
   headline: string;
   extraTitle: string;
   extraBody: string;
+  chartId?: string;
 }) {
   if (!full) return null;
   return (
-    <div className="space-y-14">
-      {(headline || paragraphs.length > 0) && (
-        <section className="mx-auto max-w-2xl text-center">
-          {headline ? (
-            <h2
-              className="font-display text-2xl font-bold tracking-tight sm:text-3xl"
-              style={{ color: theme.accent }}
-            >
-              {headline}
-            </h2>
-          ) : (
-            <h2
-              className="font-display text-2xl font-bold tracking-tight sm:text-3xl"
-              style={{ color: theme.accent }}
-            >
-              The story
-            </h2>
-          )}
-          <div className="mt-4 space-y-3">
-            {paragraphs.length > 0 ? (
-              paragraphs.map((p) => (
-                <p
-                  key={p.slice(0, 24)}
-                  className="text-sm leading-relaxed sm:text-base"
-                  style={{ color: theme.muted }}
-                >
-                  {p}
-                </p>
-              ))
-            ) : (
-              <p className="text-sm leading-relaxed sm:text-base" style={{ color: theme.muted }}>
-                A community takeover with a clean mint, live trade links, and a page built to look
-                like the project means it.
+    <div className="space-y-16">
+      <section className="mx-auto max-w-2xl text-center">
+        <h2
+          className="font-display text-2xl font-bold tracking-tight sm:text-3xl"
+          style={{ color: theme.accent }}
+        >
+          {headline || 'The story'}
+        </h2>
+        <div className="mt-5 space-y-4">
+          {paragraphs.length > 0 ? (
+            paragraphs.map((p) => (
+              <p
+                key={p.slice(0, 32)}
+                className="text-[15px] leading-relaxed sm:text-base"
+                style={{ color: theme.muted }}
+              >
+                {p}
               </p>
-            )}
-          </div>
-        </section>
-      )}
+            ))
+          ) : (
+            <p className="text-[15px] leading-relaxed sm:text-base" style={{ color: theme.muted }}>
+              A community takeover with a clean mint, live trade links, and a page built to look
+              like the project means it.
+            </p>
+          )}
+        </div>
+      </section>
 
       {includes.chart ? (
         <section className="mx-auto max-w-xl">
@@ -242,10 +234,10 @@ function SharedSections({
             Price action
           </p>
           <div
-            className="overflow-hidden rounded-2xl border px-4 py-4"
-            style={{ borderColor: `${theme.accent}28`, background: 'rgba(0,0,0,0.25)' }}
+            className="overflow-hidden rounded-3xl border px-4 py-5 shadow-[0_20px_60px_rgba(0,0,0,0.35)]"
+            style={{ borderColor: `${theme.accent}28`, background: 'rgba(0,0,0,0.35)' }}
           >
-            <MiniChart accent={theme.accent} full />
+            <MiniChart accent={theme.accent} full chartId={chartId} />
           </div>
         </section>
       ) : null}
@@ -258,7 +250,7 @@ function SharedSections({
           <SolanaLogo className="h-4 w-4 shrink-0" />
           <span>{caLabel}</span>
         </div>
-        <div className="mt-5">
+        <div className="mt-6">
           <BuyPill label={`Buy ${displayTicker}`} theme={theme} large />
         </div>
       </section>
@@ -327,9 +319,13 @@ function SharedSections({
             </h2>
           ) : null}
           {extraBody ? (
-            <div className="mt-3 space-y-3">
+            <div className="mt-4 space-y-3">
               {splitSiteCopy(extraBody).map((p) => (
-                <p key={p.slice(0, 24)} className="text-sm leading-relaxed" style={{ color: theme.muted }}>
+                <p
+                  key={p.slice(0, 24)}
+                  className="text-sm leading-relaxed"
+                  style={{ color: theme.muted }}
+                >
                   {p}
                 </p>
               ))}
@@ -344,7 +340,7 @@ function SharedSections({
         </p>
       ) : null}
 
-      <div className="pb-10 text-center">
+      <div className="pb-12 text-center">
         <span className="inline-flex rounded-full border border-white/12 px-4 py-2 text-[11px] font-semibold text-white/40">
           Marketing wallet · Live after launch
         </span>
@@ -374,83 +370,124 @@ type LayoutProps = {
 
 function LayoutAurora(p: LayoutProps) {
   return (
-    <div className="relative min-h-full overflow-hidden" style={{ backgroundColor: p.theme.bg, color: p.theme.text }}>
+    <div
+      className="relative min-h-full overflow-hidden"
+      style={{ backgroundColor: p.theme.bg, color: p.theme.text }}
+    >
       <div
-        className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full opacity-50 blur-3xl"
-        style={{ background: p.theme.accent }}
+        className="pointer-events-none absolute inset-0 opacity-90"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 55% at 15% -10%, ${p.theme.accent}55, transparent 55%),
+            radial-gradient(ellipse 70% 50% at 95% 20%, ${p.theme.accentSoft}40, transparent 50%),
+            radial-gradient(ellipse 60% 40% at 50% 100%, ${p.theme.accent}22, transparent 55%),
+            linear-gradient(180deg, ${p.theme.bg} 0%, #03050a 100%)
+          `,
+        }}
       />
       <div
-        className="pointer-events-none absolute -bottom-32 right-0 h-80 w-80 rounded-full opacity-30 blur-3xl"
-        style={{ background: p.theme.accentSoft }}
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
       />
-      <div className={`relative ${p.full ? 'px-5 pb-6 pt-8 sm:px-10' : 'px-3 pb-3 pt-4'}`}>
+
+      <div className={`relative ${p.full ? 'px-5 pb-10 pt-8 sm:px-12 sm:pt-10' : 'px-4 pb-6 pt-5'}`}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {p.logoUrl ? (
               <img
                 src={p.logoUrl}
                 alt=""
-                className={`rounded-2xl object-cover ring-1 ring-white/15 ${p.full ? 'h-11 w-11' : 'h-8 w-8'}`}
+                className={`rounded-2xl object-cover shadow-lg ring-1 ring-white/20 ${
+                  p.full ? 'h-12 w-12' : 'h-9 w-9'
+                }`}
               />
             ) : null}
-            <span className="font-display text-sm font-bold tracking-tight">{p.displayName}</span>
+            <div>
+              <p className="font-display text-sm font-bold tracking-tight sm:text-base">
+                {p.displayName}
+              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+                {p.displayTicker} · Live
+              </p>
+            </div>
           </div>
-          <BuyPill label={`Buy ${p.displayTicker}`} theme={p.theme} />
+          <BuyPill label={`Buy ${p.displayTicker}`} theme={p.theme} large={p.full} />
         </div>
 
-        <div className={`text-center ${p.full ? 'mt-14' : 'mt-6'}`}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-white/40">
+        <div className={`mx-auto max-w-3xl text-center ${p.full ? 'mt-16 sm:mt-20' : 'mt-8'}`}>
+          <p
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/55 backdrop-blur"
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.theme.accent }} />
             Community takeover
           </p>
           <h1
-            className={`mt-3 font-display font-extrabold leading-[0.95] tracking-tight ${
-              p.full ? 'text-5xl sm:text-7xl' : 'text-3xl'
+            className={`mt-5 font-display font-extrabold leading-[0.92] tracking-tight ${
+              p.full ? 'text-5xl sm:text-7xl md:text-8xl' : 'text-4xl'
             }`}
-            style={{ color: p.theme.accent }}
+            style={{
+              background: `linear-gradient(135deg, #fff 10%, ${p.theme.accentSoft} 45%, ${p.theme.accent} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
           >
             {p.displayName}
           </h1>
-          {p.headline ? (
-            <p
-              className={`mx-auto mt-4 max-w-xl font-editorial italic ${
-                p.full ? 'text-xl sm:text-2xl' : 'text-sm'
-              }`}
-              style={{ color: p.theme.muted }}
-            >
-              {p.headline}
-            </p>
-          ) : null}
-          <div className={`mx-auto grid place-items-center ${p.full ? 'mt-10 h-48 w-48 sm:h-56 sm:w-56' : 'mt-5 h-24 w-24'}`}>
+          <p
+            className={`mx-auto mt-5 max-w-xl font-editorial italic leading-snug ${
+              p.full ? 'text-xl sm:text-2xl' : 'text-base'
+            }`}
+            style={{ color: p.theme.muted }}
+          >
+            {p.headline || `A louder chapter for ${p.displayTicker}.`}
+          </p>
+
+          <div
+            className={`relative mx-auto grid place-items-center ${
+              p.full ? 'mt-12 h-52 w-52 sm:h-64 sm:w-64' : 'mt-8 h-32 w-32'
+            }`}
+          >
+            <div
+              className="absolute inset-[-18%] rounded-full opacity-60 blur-2xl"
+              style={{ background: `radial-gradient(circle, ${p.theme.accent}88, transparent 65%)` }}
+            />
             {p.logoUrl ? (
               <img
                 src={p.logoUrl}
                 alt=""
-                className="h-full w-full object-contain drop-shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                className="relative h-full w-full object-contain drop-shadow-[0_30px_80px_rgba(0,0,0,0.65)]"
               />
             ) : (
               <div
-                className="grid h-full w-full place-items-center rounded-full font-display text-3xl font-bold"
+                className="relative grid h-full w-full place-items-center rounded-full font-display text-4xl font-bold"
                 style={{ background: p.theme.accent, color: p.theme.buyText }}
               >
                 {p.rawTicker.slice(0, 2)}
               </div>
             )}
           </div>
+
+          <div className={`flex flex-wrap items-center justify-center gap-3 ${p.full ? 'mt-10' : 'mt-6'}`}>
+            <BuyPill label={`Buy ${p.displayTicker} on CTOgo`} theme={p.theme} large />
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/30 px-4 py-2.5 font-mono text-[11px] text-white/70 backdrop-blur">
+              <SolanaLogo className="h-3.5 w-3.5" />
+              {p.caLabel}
+            </span>
+          </div>
         </div>
 
-        {!p.full ? (
-          <div className="mt-4 space-y-2">
-            {p.includes.chart ? <MiniChart accent={p.theme.accent} full={false} /> : null}
-            <div className="flex flex-wrap justify-center gap-2">
-              <span className="inline-flex items-center gap-1 rounded-full border border-white/15 px-2.5 py-1 font-mono text-[10px] text-white/55">
-                <SolanaLogo className="h-3 w-3" />
-                {p.caLabel}
-              </span>
-            </div>
+        {p.full ? (
+          <div className="mt-20 sm:mt-24">
+            <SharedSections {...p} chartId="aurora" />
           </div>
         ) : (
-          <div className="mt-16">
-            <SharedSections {...p} />
+          <div className="mt-8 overflow-hidden rounded-2xl border border-white/10 bg-black/25 px-3 py-3">
+            {p.includes.chart ? <MiniChart accent={p.theme.accent} full={false} chartId="aurora-card" /> : null}
           </div>
         )}
       </div>
@@ -790,29 +827,44 @@ function CloneBody({
 export function WebsitePreview(props: WebsitePreviewProps) {
   const variant = props.variant ?? 'card';
   const labels = usePreviewLabels(props);
-  const title = props.kind === 'clone' ? 'Cloned site preview' : '1-pager preview';
   const layoutId = resolveOnePagerLayout(props.layoutPreference, props.layoutSeed ?? 0);
+  const pager = (
+    <PremiumOnePager
+      variant="fullscreen"
+      themeId={props.themeId}
+      layoutPreference={props.layoutPreference}
+      layoutSeed={props.layoutSeed}
+      displayName={labels.displayName}
+      displayTicker={labels.displayTicker}
+      rawTicker={labels.rawTicker}
+      caLabel={labels.caLabel}
+      logoUrl={props.logoUrl}
+      headline={labels.headline}
+      paragraphs={labels.paragraphs}
+      includes={props.includes ?? DEFAULT_ONE_PAGER_INCLUDES}
+      tokenSupply={props.tokenSupply}
+      extraTitle={labels.extraTitle}
+      extraBody={labels.extraBody}
+    />
+  );
 
-  return (
-    <div
-      className={`overflow-hidden ${
-        variant === 'fullscreen'
-          ? 'min-h-full'
-          : 'rounded-xl border border-white/[0.1] bg-[#07090f]'
-      }`}
-    >
-      {variant === 'card' ? (
-        <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#07090f] px-3 py-2">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-            {title}
-          </p>
-          <p className="truncate text-[10px] capitalize text-white/30">
-            {props.kind === 'onepager' ? layoutId : labels.hostLabel}
-          </p>
-        </div>
-      ) : null}
-
-      {props.kind === 'clone' ? (
+  if (props.kind === 'clone') {
+    return (
+      <div
+        className={`overflow-hidden ${
+          variant === 'fullscreen'
+            ? 'min-h-full'
+            : 'rounded-xl border border-white/[0.1] bg-[#07090f]'
+        }`}
+      >
+        {variant === 'card' ? (
+          <div className="flex items-center justify-between border-b border-white/[0.06] bg-[#07090f] px-3 py-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+              Cloned site
+            </p>
+            <p className="truncate font-mono text-[10px] text-white/30">{labels.hostLabel}</p>
+          </div>
+        ) : null}
         <CloneBody
           variant={variant}
           displayName={labels.displayName}
@@ -821,39 +873,45 @@ export function WebsitePreview(props: WebsitePreviewProps) {
           bannerUrl={props.bannerUrl}
           cloneUrl={props.cloneUrl}
         />
-      ) : (
-        <PremiumOnePager
-          variant={variant}
-          themeId={props.themeId}
-          layoutPreference={props.layoutPreference}
-          layoutSeed={props.layoutSeed}
-          displayName={labels.displayName}
-          displayTicker={labels.displayTicker}
-          rawTicker={labels.rawTicker}
-          caLabel={labels.caLabel}
-          logoUrl={props.logoUrl}
-          headline={labels.headline}
-          paragraphs={labels.paragraphs}
-          includes={props.includes ?? DEFAULT_ONE_PAGER_INCLUDES}
-          tokenSupply={props.tokenSupply}
-          extraTitle={labels.extraTitle}
-          extraBody={labels.extraBody}
-        />
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
+
+  if (variant === 'card') {
+    return (
+      <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#07090f]">
+        <div className="flex items-center justify-between border-b border-white/[0.06] px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+            Generated site
+          </p>
+          <p className="truncate text-[10px] capitalize text-white/35">{layoutId}</p>
+        </div>
+        <div className="relative max-h-[460px] overflow-hidden">
+          {pager}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#07090f] to-transparent" />
+        </div>
+        <p className="border-t border-white/[0.06] px-3 py-2 text-center text-[10px] text-white/35">
+          Full page opens after generate · {labels.hostLabel}
+        </p>
+      </div>
+    );
+  }
+
+  return <div className="min-h-full">{pager}</div>;
 }
 
 type WebsitePreviewOverlayProps = WebsitePreviewProps & {
   open: boolean;
   onClose: () => void;
   onContinue: () => void;
+  onRegenerate?: () => void;
 };
 
 export function WebsitePreviewOverlay({
   open,
   onClose,
   onContinue,
+  onRegenerate,
   ...preview
 }: WebsitePreviewOverlayProps) {
   if (!open) return null;
@@ -866,12 +924,19 @@ export function WebsitePreviewOverlay({
   const layoutId = resolveOnePagerLayout(preview.layoutPreference, preview.layoutSeed ?? 0);
 
   return (
-    <div className="fixed inset-0 z-[80] flex flex-col bg-[#05070c]">
-      <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.08] bg-[#090b14] px-3 py-2.5 sm:px-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-          {preview.kind === 'clone' ? 'Clone preview' : `${layoutId} preview`}
+    <div className="fixed inset-0 z-[80] flex flex-col bg-[#02040a]">
+      <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.08] bg-[#0b0e16] px-3 py-2.5 sm:px-4">
+        <div className="flex items-center gap-1.5 pr-1">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+        </div>
+        <div className="min-w-0 flex-1 truncate rounded-lg border border-white/[0.08] bg-black/40 px-3 py-1.5 font-mono text-[11px] text-white/55">
+          https://{hostLabel}
+        </div>
+        <p className="hidden text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80 sm:block">
+          {preview.kind === 'clone' ? 'clone' : layoutId}
         </p>
-        <p className="min-w-0 flex-1 truncate font-mono text-[11px] text-white/35">{hostLabel}</p>
         <button
           type="button"
           onClick={onClose}
@@ -883,23 +948,30 @@ export function WebsitePreviewOverlay({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl">
-          <WebsitePreview {...preview} variant="fullscreen" />
-        </div>
+        <WebsitePreview {...preview} variant="fullscreen" />
       </div>
 
-      <div className="flex shrink-0 gap-2 border-t border-white/[0.08] bg-[#090b14] p-3 sm:px-4">
+      <div className="flex shrink-0 gap-2 border-t border-white/[0.08] bg-[#0b0e16] p-3 sm:px-4">
         <button
           type="button"
           onClick={onClose}
           className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-white/[0.1] text-xs font-semibold text-white/60 hover:bg-white/[0.04] hover:text-white"
         >
-          Edit
+          Edit copy
         </button>
+        {onRegenerate && preview.kind === 'onepager' ? (
+          <button
+            type="button"
+            onClick={onRegenerate}
+            className="inline-flex h-12 flex-1 items-center justify-center rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 text-xs font-bold text-[#d5ff69]"
+          >
+            Try another look
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={onContinue}
-          className="inline-flex h-12 flex-[1.4] items-center justify-center rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
+          className="inline-flex h-12 flex-[1.2] items-center justify-center rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] hover:bg-[#d5ff69]"
         >
           Looks good
         </button>

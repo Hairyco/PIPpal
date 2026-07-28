@@ -42,6 +42,7 @@ import {
   ONE_PAGER_INCLUDE_OPTIONS,
   ONE_PAGER_LAYOUTS,
   ONE_PAGER_PRIMARY_THEMES,
+  defaultGeneratedSiteCopy,
   isBespokeOnePagerTheme,
   resolveOnePagerLayout,
   type OnePagerIncludeId,
@@ -487,22 +488,43 @@ export function LaunchCtoPage() {
   };
 
   const bumpLayoutSeed = () => {
-    setLayoutSeed((s) => s + 1 + Math.floor(Math.random() * 7));
+    const next = Date.now() % 10007;
+    setLayoutSeed(next);
+    return next;
   };
 
-  /** First site generate is free — builds logo/banner then opens full-page preview. */
+  /** Builds a finished site and opens the real full-page viewer. */
   const generateWebsite = async () => {
     if (websiteKind === 'clone' && !cloneUrl.trim() && !website.trim()) {
       return;
     }
     setGeneratingSite(true);
     try {
-      if (!pageBlurb.trim() && note.trim()) setPageBlurb(note.trim());
       if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
-      bumpLayoutSeed();
 
       const projectName = name || 'CTOgo Coin';
       const projectTicker = ticker || 'CTO';
+      const defaults = defaultGeneratedSiteCopy(projectName, projectTicker);
+
+      // Always land a finished-looking page — fill blanks so generate never looks empty.
+      if (!siteHeadline.trim()) setSiteHeadline(defaults.headline);
+      if (!pageBlurb.trim()) setPageBlurb(note.trim() || defaults.body);
+      if (!siteExtraTitle.trim() && !siteExtraBody.trim()) {
+        setSiteExtraTitle(defaults.extraTitle);
+        setSiteExtraBody(defaults.extraBody);
+        setShowExtraCopy(true);
+      }
+      setSiteIncludes((prev) => ({
+        ...prev,
+        chart: true,
+        tokenomics: true,
+        socials: true,
+        howto: true,
+        community: true,
+      }));
+
+      bumpLayoutSeed();
+
       let logo = logoPreview;
       if (!logo) {
         logo = generateCtoLogoDataUrl({
@@ -519,12 +541,20 @@ export function LaunchCtoPage() {
           projectName: name || 'Community Takeover',
           ticker: projectTicker,
           logoDataUrl: logo,
-          tagline: (siteHeadline || pageBlurb || note || `${projectTicker} on CTOgo`).trim(),
+          tagline: (
+            siteHeadline ||
+            defaults.headline ||
+            pageBlurb ||
+            note ||
+            `${projectTicker} on CTOgo`
+          ).trim(),
           salt: bannerSalt,
         });
         setBannerPreview(banner);
       }
 
+      // Slight delay so the “Designing…” state feels intentional, then show the real page.
+      await new Promise((r) => window.setTimeout(r, 450));
       setSiteGenerated(true);
       setPreviewOpen(true);
     } finally {
@@ -1743,6 +1773,7 @@ export function LaunchCtoPage() {
         open={previewOpen && step === 'website'}
         onClose={openSiteEditor}
         onContinue={() => setPreviewOpen(false)}
+        onRegenerate={regenerateDesign}
         kind={websiteKind}
         name={name}
         ticker={ticker}
