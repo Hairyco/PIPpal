@@ -1,9 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Flame,
   LayoutGrid,
   Pin,
@@ -255,6 +257,113 @@ function formatVotes(n: number) {
   return String(n);
 }
 
+type SortKey =
+  | 'asset'
+  | 'chart'
+  | 'marketCap'
+  | 'volume'
+  | 'txs'
+  | 'price'
+  | 'holders'
+  | 'votes';
+type SortDir = 'asc' | 'desc';
+
+function parseCompactAmount(value: string): number {
+  const cleaned = value.replace(/[$,\s]/g, '').toUpperCase();
+  const match = cleaned.match(/^([\d.]+)([KMB])?$/);
+  if (!match) return Number(cleaned) || 0;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n)) return 0;
+  const mult = match[2] === 'K' ? 1e3 : match[2] === 'M' ? 1e6 : match[2] === 'B' ? 1e9 : 1;
+  return n * mult;
+}
+
+function compareByColumn(
+  a: Project,
+  b: Project,
+  key: SortKey,
+  dir: SortDir,
+  window: TimeWindow,
+): number {
+  const sign = dir === 'asc' ? 1 : -1;
+  let delta = 0;
+  switch (key) {
+    case 'asset':
+      delta = a.ticker.localeCompare(b.ticker);
+      break;
+    case 'chart': {
+      const ca = changeForWindow(a, window) ?? Number.NEGATIVE_INFINITY;
+      const cb = changeForWindow(b, window) ?? Number.NEGATIVE_INFINITY;
+      delta = ca - cb;
+      break;
+    }
+    case 'marketCap':
+      delta = parseCompactAmount(a.marketCap) - parseCompactAmount(b.marketCap);
+      break;
+    case 'volume':
+      delta = parseCompactAmount(a.volume24h) - parseCompactAmount(b.volume24h);
+      break;
+    case 'txs':
+      delta = parseCompactAmount(a.txs) - parseCompactAmount(b.txs);
+      break;
+    case 'price':
+      delta = parseCompactAmount(a.price) - parseCompactAmount(b.price);
+      break;
+    case 'holders':
+      delta = parseCompactAmount(a.holders) - parseCompactAmount(b.holders);
+      break;
+    case 'votes':
+      delta = a.votes - b.votes;
+      break;
+    default:
+      delta = 0;
+  }
+  if (delta !== 0) return sign * delta;
+  return a.ticker.localeCompare(b.ticker);
+}
+
+function SortHeader({
+  label,
+  sortKey,
+  activeKey,
+  direction,
+  onSort,
+  align = 'left',
+  title,
+}: {
+  label: ReactNode;
+  sortKey: SortKey;
+  activeKey: SortKey | null;
+  direction: SortDir;
+  onSort: (key: SortKey) => void;
+  align?: 'left' | 'center' | 'right';
+  title?: string;
+}) {
+  const active = activeKey === sortKey;
+  const alignClass =
+    align === 'right' ? 'ml-auto justify-end' : align === 'center' ? 'mx-auto justify-center' : 'justify-start';
+  return (
+    <button
+      type="button"
+      title={title ?? `Sort by ${typeof label === 'string' ? label : sortKey}`}
+      onClick={() => onSort(sortKey)}
+      className={`inline-flex w-full items-center gap-0.5 text-[10px] font-semibold transition hover:text-white/70 ${
+        active ? 'text-white/80' : 'text-white/30'
+      } ${alignClass}`}
+    >
+      <span>{label}</span>
+      <span className="inline-flex flex-col leading-none" aria-hidden>
+        <ChevronUp
+          className={`-mb-0.5 h-2.5 w-2.5 ${active && direction === 'asc' ? 'text-[#c8ff3d]' : 'text-white/25'}`}
+        />
+        <ChevronDown
+          className={`-mt-0.5 h-2.5 w-2.5 ${active && direction === 'desc' ? 'text-[#c8ff3d]' : 'text-white/25'}`}
+        />
+      </span>
+    </button>
+  );
+}
+
 const THEME_KEY = 'cto-theme';
 type ThemeMode = 'light' | 'dark';
 
@@ -296,6 +405,8 @@ export function HomePage() {
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
   const [voteNotice, setVoteNotice] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const searchRef = useRef<HTMLInputElement>(null);
   const pageSize = 10;
@@ -355,10 +466,14 @@ export function HomePage() {
     });
 
     const sorted = [...withLocalVotes];
-    sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
+    if (sortKey) {
+      sorted.sort((a, b) => compareByColumn(a, b, sortKey, sortDir, activeTimeWindow));
+    } else {
+      sorted.sort((a, b) => compareByShortcut(a, b, activeShortcut, activeMode, activeTimeWindow));
+    }
 
     return sorted.map((project, index) => ({ ...project, rank: index + 1 }));
-  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, venueFilter]);
+  }, [query, activeTimeWindow, activeShortcut, activeMode, voted, venueFilter, sortKey, sortDir]);
 
   const pinnedFeed = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -398,7 +513,23 @@ export function HomePage() {
   useEffect(() => {
     setPage(1);
     setPageInput('');
+    setSortKey(null);
+    setSortDir('desc');
   }, [query, activeWindow, activeShortcut, activeMode, venueFilter]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir(key === 'asset' ? 'asc' : 'desc');
+      return;
+    }
+    if (sortDir === 'desc') {
+      setSortDir('asc');
+      return;
+    }
+    setSortKey(null);
+    setSortDir('desc');
+  };
 
   const goToPage = (next: number) => {
     const clamped = Math.min(totalPages, Math.max(1, next));
@@ -874,8 +1005,22 @@ export function HomePage() {
                     style={rankingGridStyle}
                   >
                     {isPrelaunch ? <span className="text-center">#</span> : null}
-                    <span>Asset</span>
-                    <span className="text-center">Chart</span>
+                    <SortHeader
+                      label="Asset"
+                      sortKey="asset"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                    />
+                    <SortHeader
+                      label="Chart"
+                      sortKey="chart"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="center"
+                      title="Sort by % change"
+                    />
                     {isPrelaunch ? (
                       <>
                         <span className="text-center">Vote</span>
@@ -884,14 +1029,56 @@ export function HomePage() {
                         </span>
                       </>
                     ) : null}
-                    <span className="text-right">Market Cap</span>
-                    <span className="text-right">Volume</span>
-                    <span className="text-right">TXs</span>
-                    <span className="text-right">Price</span>
-                    <span className="text-right">Holders</span>
+                    <SortHeader
+                      label="Market Cap"
+                      sortKey="marketCap"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="right"
+                    />
+                    <SortHeader
+                      label="Volume"
+                      sortKey="volume"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="right"
+                    />
+                    <SortHeader
+                      label="TXs"
+                      sortKey="txs"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="right"
+                    />
+                    <SortHeader
+                      label="Price"
+                      sortKey="price"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="right"
+                    />
+                    <SortHeader
+                      label="Holders"
+                      sortKey="holders"
+                      activeKey={sortKey}
+                      direction={sortDir}
+                      onSort={toggleSort}
+                      align="right"
+                    />
                     <span>Marketing wallet</span>
                     {isPrelaunch ? (
-                      <span className="text-right">Votes ▾</span>
+                      <SortHeader
+                        label="Votes"
+                        sortKey="votes"
+                        activeKey={sortKey}
+                        direction={sortDir}
+                        onSort={toggleSort}
+                        align="right"
+                      />
                     ) : null}
                     <span className="text-center"><Star className="mx-auto h-3 w-3" /></span>
                   </div>
