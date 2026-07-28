@@ -775,23 +775,34 @@ export function HomePage() {
               })}
             </div>
 
-            <div className="hide-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
-              {timeWindows.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  title={tab.title}
-                  aria-pressed={activeWindow === tab.id}
-                  onClick={() => setActiveWindow(tab.id)}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
-                    activeWindow === tab.id
-                      ? 'border border-transparent bg-white text-[#090b14]'
-                      : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="mb-3 flex items-center gap-2">
+              <div
+                className="relative min-w-0 max-w-[10.75rem] shrink"
+                style={{
+                  WebkitMaskImage:
+                    'linear-gradient(to right, #000 0%, #000 62%, transparent 100%)',
+                  maskImage: 'linear-gradient(to right, #000 0%, #000 62%, transparent 100%)',
+                }}
+              >
+                <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1 pr-4">
+                  {timeWindows.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      title={tab.title}
+                      aria-pressed={activeWindow === tab.id}
+                      onClick={() => setActiveWindow(tab.id)}
+                      className={`shrink-0 rounded-lg px-3 py-2 text-[11px] font-semibold transition [-webkit-tap-highlight-color:transparent] ${
+                        activeWindow === tab.id
+                          ? 'border border-transparent bg-white text-[#090b14]'
+                          : 'border border-white/[0.07] bg-white/[0.025] text-white/45'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <button
                 type="button"
                 title="Most recent pinned message in each Telegram group"
@@ -806,7 +817,10 @@ export function HomePage() {
                 <Pin className="h-3 w-3" />
                 Pinned
               </button>
-              <button type="button" className="ml-auto flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] text-white/45">
+              <button
+                type="button"
+                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.07] px-3 py-2 text-[11px] text-white/45"
+              >
                 <SlidersHorizontal className="h-3 w-3" /> Filters
               </button>
             </div>
