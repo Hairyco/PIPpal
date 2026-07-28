@@ -44,6 +44,7 @@ import {
   ONE_PAGER_PRIMARY_THEMES,
   defaultGeneratedSiteCopy,
   isBespokeOnePagerTheme,
+  nextOnePagerLayout,
   resolveOnePagerLayout,
   type OnePagerIncludeId,
   type OnePagerIncludes,
@@ -61,7 +62,7 @@ import {
   generateCtoLogoDataUrl,
   readImageFile,
 } from '../utils/ctoCollateralGenerate';
-import { formatMintPreview, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
+import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
@@ -86,8 +87,8 @@ const VESTING_SCHEDULE = [
   { label: 'Day 90', amount: '35%' },
 ];
 
-/** Demo mint — avoids a "CALL…" truncation that reads like the word Call. */
-const DEMO_CONTRACT = '7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK2mNp';
+/** Demo mint — resolves to Pepe Coin in the launch wizard. */
+const DEMO_CONTRACT = LAUNCH_DEMO_MINT;
 
 function ColourPalettePicker({
   value,
@@ -443,10 +444,10 @@ export function LaunchCtoPage() {
     setGeneratingBanner(true);
     try {
       const url = await generateCtoBannerWithLogo({
-        projectName: name || 'Community Takeover',
-        ticker: ticker || 'CTO',
+        projectName: name || 'Pepe Coin',
+        ticker: ticker || 'PEPE',
         logoDataUrl: logoUrl ?? logoPreview,
-        tagline: siteHeadline || pageBlurb || note || `${ticker || 'CTO'} on CTOgo`,
+        tagline: siteHeadline || pageBlurb || note || `${ticker || 'PEPE'} on CTOgo`,
         salt,
       });
       setBannerPreview(url);
@@ -502,8 +503,8 @@ export function LaunchCtoPage() {
     try {
       if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
 
-      const projectName = name || 'CTOgo Coin';
-      const projectTicker = ticker || 'CTO';
+      const projectName = name || 'Pepe Coin';
+      const projectTicker = ticker || 'PEPE';
       const defaults = defaultGeneratedSiteCopy(projectName, projectTicker);
 
       // Always land a finished-looking page — fill blanks so generate never looks empty.
@@ -523,7 +524,10 @@ export function LaunchCtoPage() {
         community: true,
       }));
 
-      bumpLayoutSeed();
+      // Fresh layout each generate when on Auto.
+      if (layoutPreference === 'auto') {
+        bumpLayoutSeed();
+      }
 
       let logo = logoPreview;
       if (!logo) {
@@ -538,7 +542,7 @@ export function LaunchCtoPage() {
       let banner = bannerPreview;
       if (!banner) {
         banner = await generateCtoBannerWithLogo({
-          projectName: name || 'Community Takeover',
+          projectName,
           ticker: projectTicker,
           logoDataUrl: logo,
           tagline: (
@@ -553,7 +557,6 @@ export function LaunchCtoPage() {
         setBannerPreview(banner);
       }
 
-      // Slight delay so the “Designing…” state feels intentional, then show the real page.
       await new Promise((r) => window.setTimeout(r, 450));
       setSiteGenerated(true);
       setPreviewOpen(true);
@@ -562,8 +565,18 @@ export function LaunchCtoPage() {
     }
   };
 
+  /** Always advance to a different layout — seed-only updates looked identical before. */
   const regenerateDesign = () => {
-    bumpLayoutSeed();
+    const current = resolveOnePagerLayout(layoutPreference, layoutSeed);
+    const next = nextOnePagerLayout(current);
+    setLayoutPreference(next);
+    setLayoutSeed((s) => s + 1);
+    // Rotate primary theme so colour changes too.
+    const themeIdx = ONE_PAGER_PRIMARY_THEMES.findIndex((t) => t.id === onePagerThemeId);
+    const nextTheme =
+      ONE_PAGER_PRIMARY_THEMES[(themeIdx + 1) % ONE_PAGER_PRIMARY_THEMES.length] ??
+      ONE_PAGER_PRIMARY_THEMES[0];
+    setOnePagerThemeId(nextTheme.id);
     setPreviewOpen(true);
   };
 

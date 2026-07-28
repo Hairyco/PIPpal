@@ -221,8 +221,7 @@ function SharedSections({
             ))
           ) : (
             <p className="text-[15px] leading-relaxed sm:text-base" style={{ color: theme.muted }}>
-              A community takeover with a clean mint, live trade links, and a page built to look
-              like the project means it.
+              Clean mint, live trade links, and a page built to look like the project means it.
             </p>
           )}
         </div>
@@ -299,11 +298,10 @@ function SharedSections({
             className="font-display text-xl font-bold tracking-tight sm:text-2xl"
             style={{ color: theme.accent }}
           >
-            Same community. Louder chapter.
+            Same holders. Louder chapter.
           </p>
           <p className="mt-3 text-sm leading-relaxed" style={{ color: theme.muted }}>
-            Holders move together — join the group, keep the narrative sharp, and trade where the
-            page lives.
+            Join the group, keep the narrative sharp, and trade where the page lives.
           </p>
         </section>
       ) : null}
@@ -423,7 +421,7 @@ function LayoutAurora(p: LayoutProps) {
             className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-white/55 backdrop-blur"
           >
             <span className="h-1.5 w-1.5 rounded-full" style={{ background: p.theme.accent }} />
-            Community takeover
+            {p.displayTicker} · Live
           </p>
           <h1
             className={`mt-5 font-display font-extrabold leading-[0.92] tracking-tight ${
@@ -676,7 +674,7 @@ function LayoutGallery(p: LayoutProps) {
     <div className="min-h-full bg-[#0b0b0c]" style={{ color: '#f7f5f1' }}>
       <div className={`text-center ${p.full ? 'px-6 pb-4 pt-12 sm:pt-16' : 'px-3 pb-2 pt-5'}`}>
         <p className="text-[10px] font-medium uppercase tracking-[0.35em] text-white/35">
-          Presented by CTOgo
+          {p.displayTicker}
         </p>
         <h1
           className={`mt-4 font-editorial leading-none ${p.full ? 'text-5xl sm:text-7xl' : 'text-3xl'}`}

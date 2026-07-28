@@ -1,6 +1,8 @@
 /** Fixed meme-coin 1-pager theme — structure stays locked; colors + light design notes vary. */
 
 export type OnePagerThemeId =
+  | 'white'
+  | 'black'
   | 'red'
   | 'blue'
   | 'yellow'
@@ -15,7 +17,6 @@ export type OnePagerThemeId =
   | 'magenta'
   | 'coral'
   | 'indigo'
-  | 'white'
   | 'violet'
   /** Legacy aliases kept for older drafts / previews. */
   | 'shib-red'
@@ -60,8 +61,10 @@ function theme(
   };
 }
 
-/** Classic primary accents — shown first. */
+/** Classic primary accents — white / black first, then colour primaries. */
 export const ONE_PAGER_PRIMARY_THEMES: OnePagerTheme[] = [
+  theme('white', 'White', 'primary', '#ffffff', '#f3f3f3', '#0a0a0a', '#0a0a0a'),
+  theme('black', 'Black', 'primary', '#111111', '#2a2a2a', '#f6f6f4', '#f6f6f4'),
   theme('red', 'Red', 'primary', '#e11d2e', '#ff3b4a', '#141414', '#ffffff'),
   theme('blue', 'Blue', 'primary', '#2563eb', '#60a5fa', '#0a1020', '#ffffff'),
   theme('yellow', 'Yellow', 'primary', '#f5c518', '#ffe566', '#12100a', '#12100a'),
@@ -81,7 +84,6 @@ export const ONE_PAGER_BESPOKE_THEMES: OnePagerTheme[] = [
   theme('coral', 'Coral', 'bespoke', '#ff6b4a', '#ff8f75', '#14100e', '#14100e'),
   theme('indigo', 'Indigo', 'bespoke', '#6366f1', '#818cf8', '#0c0e1a', '#ffffff'),
   theme('violet', 'Violet', 'bespoke', '#a855f7', '#c084fc', '#120a18', '#ffffff'),
-  theme('white', 'White', 'bespoke', '#f5f5f5', '#ffffff', '#0c0c0c', '#0c0c0c'),
 ];
 
 export const ONE_PAGER_THEMES: OnePagerTheme[] = [
@@ -94,7 +96,7 @@ const LEGACY_THEME_MAP: Record<string, OnePagerThemeId> = {
   'hot-pink': 'pink',
 };
 
-export const DEFAULT_ONE_PAGER_THEME_ID: OnePagerThemeId = 'red';
+export const DEFAULT_ONE_PAGER_THEME_ID: OnePagerThemeId = 'white';
 
 export function getOnePagerTheme(id: OnePagerThemeId | string | undefined): OnePagerTheme {
   const resolved = (id && LEGACY_THEME_MAP[id]) || id;
@@ -166,7 +168,7 @@ export const ONE_PAGER_INCLUDE_OPTIONS: {
   { id: 'tokenomics', label: 'Tokenomics', hint: 'Supply & fees' },
   { id: 'socials', label: 'Socials', hint: 'Telegram & X' },
   { id: 'howto', label: 'How to buy', hint: 'Short steps' },
-  { id: 'community', label: 'Community', hint: 'Holder callout' },
+  { id: 'community', label: 'Holders', hint: 'Holder callout' },
 ];
 
 export const DEFAULT_ONE_PAGER_INCLUDES: OnePagerIncludes = {
@@ -202,6 +204,13 @@ export function resolveOnePagerLayout(
   return ONE_PAGER_LAYOUTS[Math.abs(seed) % ONE_PAGER_LAYOUTS.length].id;
 }
 
+/** Advance to the next layout — used by “Try another look” so the page visibly changes. */
+export function nextOnePagerLayout(current: OnePagerLayoutId): OnePagerLayoutId {
+  const idx = ONE_PAGER_LAYOUTS.findIndex((l) => l.id === current);
+  const safe = idx >= 0 ? idx : 0;
+  return ONE_PAGER_LAYOUTS[(safe + 1) % ONE_PAGER_LAYOUTS.length].id;
+}
+
 /** Split multifunctional site copy into paragraphs for layout. */
 export function splitSiteCopy(body: string): string[] {
   return body
@@ -215,16 +224,16 @@ export function defaultGeneratedSiteCopy(name: string, ticker: string) {
   const coin = name.trim() || 'This coin';
   const tick = ticker.trim().replace(/^\$/, '').toUpperCase() || 'CTO';
   return {
-    headline: `The community is taking ${coin} further`,
+    headline: `${coin} is live`,
     body: [
-      `${coin} ($${tick}) relaunches with a clean mint, live trade page, and holders who already know the story.`,
-      `Every CTOgo trade can fill the marketing vault — so growth spend comes from volume, not a free founder wallet.`,
-      `This page is your public face: buy link, contract, and the narrative in one place.`,
+      `${coin} ($${tick}) — new mint, clean page, and a clear way to buy.`,
+      `Trade on CTOgo. Share the link. Keep the story sharp without the noise.`,
+      `Contract, chart, and buy — all on one page.`,
     ].join('\n\n'),
-    extraTitle: 'Built for the takeover',
+    extraTitle: 'Why this page',
     extraBody: [
-      'Trade on CTOgo. Share the page. Keep socials and ads moving as the vault fills.',
-      'No clutter — just the coin, the story, and a clear way in.',
+      'One place for the coin, the story, and the trade link.',
+      'Keep it simple. Keep it loud where it matters.',
     ].join('\n\n'),
   };
 }

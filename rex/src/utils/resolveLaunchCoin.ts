@@ -16,7 +16,7 @@ function hashSeed(input: string): number {
 }
 
 const DEMO_COINS: { name: string; ticker: string; venue: SourceVenue }[] = [
-  { name: 'Rug Rabbit', ticker: 'RRBT', venue: 'Pump.fun' },
+  { name: 'Pepe Coin', ticker: 'PEPE', venue: 'Pump.fun' },
   { name: 'Ghost Founder', ticker: 'GHOST', venue: 'Moonshot' },
   { name: 'Dump Daily', ticker: 'DUMP', venue: 'Pump.fun' },
   { name: 'Exit Liquidity', ticker: 'EXIT', venue: 'Raydium' },
@@ -25,6 +25,9 @@ const DEMO_COINS: { name: string; ticker: string; venue: SourceVenue }[] = [
   { name: 'Night Shift', ticker: 'NITE', venue: 'Moonshot' },
   { name: 'Cashback Cat', ticker: 'CBACK', venue: 'Raydium' },
 ];
+
+/** Launch wizard default mint — always resolves to Pepe for a clear demo. */
+export const LAUNCH_DEMO_MINT = '7xKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF7gH9jK2mNp';
 
 /**
  * Resolve coin metadata for the Launch Wizard.
@@ -36,6 +39,23 @@ export async function resolveLaunchCoin(mintRaw: string): Promise<LaunchCoinMeta
   if (mint.length < 32) return null;
 
   await new Promise((r) => setTimeout(r, 450));
+
+  if (mint === LAUNCH_DEMO_MINT) {
+    const logoUrl = generateCtoLogoDataUrl({
+      projectName: 'Pepe Coin',
+      ticker: 'PEPE',
+      salt: 7,
+    });
+    return {
+      mint,
+      name: 'Pepe Coin',
+      ticker: 'PEPE',
+      logoUrl,
+      source: 'demo',
+      venueLabel: 'Pump.fun',
+      blurb: '',
+    };
+  }
 
   const catalogHit = ctoProjects.find((p) => resolveV1Mint(p) === mint || p.v1Mint === mint);
   if (catalogHit) {
