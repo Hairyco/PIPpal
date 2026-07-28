@@ -192,9 +192,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '220px 80px 72px 64px 88px 72px 56px 148px 28px';
+  '176px 80px 72px 64px 88px 72px 56px 148px 28px';
 const tableColsPrelaunch =
-  '30px 220px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
+  '30px 176px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -1056,9 +1056,9 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1010px]'}>
+                <div className={isPrelaunch ? 'min-w-[1140px]' : 'min-w-[960px]'}>
                   <div
-                    className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
+                    className="grid items-center gap-1.5 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
                   >
                     {isPrelaunch ? <span className="text-center">#</span> : null}
@@ -1153,13 +1153,13 @@ export function HomePage() {
                           openTradeView(project.ticker);
                         }
                       }}
-                      className="grid cursor-pointer items-center gap-2 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
+                      className="grid cursor-pointer items-center gap-1.5 border-b border-white/[0.05] px-3 py-3 last:border-0 hover:bg-white/[0.02]"
                       style={rankingGridStyle}
                     >
                       {isPrelaunch ? (
                         <span className="text-center text-xs text-white/35">{project.rank}</span>
                       ) : null}
-                      <div className="flex w-[220px] items-start gap-2.5">
+                      <div className="flex w-[176px] items-start gap-2">
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex min-w-0 items-baseline gap-1.5">
