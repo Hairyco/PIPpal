@@ -22,6 +22,7 @@ import {
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
+import { Sparkline } from '../components/Sparkline';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import {
@@ -186,9 +187,9 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '190px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
+  '190px 80px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 28px';
 const tableColsPrelaunch =
-  '30px 190px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
+  '30px 190px 80px 68px 56px 72px 64px 88px 72px 56px 52px 56px 48px 64px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -847,13 +848,14 @@ export function HomePage() {
             ) : (
             <div className="gloss-panel rounded-xl border border-white/[0.1]">
               <div className="hide-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={isPrelaunch ? 'min-w-[1190px]' : 'min-w-[1060px]'}>
+                <div className={isPrelaunch ? 'min-w-[1280px]' : 'min-w-[1150px]'}>
                   <div
                     className="grid items-center gap-2 border-b border-white/[0.06] px-3 py-2.5 text-[10px] font-semibold text-white/30"
                     style={rankingGridStyle}
                   >
                     {isPrelaunch ? <span className="text-center">#</span> : null}
                     <span>Asset</span>
+                    <span className="text-center">Chart</span>
                     {isPrelaunch ? (
                       <>
                         <span className="text-center">Vote</span>
@@ -913,6 +915,12 @@ export function HomePage() {
                           </div>
                           <p className="text-[11px] leading-snug text-white/55">{project.name}</p>
                         </div>
+                      </div>
+                      <div className="flex justify-center">
+                        <Sparkline
+                          seed={project.ticker}
+                          changePct={changeForWindow(project, activeTimeWindow)}
+                        />
                       </div>
                       {isPrelaunch ? (
                         <>
