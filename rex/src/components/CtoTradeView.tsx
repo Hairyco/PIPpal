@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Copy,
@@ -224,7 +224,6 @@ export function CtoTradeView({
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
-  const [showStickyTrade, setShowStickyTrade] = useState(false);
   const tradePanelRef = useRef<HTMLDivElement>(null);
   const positive = (change ?? project.change24h) >= 0;
 
@@ -279,24 +278,8 @@ export function CtoTradeView({
     setSlippage(String(Math.min(99, Math.max(0, n))));
   };
 
-  useEffect(() => {
-    const el = tradePanelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowStickyTrade(!entry.isIntersecting),
-      { threshold: 0.12, rootMargin: '-12px 0px 0px 0px' },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [project.ticker]);
-
-  const scrollToTrade = (next: 'buy' | 'sell') => {
-    setSide(next);
-    tradePanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
-    <div className="w-full max-w-[100vw] min-w-0 overflow-x-clip">
+    <div className="w-full min-w-0">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
         <div className="mx-auto flex w-full max-w-7xl min-w-0 flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
@@ -387,93 +370,9 @@ export function CtoTradeView({
         </div>
       ) : null}
 
-      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
-            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
-              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
-                {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
-                  <button
-                    key={w}
-                    type="button"
-                    onClick={() => setChartWindow(w)}
-                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold ${
-                      chartWindow === w
-                        ? 'bg-white text-[#090b14]'
-                        : 'text-white/40 hover:text-white'
-                    }`}
-                  >
-                    {w}
-                  </button>
-                ))}
-              </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
-                <button
-                  type="button"
-                  onClick={() => setTokenInfoOpen((open) => !open)}
-                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
-                    tokenInfoOpen
-                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-white/[0.08] text-white/40 hover:text-white'
-                  }`}
-                  aria-expanded={tokenInfoOpen}
-                  aria-label="Contract details"
-                  title="Contract details"
-                >
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-            <div className="h-[320px] px-1 py-2 sm:h-[380px]">
-              <CandleChart positive={positive} />
-            </div>
-            {tokenInfoOpen ? (
-              <div className="border-t border-white/[0.06] px-3 py-3">
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Contract
-                    </p>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <p
-                        className="truncate font-mono text-xs font-semibold text-white/85"
-                        title={v1Mint}
-                      >
-                        {shortMint(v1Mint)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={copyV1}
-                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
-                        aria-label="Copy contract"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Venue
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      {isNativeV2 ? 'Status' : 'Liquidity'}
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
-                  </div>
-                </div>
-                {copied ? (
-                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <aside className="flex flex-col gap-3">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
+        {/* Trade first on mobile so Buy/Sell + amount aren't below the fold / clipped */}
+        <aside className="order-1 flex min-w-0 flex-col gap-3 lg:order-2">
           <div
             id="trade-panel"
             ref={tradePanelRef}
@@ -825,6 +724,91 @@ export function CtoTradeView({
             </ul>
           </div>
         </aside>
+
+        <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
+          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+            <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
+                {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => setChartWindow(w)}
+                    className={`shrink-0 rounded-md px-2 py-1 text-[10px] font-semibold ${
+                      chartWindow === w
+                        ? 'bg-white text-[#090b14]'
+                        : 'text-white/40 hover:text-white'
+                    }`}
+                  >
+                    {w}
+                  </button>
+                ))}
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart · demo</p>
+                <button
+                  type="button"
+                  onClick={() => setTokenInfoOpen((open) => !open)}
+                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
+                    tokenInfoOpen
+                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                      : 'border-white/[0.08] text-white/40 hover:text-white'
+                  }`}
+                  aria-expanded={tokenInfoOpen}
+                  aria-label="Contract details"
+                  title="Contract details"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+            <div className="h-[200px] px-1 py-2 sm:h-[320px] lg:h-[380px]">
+              <CandleChart positive={positive} />
+            </div>
+            {tokenInfoOpen ? (
+              <div className="border-t border-white/[0.06] px-3 py-3">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Contract
+                    </p>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <p
+                        className="truncate font-mono text-xs font-semibold text-white/85"
+                        title={v1Mint}
+                      >
+                        {shortMint(v1Mint)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={copyV1}
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Copy contract"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      Venue
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
+                  </div>
+                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
+                      {isNativeV2 ? 'Status' : 'Liquidity'}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
+                  </div>
+                </div>
+                {copied ? (
+                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-3 pb-4 sm:px-5">
@@ -859,28 +843,6 @@ export function CtoTradeView({
           })}
         </div>
       </div>
-
-      {showStickyTrade ? (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2">
-          <div className="pointer-events-auto mx-auto grid max-w-md grid-cols-2 gap-2 rounded-2xl border border-white/[0.1] bg-[#05070d]/95 p-2 shadow-[0_-12px_40px_rgba(0,0,0,0.55)] backdrop-blur-md">
-            <button
-              type="button"
-              onClick={() => scrollToTrade('buy')}
-              className="flex h-11 items-center justify-center rounded-xl bg-emerald-400 text-sm font-bold text-black hover:bg-emerald-300"
-            >
-              Buy
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollToTrade('sell')}
-              className="flex h-11 items-center justify-center rounded-xl bg-rose-400 text-sm font-bold text-black hover:bg-rose-300"
-            >
-              Sell
-            </button>
-          </div>
-        </div>
-      ) : null}
-      {showStickyTrade ? <div className="h-20" aria-hidden /> : null}
     </div>
   );
 }

@@ -114,45 +114,41 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
       ) : null}
 
       {open ? (
-        <button
-          type="button"
-          className="fixed inset-0 z-[55] bg-black/60"
-          aria-label="Close menu"
-          onClick={() => setOpen(false)}
-        />
-      ) : null}
-
-      <aside
-        className={`fixed inset-y-0 right-0 z-[56] flex w-56 max-w-[min(14rem,100vw)] flex-col border-l border-white/[0.08] bg-[#05070d] transition-transform ${
-          open ? 'translate-x-0' : 'pointer-events-none translate-x-full'
-        }`}
-        aria-hidden={!open}
-      >
-        <div className="flex h-14 items-center justify-between border-b border-white/[0.06] px-4">
-          <NavLink
-            to="/"
-            onClick={() => setOpen(false)}
-            className="inline-flex items-center gap-1.5 font-serif text-base font-bold tracking-tight text-white"
-          >
-            CTOgo
-            <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-              beta
-            </span>
-          </NavLink>
+        <>
           <button
             type="button"
+            className="fixed inset-0 z-[55] bg-black/60"
+            aria-label="Close menu"
             onClick={() => setOpen(false)}
-            className="grid h-8 w-8 place-items-center rounded-md text-white/45 hover:text-white"
-            aria-label="Close"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <NavItems onNavigate={() => setOpen(false)} />
-        <p className="mt-auto border-t border-white/[0.06] p-4 text-[10px] leading-relaxed text-white/30">
-          Fees · marketing wallet · advertise · FAQ
-        </p>
-      </aside>
+          />
+          <aside className="fixed inset-y-0 right-0 z-[56] flex w-[min(14rem,100%)] flex-col border-l border-white/[0.08] bg-[#05070d]">
+            <div className="flex h-14 items-center justify-between border-b border-white/[0.06] px-4">
+              <NavLink
+                to="/"
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center gap-1.5 font-serif text-base font-bold tracking-tight text-white"
+              >
+                CTOgo
+                <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                  beta
+                </span>
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-md text-white/45 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <NavItems onNavigate={() => setOpen(false)} />
+            <p className="mt-auto border-t border-white/[0.06] p-4 text-[10px] leading-relaxed text-white/30">
+              Fees · marketing wallet · advertise · FAQ
+            </p>
+          </aside>
+        </>
+      ) : null}
     </>
   );
 }
