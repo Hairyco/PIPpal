@@ -298,16 +298,27 @@ export function CtoTradeView({
   return (
     <div className="-mx-3 sm:-mx-5">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-3 sm:gap-4 sm:px-5">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
               className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
             >
               <img src={project.logo} alt="" className="h-full w-full object-cover" />
             </div>
-            <div className="min-w-0">
-              <h2 className="truncate font-serif text-xl font-bold tracking-tight">${project.ticker}</h2>
-              <p className="truncate text-xs text-white/45">{project.name}</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2">
+                <h2 className="truncate font-serif text-xl font-bold tracking-tight">
+                  ${project.ticker}
+                </h2>
+                <p className="hidden truncate text-xs text-white/45 sm:inline">{project.name}</p>
+              </div>
+              <p className="truncate text-xs text-white/45 sm:hidden">{project.name}</p>
+              <div className="mt-0.5 flex items-baseline gap-2 sm:hidden">
+                <p className="text-base font-semibold tabular-nums tracking-tight">{project.price}</p>
+                <p className="text-xs font-semibold">
+                  <Pct value={change} />
+                </p>
+              </div>
             </div>
             <div className="hidden flex-wrap items-baseline gap-x-3 gap-y-1 sm:flex">
               <p className="text-2xl font-semibold tabular-nums tracking-tight">{project.price}</p>
@@ -315,15 +326,18 @@ export function CtoTradeView({
                 <Pct value={change} />
               </p>
             </div>
+            <button
+              type="button"
+              onClick={onBack}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white sm:hidden"
+              aria-label="Back to board"
+              title="Back to board"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <div className="flex flex-col items-end sm:hidden">
-              <p className="text-base font-semibold tabular-nums tracking-tight">{project.price}</p>
-              <p className="text-xs font-semibold">
-                <Pct value={change} />
-              </p>
-            </div>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={onToggleStar}
@@ -337,9 +351,11 @@ export function CtoTradeView({
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-semibold text-white/55 hover:text-white"
+              aria-label={`Telegram · ${project.community}`}
+              title={`Telegram · ${project.community}`}
             >
               <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-              {project.community}
+              <span className="hidden sm:inline">{project.community}</span>
             </a>
             <button
               type="button"
@@ -353,7 +369,7 @@ export function CtoTradeView({
             <button
               type="button"
               onClick={onBack}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white"
+              className="hidden h-9 w-9 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white sm:grid"
               aria-label="Back to board"
               title="Back to board"
             >
