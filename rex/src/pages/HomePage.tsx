@@ -1163,32 +1163,34 @@ export function HomePage() {
                         <ProjectMark project={project} size="h-9 w-9" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex min-w-0 items-baseline gap-1.5">
-                            <p className="shrink-0 text-sm font-bold">{project.ticker}</p>
-                            <p className="truncate text-[11px] text-white/45">({project.name})</p>
+                            <p className="shrink-0 text-sm font-bold tracking-tight">{project.ticker}</p>
+                            <p className="truncate text-[11px] text-white/45">{project.name}</p>
                           </div>
-                          <p
-                            className={`mt-0.5 text-[11px] font-semibold tabular-nums ${
-                              project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
-                            }`}
-                          >
-                            {formatLaunchLabel(project.launchInHours)}
-                          </p>
-                          <div className="mt-1 flex items-center gap-1">
-                            {projectSocialLinks(project).map((link) => (
-                              <button
-                                key={link.id}
-                                type="button"
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  setSocialsTicker(project.ticker);
-                                }}
-                                className="grid h-5 w-5 place-items-center rounded text-white/40 transition hover:bg-white/[0.08] hover:text-white"
-                                aria-label={`${link.label} for ${project.ticker}`}
-                                title={link.label}
-                              >
-                                <SocialGlyph id={link.id} className="h-3 w-3" />
-                              </button>
-                            ))}
+                          <div className="mt-1 flex items-center gap-2">
+                            <span
+                              className={`text-[11px] font-semibold tabular-nums ${
+                                project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
+                              }`}
+                            >
+                              {formatLaunchLabel(project.launchInHours)}
+                            </span>
+                            <span className="flex items-center gap-0.5" aria-label="Social links">
+                              {projectSocialLinks(project).map((link) => (
+                                <button
+                                  key={link.id}
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSocialsTicker(project.ticker);
+                                  }}
+                                  className="grid h-5 w-5 place-items-center rounded text-white/40 transition hover:bg-white/[0.08] hover:text-white"
+                                  aria-label={`${link.label} for ${project.ticker}`}
+                                  title={link.label}
+                                >
+                                  <SocialGlyph id={link.id} className="h-3 w-3" />
+                                </button>
+                              ))}
+                            </span>
                           </div>
                         </div>
                       </div>
