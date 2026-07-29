@@ -20,7 +20,6 @@ import {
   Upload,
   Users,
   Wallet,
-  X,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
@@ -191,7 +190,6 @@ export function LaunchCtoPage() {
   const [listMarketingOptIn, setListMarketingOptIn] = useState(false);
   /** Stub invite — real Telegram Bot API create comes later; CTOgo remains chat admin. */
   const [telegramInvite, setTelegramInvite] = useState<string | null>(null);
-  const [telegramPopupOpen, setTelegramPopupOpen] = useState(false);
   const [listingConfirmed, setListingConfirmed] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -499,7 +497,6 @@ export function LaunchCtoPage() {
     setMarketingAttachBusy(false);
     setListMarketingOptIn(false);
     setTelegramInvite(null);
-    setTelegramPopupOpen(false);
     setListingConfirmed(false);
     setCopiedLink(null);
   };
@@ -574,9 +571,14 @@ export function LaunchCtoPage() {
     if (withMarketing !== undefined) setMarketingAttached(withMarketing);
     setTelegramInvite(`https://t.me/ctogo_${coinSlug}`);
     setListingConfirmed(false);
-    setTelegramPopupOpen(true);
     setStep('done');
     await claimAccountAfterPublish();
+  };
+
+  const confirmListing = () => {
+    setListingConfirmed(true);
+    const href = shareLinks.telegram;
+    window.open(href, '_blank', 'noopener,noreferrer');
   };
 
   const finishList = async (withMarketing: boolean) => {
@@ -1930,18 +1932,21 @@ export function LaunchCtoPage() {
                 {listingConfirmed ? (
                   <p className="flex items-center gap-2 text-sm font-semibold text-[#d5ff69]">
                     <Check className="h-4 w-4" />
-                    Listing confirmed
+                    Listing confirmed · Telegram opened
                   </p>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => setListingConfirmed(true)}
+                    onClick={confirmListing}
                     className={primaryBtnClass}
                   >
                     Confirm listing
-                    <Check className="h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                   </button>
                 )}
+                <p className="text-[11px] text-white/35">
+                  Opens your community chat in Telegram.
+                </p>
               </section>
 
               <section className="space-y-3">
@@ -1985,15 +1990,6 @@ export function LaunchCtoPage() {
                 </ul>
               </section>
 
-              <button
-                type="button"
-                onClick={() => setTelegramPopupOpen(true)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
-              >
-                <MessageCircle className="h-4 w-4 text-[#d5ff69]" />
-                Open Telegram community
-              </button>
-
               {mode === 'launch' && artBill.hasExtras ? (
                 <p className="text-[11px] text-white/35">
                   Creative extras · est. {formatCollateralUsd(artBill.totalUsd)} with launch
@@ -2035,119 +2031,6 @@ export function LaunchCtoPage() {
           ) : null}
         </main>
       </div>
-
-      {telegramPopupOpen && step === 'done' ? (
-        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/70"
-            aria-label="Close Telegram"
-            onClick={() => setTelegramPopupOpen(false)}
-          />
-          <div className="relative z-[1] flex h-[min(34rem,92vh)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0e1621] shadow-2xl sm:rounded-2xl">
-            <div className="flex items-center gap-3 border-b border-white/[0.06] bg-[#17212b] px-3 py-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-[#c8ff3d]/20 text-[#d5ff69]">
-                <MessageCircle className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-white">
-                  {displaySymbol} Community
-                </p>
-                <p className="text-[10px] text-white/40">CTOgo Bot · group created</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setTelegramPopupOpen(false)}
-                className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/5 hover:text-white"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
-              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
-                Welcome. Your community group is live. CTOgo is admin — the bot stays in chat for
-                tools.
-              </div>
-              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
-                <p className="font-semibold text-white">Confirm listing</p>
-                <p className="mt-1 text-white/55">
-                  Confirm so {displaySymbol} stays visible on the board.
-                </p>
-                {!listingConfirmed ? (
-                  <button
-                    type="button"
-                    onClick={() => setListingConfirmed(true)}
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 py-1.5 text-[12px] font-bold text-[#090b14]"
-                  >
-                    Confirm listing
-                    <Check className="h-3.5 w-3.5" />
-                  </button>
-                ) : (
-                  <p className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-[#d5ff69]">
-                    <Check className="h-3.5 w-3.5" />
-                    Confirmed
-                  </p>
-                )}
-              </div>
-              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
-                <p className="font-semibold text-white">Shareable links</p>
-                <ul className="mt-2 space-y-2 text-[12px]">
-                  <li>
-                    <span className="text-white/40">Token page</span>
-                    <a
-                      href={shareLinks.token}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
-                    >
-                      {shareLinks.token}
-                    </a>
-                  </li>
-                  <li>
-                    <span className="text-white/40">Telegram page</span>
-                    <a
-                      href={shareLinks.telegram}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
-                    >
-                      {shareLinks.telegram}
-                    </a>
-                  </li>
-                  <li>
-                    <span className="text-white/40">Burn tokens share</span>
-                    <a
-                      href={shareLinks.burn}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
-                    >
-                      {shareLinks.burn}
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[12px] text-white/50">
-                Close anytime — your dashboard stays behind. Reopen Telegram from there.
-              </div>
-            </div>
-
-            <div className="border-t border-white/[0.06] bg-[#17212b] px-3 py-2.5">
-              <a
-                href={shareLinks.telegram}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2AABEE] px-4 py-2.5 text-sm font-bold text-white"
-              >
-                Open in Telegram
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <WebsitePreviewOverlay
         open={previewOpen && step === 'website' && websiteKind !== 'none'}
