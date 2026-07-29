@@ -26,7 +26,7 @@ import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { useAuth } from '../components/AuthProvider';
-import { useConnectedWallet } from '../components/ConnectWalletButton';
+import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
 import {
@@ -177,7 +177,7 @@ function ColourPalettePicker({
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
-  const { signedIn, user, requireAuth } = useAuth();
+  const { signedIn, requireAuth } = useAuth();
   const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
@@ -566,16 +566,6 @@ export function LaunchCtoPage() {
     await finishLaunch();
   };
 
-  const skipWebsiteAndPublish = async () => {
-    selectWebsiteKind('none');
-    if (!connected) {
-      setListNotice('Connect your wallet to pay the launch fee');
-      const next = await connect();
-      if (!next) return;
-    }
-    await finishLaunch();
-  };
-
   const makeLogo = (salt = logoSalt) => {
     setGeneratingLogo(true);
     try {
@@ -742,6 +732,7 @@ export function LaunchCtoPage() {
               Back
             </Link>
             <AuthButton />
+            <ConnectWalletButton />
             <AppSidebarMenuButton />
           </div>
         </header>
@@ -756,14 +747,8 @@ export function LaunchCtoPage() {
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'add'
               ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
-              : 'Burn your tokens. Receive the same amount back as V2.'}
+              : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
           </p>
-
-          {signedIn && user ? null : (
-            <p className="mt-3 text-[11px] text-white/40">
-              Complete List or Launch first. Sign in at the end to claim the page.
-            </p>
-          )}
 
           {step !== 'done' && mode === 'launch' ? (
             <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
@@ -1347,12 +1332,6 @@ export function LaunchCtoPage() {
                 </p>
               )}
 
-              {mode === 'launch' ? (
-                <p className="text-center text-[11px] text-white/35">
-                  Fee mode: {selectedFeeMode.title}
-                </p>
-              ) : null}
-
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
                   type="button"
@@ -1367,13 +1346,6 @@ export function LaunchCtoPage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => void skipWebsiteAndPublish()}
-                className="w-full text-center text-[11px] font-semibold text-white/35 transition hover:text-white/70"
-              >
-                Skip website and publish
-              </button>
             </div>
           ) : null}
 
@@ -1835,15 +1807,6 @@ export function LaunchCtoPage() {
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
-              {websiteKind !== 'none' && !siteGenerated ? (
-                <button
-                  type="button"
-                  onClick={() => void skipWebsiteAndPublish()}
-                  className="w-full text-center text-[11px] font-semibold text-white/40 hover:text-[#d5ff69]"
-                >
-                  Skip website and publish
-                </button>
-              ) : null}
             </form>
           ) : null}
 
