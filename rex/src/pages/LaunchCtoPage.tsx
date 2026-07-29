@@ -273,6 +273,13 @@ export function LaunchCtoPage() {
     setVenueLabel('CTOgo');
     setMarketingAttached(true);
     setTelegramInvite((tg) => tg ?? 'https://t.me/ctogo_pepe');
+    setLogoPreview((prev) => {
+      if (prev) return prev;
+      return generateCtoLogoDataUrl({
+        projectName: 'Pepe',
+        ticker: 'PEPE',
+      });
+    });
   }, [searchParams]);
 
   /** Prefill demo / pasted mint should resolve without forcing a Find click. */
@@ -1975,6 +1982,7 @@ export function LaunchCtoPage() {
               primaryBtnClass={primaryBtnClass}
               backBtnClass={backBtnClass}
               tradedContract={contract.trim()}
+              logoUrl={logoPreview}
               twitter={twitter}
               telegramCommunity={telegramInvite ?? shareLinks.telegram}
               websiteUrl={

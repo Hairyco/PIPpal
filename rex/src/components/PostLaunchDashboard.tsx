@@ -55,6 +55,7 @@ type PostLaunchDashboardProps = {
   discord?: string;
   websiteUrl?: string;
   websiteKind?: DashWebsiteKind;
+  logoUrl?: string | null;
 };
 
 const TABS: { id: DashTab; label: string }[] = [
@@ -88,6 +89,7 @@ export function PostLaunchDashboard({
   discord = '',
   websiteUrl = '',
   websiteKind = 'own',
+  logoUrl = null,
 }: PostLaunchDashboardProps) {
   const [tab, setTab] = useState<DashTab>('overview');
   const [roadmapMode, setRoadmapMode] = useState<'polessia' | 'manual'>('polessia');
@@ -167,9 +169,20 @@ export function PostLaunchDashboard({
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
           Dashboard
         </p>
-        <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-white">
-          {symbol}
-        </h1>
+        <div className="mt-1.5 flex items-center gap-3">
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-11 w-11 shrink-0 rounded-xl border border-white/[0.1] object-cover"
+            />
+          ) : (
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
+              {symbol.replace(/^\$/, '').slice(0, 2)}
+            </span>
+          )}
+          <h1 className="font-serif text-3xl font-bold tracking-tight text-white">{symbol}</h1>
+        </div>
       </div>
 
       <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
