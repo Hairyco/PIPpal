@@ -208,6 +208,8 @@ export function LaunchCtoPage() {
   const [balanceScanning, setBalanceScanning] = useState(false);
   const [burnConfirmBusy, setBurnConfirmBusy] = useState(false);
   const [burnConfirmError, setBurnConfirmError] = useState<string | null>(null);
+  /** Demo: burn UI ignores a pre-existing session wallet until user connects on this step. */
+  const [burnWalletReady, setBurnWalletReady] = useState(false);
   const [pageBlurb, setPageBlurb] = useState('');
   const [siteHeadline, setSiteHeadline] = useState('');
   const [siteExtraTitle, setSiteExtraTitle] = useState('');
@@ -295,10 +297,20 @@ export function LaunchCtoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  /** Demo: burn step always starts without a linked wallet in the burn UI. */
+  useEffect(() => {
+    if (step !== 'burn') return;
+    setBurnWalletReady(false);
+    setBurnAmount('');
+    setV1Balance(null);
+    setBalanceScanning(false);
+    setBurnConfirmError(null);
+  }, [step]);
+
   /** Demo: scan connected wallet for V1 balance of the launch mint. */
   useEffect(() => {
     if (step !== 'burn') return;
-    if (!connected || !address) {
+    if (!burnWalletReady || !connected || !address) {
       setV1Balance(null);
       setBalanceScanning(false);
       return;
@@ -319,7 +331,7 @@ export function LaunchCtoPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [step, connected, address, contract]);
+  }, [step, burnWalletReady, connected, address, contract]);
 
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
 
@@ -357,7 +369,7 @@ export function LaunchCtoPage() {
 
     setBurnConfirmBusy(true);
     try {
-      let walletAddress = address;
+      let walletAddress = burnWalletReady ? address : null;
       if (!walletAddress) {
         // Burn fee is paid at confirmation, so connect at this stage if needed.
         const next = await connect();
@@ -366,6 +378,7 @@ export function LaunchCtoPage() {
           return;
         }
         walletAddress = next;
+        setBurnWalletReady(true);
       }
 
       const available = await scanV1BalanceNow(walletAddress);
@@ -460,6 +473,7 @@ export function LaunchCtoPage() {
     setBalanceScanning(false);
     setBurnConfirmBusy(false);
     setBurnConfirmError(null);
+    setBurnWalletReady(false);
     setPageBlurb('');
     setSiteHeadline('');
     setSiteExtraTitle('');
@@ -1317,7 +1331,7 @@ export function LaunchCtoPage() {
 
               <div>
                 <p className="text-[11px] font-medium text-white/45">Wallet</p>
-                {connected && address ? (
+                {burnWalletReady && connected && address ? (
                   <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                     <div className="min-w-0">
                       <p className="truncate font-mono text-[13px] text-white">
@@ -1337,7 +1351,12 @@ export function LaunchCtoPage() {
                   <button
                     type="button"
                     disabled={walletBusy}
-                    onClick={() => void connect()}
+                    onClick={() => {
+                      void (async () => {
+                        const next = await connect();
+                        if (next) setBurnWalletReady(true);
+                      })();
+                    }}
                     className={`${primaryBtnClass} mt-1.5`}
                   >
                     <Wallet className="h-4 w-4" />
@@ -1406,7 +1425,7 @@ export function LaunchCtoPage() {
               {!burned ? (
                 <>
                   <p className="text-[11px] text-white/35">
-                    {connected
+                    {burnWalletReady && connected
                       ? 'Burn fee will be paid from your connected wallet.'
                       : 'Confirming will connect your wallet and pay the burn fee.'}
                   </p>
