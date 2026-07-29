@@ -69,7 +69,7 @@ import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
-type WebsiteKind = 'onepager' | 'clone';
+type WebsiteKind = 'onepager' | 'clone' | 'none';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -481,7 +481,20 @@ export function LaunchCtoPage() {
 
   const onWebsiteFinish = async (event: FormEvent) => {
     event.preventDefault();
-    if (!siteGenerated) return;
+    if (websiteKind !== 'none' && !siteGenerated) return;
+    const ok = await requireAuth('Register with Google or email to launch a CTO.');
+    if (!ok) return;
+    if (!connected) {
+      setListNotice('Connect your wallet to pay the launch fee');
+      const next = await connect();
+      if (!next) return;
+    }
+    setListNotice(null);
+    setStep('done');
+  };
+
+  const skipWebsiteAndPublish = async () => {
+    selectWebsiteKind('none');
     const ok = await requireAuth('Register with Google or email to launch a CTO.');
     if (!ok) return;
     if (!connected) {
@@ -558,6 +571,7 @@ export function LaunchCtoPage() {
 
   /** Builds a finished site and opens the real full-page viewer. */
   const generateWebsite = async () => {
+    if (websiteKind === 'none') return;
     if (websiteKind === 'clone' && !cloneUrl.trim() && !website.trim()) {
       return;
     }
@@ -632,7 +646,7 @@ export function LaunchCtoPage() {
 
   const canGenerateSite =
     websiteKind === 'onepager' || Boolean(cloneUrl.trim() || website.trim());
-  const canPublishSite = siteGenerated;
+  const canPublishSite = websiteKind === 'none' || siteGenerated;
 
   return (
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
@@ -700,22 +714,13 @@ export function LaunchCtoPage() {
           )}
 
           {step !== 'done' && mode === 'launch' ? (
-            <div className="mt-5 flex gap-1.5">
+            <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
               {steps.map((s, i) => (
-                <div key={s.id} className="flex flex-1 flex-col gap-1.5">
-                  <div
-                    className={`h-1 rounded-full transition-colors ${
-                      i < stepIndex
-                        ? 'bg-[#c8ff3d]'
-                        : i === stepIndex
-                          ? 'bg-[#c8ff3d]'
-                          : 'bg-white/10'
-                    }`}
-                  />
+                <div key={s.id} className="flex min-w-0 flex-1 items-center gap-1">
                   <span
-                    className={`flex items-center gap-1 text-[10px] font-semibold ${
+                    className={`inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold whitespace-nowrap ${
                       i === stepIndex
-                        ? 'text-[#d5ff69]'
+                        ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
                         : i < stepIndex
                           ? 'text-white/55'
                           : 'text-white/30'
@@ -724,6 +729,9 @@ export function LaunchCtoPage() {
                     {i < stepIndex ? <Check className="h-3 w-3" /> : null}
                     {s.label}
                   </span>
+                  {i < steps.length - 1 ? (
+                    <span className="h-px min-w-[8px] flex-1 bg-white/10" aria-hidden />
+                  ) : null}
                 </div>
               ))}
             </div>
@@ -731,28 +739,28 @@ export function LaunchCtoPage() {
 
           {step === 'coin' ? (
             <form onSubmit={onCoinContinue} className="mt-6 space-y-4">
-              <div className="grid grid-cols-2 gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] p-1">
+              <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
                 <button
                   type="button"
                   onClick={() => switchMode('add')}
-                  className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition ${
+                  className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
                     mode === 'add'
                       ? 'bg-[#c8ff3d] text-[#090b14]'
                       : 'text-white/50 hover:text-white'
                   }`}
                 >
-                  List a CTO
+                  List
                 </button>
                 <button
                   type="button"
                   onClick={() => switchMode('launch')}
-                  className={`rounded-lg px-3 py-2.5 text-xs font-semibold transition ${
+                  className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
                     mode === 'launch'
                       ? 'bg-[#c8ff3d] text-[#090b14]'
                       : 'text-white/50 hover:text-white'
                   }`}
                 >
-                  Launch on CTOgo
+                  Launch
                 </button>
               </div>
 
@@ -787,7 +795,7 @@ export function LaunchCtoPage() {
                     </li>
                     <li className="grid gap-2 sm:grid-cols-2">
                       {[
-                        { icon: Globe, label: 'New website' },
+                        { icon: Globe, label: 'Website (optional)' },
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: Sparkles, label: 'Logo & banner' },
                         { icon: ShieldAlert, label: 'Stop dev fees' },
@@ -1264,10 +1272,17 @@ export function LaunchCtoPage() {
                   Back
                 </button>
                 <button type="button" onClick={goToWebsite} className={`${primaryBtnClass} sm:flex-1`}>
-                  {burned ? 'Looks good' : 'Skip for now'}
+                  {burned ? 'Continue to website' : 'Skip burn · website'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => void skipWebsiteAndPublish()}
+                className="w-full text-center text-[11px] font-semibold text-white/40 hover:text-[#d5ff69]"
+              >
+                Skip website and publish now
+              </button>
             </div>
           ) : null}
 
@@ -1276,8 +1291,7 @@ export function LaunchCtoPage() {
               <div>
                 <p className="text-sm font-bold text-white">Your website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Write your copy, generate a simple 1-pager — regenerate until it
-                  feels right.
+                  Optional — build a 1-pager, clone an old site, or skip and launch without one.
                 </p>
               </div>
 
@@ -1288,39 +1302,50 @@ export function LaunchCtoPage() {
                 </span>
               </p>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-1.5">
                 <button
                   type="button"
                   onClick={() => selectWebsiteKind('onepager')}
-                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
                     websiteKind === 'onepager'
                       ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
                       : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                   }`}
                 >
-                  <p className="flex items-center gap-1.5 text-xs font-bold text-white">
-                    Simple 1-pager
-                    <span className="rounded bg-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/50">
-                      beta
-                    </span>
-                  </p>
-                  <p className="mt-1 text-[10px] text-white/40">Auto design, your copy</p>
+                  <p className="text-[11px] font-bold text-white">1-pager</p>
+                  <p className="mt-0.5 text-[9px] text-white/40">Auto design</p>
                 </button>
                 <button
                   type="button"
                   onClick={() => selectWebsiteKind('clone')}
-                  className={`rounded-xl border px-3 py-3 text-left transition ${
+                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
                     websiteKind === 'clone'
                       ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
                       : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                   }`}
                 >
-                  <p className="text-xs font-bold text-white">Clone old site</p>
-                  <p className="mt-1 text-[10px] text-white/40">Rebuild with new CA &amp; branding</p>
+                  <p className="text-[11px] font-bold text-white">Clone</p>
+                  <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectWebsiteKind('none')}
+                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
+                    websiteKind === 'none'
+                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
+                  }`}
+                >
+                  <p className="text-[11px] font-bold text-white">Skip</p>
+                  <p className="mt-0.5 text-[9px] text-white/40">No website</p>
                 </button>
               </div>
 
-              {websiteKind === 'clone' ? (
+              {websiteKind === 'none' ? (
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-[12px] text-white/50">
+                  You’ll launch with the CTOgo coin page only — add a site later anytime.
+                </div>
+              ) : websiteKind === 'clone' ? (
                 <label className="block">
                   <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
                   <input
@@ -1421,7 +1446,7 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              {!siteGenerated ? (
+              {!siteGenerated && websiteKind !== 'none' ? (
                 <button
                   type="button"
                   onClick={() => void generateWebsite()}
@@ -1440,14 +1465,14 @@ export function LaunchCtoPage() {
                     </>
                   )}
                 </button>
-              ) : (
+              ) : siteGenerated && websiteKind !== 'none' ? (
                 <>
                   <div
                     ref={sitePreviewRef}
                     className={editSite ? 'sticky top-0 z-20 -mx-1 mb-2 space-y-2 bg-[#090b14]/95 pb-2 pt-1 backdrop-blur-md' : 'space-y-2'}
                   >
                     <WebsitePreview
-                      kind={websiteKind}
+                      kind={websiteKind === 'clone' ? 'clone' : 'onepager'}
                       name={name}
                       ticker={ticker}
                       headline={siteHeadline}
@@ -1697,7 +1722,7 @@ export function LaunchCtoPage() {
                     </p>
                   ) : null}
                 </>
-              )}
+              ) : null}
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button type="button" onClick={() => setStep('burn')} className={backBtnClass}>
@@ -1709,10 +1734,25 @@ export function LaunchCtoPage() {
                   disabled={!canPublishSite}
                   className={`${primaryBtnClass} sm:flex-1`}
                 >
-                  {connected ? 'Publish CTO' : 'Connect wallet & publish'}
+                  {websiteKind === 'none'
+                    ? connected
+                      ? 'Publish without website'
+                      : 'Connect wallet & publish'
+                    : connected
+                      ? 'Publish CTO'
+                      : 'Connect wallet & publish'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
+              {websiteKind !== 'none' && !siteGenerated ? (
+                <button
+                  type="button"
+                  onClick={() => void skipWebsiteAndPublish()}
+                  className="w-full text-center text-[11px] font-semibold text-white/40 hover:text-[#d5ff69]"
+                >
+                  Skip website and publish
+                </button>
+              ) : null}
             </form>
           ) : null}
 
@@ -1743,7 +1783,11 @@ export function LaunchCtoPage() {
                   <>
                     {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live on
                     CTOgo
-                    {websiteKind === 'clone' ? ' with a cloned site' : ' with a 1-pager'}.
+                    {websiteKind === 'none'
+                      ? ' — coin page only (no custom website).'
+                      : websiteKind === 'clone'
+                        ? ' with a cloned site.'
+                        : ' with a 1-pager.'}
                   </>
                 )}
               </p>
@@ -1807,11 +1851,11 @@ export function LaunchCtoPage() {
       </div>
 
       <WebsitePreviewOverlay
-        open={previewOpen && step === 'website'}
+        open={previewOpen && step === 'website' && websiteKind !== 'none'}
         onClose={openSiteEditor}
         onContinue={() => setPreviewOpen(false)}
         onRegenerate={websiteKind === 'onepager' ? regenerateDesign : undefined}
-        kind={websiteKind}
+        kind={websiteKind === 'clone' ? 'clone' : 'onepager'}
         name={name}
         ticker={ticker}
         headline={siteHeadline}
