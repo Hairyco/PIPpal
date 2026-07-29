@@ -242,6 +242,7 @@ export function LaunchCtoPage() {
   const [fromCoinPage, setFromCoinPage] = useState(false);
   const prefillApplied = useRef(false);
   const lookupSeq = useRef(0);
+  const authPrompted = useRef(false);
 
   useEffect(() => {
     const qMode = searchParams.get('mode')?.trim().toLowerCase();
@@ -249,6 +250,21 @@ export function LaunchCtoPage() {
       setMode('add');
     }
   }, [searchParams]);
+
+  /** Landing on Launch or List without an account opens registration / login immediately. */
+  useEffect(() => {
+    if (signedIn) {
+      authPrompted.current = false;
+      return;
+    }
+    if (authPrompted.current) return;
+    authPrompted.current = true;
+    void requireAuth(
+      mode === 'add'
+        ? 'Register or sign in to list a CTO.'
+        : 'Register or sign in to launch a CTO.',
+    );
+  }, [signedIn, mode, requireAuth]);
 
   /** Prefill demo / pasted mint should resolve without forcing a Find click. */
   useEffect(() => {
@@ -682,37 +698,18 @@ export function LaunchCtoPage() {
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'add'
-              ? 'Register with Google or email to list. Connect a wallet only if you add a marketing vault ($1).'
-              : 'Register with Google or email to start. Connect a wallet when you pay the launch fee.'}
+              ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
+              : 'Paste any Solana mint. Connect a wallet when you pay the launch fee.'}
           </p>
 
-          {!signedIn ? (
-            <div className="mt-5 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
-              <p className="text-sm font-semibold text-[#d5ff69]">Account required</p>
-              <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                Create a free CTOgo account with Google or email before you Launch or List. Wallet
-                connect is only for payments.
-              </p>
-              <button
-                type="button"
-                onClick={() =>
-                  void requireAuth(
-                    mode === 'add'
-                      ? 'Register with Google or email to list a CTO.'
-                      : 'Register with Google or email to launch a CTO.',
-                  )
-                }
-                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
-              >
-                Continue with Google or email
-              </button>
-            </div>
-          ) : (
+          {signedIn && user ? (
             <p className="mt-3 text-[11px] text-white/40">
-              Signed in as <span className="font-semibold text-white/70">{user?.email}</span>
+              Signed in as <span className="font-semibold text-white/70">{user.email}</span>
             </p>
-          )}
+          ) : null}
 
+          {!signedIn ? null : (
+            <>
           {step !== 'done' && mode === 'launch' ? (
             <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
               {steps.map((s, i) => (
@@ -1847,6 +1844,8 @@ export function LaunchCtoPage() {
               </div>
             </div>
           ) : null}
+            </>
+          )}
         </main>
       </div>
 
