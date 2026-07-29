@@ -82,15 +82,15 @@ const primaryBtnClass =
 const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
 
-/** Equal daily unlock — 100% over 7 days (no front-loaded cliff). */
+/** Vesting: 10% unlock each day (Day 1-6) and remainder on Day 7. */
 const VESTING_SCHEDULE = [
-  { label: 'Day 1', amount: '1/7' },
-  { label: 'Day 2', amount: '1/7' },
-  { label: 'Day 3', amount: '1/7' },
-  { label: 'Day 4', amount: '1/7' },
-  { label: 'Day 5', amount: '1/7' },
-  { label: 'Day 6', amount: '1/7' },
-  { label: 'Day 7', amount: '1/7' },
+  { label: 'Day 1', amount: '10%' },
+  { label: 'Day 2', amount: '10%' },
+  { label: 'Day 3', amount: '10%' },
+  { label: 'Day 4', amount: '10%' },
+  { label: 'Day 5', amount: '10%' },
+  { label: 'Day 6', amount: '10%' },
+  { label: 'Day 7', amount: '40%' },
 ];
 
 /** Demo mint — resolves to Pepe Coin in the launch wizard. */
@@ -208,6 +208,8 @@ export function LaunchCtoPage() {
   /** Demo V1 balance after wallet scan — real RPC later. */
   const [v1Balance, setV1Balance] = useState<string | null>(null);
   const [balanceScanning, setBalanceScanning] = useState(false);
+  const [burnConfirmBusy, setBurnConfirmBusy] = useState(false);
+  const [burnConfirmError, setBurnConfirmError] = useState<string | null>(null);
   const [pageBlurb, setPageBlurb] = useState('');
   const [siteHeadline, setSiteHeadline] = useState('');
   const [siteExtraTitle, setSiteExtraTitle] = useState('');
@@ -322,6 +324,67 @@ export function LaunchCtoPage() {
   }, [step, connected, address, contract]);
 
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
+
+  const demoScanV1BalanceForWallet = (walletAddress: string): number => {
+    // Demo-only: stable pseudo-balance from wallet + V1 mint.
+    let salt = 0;
+    for (let i = 0; i < walletAddress.length; i += 1) {
+      salt = (salt * 31 + walletAddress.charCodeAt(i)) % 10000;
+    }
+    const mintSalt = contract.trim().slice(-4).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+    return 250_000 + salt * 13 + mintSalt * 40;
+  };
+
+  const scanV1BalanceNow = async (walletAddress: string): Promise<number> => {
+    setBalanceScanning(true);
+    await new Promise((r) => window.setTimeout(r, 700));
+    const amount = demoScanV1BalanceForWallet(walletAddress);
+    setV1Balance(String(amount));
+    setBalanceScanning(false);
+    return amount;
+  };
+
+  const onBurnConfirm = async () => {
+    if (burnConfirmBusy) return;
+    setBurnConfirmError(null);
+    const amt = Number(burnAmount);
+    if (!Number.isFinite(amt) || amt <= 0) {
+      setBurnConfirmError('Enter an amount to burn.');
+      return;
+    }
+    if (!vestingAccepted) {
+      setBurnConfirmError('Confirm the unlock terms to continue.');
+      return;
+    }
+
+    setBurnConfirmBusy(true);
+    try {
+      let walletAddress = address;
+      if (!walletAddress) {
+        // Burn fee is paid at confirmation, so connect at this stage if needed.
+        const next = await connect();
+        if (!next) {
+          setBurnConfirmError('Connect a wallet to pay the burn fee.');
+          return;
+        }
+        walletAddress = next;
+      }
+
+      const available = await scanV1BalanceNow(walletAddress);
+      if (amt > available) {
+        setBurnConfirmError(
+          `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
+        );
+        return;
+      }
+
+      // Demo-only: simulate burn + fee payment.
+      await new Promise((r) => window.setTimeout(r, 600));
+      setBurned(true);
+    } finally {
+      setBurnConfirmBusy(false);
+    }
+  };
   const steps =
     mode === 'launch'
       ? [
@@ -397,6 +460,8 @@ export function LaunchCtoPage() {
     setBurned(false);
     setV1Balance(null);
     setBalanceScanning(false);
+    setBurnConfirmBusy(false);
+    setBurnConfirmError(null);
     setPageBlurb('');
     setSiteHeadline('');
     setSiteExtraTitle('');
@@ -1212,11 +1277,11 @@ export function LaunchCtoPage() {
               <div>
                 <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Burn your old tokens for the same amount of V2. Connect the wallet that holds them.
-                  We match the V1 mint from this launch.
+                  Burn V1 for V2 with a 7-day unlock. We scan your V1 balance from the connected
+                  wallet and take the burn fee at confirmation.
                 </p>
                 <p className="mt-1 text-[12px] text-white/35">
-                  Equal unlock each day for 7 days.
+                  10% unlock per day (Day 1–6), remainder on Day 7.
                 </p>
               </div>
 
@@ -1270,8 +1335,7 @@ export function LaunchCtoPage() {
                       onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
                       placeholder="0"
                       inputMode="decimal"
-                      disabled={!connected || !v1Balance}
-                      className={`${fieldClass} mt-0 disabled:opacity-40`}
+                      className={`${fieldClass} mt-0`}
                     />
                     <button
                       type="button"
@@ -1322,11 +1386,17 @@ export function LaunchCtoPage() {
               {!burned ? (
                 <button
                   type="button"
-                  onClick={() => setBurned(true)}
-                  disabled={!connected || !vestingAccepted || !burnAmount || !v1Balance}
+                  onClick={() => void onBurnConfirm()}
+                  disabled={
+                    burnConfirmBusy ||
+                    !vestingAccepted ||
+                    !burnAmount ||
+                    !Number.isFinite(Number(burnAmount)) ||
+                    Number(burnAmount) <= 0
+                  }
                   className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
-                  Burn &amp; receive V2
+                  {burnConfirmBusy ? 'Confirming…' : 'Confirm burn & receive V2'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               ) : (
@@ -1335,6 +1405,10 @@ export function LaunchCtoPage() {
                   Burn complete — V2 queued
                 </p>
               )}
+
+              {burnConfirmError ? (
+                <p className="text-[12px] font-medium text-rose-300">{burnConfirmError}</p>
+              ) : null}
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
