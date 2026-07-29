@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  AlertTriangle,
   Check,
   Copy,
   ExternalLink,
@@ -11,7 +10,6 @@ import {
 import { PolessiaLogo } from './PolessiaLogo';
 import {
   PostLaunchSocialsTab,
-  type ContractCorrection,
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
 import {
@@ -23,8 +21,6 @@ import {
   type SpendItemId,
   type SpendThreshold,
 } from '../data/postLaunchRoadmap';
-import { notifyCommunityOnChange } from '../utils/notifyCommunityOnChange';
-import { shortMint } from '../utils/socialDueDiligence';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials';
 
@@ -96,13 +92,7 @@ export function PostLaunchDashboard({
   const [selected, setSelected] = useState<Set<SpendItemId>>(
     () => new Set(POLESSIA_DEFAULT_SELECTED),
   );
-  const [contractCorrection, setContractCorrection] = useState<ContractCorrection | null>(
-    null,
-  );
   const [copiedMint, setCopiedMint] = useState(false);
-  const [showCorrection, setShowCorrection] = useState(false);
-  const [proposedMint, setProposedMint] = useState('');
-  const [correctionReason, setCorrectionReason] = useState('');
 
   const nextThreshold = useMemo(() => {
     return (
@@ -163,20 +153,6 @@ export function PostLaunchDashboard({
     }
   };
 
-  const submitCorrection = () => {
-    const proposed = proposedMint.trim();
-    const reason = correctionReason.trim();
-    if (proposed.length < 32 || reason.length < 4) return;
-    setContractCorrection({ proposed, reason, status: 'pending' });
-    notifyCommunityOnChange({
-      symbol,
-      kind: 'contract_correction_requested',
-      summary: `Contract correction requested → ${shortMint(proposed)}`,
-      telegramInvite: telegramCommunity || shareLinks.telegram,
-    });
-    setShowCorrection(false);
-  };
-
   return (
     <div className="mt-2 space-y-6">
       <div>
@@ -205,16 +181,6 @@ export function PostLaunchDashboard({
         ))}
       </div>
 
-      {contractCorrection?.status === 'pending' ? (
-        <p className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-[12px] leading-relaxed text-amber-100/90">
-          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>
-            Contract correction pending review → {shortMint(contractCorrection.proposed)}. Live
-            mint unchanged until approved.
-          </span>
-        </p>
-      ) : null}
-
       {tab === 'overview' ? (
         <div className="space-y-6">
           <section className="space-y-2 border-b border-white/[0.08] pb-4">
@@ -239,56 +205,6 @@ export function PostLaunchDashboard({
             <p className="text-[11px] text-white/35">
               Mint is locked after publish. Socials and websites must match this CA.
             </p>
-            {contractCorrection?.status === 'pending' ? null : !showCorrection ? (
-              <button
-                type="button"
-                onClick={() => setShowCorrection(true)}
-                className="text-[11px] font-semibold text-white/45 underline decoration-white/20 underline-offset-2 hover:text-white"
-              >
-                Request contract correction
-              </button>
-            ) : (
-              <div className="space-y-3 pt-1">
-                <label className="block space-y-1.5">
-                  <span className="text-[11px] font-semibold text-white/40">Proposed mint</span>
-                  <input
-                    value={proposedMint}
-                    onChange={(e) => setProposedMint(e.target.value)}
-                    placeholder="Solana mint address"
-                    className="w-full rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 font-mono text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
-                  />
-                </label>
-                <label className="block space-y-1.5">
-                  <span className="text-[11px] font-semibold text-white/40">Reason</span>
-                  <textarea
-                    value={correctionReason}
-                    onChange={(e) => setCorrectionReason(e.target.value)}
-                    rows={2}
-                    placeholder="Why is the listed contract wrong?"
-                    className="w-full resize-y rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
-                  />
-                </label>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={submitCorrection}
-                    disabled={
-                      proposedMint.trim().length < 32 || correctionReason.trim().length < 4
-                    }
-                    className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
-                  >
-                    Submit for review
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowCorrection(false)}
-                    className={backBtnClass}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
           </section>
 
           <section className="space-y-3">
