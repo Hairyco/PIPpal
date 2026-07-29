@@ -242,7 +242,6 @@ export function LaunchCtoPage() {
   const [fromCoinPage, setFromCoinPage] = useState(false);
   const prefillApplied = useRef(false);
   const lookupSeq = useRef(0);
-  const authPrompted = useRef(false);
 
   useEffect(() => {
     const qMode = searchParams.get('mode')?.trim().toLowerCase();
@@ -250,21 +249,6 @@ export function LaunchCtoPage() {
       setMode('add');
     }
   }, [searchParams]);
-
-  /** Landing on Launch or List without an account opens registration / login immediately. */
-  useEffect(() => {
-    if (signedIn) {
-      authPrompted.current = false;
-      return;
-    }
-    if (authPrompted.current) return;
-    authPrompted.current = true;
-    void requireAuth(
-      mode === 'add'
-        ? 'Register or sign in to list a CTO.'
-        : 'Register or sign in to launch a CTO.',
-    );
-  }, [signedIn, mode, requireAuth]);
 
   /** Prefill demo / pasted mint should resolve without forcing a Find click. */
   useEffect(() => {
@@ -446,23 +430,33 @@ export function LaunchCtoPage() {
     }
   }
 
-  const finishList = (withMarketing: boolean) => {
+  /** Sign-up comes after List / Launch — claim the page once the flow is done. */
+  const claimAccountAfterPublish = async () => {
+    if (signedIn) return;
+    await requireAuth(
+      mode === 'add'
+        ? 'Create a free account to claim this listing.'
+        : 'Create a free account to claim this launch.',
+    );
+  };
+
+  const finishList = async (withMarketing: boolean) => {
     setMarketingAttached(withMarketing);
     const slug = (ticker.trim() || 'cto').toLowerCase().replace(/[^a-z0-9]/g, '') || 'cto';
     setTelegramInvite(`https://t.me/ctogo_${slug}`);
     setStep('done');
+    await claimAccountAfterPublish();
+  };
+
+  const finishLaunch = async () => {
+    setListNotice(null);
+    setStep('done');
+    await claimAccountAfterPublish();
   };
 
   const onCoinContinue = async (event: FormEvent) => {
     event.preventDefault();
     if (!canContinueCoin) return;
-
-    const ok = await requireAuth(
-      mode === 'add'
-        ? 'Register with Google or email to list a CTO.'
-        : 'Register with Google or email to launch a CTO.',
-    );
-    if (!ok) return;
 
     if (mode === 'add') {
       setListNotice(null);
@@ -476,13 +470,13 @@ export function LaunchCtoPage() {
         try {
           // Demo: $1 covers rent + tx; remainder → treasury.
           await new Promise((r) => window.setTimeout(r, 600));
-          finishList(true);
+          await finishList(true);
         } finally {
           setMarketingAttachBusy(false);
         }
         return;
       }
-      finishList(false);
+      await finishList(false);
       return;
     }
     setStep('fees');
@@ -498,28 +492,22 @@ export function LaunchCtoPage() {
   const onWebsiteFinish = async (event: FormEvent) => {
     event.preventDefault();
     if (websiteKind !== 'none' && !siteGenerated) return;
-    const ok = await requireAuth('Register with Google or email to launch a CTO.');
-    if (!ok) return;
     if (!connected) {
       setListNotice('Connect your wallet to pay the launch fee');
       const next = await connect();
       if (!next) return;
     }
-    setListNotice(null);
-    setStep('done');
+    await finishLaunch();
   };
 
   const skipWebsiteAndPublish = async () => {
     selectWebsiteKind('none');
-    const ok = await requireAuth('Register with Google or email to launch a CTO.');
-    if (!ok) return;
     if (!connected) {
       setListNotice('Connect your wallet to pay the launch fee');
       const next = await connect();
       if (!next) return;
     }
-    setListNotice(null);
-    setStep('done');
+    await finishLaunch();
   };
 
   const makeLogo = (salt = logoSalt) => {
@@ -706,10 +694,12 @@ export function LaunchCtoPage() {
             <p className="mt-3 text-[11px] text-white/40">
               Signed in as <span className="font-semibold text-white/70">{user.email}</span>
             </p>
-          ) : null}
+          ) : (
+            <p className="mt-3 text-[11px] text-white/40">
+              Fill in List or Launch first — create a free account at the end to claim the page.
+            </p>
+          )}
 
-          {!signedIn ? null : (
-            <>
           {step !== 'done' && mode === 'launch' ? (
             <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
               {steps.map((s, i) => (
@@ -1034,12 +1024,12 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              {mode === 'add' && signedIn && address ? (
+              {mode === 'add' && address ? (
                 <p className="text-center text-[11px] text-white/40">
                   Listing as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
                   group
                 </p>
-              ) : mode === 'add' && signedIn && listMarketingOptIn ? (
+              ) : mode === 'add' && listMarketingOptIn ? (
                 <p className="text-center text-[11px] text-white/40">
                   Wallet required only to pay the ${MARKETING_WALLET_ATTACH_FEE_USD} vault fee
                 </p>
@@ -1049,7 +1039,6 @@ export function LaunchCtoPage() {
                 type="submit"
                 disabled={
                   !canContinueCoin ||
-                  !signedIn ||
                   (mode === 'add' && listMarketingOptIn && (walletBusy || marketingAttachBusy))
                 }
                 className={primaryBtnClass}
@@ -1059,11 +1048,6 @@ export function LaunchCtoPage() {
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Listing…
-                    </>
-                  ) : !signedIn ? (
-                    <>
-                      Sign in to list
-                      <ArrowRight className="h-4 w-4" />
                     </>
                   ) : listMarketingOptIn && !connected ? (
                     <>
@@ -1081,11 +1065,6 @@ export function LaunchCtoPage() {
                       <Check className="h-4 w-4" />
                     </>
                   )
-                ) : !signedIn ? (
-                  <>
-                    Sign in to continue
-                    <ArrowRight className="h-4 w-4" />
-                  </>
                 ) : (
                   <>
                     Looks good
@@ -1834,6 +1813,16 @@ export function LaunchCtoPage() {
                   </button>
                 </p>
               ) : null}
+              {!signedIn ? (
+                <button
+                  type="button"
+                  onClick={() => void claimAccountAfterPublish()}
+                  className={`${primaryBtnClass} mt-5`}
+                >
+                  Create free account to claim
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              ) : null}
               <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
                 <Link to="/" className={`${primaryBtnClass} sm:w-auto sm:px-6`}>
                   Back to home
@@ -1844,8 +1833,6 @@ export function LaunchCtoPage() {
               </div>
             </div>
           ) : null}
-            </>
-          )}
         </main>
       </div>
 

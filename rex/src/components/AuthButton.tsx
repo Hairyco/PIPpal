@@ -10,7 +10,7 @@ export function AuthButton({ className = '' }: { className?: string }) {
     return (
       <button
         type="button"
-        onClick={() => void requireAuth('Sign in with Google or email to Launch or List.')}
+        onClick={() => void requireAuth('Sign in with Google or email.')}
         className={`inline-flex h-10 items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-2.5 text-xs font-semibold text-white transition hover:border-[#c8ff3d]/35 hover:bg-[#c8ff3d]/10 hover:text-[#d5ff69] sm:px-3 ${className}`}
       >
         <LogIn className="h-3.5 w-3.5 shrink-0" />

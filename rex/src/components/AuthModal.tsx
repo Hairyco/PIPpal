@@ -87,7 +87,7 @@ export function AuthModal() {
             </p>
             <p className="mt-0.5 text-[11px] text-white/45">
               {authModalReason ??
-                'Register with Google or email to Launch or List. Connect a wallet only when you pay.'}
+                'Create a free account with Google or email. Connect a wallet only when you pay.'}
             </p>
           </div>
           <button

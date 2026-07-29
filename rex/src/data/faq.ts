@@ -46,7 +46,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'who-can-start',
         question: 'Who can start a CTO?',
         answer:
-          'Anyone with a free CTOgo account (Google or email). List an existing coin from the board or Launch a new mint on CTOgo. Connect a Solana wallet only when you pay — launch fee, optional $1 marketing vault on List, or Advertise packs. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
+          'Anyone. Complete List or Launch first, then create a free CTOgo account (Google or email) to claim the page. Connect a Solana wallet only when you pay — launch fee, optional $1 marketing vault on List, or Advertise packs. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
       },
     ],
   },
