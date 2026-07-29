@@ -18,12 +18,6 @@ import {
 
 export type DashWebsiteKind = 'onepager' | 'clone' | 'none' | 'own';
 
-export type ContractCorrection = {
-  proposed: string;
-  reason: string;
-  status: 'pending';
-};
-
 type PostLaunchSocialsTabProps = {
   symbol: string;
   tradedContract: string;
