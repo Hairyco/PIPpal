@@ -83,15 +83,15 @@ const primaryBtnClass =
 const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
 
-/** Vesting: 10% unlock each day (Day 1-6) and remainder on Day 7. */
+/** Vesting: Day 1-5 = 10% each, then Day 6 = 25% and Day 7 = 25%. */
 const VESTING_SCHEDULE = [
   { label: 'Day 1', amount: '10%' },
   { label: 'Day 2', amount: '10%' },
   { label: 'Day 3', amount: '10%' },
   { label: 'Day 4', amount: '10%' },
   { label: 'Day 5', amount: '10%' },
-  { label: 'Day 6', amount: '10%' },
-  { label: 'Day 7', amount: '40%' },
+  { label: 'Day 6', amount: '25%' },
+  { label: 'Day 7', amount: '25%' },
 ];
 
 /** Demo mint — resolves to Pepe Coin in the launch wizard. */
@@ -1296,7 +1296,7 @@ export function LaunchCtoPage() {
                   </span>
                 </div>
                 <p className="mt-1.5 text-[12px] text-white/35">
-                  10% unlock per day (Day 1–6), remainder on Day 7.
+                  Day 1–5: 10% each · Day 6: 25% · Day 7: 25%.
                 </p>
               </div>
 
