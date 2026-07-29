@@ -82,13 +82,15 @@ const primaryBtnClass =
 const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
 
+/** Equal daily unlock — 100% over 7 days (no front-loaded cliff). */
 const VESTING_SCHEDULE = [
-  { label: 'At launch', amount: '25%' },
-  { label: 'Day 1', amount: '15%' },
-  { label: 'Day 2', amount: '15%' },
-  { label: 'Day 3', amount: '15%' },
-  { label: 'Day 4', amount: '15%' },
-  { label: 'Day 5', amount: '15%' },
+  { label: 'Day 1', amount: '1/7' },
+  { label: 'Day 2', amount: '1/7' },
+  { label: 'Day 3', amount: '1/7' },
+  { label: 'Day 4', amount: '1/7' },
+  { label: 'Day 5', amount: '1/7' },
+  { label: 'Day 6', amount: '1/7' },
+  { label: 'Day 7', amount: '1/7' },
 ];
 
 /** Demo mint — resolves to Pepe Coin in the launch wizard. */
@@ -1213,7 +1215,9 @@ export function LaunchCtoPage() {
                   Burn your old tokens for the same amount of V2. Connect the wallet that holds them.
                   We match the V1 mint from this launch.
                 </p>
-                <p className="mt-1 text-[12px] text-white/35">Unlocked over 5 days.</p>
+                <p className="mt-1 text-[12px] text-white/35">
+                  Equal unlock each day for 7 days.
+                </p>
               </div>
 
               <div>
