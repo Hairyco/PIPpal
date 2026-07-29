@@ -213,7 +213,7 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '200px 80px 72px 72px 64px 88px 72px 56px 148px 28px';
+  '200px 80px 72px 64px 88px 72px 72px 56px 148px 28px';
 const tableColsPrelaunch =
   '30px 200px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
@@ -1328,17 +1328,7 @@ export function HomePage() {
                           Queue
                         </span>
                       </>
-                    ) : (
-                      <SortHeader
-                        label="Launch"
-                        sortKey="launch"
-                        activeKey={sortKey}
-                        direction={sortDir}
-                        onSort={toggleSort}
-                        align="center"
-                        title="Sort by launch recency (most recent first)"
-                      />
-                    )}
+                    ) : null}
                     <SortHeader
                       label="Market Cap"
                       sortKey="marketCap"
@@ -1371,6 +1361,17 @@ export function HomePage() {
                       onSort={toggleSort}
                       align="right"
                     />
+                    {!isPrelaunch ? (
+                      <SortHeader
+                        label="Launch"
+                        sortKey="launch"
+                        activeKey={sortKey}
+                        direction={sortDir}
+                        onSort={toggleSort}
+                        align="center"
+                        title="Sort by launch recency (most recent first)"
+                      />
+                    ) : null}
                     <SortHeader
                       label="Holders"
                       sortKey="holders"
@@ -1477,15 +1478,6 @@ export function HomePage() {
                           changePct={changeForWindow(project, activeTimeWindow)}
                         />
                       </div>
-                      {!isPrelaunch ? (
-                        <span
-                          className={`text-center text-[11px] font-semibold tabular-nums ${
-                            project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
-                          }`}
-                        >
-                          {formatLaunchLabel(project.launchInHours)}
-                        </span>
-                      ) : null}
                       {isPrelaunch ? (
                         <>
                           <div className="flex w-full justify-center">
@@ -1536,6 +1528,15 @@ export function HomePage() {
                         <TxVolumeBar project={project} />
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
+                      {!isPrelaunch ? (
+                        <span
+                          className={`text-center text-[11px] font-semibold tabular-nums ${
+                            project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
+                          }`}
+                        >
+                          {formatLaunchLabel(project.launchInHours)}
+                        </span>
+                      ) : null}
                       <span className="text-right text-xs text-white/70">{project.holders}</span>
                       {(() => {
                         const mktAddr = resolveMarketingWalletAddress(project);
