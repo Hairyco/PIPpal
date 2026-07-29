@@ -34,6 +34,7 @@ import { MarketingWalletExplainerModal } from '../components/MarketingWalletExpl
 import { CtoTradeView } from '../components/CtoTradeView';
 import { Sparkline } from '../components/Sparkline';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
+import { AffiliatePromoSheet } from '../components/affiliate/AffiliatePromoSheet';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import {
@@ -1893,6 +1894,7 @@ export function HomePage() {
         </div>
       ) : null}
     </div>
+    <AffiliatePromoSheet />
     </AppSidebarProvider>
   );
 }
