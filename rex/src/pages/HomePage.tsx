@@ -33,6 +33,7 @@ import { CtoTradeView } from '../components/CtoTradeView';
 import { Sparkline } from '../components/Sparkline';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { CtoGoLogo } from '../components/CtoGoLogo';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import {
   DEFAULT_DISCOVERY_FILTERS,
   DiscoveryFiltersPanel,
