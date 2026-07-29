@@ -17,9 +17,11 @@ import {
   X,
   Menu,
   Star,
+  LayoutDashboard,
 } from 'lucide-react';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { AuthButton } from './AuthButton';
+import { useAuth } from './AuthProvider';
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
@@ -64,8 +66,26 @@ export function AppSidebarProvider({ children }: { children: ReactNode }) {
 
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const { count } = useWatchlist();
+  const { signedIn } = useAuth();
   return (
     <nav className="flex flex-col gap-1 p-3">
+      {signedIn ? (
+        <NavLink
+          to="/dashboard"
+          end={false}
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            `flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              isActive
+                ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
+                : 'text-white/55 hover:bg-white/[0.04] hover:text-white'
+            }`
+          }
+        >
+          <LayoutDashboard className="h-4 w-4 shrink-0" />
+          <span className="flex-1">Dashboard</span>
+        </NavLink>
+      ) : null}
       {NAV.map((item) => {
         const Icon = item.icon;
         const showCount = item.to === '/watchlist' && count > 0;

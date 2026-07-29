@@ -13,6 +13,7 @@ import {
   Flame,
   Globe,
   LayoutGrid,
+  LayoutDashboard,
   Pin,
   Plus,
   Rocket,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { AuthButton } from '../components/AuthButton';
+import { useAuth } from '../components/AuthProvider';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
 import { Sparkline } from '../components/Sparkline';
@@ -652,6 +654,7 @@ export function HomePage() {
   const [rememberFilters, setRememberFilters] = useState(() => readRememberFilters());
   const [copiedCaTicker, setCopiedCaTicker] = useState<string | null>(null);
   const { connected, connect, busy: walletBusy } = useConnectedWallet();
+  const { signedIn } = useAuth();
   const { starred, toggle: toggleWatchlist, count: watchlistCount } = useWatchlist();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -1085,6 +1088,16 @@ export function HomePage() {
               <Plus className="h-4 w-4" /> Submit CTO
             </Link>
             <AuthButton className="shrink-0" />
+            {signedIn ? (
+              <Link
+                to="/dashboard"
+                className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
+                aria-label="Dashboard"
+                title="Dashboard"
+              >
+                <LayoutDashboard className="h-5 w-5" />
+              </Link>
+            ) : null}
             <ConnectWalletButton className="shrink-0" />
             <button
               type="button"
@@ -1749,6 +1762,7 @@ export function HomePage() {
             <CtoGoLogo size={24} className="rounded-md" />
             <span>CTOgo · CTO discovery</span>
           </div>
+          <PolessiaLogo variant="powered" size="xs" />
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
             <Link to="/fees" className="hover:text-white/50">Fees</Link>
             <Link to="/marketing-wallet" className="hover:text-white/50">Marketing wallet</Link>
