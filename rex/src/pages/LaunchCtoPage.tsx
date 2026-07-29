@@ -1663,9 +1663,14 @@ export function LaunchCtoPage() {
                     {address
                       ? ` · managed by ${address.slice(0, 4)}…${address.slice(-4)}`
                       : ''}
-                    {marketingAttached
-                      ? ' · marketing wallet live'
-                      : ' · no marketing wallet yet'}
+                    {marketingAttached ? (
+                      <span className="inline-flex items-center gap-2">
+                        {' · marketing wallet live'}
+                        <PolessiaLogo variant="powered" size="xs" />
+                      </span>
+                    ) : (
+                      ' · no marketing wallet yet'
+                    )}
                     .
                   </>
                 ) : (
