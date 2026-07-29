@@ -27,6 +27,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
+import { AuthButton } from '../components/AuthButton';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import { CtoTradeView } from '../components/CtoTradeView';
 import { Sparkline } from '../components/Sparkline';
@@ -1005,6 +1006,7 @@ export function HomePage() {
             >
               <Plus className="h-4 w-4" /> Submit CTO
             </Link>
+            <AuthButton className="shrink-0" />
             <ConnectWalletButton className="shrink-0" />
             <button
               type="button"

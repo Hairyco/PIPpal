@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ScrollToTop } from './components/ScrollToTop';
+import { AuthModal } from './components/AuthModal';
+import { AuthProvider } from './components/AuthProvider';
 import { WalletProvider } from './components/ConnectWalletButton';
 import { HomePage } from './pages/HomePage';
 import { LaunchCtoPage } from './pages/LaunchCtoPage';
@@ -22,31 +24,34 @@ import { WatchlistPage } from './pages/WatchlistPage';
 
 export function App() {
   return (
-    <WalletProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/watchlist" element={<WatchlistPage />} />
-          <Route path="/launch" element={<LaunchCtoPage />} />
-          <Route path="/trade" element={<TradePage />} />
-          <Route path="/advertise" element={<ServicesPage />} />
-          <Route path="/services" element={<Navigate to="/advertise" replace />} />
-          <Route path="/fees" element={<FeesPage />} />
-          <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
-          <Route path="/faq" element={<FaqPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/category/:categoryId" element={<CategoryPage />} />
-          <Route path="/categories" element={<CategoriesPage />} />
-          <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />
-          <Route path="/project/:categoryId/:projectId/promote" element={<PromotePage />} />
-          <Route path="/get-started" element={<GetStartedPage />} />
-          <Route path="/dashboard" element={<FounderDashboardPage />} />
-          <Route path="/marketplace" element={<MarketplacePage />} />
-          <Route path="/affiliates" element={<AffiliatesCataloguePage />} />
-          <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />
-        </Routes>
-      </BrowserRouter>
-    </WalletProvider>
+    <AuthProvider>
+      <WalletProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/watchlist" element={<WatchlistPage />} />
+            <Route path="/launch" element={<LaunchCtoPage />} />
+            <Route path="/trade" element={<TradePage />} />
+            <Route path="/advertise" element={<ServicesPage />} />
+            <Route path="/services" element={<Navigate to="/advertise" replace />} />
+            <Route path="/fees" element={<FeesPage />} />
+            <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/category/:categoryId" element={<CategoryPage />} />
+            <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/project/:categoryId/:projectId" element={<ProjectPage />} />
+            <Route path="/project/:categoryId/:projectId/promote" element={<PromotePage />} />
+            <Route path="/get-started" element={<GetStartedPage />} />
+            <Route path="/dashboard" element={<FounderDashboardPage />} />
+            <Route path="/marketplace" element={<MarketplacePage />} />
+            <Route path="/affiliates" element={<AffiliatesCataloguePage />} />
+            <Route path="/become-a-supplier" element={<BecomeSupplierPage />} />
+          </Routes>
+          <AuthModal />
+        </BrowserRouter>
+      </WalletProvider>
+    </AuthProvider>
   );
 }

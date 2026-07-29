@@ -46,7 +46,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'who-can-start',
         question: 'Who can start a CTO?',
         answer:
-          'Anyone. List an existing coin from the board (low friction — connect wallet, optional $1 marketing vault) or Launch a new mint on CTOgo. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
+          'Anyone with a free CTOgo account (Google or email). List an existing coin from the board or Launch a new mint on CTOgo. Connect a Solana wallet only when you pay — launch fee, optional $1 marketing vault on List, or Advertise packs. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
       },
     ],
   },
@@ -58,7 +58,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'what-is-vault',
         question: 'What is the marketing wallet?',
         answer:
-          'A non-custodial vault attached to the coin. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this vault.',
+          'A non-custodial vault attached to the coin — powered by Polessia. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this vault.',
       },
       {
         id: 'vault-fill-rate',

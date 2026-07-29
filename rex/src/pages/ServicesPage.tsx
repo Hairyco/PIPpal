@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
+import { useConnectedWallet } from '../components/ConnectWalletButton';
 import { LAUNCH_PACK, formatSolPrice } from '../data/directServices';
 import { readImageFile } from '../utils/projectImageGenerate';
 import {
@@ -30,6 +31,7 @@ export function ServicesPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const resumeId = params.get('order');
+  const { connected, connect, busy: walletBusy, address } = useConnectedWallet();
 
   const [step, setStep] = useState<Step>(() => (resumeId ? 'pay' : 'offer'));
   const [order, setOrder] = useState<ServiceOrder | null>(() =>
@@ -84,8 +86,15 @@ export function ServicesPage() {
 
   const completePayment = async () => {
     if (!order) return;
-    setPaying(true);
     setError(null);
+    if (!connected) {
+      const next = await connect();
+      if (!next) {
+        setError('Connect your Solana wallet to pay for Advertise services.');
+        return;
+      }
+    }
+    setPaying(true);
     await new Promise((r) => setTimeout(r, 900));
     const paid = markServiceOrderPaid(order.id);
     setPaying(false);
@@ -331,7 +340,11 @@ export function ServicesPage() {
                 ) : null}
               </dl>
               <p className="mt-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-100/80">
-                Payment connects as a SOL transfer. Live wallet wiring comes next.
+                Paying for Advertise requires a connected Solana wallet. Live on-chain transfer wiring
+                comes next.
+                {connected && address
+                  ? ` Paying as ${address.slice(0, 4)}…${address.slice(-4)}.`
+                  : ''}
               </p>
             </div>
 
@@ -339,11 +352,16 @@ export function ServicesPage() {
 
             <button
               type="button"
-              disabled={paying}
+              disabled={paying || walletBusy}
               onClick={() => void completePayment()}
               className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-3 text-sm font-semibold text-[#090b14] hover:bg-[#d5ff69] disabled:opacity-50"
             >
-              {paying ? 'Confirming…' : `Pay ${formatSolPrice(order.priceSol)}`}
+              <Wallet className="h-4 w-4" />
+              {paying
+                ? 'Confirming…'
+                : connected
+                  ? `Pay ${formatSolPrice(order.priceSol)}`
+                  : `Connect wallet & pay ${formatSolPrice(order.priceSol)}`}
             </button>
           </section>
         )}

@@ -21,7 +21,9 @@ import {
   Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
+import { AuthButton } from '../components/AuthButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
+import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
@@ -174,6 +176,7 @@ function ColourPalettePicker({
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
+  const { signedIn, user, requireAuth } = useAuth();
   const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
@@ -437,14 +440,22 @@ export function LaunchCtoPage() {
   const onCoinContinue = async (event: FormEvent) => {
     event.preventDefault();
     if (!canContinueCoin) return;
+
+    const ok = await requireAuth(
+      mode === 'add'
+        ? 'Register with Google or email to list a CTO.'
+        : 'Register with Google or email to launch a CTO.',
+    );
+    if (!ok) return;
+
     if (mode === 'add') {
       setListNotice(null);
-      if (!connected) {
-        setListNotice('Connect your wallet to claim this listing');
-        const next = await connect();
-        if (!next) return;
-      }
       if (listMarketingOptIn) {
+        if (!connected) {
+          setListNotice('Connect your wallet to pay the $1 marketing vault fee');
+          const next = await connect();
+          if (!next) return;
+        }
         setMarketingAttachBusy(true);
         try {
           // Demo: $1 covers rent + tx; remainder → treasury.
@@ -468,9 +479,17 @@ export function LaunchCtoPage() {
 
   const goToWebsite = () => setStep('website');
 
-  const onWebsiteFinish = (event: FormEvent) => {
+  const onWebsiteFinish = async (event: FormEvent) => {
     event.preventDefault();
     if (!siteGenerated) return;
+    const ok = await requireAuth('Register with Google or email to launch a CTO.');
+    if (!ok) return;
+    if (!connected) {
+      setListNotice('Connect your wallet to pay the launch fee');
+      const next = await connect();
+      if (!next) return;
+    }
+    setListNotice(null);
     setStep('done');
   };
 
@@ -636,6 +655,7 @@ export function LaunchCtoPage() {
               <ArrowLeft className="h-3.5 w-3.5" />
               Back
             </Link>
+            <AuthButton />
           </div>
         </header>
 
@@ -648,9 +668,36 @@ export function LaunchCtoPage() {
           </h1>
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'add'
-              ? 'Paste the contract, claim with your wallet. Marketing wallet is optional ($1).'
-              : 'Paste any Solana mint. We pull what we can.'}
+              ? 'Register with Google or email to list. Connect a wallet only if you add a marketing vault ($1).'
+              : 'Register with Google or email to start. Connect a wallet when you pay the launch fee.'}
           </p>
+
+          {!signedIn ? (
+            <div className="mt-5 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
+              <p className="text-sm font-semibold text-[#d5ff69]">Account required</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-white/55">
+                Create a free CTOgo account with Google or email before you Launch or List. Wallet
+                connect is only for payments.
+              </p>
+              <button
+                type="button"
+                onClick={() =>
+                  void requireAuth(
+                    mode === 'add'
+                      ? 'Register with Google or email to list a CTO.'
+                      : 'Register with Google or email to launch a CTO.',
+                  )
+                }
+                className="mt-3 inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
+              >
+                Continue with Google or email
+              </button>
+            </div>
+          ) : (
+            <p className="mt-3 text-[11px] text-white/40">
+              Signed in as <span className="font-semibold text-white/70">{user?.email}</span>
+            </p>
+          )}
 
           {step !== 'done' && mode === 'launch' ? (
             <div className="mt-5 flex gap-1.5">
@@ -982,17 +1029,23 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              {mode === 'add' && connected && address ? (
+              {mode === 'add' && signedIn && address ? (
                 <p className="text-center text-[11px] text-white/40">
                   Listing as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
                   group
+                </p>
+              ) : mode === 'add' && signedIn && listMarketingOptIn ? (
+                <p className="text-center text-[11px] text-white/40">
+                  Wallet required only to pay the ${MARKETING_WALLET_ATTACH_FEE_USD} vault fee
                 </p>
               ) : null}
 
               <button
                 type="submit"
                 disabled={
-                  !canContinueCoin || (mode === 'add' && (walletBusy || marketingAttachBusy))
+                  !canContinueCoin ||
+                  !signedIn ||
+                  (mode === 'add' && listMarketingOptIn && (walletBusy || marketingAttachBusy))
                 }
                 className={primaryBtnClass}
               >
@@ -1002,19 +1055,32 @@ export function LaunchCtoPage() {
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Listing…
                     </>
-                  ) : connected ? (
+                  ) : !signedIn ? (
                     <>
-                      {listMarketingOptIn
-                        ? `List · $${MARKETING_WALLET_ATTACH_FEE_USD} vault`
-                        : 'List on CTOgo'}
+                      Sign in to list
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  ) : listMarketingOptIn && !connected ? (
+                    <>
+                      Connect wallet &amp; list · ${MARKETING_WALLET_ATTACH_FEE_USD} vault
+                      <Wallet className="h-4 w-4" />
+                    </>
+                  ) : listMarketingOptIn ? (
+                    <>
+                      List · ${MARKETING_WALLET_ATTACH_FEE_USD} vault
                       <Check className="h-4 w-4" />
                     </>
                   ) : (
                     <>
-                      Connect wallet &amp; list
-                      <Wallet className="h-4 w-4" />
+                      List on CTOgo
+                      <Check className="h-4 w-4" />
                     </>
                   )
+                ) : !signedIn ? (
+                  <>
+                    Sign in to continue
+                    <ArrowRight className="h-4 w-4" />
+                  </>
                 ) : (
                   <>
                     Looks good
@@ -1643,7 +1709,7 @@ export function LaunchCtoPage() {
                   disabled={!canPublishSite}
                   className={`${primaryBtnClass} sm:flex-1`}
                 >
-                  Publish CTO
+                  {connected ? 'Publish CTO' : 'Connect wallet & publish'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
