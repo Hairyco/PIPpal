@@ -95,6 +95,7 @@ export function PostLaunchDashboard({
     () => new Set(POLESSIA_DEFAULT_SELECTED),
   );
   const [copiedMint, setCopiedMint] = useState(false);
+  const [roadmapApproved, setRoadmapApproved] = useState(false);
 
   const nextThreshold = useMemo(() => {
     return (
@@ -144,6 +145,11 @@ export function PostLaunchDashboard({
   };
 
   const setManual = () => setRoadmapMode('manual');
+
+  const approveRoadmap = () => {
+    setRoadmapApproved(true);
+    window.setTimeout(() => setRoadmapApproved(false), 2000);
+  };
 
   const copyMint = async () => {
     try {
@@ -565,14 +571,27 @@ export function PostLaunchDashboard({
         </button>
       ) : null}
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-        <Link to="/" className={`${primaryBtnClass} sm:flex-1`}>
-          Back to home
-        </Link>
-        <button type="button" onClick={onReset} className={backBtnClass}>
-          {mode === 'add' ? 'List another' : 'Launch another'}
+      {tab === 'roadmap' ? (
+        <button type="button" onClick={approveRoadmap} className={primaryBtnClass}>
+          {roadmapApproved ? (
+            <>
+              Approved
+              <Check className="h-4 w-4" />
+            </>
+          ) : (
+            'Approve'
+          )}
         </button>
-      </div>
+      ) : (
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <Link to="/" className={`${primaryBtnClass} sm:flex-1`}>
+            Back to home
+          </Link>
+          <button type="button" onClick={onReset} className={backBtnClass}>
+            {mode === 'add' ? 'List another' : 'Launch another'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
