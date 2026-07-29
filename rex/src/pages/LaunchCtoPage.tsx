@@ -8,6 +8,7 @@ import {
   Copy,
   ExternalLink,
   Globe,
+  Info,
   Loader2,
   MessageCircle,
   Pencil,
@@ -1275,7 +1276,25 @@ export function LaunchCtoPage() {
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
               <div>
-                <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
+                <div className="flex items-center gap-2">
+                  <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
+                  <span className="group relative inline-flex">
+                    <button
+                      type="button"
+                      className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
+                      aria-label="Why burn matters"
+                      title="Burning stops the old developer from collecting fees on trades."
+                    >
+                      <Info className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-52 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100"
+                    >
+                      Burning stops the old developer from collecting fees on trades.
+                    </span>
+                  </span>
+                </div>
                 <p className="mt-1.5 text-sm text-white/45">
                   Burn V1 for V2 with a 7-day unlock. We scan your V1 balance from the connected
                   wallet and take the burn fee at confirmation.
