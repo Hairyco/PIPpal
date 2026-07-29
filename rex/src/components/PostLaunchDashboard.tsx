@@ -295,22 +295,6 @@ export function PostLaunchDashboard({
           </section>
 
           <section className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium text-white/45">Presence</p>
-              <button
-                type="button"
-                onClick={() => setTab('socials')}
-                className="text-[11px] font-semibold text-[#d5ff69] hover:underline"
-              >
-                Edit socials
-              </button>
-            </div>
-            <p className="text-[12px] text-white/40">
-              Update X, Telegram, Discord, or link your own website — with CA due diligence.
-            </p>
-          </section>
-
-          <section className="space-y-3">
             <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
             {listingConfirmed ? (
               <p className="flex items-center gap-2 text-sm font-semibold text-[#d5ff69]">
