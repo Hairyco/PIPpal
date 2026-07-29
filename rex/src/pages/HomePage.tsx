@@ -60,6 +60,7 @@ import {
   type CtoProject,
   type SourceVenueFilter,
 } from '../data/ctoProjects';
+import { formatCompactDollar } from '../data/projectDetails';
 
 type Project = CtoProject;
 
@@ -68,11 +69,11 @@ const projects = ctoProjects;
 const tickerProjects = projects;
 const promotedProjects = projects.filter((project) => project.promoted);
 const timeWindows = [
-  { id: '5m', label: '5m', title: 'Best movers in the last 5 minutes' },
-  { id: '30m', label: '30m', title: 'Best movers in the last 30 minutes' },
-  { id: '1h', label: '1h', title: 'Best movers in the last hour' },
-  { id: '6h', label: '6h', title: 'Best movers in the last 6 hours' },
-  { id: '24h', label: '24h', title: 'Best movers in the last 24 hours' },
+  { id: '5m', label: '5m', title: 'Price, volume, and activity in the last 5 minutes' },
+  { id: '30m', label: '30m', title: 'Price, volume, and activity in the last 30 minutes' },
+  { id: '1h', label: '1h', title: 'Price, volume, and activity in the last hour' },
+  { id: '6h', label: '6h', title: 'Price, volume, and activity in the last 6 hours' },
+  { id: '24h', label: '24h', title: 'Price, volume, and activity in the last 24 hours' },
 ] as const;
 type TimeWindow = (typeof timeWindows)[number]['id'];
 
@@ -91,6 +92,72 @@ function changeForWindow(project: Project, window: TimeWindow): number | null {
     default:
       return project.change24h;
   }
+}
+
+function windowShareOfDay(window: TimeWindow): number {
+  switch (window) {
+    case '5m':
+      return 5 / (24 * 60);
+    case '30m':
+      return 30 / (24 * 60);
+    case '1h':
+      return 1 / 24;
+    case '6h':
+      return 6 / 24;
+    case '24h':
+      return 1;
+    default:
+      return 1;
+  }
+}
+
+function tickerSalt(ticker: string, mod = 100): number {
+  let salt = 0;
+  for (let i = 0; i < ticker.length; i += 1) {
+    salt = (salt * 31 + ticker.charCodeAt(i)) % mod;
+  }
+  return salt;
+}
+
+/** Demo window flow from 24h totals, weighted by that window’s move. */
+function volumeAmountForWindow(project: Project, window: TimeWindow): number {
+  const base = parseCompactAmount(project.volume24h);
+  if (window === '24h') return base;
+  const change = Math.abs(changeForWindow(project, window) ?? 0);
+  const burst = 1 + Math.min(change / 15, 3);
+  const jitter = 0.85 + (tickerSalt(project.ticker) / 100) * 0.3;
+  return Math.max(0, base * windowShareOfDay(window) * burst * jitter);
+}
+
+function volumeForWindow(project: Project, window: TimeWindow): string {
+  if (window === '24h') return project.volume24h;
+  return formatCompactDollar(volumeAmountForWindow(project, window));
+}
+
+function txsAmountForWindow(project: Project, window: TimeWindow): number {
+  const base = parseCompactAmount(project.txs);
+  if (window === '24h') return base;
+  const change = Math.abs(changeForWindow(project, window) ?? 0);
+  const burst = 1 + Math.min(change / 15, 3);
+  const jitter = 0.85 + (tickerSalt(project.ticker, 97) / 97) * 0.3;
+  return Math.max(0, base * windowShareOfDay(window) * burst * jitter);
+}
+
+function formatCompactCount(amount: number): string {
+  if (amount >= 1_000_000) {
+    const m = amount / 1_000_000;
+    return `${m >= 10 ? Math.round(m) : m.toFixed(1).replace(/\.0$/, '')}M`;
+  }
+  if (amount >= 1_000) {
+    const k = amount / 1_000;
+    return `${k >= 10 ? Math.round(k) : k.toFixed(1).replace(/\.0$/, '')}K`;
+  }
+  return `${Math.max(0, Math.round(amount))}`;
+}
+
+function txsForWindow(project: Project, window: TimeWindow): string {
+  if (window === '24h') return project.txs;
+  return formatCompactCount(txsAmountForWindow(project, window));
 }
 
 type PinnedMessage = {
@@ -205,17 +272,20 @@ function compareByShortcut(
         const scoreA = changeA ?? Number.NEGATIVE_INFINITY;
         const scoreB = changeB ?? Number.NEGATIVE_INFINITY;
         if (scoreB !== scoreA) return scoreB - scoreA;
-        return b.votesToday - a.votesToday || b.mph - a.mph;
+        return volumeAmountForWindow(b, window) - volumeAmountForWindow(a, window);
       }
+      // Trending: score, then window volume, then messaging heat
       if (b.score !== a.score) return b.score - a.score;
+      const volDelta = volumeAmountForWindow(b, window) - volumeAmountForWindow(a, window);
+      if (volDelta !== 0) return volDelta;
       return b.mph - a.mph;
   }
 }
 
 const tableCols =
-  '200px 80px 72px 64px 88px 72px 72px 56px 148px 28px';
+  '200px 80px 76px 72px 96px 72px 72px 56px 148px 28px';
 const tableColsPrelaunch =
-  '30px 200px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
+  '30px 200px 80px 68px 56px 76px 72px 96px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
   if (hours == null) return 'Live';
@@ -383,18 +453,25 @@ function ProjectMark({
   );
 }
 
-function TxVolumeBar({ project }: { project: Project }) {
+function TxVolumeBar({
+  project,
+  window,
+}: {
+  project: Project;
+  window: TimeWindow;
+}) {
   let hash = 0;
   for (let i = 0; i < project.ticker.length; i += 1) {
     hash = (hash * 31 + project.ticker.charCodeAt(i)) % 1000;
   }
-  const bias = project.change24h >= 0 ? 12 : -12;
+  const change = changeForWindow(project, window) ?? 0;
+  const bias = change >= 0 ? 12 : -12;
   const buyPct = Math.min(88, Math.max(12, 38 + (hash % 40) + bias));
   const sellPct = 100 - buyPct;
   return (
     <span
       className="inline-flex h-7 w-1.5 shrink-0 flex-col overflow-hidden rounded-[2px]"
-      title={`Buys ${buyPct}% · Sells ${sellPct}%`}
+      title={`Buys ${buyPct}% · Sells ${sellPct}% · ${window}`}
       aria-hidden
     >
       <span className="w-full bg-emerald-400" style={{ flexGrow: buyPct, flexBasis: 0 }} />
@@ -460,10 +537,10 @@ function compareByColumn(
       delta = parseCompactAmount(a.marketCap) - parseCompactAmount(b.marketCap);
       break;
     case 'volume':
-      delta = parseCompactAmount(a.volume24h) - parseCompactAmount(b.volume24h);
+      delta = volumeAmountForWindow(a, window) - volumeAmountForWindow(b, window);
       break;
     case 'txs':
-      delta = parseCompactAmount(a.txs) - parseCompactAmount(b.txs);
+      delta = txsAmountForWindow(a, window) - txsAmountForWindow(b, window);
       break;
     case 'price':
       delta = parseCompactAmount(a.price) - parseCompactAmount(b.price);
@@ -1338,20 +1415,22 @@ export function HomePage() {
                       align="right"
                     />
                     <SortHeader
-                      label="Volume"
+                      label={`Vol ${activeTimeWindow}`}
                       sortKey="volume"
                       activeKey={sortKey}
                       direction={sortDir}
                       onSort={toggleSort}
                       align="right"
+                      title={`Volume in the last ${activeTimeWindow}`}
                     />
                     <SortHeader
-                      label="TXs"
+                      label={`TXs ${activeTimeWindow}`}
                       sortKey="txs"
                       activeKey={sortKey}
                       direction={sortDir}
                       onSort={toggleSort}
                       align="right"
+                      title={`Transactions in the last ${activeTimeWindow}`}
                     />
                     <SortHeader
                       label="Price"
@@ -1522,10 +1601,14 @@ export function HomePage() {
                           <Pct value={changeForWindow(project, activeTimeWindow)} />
                         </p>
                       </div>
-                      <span className="text-right text-xs font-semibold text-white/80">{project.volume24h}</span>
+                      <span className="text-right text-xs font-semibold text-white/80">
+                        {volumeForWindow(project, activeTimeWindow)}
+                      </span>
                       <div className="flex items-center justify-end gap-1.5">
-                        <span className="text-xs text-white/70">{project.txs}</span>
-                        <TxVolumeBar project={project} />
+                        <span className="text-xs text-white/70">
+                          {txsForWindow(project, activeTimeWindow)}
+                        </span>
+                        <TxVolumeBar project={project} window={activeTimeWindow} />
                       </div>
                       <span className="text-right text-xs font-medium">{project.price}</span>
                       {!isPrelaunch ? (
