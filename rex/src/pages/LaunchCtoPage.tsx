@@ -5,6 +5,8 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Copy,
+  ExternalLink,
   Globe,
   Loader2,
   MessageCircle,
@@ -17,6 +19,7 @@ import {
   Upload,
   Users,
   Wallet,
+  X,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
@@ -183,6 +186,9 @@ export function LaunchCtoPage() {
   const [listMarketingOptIn, setListMarketingOptIn] = useState(false);
   /** Stub invite — real Telegram Bot API create comes later; CTOgo remains chat admin. */
   const [telegramInvite, setTelegramInvite] = useState<string | null>(null);
+  const [telegramPopupOpen, setTelegramPopupOpen] = useState(false);
+  const [listingConfirmed, setListingConfirmed] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
   const [contract, setContract] = useState(DEMO_CONTRACT);
@@ -392,6 +398,9 @@ export function LaunchCtoPage() {
     setMarketingAttachBusy(false);
     setListMarketingOptIn(false);
     setTelegramInvite(null);
+    setTelegramPopupOpen(false);
+    setListingConfirmed(false);
+    setCopiedLink(null);
   };
 
   const switchMode = (next: LaunchMode) => {
@@ -436,18 +445,46 @@ export function LaunchCtoPage() {
     );
   };
 
-  const finishList = async (withMarketing: boolean) => {
-    setMarketingAttached(withMarketing);
-    const slug = (ticker.trim() || 'cto').toLowerCase().replace(/[^a-z0-9]/g, '') || 'cto';
-    setTelegramInvite(`https://t.me/ctogo_${slug}`);
+  const coinSlug =
+    (ticker.trim() || 'cto').toLowerCase().replace(/[^a-z0-9]/g, '') || 'cto';
+  const displaySymbol = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : '$CTO';
+
+  const shareLinks = (() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
+    const tg = telegramInvite ?? `https://t.me/ctogo_${coinSlug}`;
+    return {
+      token: `${origin}/?coin=${coinSlug}`,
+      telegram: tg,
+      burn: `${origin}/launch?burn=1&ticker=${encodeURIComponent(ticker.trim() || 'CTO')}&ca=${encodeURIComponent(contract.trim())}`,
+    };
+  })();
+
+  const copyShareLink = async (key: keyof typeof shareLinks) => {
+    try {
+      await navigator.clipboard.writeText(shareLinks[key]);
+      setCopiedLink(key);
+      window.setTimeout(() => setCopiedLink((cur) => (cur === key ? null : cur)), 1600);
+    } catch {
+      // ignore
+    }
+  };
+
+  const openPublishedDashboard = async (withMarketing?: boolean) => {
+    if (withMarketing !== undefined) setMarketingAttached(withMarketing);
+    setTelegramInvite(`https://t.me/ctogo_${coinSlug}`);
+    setListingConfirmed(false);
+    setTelegramPopupOpen(true);
     setStep('done');
     await claimAccountAfterPublish();
   };
 
+  const finishList = async (withMarketing: boolean) => {
+    await openPublishedDashboard(withMarketing);
+  };
+
   const finishLaunch = async () => {
     setListNotice(null);
-    setStep('done');
-    await claimAccountAfterPublish();
+    await openPublishedDashboard();
   };
 
   const onCoinContinue = async (event: FormEvent) => {
@@ -1745,98 +1782,120 @@ export function LaunchCtoPage() {
           ) : null}
 
           {step === 'done' ? (
-            <div className="mt-6 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-4 py-6 text-center">
-              <p className="text-sm font-bold text-[#d5ff69]">
-                {mode === 'add' ? 'CTO listed' : 'CTO published'}
-              </p>
-              <p className="mt-1.5 text-xs text-white/50">
-                {mode === 'add' ? (
-                  <>
-                    {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your coin'} is on the
-                    board
-                    {address
-                      ? ` · managed by ${address.slice(0, 4)}…${address.slice(-4)}`
-                      : ''}
-                    {marketingAttached ? (
-                      <span className="inline-flex items-center gap-2">
-                        {' · marketing wallet live'}
-                        <PolessiaLogo variant="powered" size="xs" />
-                      </span>
-                    ) : (
-                      ' · no marketing wallet yet'
-                    )}
-                    .
-                  </>
+            <div className="mt-6 space-y-8">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                  Dashboard
+                </p>
+                <h2 className="mt-1 font-serif text-2xl font-bold tracking-tight text-white">
+                  {displaySymbol}
+                </h2>
+                <p className="mt-1.5 text-sm text-white/45">
+                  {mode === 'add' ? 'Listed on CTOgo.' : 'Live on CTOgo.'} Manage listing, links, and
+                  community from here.
+                </p>
+              </div>
+
+              <section className="space-y-3">
+                <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
+                {listingConfirmed ? (
+                  <p className="flex items-center gap-2 text-sm font-semibold text-[#d5ff69]">
+                    <Check className="h-4 w-4" />
+                    Listing confirmed
+                  </p>
                 ) : (
-                  <>
-                    {ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'Your project'} is live on
-                    CTOgo
-                    {websiteKind === 'none'
-                      ? ' — coin page only (no custom website).'
-                      : websiteKind === 'clone'
-                        ? ' with a cloned site.'
-                        : ' with a 1-pager.'}
-                  </>
-                )}
-              </p>
-              {mode === 'add' && telegramInvite ? (
-                <div className="mx-auto mt-4 max-w-sm rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-left">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-white/40">
-                    Telegram group
-                  </p>
-                  <a
-                    href={telegramInvite}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 block truncate text-[12px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                  >
-                    {telegramInvite}
-                  </a>
-                  <p className="mt-1 text-[10px] text-white/35">
-                    CTOgo is chat admin · bot tools later
-                  </p>
-                </div>
-              ) : null}
-              {mode === 'launch' && artBill.hasExtras ? (
-                <div className="mx-auto mt-4 max-w-sm rounded-lg border border-white/[0.08] bg-black/20 px-3 py-2 text-left">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-white/40">
-                    Creative extras
-                  </p>
-                  <ul className="mt-1 space-y-0.5 text-[11px] text-white/55">
-                    {artBill.lines.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                  <p className="mt-1.5 text-[12px] font-bold text-[#d5ff69]">
-                    Est. {formatCollateralUsd(artBill.totalUsd)} · charged with launch
-                  </p>
-                </div>
-              ) : null}
-              {mode === 'add' && !marketingAttached ? (
-                <p className="mx-auto mt-4 max-w-sm text-[11px] leading-relaxed text-white/40">
-                  You can still add a marketing wallet later from the coin page for $
-                  {MARKETING_WALLET_ATTACH_FEE_USD}. Want a new mint with vault included?{' '}
                   <button
                     type="button"
-                    onClick={() => switchMode('launch')}
-                    className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                    onClick={() => setListingConfirmed(true)}
+                    className={primaryBtnClass}
                   >
-                    Launch on CTOgo
+                    Confirm listing
+                    <Check className="h-4 w-4" />
                   </button>
+                )}
+              </section>
+
+              <section className="space-y-3">
+                <p className="text-[11px] font-medium text-white/45">Shareable links</p>
+                <ul className="divide-y divide-white/[0.06] border-y border-white/[0.06]">
+                  {(
+                    [
+                      { key: 'token' as const, label: 'Token page', href: shareLinks.token },
+                      { key: 'telegram' as const, label: 'Telegram page', href: shareLinks.telegram },
+                      { key: 'burn' as const, label: 'Burn tokens share', href: shareLinks.burn },
+                    ] as const
+                  ).map((row) => (
+                    <li key={row.key} className="flex items-center gap-3 py-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-white">{row.label}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-white/35">{row.href}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void copyShareLink(row.key)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                      >
+                        {copiedLink === row.key ? (
+                          <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        {copiedLink === row.key ? 'Copied' : 'Copy'}
+                      </button>
+                      <a
+                        href={row.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.1] text-white/45 transition hover:border-white/20 hover:text-white"
+                        aria-label={`Open ${row.label}`}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <button
+                type="button"
+                onClick={() => setTelegramPopupOpen(true)}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.06]"
+              >
+                <MessageCircle className="h-4 w-4 text-[#d5ff69]" />
+                Open Telegram community
+              </button>
+
+              {mode === 'launch' && artBill.hasExtras ? (
+                <p className="text-[11px] text-white/35">
+                  Creative extras · est. {formatCollateralUsd(artBill.totalUsd)} with launch
                 </p>
               ) : null}
+
+              {mode === 'add' && !marketingAttached ? (
+                <p className="text-[11px] leading-relaxed text-white/40">
+                  Add a marketing wallet later from the coin page for $
+                  {MARKETING_WALLET_ATTACH_FEE_USD}.
+                </p>
+              ) : marketingAttached ? (
+                <p className="inline-flex items-center gap-2 text-[11px] text-white/40">
+                  Marketing wallet live
+                  <PolessiaLogo variant="powered" size="xs" />
+                </p>
+              ) : null}
+
               {!signedIn ? (
                 <button
                   type="button"
                   onClick={() => void claimAccountAfterPublish()}
-                  className={`${primaryBtnClass} mt-5`}
+                  className={primaryBtnClass}
                 >
                   Create free account to claim
                   <ArrowRight className="h-4 w-4" />
                 </button>
               ) : null}
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
-                <Link to="/" className={`${primaryBtnClass} sm:w-auto sm:px-6`}>
+
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                <Link to="/" className={`${primaryBtnClass} sm:flex-1`}>
                   Back to home
                 </Link>
                 <button type="button" onClick={resetFlow} className={backBtnClass}>
@@ -1847,6 +1906,119 @@ export function LaunchCtoPage() {
           ) : null}
         </main>
       </div>
+
+      {telegramPopupOpen && step === 'done' ? (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center sm:p-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/70"
+            aria-label="Close Telegram"
+            onClick={() => setTelegramPopupOpen(false)}
+          />
+          <div className="relative z-[1] flex h-[min(34rem,92vh)] w-full max-w-md flex-col overflow-hidden rounded-t-2xl border border-white/10 bg-[#0e1621] shadow-2xl sm:rounded-2xl">
+            <div className="flex items-center gap-3 border-b border-white/[0.06] bg-[#17212b] px-3 py-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-[#c8ff3d]/20 text-[#d5ff69]">
+                <MessageCircle className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-white">
+                  {displaySymbol} Community
+                </p>
+                <p className="text-[10px] text-white/40">CTOgo Bot · group created</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTelegramPopupOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/5 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4">
+              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
+                Welcome. Your community group is live. CTOgo is admin — the bot stays in chat for
+                tools.
+              </div>
+              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
+                <p className="font-semibold text-white">Confirm listing</p>
+                <p className="mt-1 text-white/55">
+                  Confirm so {displaySymbol} stays visible on the board.
+                </p>
+                {!listingConfirmed ? (
+                  <button
+                    type="button"
+                    onClick={() => setListingConfirmed(true)}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 py-1.5 text-[12px] font-bold text-[#090b14]"
+                  >
+                    Confirm listing
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                ) : (
+                  <p className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold text-[#d5ff69]">
+                    <Check className="h-3.5 w-3.5" />
+                    Confirmed
+                  </p>
+                )}
+              </div>
+              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[13px] leading-relaxed text-white/85">
+                <p className="font-semibold text-white">Shareable links</p>
+                <ul className="mt-2 space-y-2 text-[12px]">
+                  <li>
+                    <span className="text-white/40">Token page</span>
+                    <a
+                      href={shareLinks.token}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
+                    >
+                      {shareLinks.token}
+                    </a>
+                  </li>
+                  <li>
+                    <span className="text-white/40">Telegram page</span>
+                    <a
+                      href={shareLinks.telegram}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
+                    >
+                      {shareLinks.telegram}
+                    </a>
+                  </li>
+                  <li>
+                    <span className="text-white/40">Burn tokens share</span>
+                    <a
+                      href={shareLinks.burn}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-0.5 block truncate text-[#6ab3f3] underline-offset-2 hover:underline"
+                    >
+                      {shareLinks.burn}
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-[#182533] px-3 py-2.5 text-[12px] text-white/50">
+                Close anytime — your dashboard stays behind. Reopen Telegram from there.
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.06] bg-[#17212b] px-3 py-2.5">
+              <a
+                href={shareLinks.telegram}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#2AABEE] px-4 py-2.5 text-sm font-bold text-white"
+              >
+                Open in Telegram
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <WebsitePreviewOverlay
         open={previewOpen && step === 'website' && websiteKind !== 'none'}
