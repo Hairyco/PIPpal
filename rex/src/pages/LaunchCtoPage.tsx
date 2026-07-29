@@ -83,10 +83,9 @@ const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
 
 const VESTING_SCHEDULE = [
-  { label: 'At launch', amount: '10%' },
-  { label: 'Day 7', amount: '20%' },
-  { label: 'Day 30', amount: '35%' },
-  { label: 'Day 90', amount: '35%' },
+  { label: 'At launch', amount: '50%' },
+  { label: 'Day 1', amount: '25%' },
+  { label: 'Day 2', amount: '25%' },
 ];
 
 /** Demo mint — resolves to Pepe Coin in the launch wizard. */
@@ -1192,7 +1191,7 @@ export function LaunchCtoPage() {
               <div>
                 <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Send V1 in. Get the same amount of V2 back — unlocked over 90 days.
+                  Send V1 in. Get the same amount of V2 back — unlocked over 2 days.
                 </p>
               </div>
 
