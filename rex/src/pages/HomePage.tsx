@@ -212,7 +212,7 @@ function compareByShortcut(
 }
 
 const tableCols =
-  '200px 80px 72px 64px 88px 72px 56px 148px 28px';
+  '200px 80px 72px 72px 64px 88px 72px 56px 148px 28px';
 const tableColsPrelaunch =
   '30px 200px 80px 68px 56px 72px 64px 88px 72px 56px 148px 64px 28px';
 
@@ -420,6 +420,7 @@ function formatVotes(n: number) {
 type SortKey =
   | 'asset'
   | 'chart'
+  | 'launch'
   | 'marketCap'
   | 'volume'
   | 'txs'
@@ -445,6 +446,13 @@ function compareByColumn(
       const ca = changeForWindow(a, window) ?? Number.NEGATIVE_INFINITY;
       const cb = changeForWindow(b, window) ?? Number.NEGATIVE_INFINITY;
       delta = ca - cb;
+      break;
+    }
+    case 'launch': {
+      // Most-recent first = smallest (hours-to-launch). Live projects have null, treated as +Infinity.
+      const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+      const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+      delta = launchA - launchB;
       break;
     }
     case 'marketCap':
@@ -731,7 +739,7 @@ export function HomePage() {
   const toggleSort = (key: SortKey) => {
     if (sortKey !== key) {
       setSortKey(key);
-      setSortDir(key === 'asset' ? 'asc' : 'desc');
+      setSortDir(key === 'asset' || key === 'launch' ? 'asc' : 'desc');
       return;
     }
     if (sortDir === 'desc') {
@@ -1318,7 +1326,17 @@ export function HomePage() {
                           Queue
                         </span>
                       </>
-                    ) : null}
+                    ) : (
+                      <SortHeader
+                        label="Launch"
+                        sortKey="launch"
+                        activeKey={sortKey}
+                        direction={sortDir}
+                        onSort={toggleSort}
+                        align="center"
+                        title="Sort by launch recency (most recent first)"
+                      />
+                    )}
                     <SortHeader
                       label="Market Cap"
                       sortKey="marketCap"
@@ -1359,7 +1377,7 @@ export function HomePage() {
                       onSort={toggleSort}
                       align="right"
                     />
-                    <span>Marketing wallet</span>
+                    <span className="text-right">Marketing wallet</span>
                     {isPrelaunch ? (
                       <SortHeader
                         label="Votes"
@@ -1420,13 +1438,17 @@ export function HomePage() {
                             </button>
                           </div>
                           <div className="mt-1 flex items-center gap-2">
-                            <span
-                              className={`text-[11px] font-semibold tabular-nums ${
-                                project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
-                              }`}
-                            >
-                              {formatLaunchLabel(project.launchInHours)}
-                            </span>
+                            {isPrelaunch ? (
+                              <span
+                                className={`text-[11px] font-semibold tabular-nums ${
+                                  project.launchInHours == null
+                                    ? 'text-emerald-300'
+                                    : 'text-emerald-400'
+                                }`}
+                              >
+                                {formatLaunchLabel(project.launchInHours)}
+                              </span>
+                            ) : null}
                             <span className="flex items-center gap-0.5" aria-label="Social links">
                               {projectSocialLinks(project).map((link) => (
                                 <button
@@ -1453,6 +1475,15 @@ export function HomePage() {
                           changePct={changeForWindow(project, activeTimeWindow)}
                         />
                       </div>
+                      {!isPrelaunch ? (
+                        <span
+                          className={`text-center text-[11px] font-semibold tabular-nums ${
+                            project.launchInHours == null ? 'text-emerald-300' : 'text-emerald-400'
+                          }`}
+                        >
+                          {formatLaunchLabel(project.launchInHours)}
+                        </span>
+                      ) : null}
                       {isPrelaunch ? (
                         <>
                           <div className="flex w-full justify-center">
@@ -1515,7 +1546,7 @@ export function HomePage() {
                             target="_blank"
                             rel="noreferrer"
                             onClick={(event) => event.stopPropagation()}
-                            className="inline-flex max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
+                            className="flex w-full max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
                             title={`View marketing wallet on Solscan`}
                           >
                             <Wallet className="h-3 w-3 shrink-0 text-[#c8ff3d]" />
@@ -1541,7 +1572,7 @@ export function HomePage() {
                           event.stopPropagation();
                           toggleWatchlist(project.ticker);
                         }}
-                        className="grid place-items-center text-white/20 hover:text-[#c8ff3d]"
+                        className="grid w-full place-items-center text-white/20 hover:text-[#c8ff3d]"
                       >
                         <Star className={`h-3.5 w-3.5 ${starred[project.ticker] ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
                       </button>
