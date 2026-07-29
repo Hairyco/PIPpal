@@ -17,8 +17,11 @@ import {
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
+  formatActivityPrice,
   formatThresholdUsd,
+  tierTotalUsd,
   type SpendItemId,
+  type SpendThreshold,
 } from '../data/postLaunchRoadmap';
 import { notifyCommunityOnChange } from '../utils/notifyCommunityOnChange';
 import { shortMint } from '../utils/socialDueDiligence';
@@ -123,6 +126,22 @@ export function PostLaunchDashboard({
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+  };
+
+  const tierSelected = (tier: SpendThreshold) =>
+    tier.items.every((item) => selected.has(item.id));
+
+  const toggleTier = (tier: SpendThreshold) => {
+    if (roadmapMode !== 'manual') return;
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const allOn = tier.items.every((item) => next.has(item.id));
+      for (const item of tier.items) {
+        if (allOn) next.delete(item.id);
+        else next.add(item.id);
+      }
       return next;
     });
   };
@@ -504,22 +523,40 @@ export function PostLaunchDashboard({
 
           {roadmapMode === 'polessia' ? (
             <p className="text-[12px] leading-relaxed text-white/40">
-              Polessia runs the set roadmap as the vault hits each threshold. Items below are
-              locked to the default plan.
+              Polessia runs one package per tier as the vault fills. Activity prices are on the
+              right.
             </p>
           ) : (
             <p className="text-[12px] leading-relaxed text-white/40">
-              Tap items to include or exclude. Spend still waits for vault balance.
+              Toggle a whole tier, or individual activities. Spend still waits for vault balance.
             </p>
           )}
 
           <div className="space-y-5">
             {POST_LAUNCH_SPEND_THRESHOLDS.map((tier) => {
               const reached = vaultBalanceUsd >= tier.thresholdUsd;
+              const on = tierSelected(tier);
+              const interactive = roadmapMode === 'manual';
               return (
                 <section key={tier.id}>
-                  <div className="flex items-baseline justify-between gap-2 border-b border-white/[0.08] pb-2">
-                    <div>
+                  <button
+                    type="button"
+                    disabled={!interactive}
+                    onClick={() => toggleTier(tier)}
+                    className={`flex w-full items-center gap-3 border-b border-white/[0.08] pb-2 text-left transition ${
+                      interactive ? 'hover:bg-white/[0.02]' : 'cursor-default'
+                    }`}
+                  >
+                    <span
+                      className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
+                        on
+                          ? 'border-[#c8ff3d]/50 bg-[#c8ff3d]/15 text-[#d5ff69]'
+                          : 'border-white/15 text-transparent'
+                      }`}
+                    >
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
                         {tier.label}
                       </p>
@@ -527,37 +564,46 @@ export function PostLaunchDashboard({
                         At {formatThresholdUsd(tier.thresholdUsd)}
                       </p>
                     </div>
-                    <span
-                      className={`text-[10px] font-semibold uppercase tracking-wide ${
-                        reached ? 'text-[#d5ff69]' : 'text-white/30'
-                      }`}
-                    >
-                      {reached ? 'Unlocked' : 'Pending'}
-                    </span>
-                  </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[13px] font-semibold tabular-nums text-white">
+                        {formatActivityPrice(tierTotalUsd(tier))}
+                      </p>
+                      <p
+                        className={`text-[10px] font-semibold uppercase tracking-wide ${
+                          reached ? 'text-[#d5ff69]' : 'text-white/30'
+                        }`}
+                      >
+                        {reached ? 'Unlocked' : 'Pending'}
+                      </p>
+                    </div>
+                  </button>
                   <ul className="mt-1 divide-y divide-white/[0.05]">
                     {tier.items.map((item) => {
-                      const on = selected.has(item.id);
-                      const interactive = roadmapMode === 'manual';
+                      const itemOn = selected.has(item.id);
+                      const itemInteractive = roadmapMode === 'manual';
                       return (
                         <li key={item.id}>
                           <button
                             type="button"
-                            disabled={!interactive}
+                            disabled={!itemInteractive}
                             onClick={() => toggleItem(item.id)}
                             className={`flex w-full items-center gap-3 py-3 text-left transition ${
-                              interactive ? 'hover:bg-white/[0.02]' : 'cursor-default'
+                              itemInteractive ? 'hover:bg-white/[0.02]' : 'cursor-default'
                             }`}
                           >
-                            <span
-                              className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
-                                on
-                                  ? 'border-[#c8ff3d]/50 bg-[#c8ff3d]/15 text-[#d5ff69]'
-                                  : 'border-white/15 text-transparent'
-                              }`}
-                            >
-                              <Check className="h-3 w-3" />
-                            </span>
+                            {roadmapMode === 'manual' ? (
+                              <span
+                                className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
+                                  itemOn
+                                    ? 'border-[#c8ff3d]/50 bg-[#c8ff3d]/15 text-[#d5ff69]'
+                                    : 'border-white/15 text-transparent'
+                                }`}
+                              >
+                                <Check className="h-3 w-3" />
+                              </span>
+                            ) : (
+                              <span className="w-5 shrink-0" aria-hidden />
+                            )}
                             <img
                               src={item.logo}
                               alt=""
@@ -565,10 +611,17 @@ export function PostLaunchDashboard({
                             />
                             <span
                               className={`min-w-0 flex-1 text-[13px] font-medium ${
-                                on ? 'text-white' : 'text-white/35'
+                                itemOn ? 'text-white' : 'text-white/35'
                               }`}
                             >
                               {item.label}
+                            </span>
+                            <span
+                              className={`shrink-0 text-[13px] font-semibold tabular-nums ${
+                                itemOn ? 'text-[#d5ff69]' : 'text-white/30'
+                              }`}
+                            >
+                              {formatActivityPrice(item.priceUsd)}
                             </span>
                           </button>
                         </li>
