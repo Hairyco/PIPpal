@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   AlertTriangle,
   Check,
-  Copy,
   ExternalLink,
   Globe,
   Loader2,
@@ -35,8 +34,6 @@ type PostLaunchSocialsTabProps = {
   initialWebsiteKind: DashWebsiteKind;
   primaryBtnClass: string;
   backBtnClass: string;
-  onContractCorrection?: (correction: ContractCorrection) => void;
-  contractCorrection?: ContractCorrection | null;
 };
 
 type DiligenceMap = Partial<Record<'x' | 'website', DiligenceResult>>;
@@ -51,8 +48,6 @@ export function PostLaunchSocialsTab({
   initialWebsiteKind,
   primaryBtnClass,
   backBtnClass,
-  onContractCorrection,
-  contractCorrection,
 }: PostLaunchSocialsTabProps) {
   const [twitter, setTwitter] = useState(initialTwitter);
   const [telegram, setTelegram] = useState(initialTelegram);
@@ -75,10 +70,6 @@ export function PostLaunchSocialsTab({
   const [diligence, setDiligence] = useState<DiligenceMap>({});
   const [scanText, setScanText] = useState('');
   const [scanning, setScanning] = useState(false);
-  const [copiedMint, setCopiedMint] = useState(false);
-  const [showCorrection, setShowCorrection] = useState(false);
-  const [proposedMint, setProposedMint] = useState('');
-  const [correctionReason, setCorrectionReason] = useState('');
 
   const currentSnapshot = useMemo(
     () =>
@@ -114,16 +105,6 @@ export function PostLaunchSocialsTab({
     setWebsiteKind(modeConfirm);
     setModeConfirm(null);
     setDiligence((d) => ({ ...d, website: undefined }));
-  };
-
-  const copyMint = async () => {
-    try {
-      await navigator.clipboard.writeText(tradedContract.trim());
-      setCopiedMint(true);
-      window.setTimeout(() => setCopiedMint(false), 1600);
-    } catch {
-      /* ignore */
-    }
   };
 
   const runDiligence = () => {
@@ -168,25 +149,6 @@ export function PostLaunchSocialsTab({
     });
   };
 
-  const submitCorrection = () => {
-    const proposed = proposedMint.trim();
-    const reason = correctionReason.trim();
-    if (proposed.length < 32 || reason.length < 4) return;
-    const correction: ContractCorrection = {
-      proposed,
-      reason,
-      status: 'pending',
-    };
-    onContractCorrection?.(correction);
-    notifyCommunityOnChange({
-      symbol,
-      kind: 'contract_correction_requested',
-      summary: `Contract correction requested → ${shortMint(proposed)}`,
-      telegramInvite: telegram.trim() || null,
-    });
-    setShowCorrection(false);
-  };
-
   const statusTone = (status: DiligenceResult['status'] | undefined) => {
     if (status === 'matched') return 'text-[#d5ff69]';
     if (status === 'mismatch') return 'text-red-300';
@@ -207,35 +169,11 @@ export function PostLaunchSocialsTab({
       <div>
         <p className="font-serif text-xl font-bold tracking-tight text-white">Socials</p>
         <p className="mt-1.5 text-sm text-white/45">
-          Update CTOgo presence. Independent sites welcome — we check the contract matches what
-          trades here.
+          Update CTOgo presence. Independent sites welcome — we check against the contract on
+          Overview.
         </p>
       </div>
 
-      {/* Traded CA anchor */}
-      <section className="space-y-2 border-y border-white/[0.06] py-4">
-        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
-          Contract traded on CTOgo
-        </p>
-        <div className="flex items-center gap-2">
-          <p className="min-w-0 flex-1 truncate font-mono text-[13px] text-white">
-            {tradedContract.trim() || '—'}
-          </p>
-          <button
-            type="button"
-            onClick={() => void copyMint()}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-          >
-            {copiedMint ? <Check className="h-3.5 w-3.5 text-[#d5ff69]" /> : <Copy className="h-3.5 w-3.5" />}
-            {copiedMint ? 'Copied' : 'Copy'}
-          </button>
-        </div>
-        <p className="text-[11px] text-white/35">
-          X, Telegram, Discord, and any external website must show this exact mint.
-        </p>
-      </section>
-
-      {/* Links */}
       <section className="space-y-3">
         <p className="text-[11px] font-medium text-white/45">Links</p>
         <label className="block space-y-1.5">
@@ -267,7 +205,6 @@ export function PostLaunchSocialsTab({
         </label>
       </section>
 
-      {/* Website */}
       <section className="space-y-3">
         <p className="text-[11px] font-medium text-white/45">Website</p>
         <p className="text-[12px] leading-relaxed text-white/40">
@@ -355,16 +292,14 @@ export function PostLaunchSocialsTab({
         ) : null}
       </section>
 
-      {/* Due diligence */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-[#d5ff69]" />
           <p className="text-[11px] font-medium text-white/45">Contract due diligence</p>
         </div>
         <p className="text-[12px] leading-relaxed text-white/40">
-          We check that X and your site reference the same mint traded on CTOgo. Live page/X
-          scraping needs a server later — for now we scan URLs and any text you paste (bio,
-          homepage snippet).
+          Checks that X and your site reference the mint shown on Overview ({shortMint(tradedContract)}
+          ). Live page/X scraping needs a server later — for now we scan URLs and pasted text.
         </p>
         <ul className="space-y-1.5">
           {DILIGENCE_CHECKLIST.map((item) => (
@@ -408,7 +343,9 @@ export function PostLaunchSocialsTab({
                 <li key={row.key} className="py-3">
                   <div className="flex items-baseline justify-between gap-2">
                     <p className="text-sm font-semibold text-white">{row.label}</p>
-                    <p className={`text-[10px] font-semibold uppercase tracking-wide ${statusTone(r?.status)}`}>
+                    <p
+                      className={`text-[10px] font-semibold uppercase tracking-wide ${statusTone(r?.status)}`}
+                    >
                       {statusLabel(r?.status)}
                     </p>
                   </div>
@@ -442,61 +379,6 @@ export function PostLaunchSocialsTab({
           Community will be notified in Telegram when changes go live.
         </p>
       </div>
-
-      {/* Contract correction */}
-      <section className="space-y-3 border-t border-white/[0.06] pt-6">
-        <p className="text-[11px] font-medium text-white/45">Contract</p>
-        <p className="font-mono text-[13px] text-white/80">{shortMint(tradedContract)}</p>
-        <p className="text-[12px] leading-relaxed text-white/40">
-          Mint is locked after publish. Wrong CA? Request a flagged correction — it will not swap
-          live until reviewed.
-        </p>
-        {contractCorrection?.status === 'pending' ? (
-          <p className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-[12px] text-amber-100/90">
-            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Correction pending review → {shortMint(contractCorrection.proposed)}
-          </p>
-        ) : !showCorrection ? (
-          <button type="button" onClick={() => setShowCorrection(true)} className={backBtnClass}>
-            Request contract correction
-          </button>
-        ) : (
-          <div className="space-y-3">
-            <label className="block space-y-1.5">
-              <span className="text-[11px] font-semibold text-white/40">Proposed mint</span>
-              <input
-                value={proposedMint}
-                onChange={(e) => setProposedMint(e.target.value)}
-                placeholder="Solana mint address"
-                className="w-full rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 font-mono text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
-              />
-            </label>
-            <label className="block space-y-1.5">
-              <span className="text-[11px] font-semibold text-white/40">Reason</span>
-              <textarea
-                value={correctionReason}
-                onChange={(e) => setCorrectionReason(e.target.value)}
-                rows={2}
-                placeholder="Why is the listed contract wrong?"
-                className="w-full resize-y rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
-              />
-            </label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={submitCorrection}
-                disabled={proposedMint.trim().length < 32 || correctionReason.trim().length < 4}
-                className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
-              >
-                Submit for review
-              </button>
-              <button type="button" onClick={() => setShowCorrection(false)} className={backBtnClass}>
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
