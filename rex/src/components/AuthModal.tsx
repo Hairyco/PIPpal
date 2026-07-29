@@ -120,11 +120,12 @@ export function AuthModal() {
           <form onSubmit={(e) => void onSubmit(e)} className="space-y-3">
             {mode === 'register' ? (
               <label className="block">
-                <span className="text-[11px] font-medium text-white/45">Name</span>
+                <span className="text-[11px] font-medium text-white/45">Username</span>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Founder name"
+                  placeholder="username"
+                  autoComplete="username"
                   className="mt-1 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                 />
               </label>
