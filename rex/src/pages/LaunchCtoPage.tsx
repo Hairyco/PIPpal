@@ -203,6 +203,9 @@ export function LaunchCtoPage() {
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
   const [burned, setBurned] = useState(false);
+  /** Demo V1 balance after wallet scan — real RPC later. */
+  const [v1Balance, setV1Balance] = useState<string | null>(null);
+  const [balanceScanning, setBalanceScanning] = useState(false);
   const [pageBlurb, setPageBlurb] = useState('');
   const [siteHeadline, setSiteHeadline] = useState('');
   const [siteExtraTitle, setSiteExtraTitle] = useState('');
@@ -290,6 +293,32 @@ export function LaunchCtoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  /** Demo: scan connected wallet for V1 balance of the launch mint. */
+  useEffect(() => {
+    if (step !== 'burn') return;
+    if (!connected || !address) {
+      setV1Balance(null);
+      setBalanceScanning(false);
+      return;
+    }
+    let cancelled = false;
+    setBalanceScanning(true);
+    const timer = window.setTimeout(() => {
+      if (cancelled) return;
+      let salt = 0;
+      for (let i = 0; i < address.length; i += 1) {
+        salt = (salt * 31 + address.charCodeAt(i)) % 10000;
+      }
+      const mintSalt = contract.trim().slice(-4).split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+      setV1Balance(String(250_000 + salt * 13 + mintSalt * 40));
+      setBalanceScanning(false);
+    }, 700);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [step, connected, address, contract]);
+
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
   const steps =
     mode === 'launch'
@@ -364,6 +393,8 @@ export function LaunchCtoPage() {
     setBurnAmount('');
     setVestingAccepted(false);
     setBurned(false);
+    setV1Balance(null);
+    setBalanceScanning(false);
     setPageBlurb('');
     setSiteHeadline('');
     setSiteExtraTitle('');
@@ -1194,51 +1225,84 @@ export function LaunchCtoPage() {
               <div>
                 <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Send V1 in. Get the same amount of V2 back — unlocked over 2 days.
+                  Burn your old tokens for the same amount of V2. Connect the wallet that holds them.
+                  We match the V1 mint from this launch.
+                </p>
+                <p className="mt-1 text-[12px] text-white/35">Unlocked over 5 days.</p>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-medium text-white/45">V1 mint</p>
+                <p className="mt-1 font-mono text-[13px] text-white/80">
+                  {contract.trim() ? formatMintPreview(contract) : '—'}
+                </p>
+                <p className="mt-0.5 text-[11px] text-white/35">
+                  {displayTicker} · from earlier step
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="min-w-0 flex-1 border-b border-white/[0.08] pb-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
-                    You burn
-                  </p>
-                  <p className="mt-1 truncate font-serif text-lg font-bold text-white">
-                    {displayTicker}
-                  </p>
-                  <p className="text-[11px] text-white/40">V1</p>
-                </div>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#c8ff3d]/70" aria-hidden />
-                <div className="min-w-0 flex-1 border-b border-[#c8ff3d]/25 pb-3 text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#c8ff3d]/70">
-                    You receive
-                  </p>
-                  <p className="mt-1 truncate font-serif text-lg font-bold text-[#d5ff69]">
-                    {displayTicker}
-                  </p>
-                  <p className="text-[11px] text-white/40">V2 · 1:1</p>
-                </div>
-              </div>
-
-              <label className="block">
-                <span className="text-[11px] font-medium text-white/45">Amount</span>
-                <div className="mt-1.5 flex gap-2">
-                  <input
-                    value={burnAmount}
-                    onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
-                    placeholder="0"
-                    inputMode="decimal"
-                    className={`${fieldClass} mt-0`}
-                  />
+              <div>
+                <p className="text-[11px] font-medium text-white/45">Wallet</p>
+                {connected && address ? (
+                  <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-mono text-[13px] text-white">
+                        {address.slice(0, 4)}…{address.slice(-4)}
+                      </p>
+                      <p className="mt-0.5 text-[11px] text-white/40">
+                        {balanceScanning
+                          ? 'Scanning for V1…'
+                          : v1Balance
+                            ? `Available to burn: ${Number(v1Balance).toLocaleString()} ${displayTicker}`
+                            : 'No V1 found'}
+                      </p>
+                    </div>
+                    <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => setBurnAmount('1000000')}
-                    className="h-11 shrink-0 rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                    disabled={walletBusy}
+                    onClick={() => void connect()}
+                    className={`${primaryBtnClass} mt-1.5`}
                   >
-                    Max
+                    <Wallet className="h-4 w-4" />
+                    {walletBusy ? 'Connecting…' : 'Connect wallet to scan'}
                   </button>
+                )}
+              </div>
+
+              <div className="flex items-end gap-3">
+                <label className="block min-w-0 flex-1">
+                  <span className="text-[11px] font-medium text-white/45">Amount to burn</span>
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      value={burnAmount}
+                      onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
+                      placeholder="0"
+                      inputMode="decimal"
+                      disabled={!connected || !v1Balance}
+                      className={`${fieldClass} mt-0 disabled:opacity-40`}
+                    />
+                    <button
+                      type="button"
+                      disabled={!v1Balance}
+                      onClick={() => setBurnAmount(v1Balance ?? '')}
+                      className="h-11 shrink-0 rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white disabled:opacity-40"
+                    >
+                      Max
+                    </button>
+                  </div>
+                </label>
+                <div className="shrink-0 pb-2 text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                    You receive
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-[#d5ff69]">
+                    {burnAmount ? Number(burnAmount).toLocaleString() : '0'} V2
+                  </p>
                 </div>
-              </label>
+              </div>
 
               <div>
                 <p className="text-[11px] font-medium text-white/45">Unlock schedule</p>
@@ -1270,7 +1334,7 @@ export function LaunchCtoPage() {
                 <button
                   type="button"
                   onClick={() => setBurned(true)}
-                  disabled={!vestingAccepted || !burnAmount}
+                  disabled={!connected || !vestingAccepted || !burnAmount || !v1Balance}
                   className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
                 >
                   Burn &amp; receive V2
