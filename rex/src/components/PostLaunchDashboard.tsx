@@ -12,6 +12,7 @@ import {
   PostLaunchSocialsTab,
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
+import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
@@ -22,7 +23,7 @@ import {
   type SpendThreshold,
 } from '../data/postLaunchRoadmap';
 
-type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials';
+type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
 type ShareLinks = {
   token: string;
@@ -61,6 +62,7 @@ const TABS: { id: DashTab; label: string }[] = [
   { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'socials', label: 'Socials' },
+  { id: 'affiliate', label: 'Affiliate' },
 ];
 
 export function PostLaunchDashboard({
@@ -541,6 +543,16 @@ export function PostLaunchDashboard({
           initialDiscord={discord}
           initialWebsiteUrl={websiteUrl}
           initialWebsiteKind={websiteKind}
+          primaryBtnClass={primaryBtnClass}
+          backBtnClass={backBtnClass}
+        />
+      ) : null}
+
+      {tab === 'affiliate' ? (
+        <PostLaunchAffiliateTab
+          symbol={symbol}
+          tokenPageUrl={shareLinks.token}
+          telegramInvite={telegramCommunity || shareLinks.telegram}
           primaryBtnClass={primaryBtnClass}
           backBtnClass={backBtnClass}
         />

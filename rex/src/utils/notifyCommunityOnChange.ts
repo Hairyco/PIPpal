@@ -5,6 +5,7 @@
 export type CommunityChangeKind =
   | 'socials'
   | 'website'
+  | 'affiliate'
   | 'contract_correction_requested';
 
 export type CommunityChangePayload = {
