@@ -186,9 +186,6 @@ export function PostLaunchDashboard({
         <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight text-white">
           {symbol}
         </h1>
-        <p className="mt-1.5 text-sm text-white/45">
-          {mode === 'add' ? 'Listed on CTOgo.' : 'Live on CTOgo.'} Confirm, share, and steer growth.
-        </p>
       </div>
 
       <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
