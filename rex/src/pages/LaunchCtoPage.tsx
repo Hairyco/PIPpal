@@ -1989,7 +1989,7 @@ export function LaunchCtoPage() {
               primaryBtnClass={primaryBtnClass}
               backBtnClass={backBtnClass}
               tradedContract={contract.trim()}
-              logoUrl={logoPreview}
+              logoUrl={dashboardLogoUrl}
               twitter={twitter}
               telegramCommunity={telegramInvite ?? shareLinks.telegram}
               websiteUrl={
