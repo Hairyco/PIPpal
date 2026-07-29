@@ -1295,11 +1295,7 @@ export function LaunchCtoPage() {
                     </span>
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm text-white/45">
-                  Burn V1 for V2 with a 7-day unlock. We scan your V1 balance from the connected
-                  wallet and take the burn fee at confirmation.
-                </p>
-                <p className="mt-1 text-[12px] text-white/35">
+                <p className="mt-1.5 text-[12px] text-white/35">
                   10% unlock per day (Day 1–6), remainder on Day 7.
                 </p>
               </div>
