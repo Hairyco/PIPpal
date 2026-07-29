@@ -22,6 +22,7 @@ import {
   type SpendItemId,
   type SpendThreshold,
 } from '../data/postLaunchRoadmap';
+import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -114,6 +115,19 @@ export function PostLaunchDashboard({
   const shortAddr = marketingAddress
     ? `${marketingAddress.slice(0, 4)}…${marketingAddress.slice(-4)}`
     : 'Pending deploy';
+
+  const vaultLive = marketingAttached || mode === 'launch';
+  const marketingFillPct = formatBpsPercent(FEE_TIERS[0].marketingBps);
+  /** Demo volume until live indexer — scaled so vault ≈ marketing cut of volume. */
+  const tradingVolumeUsd = vaultLive
+    ? Math.max(
+        Math.round((vaultBalanceUsd / (FEE_TIERS[0].marketingBps / 10_000)) * 0.92),
+        vaultBalanceUsd * 20,
+      )
+    : 0;
+  /** Demo share of vault inflows from buys vs sells. */
+  const buyFillSharePct = 58;
+  const sellFillSharePct = 42;
 
   const toggleItem = (id: SpendItemId) => {
     if (roadmapMode === 'polessia') return;
@@ -354,7 +368,7 @@ export function PostLaunchDashboard({
                   Balance
                 </p>
                 <p className="mt-1 font-serif text-3xl font-bold text-[#d5ff69]">
-                  ${(marketingAttached || mode === 'launch' ? vaultBalanceUsd : 0).toLocaleString()}
+                  ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
                 </p>
               </div>
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
@@ -365,7 +379,54 @@ export function PostLaunchDashboard({
             <PolessiaLogo variant="powered" size="xs" />
           </div>
 
-          {(marketingAttached || mode === 'launch') && nextThreshold ? (
+          {vaultLive ? (
+            <section className="space-y-4">
+              <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.08] pb-3">
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
+                    Trading volume
+                  </p>
+                  <p className="mt-1 font-serif text-2xl font-bold text-white">
+                    ${tradingVolumeUsd.toLocaleString()}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-white/35">CTOgo-routed · all time (demo)</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-medium text-white/45">Vault fill from trades</p>
+                <p className="mt-1.5 text-sm font-semibold text-white">
+                  {marketingFillPct} of every buy · {marketingFillPct} of every sell
+                </p>
+                <p className="mt-1 text-[11px] leading-relaxed text-white/35">
+                  Launch tier marketing cut ({FEE_TIERS[0].marketCap}). Same rate on buys and sells
+                  until mcap steps the schedule down.
+                </p>
+                <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div
+                    className="h-full bg-[#c8ff3d]"
+                    style={{ width: `${buyFillSharePct}%` }}
+                    title={`Buys ${buyFillSharePct}%`}
+                  />
+                  <div
+                    className="h-full bg-[#c8ff3d]/40"
+                    style={{ width: `${sellFillSharePct}%` }}
+                    title={`Sells ${sellFillSharePct}%`}
+                  />
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] text-white/45">
+                  <span>
+                    Buys <span className="font-semibold text-white">{buyFillSharePct}%</span> of fill
+                  </span>
+                  <span>
+                    Sells <span className="font-semibold text-white">{sellFillSharePct}%</span> of fill
+                  </span>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {vaultLive && nextThreshold ? (
             <div>
               <p className="text-[11px] font-medium text-white/45">
                 Next unlock · {formatThresholdUsd(nextThreshold.thresholdUsd)}
