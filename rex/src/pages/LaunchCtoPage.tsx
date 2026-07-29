@@ -5,8 +5,6 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
-  Copy,
-  ExternalLink,
   Globe,
   Info,
   Loader2,
@@ -25,6 +23,7 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
+import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
@@ -808,17 +807,21 @@ export function LaunchCtoPage() {
         </header>
 
         <main className="mx-auto max-w-xl px-3 py-8 sm:px-5">
-          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-            {mode === 'add' ? 'List for exposure' : 'CTO Launch Wizard'}
-          </p>
-          <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
-            {mode === 'launch' ? 'Launch a CTO' : 'List a CTO'}
-          </h1>
-          <p className="mt-1.5 text-sm text-white/45">
-            {mode === 'add'
-              ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
-              : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
-          </p>
+          {step !== 'done' ? (
+            <>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                {mode === 'add' ? 'List for exposure' : 'CTO Launch Wizard'}
+              </p>
+              <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
+                {mode === 'launch' ? 'Launch a CTO' : 'List a CTO'}
+              </h1>
+              <p className="mt-1.5 text-sm text-white/45">
+                {mode === 'add'
+                  ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
+                  : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
+              </p>
+            </>
+          ) : null}
 
           {step !== 'done' && mode === 'launch' ? (
             <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
@@ -1913,121 +1916,32 @@ export function LaunchCtoPage() {
           ) : null}
 
           {step === 'done' ? (
-            <div className="mt-6 space-y-8">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                  Dashboard
-                </p>
-                <h2 className="mt-1 font-serif text-2xl font-bold tracking-tight text-white">
-                  {displaySymbol}
-                </h2>
-                <p className="mt-1.5 text-sm text-white/45">
-                  {mode === 'add' ? 'Listed on CTOgo.' : 'Live on CTOgo.'} Manage listing, links, and
-                  community from here.
-                </p>
-              </div>
-
-              <section className="space-y-3">
-                <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
-                {listingConfirmed ? (
-                  <p className="flex items-center gap-2 text-sm font-semibold text-[#d5ff69]">
-                    <Check className="h-4 w-4" />
-                    Listing confirmed · Telegram opened
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={confirmListing}
-                    className={primaryBtnClass}
-                  >
-                    Confirm listing
-                    <ExternalLink className="h-4 w-4" />
-                  </button>
-                )}
-                <p className="text-[11px] text-white/35">
-                  Opens your community chat in Telegram.
-                </p>
-              </section>
-
-              <section className="space-y-3">
-                <p className="text-[11px] font-medium text-white/45">Shareable links</p>
-                <ul className="divide-y divide-white/[0.06] border-y border-white/[0.06]">
-                  {(
-                    [
-                      { key: 'token' as const, label: 'Token page', href: shareLinks.token },
-                      { key: 'telegram' as const, label: 'Telegram page', href: shareLinks.telegram },
-                      { key: 'burn' as const, label: 'Burn tokens share', href: shareLinks.burn },
-                    ] as const
-                  ).map((row) => (
-                    <li key={row.key} className="flex items-center gap-3 py-3">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-white">{row.label}</p>
-                        <p className="mt-0.5 truncate text-[11px] text-white/35">{row.href}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => void copyShareLink(row.key)}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-                      >
-                        {copiedLink === row.key ? (
-                          <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                        {copiedLink === row.key ? 'Copied' : 'Copy'}
-                      </button>
-                      <a
-                        href={row.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.1] text-white/45 transition hover:border-white/20 hover:text-white"
-                        aria-label={`Open ${row.label}`}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              {mode === 'launch' && artBill.hasExtras ? (
-                <p className="text-[11px] text-white/35">
-                  Creative extras · est. {formatCollateralUsd(artBill.totalUsd)} with launch
-                </p>
-              ) : null}
-
-              {mode === 'add' && !marketingAttached ? (
-                <p className="text-[11px] leading-relaxed text-white/40">
-                  Add a marketing wallet later from the coin page for $
-                  {MARKETING_WALLET_ATTACH_FEE_USD}.
-                </p>
-              ) : marketingAttached ? (
-                <p className="inline-flex items-center gap-2 text-[11px] text-white/40">
-                  Marketing wallet live
-                  <PolessiaLogo variant="powered" size="xs" />
-                </p>
-              ) : null}
-
-              {!signedIn ? (
-                <button
-                  type="button"
-                  onClick={() => void claimAccountAfterPublish()}
-                  className={primaryBtnClass}
-                >
-                  Create free account to claim
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              ) : null}
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <Link to="/" className={`${primaryBtnClass} sm:flex-1`}>
-                  Back to home
-                </Link>
-                <button type="button" onClick={resetFlow} className={backBtnClass}>
-                  {mode === 'add' ? 'List another' : 'Launch another'}
-                </button>
-              </div>
-            </div>
+            <PostLaunchDashboard
+              symbol={displaySymbol}
+              mode={mode}
+              listingConfirmed={listingConfirmed}
+              onConfirmListing={confirmListing}
+              shareLinks={shareLinks}
+              copiedLink={copiedLink}
+              onCopyLink={(key) => void copyShareLink(key)}
+              marketingAttached={marketingAttached || mode === 'launch'}
+              marketingAddress={
+                contract.trim().length >= 32
+                  ? contract.trim()
+                  : `Mkt${coinSlug}111111111111111111111`
+              }
+              vaultBalanceUsd={mode === 'launch' || marketingAttached ? 42 : 0}
+              artExtrasLine={
+                mode === 'launch' && artBill.hasExtras
+                  ? `Creative extras · est. ${formatCollateralUsd(artBill.totalUsd)} with launch`
+                  : null
+              }
+              signedIn={signedIn}
+              onClaimAccount={() => void claimAccountAfterPublish()}
+              onReset={resetFlow}
+              primaryBtnClass={primaryBtnClass}
+              backBtnClass={backBtnClass}
+            />
           ) : null}
         </main>
       </div>
