@@ -1384,21 +1384,28 @@ export function LaunchCtoPage() {
               </div>
 
               {!burned ? (
-                <button
-                  type="button"
-                  onClick={() => void onBurnConfirm()}
-                  disabled={
-                    burnConfirmBusy ||
-                    !vestingAccepted ||
-                    !burnAmount ||
-                    !Number.isFinite(Number(burnAmount)) ||
-                    Number(burnAmount) <= 0
-                  }
-                  className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
-                >
-                  {burnConfirmBusy ? 'Confirming…' : 'Confirm burn & receive V2'}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                <>
+                  <p className="text-[11px] text-white/35">
+                    {connected
+                      ? 'Burn fee will be paid from your connected wallet.'
+                      : 'Confirming will connect your wallet and pay the burn fee.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void onBurnConfirm()}
+                    disabled={
+                      burnConfirmBusy ||
+                      !vestingAccepted ||
+                      !burnAmount ||
+                      !Number.isFinite(Number(burnAmount)) ||
+                      Number(burnAmount) <= 0
+                    }
+                    className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
+                  >
+                    {burnConfirmBusy ? 'Confirming…' : 'Confirm burn & receive V2'}
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </>
               ) : (
                 <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
                   <Check className="h-4 w-4" />
