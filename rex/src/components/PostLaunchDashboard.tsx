@@ -408,9 +408,6 @@ export function PostLaunchDashboard({
             <p className="font-serif text-xl font-bold tracking-tight text-white">
               Spend roadmap
             </p>
-            <p className="mt-1.5 text-sm text-white/45">
-              Default is Polessia wizard. Switch to manual to pick placements yourself.
-            </p>
           </div>
 
           <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
