@@ -273,13 +273,8 @@ export function LaunchCtoPage() {
     setVenueLabel('CTOgo');
     setMarketingAttached(true);
     setTelegramInvite((tg) => tg ?? 'https://t.me/ctogo_pepe');
-    setLogoPreview((prev) => {
-      if (prev) return prev;
-      return generateCtoLogoDataUrl({
-        projectName: 'Pepe',
-        ticker: 'PEPE',
-      });
-    });
+    // Demo PEPE uses catalog meme art — not the generated lettermark.
+    setLogoPreview('/meme-logos/peponk.png');
   }, [searchParams]);
 
   /** Prefill demo / pasted mint should resolve without forcing a Find click. */
@@ -580,6 +575,18 @@ export function LaunchCtoPage() {
   const coinSlug =
     (ticker.trim() || 'cto').toLowerCase().replace(/[^a-z0-9]/g, '') || 'cto';
   const displaySymbol = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : '$CTO';
+
+  /** Prefer catalog / uploaded art over generated lettermarks for dashboard. */
+  const dashboardLogoUrl = (() => {
+    if (logoPreview && !logoPreview.startsWith('data:')) return logoPreview;
+    if (
+      contract.trim() === DEMO_CONTRACT ||
+      ticker.trim().toUpperCase() === 'PEPE'
+    ) {
+      return '/meme-logos/peponk.png';
+    }
+    return logoPreview;
+  })();
 
   const shareLinks = (() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
