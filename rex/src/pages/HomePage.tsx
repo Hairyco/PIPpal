@@ -13,7 +13,7 @@ import {
   Flame,
   Globe,
   LayoutGrid,
-  LayoutDashboard,
+  UserRound,
   Pin,
   Plus,
   Rocket,
@@ -1090,12 +1090,12 @@ export function HomePage() {
             <AuthButton className="shrink-0" />
             {signedIn ? (
               <Link
-                to="/dashboard"
+                to="/launch?dashboard=1"
                 className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
                 aria-label="Dashboard"
                 title="Dashboard"
               >
-                <LayoutDashboard className="h-5 w-5" />
+                <UserRound className="h-5 w-5" />
               </Link>
             ) : null}
             <ConnectWalletButton className="shrink-0" />

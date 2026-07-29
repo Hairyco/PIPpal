@@ -17,7 +17,7 @@ import {
   X,
   Menu,
   Star,
-  LayoutDashboard,
+  UserRound,
 } from 'lucide-react';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { AuthButton } from './AuthButton';
@@ -71,7 +71,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
     <nav className="flex flex-col gap-1 p-3">
       {signedIn ? (
         <NavLink
-          to="/dashboard"
+          to="/launch?dashboard=1"
           end={false}
           onClick={onNavigate}
           className={({ isActive }) =>
@@ -82,7 +82,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
             }`
           }
         >
-          <LayoutDashboard className="h-4 w-4 shrink-0" />
+          <UserRound className="h-4 w-4 shrink-0" />
           <span className="flex-1">Dashboard</span>
         </NavLink>
       ) : null}

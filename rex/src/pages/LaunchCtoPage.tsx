@@ -261,6 +261,20 @@ export function LaunchCtoPage() {
     }
   }, [searchParams]);
 
+  /** Open the post-launch CTOgo dashboard (person icon / sidebar). */
+  useEffect(() => {
+    if (searchParams.get('dashboard') !== '1') return;
+    setMode('launch');
+    setStep('done');
+    setName((n) => n.trim() || 'Pepe');
+    setTicker((t) => t.trim() || 'PEPE');
+    setContract((c) => (c.trim().length >= 32 ? c : DEMO_CONTRACT));
+    setCoinReady(true);
+    setVenueLabel('CTOgo');
+    setMarketingAttached(true);
+    setTelegramInvite((tg) => tg ?? 'https://t.me/ctogo_pepe');
+  }, [searchParams]);
+
   /** Prefill demo / pasted mint should resolve without forcing a Find click. */
   useEffect(() => {
     if (mode !== 'add' || step !== 'coin') return;
