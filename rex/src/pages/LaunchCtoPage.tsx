@@ -5,10 +5,8 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
-  Flame,
   Globe,
   Loader2,
-  Lock,
   MessageCircle,
   Pencil,
   RefreshCw,
@@ -77,9 +75,6 @@ const fieldClass =
 
 const primaryBtnClass =
   'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:cursor-not-allowed disabled:opacity-40';
-
-const secondaryBurnBtnClass =
-  'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-orange-400 text-sm font-bold text-[#090b14] transition hover:bg-orange-300';
 
 const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
@@ -691,7 +686,7 @@ export function LaunchCtoPage() {
           <p className="mt-1.5 text-sm text-white/45">
             {mode === 'add'
               ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
-              : 'Paste any Solana mint. Connect a wallet when you pay the launch fee.'}
+              : 'Burn your tokens. Receive the same amount back as V2.'}
           </p>
 
           {signedIn && user ? null : (
@@ -1156,87 +1151,104 @@ export function LaunchCtoPage() {
           ) : null}
 
           {step === 'burn' ? (
-            <div className="mt-6 space-y-4">
-              <div className="rounded-xl border border-orange-400/25 bg-orange-400/[0.08] p-4">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-orange-400/15 text-orange-300">
-                    <Flame className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold text-orange-200">Burn V1 → get V2</p>
-                    <p className="mt-1 text-[12px] text-white/55">
-                      Optional now. Burn {displayTicker} 1:1 into vested V2.
-                    </p>
-                  </div>
+            <div className="mt-6 space-y-6">
+              <div>
+                <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
+                <p className="mt-1.5 text-sm text-white/45">
+                  Send V1 in. Get the same amount of V2 back — unlocked over 90 days.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1 border-b border-white/[0.08] pb-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/35">
+                    You burn
+                  </p>
+                  <p className="mt-1 truncate font-serif text-lg font-bold text-white">
+                    {displayTicker}
+                  </p>
+                  <p className="text-[11px] text-white/40">V1</p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#c8ff3d]/70" aria-hidden />
+                <div className="min-w-0 flex-1 border-b border-[#c8ff3d]/25 pb-3 text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#c8ff3d]/70">
+                    You receive
+                  </p>
+                  <p className="mt-1 truncate font-serif text-lg font-bold text-[#d5ff69]">
+                    {displayTicker}
+                  </p>
+                  <p className="text-[11px] text-white/40">V2 · 1:1</p>
                 </div>
               </div>
 
-              {mode === 'launch' ? (
-                <p className="text-[11px] text-white/40">
-                  Fee mode: <span className="text-white/70">{selectedFeeMode.title}</span>
-                </p>
-              ) : null}
-
               <label className="block">
-                <span className="text-[11px] font-semibold text-white/45">Amount</span>
+                <span className="text-[11px] font-medium text-white/45">Amount</span>
                 <div className="mt-1.5 flex gap-2">
                   <input
                     value={burnAmount}
                     onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
-                    placeholder="0.00"
+                    placeholder="0"
                     inputMode="decimal"
                     className={`${fieldClass} mt-0`}
                   />
                   <button
                     type="button"
                     onClick={() => setBurnAmount('1000000')}
-                    className="h-11 shrink-0 rounded-xl border border-white/[0.08] px-3 text-xs font-semibold text-white/60"
+                    className="h-11 shrink-0 rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
                   >
                     Max
                   </button>
                 </div>
               </label>
 
-              <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.07] p-3">
-                <div className="flex items-center gap-2 text-amber-100">
-                  <ShieldAlert className="h-4 w-4" />
-                  <p className="text-xs font-bold">V2 unlocks over 90 days</p>
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
+              <div>
+                <p className="text-[11px] font-medium text-white/45">Unlock schedule</p>
+                <ul className="mt-2 divide-y divide-white/[0.06] border-y border-white/[0.06]">
                   {VESTING_SCHEDULE.map((row) => (
-                    <span
+                    <li
                       key={row.label}
-                      className="inline-flex items-center gap-1 rounded-md bg-black/25 px-2 py-1 text-[10px] text-white/55"
+                      className="flex items-center justify-between py-2.5 text-[13px]"
                     >
-                      <Lock className="h-3 w-3 text-amber-300/80" />
-                      {row.label} · {row.amount}
-                    </span>
+                      <span className="text-white/55">{row.label}</span>
+                      <span className="font-semibold tabular-nums text-white">{row.amount}</span>
+                    </li>
                   ))}
-                </div>
-                <label className="mt-3 flex cursor-pointer items-center gap-2">
+                </ul>
+                <label className="mt-3 flex cursor-pointer items-start gap-2.5">
                   <input
                     type="checkbox"
                     checked={vestingAccepted}
                     onChange={(event) => setVestingAccepted(event.target.checked)}
-                    className="h-4 w-4 rounded accent-[#c8ff3d]"
+                    className="mt-0.5 h-4 w-4 rounded accent-[#c8ff3d]"
                   />
-                  <span className="text-[12px] text-white/55">I understand V2 is vested</span>
+                  <span className="text-[12px] leading-relaxed text-white/45">
+                    I understand V2 unlocks on this schedule
+                  </span>
                 </label>
               </div>
 
               {!burned ? (
-                <button type="button" onClick={() => setBurned(true)} className={secondaryBurnBtnClass}>
-                  <Flame className="h-4 w-4" />
-                  Burn V1 &amp; mint V2
+                <button
+                  type="button"
+                  onClick={() => setBurned(true)}
+                  disabled={!vestingAccepted || !burnAmount}
+                  className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
+                >
+                  Burn &amp; receive V2
+                  <ArrowRight className="h-4 w-4" />
                 </button>
               ) : (
-                <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-4 py-3 text-center text-sm font-bold text-[#d5ff69]">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Check className="h-4 w-4" />
-                    Burn recorded
-                  </span>
-                </div>
+                <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
+                  <Check className="h-4 w-4" />
+                  Burn complete — V2 queued
+                </p>
               )}
+
+              {mode === 'launch' ? (
+                <p className="text-center text-[11px] text-white/35">
+                  Fee mode: {selectedFeeMode.title}
+                </p>
+              ) : null}
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
@@ -1248,16 +1260,16 @@ export function LaunchCtoPage() {
                   Back
                 </button>
                 <button type="button" onClick={goToWebsite} className={`${primaryBtnClass} sm:flex-1`}>
-                  {burned ? 'Continue to website' : 'Skip burn · website'}
+                  {burned ? 'Continue' : 'Skip burn'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
               <button
                 type="button"
                 onClick={() => void skipWebsiteAndPublish()}
-                className="w-full text-center text-[11px] font-semibold text-white/40 hover:text-[#d5ff69]"
+                className="w-full text-center text-[11px] font-semibold text-white/35 transition hover:text-white/70"
               >
-                Skip website and publish now
+                Skip website and publish
               </button>
             </div>
           ) : null}
