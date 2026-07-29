@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  AlertTriangle,
   Check,
   Copy,
   ExternalLink,
@@ -9,13 +10,18 @@ import {
 } from 'lucide-react';
 import { PolessiaLogo } from './PolessiaLogo';
 import {
+  PostLaunchSocialsTab,
+  type ContractCorrection,
+  type DashWebsiteKind,
+} from './PostLaunchSocialsTab';
+import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
   formatThresholdUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
 
-type DashTab = 'overview' | 'wallet' | 'roadmap';
+type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials';
 
 type ShareLinks = {
   token: string;
@@ -41,12 +47,19 @@ type PostLaunchDashboardProps = {
   onReset: () => void;
   primaryBtnClass: string;
   backBtnClass: string;
+  tradedContract: string;
+  twitter?: string;
+  telegramCommunity?: string;
+  discord?: string;
+  websiteUrl?: string;
+  websiteKind?: DashWebsiteKind;
 };
 
 const TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'socials', label: 'Socials' },
 ];
 
 export function PostLaunchDashboard({
@@ -66,11 +79,20 @@ export function PostLaunchDashboard({
   onReset,
   primaryBtnClass,
   backBtnClass,
+  tradedContract,
+  twitter = '',
+  telegramCommunity = '',
+  discord = '',
+  websiteUrl = '',
+  websiteKind = 'own',
 }: PostLaunchDashboardProps) {
   const [tab, setTab] = useState<DashTab>('overview');
   const [roadmapMode, setRoadmapMode] = useState<'polessia' | 'manual'>('polessia');
   const [selected, setSelected] = useState<Set<SpendItemId>>(
     () => new Set(POLESSIA_DEFAULT_SELECTED),
+  );
+  const [contractCorrection, setContractCorrection] = useState<ContractCorrection | null>(
+    null,
   );
 
   const nextThreshold = useMemo(() => {
@@ -137,8 +159,40 @@ export function PostLaunchDashboard({
         ))}
       </div>
 
+      {contractCorrection?.status === 'pending' ? (
+        <p className="flex items-start gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-[12px] leading-relaxed text-amber-100/90">
+          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Contract correction pending review. Current live mint unchanged until approved.{' '}
+            <button
+              type="button"
+              onClick={() => setTab('socials')}
+              className="font-semibold text-[#d5ff69] hover:underline"
+            >
+              View on Socials
+            </button>
+          </span>
+        </p>
+      ) : null}
+
       {tab === 'overview' ? (
         <div className="space-y-6">
+          <section className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-medium text-white/45">Presence</p>
+              <button
+                type="button"
+                onClick={() => setTab('socials')}
+                className="text-[11px] font-semibold text-[#d5ff69] hover:underline"
+              >
+                Edit socials
+              </button>
+            </div>
+            <p className="text-[12px] text-white/40">
+              Update X, Telegram, Discord, or link your own website — with CA due diligence.
+            </p>
+          </section>
+
           <section className="space-y-3">
             <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
             {listingConfirmed ? (
@@ -428,6 +482,22 @@ export function PostLaunchDashboard({
             })}
           </div>
         </div>
+      ) : null}
+
+      {tab === 'socials' ? (
+        <PostLaunchSocialsTab
+          symbol={symbol}
+          tradedContract={tradedContract}
+          initialTwitter={twitter}
+          initialTelegram={telegramCommunity || shareLinks.telegram}
+          initialDiscord={discord}
+          initialWebsiteUrl={websiteUrl}
+          initialWebsiteKind={websiteKind}
+          primaryBtnClass={primaryBtnClass}
+          backBtnClass={backBtnClass}
+          contractCorrection={contractCorrection}
+          onContractCorrection={setContractCorrection}
+        />
       ) : null}
 
       {!signedIn ? (

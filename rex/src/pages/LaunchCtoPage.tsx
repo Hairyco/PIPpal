@@ -1941,6 +1941,23 @@ export function LaunchCtoPage() {
               onReset={resetFlow}
               primaryBtnClass={primaryBtnClass}
               backBtnClass={backBtnClass}
+              tradedContract={contract.trim()}
+              twitter={twitter}
+              telegramCommunity={telegramInvite ?? shareLinks.telegram}
+              websiteUrl={
+                websiteKind === 'clone'
+                  ? cloneUrl.trim() || website.trim()
+                  : website.trim() || cloneUrl.trim()
+              }
+              websiteKind={
+                websiteKind === 'none'
+                  ? 'none'
+                  : websiteKind === 'onepager'
+                    ? 'onepager'
+                    : websiteKind === 'clone'
+                      ? 'clone'
+                      : 'own'
+              }
             />
           ) : null}
         </main>
