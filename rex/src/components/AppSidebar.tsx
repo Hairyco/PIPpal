@@ -19,6 +19,7 @@ import {
   Star,
 } from 'lucide-react';
 import { useWatchlist } from '../hooks/useWatchlist';
+import { AuthButton } from './AuthButton';
 
 const NAV = [
   { to: '/', label: 'Home', icon: Home, end: true },
@@ -143,9 +144,9 @@ export function AppSidebar({ showTrigger = false }: { showTrigger?: boolean }) {
               </button>
             </div>
             <NavItems onNavigate={() => setOpen(false)} />
-            <p className="mt-auto border-t border-white/[0.06] p-4 text-[10px] leading-relaxed text-white/30">
-              Fees · marketing wallet · advertise · FAQ
-            </p>
+            <div className="mt-auto border-t border-white/[0.06] p-3">
+              <AuthButton variant="sidebar" />
+            </div>
           </aside>
         </>
       ) : null}

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
+import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet } from '../components/ConnectWalletButton';
@@ -653,7 +654,9 @@ export function LaunchCtoPage() {
   const canPublishSite = websiteKind === 'none' || siteGenerated;
 
   return (
+    <AppSidebarProvider>
     <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
+      <AppSidebar />
       <div className="relative z-[1]">
         <header className="border-b border-white/[0.07] bg-[#090b14]">
           <div className="mx-auto flex h-14 max-w-xl items-center gap-3 px-3 sm:px-5">
@@ -674,6 +677,7 @@ export function LaunchCtoPage() {
               Back
             </Link>
             <AuthButton />
+            <AppSidebarMenuButton />
           </div>
         </header>
 
@@ -690,13 +694,9 @@ export function LaunchCtoPage() {
               : 'Paste any Solana mint. Connect a wallet when you pay the launch fee.'}
           </p>
 
-          {signedIn && user ? (
+          {signedIn && user ? null : (
             <p className="mt-3 text-[11px] text-white/40">
-              Signed in as <span className="font-semibold text-white/70">{user.email}</span>
-            </p>
-          ) : (
-            <p className="mt-3 text-[11px] text-white/40">
-              Fill in List or Launch first — create a free account at the end to claim the page.
+              Complete List or Launch first. Sign in at the end to claim the page.
             </p>
           )}
 
@@ -1861,5 +1861,6 @@ export function LaunchCtoPage() {
         tokenSupply={tokenSupply}
       />
     </div>
+    </AppSidebarProvider>
   );
 }
