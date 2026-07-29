@@ -1004,7 +1004,7 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      Optional. CTOgo trades fill it to pay for ads and growth.
+                      CTOgo trades fill it to pay for ads and growth.
                     </span>
                     <span className="mt-2 flex flex-wrap items-center gap-3">
                       <Link
