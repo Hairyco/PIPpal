@@ -167,8 +167,8 @@ export const HYBRID_FEED_TABS: {
 }[] = [
   {
     id: 'all',
-    label: 'All Tokens',
-    title: 'All tokens',
+    label: 'All CTOs',
+    title: 'All CTOs',
     subtitle: 'Discover new coins & trade with ready made communities',
   },
   {

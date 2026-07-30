@@ -878,11 +878,11 @@ export function HomePage() {
     if (activeMode === 'Gainers') {
       const windowTab = timeWindows.find((tab) => tab.id === activeWindow);
       return {
-        title: 'All tokens',
+        title: 'All CTOs',
         subtitle: `Sorted by ${activeWindow} gainers — ${windowTab?.title ?? 'active movers'}. ${venueFilter === 'all' ? '' : `Venue: ${venue.label}.`}`.trim(),
       };
     }
-    return { title: 'All tokens', subtitle: venueNote };
+    return { title: 'All CTOs', subtitle: venueNote };
   })();
 
   const selectVenueFilter = (venue: SourceVenueFilter) => {
