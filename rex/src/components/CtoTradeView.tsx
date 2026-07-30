@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
-import { ConnectWalletButton, useConnectedWallet } from './ConnectWalletButton';
+import { useConnectedWallet } from './ConnectWalletButton';
 import {
   launchCtoHref,
   resolveMarketingWalletAddress,
@@ -235,7 +235,7 @@ export function CtoTradeView({
   onToggleStar,
   onOpenSocials,
 }: CtoTradeViewProps) {
-  const { connected } = useConnectedWallet();
+  const { connected, connect, busy: walletBusy } = useConnectedWallet();
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
   const [sellPct, setSellPct] = useState('25');
@@ -304,27 +304,27 @@ export function CtoTradeView({
       <div className="border-y border-white/[0.08] bg-[#05070d]">
         <div className="mx-auto flex w-full max-w-7xl min-w-0 items-start gap-3 px-3 py-3 sm:px-5">
           <div
-            className={`h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10 sm:h-14 sm:w-14`}
+            className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
           >
             <img src={project.logo} alt="" className="h-full w-full object-cover" />
           </div>
 
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <h2 className="font-serif text-xl font-bold leading-none tracking-tight sm:text-2xl">
+              <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <h2 className="font-serif text-lg font-bold leading-none tracking-tight sm:text-xl">
                     ${project.ticker}
                   </h2>
+                  <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
                   {project.launchInHours != null && project.launchInHours < 24 ? (
                     <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
                       New
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-1 text-sm leading-snug text-white/50">{project.name}</p>
 
-                <div className="mt-2 flex items-center gap-0.5">
+                <div className="mt-1.5 flex items-center gap-0.5">
                   {onToggleStar ? (
                     <button
                       type="button"
@@ -378,12 +378,18 @@ export function CtoTradeView({
                     </>
                   ) : null}
                 </div>
+
+                <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <p className="text-base font-semibold tabular-nums tracking-tight sm:text-lg">
+                    {project.price}
+                  </p>
+                  <p className="text-sm font-semibold">
+                    <Pct value={change} />
+                  </p>
+                </div>
               </div>
 
               <div className="flex shrink-0 items-center gap-1.5">
-                {!connected ? (
-                  <ConnectWalletButton alwaysLabel className="!h-9 !px-3 !text-[11px]" />
-                ) : null}
                 <button
                   type="button"
                   onClick={copyV1}
@@ -403,15 +409,6 @@ export function CtoTradeView({
                   <X className="h-4 w-4" />
                 </button>
               </div>
-            </div>
-
-            <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
-              <p className="text-lg font-semibold tabular-nums tracking-tight sm:text-xl">
-                {project.price}
-              </p>
-              <p className="text-sm font-semibold">
-                <Pct value={change} />
-              </p>
             </div>
           </div>
         </div>
@@ -685,13 +682,25 @@ export function CtoTradeView({
               <>
                 <button
                   type="button"
-                  className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold ${
-                    side === 'buy'
-                      ? 'bg-emerald-400 text-black hover:bg-emerald-300'
-                      : 'bg-rose-400 text-black hover:bg-rose-300'
+                  disabled={walletBusy}
+                  onClick={() => {
+                    if (!connected) void connect();
+                  }}
+                  className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
+                    !connected
+                      ? 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
+                      : side === 'buy'
+                        ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                        : 'bg-rose-400 text-black hover:bg-rose-300'
                   }`}
                 >
-                  {side === 'buy' ? `Buy $${project.ticker}` : `Sell $${project.ticker}`}
+                  {!connected
+                    ? walletBusy
+                      ? 'Connecting…'
+                      : 'Connect wallet'
+                    : side === 'buy'
+                      ? `Buy $${project.ticker}`
+                      : `Sell $${project.ticker}`}
                 </button>
                 <Link
                   to={launchHref}
@@ -704,13 +713,25 @@ export function CtoTradeView({
             ) : (
               <button
                 type="button"
-                className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold ${
-                  side === 'buy'
-                    ? 'bg-emerald-400 text-black hover:bg-emerald-300'
-                    : 'bg-rose-400 text-black hover:bg-rose-300'
+                disabled={walletBusy}
+                onClick={() => {
+                  if (!connected) void connect();
+                }}
+                className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
+                  !connected
+                    ? 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
+                    : side === 'buy'
+                      ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                      : 'bg-rose-400 text-black hover:bg-rose-300'
                 }`}
               >
-                {side === 'buy' ? `Buy $${project.ticker}` : `Sell $${project.ticker}`}
+                {!connected
+                  ? walletBusy
+                    ? 'Connecting…'
+                    : 'Connect wallet'
+                  : side === 'buy'
+                    ? `Buy $${project.ticker}`
+                    : `Sell $${project.ticker}`}
               </button>
             )}
             <p className="mt-2 text-center text-[10px] text-white/30">
