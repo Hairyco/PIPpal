@@ -178,16 +178,56 @@ type PinnedMessage = {
   minutesAgo: number;
 };
 
-/** Most recent pinned message per Telegram group (one per CTO) */
+/** Most recent pinned message per public Telegram (demo until t.me/s scrape / bot). */
 const pinnedByTicker: Record<string, PinnedMessage> = {
-  GOB: { ticker: 'GOB', text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots.', when: '2h ago', minutesAgo: 120 },
-  MPEG: { ticker: 'MPEG', text: 'Marketing wallet hit $482. Next spend: DexScreener banner. Vote in poll below.', when: '3h ago', minutesAgo: 180 },
-  LMARS: { ticker: 'LMARS', text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers.', when: '5h ago', minutesAgo: 300 },
-  SURV: { ticker: 'SURV', text: 'Community takeover vote open until Friday. Bring holders from the old group.', when: '8h ago', minutesAgo: 480 },
-  NITE: { ticker: 'NITE', text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids.', when: '11h ago', minutesAgo: 660 },
-  EXIT: { ticker: 'EXIT', text: 'No marketing wallet yet — help us enable one after listing. AMA notes pinned here.', when: '14h ago', minutesAgo: 840 },
-  TFROG: { ticker: 'TFROG', text: 'Forming channel rules + CA verification thread. Stick to official links only.', when: '16h ago', minutesAgo: 960 },
-  CALL: { ticker: 'CALL', text: 'Hotline raid pack: copy, GIF, and Dex chart. Drop once, don’t spam.', when: '1d ago', minutesAgo: 1440 },
+  GOB: {
+    ticker: 'GOB',
+    text: 'Raid starts in 10m — everyone reply with the DexScreener link + CA. No spam bots. Official contract only in this pin. Mods will ban call-group shillers and fake admin DMs. Full raid pack + GIF pack in #raids.',
+    when: '2h ago',
+    minutesAgo: 120,
+  },
+  MPEG: {
+    ticker: 'MPEG',
+    text: 'Marketing wallet hit $482. Next spend: DexScreener banner. Vote in the poll below — community picks the creative. Do not trust DMs asking for seed phrases. CA stays pinned here until socials are updated.',
+    when: '3h ago',
+    minutesAgo: 180,
+  },
+  LMARS: {
+    ticker: 'LMARS',
+    text: 'Pinned: Official CA + Telegram rules. Mods will ban call-group shillers. Verify the mint on CTOgo before you ape. Website and X must match this contract. Report impostors in #mods.',
+    when: '5h ago',
+    minutesAgo: 300,
+  },
+  SURV: {
+    ticker: 'SURV',
+    text: 'Community takeover vote open until Friday. Bring holders from the old group. Snapshot rules and voting link are in the thread under this pin. Liquidity and marketing wallet details stay locked to this message.',
+    when: '8h ago',
+    minutesAgo: 480,
+  },
+  NITE: {
+    ticker: 'NITE',
+    text: 'Tonight’s raid window: 9–11pm UTC. Target list in #raids. Copy the pinned CA only — ignore any “new ticker” announcements outside this channel.',
+    when: '11h ago',
+    minutesAgo: 660,
+  },
+  EXIT: {
+    ticker: 'EXIT',
+    text: 'No marketing wallet yet — help us enable one after listing. AMA notes pinned here with timestamps and next steps for the community vote.',
+    when: '14h ago',
+    minutesAgo: 840,
+  },
+  TFROG: {
+    ticker: 'TFROG',
+    text: 'Forming channel rules + CA verification thread. Stick to official links only. When Native V2 launches on CTOgo, this pin updates with the traded contract.',
+    when: '16h ago',
+    minutesAgo: 960,
+  },
+  CALL: {
+    ticker: 'CALL',
+    text: 'Hotline raid pack: copy, GIF, and Dex chart. Drop once, don’t spam. Keep replies under the raid post so mods can track reach.',
+    when: '1d ago',
+    minutesAgo: 1440,
+  },
 };
 
 type RankingFilter = TimeWindow | 'Pinned';
@@ -310,6 +350,74 @@ function formatLaunchLabel(hours: number | null): string {
 /** Demo age field: hours since listing. Null = older live coin. Tag lasts 24h. */
 function isNewListing(launchInHours: number | null): boolean {
   return launchInHours != null && launchInHours < 24;
+}
+
+function PinnedMessageCard({
+  project,
+  pin,
+}: {
+  project: Project;
+  pin: PinnedMessage;
+}) {
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useEffect(() => {
+    const el = textRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      if (expanded) return;
+      setOverflows(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    measure();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null;
+    ro?.observe(el);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [pin.text, expanded]);
+
+  return (
+    <article className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
+      <div className="flex items-center gap-2.5">
+        <ProjectMark project={project} size="h-9 w-9" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <p className="truncate text-sm font-bold">${project.ticker}</p>
+            <span className="truncate text-[11px] text-white/35">{project.name}</span>
+          </div>
+          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/30">
+            <img src="/images/partners/telegram.svg" alt="" className="h-3 w-3" />
+            {project.community} members · public TG
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-1 text-[10px] font-semibold text-[#d5ff69]">
+          <Pin className="h-3 w-3" />
+          {pin.when}
+        </span>
+      </div>
+      <p
+        ref={textRef}
+        className={`mt-3 text-sm leading-relaxed text-white/70 ${expanded ? '' : 'line-clamp-3'}`}
+      >
+        {pin.text}
+      </p>
+      {overflows || expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((open) => !open)}
+          className="mt-1.5 text-[12px] font-semibold text-[#c8ff3d] hover:text-[#d5ff69]"
+        >
+          {expanded ? 'Show less' : 'Read more'}
+        </button>
+      ) : null}
+    </article>
+  );
 }
 
 function socialSheetStats(project: Project) {
@@ -884,7 +992,7 @@ export function HomePage() {
     if (isPinnedView) {
       return {
         title: 'Pinned messages',
-        subtitle: 'Most recent pinned message from each Telegram group.',
+        subtitle: 'Latest pin from each public Telegram — readable without joining private groups.',
       };
     }
     if (activeShortcut !== 'Trending') {
@@ -1307,7 +1415,7 @@ export function HomePage() {
                 title={
                   isPinnedView
                     ? 'Back to discovery'
-                    : 'Most recent pinned message in each Telegram group'
+                    : 'Latest pin from each public Telegram'
                 }
                 aria-pressed={isPinnedView}
                 onClick={() => {
@@ -1392,35 +1500,13 @@ export function HomePage() {
             {isPinnedView ? (
               <div className="gloss-panel space-y-3 rounded-xl border border-white/[0.1] p-3 sm:p-4">
                 <p className="px-1 text-[11px] text-white/40">
-                  Most recent pinned message from each Telegram group.
+                  Pins from public Telegrams (t.me/… links). Private invite groups need a bot inside.
                 </p>
                 {pinnedFeed.length === 0 ? (
                   <div className="px-4 py-10 text-center text-sm text-white/35">No pinned messages found.</div>
                 ) : (
                   pinnedFeed.map(({ project, pin }) => (
-                    <article
-                      key={project.ticker}
-                      className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <ProjectMark project={project} size="h-9 w-9" />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="truncate text-sm font-bold">${project.ticker}</p>
-                            <span className="truncate text-[11px] text-white/35">{project.name}</span>
-                          </div>
-                          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/30">
-                            <img src="/images/partners/telegram.svg" alt="" className="h-3 w-3" />
-                            {project.community} members
-                          </p>
-                        </div>
-                        <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-1 text-[10px] font-semibold text-[#d5ff69]">
-                          <Pin className="h-3 w-3" />
-                          {pin.when}
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm leading-relaxed text-white/70">{pin.text}</p>
-                    </article>
+                    <PinnedMessageCard key={project.ticker} project={project} pin={pin} />
                   ))
                 )}
               </div>
