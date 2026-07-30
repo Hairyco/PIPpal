@@ -1148,7 +1148,7 @@ export function HomePage() {
               <div
                 id="cto-search-panel"
                 role="listbox"
-                className="absolute left-0 top-[calc(100%+6px)] z-[70] w-[min(100vw-1.5rem,24rem)] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)] sm:w-full"
+                className="absolute left-0 right-0 top-[calc(100%+6px)] z-[70] w-full min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
               >
                 <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
                   <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
@@ -1167,20 +1167,25 @@ export function HomePage() {
                         role="option"
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => pickSearchResult(project)}
-                        className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.05]"
+                        className="flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-left transition hover:bg-white/[0.05] sm:gap-2.5 sm:px-3"
                       >
                         <span className="w-4 shrink-0 text-center text-[10px] font-semibold text-white/25">
                           {rank}
                         </span>
                         <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0 flex-1 overflow-hidden">
                           <div className="flex items-center gap-1.5">
                             <span className="truncate text-sm font-bold">${project.ticker}</span>
                           </div>
                           <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
-                        <span className={`shrink-0 text-[11px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                          {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                        <span
+                          className={`w-[3.5rem] shrink-0 text-right text-[11px] font-semibold tabular-nums ${
+                            project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'
+                          }`}
+                        >
+                          {project.change24h >= 0 ? '+' : ''}
+                          {project.change24h}%
                         </span>
                       </button>
                       );
@@ -1199,15 +1204,20 @@ export function HomePage() {
                           role="option"
                           onMouseDown={(event) => event.preventDefault()}
                           onClick={() => pickSearchResult(project)}
-                          className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.05]"
+                          className="flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-left transition hover:bg-white/[0.05] sm:gap-2.5 sm:px-3"
                         >
                           <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-0 flex-1 overflow-hidden">
                             <p className="truncate text-sm font-bold">${project.ticker}</p>
                             <p className="truncate text-[11px] text-white/35">{project.name}</p>
                           </div>
-                          <span className={`shrink-0 text-[11px] font-semibold ${project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}`}>
-                            {project.change24h >= 0 ? '+' : ''}{project.change24h}%
+                          <span
+                            className={`w-[3.5rem] shrink-0 text-right text-[11px] font-semibold tabular-nums ${
+                              project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'
+                            }`}
+                          >
+                            {project.change24h >= 0 ? '+' : ''}
+                            {project.change24h}%
                           </span>
                         </button>
                       ))}
