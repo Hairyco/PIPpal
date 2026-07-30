@@ -25,7 +25,6 @@ import {
   TrendingUp,
   Wallet,
   X,
-  Zap,
 } from 'lucide-react';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { AuthButton } from '../components/AuthButton';
