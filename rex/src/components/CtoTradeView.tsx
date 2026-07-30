@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
+import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
 import {
   launchCtoHref,
@@ -863,6 +864,12 @@ export function CtoTradeView({
               <PolessiaLogo variant="powered" size="xs" />
             </div>
           </div>
+
+          {marketingAddress ? (
+            <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
+              <MarketingWalletActivity ticker={project.ticker} compact />
+            </div>
+          ) : null}
 
           <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
             <div className="flex items-center justify-between gap-2">

@@ -26,6 +26,7 @@ import {
 import { VendorChatModal } from '../components/get-started/VendorChatModal';
 import { ProjectImagePicker, type ProjectImageSource } from '../components/get-started/ProjectImagePicker';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
+import { MarketingWalletActivity } from '../components/MarketingWalletActivity';
 import { categoryBoostTiers } from '../data/promotePricing';
 import { KYC_FEE } from '../data/claimPricing';
 import { demoMarketingWalletAddress, shortMint, solscanAccountUrl } from '../data/ctoProjects';
@@ -417,6 +418,7 @@ export function FounderDashboardPage() {
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </div>
+                <MarketingWalletActivity ticker={symbol} className="pt-2" />
               </div>
             </div>
 

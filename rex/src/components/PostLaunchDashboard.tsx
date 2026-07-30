@@ -25,6 +25,7 @@ import {
 } from '../data/postLaunchRoadmap';
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
+import { MarketingWalletActivity } from './MarketingWalletActivity';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -379,6 +380,15 @@ export function PostLaunchDashboard({
                   />
                 </div>
               ) : null}
+              {vaultLive ? (
+                <button
+                  type="button"
+                  onClick={() => setTab('wallet')}
+                  className="mt-3 text-[11px] font-semibold text-white/45 hover:text-[#d5ff69]"
+                >
+                  View transaction history →
+                </button>
+              ) : null}
             </div>
           </section>
 
@@ -529,6 +539,10 @@ export function PostLaunchDashboard({
                 SOL to this account.
               </p>
             </section>
+          ) : null}
+
+          {vaultLive ? (
+            <MarketingWalletActivity ticker={symbol} />
           ) : null}
 
           {vaultLive ? (
