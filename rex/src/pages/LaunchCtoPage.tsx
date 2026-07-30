@@ -650,12 +650,16 @@ export function LaunchCtoPage() {
 
     if (mode === 'add') {
       setListNotice(null);
+      if (!connected) {
+        setListNotice(
+          listMarketingOptIn
+            ? `Connect your wallet to list and pay the $${MARKETING_WALLET_ATTACH_FEE_USD} vault fee`
+            : 'Connect your wallet to list this CTO',
+        );
+        const next = await connect();
+        if (!next) return;
+      }
       if (listMarketingOptIn) {
-        if (!connected) {
-          setListNotice('Connect your wallet to pay the $1 marketing vault fee');
-          const next = await connect();
-          if (!next) return;
-        }
         setMarketingAttachBusy(true);
         try {
           // Demo: $1 covers rent + tx; remainder → treasury.
@@ -876,7 +880,7 @@ export function LaunchCtoPage() {
               </h1>
               <p className="mt-1.5 text-sm text-white/45">
                 {mode === 'add'
-                  ? 'Paste the contract to list. Connect a wallet only if you add a marketing vault ($1).'
+                  ? 'Paste the contract to list. Connect your wallet to publish the listing.'
                   : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
               </p>
             </>
