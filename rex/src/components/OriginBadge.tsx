@@ -1,5 +1,14 @@
 import { Link } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import { ORIGIN_META, type ProjectOrigin } from '../data/ctoProjects';
+
+const CTOGO_MINT_FEATURES = [
+  'Marketing wallet — trade fees fund growth automatically',
+  'Community fee modes (creator cut → community pool)',
+  'Fresh mint & bonding curve on CTOgo',
+  'Discovery + charting on the CTOgo board',
+  'Polessia spend rails when the vault hits targets',
+] as const;
 
 export function OriginBadge({
   origin,
@@ -35,21 +44,33 @@ export function MigrateToV2Banner({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-            Want a fresh start?
+            Mint the CTOgo version
           </p>
           <p className="mt-1.5 text-sm font-semibold text-white">
-            Launch ${ticker} on CTOgo
+            ${ticker} with CTOgo features
           </p>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">
-            Still trading on {sourceVenue ?? 'another venue'}? Mint a CTOgo version with a marketing
-            wallet built in — and keep discovery here.
+            Still trading on {sourceVenue ?? 'another venue'}? Deploy a CTOgo mint — same CTO story,
+            new rails:
           </p>
+          <ul className="mt-3 space-y-1.5">
+            {CTOGO_MINT_FEATURES.map((feature) => (
+              <li key={feature} className="flex items-start gap-2 text-[12px] text-white/75">
+                <Check
+                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#c8ff3d]"
+                  strokeWidth={2.5}
+                  aria-hidden
+                />
+                <span>{feature}</span>
+              </li>
+            ))}
+          </ul>
         </div>
         <Link
           to={href}
           className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
         >
-          Launch ${ticker} on CTOgo
+          Mint ${ticker} on CTOgo
         </Link>
       </div>
     </div>
