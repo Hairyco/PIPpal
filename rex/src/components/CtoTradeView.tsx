@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check,
@@ -107,6 +107,10 @@ function Pct({ value }: { value: number | null }) {
 }
 
 function CandleChart({ positive }: { positive: boolean }) {
+  const gradientId = useMemo(
+    () => `ctoChartFade-${positive ? 'up' : 'dn'}-${Math.random().toString(36).slice(2, 8)}`,
+    [positive],
+  );
   const candles = useMemo(() => {
     const out: { x: number; o: number; h: number; l: number; c: number; up: boolean }[] = [];
     let price = 42;
@@ -135,7 +139,7 @@ function CandleChart({ positive }: { positive: boolean }) {
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full" aria-hidden>
       <defs>
-        <linearGradient id="ctoChartFade" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0.18" />
           <stop offset="100%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0" />
         </linearGradient>
@@ -157,7 +161,7 @@ function CandleChart({ positive }: { positive: boolean }) {
           `L ${pad + (candles.length - 1) * slot + slot / 2} ${h - pad}`,
           `L ${pad + slot / 2} ${h - pad} Z`,
         ].join(' ')}
-        fill="url(#ctoChartFade)"
+        fill={`url(#${gradientId})`}
       />
       {candles.map((c, i) => {
         const cx = pad + i * slot + slot / 2;
@@ -248,12 +252,14 @@ export function CtoTradeView({
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [chartOffscreen, setChartOffscreen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
   const tradePanelRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   const positive = (change ?? project.change24h) >= 0;
 
   const demoTrades = useMemo(() => demoTradesForTicker(project.ticker), [project.ticker]);
@@ -267,9 +273,26 @@ export function CtoTradeView({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setChartOffscreen(!entry.isIntersecting);
+      },
+      { threshold: 0.08, rootMargin: '-4px 0px 0px 0px' },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [project.ticker]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const scrollToChart = () => {
+    chartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const v1Mint = resolveV1Mint(project);
@@ -460,7 +483,10 @@ export function CtoTradeView({
       ) : null}
 
       <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
-        <div className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d] lg:sticky lg:top-3 lg:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+        <div
+          ref={chartRef}
+          className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d] lg:sticky lg:top-3 lg:shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
+        >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
@@ -978,6 +1004,40 @@ export function CtoTradeView({
           })}
         </div>
       </div>
+
+      {chartOffscreen ? (
+        <button
+          type="button"
+          onClick={scrollToChart}
+          className="fixed inset-x-3 top-3 z-50 overflow-hidden rounded-xl border border-[#c8ff3d]/30 bg-[#05070d]/95 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-md lg:hidden"
+          aria-label="Open full price chart"
+          title="Tap to return to chart"
+        >
+          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-2.5 py-1.5">
+            <div
+              className={`h-7 w-7 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
+            >
+              <img src={project.logo} alt="" className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1 text-left">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-[12px] font-bold text-white">${project.ticker}</span>
+                <span className="truncate text-[10px] text-white/40">{project.name}</span>
+              </div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold tabular-nums">
+                <span className="text-white/90">{project.price}</span>
+                <Pct value={change} />
+              </div>
+            </div>
+            <span className="shrink-0 rounded-md border border-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/45">
+              Chart
+            </span>
+          </div>
+          <div className="h-[88px] px-1 py-1">
+            <CandleChart positive={positive} />
+          </div>
+        </button>
+      ) : null}
 
       {showScrollTop ? (
         <button
