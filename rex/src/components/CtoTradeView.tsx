@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
+import { ConnectWalletButton, useConnectedWallet } from './ConnectWalletButton';
 import {
   launchCtoHref,
   resolveMarketingWalletAddress,
@@ -235,6 +236,7 @@ export function CtoTradeView({
   onToggleStar,
   onOpenSocials,
 }: CtoTradeViewProps) {
+  const { connected } = useConnectedWallet();
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
   const [sellPct, setSellPct] = useState('25');
@@ -326,6 +328,9 @@ export function CtoTradeView({
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
+            {!connected ? (
+              <ConnectWalletButton className="!h-8 px-2 text-[10px] sm:px-2.5" />
+            ) : null}
             {onToggleStar ? (
               <button
                 type="button"
