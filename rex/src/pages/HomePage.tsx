@@ -186,7 +186,7 @@ type RankingFilter = TimeWindow | 'Pinned';
 
 const rankingModes = [
   { id: 'Trending', label: 'Trending', icon: Flame, title: 'Trending', subtitle: 'Strongest momentum right now.' },
-  { id: 'Hot', label: 'Hot', icon: Zap, title: 'Hot', subtitle: 'Highest raid and messaging activity.' },
+  { id: 'New', label: 'New', icon: Sparkles, title: 'New', subtitle: 'Recently forming takeovers just entering the rankings.' },
   { id: 'Gainers', label: 'Gainers', icon: TrendingUp, title: 'Gainers', subtitle: 'Biggest price movers in the selected window.' },
   {
     id: 'Prelaunch',
@@ -264,9 +264,10 @@ function compareByShortcut(
     }
     case 'Trending':
     default:
-      if (mode === 'Hot') {
-        if (b.mph !== a.mph) return b.mph - a.mph;
-        if (b.raidsActive !== a.raidsActive) return b.raidsActive - a.raidsActive;
+      if (mode === 'New') {
+        const launchA = a.launchInHours ?? Number.POSITIVE_INFINITY;
+        const launchB = b.launchInHours ?? Number.POSITIVE_INFINITY;
+        if (launchA !== launchB) return launchA - launchB;
         return b.votesToday - a.votesToday;
       }
       if (mode === 'Gainers') {
