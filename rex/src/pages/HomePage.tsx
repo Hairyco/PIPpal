@@ -1119,64 +1119,101 @@ export function HomePage() {
       </div>
 
       <header className={`border-b border-white/[0.07] bg-black ${showSearchPanel ? 'relative z-[60]' : 'relative z-10'}`}>
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-5">
-          <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
-            <CtoGoLogo size={36} className="rounded-xl" />
-            <div className="hidden sm:block">
-              <p className="flex items-center gap-1.5 font-serif text-lg font-bold leading-none tracking-tight">
-                CTOgo
-                <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                  beta
-                </span>
-              </p>
-              <p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/30">Community takeover</p>
-            </div>
-          </a>
+        <div className="relative mx-auto max-w-7xl px-3 sm:px-5">
+          <div className="flex h-16 items-center gap-2 sm:gap-3">
+            <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
+              <CtoGoLogo size={36} className="rounded-xl" />
+              <div className="hidden sm:block">
+                <p className="flex items-center gap-1.5 font-serif text-lg font-bold leading-none tracking-tight">
+                  CTOgo
+                  <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                    beta
+                  </span>
+                </p>
+                <p className="mt-1 text-[8px] font-semibold uppercase tracking-[0.18em] text-white/30">
+                  Community takeover
+                </p>
+              </div>
+            </a>
 
-          <div className={`relative min-w-0 flex-1 sm:max-w-md md:max-w-lg ${showSearchPanel ? 'z-[60]' : ''}`}>
-            <label className="relative block">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => {
-                  window.setTimeout(() => setSearchFocused(false), 120);
-                }}
-                placeholder="Search CTOs"
-                aria-keyshortcuts="/"
-                aria-expanded={showSearchPanel}
-                aria-controls="cto-search-panel"
-                className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/40 focus:border-[#c8ff3d]/40 sm:pr-11"
-              />
-              {!searchFocused && !query ? (
-                <kbd
-                  className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/20 bg-white/[0.08] px-1.5 font-sans text-[11px] font-semibold leading-none text-white/55 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
-                  aria-hidden
-                >
-                  /
-                </kbd>
-              ) : null}
-            </label>
-            {showSearchPanel ? (
-              <div
-                id="cto-search-panel"
-                role="listbox"
-                className="absolute left-0 right-0 top-[calc(100%+6px)] z-[70] w-full min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
+            <div className="relative min-w-0 flex-1 sm:max-w-md md:max-w-lg">
+              <label className="relative block">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+                <input
+                  ref={searchRef}
+                  type="text"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => {
+                    window.setTimeout(() => setSearchFocused(false), 120);
+                  }}
+                  placeholder="Search CTOs"
+                  aria-keyshortcuts="/"
+                  aria-expanded={showSearchPanel}
+                  aria-controls="cto-search-panel"
+                  className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/40 focus:border-[#c8ff3d]/40 sm:pr-11"
+                />
+                {!searchFocused && !query ? (
+                  <kbd
+                    className="pointer-events-none absolute right-2.5 top-1/2 hidden h-6 min-w-[1.4rem] -translate-y-1/2 items-center justify-center rounded-md border border-white/20 bg-white/[0.08] px-1.5 font-sans text-[11px] font-semibold leading-none text-white/55 shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)] sm:inline-flex"
+                    aria-hidden
+                  >
+                    /
+                  </kbd>
+                ) : null}
+              </label>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
+              <Link
+                to="/launch"
+                className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
               >
-                <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
-                  <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                    Trending
-                  </p>
-                  {searchSuggestions.trending.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-white/35">No trending matches</p>
-                  ) : (
-                    searchSuggestions.trending.map((project) => {
-                      const rank =
-                        trendingProjects.findIndex((item) => item.ticker === project.ticker) + 1;
-                      return (
+                <Plus className="h-4 w-4" /> Submit CTO
+              </Link>
+              <AuthButton className="shrink-0" />
+              {signedIn ? (
+                <Link
+                  to="/launch?dashboard=1"
+                  className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
+                  aria-label="Dashboard"
+                  title="Dashboard"
+                >
+                  <UserRound className="h-5 w-5" />
+                </Link>
+              ) : null}
+              <ConnectWalletButton className="shrink-0" />
+              <button
+                type="button"
+                className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </button>
+              <AppSidebarMenuButton />
+            </div>
+          </div>
+
+          {showSearchPanel ? (
+            <div
+              id="cto-search-panel"
+              role="listbox"
+              className="absolute inset-x-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)] sm:max-w-lg"
+            >
+              <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
+                <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
+                  Trending
+                </p>
+                {searchSuggestions.trending.length === 0 ? (
+                  <p className="px-3 py-2 text-xs text-white/35">No trending matches</p>
+                ) : (
+                  searchSuggestions.trending.map((project) => {
+                    const rank =
+                      trendingProjects.findIndex((item) => item.ticker === project.ticker) + 1;
+                    const pct = Number(project.change24h.toFixed(2));
+                    return (
                       <button
                         key={`trending-${project.ticker}`}
                         type="button"
@@ -1189,31 +1226,31 @@ export function HomePage() {
                           {rank}
                         </span>
                         <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
-                        <div className="min-w-0 flex-1 overflow-hidden">
-                          <div className="flex items-center gap-1.5">
-                            <span className="truncate text-sm font-bold">${project.ticker}</span>
-                          </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold">${project.ticker}</p>
                           <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
                         <span
-                          className={`w-[3.5rem] shrink-0 text-right text-[11px] font-semibold tabular-nums ${
-                            project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'
+                          className={`shrink-0 whitespace-nowrap pl-1 text-right text-[11px] font-semibold tabular-nums ${
+                            pct >= 0 ? 'text-lime-300' : 'text-rose-400'
                           }`}
                         >
-                          {project.change24h >= 0 ? '+' : ''}
-                          {project.change24h}%
+                          {pct >= 0 ? '+' : ''}
+                          {pct}%
                         </span>
                       </button>
-                      );
-                    })
-                  )}
-                  {searchSuggestions.rest.length > 0 ? (
-                    <>
-                      <div className="my-2 border-t border-white/[0.06]" />
-                      <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
-                        All CTOs
-                      </p>
-                      {searchSuggestions.rest.map((project) => (
+                    );
+                  })
+                )}
+                {searchSuggestions.rest.length > 0 ? (
+                  <>
+                    <div className="my-2 border-t border-white/[0.06]" />
+                    <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
+                      All CTOs
+                    </p>
+                    {searchSuggestions.rest.map((project) => {
+                      const pct = Number(project.change24h.toFixed(2));
+                      return (
                         <button
                           key={`all-${project.ticker}`}
                           type="button"
@@ -1223,56 +1260,26 @@ export function HomePage() {
                           className="flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-left transition hover:bg-white/[0.05] sm:gap-2.5 sm:px-3"
                         >
                           <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
-                          <div className="min-w-0 flex-1 overflow-hidden">
+                          <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-bold">${project.ticker}</p>
                             <p className="truncate text-[11px] text-white/35">{project.name}</p>
                           </div>
                           <span
-                            className={`w-[3.5rem] shrink-0 text-right text-[11px] font-semibold tabular-nums ${
-                              project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'
+                            className={`shrink-0 whitespace-nowrap pl-1 text-right text-[11px] font-semibold tabular-nums ${
+                              pct >= 0 ? 'text-lime-300' : 'text-rose-400'
                             }`}
                           >
-                            {project.change24h >= 0 ? '+' : ''}
-                            {project.change24h}%
+                            {pct >= 0 ? '+' : ''}
+                            {pct}%
                           </span>
                         </button>
-                      ))}
-                    </>
-                  ) : null}
-                </div>
+                      );
+                    })}
+                  </>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-
-          <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-            <Link
-              to="/launch"
-              className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
-            >
-              <Plus className="h-4 w-4" /> Submit CTO
-            </Link>
-            <AuthButton className="shrink-0" />
-            {signedIn ? (
-              <Link
-                to="/launch?dashboard=1"
-                className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
-                aria-label="Dashboard"
-                title="Dashboard"
-              >
-                <UserRound className="h-5 w-5" />
-              </Link>
-            ) : null}
-            <ConnectWalletButton className="shrink-0" />
-            <button
-              type="button"
-              className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
-              aria-label="Notifications"
-              title="Notifications"
-            >
-              <Bell className="h-5 w-5" />
-            </button>
-            <AppSidebarMenuButton />
-          </div>
+            </div>
+          ) : null}
         </div>
       </header>
 
