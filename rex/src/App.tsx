@@ -21,6 +21,7 @@ import { MarketingWalletPage } from './pages/MarketingWalletPage';
 import { FaqPage } from './pages/FaqPage';
 import { ContactPage } from './pages/ContactPage';
 import { WatchlistPage } from './pages/WatchlistPage';
+import { WelcomeGate } from './components/WelcomeGate';
 
 export function App() {
   return (
@@ -28,6 +29,7 @@ export function App() {
       <WalletProvider>
         <BrowserRouter>
           <ScrollToTop />
+          <WelcomeGate />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
