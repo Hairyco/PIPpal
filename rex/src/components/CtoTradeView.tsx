@@ -303,49 +303,101 @@ export function CtoTradeView({
   return (
     <div className="w-full min-w-0">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-start gap-2.5 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+        <div className="mx-auto flex w-full max-w-7xl min-w-0 items-start gap-3 px-3 py-3 sm:px-5">
           <div
-            className={`mt-0.5 h-10 w-10 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
+            className={`h-12 w-12 shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10 sm:h-14 sm:w-14`}
           >
             <img src={project.logo} alt="" className="h-full w-full object-cover" />
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <h2 className="break-words font-serif text-base font-bold leading-tight tracking-tight sm:text-xl">
-                  ${project.ticker}
-                </h2>
-                <p className="mt-0.5 break-words text-[11px] leading-snug text-white/45 sm:text-xs">
-                  {project.name}
-                </p>
-                <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <p className="text-sm font-semibold tabular-nums tracking-tight sm:text-lg">
-                    {project.price}
-                  </p>
-                  <p className="text-[11px] font-semibold sm:text-sm">
-                    <Pct value={change} />
-                  </p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <h2 className="font-serif text-xl font-bold leading-none tracking-tight sm:text-2xl">
+                    ${project.ticker}
+                  </h2>
+                  {project.launchInHours != null && project.launchInHours < 24 ? (
+                    <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
+                      New
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-sm leading-snug text-white/50">{project.name}</p>
+
+                <div className="mt-2 flex items-center gap-0.5">
+                  {onToggleStar ? (
+                    <button
+                      type="button"
+                      onClick={onToggleStar}
+                      className="grid h-7 w-7 place-items-center rounded-md text-white/35 transition hover:bg-white/[0.06] hover:text-[#c8ff3d]"
+                      aria-label={`Star ${project.ticker}`}
+                    >
+                      <Star
+                        className={`h-3.5 w-3.5 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`}
+                      />
+                    </button>
+                  ) : null}
+                  {onOpenSocials ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={onOpenSocials}
+                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Open X"
+                        title="X / Twitter"
+                      >
+                        <XMarkIcon className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onOpenSocials}
+                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Open Telegram"
+                        title="Telegram"
+                      >
+                        <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onOpenSocials}
+                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Open Discord"
+                        title="Discord"
+                      >
+                        <DiscordGlyph className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onOpenSocials}
+                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Open website"
+                        title="Website"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                      </button>
+                    </>
+                  ) : null}
                 </div>
               </div>
 
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1.5">
                 {!connected ? (
-                  <ConnectWalletButton className="!h-8 px-2 text-[10px] sm:px-2.5" alwaysLabel />
+                  <ConnectWalletButton alwaysLabel className="!h-9 !px-3 !text-[11px]" />
                 ) : null}
                 <button
                   type="button"
                   onClick={copyV1}
-                  className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.08] px-2 text-[10px] font-semibold text-white/55 hover:text-white"
+                  className="inline-flex h-9 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2.5 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
                   title={v1Mint}
                 >
-                  <Copy className="h-3 w-3" />
+                  <Copy className="h-3.5 w-3.5" />
                   {copied ? 'OK' : 'CA'}
                 </button>
                 <button
                   type="button"
                   onClick={onBack}
-                  className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.08] text-white/55 hover:bg-white/[0.06] hover:text-white"
+                  className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
                   aria-label="Back to board"
                   title="Back to board"
                 >
@@ -354,57 +406,13 @@ export function CtoTradeView({
               </div>
             </div>
 
-            <div className="mt-2 flex flex-wrap items-center gap-1">
-              {onToggleStar ? (
-                <button
-                  type="button"
-                  onClick={onToggleStar}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-white/35 hover:bg-white/[0.06] hover:text-[#c8ff3d]"
-                  aria-label={`Star ${project.ticker}`}
-                >
-                  <Star className={`h-4 w-4 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`} />
-                </button>
-              ) : null}
-              {onOpenSocials ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={onOpenSocials}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
-                    aria-label="Open X"
-                    title="X / Twitter"
-                  >
-                    <XMarkIcon className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenSocials}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
-                    aria-label="Open Telegram"
-                    title="Telegram"
-                  >
-                    <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenSocials}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
-                    aria-label="Open Discord"
-                    title="Discord"
-                  >
-                    <DiscordGlyph className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenSocials}
-                    className="grid h-8 w-8 place-items-center rounded-lg text-white/45 hover:bg-white/[0.06] hover:text-white"
-                    aria-label="Open website"
-                    title="Website"
-                  >
-                    <Globe className="h-3.5 w-3.5" />
-                  </button>
-                </>
-              ) : null}
+            <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
+              <p className="text-lg font-semibold tabular-nums tracking-tight sm:text-xl">
+                {project.price}
+              </p>
+              <p className="text-sm font-semibold">
+                <Pct value={change} />
+              </p>
             </div>
           </div>
         </div>
