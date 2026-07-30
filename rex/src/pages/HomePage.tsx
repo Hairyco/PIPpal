@@ -1681,7 +1681,7 @@ export function HomePage() {
                             rel="noreferrer"
                             onClick={(event) => event.stopPropagation()}
                             className="flex w-full max-w-full items-center gap-1.5 rounded-md bg-white/[0.04] px-2 py-1 text-left hover:bg-white/[0.07]"
-                            title={`View marketing wallet on Solscan`}
+                            title={`View ${mktAddr} on Solscan`}
                           >
                             <Wallet className="h-3 w-3 shrink-0 text-[#c8ff3d]" />
                             <span className="truncate text-[11px] font-medium text-[#c8ff3d]">
@@ -1690,6 +1690,7 @@ export function HomePage() {
                             <span className="shrink-0 text-[11px] font-semibold text-white/85">
                               {project.marketingBalance ?? '--'}
                             </span>
+                            <ExternalLink className="h-3 w-3 shrink-0 text-white/35" />
                           </a>
                         );
                       })()}
