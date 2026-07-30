@@ -298,6 +298,11 @@ function formatLaunchLabel(hours: number | null): string {
   return `${days}d`;
 }
 
+/** Demo age field: hours since listing. Null = older live coin. Tag lasts 24h. */
+function isNewListing(launchInHours: number | null): boolean {
+  return launchInHours != null && launchInHours < 24;
+}
+
 function socialSheetStats(project: Project) {
   let seed = 0;
   for (let i = 0; i < project.ticker.length; i += 1) {
@@ -1562,6 +1567,14 @@ export function HomePage() {
                                 </button>
                               ))}
                             </span>
+                            {isNewListing(project.launchInHours) ? (
+                              <span
+                                className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] text-[#d5ff69]"
+                                title="Listed in the last 24 hours"
+                              >
+                                New
+                              </span>
+                            ) : null}
                           </div>
                         </div>
                       </div>
