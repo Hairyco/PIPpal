@@ -378,36 +378,37 @@ export function CtoTradeView({
                     </>
                   ) : null}
                 </div>
+              </div>
 
-                <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <p className="text-base font-semibold tabular-nums tracking-tight sm:text-lg">
+              <div className="flex shrink-0 flex-col items-end gap-2">
+                <div className="text-right">
+                  <p className="text-lg font-semibold tabular-nums leading-none tracking-tight sm:text-xl">
                     {project.price}
                   </p>
-                  <p className="text-sm font-semibold">
+                  <p className="mt-1 text-sm font-semibold leading-none">
                     <Pct value={change} />
                   </p>
                 </div>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={copyV1}
-                  className="inline-flex h-9 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2.5 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
-                  title={v1Mint}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                  {copied ? 'OK' : 'CA'}
-                </button>
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
-                  aria-label="Back to board"
-                  title="Back to board"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={copyV1}
+                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
+                    title={v1Mint}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {copied ? 'OK' : 'CA'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
+                    aria-label="Back to board"
+                    title="Back to board"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -687,11 +688,9 @@ export function CtoTradeView({
                     if (!connected) void connect();
                   }}
                   className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
-                    !connected
-                      ? 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
-                      : side === 'buy'
-                        ? 'bg-emerald-400 text-black hover:bg-emerald-300'
-                        : 'bg-rose-400 text-black hover:bg-rose-300'
+                    !connected || side === 'buy'
+                      ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                      : 'bg-rose-400 text-black hover:bg-rose-300'
                   }`}
                 >
                   {!connected
@@ -718,11 +717,9 @@ export function CtoTradeView({
                   if (!connected) void connect();
                 }}
                 className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
-                  !connected
-                    ? 'bg-[#c8ff3d] text-[#090b14] hover:bg-[#d5ff69]'
-                    : side === 'buy'
-                      ? 'bg-emerald-400 text-black hover:bg-emerald-300'
-                      : 'bg-rose-400 text-black hover:bg-rose-300'
+                  !connected || side === 'buy'
+                    ? 'bg-emerald-400 text-black hover:bg-emerald-300'
+                    : 'bg-rose-400 text-black hover:bg-rose-300'
                 }`}
               >
                 {!connected
