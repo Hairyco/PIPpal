@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  Check,
   Copy,
   ExternalLink,
   Flame,
@@ -241,6 +242,7 @@ export function CtoTradeView({
   const [sellPct, setSellPct] = useState('25');
   const [chartWindow, setChartWindow] = useState('5m');
   const [copied, setCopied] = useState(false);
+  const [copiedMkt, setCopiedMkt] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
@@ -283,6 +285,17 @@ export function CtoTradeView({
       await navigator.clipboard.writeText(v1Mint);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const copyMarketingWallet = async () => {
+    if (!marketingAddress) return;
+    try {
+      await navigator.clipboard.writeText(marketingAddress);
+      setCopiedMkt(true);
+      window.setTimeout(() => setCopiedMkt(false), 1600);
     } catch {
       /* ignore */
     }
@@ -770,17 +783,32 @@ export function CtoTradeView({
               {project.marketingBalance ?? '—'}
             </p>
             {marketingSolscan && marketingShort ? (
-              <a
-                href={marketingSolscan}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                title={`View ${marketingAddress} on Solscan`}
-              >
-                {marketingShort}
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="font-sans text-[10px] font-semibold">Solscan</span>
-              </a>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                <a
+                  href={marketingSolscan}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 font-mono text-[11px] text-[#c8ff3d]/80 underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                  title={`View ${marketingAddress} on Solscan`}
+                >
+                  {marketingShort}
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                  <span className="font-sans text-[10px] font-semibold">Solscan</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void copyMarketingWallet()}
+                  className="inline-flex items-center gap-1 rounded-md border border-white/[0.1] px-1.5 py-0.5 text-[10px] font-semibold text-white/50 transition hover:border-white/20 hover:text-white"
+                  title="Copy marketing wallet address"
+                >
+                  {copiedMkt ? (
+                    <Check className="h-3 w-3 text-[#d5ff69]" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  {copiedMkt ? 'Copied' : 'Copy'}
+                </button>
+              </div>
             ) : (
               <p className="mt-1 text-[11px] text-white/40">
                 {isExternal ? (
@@ -799,6 +827,11 @@ export function CtoTradeView({
                 )}
               </p>
             )}
+            {marketingAddress ? (
+              <p className="mt-1.5 text-[10px] text-white/35">
+                Send SOL here to fund growth manually.
+              </p>
+            ) : null}
             {project.marketingBalance && mktTarget > 0 ? (
               <div className="mt-3">
                 <div className="mb-1 flex items-center justify-between gap-2 text-[10px]">

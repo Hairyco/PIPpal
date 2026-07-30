@@ -2,9 +2,13 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   BadgeCheck,
+  Check,
+  Copy,
+  ExternalLink,
   Megaphone,
   MessageCircle,
   Rocket,
+  Share2,
   TrendingUp,
   Users,
   Wallet,
@@ -24,6 +28,7 @@ import { ProjectImagePicker, type ProjectImageSource } from '../components/get-s
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { categoryBoostTiers } from '../data/promotePricing';
 import { KYC_FEE } from '../data/claimPricing';
+import { demoMarketingWalletAddress, shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { devStudios, projectDeliverables } from '../data/devStudios';
 import { industries } from '../data/industries';
 import { talentPool } from '../data/talentPool';
@@ -77,6 +82,8 @@ export function FounderDashboardPage() {
   const [projectImageSource, setProjectImageSource] = useState<ProjectImageSource>(
     () => loadFounderProject()?.projectImageSource ?? null,
   );
+  const [copiedMkt, setCopiedMkt] = useState(false);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
 
   const project = loadFounderProject();
   const welcome = searchParams.get('welcome') === '1';
@@ -145,6 +152,41 @@ export function FounderDashboardPage() {
 
   const symbol = projectSymbol(project.projectName);
   const industry = industries.find((i) => i.id === project.categoryId);
+  const marketingAddress = demoMarketingWalletAddress(symbol);
+  const marketingSolscan = solscanAccountUrl(marketingAddress);
+  const marketingShort = shortMint(marketingAddress);
+
+  const copyMarketingWallet = async () => {
+    try {
+      await navigator.clipboard.writeText(marketingAddress);
+      setCopiedMkt(true);
+      window.setTimeout(() => setCopiedMkt(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const shareMarketingWallet = async () => {
+    const text = `Fund the $${symbol} marketing wallet — send SOL to:\n${marketingAddress}\n\nSolscan: ${marketingSolscan}`;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: `$${symbol} marketing wallet`, text });
+        setShareNotice('Shared');
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShareNotice('Share text copied');
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareNotice('Share text copied');
+      } catch {
+        /* ignore */
+      }
+    }
+    window.setTimeout(() => setShareNotice(null), 2000);
+  };
 
   const milestones = useMemo(
     () =>
@@ -314,9 +356,68 @@ export function FounderDashboardPage() {
                     <stat.icon className={`h-4 w-4 ${stat.accent}`} />
                     <p className="mt-2 text-xs text-muted-foreground">{stat.label}</p>
                     <p className="mt-1 text-xl font-semibold text-white">{stat.value}</p>
+                    {stat.label === 'Marketing wallet' ? (
+                      <a
+                        href={marketingSolscan}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
+                        title={`View ${marketingAddress} on Solscan`}
+                      >
+                        {marketingShort}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="dex-card">
+              <div className="relative z-[1] space-y-3">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="font-semibold text-white">Share marketing wallet</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Investors can fund growth by sending SOL to this vault. Trade fees fill it
+                      automatically too.
+                    </p>
+                  </div>
+                  <Wallet className="h-5 w-5 shrink-0 text-emerald-400" />
+                </div>
+                <p className="break-all font-mono text-xs text-white/80">{marketingAddress}</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyMarketingWallet()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
+                  >
+                    {copiedMkt ? (
+                      <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                    {copiedMkt ? 'Copied' : 'Copy address'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void shareMarketingWallet()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-white/80 transition hover:border-white/25 hover:text-white"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    {shareNotice ?? 'Share'}
+                  </button>
+                  <a
+                    href={marketingSolscan}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 text-xs font-semibold text-sky-200 transition hover:bg-sky-500/20"
+                  >
+                    Solscan
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
             </div>
 
             <PostLaunchBundlesPanel starterFunding={project.starterBundleFunding} />
@@ -552,11 +653,41 @@ export function FounderDashboardPage() {
           <div className="mt-6 min-w-0 space-y-6 overflow-x-hidden">
             <div className="flex min-w-0 items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
               <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-white">Marketing wallet</p>
                 <p className="mt-0.5 break-words text-xs text-muted-foreground">
                   Category boosts and affiliate payouts always come from here — $2,430 available.
+                  Investors can also pay in manually.
                 </p>
+                <a
+                  href={marketingSolscan}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1.5 font-mono text-[11px] text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
+                  title={`View ${marketingAddress} on Solscan`}
+                >
+                  {marketingShort}
+                  <ExternalLink className="h-3 w-3" />
+                  Solscan
+                </a>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyMarketingWallet()}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11px] font-semibold text-white/70 transition hover:text-white"
+                  >
+                    {copiedMkt ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                    {copiedMkt ? 'Copied' : 'Copy'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void shareMarketingWallet()}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-white/10 px-2.5 text-[11px] font-semibold text-white/70 transition hover:text-white"
+                  >
+                    <Share2 className="h-3 w-3" />
+                    {shareNotice ?? 'Share'}
+                  </button>
+                </div>
               </div>
             </div>
 

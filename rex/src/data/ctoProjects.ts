@@ -852,6 +852,11 @@ function demoAddress(seedKey: string): string {
   return out;
 }
 
+/** Deterministic demo marketing vault until live PDA wiring. */
+export function demoMarketingWalletAddress(ticker: string): string {
+  return demoAddress(`${ticker.trim().toUpperCase() || 'CTO'}-mkt`);
+}
+
 /** Deterministic demo V1 mint until live API wiring. Prefer project.v1Mint when set. */
 export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): string {
   if (project.v1Mint) return project.v1Mint;
@@ -898,7 +903,7 @@ export function resolveMarketingWalletAddress(
     return project.marketingWallet;
   }
   if (!project.marketingWallet) return null;
-  return demoAddress(`${project.ticker}-mkt`);
+  return demoMarketingWalletAddress(project.ticker);
 }
 
 export function solscanAccountUrl(address: string): string {

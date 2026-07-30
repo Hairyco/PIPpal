@@ -4,6 +4,7 @@ import {
   Check,
   Copy,
   ExternalLink,
+  Share2,
   Sparkles,
   Wallet,
 } from 'lucide-react';
@@ -23,6 +24,7 @@ import {
   type SpendThreshold,
 } from '../data/postLaunchRoadmap';
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
+import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -98,6 +100,8 @@ export function PostLaunchDashboard({
     () => new Set(POLESSIA_DEFAULT_SELECTED),
   );
   const [copiedMint, setCopiedMint] = useState(false);
+  const [copiedMkt, setCopiedMkt] = useState(false);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapApproved, setRoadmapApproved] = useState(false);
 
   const nextThreshold = useMemo(() => {
@@ -112,9 +116,12 @@ export function PostLaunchDashboard({
     Math.round((vaultBalanceUsd / (nextThreshold?.thresholdUsd || 500)) * 100),
   );
 
-  const shortAddr = marketingAddress
-    ? `${marketingAddress.slice(0, 4)}…${marketingAddress.slice(-4)}`
-    : 'Pending deploy';
+  const mktAddress =
+    marketingAddress && marketingAddress.length >= 32 && !marketingAddress.includes('…')
+      ? marketingAddress
+      : null;
+  const shortAddr = mktAddress ? shortMint(mktAddress) : 'Pending deploy';
+  const mktSolscan = mktAddress ? solscanAccountUrl(mktAddress) : null;
 
   const vaultLive = marketingAttached || mode === 'launch';
   const marketingFillPct = formatBpsPercent(FEE_TIERS[0].marketingBps);
@@ -175,6 +182,43 @@ export function PostLaunchDashboard({
     } catch {
       /* ignore */
     }
+  };
+
+  const copyMarketingWallet = async () => {
+    if (!mktAddress) return;
+    try {
+      await navigator.clipboard.writeText(mktAddress);
+      setCopiedMkt(true);
+      window.setTimeout(() => setCopiedMkt(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const shareMarketingWallet = async () => {
+    if (!mktAddress) return;
+    const text = `Fund the ${symbol} marketing wallet — send SOL to:\n${mktAddress}\n\nSolscan: ${solscanAccountUrl(mktAddress)}`;
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({
+          title: `${symbol} marketing wallet`,
+          text,
+        });
+        setShareNotice('Shared');
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShareNotice('Share text copied');
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setShareNotice('Share text copied');
+      } catch {
+        /* ignore */
+      }
+    }
+    window.setTimeout(() => setShareNotice(null), 2000);
   };
 
   return (
@@ -272,23 +316,69 @@ export function PostLaunchDashboard({
             <div className="border-b border-white/[0.08] pb-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[13px] text-white">{shortAddr}</p>
+                  {mktSolscan && mktAddress ? (
+                    <a
+                      href={mktSolscan}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 font-mono text-[13px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                      title={`View ${mktAddress} on Solscan`}
+                    >
+                      {shortAddr}
+                      <ExternalLink className="h-3 w-3 shrink-0" />
+                    </a>
+                  ) : (
+                    <p className="font-mono text-[13px] text-white">{shortAddr}</p>
+                  )}
                   <p className="mt-0.5 text-[11px] text-white/40">
-                    {marketingAttached || mode === 'launch'
+                    {vaultLive
                       ? `$${vaultBalanceUsd.toLocaleString()} · ${fillPct}% to ${formatThresholdUsd(nextThreshold.thresholdUsd)}`
                       : 'Not attached yet'}
                   </p>
                 </div>
                 <PolessiaLogo variant="powered" size="xs" className="shrink-0" />
               </div>
-              {(marketingAttached || mode === 'launch') && (
+              {vaultLive && mktAddress ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void copyMarketingWallet()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                  >
+                    {copiedMkt ? (
+                      <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                    {copiedMkt ? 'Copied' : 'Copy'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void shareMarketingWallet()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                  >
+                    <Share2 className="h-3.5 w-3.5" />
+                    {shareNotice ?? 'Share'}
+                  </button>
+                  <a
+                    href={mktSolscan!}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                  >
+                    Solscan
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              ) : null}
+              {vaultLive ? (
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
                   <div
                     className="h-full rounded-full bg-[#c8ff3d]"
                     style={{ width: `${fillPct}%` }}
                   />
                 </div>
-              )}
+              ) : null}
             </div>
           </section>
 
@@ -375,9 +465,71 @@ export function PostLaunchDashboard({
                 <Wallet className="h-5 w-5" />
               </span>
             </div>
-            <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
+            {mktSolscan && mktAddress ? (
+              <a
+                href={mktSolscan}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                title={`View ${mktAddress} on Solscan`}
+              >
+                {shortAddr}
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="font-sans text-[10px] font-semibold">Solscan</span>
+              </a>
+            ) : (
+              <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
+            )}
             <PolessiaLogo variant="powered" size="xs" />
           </div>
+
+          {vaultLive && mktAddress ? (
+            <section className="space-y-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] p-4">
+              <div>
+                <p className="text-sm font-bold text-white">Share &amp; fund manually</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-white/55">
+                  Investors can send SOL straight to this vault. Trade fees also fill it
+                  automatically on CTOgo.
+                </p>
+              </div>
+              <p className="break-all font-mono text-[12px] text-white/80">{mktAddress}</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void copyMarketingWallet()}
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                >
+                  {copiedMkt ? (
+                    <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedMkt ? 'Copied' : 'Copy address'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void shareMarketingWallet()}
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  {shareNotice ?? 'Share'}
+                </button>
+                <a
+                  href={mktSolscan!}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
+                >
+                  Open Solscan
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+              <p className="text-[11px] text-white/40">
+                Paste the address in any Solana wallet to pay in. On Solscan, use Transfer to send
+                SOL to this account.
+              </p>
+            </section>
+          ) : null}
 
           {vaultLive ? (
             <section className="space-y-4">

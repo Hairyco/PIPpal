@@ -68,6 +68,7 @@ import {
   readImageFile,
 } from '../utils/ctoCollateralGenerate';
 import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
+import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
@@ -2075,11 +2076,7 @@ export function LaunchCtoPage() {
               copiedLink={copiedLink}
               onCopyLink={(key) => void copyShareLink(key)}
               marketingAttached={marketingAttached || mode === 'launch'}
-              marketingAddress={
-                contract.trim().length >= 32
-                  ? contract.trim()
-                  : `Mkt${coinSlug}111111111111111111111`
-              }
+              marketingAddress={demoMarketingWalletAddress(ticker.trim() || coinSlug || 'CTO')}
               vaultBalanceUsd={mode === 'launch' || marketingAttached ? 42 : 0}
               artExtrasLine={
                 mode === 'launch' && artBill.hasExtras
