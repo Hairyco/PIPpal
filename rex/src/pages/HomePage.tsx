@@ -973,7 +973,7 @@ export function HomePage() {
         </div>
       </div>
 
-      <header className="border-b border-white/[0.07] bg-black">
+      <header className={`border-b border-white/[0.07] bg-black ${showSearchPanel ? 'relative z-[60]' : 'relative z-10'}`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-5">
           <a href="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
             <CtoGoLogo size={36} className="rounded-xl" />
@@ -988,7 +988,7 @@ export function HomePage() {
             </div>
           </a>
 
-          <div className="relative min-w-0 flex-1 sm:max-w-md md:max-w-lg">
+          <div className={`relative min-w-0 flex-1 sm:max-w-md md:max-w-lg ${showSearchPanel ? 'z-[60]' : ''}`}>
             <label className="relative block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
               <input
@@ -1000,11 +1000,11 @@ export function HomePage() {
                 onBlur={() => {
                   window.setTimeout(() => setSearchFocused(false), 120);
                 }}
-                placeholder="Search Solana CTOs"
+                placeholder="Search CTOs"
                 aria-keyshortcuts="/"
                 aria-expanded={showSearchPanel}
                 aria-controls="cto-search-panel"
-                className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40 sm:pr-11"
+                className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/40 focus:border-[#c8ff3d]/40 sm:pr-11"
               />
               {!searchFocused && !query ? (
                 <kbd
@@ -1019,9 +1019,9 @@ export function HomePage() {
               <div
                 id="cto-search-panel"
                 role="listbox"
-                className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
+                className="absolute left-0 top-[calc(100%+6px)] z-[70] w-[min(100vw-1.5rem,24rem)] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)] sm:w-full"
               >
-                <div className="max-h-[min(70vh,420px)] overflow-y-auto py-2">
+                <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
                   <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                     Featured
                   </p>
@@ -1118,7 +1118,10 @@ export function HomePage() {
         </div>
       </header>
 
-      <nav aria-label="Filter coins by exchange" className="border-b border-white/[0.06] bg-black">
+      <nav
+        aria-label="Filter coins by exchange"
+        className={`border-b border-white/[0.06] bg-black ${showSearchPanel ? 'relative z-0' : ''}`}
+      >
         <div className="hide-scrollbar mx-auto flex max-w-7xl gap-2 overflow-x-auto px-3 py-2 sm:px-5">
           {SOURCE_VENUE_FILTERS.map((venue) => {
             const active = !isPinnedView && venueFilter === venue.id;
