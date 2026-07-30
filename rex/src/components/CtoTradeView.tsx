@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check,
   ChevronDown,
+  ChevronUp,
   Copy,
   ExternalLink,
   Flame,
@@ -246,14 +247,30 @@ export function CtoTradeView({
   const [copied, setCopied] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
   const tradePanelRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
   const positive = (change ?? project.change24h) >= 0;
 
   const demoTrades = useMemo(() => demoTradesForTicker(project.ticker), [project.ticker]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 320);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const v1Mint = resolveV1Mint(project);
   const v1Liquidity = resolveV1Liquidity(project);
@@ -316,7 +333,7 @@ export function CtoTradeView({
   };
 
   return (
-    <div className="w-full min-w-0">
+    <div ref={topRef} id="cto-trade-top" className="relative w-full min-w-0 scroll-mt-2">
       <div className="border-y border-white/[0.08] bg-[#05070d]">
         <div className="mx-auto flex w-full max-w-7xl min-w-0 items-start gap-3 px-3 py-3 sm:px-5">
           <div
@@ -442,9 +459,8 @@ export function CtoTradeView({
         </div>
       ) : null}
 
-      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-3 px-3 py-3 sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
-        <div className="order-1 flex min-w-0 flex-col gap-3">
-          <div className="min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
+        <div className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d] lg:sticky lg:top-3 lg:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
                 {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
@@ -480,11 +496,11 @@ export function CtoTradeView({
                 </button>
               </div>
             </div>
-            <div className="h-[220px] px-1 py-2 sm:h-[320px] lg:h-[380px]">
+            <div className="h-[220px] px-1 py-2 sm:h-[300px] lg:h-[380px]">
               <CandleChart positive={positive} />
             </div>
             {tokenInfoOpen ? (
-              <div className="border-t border-white/[0.06] px-3 py-3">
+              <div className="border-t border-white/[0.06] bg-[#05070d] px-3 py-3">
                 <div className="grid gap-2 sm:grid-cols-3">
                   <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
@@ -525,10 +541,9 @@ export function CtoTradeView({
                 ) : null}
               </div>
             ) : null}
-          </div>
         </div>
 
-        <aside className="order-2 flex min-w-0 flex-col gap-3">
+        <aside className="flex min-w-0 flex-col gap-3">
           <div
             id="trade-panel"
             ref={tradePanelRef}
@@ -963,6 +978,18 @@ export function CtoTradeView({
           })}
         </div>
       </div>
+
+      {showScrollTop ? (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-5 right-4 z-50 grid h-11 w-11 place-items-center rounded-full border border-[#c8ff3d]/35 bg-[#0a0c12]/95 text-[#d5ff69] shadow-[0_8px_28px_rgba(0,0,0,0.55)] backdrop-blur-sm transition hover:border-[#c8ff3d]/60 hover:bg-[#c8ff3d] hover:text-[#090b14] sm:bottom-6 sm:right-6"
+          aria-label="Back to top"
+          title="Back to top"
+        >
+          <ChevronUp className="h-5 w-5" strokeWidth={2.5} />
+        </button>
+      ) : null}
     </div>
   );
 }
