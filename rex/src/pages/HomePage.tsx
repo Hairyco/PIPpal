@@ -1369,6 +1369,11 @@ export function HomePage() {
                     Vol · {discoveryFilters.volume.replace('gt', '>')}
                   </span>
                 ) : null}
+                {discoveryFilters.marketingWallet !== 'any' ? (
+                  <span className="rounded-md border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-semibold text-white/70">
+                    Wallet · {discoveryFilters.marketingWallet === 'with' ? 'Has vault' : 'No vault'}
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   onClick={clearDiscoveryFilters}

@@ -3,12 +3,15 @@ import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 export type RangeFilter = { min: number; max: number };
 export type VolumeFilter = 'any' | 'gt10k' | 'gt50k' | 'gt100k';
+/** Polessia marketing vault attached to the CTO listing. */
+export type MarketingWalletFilter = 'any' | 'with' | 'without';
 
 export type DiscoveryFilterState = {
   age: RangeFilter;
   marketCap: RangeFilter;
   holders: RangeFilter;
   volume: VolumeFilter;
+  marketingWallet: MarketingWalletFilter;
 };
 
 /** Age stops in hours. Last stop is open-ended (7d+ / older). */
@@ -54,11 +57,18 @@ const VOLUME_OPTIONS: { id: VolumeFilter; label: string }[] = [
   { id: 'gt100k', label: '>$100K' },
 ];
 
+const MARKETING_WALLET_OPTIONS: { id: MarketingWalletFilter; label: string }[] = [
+  { id: 'any', label: 'Any' },
+  { id: 'with', label: 'Has vault' },
+  { id: 'without', label: 'No vault' },
+];
+
 export const DEFAULT_DISCOVERY_FILTERS: DiscoveryFilterState = {
   age: { min: 0, max: AGE_STEPS.length - 1 },
   marketCap: { min: 0, max: MCAP_STEPS.length - 1 },
   holders: { min: 0, max: HOLDERS_STEPS.length - 1 },
   volume: 'any',
+  marketingWallet: 'any',
 };
 
 const FILTERS_STORAGE_KEY = 'ctogo-discovery-filters';
@@ -74,6 +84,10 @@ function clampRange(range: unknown, stepCount: number): RangeFilter {
 
 function isVolumeFilter(value: unknown): value is VolumeFilter {
   return value === 'any' || value === 'gt10k' || value === 'gt50k' || value === 'gt100k';
+}
+
+function isMarketingWalletFilter(value: unknown): value is MarketingWalletFilter {
+  return value === 'any' || value === 'with' || value === 'without';
 }
 
 export function readRememberFilters(): boolean {
@@ -107,6 +121,9 @@ export function loadDiscoveryFilters(): DiscoveryFilterState {
       marketCap: clampRange(parsed.marketCap, MCAP_STEPS.length),
       holders: clampRange(parsed.holders, HOLDERS_STEPS.length),
       volume: isVolumeFilter(parsed.volume) ? parsed.volume : 'any',
+      marketingWallet: isMarketingWalletFilter(parsed.marketingWallet)
+        ? parsed.marketingWallet
+        : 'any',
     };
   } catch {
     return DEFAULT_DISCOVERY_FILTERS;
@@ -142,6 +159,7 @@ export function countActiveDiscoveryFilters(filters: DiscoveryFilterState): numb
   if (!isFullRange(filters.marketCap, MCAP_STEPS.length)) n += 1;
   if (!isFullRange(filters.holders, HOLDERS_STEPS.length)) n += 1;
   if (filters.volume !== 'any') n += 1;
+  if (filters.marketingWallet !== 'any') n += 1;
   return n;
 }
 
@@ -184,6 +202,7 @@ export function matchesDiscoveryFilters(
     marketCap: string;
     holders: string;
     volume24h: string;
+    marketingWallet?: string;
   },
   filters: DiscoveryFilterState,
 ): boolean {
@@ -210,6 +229,12 @@ export function matchesDiscoveryFilters(
     if (filters.volume === 'gt10k' && vol <= 1e4) return false;
     if (filters.volume === 'gt50k' && vol <= 5e4) return false;
     if (filters.volume === 'gt100k' && vol <= 1e5) return false;
+  }
+
+  if (filters.marketingWallet !== 'any') {
+    const hasVault = Boolean(project.marketingWallet);
+    if (filters.marketingWallet === 'with' && !hasVault) return false;
+    if (filters.marketingWallet === 'without' && hasVault) return false;
   }
 
   return true;
@@ -402,6 +427,41 @@ export function DiscoveryFiltersPanel({
                     key={option.id}
                     type="button"
                     onClick={() => onChange({ ...filters, volume: option.id })}
+                    className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition ${
+                      active
+                        ? 'bg-[#c8ff3d] text-[#090b14]'
+                        : 'border border-white/[0.08] bg-white/[0.03] text-white/55 hover:text-white'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
+                Marketing wallet
+              </p>
+              {filters.marketingWallet !== 'any' ? (
+                <p className="text-[11px] font-semibold text-[#d5ff69]">
+                  {filters.marketingWallet === 'with' ? 'Has vault' : 'No vault'}
+                </p>
+              ) : null}
+            </div>
+            <p className="mt-1 text-[11px] text-white/40">
+              Polessia vaults — filter CTOs with (or without) a marketing wallet.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {MARKETING_WALLET_OPTIONS.map((option) => {
+                const active = filters.marketingWallet === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => onChange({ ...filters, marketingWallet: option.id })}
                     className={`rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition ${
                       active
                         ? 'bg-[#c8ff3d] text-[#090b14]'
