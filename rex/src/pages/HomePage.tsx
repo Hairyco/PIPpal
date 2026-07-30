@@ -1041,9 +1041,6 @@ export function HomePage() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className="truncate text-sm font-bold">${project.ticker}</span>
-                            <span className="rounded bg-[#c8ff3d]/15 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-[#c8ff3d]">
-                              Ad
-                            </span>
                           </div>
                           <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
