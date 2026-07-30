@@ -1111,7 +1111,6 @@ export function HomePage() {
               title="Notifications"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8ff3d]" aria-hidden />
             </button>
             <AppSidebarMenuButton />
           </div>
