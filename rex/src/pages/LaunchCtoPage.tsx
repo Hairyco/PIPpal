@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Check,
   ChevronDown,
+  Coins,
   Globe,
   Info,
   Loader2,
@@ -77,6 +78,9 @@ const fieldClass =
 
 const primaryBtnClass =
   'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:cursor-not-allowed disabled:opacity-40';
+
+/** Pump.fun-style creator buy presets (SOL) at deploy. */
+const BUY_AT_LAUNCH_PRESETS = [0.1, 0.25, 0.5, 1, 2];
 
 const backBtnClass =
   'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
@@ -200,6 +204,8 @@ export function LaunchCtoPage() {
   const [note, setNote] = useState('');
   const [tokenSupply, setTokenSupply] = useState<TokenSupplyValue>(DEFAULT_TOKEN_SUPPLY);
   const [feeMode, setFeeMode] = useState<CreatorFeeMode>('creator');
+  /** Optional SOL spent into the curve at deploy (creator buy). */
+  const [buyAtLaunchSol, setBuyAtLaunchSol] = useState('');
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
   const [burned, setBurned] = useState(false);
@@ -416,7 +422,7 @@ export function LaunchCtoPage() {
     mode === 'launch'
       ? [
           { id: 'coin' as const, label: 'Coin' },
-          { id: 'fees' as const, label: 'Fees' },
+          { id: 'fees' as const, label: 'Fees & buy' },
           { id: 'burn' as const, label: 'Burn' },
           { id: 'website' as const, label: 'Website' },
         ]
@@ -424,6 +430,11 @@ export function LaunchCtoPage() {
   const stepIndex = steps.findIndex((s) => s.id === step);
   const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
   const launchTier = FEE_TIERS[0];
+  const buyAtLaunchSolNum = Number(buyAtLaunchSol);
+  const hasBuyAtLaunch =
+    Boolean(buyAtLaunchSol.trim()) &&
+    Number.isFinite(buyAtLaunchSolNum) &&
+    buyAtLaunchSolNum > 0;
   const canContinueCoin = coinReady && Boolean(name.trim() && ticker.trim());
   const artBill = collateralBillSummary({
     extraLogos: extraLogoGens,
@@ -482,6 +493,7 @@ export function LaunchCtoPage() {
     setNote('');
     setTokenSupply(DEFAULT_TOKEN_SUPPLY);
     setFeeMode('creator');
+    setBuyAtLaunchSol('');
     setBurnAmount('');
     setVestingAccepted(false);
     setBurned(false);
@@ -670,7 +682,11 @@ export function LaunchCtoPage() {
     event.preventDefault();
     if (websiteKind !== 'none' && !siteGenerated) return;
     if (!connected) {
-      setListNotice('Connect your wallet to pay the launch fee');
+      setListNotice(
+        hasBuyAtLaunch
+          ? `Connect your wallet to pay the launch fee + ${buyAtLaunchSolNum} SOL buy`
+          : 'Connect your wallet to pay the launch fee',
+      );
       const next = await connect();
       if (!next) return;
     }
@@ -1307,6 +1323,83 @@ export function LaunchCtoPage() {
                 })}
               </div>
 
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+                <div className="flex items-start gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
+                    <Coins className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-bold text-white">Buy at launch</p>
+                      <span className="rounded-md border border-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/40">
+                        Optional
+                      </span>
+                    </div>
+                    <p className="mt-1 text-[12px] text-white/55">
+                      Spend SOL into the curve the moment V2 deploys — same idea as Pump. You’re
+                      first in, before the board sees it.
+                    </p>
+                  </div>
+                </div>
+
+                <label className="mt-4 block">
+                  <span className="text-[11px] font-medium text-white/45">Amount (SOL)</span>
+                  <div className="relative mt-1.5">
+                    <input
+                      value={buyAtLaunchSol}
+                      onChange={(event) =>
+                        setBuyAtLaunchSol(event.target.value.replace(/[^\d.]/g, ''))
+                      }
+                      placeholder="0"
+                      inputMode="decimal"
+                      className={`${fieldClass} mt-0 pr-14`}
+                    />
+                    <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[12px] font-semibold text-white/35">
+                      SOL
+                    </span>
+                  </div>
+                </label>
+
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {BUY_AT_LAUNCH_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setBuyAtLaunchSol(String(preset))}
+                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                        buyAtLaunchSol === String(preset)
+                          ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                          : 'border-white/[0.08] text-white/45 hover:text-white'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setBuyAtLaunchSol('')}
+                    className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                      !buyAtLaunchSol.trim()
+                        ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                        : 'border-white/[0.08] text-white/45 hover:text-white'
+                    }`}
+                  >
+                    Skip
+                  </button>
+                </div>
+
+                {hasBuyAtLaunch ? (
+                  <p className="mt-3 text-[12px] font-medium text-[#d5ff69]">
+                    You’ll buy {buyAtLaunchSolNum} SOL of ${ticker.trim().toUpperCase() || 'TICKER'}{' '}
+                    at deploy.
+                  </p>
+                ) : (
+                  <p className="mt-3 text-[11px] text-white/40">
+                    Leave at 0 to launch without a creator buy.
+                  </p>
+                )}
+              </div>
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button type="button" onClick={() => setStep('coin')} className={backBtnClass}>
                   <ArrowLeft className="h-3.5 w-3.5" />
@@ -1939,6 +2032,12 @@ export function LaunchCtoPage() {
                 </>
               ) : null}
 
+              {hasBuyAtLaunch ? (
+                <p className="text-center text-[11px] font-medium text-[#d5ff69]/90">
+                  At publish: {buyAtLaunchSolNum} SOL buy into the curve
+                </p>
+              ) : null}
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button type="button" onClick={() => setStep('burn')} className={backBtnClass}>
                   <ArrowLeft className="h-3.5 w-3.5" />
@@ -1951,10 +2050,14 @@ export function LaunchCtoPage() {
                 >
                   {websiteKind === 'none'
                     ? connected
-                      ? 'Publish without website'
+                      ? hasBuyAtLaunch
+                        ? `Publish · ${buyAtLaunchSolNum} SOL buy`
+                        : 'Publish without website'
                       : 'Connect wallet & publish'
                     : connected
-                      ? 'Publish CTO'
+                      ? hasBuyAtLaunch
+                        ? `Publish CTO · ${buyAtLaunchSolNum} SOL buy`
+                        : 'Publish CTO'
                       : 'Connect wallet & publish'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
