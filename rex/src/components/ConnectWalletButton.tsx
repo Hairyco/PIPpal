@@ -31,9 +31,19 @@ function shorten(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
 }
 
+function isDemoWallet(address: string | null | undefined): boolean {
+  return Boolean(address && /Wallet111111111$/i.test(address));
+}
+
 function readStored(): string | null {
   try {
-    return localStorage.getItem(STORAGE_KEY);
+    const value = localStorage.getItem(STORAGE_KEY);
+    // Drop persisted demo wallets so Connect wallet UI is visible again.
+    if (isDemoWallet(value)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return value;
   } catch {
     return null;
   }
@@ -99,7 +109,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
       const demo = `${Math.random().toString(36).slice(2, 10)}Wallet111111111`;
       setAddress(demo);
-      writeStored(demo);
+      // Demo wallets stay in-session only so Connect wallet reappears after refresh.
+      writeStored(null);
       return demo;
     } catch {
       return null;
@@ -144,8 +155,15 @@ export function useConnectedWallet(): WalletContextValue {
   return ctx;
 }
 
-export function ConnectWalletButton({ className = '' }: { className?: string }) {
+export function ConnectWalletButton({
+  className = '',
+  alwaysLabel = false,
+}: {
+  className?: string;
+  alwaysLabel?: boolean;
+}) {
   const { address, busy, connect, disconnect } = useConnectedWallet();
+  const labelClass = alwaysLabel ? 'inline' : 'hidden sm:inline';
 
   if (address) {
     return (
@@ -157,7 +175,7 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
         className={`inline-flex h-10 items-center gap-2 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-2.5 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15 disabled:opacity-50 sm:px-3 ${className}`}
       >
         <Wallet className="h-3.5 w-3.5 shrink-0" />
-        <span className="hidden sm:inline">{shorten(address)}</span>
+        <span className={labelClass}>{shorten(address)}</span>
       </button>
     );
   }
@@ -171,7 +189,7 @@ export function ConnectWalletButton({ className = '' }: { className?: string }) 
       className={`inline-flex h-10 items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-2.5 text-xs font-semibold text-white transition hover:border-[#c8ff3d]/35 hover:bg-[#c8ff3d]/10 hover:text-[#d5ff69] disabled:opacity-50 sm:px-3 ${className}`}
     >
       <Wallet className="h-3.5 w-3.5 shrink-0" />
-      <span className="hidden sm:inline">{busy ? 'Connecting…' : 'Connect wallet'}</span>
+      <span className={labelClass}>{busy ? 'Connecting…' : 'Connect wallet'}</span>
     </button>
   );
 }
