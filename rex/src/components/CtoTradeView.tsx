@@ -107,10 +107,8 @@ function Pct({ value }: { value: number | null }) {
 }
 
 function CandleChart({ positive }: { positive: boolean }) {
-  const gradientId = useMemo(
-    () => `ctoChartFade-${positive ? 'up' : 'dn'}-${Math.random().toString(36).slice(2, 8)}`,
-    [positive],
-  );
+  const uid = useId().replace(/:/g, '');
+  const gradientId = `ctoChartFade-${uid}`;
   const candles = useMemo(() => {
     const out: { x: number; o: number; h: number; l: number; c: number; up: boolean }[] = [];
     let price = 42;
@@ -485,7 +483,7 @@ export function CtoTradeView({
       <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
         <div
           ref={chartRef}
-          className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d] lg:sticky lg:top-3 lg:shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
+          className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]"
         >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
