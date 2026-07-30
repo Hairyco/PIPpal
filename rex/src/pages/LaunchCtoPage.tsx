@@ -1215,9 +1215,11 @@ export function LaunchCtoPage() {
                   Listing as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
                   group
                 </p>
-              ) : mode === 'add' && listMarketingOptIn ? (
+              ) : mode === 'add' ? (
                 <p className="text-center text-[11px] text-white/40">
-                  Wallet required only to pay the ${MARKETING_WALLET_ATTACH_FEE_USD} vault fee
+                  {listMarketingOptIn
+                    ? `Connect wallet to list and pay the $${MARKETING_WALLET_ATTACH_FEE_USD} vault fee`
+                    : 'Connect wallet to list this CTO'}
                 </p>
               ) : null}
 
@@ -1225,19 +1227,19 @@ export function LaunchCtoPage() {
                 type="submit"
                 disabled={
                   !canContinueCoin ||
-                  (mode === 'add' && listMarketingOptIn && (walletBusy || marketingAttachBusy))
+                  (mode === 'add' && (walletBusy || marketingAttachBusy))
                 }
                 className={primaryBtnClass}
               >
                 {mode === 'add' ? (
-                  marketingAttachBusy ? (
+                  marketingAttachBusy || walletBusy ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Listing…
+                      {walletBusy ? 'Connecting…' : 'Listing…'}
                     </>
-                  ) : listMarketingOptIn && !connected ? (
+                  ) : !connected ? (
                     <>
-                      Connect wallet &amp; list · ${MARKETING_WALLET_ATTACH_FEE_USD} vault
+                      Connect wallet &amp; list
                       <Wallet className="h-4 w-4" />
                     </>
                   ) : listMarketingOptIn ? (
