@@ -68,8 +68,17 @@ type Project = CtoProject;
 
 const projects = ctoProjects;
 
-const tickerProjects = projects;
-const promotedProjects = projects.filter((project) => project.promoted);
+/** Best-performing first (24h change → score → volume) — shared by top bar + search. */
+function compareBestPerforming(a: Project, b: Project): number {
+  if (b.change24h !== a.change24h) return b.change24h - a.change24h;
+  if (b.score !== a.score) return b.score - a.score;
+  return parseCompactAmount(b.volume24h) - parseCompactAmount(a.volume24h);
+}
+
+const trendingProjects = [...projects].sort(compareBestPerforming);
+const tickerProjects = trendingProjects;
+const SEARCH_TRENDING_LIMIT = 8;
+
 const timeWindows = [
   { id: '5m', label: '5m', title: 'Price, volume, and activity in the last 5 minutes' },
   { id: '30m', label: '30m', title: 'Price, volume, and activity in the last 30 minutes' },
@@ -672,9 +681,15 @@ export function HomePage() {
       !normalized ||
       project.name.toLowerCase().includes(normalized) ||
       project.ticker.toLowerCase().includes(normalized);
-    const promoted = promotedProjects.filter(matches);
-    const rest = projects.filter((project) => !project.promoted && matches(project));
-    return { promoted, rest };
+    const trendingMatches = trendingProjects.filter(matches);
+    const trending = normalized
+      ? trendingMatches
+      : trendingMatches.slice(0, SEARCH_TRENDING_LIMIT);
+    const trendingTickers = new Set(trending.map((project) => project.ticker));
+    const rest = normalized
+      ? projects.filter((project) => matches(project) && !trendingTickers.has(project.ticker))
+      : [];
+    return { trending, rest };
   }, [query]);
 
   const showSearchPanel = searchFocused;
@@ -953,7 +968,7 @@ export function HomePage() {
             <div className="flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
                 <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
-                  <span className="text-white/25">#{project.rank}</span>
+                  <span className="text-white/25">#{(index % tickerProjects.length) + 1}</span>
                   <span className={`h-5 w-5 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${project.colors} ring-1 ring-white/15`}>
                     <img
                       src={project.logo}
@@ -1023,20 +1038,26 @@ export function HomePage() {
               >
                 <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
                   <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                    Featured
+                    Trending
                   </p>
-                  {searchSuggestions.promoted.length === 0 ? (
-                    <p className="px-3 py-2 text-xs text-white/35">No featured matches</p>
+                  {searchSuggestions.trending.length === 0 ? (
+                    <p className="px-3 py-2 text-xs text-white/35">No trending matches</p>
                   ) : (
-                    searchSuggestions.promoted.map((project) => (
+                    searchSuggestions.trending.map((project) => {
+                      const rank =
+                        trendingProjects.findIndex((item) => item.ticker === project.ticker) + 1;
+                      return (
                       <button
-                        key={`promoted-${project.ticker}`}
+                        key={`trending-${project.ticker}`}
                         type="button"
                         role="option"
                         onMouseDown={(event) => event.preventDefault()}
                         onClick={() => pickSearchResult(project)}
                         className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition hover:bg-white/[0.05]"
                       >
+                        <span className="w-4 shrink-0 text-center text-[10px] font-semibold text-white/25">
+                          {rank}
+                        </span>
                         <ProjectMark project={project} size="h-8 w-8" rounded="rounded-lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
@@ -1048,7 +1069,8 @@ export function HomePage() {
                           {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                         </span>
                       </button>
-                    ))
+                      );
+                    })
                   )}
                   {searchSuggestions.rest.length > 0 ? (
                     <>
