@@ -50,7 +50,7 @@ export function MigrateToV2Banner({
           to={href}
           className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
         >
-          Launch ${ticker}
+          Launch {ticker} CTO
         </Link>
       </div>
     </div>
