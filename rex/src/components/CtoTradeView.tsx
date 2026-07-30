@@ -8,7 +8,6 @@ import {
   Info,
   Settings2,
   Star,
-  Wallet,
   X,
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
@@ -734,15 +733,6 @@ export function CtoTradeView({
                   <p className="mt-0.5 text-sm font-semibold tabular-nums text-white/90">{stat.value}</p>
                 </div>
               ))}
-              <div className="bg-[#05070d] px-2.5 py-2.5 sm:min-w-[9rem] sm:flex-1 sm:px-3">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                  Marketing
-                </p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#d5ff69]">
-                  <Wallet className="h-3.5 w-3.5 shrink-0" />
-                  {project.marketingBalance ?? '—'}
-                </p>
-              </div>
             </div>
           </div>
 
