@@ -231,6 +231,9 @@ export const ctoProjects: CtoProject[] = [
     volume24h: '$186K',
     txs: '12.4K',
     holders: '8.2K',
+    /** Previous Pump mint — Native V2 trades on resolveTradeMint; chart can toggle V1. */
+    v1Mint: 'MPEG7pumpKp9mN2qR4sT6uV8wX0yZ1aB3cD5eF',
+    v1Liquidity: '$62K',
     marketingWallet: '7xA2…mPeg',
     marketingBalance: '$482',
     nextAdTargetUsd: 500,
@@ -864,9 +867,9 @@ export function resolveV1Mint(project: Pick<V1Source, 'ticker' | 'v1Mint'>): str
 }
 
 /**
- * Contract users should copy from discovery.
+ * Contract users should copy from discovery / trade panel.
  * External coins get a CTOgo wrap mint so trades on other venues still route platform fees.
- * Native CTOgo coins use the live CTOgo mint.
+ * Native CTOgo coins use the live CTOgo (V2) mint — even when a linked V1 mint exists.
  */
 export function resolveTradeMint(
   project: Pick<V1Source, 'ticker' | 'v1Mint' | 'origin'>,
@@ -874,7 +877,17 @@ export function resolveTradeMint(
   if (project.origin === 'external_cto') {
     return demoAddress(`${project.ticker}-ctogo-wrap`);
   }
+  if (project.origin === 'native_cto' && project.v1Mint) {
+    return demoAddress(`${project.ticker}-v2`);
+  }
   return resolveV1Mint(project);
+}
+
+/** Native CTO that was upgraded from an external V1 mint (show V1|V2 chart toggle). */
+export function hasLinkedV1(
+  project: Pick<V1Source, 'origin' | 'v1Mint'>,
+): boolean {
+  return project.origin === 'native_cto' && Boolean(project.v1Mint);
 }
 
 export function resolveV1Liquidity(project: Pick<V1Source, 'v1Liquidity' | 'volume24h' | 'origin'>): string {

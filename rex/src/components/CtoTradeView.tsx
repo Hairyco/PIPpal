@@ -13,13 +13,15 @@ import {
   Star,
   X,
 } from 'lucide-react';
-import { MigrateToV2Banner } from './OriginBadge';
+import { MigrateToV2Banner, UpgradedOnCtogoBanner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
 import {
+  hasLinkedV1,
   launchCtoHref,
   resolveMarketingWalletAddress,
+  resolveTradeMint,
   resolveV1Liquidity,
   resolveV1Mint,
   shortMint,
@@ -106,23 +108,31 @@ function Pct({ value }: { value: number | null }) {
   );
 }
 
-function CandleChart({ positive }: { positive: boolean }) {
+function CandleChart({
+  positive,
+  variant = 'v2',
+}: {
+  positive: boolean;
+  variant?: 'v1' | 'v2';
+}) {
   const uid = useId().replace(/:/g, '');
   const gradientId = `ctoChartFade-${uid}`;
   const candles = useMemo(() => {
     const out: { x: number; o: number; h: number; l: number; c: number; up: boolean }[] = [];
-    let price = 42;
+    const isV1 = variant === 'v1';
+    let price = isV1 ? 28 : 42;
     for (let i = 0; i < 48; i += 1) {
-      const drift = positive ? 0.35 : -0.25;
+      const drift = isV1 ? (positive ? 0.12 : -0.4) : positive ? 0.35 : -0.25;
+      const wave = isV1 ? Math.sin(i * 1.15) * 4.2 + (i % 7) - 3 : Math.sin(i * 0.7) * 3 + (i % 5) - 2;
       const open = price;
-      const close = Math.max(8, open + drift + (Math.sin(i * 0.7) * 3 + (i % 5) - 2));
-      const high = Math.max(open, close) + 1.5 + (i % 3);
-      const low = Math.min(open, close) - 1.2 - (i % 2);
+      const close = Math.max(8, open + drift + wave);
+      const high = Math.max(open, close) + (isV1 ? 2.4 : 1.5) + (i % 3);
+      const low = Math.min(open, close) - (isV1 ? 2.1 : 1.2) - (i % 2);
       out.push({ x: i, o: open, h: high, l: low, c: close, up: close >= open });
       price = close;
     }
     return out;
-  }, [positive]);
+  }, [positive, variant]);
 
   const min = Math.min(...candles.map((c) => c.l));
   const max = Math.max(...candles.map((c) => c.h));
@@ -246,6 +256,7 @@ export function CtoTradeView({
   const [amount, setAmount] = useState('0.5');
   const [sellPct, setSellPct] = useState('25');
   const [chartWindow, setChartWindow] = useState('5m');
+  const [chartVersion, setChartVersion] = useState<'v1' | 'v2'>('v2');
   const [copied, setCopied] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
@@ -284,6 +295,10 @@ export function CtoTradeView({
     return () => observer.disconnect();
   }, [project.ticker]);
 
+  useEffect(() => {
+    setChartVersion('v2');
+  }, [project.ticker]);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -294,6 +309,10 @@ export function CtoTradeView({
   };
 
   const v1Mint = resolveV1Mint(project);
+  const tradeMint = resolveTradeMint(project);
+  const linkedV1 = hasLinkedV1(project);
+  const chartOnV1 = linkedV1 && chartVersion === 'v1';
+  const chartMint = chartOnV1 ? v1Mint : tradeMint;
   const v1Liquidity = resolveV1Liquidity(project);
   const launchHref = launchCtoHref(project);
   const marketingAddress = resolveMarketingWalletAddress(project);
@@ -321,9 +340,9 @@ export function CtoTradeView({
     { label: 'FDV', value: project.fdv },
   ];
 
-  const copyV1 = async () => {
+  const copyTradeCa = async () => {
     try {
-      await navigator.clipboard.writeText(v1Mint);
+      await navigator.clipboard.writeText(tradeMint);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -446,9 +465,9 @@ export function CtoTradeView({
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"
-                    onClick={copyV1}
+                    onClick={copyTradeCa}
                     className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
-                    title={v1Mint}
+                    title={tradeMint}
                   >
                     <Copy className="h-3.5 w-3.5" />
                     {copied ? 'OK' : 'CA'}
@@ -480,13 +499,50 @@ export function CtoTradeView({
         </div>
       ) : null}
 
+      {linkedV1 ? (
+        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
+          <UpgradedOnCtogoBanner
+            ticker={project.ticker}
+            onViewV1={() => {
+              setChartVersion('v1');
+              window.setTimeout(() => scrollToChart(), 50);
+            }}
+          />
+        </div>
+      ) : null}
+
       <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
         <div
           ref={chartRef}
           className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]"
         >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
-              <div className="hide-scrollbar flex min-w-0 flex-1 gap-1 overflow-x-auto">
+              <div className="hide-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
+                {linkedV1 ? (
+                  <div className="mr-1 flex shrink-0 rounded-md border border-white/[0.1] bg-white/[0.03] p-0.5">
+                    {(['v2', 'v1'] as const).map((ver) => (
+                      <button
+                        key={ver}
+                        type="button"
+                        onClick={() => setChartVersion(ver)}
+                        className={`rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                          chartVersion === ver
+                            ? ver === 'v2'
+                              ? 'bg-[#c8ff3d] text-[#090b14]'
+                              : 'bg-white/90 text-[#090b14]'
+                            : 'text-white/40 hover:text-white'
+                        }`}
+                        title={
+                          ver === 'v2'
+                            ? 'CTOgo mint chart'
+                            : 'Previous mint chart (trade stays on V2)'
+                        }
+                      >
+                        {ver === 'v2' ? 'V2' : 'V1'}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 {['1m', '5m', '15m', '1h', '4h', '1D'].map((w) => (
                   <button
                     key={w}
@@ -503,7 +559,9 @@ export function CtoTradeView({
                 ))}
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
-                <p className="hidden text-[10px] text-white/30 sm:inline">Price chart</p>
+                <p className="hidden text-[10px] text-white/30 sm:inline">
+                  {chartOnV1 ? 'Previous mint' : 'Price chart'}
+                </p>
                 <button
                   type="button"
                   onClick={() => setTokenInfoOpen((open) => !open)}
@@ -520,44 +578,74 @@ export function CtoTradeView({
                 </button>
               </div>
             </div>
+            {chartOnV1 ? (
+              <div className="border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-1.5">
+                <p className="text-[11px] text-amber-100/80">
+                  Viewing previous mint ({shortMint(v1Mint)}). Buys &amp; sells still use the CTOgo
+                  CA.
+                </p>
+              </div>
+            ) : null}
             <div className="h-[220px] px-1 py-2 sm:h-[300px] lg:h-[380px]">
-              <CandleChart positive={positive} />
+              <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
             </div>
             {tokenInfoOpen ? (
               <div className="border-t border-white/[0.06] bg-[#05070d] px-3 py-3">
                 <div className="grid gap-2 sm:grid-cols-3">
                   <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Contract
+                      {chartOnV1 ? 'Previous mint' : 'Contract'}
                     </p>
                     <div className="mt-1 flex items-center gap-1.5">
                       <p
                         className="truncate font-mono text-xs font-semibold text-white/85"
-                        title={v1Mint}
+                        title={chartMint}
                       >
-                        {shortMint(v1Mint)}
+                        {shortMint(chartMint)}
                       </p>
                       <button
                         type="button"
-                        onClick={copyV1}
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(chartOnV1 ? v1Mint : tradeMint);
+                            setCopied(true);
+                            window.setTimeout(() => setCopied(false), 1600);
+                          } catch {
+                            /* ignore */
+                          }
+                        }}
                         className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
                         aria-label="Copy contract"
                       >
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
+                    {linkedV1 && !chartOnV1 ? (
+                      <p className="mt-1.5 text-[10px] text-white/35">
+                        V1 {shortMint(v1Mint)}
+                      </p>
+                    ) : null}
+                    {chartOnV1 ? (
+                      <p className="mt-1.5 text-[10px] text-white/35">
+                        Trade CA {shortMint(tradeMint)}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
                       Venue
                     </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{project.sourceVenue}</p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">
+                      {chartOnV1 ? 'Previous venue' : project.sourceVenue}
+                    </p>
                   </div>
                   <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                     <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      {isNativeV2 ? 'Status' : 'Liquidity'}
+                      {isNativeV2 && !chartOnV1 ? 'Status' : 'Liquidity'}
                     </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">{v1Liquidity}</p>
+                    <p className="mt-1 text-xs font-semibold text-white/85">
+                      {chartOnV1 ? v1Liquidity : isNativeV2 ? 'Live on CTOgo' : v1Liquidity}
+                    </p>
                   </div>
                 </div>
                 {copied ? (
@@ -1032,7 +1120,7 @@ export function CtoTradeView({
             </span>
           </div>
           <div className="h-[88px] px-1 py-1">
-            <CandleChart positive={positive} />
+            <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
           </div>
         </button>
       ) : null}
