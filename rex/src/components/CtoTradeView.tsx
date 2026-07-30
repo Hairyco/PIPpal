@@ -761,7 +761,7 @@ export function CtoTradeView({
                   className="mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] text-xs font-semibold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
                 >
                   <Flame className="h-3.5 w-3.5" />
-                  Or launch Native V2
+                  Or launch ${project.ticker} on CTOgo
                 </Link>
               </>
             ) : (

@@ -38,7 +38,7 @@ export function MigrateToV2Banner({
             Want a fresh start?
           </p>
           <p className="mt-1.5 text-sm font-semibold text-white">
-            Launch ${ticker} as a Native V2 on CTOgo
+            Launch ${ticker} on CTOgo
           </p>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/55">
             Still trading on {sourceVenue ?? 'another venue'}? Mint a CTOgo version with a marketing
@@ -49,7 +49,7 @@ export function MigrateToV2Banner({
           to={href}
           className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
         >
-          Launch a CTO
+          Launch ${ticker} on CTOgo
         </Link>
       </div>
     </div>
