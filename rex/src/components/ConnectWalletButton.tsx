@@ -172,10 +172,12 @@ export function ConnectWalletButton({
         onClick={() => void disconnect()}
         disabled={busy}
         title="Disconnect wallet"
-        className={`inline-flex h-10 items-center gap-2 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-2.5 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15 disabled:opacity-50 sm:px-3 ${className}`}
+        aria-label={`Disconnect wallet ${shorten(address)}`}
+        className={`inline-flex h-10 items-center gap-2 rounded-lg border border-[#c8ff3d]/40 bg-[#c8ff3d] px-2.5 text-xs font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-50 sm:px-3 ${className}`}
       >
         <Wallet className="h-3.5 w-3.5 shrink-0" />
-        <span className={labelClass}>{shorten(address)}</span>
+        <span className="hidden font-mono text-[11px] sm:inline">{shorten(address)}</span>
+        <span>Disconnect</span>
       </button>
     );
   }
@@ -186,7 +188,7 @@ export function ConnectWalletButton({
       onClick={() => void connect()}
       disabled={busy}
       title="Connect wallet"
-      className={`inline-flex h-10 items-center gap-2 rounded-lg border border-transparent bg-[#c8ff3d] px-2.5 text-xs font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-50 sm:px-3 ${className}`}
+      className={`inline-flex h-10 items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-2.5 text-xs font-semibold text-white/75 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white disabled:opacity-50 sm:px-3 ${className}`}
     >
       <Wallet className="h-3.5 w-3.5 shrink-0" />
       <span className={labelClass}>{busy ? 'Connecting…' : 'Connect wallet'}</span>
