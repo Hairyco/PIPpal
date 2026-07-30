@@ -967,7 +967,13 @@ export function HomePage() {
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
-                <span key={`${project.ticker}-${index}`} className="flex items-center gap-2">
+                <button
+                  key={`${project.ticker}-${index}`}
+                  type="button"
+                  onClick={() => openTradeView(project.ticker)}
+                  className="flex items-center gap-2 rounded-md transition hover:bg-white/[0.06] hover:text-white"
+                  aria-label={`Open $${project.ticker}`}
+                >
                   <span className="text-white/25">#{(index % tickerProjects.length) + 1}</span>
                   <span className={`h-5 w-5 shrink-0 overflow-hidden rounded-full bg-gradient-to-br ${project.colors} ring-1 ring-white/15`}>
                     <img
@@ -981,7 +987,7 @@ export function HomePage() {
                   <span className={project.change24h >= 0 ? 'text-lime-300' : 'text-rose-400'}>
                     {project.change24h >= 0 ? '+' : ''}{project.change24h}%
                   </span>
-                </span>
+                </button>
               ))}
             </div>
           </div>
