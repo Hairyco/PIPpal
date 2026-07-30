@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check,
+  ChevronDown,
   Copy,
   ExternalLink,
   Flame,
@@ -244,6 +245,7 @@ export function CtoTradeView({
   const [chartWindow, setChartWindow] = useState('5m');
   const [copied, setCopied] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
+  const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
@@ -860,16 +862,36 @@ export function CtoTradeView({
                 </p>
               </div>
             ) : null}
+            {marketingAddress ? (
+              <div className="mt-3 border-t border-white/[0.06] pt-2.5">
+                <button
+                  type="button"
+                  onClick={() => setMktHistoryOpen((open) => !open)}
+                  aria-expanded={mktHistoryOpen}
+                  className="flex w-full items-center justify-between gap-2 text-left"
+                >
+                  <span className="text-[11px] font-semibold text-[#c8ff3d]/90 underline-offset-2 hover:text-[#d5ff69] hover:underline">
+                    Transaction history
+                  </span>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 shrink-0 text-white/40 transition ${
+                      mktHistoryOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {mktHistoryOpen ? (
+                  <MarketingWalletActivity ticker={project.ticker} compact className="mt-3" />
+                ) : (
+                  <p className="mt-1 text-[10px] text-white/35">
+                    Fees, pay-ins, and supplier payouts
+                  </p>
+                )}
+              </div>
+            ) : null}
             <div className="mt-3 border-t border-white/[0.06] pt-2.5">
               <PolessiaLogo variant="powered" size="xs" />
             </div>
           </div>
-
-          {marketingAddress ? (
-            <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
-              <MarketingWalletActivity ticker={project.ticker} compact />
-            </div>
-          ) : null}
 
           <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
             <div className="flex items-center justify-between gap-2">

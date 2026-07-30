@@ -66,25 +66,15 @@ export function MarketingWalletActivity({
 
   return (
     <section className={className}>
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <p
-            className={
-              compact
-                ? 'text-[10px] font-bold uppercase tracking-wide text-white/35'
-                : 'text-[11px] font-medium text-white/45'
-            }
-          >
-            Transaction history
-          </p>
-          {!compact ? (
+      {!compact ? (
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="text-[11px] font-medium text-white/45">Transaction history</p>
             <p className="mt-1 text-[12px] text-white/45">
               Fees, investor pay-ins, and whitelisted supplier payouts — live here without opening
               Solscan.
             </p>
-          ) : null}
-        </div>
-        {!compact ? (
+          </div>
           <div className="text-right text-[11px] text-white/40">
             <p>
               In <span className="font-semibold text-[#d5ff69]">{formatMarketingUsd(inTotal)}</span>
@@ -92,10 +82,12 @@ export function MarketingWalletActivity({
               Out <span className="font-semibold text-rose-300">{formatMarketingUsd(outTotal)}</span>
             </p>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <div className="mt-3 inline-flex gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+      <div
+        className={`${compact ? '' : 'mt-3 '}inline-flex gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5`}
+      >
         {FILTERS.map((item) => (
           <button
             key={item.id}
