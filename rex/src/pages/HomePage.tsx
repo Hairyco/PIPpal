@@ -355,9 +355,11 @@ function isNewListing(launchInHours: number | null): boolean {
 function PinnedMessageCard({
   project,
   pin,
+  onOpenCoin,
 }: {
   project: Project;
   pin: PinnedMessage;
+  onOpenCoin: (ticker: string) => void;
 }) {
   const textRef = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -385,10 +387,24 @@ function PinnedMessageCard({
   return (
     <article className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-3.5">
       <div className="flex items-center gap-2.5">
-        <ProjectMark project={project} size="h-9 w-9" />
+        <button
+          type="button"
+          onClick={() => onOpenCoin(project.ticker)}
+          className="shrink-0 rounded-lg transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8ff3d]/50"
+          aria-label={`Open $${project.ticker}`}
+          title={`Open $${project.ticker}`}
+        >
+          <ProjectMark project={project} size="h-9 w-9" />
+        </button>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="truncate text-sm font-bold">${project.ticker}</p>
+            <button
+              type="button"
+              onClick={() => onOpenCoin(project.ticker)}
+              className="truncate text-sm font-bold text-white transition hover:text-[#d5ff69]"
+            >
+              ${project.ticker}
+            </button>
             <span className="truncate text-[11px] text-white/35">{project.name}</span>
           </div>
           <p className="mt-0.5 flex items-center gap-1 text-[10px] text-white/30">
@@ -1516,7 +1532,12 @@ export function HomePage() {
                   <div className="px-4 py-10 text-center text-sm text-white/35">No pinned messages found.</div>
                 ) : (
                   pinnedFeed.map(({ project, pin }) => (
-                    <PinnedMessageCard key={project.ticker} project={project} pin={pin} />
+                    <PinnedMessageCard
+                      key={project.ticker}
+                      project={project}
+                      pin={pin}
+                      onOpenCoin={openTradeView}
+                    />
                   ))
                 )}
               </div>
