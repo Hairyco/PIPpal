@@ -21,7 +21,6 @@ import {
   formatThresholdUsd,
   tierTotalUsd,
   type SpendItemId,
-  type SpendThreshold,
 } from '../data/postLaunchRoadmap';
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
@@ -143,22 +142,6 @@ export function PostLaunchDashboard({
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      return next;
-    });
-  };
-
-  const tierSelected = (tier: SpendThreshold) =>
-    tier.items.every((item) => selected.has(item.id));
-
-  const toggleTier = (tier: SpendThreshold) => {
-    if (roadmapMode !== 'manual') return;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      const allOn = tier.items.every((item) => next.has(item.id));
-      for (const item of tier.items) {
-        if (allOn) next.delete(item.id);
-        else next.add(item.id);
-      }
       return next;
     });
   };
@@ -670,34 +653,16 @@ export function PostLaunchDashboard({
             </p>
           ) : (
             <p className="text-[12px] leading-relaxed text-white/40">
-              Toggle a whole tier, or individual activities. Spend still waits for vault balance.
+              Toggle individual activities. Spend still waits for vault balance.
             </p>
           )}
 
           <div className="space-y-5">
             {POST_LAUNCH_SPEND_THRESHOLDS.map((tier) => {
               const reached = vaultBalanceUsd >= tier.thresholdUsd;
-              const on = tierSelected(tier);
-              const interactive = roadmapMode === 'manual';
               return (
                 <section key={tier.id}>
-                  <button
-                    type="button"
-                    disabled={!interactive}
-                    onClick={() => toggleTier(tier)}
-                    className={`flex w-full items-center gap-3 border-b border-white/[0.08] pb-2 text-left transition ${
-                      interactive ? 'hover:bg-white/[0.02]' : 'cursor-default'
-                    }`}
-                  >
-                    <span
-                      className={`grid h-5 w-5 shrink-0 place-items-center rounded border ${
-                        on
-                          ? 'border-[#c8ff3d]/50 bg-[#c8ff3d]/15 text-[#d5ff69]'
-                          : 'border-white/15 text-transparent'
-                      }`}
-                    >
-                      <Check className="h-3 w-3" />
-                    </span>
+                  <div className="flex w-full items-center gap-3 border-b border-white/[0.08] pb-2">
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/35">
                         {tier.label}
@@ -718,7 +683,7 @@ export function PostLaunchDashboard({
                         {reached ? 'Unlocked' : 'Pending'}
                       </p>
                     </div>
-                  </button>
+                  </div>
                   <ul className="mt-1 divide-y divide-white/[0.05]">
                     {tier.items.map((item) => {
                       const itemOn = selected.has(item.id);
@@ -743,9 +708,7 @@ export function PostLaunchDashboard({
                               >
                                 <Check className="h-3 w-3" />
                               </span>
-                            ) : (
-                              <span className="w-5 shrink-0" aria-hidden />
-                            )}
+                            ) : null}
                             <img
                               src={item.logo}
                               alt=""
