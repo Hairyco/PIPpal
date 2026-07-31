@@ -34,7 +34,7 @@ import {
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
-import { CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
+import { CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
 

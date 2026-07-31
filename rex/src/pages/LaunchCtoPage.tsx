@@ -27,7 +27,7 @@ import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
+import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -1473,7 +1473,7 @@ export function LaunchCtoPage() {
                   <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
                   {websiteKind === 'clone' ? (
                     <p className="mt-1.5 text-[9px] leading-snug text-white/45">
-                      ${CLONE_HOSTING_FEE_USD} from marketing wallet · clone + hosting
+                      {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet · clone + hosting
                     </p>
                   ) : null}
                 </button>
@@ -1786,4 +1786,3 @@ export function LaunchCtoPage() {
     </div>
     </AppSidebarProvider>
   );
-}

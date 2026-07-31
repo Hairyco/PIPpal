@@ -14,7 +14,7 @@ import {
   shortMint,
   type DiligenceResult,
 } from '../utils/socialDueDiligence';
-import { CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
+import { CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
 
 export type DashWebsiteKind = 'clone' | 'none' | 'own';
 
