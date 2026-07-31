@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
+import { useState } from 'react';
 import { ORIGIN_META, type ProjectOrigin } from '../data/ctoProjects';
 
 const CTOGO_MINT_TICKS = ['Marketing wallet', 'No dev', 'No rugs'] as const;
@@ -58,7 +59,6 @@ export function MigrateToV2Banner({
 /** Native V2 coin that still has a linked previous mint. */
 export function UpgradedOnCtogoBanner({
   ticker,
-  onViewV1,
 }: {
   ticker: string;
   onViewV1?: () => void;
@@ -69,35 +69,24 @@ export function UpgradedOnCtogoBanner({
 
   return (
     <div className="rounded-xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/10 via-transparent to-transparent px-4 py-3">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-300/90">
             Upgraded on CTOgo
           </p>
           <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-            You&apos;re on the CTOgo mint for ${ticker}. Trade stays here — switch the chart to
-            view the previous mint.
+            You&apos;re on the CTOgo mint for ${ticker}. Trade stays here — switch V1 / V2 on the
+            chart to view the previous mint.
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
-          {onViewV1 ? (
-            <button
-              type="button"
-              onClick={onViewV1}
-              className="inline-flex h-9 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[11px] font-semibold text-white/75 hover:border-white/25 hover:text-white"
-            >
-              View V1 chart
-            </button>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => setHidden(true)}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/45 hover:border-white/20 hover:text-white"
-            aria-label="Hide upgrade notice"
-          >
-            Hide
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setHidden(true)}
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/45 hover:border-white/20 hover:text-white"
+          aria-label="Hide upgrade notice"
+        >
+          Hide
+        </button>
       </div>
     </div>
   );
