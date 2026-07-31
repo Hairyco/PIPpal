@@ -14,6 +14,7 @@ import {
   shortMint,
   type DiligenceResult,
 } from '../utils/socialDueDiligence';
+import { CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
 
 export type DashWebsiteKind = 'clone' | 'none' | 'own';
 
@@ -242,30 +243,38 @@ export function PostLaunchSocialsTab({
         ) : null}
 
         {websiteKind === 'own' || websiteKind === 'clone' ? (
-          <label className="block space-y-1.5">
-            <span className="text-[11px] font-semibold text-white/40">
-              {websiteKind === 'own' ? 'Your website URL' : 'Clone source URL'}
-            </span>
-            <div className="flex gap-2">
-              <input
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                placeholder="https://…"
-                className="min-w-0 flex-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
-              />
-              {websiteUrl.trim() ? (
-                <a
-                  href={websiteUrl.trim()}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/[0.1] text-white/45 hover:text-white"
-                  aria-label="Open website"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              ) : null}
-            </div>
-          </label>
+          <div className="space-y-2">
+            <label className="block space-y-1.5">
+              <span className="text-[11px] font-semibold text-white/40">
+                {websiteKind === 'own' ? 'Your website URL' : 'Clone source URL'}
+              </span>
+              <div className="flex gap-2">
+                <input
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  placeholder="https://…"
+                  className="min-w-0 flex-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
+                />
+                {websiteUrl.trim() ? (
+                  <a
+                    href={websiteUrl.trim()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="grid h-11 w-11 shrink-0 place-items-center rounded-lg border border-white/[0.1] text-white/45 hover:text-white"
+                    aria-label="Open website"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : null}
+              </div>
+            </label>
+            {websiteKind === 'clone' ? (
+              <p className="text-[11px] leading-relaxed text-white/40">
+                ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone +
+                hosting.
+              </p>
+            ) : null}
+          </div>
         ) : null}
 
         {websiteKind === 'none' ? (

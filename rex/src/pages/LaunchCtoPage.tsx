@@ -28,7 +28,7 @@ import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
+import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
 import { DEXSCREENER_HEADER } from '../data/platformCollateralChecklist';
 import {
   CREATOR_FEE_MODES,
@@ -1498,6 +1498,11 @@ export function LaunchCtoPage() {
                 >
                   <p className="text-[11px] font-bold text-white">Clone</p>
                   <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
+                  {websiteKind === 'clone' ? (
+                    <p className="mt-1.5 text-[9px] leading-snug text-white/45">
+                      ${CLONE_HOSTING_FEE_USD} from marketing wallet · clone + hosting
+                    </p>
+                  ) : null}
                 </button>
               </div>
 
@@ -1600,18 +1605,24 @@ export function LaunchCtoPage() {
                   You’ll list with the CTOgo coin page only. Add a cloned site anytime after listing.
                 </div>
               ) : websiteKind === 'clone' ? (
-                <label className="block">
-                  <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
-                  <input
-                    value={cloneUrl}
-                    onChange={(event) => {
-                      setCloneUrl(event.target.value);
-                      setSiteGenerated(false);
-                    }}
-                    placeholder="https://…"
-                    className={fieldClass}
-                  />
-                </label>
+                <div className="space-y-2">
+                  <label className="block">
+                    <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
+                    <input
+                      value={cloneUrl}
+                      onChange={(event) => {
+                        setCloneUrl(event.target.value);
+                        setSiteGenerated(false);
+                      }}
+                      placeholder="https://…"
+                      className={fieldClass}
+                    />
+                  </label>
+                  <p className="text-[11px] leading-relaxed text-white/40">
+                    ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone +
+                    hosting.
+                  </p>
+                </div>
               ) : null}
 
               {!siteGenerated && websiteKind !== 'none' ? (

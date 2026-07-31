@@ -8,6 +8,9 @@ export const KYC_FEE = 150;
  */
 export const MARKETING_WALLET_ATTACH_FEE_USD = 1;
 
+/** Deducted from the marketing wallet when cloning + hosting a site on CTOgo. */
+export const CLONE_HOSTING_FEE_USD = 30;
+
 export const MARKETING_WALLET_ATTACH_POLICY = {
   feeUsd: MARKETING_WALLET_ATTACH_FEE_USD,
   summary:
