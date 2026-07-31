@@ -33,7 +33,7 @@ const CHANNEL_META: Record<
   },
   website: {
     title: 'Set up website',
-    body: 'Use your CTOgo coin page, or publish a 1-pager from Content / Socials.',
+    body: 'Use your CTOgo coin page, or clone an old site from Content / Socials.',
     externalLabel: 'Open CTOgo home',
     externalHref: '/',
   },

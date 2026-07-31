@@ -135,7 +135,6 @@ export function PostLaunchDashboard({
   const hasLogo = Boolean(logoUrlState);
   const hasBanner = Boolean(bannerUrlState);
   const hasWebsite =
-    websiteKind === 'onepager' ||
     websiteKind === 'clone' ||
     (websiteKind !== 'none' && Boolean(websiteUrl.trim()));
   const hasTelegram = Boolean((telegramCommunity || shareLinks.telegram || '').trim());

@@ -26,7 +26,7 @@ export const marketingBundles: MarketingBundle[] = [
     title: 'Launch starter',
     summary: 'Everything you need live on day one — site, social creatives, and first distribution.',
     includes: [
-      'Cloned or simple 1-pager hosted by Rex',
+      'Cloned site hosted by Rex',
       'Logo + social banner (cloned or generated)',
       'One callout in the Rex master Telegram channel',
       'Change-request form after payment (edits fee TBD)',

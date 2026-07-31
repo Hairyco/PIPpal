@@ -22,7 +22,7 @@ export type CreativeFunding = 'marketing-wallet' | 'pay-now';
 
 export type CreativeSuiteState = {
   sourceWebsiteUrl: string;
-  websiteMode: 'clone' | 'simple' | null;
+  websiteMode: 'clone' | null;
   landingPageUrl: string | null;
   landingPageSource: 'upload' | 'generated' | 'cloned' | null;
   landingPageFunding: CreativeFunding | null;
@@ -73,7 +73,7 @@ export function CreativeSuiteStep({
     setError(null);
     const url = value.sourceWebsiteUrl.trim();
     if (!url) {
-      setError('Add a website URL to clone, or choose the simple 1-pager.');
+      setError('Add a website URL to clone.');
       return;
     }
     setCloning(true);
@@ -88,24 +88,6 @@ export function CreativeSuiteStep({
       websiteMode: 'clone',
       landingPageUrl: preview,
       landingPageSource: 'cloned',
-    });
-  };
-
-  const useSimplePage = async () => {
-    setError(null);
-    setCloning(true);
-    await new Promise((r) => setTimeout(r, 500));
-    const preview = generateProjectImageDataUrl({
-      projectName: projectName || 'Launch page',
-      description: description || 'Simple one-pager for your CTO',
-      categoryLabel,
-    });
-    setCloning(false);
-    patch({
-      websiteMode: 'simple',
-      sourceWebsiteUrl: value.sourceWebsiteUrl,
-      landingPageUrl: preview,
-      landingPageSource: 'generated',
     });
   };
 
@@ -190,8 +172,7 @@ export function CreativeSuiteStep({
             {complexity === 'maybe-complex' && value.sourceWebsiteUrl.trim() ? (
               <p className="rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[11px] leading-relaxed text-amber-200/90">
                 This URL looks like it might be a heavier app. We will still try a clone — if it
-                fails, we fall back to a simple 1-pager. No need to pivot unless you want a custom
-                build later.
+                fails, you can paste a simpler site or skip and use your coin page.
               </p>
             ) : (
               <p className="text-[11px] text-muted-foreground">{EMPTY_PREVIEW_HINT}</p>
@@ -207,14 +188,6 @@ export function CreativeSuiteStep({
                 <Wand2 className="h-3.5 w-3.5" />
                 {cloning ? 'Working…' : 'Preview clone'}
               </button>
-              <button
-                type="button"
-                disabled={cloning}
-                onClick={() => void useSimplePage()}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-white hover:border-white/20 disabled:opacity-40"
-              >
-                Use simple 1-pager
-              </button>
             </div>
 
             {value.landingPageUrl ? (
@@ -225,7 +198,7 @@ export function CreativeSuiteStep({
                   className="aspect-[16/10] w-full object-cover"
                 />
                 <span className="absolute left-2 top-2 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-medium text-white">
-                  {value.websiteMode === 'simple' ? 'Simple 1-pager preview' : 'Clone preview'}
+                  Clone preview
                 </span>
                 <button
                   type="button"

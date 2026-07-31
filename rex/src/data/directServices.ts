@@ -41,7 +41,7 @@ export const LAUNCH_PACK: DirectService = {
   tagline: 'Site, logo, banner, and a CTOgo channel callout — paid in SOL.',
   priceSol: 4,
   includes: [
-    'Cloned or simple 1-pager hosted by CTOgo',
+    'Cloned site hosted by CTOgo',
     'Logo clone or upload refinement',
     'Social banner (clone, upload, or generate)',
     'One callout in the CTOgo master Telegram channel',

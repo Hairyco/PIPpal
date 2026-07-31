@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   Check,
   ExternalLink,
-  Globe,
   Loader2,
   ShieldCheck,
 } from 'lucide-react';
@@ -16,7 +15,7 @@ import {
   type DiligenceResult,
 } from '../utils/socialDueDiligence';
 
-export type DashWebsiteKind = 'onepager' | 'clone' | 'none' | 'own';
+export type DashWebsiteKind = 'clone' | 'none' | 'own';
 
 type PostLaunchSocialsTabProps = {
   symbol: string;
@@ -80,14 +79,11 @@ export function PostLaunchSocialsTab({
 
   const requestWebsiteKind = (next: DashWebsiteKind) => {
     if (next === websiteKind) return;
-    if (
-      (websiteKind === 'onepager' || websiteKind === 'clone') &&
-      (next === 'own' || next === 'none')
-    ) {
+    if (websiteKind === 'clone' && (next === 'own' || next === 'none')) {
       setModeConfirm(next);
       return;
     }
-    if ((websiteKind === 'own' || websiteKind === 'none') && (next === 'onepager' || next === 'clone')) {
+    if ((websiteKind === 'own' || websiteKind === 'none') && next === 'clone') {
       setModeConfirm(next);
       return;
     }
@@ -202,14 +198,12 @@ export function PostLaunchSocialsTab({
       <section className="space-y-3">
         <p className="text-[11px] font-medium text-white/45">Website</p>
         <p className="text-[12px] leading-relaxed text-white/40">
-          Built your own site? Paste the URL. CTOgo 1-pager / clone stay available if you prefer
-          ours.
+          Paste your own site URL, or clone an old site on CTOgo.
         </p>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-1.5">
           {(
             [
               { id: 'own' as const, label: 'Own site', hint: 'Your URL' },
-              { id: 'onepager' as const, label: '1-pager', hint: 'CTOgo' },
               { id: 'clone' as const, label: 'Clone', hint: 'CTOgo' },
               { id: 'none' as const, label: 'None', hint: 'No site' },
             ] as const
@@ -272,13 +266,6 @@ export function PostLaunchSocialsTab({
               ) : null}
             </div>
           </label>
-        ) : null}
-
-        {websiteKind === 'onepager' ? (
-          <p className="flex items-center gap-2 text-[12px] text-white/45">
-            <Globe className="h-3.5 w-3.5 text-[#d5ff69]" />
-            Using CTOgo 1-pager (CA is injected on publish).
-          </p>
         ) : null}
 
         {websiteKind === 'none' ? (

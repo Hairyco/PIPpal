@@ -688,7 +688,7 @@ export function GetStartedPage() {
                     </p>
                     {creativeSuite.landingPageUrl ? (
                       <p className="mt-1 text-xs text-white">
-                        {creativeSuite.websiteMode === 'simple' ? 'Simple 1-pager' : 'Site clone'} ·{' '}
+                        {creativeSuite.websiteMode === 'clone' ? 'Site clone' : 'No site yet'} ·{' '}
                         {landingSlug}
                         {creativeSuite.starterBundleFunding === 'pay-now' && (
                           <span className="ml-1 text-emerald-400">· pay now</span>

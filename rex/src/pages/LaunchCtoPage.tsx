@@ -43,23 +43,6 @@ import {
   formatCollateralUsd,
 } from '../data/collateralPricing';
 import {
-  DEFAULT_ONE_PAGER_INCLUDES,
-  DEFAULT_ONE_PAGER_THEME_ID,
-  ONE_PAGER_BESPOKE_THEMES,
-  ONE_PAGER_INCLUDE_OPTIONS,
-  ONE_PAGER_PRIMARY_THEMES,
-  defaultGeneratedSiteCopy,
-  isBespokeOnePagerTheme,
-  layoutIdFromCycle,
-  resolveOnePagerLayout,
-  type OnePagerIncludeId,
-  type OnePagerIncludes,
-  type OnePagerLayoutId,
-  type OnePagerLayoutPreference,
-  type OnePagerTheme,
-  type OnePagerThemeId,
-} from '../data/onePagerTheme';
-import {
   DEFAULT_TOKEN_SUPPLY,
   TOKEN_SUPPLY_OPTIONS,
   type TokenSupplyValue,
@@ -75,7 +58,7 @@ import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
-type WebsiteKind = 'none' | 'onepager' | 'clone';
+type WebsiteKind = 'none' | 'clone';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -102,87 +85,6 @@ const VESTING_SCHEDULE = [
 
 /** Demo mint — resolves to Pepe Coin in the launch wizard. */
 const DEMO_CONTRACT = LAUNCH_DEMO_MINT;
-
-function ColourPalettePicker({
-  value,
-  onChange,
-  compact = false,
-}: {
-  value: OnePagerThemeId;
-  onChange: (id: OnePagerThemeId) => void;
-  compact?: boolean;
-}) {
-  const [showMore, setShowMore] = useState(() => isBespokeOnePagerTheme(value));
-  const expanded = showMore || isBespokeOnePagerTheme(value);
-
-  const renderSwatch = (theme: OnePagerTheme, labeled: boolean) => {
-    const active = value === theme.id;
-    if (!labeled) {
-      return (
-        <button
-          key={theme.id}
-          type="button"
-          title={theme.label}
-          onClick={() => onChange(theme.id)}
-          className={`h-8 w-8 rounded-full border-2 transition ${
-            active ? 'scale-110 border-white' : 'border-white/20 hover:border-white/50'
-          }`}
-          style={{ backgroundColor: theme.swatch }}
-          aria-label={theme.label}
-        />
-      );
-    }
-    return (
-      <button
-        key={theme.id}
-        type="button"
-        title={theme.label}
-        onClick={() => onChange(theme.id)}
-        className={`flex items-center gap-2 rounded-lg border px-2 py-1.5 transition ${
-          active ? 'border-white/50 bg-white/[0.06]' : 'border-white/[0.08] hover:border-white/25'
-        }`}
-      >
-        <span
-          className={`h-6 w-6 rounded-full border-2 ${active ? 'border-white' : 'border-white/20'}`}
-          style={{ backgroundColor: theme.swatch }}
-          aria-hidden
-        />
-        <span className={`text-[11px] font-semibold ${active ? 'text-white' : 'text-white/45'}`}>
-          {theme.label}
-        </span>
-      </button>
-    );
-  };
-
-  return (
-    <div>
-      <p className="text-[11px] font-semibold text-white/55">Colour palette</p>
-      <p className="mt-0.5 text-[10px] text-white/35">
-        Primary colours first — open more if you want something bespoke.
-      </p>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {ONE_PAGER_PRIMARY_THEMES.map((theme) => renderSwatch(theme, !compact))}
-      </div>
-      {expanded ? (
-        <div className="mt-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-white/30">
-            More colours
-          </p>
-          <div className="mt-1.5 flex flex-wrap gap-2">
-            {ONE_PAGER_BESPOKE_THEMES.map((theme) => renderSwatch(theme, false))}
-          </div>
-        </div>
-      ) : null}
-      <button
-        type="button"
-        onClick={() => setShowMore((v) => !v)}
-        className="mt-2 text-[11px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
-      >
-        {expanded ? 'Hide extra colours' : 'More colours…'}
-      </button>
-    </div>
-  );
-}
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
@@ -220,16 +122,6 @@ export function LaunchCtoPage() {
   const [burnConfirmError, setBurnConfirmError] = useState<string | null>(null);
   /** Demo: burn UI ignores a pre-existing session wallet until user connects on this step. */
   const [burnWalletReady, setBurnWalletReady] = useState(false);
-  const [pageBlurb, setPageBlurb] = useState('');
-  const [siteHeadline, setSiteHeadline] = useState('');
-  const [siteExtraTitle, setSiteExtraTitle] = useState('');
-  const [siteExtraBody, setSiteExtraBody] = useState('');
-  const [showExtraCopy, setShowExtraCopy] = useState(false);
-  const [layoutPreference, setLayoutPreference] = useState<OnePagerLayoutPreference>('auto');
-  const [layoutSeed, setLayoutSeed] = useState(0);
-  const [forcedLayoutId, setForcedLayoutId] = useState<OnePagerLayoutId | null>(null);
-  const [designNonce, setDesignNonce] = useState(0);
-  const designCycleRef = useRef(0);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [logoSalt, setLogoSalt] = useState(0);
@@ -254,12 +146,6 @@ export function LaunchCtoPage() {
   const [siteGenerated, setSiteGenerated] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
-  const [onePagerThemeId, setOnePagerThemeId] = useState<OnePagerThemeId>(
-    DEFAULT_ONE_PAGER_THEME_ID,
-  );
-  const [siteIncludes, setSiteIncludes] = useState<OnePagerIncludes>({
-    ...DEFAULT_ONE_PAGER_INCLUDES,
-  });
   const [editSite, setEditSite] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -454,47 +340,6 @@ export function LaunchCtoPage() {
     extraLogos: extraLogoGens,
     extraBanners: extraBannerGens,
   });
-  const activeLayoutId =
-    forcedLayoutId ?? resolveOnePagerLayout(layoutPreference, layoutSeed);
-
-  /** Guaranteed unique look: cycle layout + colour, bump nonce for remount. */
-  const advanceUniqueDesign = () => {
-    const cycle = designCycleRef.current;
-    designCycleRef.current += 1;
-    // Mix time so back-to-back generates never feel stuck on the same skin.
-    const mixed = cycle + (Date.now() % 17);
-    const nextLayout = layoutIdFromCycle(mixed);
-    const nextTheme =
-      ONE_PAGER_PRIMARY_THEMES[mixed % ONE_PAGER_PRIMARY_THEMES.length] ??
-      ONE_PAGER_PRIMARY_THEMES[0];
-    setForcedLayoutId(nextLayout);
-    setLayoutPreference(nextLayout);
-    setLayoutSeed(mixed);
-    setOnePagerThemeId(nextTheme.id);
-    setDesignNonce(mixed + 1);
-    return { layout: nextLayout, cycle: mixed + 1, themeId: nextTheme.id };
-  };
-
-  const refreshCollateralForLook = (cycle: number) => {
-    const projectName = name || 'Pepe Coin';
-    const projectTicker = ticker || 'PEPE';
-    setLogoSalt(cycle);
-    setBannerSalt(cycle);
-    const logo = generateCtoLogoDataUrl({
-      projectName,
-      ticker: projectTicker,
-      salt: cycle * 17 + 3,
-    });
-    setLogoPreview(logo);
-    void generateCtoBannerWithLogo({
-      projectName,
-      ticker: projectTicker,
-      logoDataUrl: logo,
-      tagline: (siteHeadline || pageBlurb || note || `${projectTicker} on CTOgo`).trim(),
-      salt: cycle * 13 + 7,
-    }).then((banner) => setBannerPreview(banner));
-    return logo;
-  };
 
   const resetFlow = () => {
     setStep('coin');
@@ -516,16 +361,6 @@ export function LaunchCtoPage() {
     setBurnConfirmBusy(false);
     setBurnConfirmError(null);
     setBurnWalletReady(false);
-    setPageBlurb('');
-    setSiteHeadline('');
-    setSiteExtraTitle('');
-    setSiteExtraBody('');
-    setShowExtraCopy(false);
-    setLayoutPreference('auto');
-    setLayoutSeed(0);
-    setForcedLayoutId(null);
-    setDesignNonce(0);
-    designCycleRef.current = 0;
     setLogoPreview(null);
     setBannerPreview(null);
     setDexHeaderPreview(null);
@@ -546,8 +381,6 @@ export function LaunchCtoPage() {
     setSiteGenerated(false);
     setPreviewOpen(false);
     setGeneratingSite(false);
-    setOnePagerThemeId(DEFAULT_ONE_PAGER_THEME_ID);
-    setSiteIncludes({ ...DEFAULT_ONE_PAGER_INCLUDES });
     setEditSite(false);
     setFromCoinPage(false);
     setListNotice(null);
@@ -580,7 +413,7 @@ export function LaunchCtoPage() {
       setName(keepName?.trim() || meta.name);
       setTicker((keepTicker?.trim() || meta.ticker).toUpperCase());
       setLogoPreview(meta.logoUrl);
-      setPageBlurb(meta.blurb);
+      if (meta.blurb?.trim()) setNote(meta.blurb);
       setVenueLabel(meta.venueLabel);
       setCoinReady(true);
     } catch {
@@ -764,7 +597,7 @@ export function LaunchCtoPage() {
         projectName: name || 'Pepe Coin',
         ticker: ticker || 'PEPE',
         logoDataUrl: logoUrl ?? logoPreview,
-        tagline: siteHeadline || pageBlurb || note || `${ticker || 'PEPE'} on CTOgo`,
+        tagline: note.trim() || `${ticker || 'PEPE'} on CTOgo`,
         salt,
       });
       setBannerPreview(url);
@@ -797,7 +630,7 @@ export function LaunchCtoPage() {
         projectName: name || 'Pepe Coin',
         ticker: ticker || 'PEPE',
         logoDataUrl: logoUrl ?? logoPreview,
-        tagline: siteHeadline || pageBlurb || note || 'Community owned · No rugs',
+        tagline: note.trim() || 'Community owned · No rugs',
         salt,
       });
       setDexHeaderPreview(url);
@@ -837,49 +670,18 @@ export function LaunchCtoPage() {
     setEditSite(false);
   };
 
-  const toggleSiteInclude = (id: OnePagerIncludeId) => {
-    setSiteIncludes((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   const openSiteEditor = () => {
     setPreviewOpen(false);
     setEditSite(true);
   };
 
-  /** Builds a finished site and opens the real full-page viewer. */
+  /** Builds a clone preview and opens the full-page viewer. */
   const generateWebsite = async () => {
-    if (websiteKind === 'none') return;
-    if (websiteKind === 'clone' && !cloneUrl.trim() && !website.trim()) {
-      return;
-    }
+    if (websiteKind !== 'clone') return;
+    if (!cloneUrl.trim() && !website.trim()) return;
     setGeneratingSite(true);
     try {
       if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
-
-      const projectName = name || 'Pepe Coin';
-      const projectTicker = ticker || 'PEPE';
-      const defaults = defaultGeneratedSiteCopy(projectName, projectTicker);
-
-      if (!siteHeadline.trim()) setSiteHeadline(defaults.headline);
-      if (!pageBlurb.trim()) setPageBlurb(note.trim() || defaults.body);
-      if (!siteExtraTitle.trim() && !siteExtraBody.trim()) {
-        setSiteExtraTitle(defaults.extraTitle);
-        setSiteExtraBody(defaults.extraBody);
-        setShowExtraCopy(true);
-      }
-      setSiteIncludes((prev) => ({
-        ...prev,
-        chart: true,
-        tokenomics: true,
-        socials: true,
-        howto: true,
-        community: true,
-      }));
-
-      // Always advance to a concrete unique layout + fresh art.
-      const look = advanceUniqueDesign();
-      refreshCollateralForLook(look.cycle);
-
       await new Promise((r) => window.setTimeout(r, 450));
       setSiteGenerated(true);
       setPreviewOpen(true);
@@ -888,15 +690,8 @@ export function LaunchCtoPage() {
     }
   };
 
-  const regenerateDesign = () => {
-    const look = advanceUniqueDesign();
-    refreshCollateralForLook(look.cycle);
-    setPreviewOpen(true);
-  };
-
   useEffect(() => {
     if (step !== 'website') return;
-    if (!pageBlurb.trim() && note.trim()) setPageBlurb(note.trim());
     if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
@@ -922,8 +717,7 @@ export function LaunchCtoPage() {
     }
   };
 
-  const canGenerateSite =
-    websiteKind === 'onepager' || Boolean(cloneUrl.trim() || website.trim());
+  const canGenerateSite = Boolean(cloneUrl.trim() || website.trim());
   const canPublishSite = websiteKind === 'none' || siteGenerated;
 
   return (
@@ -1684,7 +1478,7 @@ export function LaunchCtoPage() {
                 </span>
               </p>
 
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-2 gap-1.5">
                 <button
                   type="button"
                   onClick={() => selectWebsiteKind('none')}
@@ -1696,18 +1490,6 @@ export function LaunchCtoPage() {
                 >
                   <p className="text-[11px] font-bold text-white">Skip website</p>
                   <p className="mt-0.5 text-[9px] text-white/40">Default · coin page only</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => selectWebsiteKind('onepager')}
-                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
-                    websiteKind === 'onepager'
-                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
-                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
-                  }`}
-                >
-                  <p className="text-[11px] font-bold text-white">1-pager</p>
-                  <p className="mt-0.5 text-[9px] text-white/40">Auto design</p>
                 </button>
                 <button
                   type="button"
@@ -1840,92 +1622,6 @@ export function LaunchCtoPage() {
                     className={fieldClass}
                   />
                 </label>
-              ) : !siteGenerated ? (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-[11px] font-semibold text-white/55">Your copy</p>
-                    <p className="mt-0.5 text-[10px] text-white/35">
-                      Headline, story, manifesto — use as much text as you want. Line breaks become
-                      paragraphs.
-                    </p>
-                  </div>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/45">Headline</span>
-                    <input
-                      value={siteHeadline}
-                      onChange={(event) => setSiteHeadline(event.target.value)}
-                      placeholder="Short hook (optional)"
-                      className={fieldClass}
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-[11px] font-semibold text-white/45">Page copy</span>
-                    <textarea
-                      value={pageBlurb}
-                      onChange={(event) => setPageBlurb(event.target.value)}
-                      rows={5}
-                      placeholder="Tell the story. Add as many paragraphs as you need…"
-                      className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowExtraCopy((v) => !v)}
-                    className="text-[11px] font-semibold text-[#c8ff3d]/80 hover:text-[#d5ff69]"
-                  >
-                    {showExtraCopy || siteExtraTitle || siteExtraBody
-                      ? 'Custom section'
-                      : '+ Add a custom section'}
-                  </button>
-                  {showExtraCopy || siteExtraTitle || siteExtraBody ? (
-                    <div className="space-y-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/45">Section title</span>
-                        <input
-                          value={siteExtraTitle}
-                          onChange={(event) => setSiteExtraTitle(event.target.value)}
-                          placeholder="e.g. Roadmap, Lore, Rules…"
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/45">Section text</span>
-                        <textarea
-                          value={siteExtraBody}
-                          onChange={(event) => setSiteExtraBody(event.target.value)}
-                          rows={3}
-                          placeholder="Anything else you want on the page…"
-                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                        />
-                      </label>
-                    </div>
-                  ) : null}
-
-                  <div>
-                    <p className="text-[11px] font-semibold text-white/55">Include on the page</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
-                        const on = siteIncludes[opt.id];
-                        return (
-                          <button
-                            key={opt.id}
-                            type="button"
-                            title={opt.hint}
-                            onClick={() => toggleSiteInclude(opt.id)}
-                            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition ${
-                              on
-                                ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                : 'border-white/[0.08] text-white/45 hover:border-white/20 hover:text-white'
-                            }`}
-                          >
-                            {on ? <Check className="h-3 w-3" /> : null}
-                            {opt.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
               ) : null}
 
               {!siteGenerated && websiteKind !== 'none' ? (
@@ -1938,12 +1634,12 @@ export function LaunchCtoPage() {
                   {generatingSite ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Designing…
+                      Cloning…
                     </>
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4" />
-                      Generate {websiteKind === 'clone' ? 'clone preview' : '1-pager'}
+                      Generate clone preview
                     </>
                   )}
                 </button>
@@ -1954,28 +1650,17 @@ export function LaunchCtoPage() {
                     className={editSite ? 'sticky top-0 z-20 -mx-1 mb-2 space-y-2 bg-[#090b14]/95 pb-2 pt-1 backdrop-blur-md' : 'space-y-2'}
                   >
                     <WebsitePreview
-                      kind={websiteKind === 'clone' ? 'clone' : 'onepager'}
+                      kind="clone"
                       name={name}
                       ticker={ticker}
-                      headline={siteHeadline}
-                      body={pageBlurb || note}
-                      extraTitle={siteExtraTitle}
-                      extraBody={siteExtraBody}
                       logoUrl={logoPreview}
                       bannerUrl={bannerPreview}
                       contract={contract}
                       cloneUrl={cloneUrl || website}
-                      themeId={onePagerThemeId}
-                      layoutPreference={layoutPreference}
-                      layoutSeed={layoutSeed}
-                      layoutId={activeLayoutId}
-                      designNonce={designNonce}
-                      includes={siteIncludes}
                       tokenSupply={tokenSupply}
                     />
-                    <p className="text-center text-[10px] capitalize text-white/30">
-                      Layout · {activeLayoutId} · {onePagerThemeId}
-                      {editSite ? ' · live preview' : ` · look ${designNonce || 1}`}
+                    <p className="text-center text-[10px] text-white/30">
+                      Clone preview{editSite ? ' · editing' : ''}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -2011,91 +1696,16 @@ export function LaunchCtoPage() {
                         </button>
                       </div>
 
-                      {websiteKind === 'onepager' ? (
-                        <div className="space-y-3">
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-white/45">Headline</span>
-                            <input
-                              value={siteHeadline}
-                              onChange={(event) => setSiteHeadline(event.target.value)}
-                              className={fieldClass}
-                            />
-                          </label>
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-white/45">Page copy</span>
-                            <textarea
-                              value={pageBlurb}
-                              onChange={(event) => setPageBlurb(event.target.value)}
-                              rows={4}
-                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
-                            />
-                          </label>
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-white/45">
-                              Custom section title
-                            </span>
-                            <input
-                              value={siteExtraTitle}
-                              onChange={(event) => setSiteExtraTitle(event.target.value)}
-                              className={fieldClass}
-                            />
-                          </label>
-                          <label className="block">
-                            <span className="text-[11px] font-semibold text-white/45">
-                              Custom section text
-                            </span>
-                            <textarea
-                              value={siteExtraBody}
-                              onChange={(event) => setSiteExtraBody(event.target.value)}
-                              rows={3}
-                              className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
-                            />
-                          </label>
-                          <div className="flex flex-wrap gap-2">
-                            {ONE_PAGER_INCLUDE_OPTIONS.map((opt) => {
-                              const on = siteIncludes[opt.id];
-                              return (
-                                <button
-                                  key={opt.id}
-                                  type="button"
-                                  onClick={() => toggleSiteInclude(opt.id)}
-                                  className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold ${
-                                    on
-                                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                                      : 'border-white/[0.08] text-white/45'
-                                  }`}
-                                >
-                                  {opt.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <ColourPalettePicker
-                            value={onePagerThemeId}
-                            onChange={(id) => {
-                              setOnePagerThemeId(id);
-                              window.requestAnimationFrame(() => {
-                                sitePreviewRef.current?.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'start',
-                                });
-                              });
-                            }}
-                            compact
-                          />
-                        </div>
-                      ) : (
-                        <label className="block">
-                          <span className="text-[11px] font-semibold text-white/55">
-                            Old website URL
-                          </span>
-                          <input
-                            value={cloneUrl}
-                            onChange={(event) => setCloneUrl(event.target.value)}
-                            className={fieldClass}
-                          />
-                        </label>
-                      )}
+                      <label className="block">
+                        <span className="text-[11px] font-semibold text-white/55">
+                          Old website URL
+                        </span>
+                        <input
+                          value={cloneUrl}
+                          onChange={(event) => setCloneUrl(event.target.value)}
+                          className={fieldClass}
+                        />
+                      </label>
 
                       <button
                         type="button"
@@ -2270,15 +1880,7 @@ export function LaunchCtoPage() {
                   ? cloneUrl.trim() || website.trim()
                   : website.trim() || cloneUrl.trim()
               }
-              websiteKind={
-                websiteKind === 'none'
-                  ? 'none'
-                  : websiteKind === 'onepager'
-                    ? 'onepager'
-                    : websiteKind === 'clone'
-                      ? 'clone'
-                      : 'own'
-              }
+              websiteKind={websiteKind === 'none' ? 'none' : 'clone'}
             />
           ) : null}
         </main>
@@ -2288,24 +1890,13 @@ export function LaunchCtoPage() {
         open={previewOpen && step === 'website' && websiteKind !== 'none'}
         onClose={openSiteEditor}
         onContinue={() => setPreviewOpen(false)}
-        onRegenerate={websiteKind === 'onepager' ? regenerateDesign : undefined}
-        kind={websiteKind === 'clone' ? 'clone' : 'onepager'}
+        kind="clone"
         name={name}
         ticker={ticker}
-        headline={siteHeadline}
-        body={pageBlurb || note}
-        extraTitle={siteExtraTitle}
-        extraBody={siteExtraBody}
         logoUrl={logoPreview}
         bannerUrl={bannerPreview}
         contract={contract}
         cloneUrl={cloneUrl || website}
-        themeId={onePagerThemeId}
-        layoutPreference={layoutPreference}
-        layoutSeed={layoutSeed}
-        layoutId={activeLayoutId}
-        designNonce={designNonce}
-        includes={siteIncludes}
         tokenSupply={tokenSupply}
       />
     </div>
