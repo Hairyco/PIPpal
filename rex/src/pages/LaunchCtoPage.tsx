@@ -15,7 +15,6 @@ import {
   Search,
   ShieldAlert,
   Sparkles,
-  Split,
   Upload,
   Users,
   Wallet,
@@ -31,8 +30,8 @@ import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePrev
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
 import { DEXSCREENER_HEADER } from '../data/platformCollateralChecklist';
 import {
+  CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
-  FEE_TIERS,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
@@ -326,8 +325,6 @@ export function LaunchCtoPage() {
         ]
       : [];
   const stepIndex = steps.findIndex((s) => s.id === step);
-  const selectedFeeMode = CREATOR_FEE_MODES.find((m) => m.id === feeMode)!;
-  const launchTier = FEE_TIERS[0];
   const buyAtLaunchSolNum = Number(buyAtLaunchSol);
   const hasBuyAtLaunch =
     Boolean(buyAtLaunchSol.trim()) &&
@@ -1122,29 +1119,6 @@ export function LaunchCtoPage() {
 
           {step === 'fees' ? (
             <form onSubmit={onFeesContinue} className="mt-6 space-y-4">
-              <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.07] p-4">
-                <div className="flex items-start gap-3">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
-                    <Split className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-[#d5ff69]">Creator fee destination</p>
-                    <p className="mt-1 text-[12px] text-white/55">
-                      {formatBpsPercent(launchTier.creatorPoolBps)} pool cut. Locked at deploy.
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold">
-                      <Link to="/fees#dynamic-tiers" className="text-[#c8ff3d] hover:underline">
-                        Fees
-                      </Link>
-                      <span className="text-white/20">·</span>
-                      <Link to="/faq#marketing-wallet" className="text-[#c8ff3d] hover:underline">
-                        Abandonment
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 {CREATOR_FEE_MODES.map((option) => {
                   const selected = feeMode === option.id;
@@ -1160,9 +1134,9 @@ export function LaunchCtoPage() {
                           : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
                       }`}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-center gap-3">
                         <span
-                          className={`mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+                          className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
                             selected
                               ? 'bg-[#c8ff3d]/20 text-[#c8ff3d]'
                               : 'bg-white/5 text-white/45'
@@ -1179,7 +1153,9 @@ export function LaunchCtoPage() {
                               </span>
                             ) : null}
                           </div>
-                          <p className="mt-1 text-[11px] text-white/50">{option.destination}</p>
+                          <p className="mt-0.5 text-[11px] text-white/45">
+                            {formatBpsPercent(CREATOR_FEE_BPS)} pool cut
+                          </p>
                         </div>
                       </div>
                     </button>
