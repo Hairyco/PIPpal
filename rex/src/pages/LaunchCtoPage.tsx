@@ -666,13 +666,13 @@ export function LaunchCtoPage() {
       if (!signedIn) {
         setListNotice(
           listMarketingOptIn
-            ? 'Sign in or register to list — then connect your wallet to pay for the marketing vault.'
-            : 'Sign in or register to list this CTO.',
+            ? 'Create an account to continue — then you’ll pay for the marketing wallet.'
+            : 'Create an account to list your CTO.',
         );
         const ok = await requireAuth(
           listMarketingOptIn
-            ? 'Sign in or create an account to list. Next you’ll connect a wallet and pay for the marketing vault.'
-            : 'Sign in or create an account to list this CTO.',
+            ? 'Create an account to list your CTO. You can add the marketing wallet next.'
+            : 'Create an account to list your CTO.',
         );
         if (!ok) return;
       }
@@ -680,9 +680,7 @@ export function LaunchCtoPage() {
       // Marketing wallet: after auth, connect wallet and complete payment.
       if (listMarketingOptIn) {
         if (!connected) {
-          setListNotice(
-            `Connect your wallet to pay the $${MARKETING_WALLET_ATTACH_FEE_USD} marketing vault fee.`,
-          );
+          setListNotice('Connect your wallet to add the marketing wallet.');
           const next = await connect();
           if (!next) return;
         }
@@ -963,7 +961,7 @@ export function LaunchCtoPage() {
               </h1>
               <p className="mt-1.5 text-sm text-white/45">
                 {mode === 'add'
-                  ? 'Paste the contract to list. Sign in or register to publish.'
+                  ? 'Paste the contract address to get your CTO on the board.'
                   : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
               </p>
             </>
