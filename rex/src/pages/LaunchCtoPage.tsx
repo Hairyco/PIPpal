@@ -1350,32 +1350,30 @@ export function LaunchCtoPage() {
                 )}
               </div>
 
-              <div className="flex items-end gap-3">
-                <label className="block min-w-0 flex-1">
-                  <span className="text-[11px] font-medium text-white/45">Amount to burn</span>
-                  <div className="mt-1.5 flex gap-2">
+              <div className="grid grid-cols-[1fr_auto] items-end gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-medium text-white/45">Amount to burn</p>
+                  <div className="mt-1.5 flex items-center gap-2">
                     <input
                       value={burnAmount}
                       onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
                       placeholder="0"
                       inputMode="decimal"
-                      className={`${fieldClass} mt-0`}
+                      className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                     />
                     <button
                       type="button"
                       disabled={!v1Balance}
                       onClick={() => setBurnAmount(v1Balance ?? '')}
-                      className="h-11 shrink-0 rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white disabled:opacity-40"
+                      className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white disabled:opacity-40"
                     >
                       Max
                     </button>
                   </div>
-                </label>
-                <div className="shrink-0 pb-2 text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
-                    You receive
-                  </p>
-                  <p className="mt-0.5 text-sm font-semibold tabular-nums text-[#d5ff69]">
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-[11px] font-medium text-white/45">You receive</p>
+                  <p className="mt-1.5 flex h-11 items-center justify-end text-sm font-semibold tabular-nums text-[#d5ff69]">
                     {burnAmount ? Number(burnAmount).toLocaleString() : '0'} V2
                   </p>
                 </div>
@@ -1707,6 +1705,10 @@ export function LaunchCtoPage() {
                           className={fieldClass}
                         />
                       </label>
+                      <p className="text-[11px] leading-relaxed text-white/40">
+                        ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone
+                        + hosting.
+                      </p>
 
                       <button
                         type="button"
