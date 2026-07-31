@@ -201,7 +201,7 @@ export function LaunchCtoPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [ticker, setTicker] = useState('');
-  const [contract, setContract] = useState(DEMO_CONTRACT);
+  const [contract, setContract] = useState('');
   const [telegram, setTelegram] = useState('');
   const [twitter, setTwitter] = useState('');
   const [website, setWebsite] = useState('');
@@ -495,7 +495,7 @@ export function LaunchCtoPage() {
     setStep('coin');
     setName('');
     setTicker('');
-    setContract(DEMO_CONTRACT);
+    setContract('');
     setTelegram('');
     setTwitter('');
     setWebsite('');
