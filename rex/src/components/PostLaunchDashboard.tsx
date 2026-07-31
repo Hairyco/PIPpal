@@ -160,8 +160,8 @@ export function PostLaunchDashboard({
         id: 'telegram' as const,
         label: 'Telegram',
         detail: '',
-        done: hasTelegram && listingConfirmed,
-        actionLabel: listingConfirmed ? 'Add' : 'Open',
+        done: hasTelegram,
+        actionLabel: 'Add',
       },
       {
         id: 'x' as const,
@@ -171,7 +171,7 @@ export function PostLaunchDashboard({
         actionLabel: 'Add',
       },
     ],
-    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX, listingConfirmed],
+    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX],
   );
 
   const persistLogo = (url: string | null) => {
@@ -225,10 +225,6 @@ export function PostLaunchDashboard({
       return;
     }
     if (id === 'telegram') {
-      if (!listingConfirmed) {
-        onConfirmListing();
-        return;
-      }
       setSetupChannel('telegram');
       return;
     }
@@ -358,9 +354,21 @@ export function PostLaunchDashboard({
           <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
             {symbol}
           </h1>
-          <p className="text-[12px] text-white/40">Your CTO dashboard</p>
+          <p className="text-[12px] text-white/40">
+            {listingConfirmed ? 'Live on CTOgo' : 'Listed · trading paused'}
+          </p>
         </div>
       </div>
+
+      {tab === 'overview' && !listingConfirmed ? (
+        <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-3.5 py-3">
+          <p className="text-[13px] font-semibold text-amber-100">Your coin is listed</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-amber-100/70">
+            Trading stays paused until you confirm setup below. Finish what you can, then confirm to
+            go live.
+          </p>
+        </div>
+      ) : null}
 
       <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="inline-flex min-w-full gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
@@ -397,6 +405,18 @@ export function PostLaunchDashboard({
           ) : null}
 
           <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
+
+          {!listingConfirmed ? (
+            <button type="button" onClick={onConfirmListing} className={primaryBtnClass}>
+              Confirm setup · go live
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          ) : (
+            <p className="flex items-center gap-2 text-[13px] font-semibold text-[#d5ff69]">
+              <Check className="h-4 w-4" />
+              Trading live · listing confirmed
+            </p>
+          )}
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
             <div className="flex items-center gap-3 px-3 py-3">

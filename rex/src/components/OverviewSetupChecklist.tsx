@@ -21,7 +21,7 @@ export function OverviewSetupChecklist({ items, onAction }: Props) {
   return (
     <section className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-medium text-white/45">Get set up</p>
+        <p className="text-[11px] font-medium text-white/45">Complete before go-live</p>
         <p className="text-[11px] font-semibold text-white/35">
           {doneCount}/{items.length}
         </p>

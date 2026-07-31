@@ -28,7 +28,6 @@ import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { PlatformCollateralChecklist } from '../components/PlatformCollateralChecklist';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
 import { DEXSCREENER_HEADER } from '../data/platformCollateralChecklist';
 import {
@@ -142,7 +141,6 @@ export function LaunchCtoPage() {
   const [dexHeaderPreview, setDexHeaderPreview] = useState<string | null>(null);
   const [dexHeaderSalt, setDexHeaderSalt] = useState(0);
   const [generatingDexHeader, setGeneratingDexHeader] = useState(false);
-  const [collateralChecked, setCollateralChecked] = useState<string[]>([]);
   const [siteGenerated, setSiteGenerated] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
@@ -324,7 +322,7 @@ export function LaunchCtoPage() {
           { id: 'coin' as const, label: 'Coin' },
           { id: 'fees' as const, label: 'Fees & buy' },
           { id: 'burn' as const, label: 'Burn' },
-          { id: 'website' as const, label: 'Content' },
+          { id: 'website' as const, label: 'Website' },
         ]
       : [];
   const stepIndex = steps.findIndex((s) => s.id === step);
@@ -377,7 +375,6 @@ export function LaunchCtoPage() {
     setCloneUrl('');
     setExtraLogoGens(0);
     setExtraBannerGens(0);
-    setCollateralChecked([]);
     setSiteGenerated(false);
     setPreviewOpen(false);
     setGeneratingSite(false);
@@ -657,12 +654,6 @@ export function LaunchCtoPage() {
     }
   };
 
-  const toggleCollateralItem = (itemId: string) => {
-    setCollateralChecked((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
-    );
-  };
-
   const selectWebsiteKind = (kind: WebsiteKind) => {
     setWebsiteKind(kind);
     setSiteGenerated(false);
@@ -761,7 +752,13 @@ export function LaunchCtoPage() {
               <p className="mt-1.5 text-sm text-white/45">
                 {mode === 'add'
                   ? 'Paste the contract address to get your CTO on the board.'
-                  : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
+                  : step === 'coin'
+                    ? 'Set the name, ticker, and mint for your CTO.'
+                    : step === 'fees'
+                      ? 'Choose how creator fees work, then optionally buy at launch.'
+                      : step === 'burn'
+                        ? 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'
+                        : 'Optional website — then list the coin. Setup finishes after listing.'}
               </p>
             </>
           ) : null}
@@ -848,7 +845,7 @@ export function LaunchCtoPage() {
                     </li>
                     <li className="grid gap-2 sm:grid-cols-2">
                       {[
-                        { icon: Globe, label: 'Content (optional)' },
+                        { icon: Globe, label: 'Website (optional)' },
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: Sparkles, label: 'Logo & Dex banner' },
                         { icon: ShieldAlert, label: 'Stop dev fees' },
@@ -1464,15 +1461,14 @@ export function LaunchCtoPage() {
           {step === 'website' ? (
             <form onSubmit={onWebsiteFinish} className="mt-6 space-y-4">
               <div>
-                <p className="text-sm font-bold text-white">Content</p>
+                <p className="text-sm font-bold text-white">Website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Skip the site if you want — still prep logo, DexScreener header, and campaign
-                  collateral before you spend the marketing wallet.
+                  Optional. Skip to list now — logo, banner, and socials come next.
                 </p>
               </div>
 
               <p className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[11px] text-white/45">
-                Platform page always live at{' '}
+                Coin page will be at{' '}
                 <span className="font-mono text-white/70">
                   ctogo.app/coin/{ticker.trim().toLowerCase() || 'ticker'}
                 </span>
@@ -1599,15 +1595,9 @@ export function LaunchCtoPage() {
                 </div>
               </div>
 
-              <PlatformCollateralChecklist
-                checkedIds={collateralChecked}
-                onToggle={toggleCollateralItem}
-              />
-
               {websiteKind === 'none' ? (
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-[12px] text-white/50">
-                  You’ll launch with the CTOgo coin page only — add a site later anytime. Images and
-                  checklist above still apply to Dex / TG campaigns.
+                  You’ll list with the CTOgo coin page only. Add a cloned site anytime after listing.
                 </div>
               ) : websiteKind === 'clone' ? (
                 <label className="block">
@@ -1835,14 +1825,14 @@ export function LaunchCtoPage() {
                   {websiteKind === 'none'
                     ? connected
                       ? hasBuyAtLaunch
-                        ? `Publish · ${buyAtLaunchSolNum} SOL buy`
-                        : 'Publish without website'
-                      : 'Connect wallet & publish'
+                        ? `List coin · ${buyAtLaunchSolNum} SOL buy`
+                        : 'List coin'
+                      : 'Connect wallet & list'
                     : connected
                       ? hasBuyAtLaunch
-                        ? `Publish CTO · ${buyAtLaunchSolNum} SOL buy`
-                        : 'Publish CTO'
-                      : 'Connect wallet & publish'}
+                        ? `List coin · ${buyAtLaunchSolNum} SOL buy`
+                        : 'List coin'
+                      : 'Connect wallet & list'}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
