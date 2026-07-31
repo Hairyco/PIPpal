@@ -145,41 +145,34 @@ export function PostLaunchDashboard({
     () => [
       {
         id: 'content' as const,
-        label: 'Content',
-        detail:
-          hasLogo && hasBanner
-            ? 'Logo & banner ready'
-            : !hasLogo && !hasBanner
-              ? 'Generate logo & Dex banner'
-              : !hasLogo
-                ? 'Logo still needed'
-                : 'Banner still needed',
+        label: 'Logo & banner',
+        detail: '',
         done: hasLogo && hasBanner,
-        actionLabel: hasLogo || hasBanner ? 'Finish' : 'Generate',
+        actionLabel: 'Add',
       },
       {
         id: 'website' as const,
         label: 'Website',
-        detail: hasWebsite ? 'Linked on your listing' : 'CTOgo page or your own site',
+        detail: '',
         done: hasWebsite,
-        actionLabel: 'Set up',
+        actionLabel: 'Add',
       },
       {
         id: 'telegram' as const,
         label: 'Telegram',
-        detail: hasTelegram ? 'Community linked' : 'Avatar + pin with official CA',
-        done: hasTelegram,
-        actionLabel: 'Set up',
+        detail: '',
+        done: hasTelegram && listingConfirmed,
+        actionLabel: listingConfirmed ? 'Add' : 'Open',
       },
       {
         id: 'x' as const,
         label: 'X',
-        detail: hasX ? 'Profile linked' : 'Save media, then upload on X',
+        detail: '',
         done: hasX,
-        actionLabel: 'Set up',
+        actionLabel: 'Add',
       },
     ],
-    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX],
+    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX, listingConfirmed],
   );
 
   const persistLogo = (url: string | null) => {
@@ -232,10 +225,18 @@ export function PostLaunchDashboard({
       setTab('socials');
       return;
     }
-    if (id === 'telegram' || id === 'x') {
+    if (id === 'telegram') {
+      if (!listingConfirmed) {
+        onConfirmListing();
+        return;
+      }
+      setSetupChannel('telegram');
+      return;
+    }
+    if (id === 'x') {
       if (!hasLogo) generateLogoNow();
       if (!hasBanner) generateBannerNow();
-      setSetupChannel(id);
+      setSetupChannel('x');
     }
   };
 
@@ -341,56 +342,75 @@ export function PostLaunchDashboard({
   };
 
   return (
-    <div className="mt-2 space-y-6">
-      <div>
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-          Dashboard
-        </p>
-        <div className="mt-1.5 flex items-center gap-3">
-          {logoUrl ? (
-            <img
-              src={logoUrl}
-              alt=""
-              className="h-11 w-11 shrink-0 rounded-xl border border-white/[0.1] object-cover"
-            />
-          ) : (
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
-              {symbol.replace(/^\$/, '').slice(0, 2)}
-            </span>
-          )}
-          <h1 className="font-serif text-3xl font-bold tracking-tight text-white">{symbol}</h1>
+    <div className="mt-2 space-y-5">
+      <div className="flex items-center gap-3">
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-xl border border-white/[0.1] object-cover"
+          />
+        ) : (
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
+            {symbol.replace(/^\$/, '').slice(0, 2)}
+          </span>
+        )}
+        <div className="min-w-0">
+          <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            {symbol}
+          </h1>
+          <p className="text-[12px] text-white/40">Your CTO dashboard</p>
         </div>
       </div>
 
-      <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`flex-1 rounded-md px-2 py-2 text-[11px] font-semibold transition ${
-              tab === t.id
-                ? 'bg-[#c8ff3d] text-[#090b14]'
-                : 'text-white/50 hover:text-white'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="inline-flex min-w-full gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`shrink-0 rounded-md px-3 py-2 text-[11px] font-semibold transition ${
+                tab === t.id
+                  ? 'bg-[#c8ff3d] text-[#090b14]'
+                  : 'text-white/50 hover:text-white'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {tab === 'overview' ? (
-        <div className="space-y-6">
-          <section className="space-y-2 border-b border-white/[0.08] pb-4">
-            <p className="text-[11px] font-medium text-white/45">Contract</p>
-            <div className="flex items-center gap-2">
-              <p className="min-w-0 flex-1 break-all font-mono text-[13px] text-white">
-                {tradedContract.trim() || '—'}
-              </p>
+        <div className="space-y-5">
+          {!signedIn ? (
+            <button
+              type="button"
+              onClick={onClaimAccount}
+              className="flex w-full items-center justify-between gap-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3.5 py-3 text-left transition hover:bg-[#c8ff3d]/15"
+            >
+              <span className="text-[13px] font-semibold text-[#d5ff69]">
+                Create a free account to claim this CTO
+              </span>
+              <span className="shrink-0 text-[11px] font-bold text-[#c8ff3d]">Sign up →</span>
+            </button>
+          ) : null}
+
+          <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
+
+          <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            <div className="flex items-center gap-3 px-3 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium text-white/40">Contract</p>
+                <p className="mt-0.5 font-mono text-[13px] text-white">
+                  {shortMint(tradedContract.trim()) || '—'}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => void copyMint()}
-                className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
               >
                 {copiedMint ? (
                   <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
@@ -400,169 +420,40 @@ export function PostLaunchDashboard({
                 {copiedMint ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <p className="text-[11px] text-white/35">
-              Mint is locked after publish. Socials and websites must match this CA.
-            </p>
-          </section>
-
-          <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
-
-          <section className="space-y-3">
-            <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
-            {listingConfirmed ? (
-              <p className="flex items-center gap-2 text-sm font-semibold text-[#d5ff69]">
-                <Check className="h-4 w-4" />
-                Listing confirmed · Telegram opened
-              </p>
-            ) : (
-              <button type="button" onClick={onConfirmListing} className={primaryBtnClass}>
-                Confirm listing
-                <ExternalLink className="h-4 w-4" />
-              </button>
-            )}
-            <p className="text-[11px] text-white/35">Opens your community chat in Telegram.</p>
-          </section>
-
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium text-white/45">Marketing wallet</p>
-              <button
-                type="button"
-                onClick={() => setTab('wallet')}
-                className="text-[11px] font-semibold text-[#d5ff69] hover:underline"
-              >
-                Details
-              </button>
-            </div>
-            <div className="border-b border-white/[0.08] pb-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  {mktSolscan && mktAddress ? (
-                    <a
-                      href={mktSolscan}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 font-mono text-[13px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                      title={`View ${mktAddress} on Solscan`}
-                    >
-                      {shortAddr}
-                      <ExternalLink className="h-3 w-3 shrink-0" />
-                    </a>
-                  ) : (
-                    <p className="font-mono text-[13px] text-white">{shortAddr}</p>
-                  )}
-                  <p className="mt-0.5 text-[11px] text-white/40">
-                    {vaultLive
-                      ? `$${vaultBalanceUsd.toLocaleString()} · ${fillPct}% to ${formatThresholdUsd(nextThreshold.thresholdUsd)}`
-                      : 'Not attached yet'}
-                  </p>
-                </div>
-                <PolessiaLogo variant="powered" size="xs" className="shrink-0" />
+            <button
+              type="button"
+              onClick={() => setTab('wallet')}
+              className="flex w-full items-center gap-3 border-t border-white/[0.06] px-3 py-3 text-left transition hover:bg-white/[0.03]"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium text-white/40">Marketing wallet</p>
+                <p className="mt-0.5 text-[13px] font-semibold text-white">
+                  {vaultLive
+                    ? `$${vaultBalanceUsd.toLocaleString()}`
+                    : 'Not attached yet'}
+                  {vaultLive ? (
+                    <span className="ml-1.5 font-normal text-white/35">
+                      · {fillPct}% to next unlock
+                    </span>
+                  ) : null}
+                </p>
               </div>
-              {vaultLive && mktAddress ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => void copyMarketingWallet()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-                  >
-                    {copiedMkt ? (
-                      <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                    {copiedMkt ? 'Copied' : 'Copy'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void shareMarketingWallet()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-                  >
-                    <Share2 className="h-3.5 w-3.5" />
-                    {shareNotice ?? 'Share'}
-                  </button>
-                  <a
-                    href={mktSolscan!}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-                  >
-                    Solscan
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-              ) : null}
-              {vaultLive ? (
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-                  <div
-                    className="h-full rounded-full bg-[#c8ff3d]"
-                    style={{ width: `${fillPct}%` }}
-                  />
-                </div>
-              ) : null}
-              {vaultLive ? (
-                <button
-                  type="button"
-                  onClick={() => setTab('wallet')}
-                  className="mt-3 text-[11px] font-semibold text-white/45 hover:text-[#d5ff69]"
-                >
-                  View transaction history →
-                </button>
-              ) : null}
-            </div>
+              <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+            </button>
           </section>
 
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium text-white/45">Shareable links</p>
-              <button
-                type="button"
-                onClick={() => setTab('roadmap')}
-                className="text-[11px] font-semibold text-[#d5ff69] hover:underline"
-              >
-                Roadmap
-              </button>
-            </div>
-            <ul className="divide-y divide-white/[0.06] border-y border-white/[0.06]">
-              {(
-                [
-                  { key: 'token' as const, label: 'Token page' },
-                  { key: 'telegram' as const, label: 'Telegram' },
-                  { key: 'burn' as const, label: 'Burn share' },
-                ] as const
-              ).map((row) => (
-                <li key={row.key} className="flex items-center gap-3 py-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white">{row.label}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-white/35">
-                      {shareLinks[row.key]}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onCopyLink(row.key)}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-                  >
-                    {copiedLink === row.key ? (
-                      <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
-                    )}
-                    {copiedLink === row.key ? 'Copied' : 'Copy'}
-                  </button>
-                  <a
-                    href={shareLinks[row.key]}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="grid h-9 w-9 place-items-center rounded-lg border border-white/[0.1] text-white/45 transition hover:border-white/20 hover:text-white"
-                    aria-label={`Open ${row.label}`}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <button
+            type="button"
+            onClick={() => onCopyLink('token')}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-[13px] font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+          >
+            {copiedLink === 'token' ? (
+              <Check className="h-4 w-4 text-[#d5ff69]" />
+            ) : (
+              <Share2 className="h-4 w-4 text-white/50" />
+            )}
+            {copiedLink === 'token' ? 'Link copied' : 'Share coin page'}
+          </button>
 
           {artExtrasLine ? (
             <p className="text-[11px] text-white/35">{artExtrasLine}</p>
@@ -917,7 +808,7 @@ export function PostLaunchDashboard({
         />
       ) : null}
 
-      {!signedIn ? (
+      {!signedIn && tab !== 'overview' ? (
         <button type="button" onClick={onClaimAccount} className={primaryBtnClass}>
           Create free account to claim
           <Check className="h-4 w-4" />
@@ -936,11 +827,15 @@ export function PostLaunchDashboard({
           )}
         </button>
       ) : (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <Link to="/" className={`${primaryBtnClass} sm:flex-1`}>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-4 text-[12px]">
+          <Link to="/" className="font-semibold text-white/45 transition hover:text-white">
             Back to home
           </Link>
-          <button type="button" onClick={onReset} className={backBtnClass}>
+          <button
+            type="button"
+            onClick={onReset}
+            className="font-semibold text-white/35 transition hover:text-white/60"
+          >
             {mode === 'add' ? 'List another' : 'Launch another'}
           </button>
         </div>

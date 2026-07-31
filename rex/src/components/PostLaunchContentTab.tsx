@@ -94,16 +94,15 @@ export function PostLaunchContentTab({
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-sm font-bold text-white">Content hub</p>
-        <p className="mt-1 text-[12px] leading-relaxed text-white/45">
-          Everything you need before Dex, X, Telegram, or CoinGecko spend — generate, upload, and
-          save to gallery.
+        <p className="text-sm font-bold text-white">Logo & banner</p>
+        <p className="mt-1 text-[12px] text-white/45">
+          Generate or upload, then save to your gallery.
         </p>
       </div>
 
       <section className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[12px] font-bold text-white">Media pack</p>
+          <p className="text-[12px] font-semibold text-white/50">Media</p>
           <p className="text-[10px] text-white/35">
             Logo 1:1 · Banner {DEXSCREENER_HEADER.ratioLabel}
           </p>
