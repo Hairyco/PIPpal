@@ -292,7 +292,7 @@ export function LaunchCtoPage() {
     setLogoPreview('/meme-logos/peponk.png');
   }, [searchParams]);
 
-  /** Prefill demo / pasted mint should resolve without forcing a Find click. */
+  /** Prefill from a pasted mint in the URL — not the empty demo filler. */
   useEffect(() => {
     if (mode !== 'add' || step !== 'coin') return;
     const mint = contract.trim();
@@ -300,6 +300,11 @@ export function LaunchCtoPage() {
     void runLookup(mint);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, step]);
+
+  const findContract = () => {
+    const mint = contract.trim();
+    void runLookup(mint.length >= 32 ? mint : DEMO_CONTRACT);
+  };
 
   useEffect(() => {
     if (prefillApplied.current) return;
@@ -1090,8 +1095,8 @@ export function LaunchCtoPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => void runLookup(contract)}
-                    disabled={lookupBusy || contract.trim().length < 8}
+                    onClick={() => void findContract()}
+                    disabled={lookupBusy}
                     className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-bold text-[#d5ff69] disabled:opacity-40"
                   >
                     {lookupBusy ? (
