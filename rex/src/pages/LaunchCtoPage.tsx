@@ -1055,7 +1055,6 @@ export function LaunchCtoPage() {
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: Sparkles, label: 'Logo & Dex banner' },
                         { icon: ShieldAlert, label: 'Stop dev fees' },
-                        { icon: Users, label: 'Board listing' },
                       ].map(({ icon: Icon, label }) => (
                         <div
                           key={label}
