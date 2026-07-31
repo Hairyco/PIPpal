@@ -170,50 +170,90 @@ export function ContentSetupSheet({
         </div>
 
         <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          {/* In-page “mini webpage” preview for X / TG */}
           {(channel === 'x' || channel === 'telegram') && (
             <div className="mb-4 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
               <p className="border-b border-white/[0.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white/35">
                 Preview · {channel === 'x' ? 'X profile' : 'Telegram group'}
               </p>
-              <div className="aspect-[3/1] w-full bg-[#0a0c12]">
-                {bannerUrl ? (
-                  <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <div className="grid h-full place-items-center text-[11px] text-white/30">
-                    No banner yet
+              {channel === 'x' ? (
+                <>
+                  <div className="relative aspect-[3/1] w-full bg-[#0a0c12]">
+                    {bannerUrl ? (
+                      <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-[11px] text-white/25">
+                        Header optional
+                      </div>
+                    )}
+                    <div className="absolute -bottom-8 left-3">
+                      <div className="h-16 w-16 overflow-hidden rounded-full border-4 border-[#05070d] bg-white/10 shadow-lg ring-1 ring-white/20">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="grid h-full place-items-center text-[10px] font-bold text-white/30">
+                            Logo
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="relative px-3 pb-3 pt-0">
-                <div className="-mt-7 mb-2 flex items-end gap-3">
-                  <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-[#0a0c12] bg-white/10 ring-1 ring-white/15">
-                    {logoUrl ? (
-                      <img src={logoUrl} alt="" className="h-full w-full object-cover" />
-                    ) : null}
-                  </div>
-                  <div className="min-w-0 pb-1">
+                  <div className="px-3 pb-3 pt-10">
                     <p className="truncate text-sm font-bold text-white">${symbol}</p>
                     <p className="truncate text-[11px] text-white/40">
-                      {channel === 'x' ? `@${symbol.toLowerCase()}` : `${symbol} Community`}
+                      @{symbol.replace(/^\$/, '').toLowerCase()}
+                    </p>
+                    <p className="mt-2 text-[11px] leading-relaxed text-white/45">
+                      Community takeover · Official CA on CTOgo
+                    </p>
+                    <p className="mt-2 text-[10px] font-semibold text-[#d5ff69]/80">
+                      Profile photo = your logo (save below, then upload on X)
                     </p>
                   </div>
-                </div>
-                <p className="text-[11px] text-white/45">
-                  Community takeover · Official CA on CTOgo
-                </p>
-              </div>
+                </>
+              ) : (
+                <>
+                  <div className="aspect-[3/1] w-full bg-[#0a0c12]">
+                    {bannerUrl ? (
+                      <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="grid h-full place-items-center text-[11px] text-white/30">
+                        No banner yet
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative px-3 pb-3 pt-0">
+                    <div className="-mt-7 mb-2 flex items-end gap-3">
+                      <div className="h-14 w-14 overflow-hidden rounded-full border-2 border-[#0a0c12] bg-white/10 ring-1 ring-white/15">
+                        {logoUrl ? (
+                          <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+                        ) : null}
+                      </div>
+                      <div className="min-w-0 pb-1">
+                        <p className="truncate text-sm font-bold text-white">${symbol}</p>
+                        <p className="truncate text-[11px] text-white/40">{symbol} Community</p>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-white/45">
+                      Community takeover · Official CA on CTOgo
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className={`grid gap-3 ${channel === 'x' ? 'sm:grid-cols-1' : 'sm:grid-cols-2'}`}>
             <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
               <p className="border-b border-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                Logo · 1:1
+                {channel === 'x' ? 'X profile photo · Logo 1:1' : 'Logo · 1:1'}
               </p>
-              <div className="grid aspect-square place-items-center p-4">
+              <div className="grid aspect-square max-h-56 place-items-center p-4 sm:max-h-none">
                 {logoUrl ? (
-                  <img src={logoUrl} alt="" className="h-28 w-28 rounded-2xl object-cover" />
+                  <img
+                    src={logoUrl}
+                    alt=""
+                    className={`object-cover ${channel === 'x' ? 'h-32 w-32 rounded-full' : 'h-28 w-28 rounded-2xl'}`}
+                  />
                 ) : (
                   <button
                     type="button"
@@ -230,35 +270,62 @@ export function ContentSetupSheet({
                 className="flex w-full items-center justify-center gap-1.5 border-t border-white/[0.06] py-2.5 text-[11px] font-bold text-[#d5ff69]"
               >
                 <Download className="h-3.5 w-3.5" />
-                Save to gallery
+                Save logo to gallery
               </button>
             </div>
-            <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
-              <p className="border-b border-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                Banner · 3:1
-              </p>
-              <div className="aspect-[3/1] bg-[#05070d]">
-                {bannerUrl ? (
-                  <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={onGenerateBanner}
-                    className="grid h-full w-full place-items-center text-[11px] font-semibold text-[#d5ff69]"
-                  >
-                    Generate banner
-                  </button>
-                )}
+            {channel !== 'x' ? (
+              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <p className="border-b border-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                  Banner · 3:1
+                </p>
+                <div className="aspect-[3/1] bg-[#05070d]">
+                  {bannerUrl ? (
+                    <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onGenerateBanner}
+                      className="grid h-full w-full place-items-center text-[11px] font-semibold text-[#d5ff69]"
+                    >
+                      Generate banner
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void saveBanner()}
+                  className="flex w-full items-center justify-center gap-1.5 border-t border-white/[0.06] py-2.5 text-[11px] font-bold text-[#d5ff69]"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Save to gallery
+                </button>
               </div>
+            ) : bannerUrl ? (
+              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <p className="border-b border-white/[0.06] px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                  X header · optional
+                </p>
+                <div className="aspect-[3/1] bg-[#05070d]">
+                  <img src={bannerUrl} alt="" className="h-full w-full object-cover" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void saveBanner()}
+                  className="flex w-full items-center justify-center gap-1.5 border-t border-white/[0.06] py-2.5 text-[11px] font-bold text-[#d5ff69]"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Save header to gallery
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={() => void saveBanner()}
-                className="flex w-full items-center justify-center gap-1.5 border-t border-white/[0.06] py-2.5 text-[11px] font-bold text-[#d5ff69]"
+                onClick={onGenerateBanner}
+                className="rounded-xl border border-dashed border-white/[0.12] px-3 py-3 text-left text-[11px] font-semibold text-white/45 transition hover:border-white/25 hover:text-[#d5ff69]"
               >
-                <Download className="h-3.5 w-3.5" />
-                Save to gallery
+                + Optional: generate X header / Dex banner
               </button>
-            </div>
+            )}
           </div>
 
           {notice ? (
@@ -268,8 +335,9 @@ export function ContentSetupSheet({
             </p>
           ) : (
             <p className="mt-3 text-[11px] text-white/40">
-              On phones, Save downloads the file — open Photos / Files and upload to the app. Or use
-              Share pack when available.
+              {channel === 'x'
+                ? 'Save the logo, then open X profile settings and set it as your photo.'
+                : 'On phones, Save downloads the file — open Photos / Files and upload to the app. Or use Share pack when available.'}
             </p>
           )}
         </div>
