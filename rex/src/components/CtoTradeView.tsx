@@ -12,6 +12,7 @@ import {
   Settings2,
   Star,
   X,
+  Pin,
 } from 'lucide-react';
 import { MigrateToV2Banner, UpgradedOnCtogoBanner } from './OriginBadge';
 import { CoinHeaderBanner } from './CoinHeaderBanner';
@@ -267,6 +268,7 @@ export function CtoTradeView({
   const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [chartOffscreen, setChartOffscreen] = useState(false);
+  const [stickyChartPinned, setStickyChartPinned] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
@@ -302,6 +304,7 @@ export function CtoTradeView({
 
   useEffect(() => {
     setChartVersion('v2');
+    setStickyChartPinned(true);
     const catalog = project.headerBanner ?? null;
     let stored: string | null = null;
     try {
@@ -1116,37 +1119,61 @@ export function CtoTradeView({
         </div>
       </div>
 
-      {chartOffscreen ? (
+      {chartOffscreen && stickyChartPinned ? (
+        <div className="fixed inset-x-3 top-3 z-50 overflow-hidden rounded-xl border border-[#c8ff3d]/30 bg-[#05070d]/95 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-md lg:hidden">
+          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-2.5 py-1.5">
+            <button
+              type="button"
+              onClick={scrollToChart}
+              className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+              aria-label="Open full price chart"
+            >
+              <div
+                className={`h-7 w-7 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
+              >
+                <img src={project.logo} alt="" className="h-full w-full object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[12px] font-bold text-white">${project.ticker}</span>
+                  <span className="truncate text-[10px] text-white/40">{project.name}</span>
+                </div>
+                <div className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold tabular-nums">
+                  <span className="text-white/90">{project.price}</span>
+                  <Pct value={change} />
+                </div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStickyChartPinned(false)}
+              className="shrink-0 rounded-md border border-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/45 hover:border-white/25 hover:text-white"
+              aria-label="Hide sticky chart"
+              title="Hide"
+            >
+              Hide
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={scrollToChart}
+            className="block h-[88px] w-full px-1 py-1"
+            aria-label="Open full price chart"
+          >
+            <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
+          </button>
+        </div>
+      ) : null}
+
+      {chartOffscreen && !stickyChartPinned ? (
         <button
           type="button"
-          onClick={scrollToChart}
-          className="fixed inset-x-3 top-3 z-50 overflow-hidden rounded-xl border border-[#c8ff3d]/30 bg-[#05070d]/95 shadow-[0_12px_40px_rgba(0,0,0,0.65)] backdrop-blur-md lg:hidden"
-          aria-label="Open full price chart"
-          title="Tap to return to chart"
+          onClick={() => setStickyChartPinned(true)}
+          className="fixed right-3 top-3 z-50 grid h-10 w-10 place-items-center rounded-xl border border-[#c8ff3d]/35 bg-[#05070d]/95 text-[#d5ff69] shadow-[0_8px_28px_rgba(0,0,0,0.55)] backdrop-blur-md lg:hidden"
+          aria-label="Pin sticky chart"
+          title="Pin chart"
         >
-          <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-2.5 py-1.5">
-            <div
-              className={`h-7 w-7 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
-            >
-              <img src={project.logo} alt="" className="h-full w-full object-cover" />
-            </div>
-            <div className="min-w-0 flex-1 text-left">
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-[12px] font-bold text-white">${project.ticker}</span>
-                <span className="truncate text-[10px] text-white/40">{project.name}</span>
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold tabular-nums">
-                <span className="text-white/90">{project.price}</span>
-                <Pct value={change} />
-              </div>
-            </div>
-            <span className="shrink-0 rounded-md border border-white/[0.1] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white/45">
-              Chart
-            </span>
-          </div>
-          <div className="h-[88px] px-1 py-1">
-            <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
-          </div>
+          <Pin className="h-4 w-4" />
         </button>
       ) : null}
 
