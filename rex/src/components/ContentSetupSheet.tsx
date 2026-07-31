@@ -20,8 +20,8 @@ const CHANNEL_META: Record<
   { title: string; body: string; externalLabel: string; externalHref: string }
 > = {
   x: {
-    title: 'Set up X / Twitter',
-    body: 'Save your logo and header, then upload them on X. Use the same CA in your bio.',
+    title: 'Add logo for X',
+    body: 'Save your logo (and header if ready), then upload them on X. Put the same CA in your bio.',
     externalLabel: 'Open X profile settings',
     externalHref: 'https://x.com/settings/profile',
   },

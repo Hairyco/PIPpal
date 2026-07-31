@@ -4,6 +4,8 @@ import {
   Check,
   Copy,
   ExternalLink,
+  Globe,
+  MessageCircle,
   Share2,
   Sparkles,
   Wallet,
@@ -32,6 +34,7 @@ import {
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
+import { CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
 
@@ -377,10 +380,79 @@ export function PostLaunchDashboard({
       ) : null}
 
       {!needsSetup && tab === 'overview' ? (
-        <p className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
-          Your coin is on the CTOgo website for discovery. It keeps trading on its exchange —
-          nothing is paused. We pull logo and socials from the existing listing.
-        </p>
+        <div className="space-y-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] px-3.5 py-3.5">
+          <div>
+            <p className="text-[13px] font-semibold text-[#d5ff69]">Start fresh?</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-white/50">
+              You’re on the board — trading stays on the exchange. Optionally replace the old site
+              and socials so holders see a clean CTO.
+            </p>
+          </div>
+          <ul className="space-y-2">
+            <li>
+              <button
+                type="button"
+                onClick={() => setTab('socials')}
+                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                  <Globe className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold text-white">
+                    Clone existing website
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-white/40">
+                    ${CLONE_HOSTING_FEE_USD} from marketing wallet · hosting included
+                  </span>
+                </span>
+                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => setTab('socials')}
+                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                  <MessageCircle className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold text-white">Add new socials</span>
+                  <span className="mt-0.5 block text-[11px] text-white/40">
+                    Fresh X, Telegram, Discord links for the CTO
+                  </span>
+                </span>
+                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!hasLogo) generateLogoNow();
+                  if (!hasBanner) generateBannerNow();
+                  setSetupChannel('x');
+                }}
+                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold text-white">
+                    Add logo for X
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-white/40">
+                    Save the mark, then upload as your X profile photo
+                  </span>
+                </span>
+                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+              </button>
+            </li>
+          </ul>
+        </div>
       ) : null}
 
       <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
