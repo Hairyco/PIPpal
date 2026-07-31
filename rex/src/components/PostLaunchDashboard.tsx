@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check,
@@ -14,7 +14,13 @@ import {
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
-import { PlatformCollateralChecklist } from './PlatformCollateralChecklist';
+import { PostLaunchContentTab } from './PostLaunchContentTab';
+import { OverviewSetupChecklist } from './OverviewSetupChecklist';
+import { ContentSetupSheet, type SetupChannel } from './ContentSetupSheet';
+import {
+  generateCtoLogoDataUrl,
+  generateDexScreenerHeaderWithLogo,
+} from '../utils/ctoCollateralGenerate';
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
@@ -106,6 +112,132 @@ export function PostLaunchDashboard({
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapApproved, setRoadmapApproved] = useState(false);
   const [collateralChecked, setCollateralChecked] = useState<string[]>([]);
+  const [logoUrlState, setLogoUrlState] = useState<string | null>(logoUrl);
+  const [bannerUrlState, setBannerUrlState] = useState<string | null>(null);
+  const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
+
+  useEffect(() => {
+    setLogoUrlState(logoUrl);
+  }, [logoUrl]);
+
+  useEffect(() => {
+    const t = symbol.trim().toUpperCase() || 'CTO';
+    try {
+      const storedLogo = sessionStorage.getItem(`ctogo-logo-${t}`);
+      const storedBanner = sessionStorage.getItem(`ctogo-dex-header-${t}`);
+      if (storedLogo) setLogoUrlState(storedLogo);
+      if (storedBanner) setBannerUrlState(storedBanner);
+    } catch {
+      /* ignore */
+    }
+  }, [symbol]);
+
+  const hasLogo = Boolean(logoUrlState);
+  const hasBanner = Boolean(bannerUrlState);
+  const hasWebsite =
+    websiteKind === 'onepager' ||
+    websiteKind === 'clone' ||
+    (websiteKind !== 'none' && Boolean(websiteUrl.trim()));
+  const hasTelegram = Boolean((telegramCommunity || shareLinks.telegram || '').trim());
+  const hasX = Boolean(twitter.trim());
+
+  const overviewItems = useMemo(
+    () => [
+      {
+        id: 'content' as const,
+        label: 'Content',
+        detail:
+          hasLogo && hasBanner
+            ? 'Logo & banner ready'
+            : !hasLogo && !hasBanner
+              ? 'Generate logo & Dex banner'
+              : !hasLogo
+                ? 'Logo still needed'
+                : 'Banner still needed',
+        done: hasLogo && hasBanner,
+        actionLabel: hasLogo || hasBanner ? 'Finish' : 'Generate',
+      },
+      {
+        id: 'website' as const,
+        label: 'Website',
+        detail: hasWebsite ? 'Linked on your listing' : 'CTOgo page or your own site',
+        done: hasWebsite,
+        actionLabel: 'Set up',
+      },
+      {
+        id: 'telegram' as const,
+        label: 'Telegram',
+        detail: hasTelegram ? 'Community linked' : 'Avatar + pin with official CA',
+        done: hasTelegram,
+        actionLabel: 'Set up',
+      },
+      {
+        id: 'x' as const,
+        label: 'X',
+        detail: hasX ? 'Profile linked' : 'Save media, then upload on X',
+        done: hasX,
+        actionLabel: 'Set up',
+      },
+    ],
+    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX],
+  );
+
+  const persistLogo = (url: string | null) => {
+    setLogoUrlState(url);
+    if (!url) return;
+    try {
+      sessionStorage.setItem(`ctogo-logo-${symbol.trim().toUpperCase()}`, url);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const persistBanner = (url: string | null) => {
+    setBannerUrlState(url);
+    if (!url) return;
+    try {
+      sessionStorage.setItem(`ctogo-dex-header-${symbol.trim().toUpperCase()}`, url);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const generateLogoNow = () => {
+    const url = generateCtoLogoDataUrl({
+      projectName: symbol,
+      ticker: symbol,
+      salt: Date.now() % 997,
+    });
+    persistLogo(url);
+  };
+
+  const generateBannerNow = () => {
+    void generateDexScreenerHeaderWithLogo({
+      projectName: symbol,
+      ticker: symbol,
+      logoDataUrl: logoUrlState,
+      tagline: 'Community owned · No rugs',
+      salt: Date.now() % 997,
+    }).then(persistBanner);
+  };
+
+  const onChecklistAction = (id: (typeof overviewItems)[number]['id']) => {
+    if (id === 'content') {
+      if (!hasLogo) generateLogoNow();
+      if (!hasBanner) generateBannerNow();
+      setSetupChannel(hasBanner ? 'banner' : 'logo');
+      return;
+    }
+    if (id === 'website') {
+      setTab('socials');
+      return;
+    }
+    if (id === 'telegram' || id === 'x') {
+      if (!hasLogo) generateLogoNow();
+      if (!hasBanner) generateBannerNow();
+      setSetupChannel(id);
+    }
+  };
 
   const nextThreshold = useMemo(() => {
     return (
@@ -272,6 +404,8 @@ export function PostLaunchDashboard({
               Mint is locked after publish. Socials and websites must match this CA.
             </p>
           </section>
+
+          <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
 
           <section className="space-y-3">
             <p className="text-[11px] font-medium text-white/45">Confirm listing</p>
@@ -744,20 +878,19 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'content' ? (
-        <div className="space-y-4">
-          <PlatformCollateralChecklist
-            checkedIds={collateralChecked}
-            onToggle={(id) =>
-              setCollateralChecked((prev) =>
-                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-              )
-            }
-          />
-          <p className="text-[11px] leading-relaxed text-white/40">
-            You can finish this before or after launch. Vault spend for Dex / TG still needs these
-            assets ready — money alone does not unlock campaigns.
-          </p>
-        </div>
+        <PostLaunchContentTab
+          symbol={symbol}
+          logoUrl={logoUrlState}
+          bannerUrl={bannerUrlState}
+          onLogoChange={persistLogo}
+          onBannerChange={persistBanner}
+          collateralChecked={collateralChecked}
+          onToggleCollateral={(id) =>
+            setCollateralChecked((prev) =>
+              prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+            )
+          }
+        />
       ) : null}
 
       {tab === 'socials' ? (
@@ -812,6 +945,18 @@ export function PostLaunchDashboard({
           </button>
         </div>
       )}
+
+      <ContentSetupSheet
+        open={setupChannel != null}
+        channel={setupChannel}
+        symbol={symbol}
+        logoUrl={logoUrlState}
+        bannerUrl={bannerUrlState}
+        onClose={() => setSetupChannel(null)}
+        onGenerateLogo={generateLogoNow}
+        onGenerateBanner={generateBannerNow}
+        onGoContent={() => setTab('content')}
+      />
     </div>
   );
 }
