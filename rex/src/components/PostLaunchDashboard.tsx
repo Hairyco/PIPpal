@@ -14,6 +14,7 @@ import {
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
+import { PlatformCollateralChecklist } from './PlatformCollateralChecklist';
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
@@ -26,7 +27,7 @@ import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 
-type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
+type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
 
 type ShareLinks = {
   token: string;
@@ -65,6 +66,7 @@ const TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'content', label: 'Content' },
   { id: 'socials', label: 'Socials' },
   { id: 'affiliate', label: 'Affiliate' },
 ];
@@ -103,6 +105,7 @@ export function PostLaunchDashboard({
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapApproved, setRoadmapApproved] = useState(false);
+  const [collateralChecked, setCollateralChecked] = useState<string[]>([]);
 
   const nextThreshold = useMemo(() => {
     return (
@@ -737,6 +740,23 @@ export function PostLaunchDashboard({
               );
             })}
           </div>
+        </div>
+      ) : null}
+
+      {tab === 'content' ? (
+        <div className="space-y-4">
+          <PlatformCollateralChecklist
+            checkedIds={collateralChecked}
+            onToggle={(id) =>
+              setCollateralChecked((prev) =>
+                prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+              )
+            }
+          />
+          <p className="text-[11px] leading-relaxed text-white/40">
+            You can finish this before or after launch. Vault spend for Dex / TG still needs these
+            assets ready — money alone does not unlock campaigns.
+          </p>
         </div>
       ) : null}
 

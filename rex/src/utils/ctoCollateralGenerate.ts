@@ -68,7 +68,7 @@ export function generateCtoLogoDataUrl(input: {
   return canvas.toDataURL('image/png');
 }
 
-/** Wide social / page banner. Instant, offline, always works. */
+/** Wide social / page banner (OG ~1.9:1). Instant, offline, always works. */
 export function generateCtoBannerDataUrl(input: {
   projectName: string;
   ticker: string;
@@ -129,6 +129,136 @@ export function generateCtoBannerDataUrl(input: {
   drawText();
 
   return canvas.toDataURL('image/png');
+}
+
+/**
+ * DexScreener token header — 3:1 cropper ratio.
+ * Recommend 1200×400; keep text large and left-weighted so it survives mobile crop.
+ */
+export function generateDexScreenerHeaderDataUrl(input: {
+  projectName: string;
+  ticker: string;
+  logoDataUrl?: string | null;
+  tagline?: string;
+  salt?: number;
+}): string {
+  const name = input.projectName.trim() || 'Community Takeover';
+  const ticker = input.ticker.trim().replace(/^\$/, '') || 'CTO';
+  const tagline = input.tagline?.trim() || 'Community owned · No rugs';
+  const seed = hashSeed(`dex-${name}-${ticker}-${tagline}`) + (input.salt ?? 0) * 31;
+  const { hue, hue2 } = palette(seed);
+
+  const w = 1200;
+  const h = 400;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return '';
+
+  const grad = ctx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, `hsl(${hue} 55% 18%)`);
+  grad.addColorStop(0.5, '#0a0c12');
+  grad.addColorStop(1, `hsl(${hue2} 45% 14%)`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Subtle grid — Dex pages are dense/data-heavy; keep banner calm.
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let x = 40; x < w; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, h);
+    ctx.stroke();
+  }
+
+  ctx.fillStyle = 'rgba(200,255,61,0.12)';
+  ctx.beginPath();
+  ctx.ellipse(980, 200, 260, 160, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#c8ff3d';
+  ctx.font = '700 18px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText('CTOgo', 56, 56);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 56px ui-serif, Georgia, serif';
+  ctx.fillText(name.slice(0, 22), 56, 150);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.72)';
+  ctx.font = '700 32px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText(`$${ticker.toUpperCase().slice(0, 12)}`, 56, 210);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.48)';
+  ctx.font = '500 22px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText(tagline.slice(0, 42), 56, 270);
+
+  ctx.fillStyle = 'rgba(200,255,61,0.85)';
+  ctx.font = '600 16px ui-sans-serif, system-ui, sans-serif';
+  ctx.fillText('3:1 DexScreener header', 56, 360);
+
+  return canvas.toDataURL('image/png');
+}
+
+/** Dex header with optional logo composite on the right. */
+export async function generateDexScreenerHeaderWithLogo(input: {
+  projectName: string;
+  ticker: string;
+  logoDataUrl?: string | null;
+  tagline?: string;
+  salt?: number;
+}): Promise<string> {
+  const base = generateDexScreenerHeaderDataUrl(input);
+  if (!input.logoDataUrl) return base;
+
+  try {
+    const w = 1200;
+    const h = 400;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return base;
+
+    const bg = new Image();
+    await new Promise<void>((resolve, reject) => {
+      bg.onload = () => resolve();
+      bg.onerror = () => reject(new Error('bg'));
+      bg.src = base;
+    });
+    ctx.drawImage(bg, 0, 0);
+
+    const logo = new Image();
+    await new Promise<void>((resolve, reject) => {
+      logo.onload = () => resolve();
+      logo.onerror = () => reject(new Error('logo'));
+      logo.src = input.logoDataUrl!;
+    });
+
+    const size = 160;
+    const x = 980;
+    const y = 120;
+    ctx.beginPath();
+    ctx.roundRect(x - 8, y - 8, size + 16, size + 16, 24);
+    ctx.fillStyle = 'rgba(9,11,20,0.7)';
+    ctx.fill();
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, y, size, size, 20);
+    ctx.clip();
+    ctx.drawImage(logo, x, y, size, size);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(200,255,61,0.55)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(x, y, size, size, 20);
+    ctx.stroke();
+
+    return canvas.toDataURL('image/png');
+  } catch {
+    return base;
+  }
 }
 
 /** Banner that composites logo when the image can be decoded. */

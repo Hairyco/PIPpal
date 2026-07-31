@@ -28,7 +28,9 @@ import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
+import { PlatformCollateralChecklist } from '../components/PlatformCollateralChecklist';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
+import { DEXSCREENER_HEADER } from '../data/platformCollateralChecklist';
 import {
   CREATOR_FEE_MODES,
   FEE_TIERS,
@@ -65,6 +67,7 @@ import {
 import {
   generateCtoBannerWithLogo,
   generateCtoLogoDataUrl,
+  generateDexScreenerHeaderWithLogo,
   readImageFile,
 } from '../utils/ctoCollateralGenerate';
 import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
@@ -72,7 +75,7 @@ import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
-type WebsiteKind = 'onepager' | 'clone' | 'none';
+type WebsiteKind = 'none' | 'onepager' | 'clone';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -239,11 +242,15 @@ export function LaunchCtoPage() {
   const [venueLabel, setVenueLabel] = useState('Solana');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [editArt, setEditArt] = useState(false);
-  const [websiteKind, setWebsiteKind] = useState<WebsiteKind>('onepager');
+  const [websiteKind, setWebsiteKind] = useState<WebsiteKind>('none');
   const [cloneUrl, setCloneUrl] = useState('');
   /** Extra gens after the free first logo/banner — billed at publish. */
   const [extraLogoGens, setExtraLogoGens] = useState(0);
   const [extraBannerGens, setExtraBannerGens] = useState(0);
+  const [dexHeaderPreview, setDexHeaderPreview] = useState<string | null>(null);
+  const [dexHeaderSalt, setDexHeaderSalt] = useState(0);
+  const [generatingDexHeader, setGeneratingDexHeader] = useState(false);
+  const [collateralChecked, setCollateralChecked] = useState<string[]>([]);
   const [siteGenerated, setSiteGenerated] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
@@ -256,6 +263,7 @@ export function LaunchCtoPage() {
   const [editSite, setEditSite] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const dexHeaderRef = useRef<HTMLInputElement>(null);
   const sitePreviewRef = useRef<HTMLDivElement>(null);
   const [fromCoinPage, setFromCoinPage] = useState(false);
   const prefillApplied = useRef(false);
@@ -425,7 +433,7 @@ export function LaunchCtoPage() {
           { id: 'coin' as const, label: 'Coin' },
           { id: 'fees' as const, label: 'Fees & buy' },
           { id: 'burn' as const, label: 'Burn' },
-          { id: 'website' as const, label: 'Website' },
+          { id: 'website' as const, label: 'Content' },
         ]
       : [];
   const stepIndex = steps.findIndex((s) => s.id === step);
@@ -515,18 +523,21 @@ export function LaunchCtoPage() {
     designCycleRef.current = 0;
     setLogoPreview(null);
     setBannerPreview(null);
+    setDexHeaderPreview(null);
     setLogoSalt(0);
     setBannerSalt(0);
+    setDexHeaderSalt(0);
     setLookupBusy(false);
     setLookupError(null);
     setCoinReady(false);
     setVenueLabel('Solana');
     setShowAdvanced(false);
     setEditArt(false);
-    setWebsiteKind('onepager');
+    setWebsiteKind('none');
     setCloneUrl('');
     setExtraLogoGens(0);
     setExtraBannerGens(0);
+    setCollateralChecked([]);
     setSiteGenerated(false);
     setPreviewOpen(false);
     setGeneratingSite(false);
@@ -695,6 +706,20 @@ export function LaunchCtoPage() {
       const next = await connect();
       if (!next) return;
     }
+    const t = ticker.trim().toUpperCase() || 'CTO';
+    try {
+      if (dexHeaderPreview) {
+        sessionStorage.setItem(`ctogo-dex-header-${t}`, dexHeaderPreview);
+      }
+      if (bannerPreview) {
+        sessionStorage.setItem(`ctogo-banner-${t}`, bannerPreview);
+      }
+      if (logoPreview) {
+        sessionStorage.setItem(`ctogo-logo-${t}`, logoPreview);
+      }
+    } catch {
+      /* ignore quota */
+    }
     await finishLaunch();
   };
 
@@ -736,6 +761,7 @@ export function LaunchCtoPage() {
     const url = makeLogo(next);
     // Refresh banner composite with the new logo only — not an extra banner charge.
     void makeBanner(bannerSalt, url);
+    void makeDexHeader(dexHeaderSalt, url);
   };
 
   const regenerateBanner = () => {
@@ -743,6 +769,46 @@ export function LaunchCtoPage() {
     setBannerSalt(next);
     setExtraBannerGens((n) => n + 1);
     void makeBanner(next);
+  };
+
+  const makeDexHeader = async (salt = dexHeaderSalt, logoUrl?: string | null) => {
+    setGeneratingDexHeader(true);
+    try {
+      const url = await generateDexScreenerHeaderWithLogo({
+        projectName: name || 'Pepe Coin',
+        ticker: ticker || 'PEPE',
+        logoDataUrl: logoUrl ?? logoPreview,
+        tagline: siteHeadline || pageBlurb || note || 'Community owned · No rugs',
+        salt,
+      });
+      setDexHeaderPreview(url);
+      return url;
+    } finally {
+      setGeneratingDexHeader(false);
+    }
+  };
+
+  const regenerateDexHeader = () => {
+    const next = dexHeaderSalt + 1;
+    setDexHeaderSalt(next);
+    setExtraBannerGens((n) => n + 1);
+    void makeDexHeader(next);
+  };
+
+  const onUploadDexHeader = async (file?: File | null) => {
+    if (!file) return;
+    try {
+      const url = await readImageFile(file);
+      setDexHeaderPreview(url);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Upload failed');
+    }
+  };
+
+  const toggleCollateralItem = (itemId: string) => {
+    setCollateralChecked((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId],
+    );
   };
 
   const selectWebsiteKind = (kind: WebsiteKind) => {
@@ -822,6 +888,7 @@ export function LaunchCtoPage() {
       const url = await readImageFile(file);
       setLogoPreview(url);
       void makeBanner(bannerSalt, url);
+      void makeDexHeader(dexHeaderSalt, url);
     } catch {
       // ignore
     }
@@ -968,9 +1035,9 @@ export function LaunchCtoPage() {
                     </li>
                     <li className="grid gap-2 sm:grid-cols-2">
                       {[
-                        { icon: Globe, label: 'Website (optional)' },
+                        { icon: Globe, label: 'Content (optional)' },
                         { icon: MessageCircle, label: 'New socials' },
-                        { icon: Sparkles, label: 'Logo & banner' },
+                        { icon: Sparkles, label: 'Logo & Dex banner' },
                         { icon: ShieldAlert, label: 'Stop dev fees' },
                         { icon: Users, label: 'Board listing' },
                       ].map(({ icon: Icon, label }) => (
@@ -1604,9 +1671,10 @@ export function LaunchCtoPage() {
           {step === 'website' ? (
             <form onSubmit={onWebsiteFinish} className="mt-6 space-y-4">
               <div>
-                <p className="text-sm font-bold text-white">Your website</p>
+                <p className="text-sm font-bold text-white">Content</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Optional — build a 1-pager, clone an old site, or skip and launch without one.
+                  Skip the site if you want — still prep logo, DexScreener header, and campaign
+                  collateral before you spend the marketing wallet.
                 </p>
               </div>
 
@@ -1618,6 +1686,18 @@ export function LaunchCtoPage() {
               </p>
 
               <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => selectWebsiteKind('none')}
+                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
+                    websiteKind === 'none'
+                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
+                  }`}
+                >
+                  <p className="text-[11px] font-bold text-white">Skip website</p>
+                  <p className="mt-0.5 text-[9px] text-white/40">Default · coin page only</p>
+                </button>
                 <button
                   type="button"
                   onClick={() => selectWebsiteKind('onepager')}
@@ -1642,23 +1722,111 @@ export function LaunchCtoPage() {
                   <p className="text-[11px] font-bold text-white">Clone</p>
                   <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => selectWebsiteKind('none')}
-                  className={`rounded-xl border px-2.5 py-2.5 text-left transition ${
-                    websiteKind === 'none'
-                      ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
-                      : 'border-white/[0.08] bg-white/[0.03] hover:border-white/20'
-                  }`}
-                >
-                  <p className="text-[11px] font-bold text-white">Skip</p>
-                  <p className="mt-0.5 text-[9px] text-white/40">No website</p>
-                </button>
               </div>
+
+              <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
+                <div>
+                  <p className="text-[12px] font-bold text-white">Images</p>
+                  <p className="mt-0.5 text-[11px] text-white/40">
+                    Upload or generate. Dex header is {DEXSCREENER_HEADER.ratioLabel} (
+                    {DEXSCREENER_HEADER.width}×{DEXSCREENER_HEADER.height}).
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!logoPreview) makeLogo(logoSalt);
+                      else regenerateLogo();
+                    }}
+                    disabled={generatingLogo}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {logoPreview ? 'New logo' : 'Generate logo'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => logoRef.current?.click()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Upload logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!dexHeaderPreview) void makeDexHeader(dexHeaderSalt);
+                      else regenerateDexHeader();
+                    }}
+                    disabled={generatingDexHeader}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    {dexHeaderPreview ? 'New Dex banner' : 'Generate Dex banner'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => dexHeaderRef.current?.click()}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
+                  >
+                    <Upload className="h-3.5 w-3.5" />
+                    Upload Dex banner
+                  </button>
+                  <input
+                    ref={dexHeaderRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(event) => {
+                      void onUploadDexHeader(event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-black/40">
+                    <p className="border-b border-white/[0.06] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                      Logo · 1:1
+                    </p>
+                    <div className="grid aspect-square place-items-center p-3">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="" className="h-24 w-24 rounded-xl object-cover" />
+                      ) : (
+                        <p className="text-[11px] text-white/30">No logo yet</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-black/40">
+                    <p className="border-b border-white/[0.06] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                      DexScreener header · 3:1
+                    </p>
+                    <div className="aspect-[3/1] bg-[#05070d]">
+                      {dexHeaderPreview ? (
+                        <img
+                          src={dexHeaderPreview}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="grid h-full place-items-center px-3 text-center text-[11px] text-white/30">
+                          Generate or upload a 3:1 banner
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <PlatformCollateralChecklist
+                checkedIds={collateralChecked}
+                onToggle={toggleCollateralItem}
+              />
 
               {websiteKind === 'none' ? (
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-[12px] text-white/50">
-                  You’ll launch with the CTOgo coin page only — add a site later anytime.
+                  You’ll launch with the CTOgo coin page only — add a site later anytime. Images and
+                  checklist above still apply to Dex / TG campaigns.
                 </div>
               ) : websiteKind === 'clone' ? (
                 <label className="block">

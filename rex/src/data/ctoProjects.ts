@@ -110,6 +110,8 @@ export type CtoProject = {
   score: number;
   colors: string;
   logo: string;
+  /** DexScreener-style 3:1 header shown on the coin page when set */
+  headerBanner?: string;
   verified?: boolean;
   boost?: number;
   promoted?: boolean;
@@ -247,6 +249,8 @@ export const ctoProjects: CtoProject[] = [
     score: 92,
     colors: 'from-fuchsia-400 to-violet-700',
     logo: '/meme-logos/peponk.png',
+    /** Demo: show Dex-style header on coin page (3:1). */
+    headerBanner: 'demo',
     verified: true,
     boost: 50,
   },
