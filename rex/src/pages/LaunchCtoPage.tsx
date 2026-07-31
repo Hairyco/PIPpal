@@ -186,7 +186,7 @@ function ColourPalettePicker({
 
 export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
-  const { signedIn, requireAuth } = useAuth();
+  const { signedIn, requireAuth, busy: authBusy } = useAuth();
   const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
@@ -661,16 +661,31 @@ export function LaunchCtoPage() {
 
     if (mode === 'add') {
       setListNotice(null);
-      if (!connected) {
+
+      // List always requires an account first.
+      if (!signedIn) {
         setListNotice(
           listMarketingOptIn
-            ? `Connect your wallet to list and pay the $${MARKETING_WALLET_ATTACH_FEE_USD} vault fee`
-            : 'Connect your wallet to list this CTO',
+            ? 'Sign in or register to list — then connect your wallet to pay for the marketing vault.'
+            : 'Sign in or register to list this CTO.',
         );
-        const next = await connect();
-        if (!next) return;
+        const ok = await requireAuth(
+          listMarketingOptIn
+            ? 'Sign in or create an account to list. Next you’ll connect a wallet and pay for the marketing vault.'
+            : 'Sign in or create an account to list this CTO.',
+        );
+        if (!ok) return;
       }
+
+      // Marketing wallet: after auth, connect wallet and complete payment.
       if (listMarketingOptIn) {
+        if (!connected) {
+          setListNotice(
+            `Connect your wallet to pay the $${MARKETING_WALLET_ATTACH_FEE_USD} marketing vault fee.`,
+          );
+          const next = await connect();
+          if (!next) return;
+        }
         setMarketingAttachBusy(true);
         try {
           // Demo: $1 covers rent + tx; remainder → treasury.
@@ -681,6 +696,7 @@ export function LaunchCtoPage() {
         }
         return;
       }
+
       await finishList(false);
       return;
     }
@@ -947,7 +963,7 @@ export function LaunchCtoPage() {
               </h1>
               <p className="mt-1.5 text-sm text-white/45">
                 {mode === 'add'
-                  ? 'Paste the contract to list. Connect your wallet to publish the listing.'
+                  ? 'Paste the contract to list. Sign in or register to publish.'
                   : 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'}
               </p>
             </>
@@ -1257,7 +1273,9 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      CTOgo trades fill it to pay for ads and growth.
+                      CTOgo trades fill it to pay for ads and growth. If you’re not signed in yet,
+                      you’ll create an account first, then connect a wallet to pay $
+                      {MARKETING_WALLET_ATTACH_FEE_USD}.
                     </span>
                     <span className="mt-2 flex flex-wrap items-center gap-3">
                       <Link
@@ -1277,16 +1295,20 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              {mode === 'add' && address ? (
+              {mode === 'add' && signedIn && listMarketingOptIn && address ? (
                 <p className="text-center text-[11px] text-white/40">
-                  Listing as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
+                  Paying as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
                   group
+                </p>
+              ) : mode === 'add' && signedIn && !listMarketingOptIn ? (
+                <p className="text-center text-[11px] text-white/40">
+                  Signed in · free listing · CTOgo admins the Telegram group
                 </p>
               ) : mode === 'add' ? (
                 <p className="text-center text-[11px] text-white/40">
                   {listMarketingOptIn
-                    ? `Connect wallet to list and pay the $${MARKETING_WALLET_ATTACH_FEE_USD} vault fee`
-                    : 'Connect wallet to list this CTO'}
+                    ? `Sign in first, then connect wallet to pay $${MARKETING_WALLET_ATTACH_FEE_USD} for the vault`
+                    : 'Sign in or register to list this CTO'}
                 </p>
               ) : null}
 
@@ -1294,29 +1316,23 @@ export function LaunchCtoPage() {
                 type="submit"
                 disabled={
                   !canContinueCoin ||
-                  (mode === 'add' && (walletBusy || marketingAttachBusy))
+                  (mode === 'add' && (walletBusy || marketingAttachBusy || authBusy))
                 }
                 className={primaryBtnClass}
               >
                 {mode === 'add' ? (
-                  marketingAttachBusy || walletBusy ? (
+                  marketingAttachBusy || walletBusy || authBusy ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      {walletBusy ? 'Connecting…' : 'Listing…'}
-                    </>
-                  ) : !connected ? (
-                    <>
-                      Connect wallet &amp; list
-                      <Wallet className="h-4 w-4" />
-                    </>
-                  ) : listMarketingOptIn ? (
-                    <>
-                      List · ${MARKETING_WALLET_ATTACH_FEE_USD} vault
-                      <Check className="h-4 w-4" />
+                      {authBusy
+                        ? 'Signing in…'
+                        : walletBusy
+                          ? 'Connecting…'
+                          : 'Listing…'}
                     </>
                   ) : (
                     <>
-                      List on CTOgo
+                      List
                       <Check className="h-4 w-4" />
                     </>
                   )
