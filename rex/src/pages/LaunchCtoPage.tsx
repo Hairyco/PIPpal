@@ -1272,9 +1272,7 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      CTOgo trades fill it to pay for ads and growth. If you’re not signed in yet,
-                      you’ll create an account first, then connect a wallet to pay $
-                      {MARKETING_WALLET_ATTACH_FEE_USD}.
+                      CTOgo trades fill it to pay for ads and growth.
                     </span>
                     <span className="mt-2 flex flex-wrap items-center gap-3">
                       <Link
