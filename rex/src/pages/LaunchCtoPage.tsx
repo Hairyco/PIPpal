@@ -1292,23 +1292,6 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              {mode === 'add' && signedIn && listMarketingOptIn && address ? (
-                <p className="text-center text-[11px] text-white/40">
-                  Paying as {address.slice(0, 4)}…{address.slice(-4)} · CTOgo admins the Telegram
-                  group
-                </p>
-              ) : mode === 'add' && signedIn && !listMarketingOptIn ? (
-                <p className="text-center text-[11px] text-white/40">
-                  Signed in · free listing · CTOgo admins the Telegram group
-                </p>
-              ) : mode === 'add' ? (
-                <p className="text-center text-[11px] text-white/40">
-                  {listMarketingOptIn
-                    ? `Sign in first, then connect wallet to pay $${MARKETING_WALLET_ATTACH_FEE_USD} for the vault`
-                    : 'Sign in or register to list this CTO'}
-                </p>
-              ) : null}
-
               <button
                 type="submit"
                 disabled={
