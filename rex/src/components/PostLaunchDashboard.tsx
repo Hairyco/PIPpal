@@ -336,6 +336,8 @@ export function PostLaunchDashboard({
     window.setTimeout(() => setShareNotice(null), 2000);
   };
 
+  const needsSetup = mode === 'launch';
+
   return (
     <div className="mt-2 space-y-5">
       <div className="flex items-center gap-3">
@@ -355,12 +357,16 @@ export function PostLaunchDashboard({
             {symbol}
           </h1>
           <p className="text-[12px] text-white/40">
-            {listingConfirmed ? 'Live on CTOgo' : 'Listed · trading paused'}
+            {needsSetup
+              ? listingConfirmed
+                ? 'Live on CTOgo'
+                : 'Listed · trading paused'
+              : 'Listed on CTOgo'}
           </p>
         </div>
       </div>
 
-      {tab === 'overview' && !listingConfirmed ? (
+      {needsSetup && tab === 'overview' && !listingConfirmed ? (
         <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-3.5 py-3">
           <p className="text-[13px] font-semibold text-amber-100">Your coin is listed</p>
           <p className="mt-1 text-[12px] leading-relaxed text-amber-100/70">
@@ -368,6 +374,13 @@ export function PostLaunchDashboard({
             go live.
           </p>
         </div>
+      ) : null}
+
+      {!needsSetup && tab === 'overview' ? (
+        <p className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
+          Collateral (logo, socials, site) is scanned from your existing listing — no setup checklist
+          needed.
+        </p>
       ) : null}
 
       <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
