@@ -845,7 +845,7 @@ export function LaunchCtoPage() {
                     </li>
                     <li className="grid gap-2 sm:grid-cols-2">
                       {[
-                        { icon: Globe, label: 'Website (optional)' },
+                        { icon: Globe, label: 'Website' },
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: Sparkles, label: 'Logo & Dex banner' },
                         { icon: ShieldAlert, label: 'Stop dev fees' },
