@@ -747,7 +747,7 @@ export function LaunchCtoPage() {
               </h1>
               <p className="mt-1.5 text-sm text-white/45">
                 {mode === 'add'
-                  ? 'Paste the contract address to get your CTO on the board.'
+                  ? 'Already trading on an exchange? Paste the mint to put it on the CTOgo board. Trading stays live where it is.'
                   : step === 'coin'
                     ? 'Set the name, ticker, and mint for your CTO.'
                     : step === 'fees'

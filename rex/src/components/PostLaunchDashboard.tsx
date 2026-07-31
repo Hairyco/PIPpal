@@ -361,7 +361,7 @@ export function PostLaunchDashboard({
               ? listingConfirmed
                 ? 'Live on CTOgo'
                 : 'Listed · trading paused'
-              : 'Listed on CTOgo'}
+              : 'On the CTOgo board'}
           </p>
         </div>
       </div>
@@ -378,8 +378,8 @@ export function PostLaunchDashboard({
 
       {!needsSetup && tab === 'overview' ? (
         <p className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
-          Collateral (logo, socials, site) is scanned from your existing listing — no setup checklist
-          needed.
+          Your coin is on the CTOgo website for discovery. It keeps trading on its exchange —
+          nothing is paused. We pull logo and socials from the existing listing.
         </p>
       ) : null}
 
@@ -417,19 +417,23 @@ export function PostLaunchDashboard({
             </button>
           ) : null}
 
-          <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
+          {needsSetup ? (
+            <>
+              <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
 
-          {!listingConfirmed ? (
-            <button type="button" onClick={onConfirmListing} className={primaryBtnClass}>
-              Confirm setup · go live
-              <ExternalLink className="h-4 w-4" />
-            </button>
-          ) : (
-            <p className="flex items-center gap-2 text-[13px] font-semibold text-[#d5ff69]">
-              <Check className="h-4 w-4" />
-              Trading live · listing confirmed
-            </p>
-          )}
+              {!listingConfirmed ? (
+                <button type="button" onClick={onConfirmListing} className={primaryBtnClass}>
+                  Confirm setup · go live
+                  <ExternalLink className="h-4 w-4" />
+                </button>
+              ) : (
+                <p className="flex items-center gap-2 text-[13px] font-semibold text-[#d5ff69]">
+                  <Check className="h-4 w-4" />
+                  Trading live · listing confirmed
+                </p>
+              )}
+            </>
+          ) : null}
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
             <div className="flex items-center gap-3 px-3 py-3">
