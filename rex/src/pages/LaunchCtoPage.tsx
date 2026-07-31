@@ -28,7 +28,6 @@ import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_USD } from '../data/claimPricing';
-import { DEXSCREENER_HEADER } from '../data/platformCollateralChecklist';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -1437,7 +1436,7 @@ export function LaunchCtoPage() {
               <div>
                 <p className="text-sm font-bold text-white">Website</p>
                 <p className="mt-1 text-[12px] text-white/45">
-                  Optional. Skip to list now — logo, banner, and socials come next.
+                  Optional. Skip to list now — finish logo, banner, and socials after listing.
                 </p>
               </div>
 
@@ -1478,100 +1477,6 @@ export function LaunchCtoPage() {
                     </p>
                   ) : null}
                 </button>
-              </div>
-
-              <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-3">
-                <div>
-                  <p className="text-[12px] font-bold text-white">Images</p>
-                  <p className="mt-0.5 text-[11px] text-white/40">
-                    Upload or generate. Dex header is {DEXSCREENER_HEADER.ratioLabel} (
-                    {DEXSCREENER_HEADER.width}×{DEXSCREENER_HEADER.height}).
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!logoPreview) makeLogo(logoSalt);
-                      else regenerateLogo();
-                    }}
-                    disabled={generatingLogo}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                    {logoPreview ? 'New logo' : 'Generate logo'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => logoRef.current?.click()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Upload logo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!dexHeaderPreview) void makeDexHeader(dexHeaderSalt);
-                      else regenerateDexHeader();
-                    }}
-                    disabled={generatingDexHeader}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 text-[11px] font-bold text-[#d5ff69]"
-                  >
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    {dexHeaderPreview ? 'New Dex banner' : 'Generate Dex banner'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => dexHeaderRef.current?.click()}
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/[0.1] px-3 text-[11px] font-semibold text-white/60"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Upload Dex banner
-                  </button>
-                  <input
-                    ref={dexHeaderRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(event) => {
-                      void onUploadDexHeader(event.target.files?.[0]);
-                      event.target.value = '';
-                    }}
-                  />
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-black/40">
-                    <p className="border-b border-white/[0.06] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                      Logo · 1:1
-                    </p>
-                    <div className="grid aspect-square place-items-center p-3">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="" className="h-24 w-24 rounded-xl object-cover" />
-                      ) : (
-                        <p className="text-[11px] text-white/30">No logo yet</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="overflow-hidden rounded-lg border border-white/[0.08] bg-black/40">
-                    <p className="border-b border-white/[0.06] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                      DexScreener header · 3:1
-                    </p>
-                    <div className="aspect-[3/1] bg-[#05070d]">
-                      {dexHeaderPreview ? (
-                        <img
-                          src={dexHeaderPreview}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="grid h-full place-items-center px-3 text-center text-[11px] text-white/30">
-                          Generate or upload a 3:1 banner
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {websiteKind === 'none' ? (
