@@ -63,10 +63,14 @@ export function UpgradedOnCtogoBanner({
   ticker: string;
   onViewV1?: () => void;
 }) {
+  const [hidden, setHidden] = useState(false);
+
+  if (hidden) return null;
+
   return (
     <div className="rounded-xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/10 via-transparent to-transparent px-4 py-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-300/90">
             Upgraded on CTOgo
           </p>
@@ -75,15 +79,25 @@ export function UpgradedOnCtogoBanner({
             view the previous mint.
           </p>
         </div>
-        {onViewV1 ? (
+        <div className="flex shrink-0 items-center gap-1.5">
+          {onViewV1 ? (
+            <button
+              type="button"
+              onClick={onViewV1}
+              className="inline-flex h-9 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[11px] font-semibold text-white/75 hover:border-white/25 hover:text-white"
+            >
+              View V1 chart
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={onViewV1}
-            className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[11px] font-semibold text-white/75 hover:border-white/25 hover:text-white"
+            onClick={() => setHidden(true)}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/45 hover:border-white/20 hover:text-white"
+            aria-label="Hide upgrade notice"
           >
-            View V1 chart
+            Hide
           </button>
-        ) : null}
+        </div>
       </div>
     </div>
   );
