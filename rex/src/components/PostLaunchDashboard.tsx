@@ -743,7 +743,7 @@ export function PostLaunchDashboard({
                 onClick={() => setTab('wallet')}
                 className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
               >
-                Marketing wallet →
+                Transactions →
               </button>
             </div>
           </div>
