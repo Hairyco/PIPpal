@@ -36,6 +36,7 @@ import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } fro
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
+  FEE_TIERS,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
@@ -860,7 +861,7 @@ export function LaunchCtoPage() {
                 </p>
               ) : step === 'burn' ? (
                 <p className="mt-1.5 text-sm leading-snug text-white/45">
-                  Burn your old tokens for the same amount of V2.
+                  Connect wallet to burn your old tokens for the same amount of V2.
                   <span className="group relative ml-1.5 inline-flex translate-y-[1px] align-middle">
                     <button
                       type="button"
@@ -1348,185 +1349,261 @@ export function LaunchCtoPage() {
 
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
-              {connected && address ? (
-                <div>
-                  <p className="text-[11px] font-medium text-white/45">Wallet</p>
-                  <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-mono text-[13px] text-white">
-                        {address.slice(0, 4)}…{address.slice(-4)}
-                      </p>
-                      <p className="mt-0.5 text-[11px] text-white/40">
-                        {balanceScanning
-                          ? 'Scanning for V1…'
-                          : v1Balance
-                            ? `Available to burn: ${Number(v1Balance).toLocaleString()} ${displayTicker}`
-                            : 'No V1 found'}
-                      </p>
-                    </div>
-                    <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="grid grid-cols-[1fr_auto] items-end gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium text-white/45">Amount to burn</p>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <input
-                      value={burnAmount}
-                      onChange={(event) => setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))}
-                      placeholder="0"
-                      inputMode="decimal"
-                      className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                    />
-                    <button
-                      type="button"
-                      disabled={!v1Balance}
-                      onClick={() => setBurnAmount(v1Balance ?? '')}
-                      className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white disabled:opacity-40"
-                    >
-                      Max
-                    </button>
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[11px] font-medium text-white/45">You receive</p>
-                  <p className="mt-1.5 flex h-11 items-center justify-end text-sm font-semibold tabular-nums text-[#d5ff69]">
-                    {burnAmount ? Number(burnAmount).toLocaleString() : '0'} V2
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className={`overflow-hidden rounded-xl border bg-white/[0.02] ${
-                  vestingAccepted
-                    ? 'border-white/[0.08]'
-                    : 'border-[#c8ff3d]/35'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setVestingOpen((v) => !v)}
-                  className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
-                >
-                  <span className="flex min-w-0 items-start gap-3">
-                    <span
-                      className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-                        vestingAccepted
-                          ? 'bg-[#c8ff3d] text-[#090b14]'
-                          : 'border-2 border-[#c8ff3d] bg-[#c8ff3d]/15 shadow-[0_0_0_3px_rgba(200,255,61,0.12)]'
-                      }`}
-                      aria-hidden
-                    >
-                      {vestingAccepted ? (
-                        <Check className="h-3 w-3" strokeWidth={2.5} />
-                      ) : (
-                        <span className="h-2 w-2 rounded-full bg-[#c8ff3d]" />
-                      )}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-[13px] font-semibold text-white">Vesting</span>
-                      <span className="mt-0.5 block text-[11px] text-white/40">
-                        {vestingAccepted
-                          ? 'Disclaimer accepted'
-                          : 'Accept disclaimer to continue'}
-                      </span>
-                    </span>
-                  </span>
-                  <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${
-                      vestingOpen ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {vestingOpen ? (
-                  <div className="space-y-3 border-t border-white/[0.06] px-3.5 pb-3.5 pt-2">
-                    <ul className="divide-y divide-white/[0.06]">
-                      {VESTING_SCHEDULE.map((row) => (
-                        <li
-                          key={row.label}
-                          className="flex items-center justify-between py-2.5 text-[13px]"
-                        >
-                          <span className="text-white/55">{row.label}</span>
-                          <span className="font-semibold tabular-nums text-white">{row.amount}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <label className="flex cursor-pointer items-start gap-2.5">
-                      <input
-                        type="checkbox"
-                        checked={vestingAccepted}
-                        onChange={(event) => setVestingAccepted(event.target.checked)}
-                        className="mt-0.5 h-4 w-4 rounded accent-[#c8ff3d]"
-                      />
-                      <span className="text-[12px] leading-relaxed text-white/45">
-                        I understand V2 unlocks on this schedule
-                      </span>
-                    </label>
-                  </div>
-                ) : null}
-              </div>
-
-              {!burned ? (
-                <p className="text-[11px] text-white/35">
-                  Burn fee and launch / marketing wallet are paid together when you list — one
-                  wallet connection.
-                </p>
-              ) : (
-                <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
-                  <Check className="h-4 w-4" />
-                  Burn complete — V2 queued
-                </p>
-              )}
-
-              {burnConfirmError ? (
-                <p className="text-[12px] font-medium text-rose-300">{burnConfirmError}</p>
-              ) : null}
-
-              {listNotice && mode === 'launch' ? (
-                <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
-              ) : null}
-
-              {(() => {
-                const wantsBurn =
-                  !burned &&
-                  Boolean(burnAmount.trim()) &&
-                  Number.isFinite(Number(burnAmount)) &&
-                  Number(burnAmount) > 0;
-                const busy = burnConfirmBusy || walletBusy;
-                let label = 'List coin';
-                if (busy) {
-                  label = burnConfirmBusy ? 'Confirming…' : 'Connecting…';
-                } else if (!connected) {
-                  label = wantsBurn
-                    ? hasBuyAtLaunch
-                      ? `Connect wallet · burn & list · ${buyAtLaunchSolNum} SOL buy`
-                      : 'Connect wallet · burn & list'
-                    : hasBuyAtLaunch
-                      ? `Connect wallet & list · ${buyAtLaunchSolNum} SOL buy`
-                      : 'Connect wallet & list';
-                } else if (wantsBurn) {
-                  label = hasBuyAtLaunch
-                    ? `Burn & list · ${buyAtLaunchSolNum} SOL buy`
-                    : 'Burn & list';
-                } else if (hasBuyAtLaunch) {
-                  label = `List coin · ${buyAtLaunchSolNum} SOL buy`;
-                }
-
-                return (
+              {!connected ? (
+                <div className="space-y-3">
                   <button
                     type="button"
-                    onClick={() => void publishFromBurn()}
-                    disabled={busy}
+                    disabled={walletBusy}
+                    onClick={() => {
+                      void (async () => {
+                        const next = await connect();
+                        if (next) setBurnWalletReady(true);
+                      })();
+                    }}
                     className={primaryBtnClass}
                   >
-                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                    {label}
-                    {!busy ? <ArrowRight className="h-4 w-4" /> : null}
+                    {walletBusy ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Connecting…
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="h-4 w-4" />
+                        Connect wallet
+                      </>
+                    )}
                   </button>
-                );
-              })()}
+                  <button
+                    type="button"
+                    disabled={walletBusy || burnConfirmBusy}
+                    onClick={() => {
+                      setBurnAmount('');
+                      void publishFromBurn();
+                    }}
+                    className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                  >
+                    Skip
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Wallet className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13px] font-semibold text-white">Marketing wallet</p>
+                        <p className="mt-1 text-[12px] leading-relaxed text-white/50">
+                          Thinks, builds and markets your coin autonomously. Fills with{' '}
+                          {formatBpsPercent(FEE_TIERS[0].marketingBps)} of every trade.
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="font-mono text-[15px] font-bold text-[#d5ff69]">
+                          ${CLAIM_FEE}
+                        </p>
+                        <p className="mt-0.5 text-[10px] font-medium text-white/40">fee</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3 text-[11px]">
+                      <span className="text-white/45">Included with launch</span>
+                      <Link
+                        to="/marketing-wallet"
+                        className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                      >
+                        How it works
+                      </Link>
+                    </div>
+                    <PolessiaLogo variant="powered" size="xs" />
+                  </div>
+
+                  {address ? (
+                    <div>
+                      <p className="text-[11px] font-medium text-white/45">Wallet</p>
+                      <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-mono text-[13px] text-white">
+                            {address.slice(0, 4)}…{address.slice(-4)}
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-white/40">
+                            {balanceScanning
+                              ? 'Scanning for V1…'
+                              : v1Balance
+                                ? `Available to burn: ${Number(v1Balance).toLocaleString()} ${displayTicker}`
+                                : 'No V1 found'}
+                          </p>
+                        </div>
+                        <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <div className="grid grid-cols-[1fr_auto] items-end gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-medium text-white/45">Amount to burn</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <input
+                          value={burnAmount}
+                          onChange={(event) =>
+                            setBurnAmount(event.target.value.replace(/[^\d.]/g, ''))
+                          }
+                          placeholder="0"
+                          inputMode="decimal"
+                          className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                        />
+                        <button
+                          type="button"
+                          disabled={!v1Balance}
+                          onClick={() => setBurnAmount(v1Balance ?? '')}
+                          className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl border border-white/[0.1] px-4 text-xs font-semibold text-white/55 transition hover:border-white/20 hover:text-white disabled:opacity-40"
+                        >
+                          Max
+                        </button>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-[11px] font-medium text-white/45">You receive</p>
+                      <p className="mt-1.5 flex h-11 items-center justify-end text-sm font-semibold tabular-nums text-[#d5ff69]">
+                        {burnAmount ? Number(burnAmount).toLocaleString() : '0'} V2
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`overflow-hidden rounded-xl border bg-white/[0.02] ${
+                      vestingAccepted ? 'border-white/[0.08]' : 'border-[#c8ff3d]/35'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setVestingOpen((v) => !v)}
+                      className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
+                    >
+                      <span className="flex min-w-0 items-start gap-3">
+                        <span
+                          className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                            vestingAccepted
+                              ? 'bg-[#c8ff3d] text-[#090b14]'
+                              : 'border-2 border-[#c8ff3d] bg-[#c8ff3d]/15 shadow-[0_0_0_3px_rgba(200,255,61,0.12)]'
+                          }`}
+                          aria-hidden
+                        >
+                          {vestingAccepted ? (
+                            <Check className="h-3 w-3" strokeWidth={2.5} />
+                          ) : (
+                            <span className="h-2 w-2 rounded-full bg-[#c8ff3d]" />
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[13px] font-semibold text-white">Vesting</span>
+                          <span className="mt-0.5 block text-[11px] text-white/40">
+                            {vestingAccepted
+                              ? 'Disclaimer accepted'
+                              : 'Accept disclaimer to continue'}
+                          </span>
+                        </span>
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${
+                          vestingOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </button>
+                    {vestingOpen ? (
+                      <div className="space-y-3 border-t border-white/[0.06] px-3.5 pb-3.5 pt-2">
+                        <ul className="divide-y divide-white/[0.06]">
+                          {VESTING_SCHEDULE.map((row) => (
+                            <li
+                              key={row.label}
+                              className="flex items-center justify-between py-2.5 text-[13px]"
+                            >
+                              <span className="text-white/55">{row.label}</span>
+                              <span className="font-semibold tabular-nums text-white">
+                                {row.amount}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                        <label className="flex cursor-pointer items-start gap-2.5">
+                          <input
+                            type="checkbox"
+                            checked={vestingAccepted}
+                            onChange={(event) => setVestingAccepted(event.target.checked)}
+                            className="mt-0.5 h-4 w-4 rounded accent-[#c8ff3d]"
+                          />
+                          <span className="text-[12px] leading-relaxed text-white/45">
+                            I understand V2 unlocks on this schedule
+                          </span>
+                        </label>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {burned ? (
+                    <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
+                      <Check className="h-4 w-4" />
+                      Burn complete — V2 queued
+                    </p>
+                  ) : null}
+
+                  {burnConfirmError ? (
+                    <p className="text-[12px] font-medium text-rose-300">{burnConfirmError}</p>
+                  ) : null}
+
+                  {listNotice && mode === 'launch' ? (
+                    <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
+                  ) : null}
+
+                  {(() => {
+                    const wantsBurn =
+                      !burned &&
+                      Boolean(burnAmount.trim()) &&
+                      Number.isFinite(Number(burnAmount)) &&
+                      Number(burnAmount) > 0;
+                    const busy = burnConfirmBusy || walletBusy;
+                    let label = 'List coin';
+                    if (busy) {
+                      label = burnConfirmBusy ? 'Burning…' : 'Connecting…';
+                    } else if (wantsBurn) {
+                      label = hasBuyAtLaunch
+                        ? `Burn & list · ${buyAtLaunchSolNum} SOL buy`
+                        : 'Burn & list';
+                    } else if (hasBuyAtLaunch) {
+                      label = `List coin · ${buyAtLaunchSolNum} SOL buy`;
+                    }
+
+                    return (
+                      <div className="space-y-3">
+                        <button
+                          type="button"
+                          onClick={() => void publishFromBurn()}
+                          disabled={busy}
+                          className={primaryBtnClass}
+                        >
+                          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          {label}
+                          {!busy ? <ArrowRight className="h-4 w-4" /> : null}
+                        </button>
+                        {!burned ? (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => {
+                              setBurnAmount('');
+                              void publishFromBurn();
+                            }}
+                            className={backBtnClass}
+                          >
+                            Skip burn
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })()}
+                </>
+              )}
             </div>
           ) : null}
 
