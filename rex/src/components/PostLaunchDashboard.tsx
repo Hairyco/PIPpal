@@ -447,35 +447,6 @@ export function PostLaunchDashboard({
           </p>
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
-            <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-3 py-3.5">
-              <div className="min-w-0">
-                <p className="text-[11px] font-medium text-white/40">Balance</p>
-                <p className="mt-0.5 font-serif text-3xl font-bold text-[#d5ff69]">
-                  ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
-                </p>
-                {mktSolscan && mktAddress ? (
-                  <a
-                    href={mktSolscan}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                    title={`View ${mktAddress} on Solscan`}
-                  >
-                    {shortAddr}
-                    <ExternalLink className="h-3 w-3 shrink-0" />
-                  </a>
-                ) : (
-                  <p className="mt-1.5 font-mono text-[12px] text-white/50">{shortAddr}</p>
-                )}
-                <div className="mt-2">
-                  <PolessiaLogo variant="powered" size="xs" />
-                </div>
-              </div>
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
-                <Wallet className="h-5 w-5" />
-              </span>
-            </div>
-
             {vaultLive && spendUnlocked ? (
               <div
                 className={`space-y-3 border-b border-white/[0.06] px-3 py-3 ${
@@ -744,6 +715,29 @@ export function PostLaunchDashboard({
                 </p>
               </>
             ) : null}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
+              {mktSolscan && mktAddress ? (
+                <a
+                  href={mktSolscan}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                  title={`View ${mktAddress} on Solscan`}
+                >
+                  {shortAddr}
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+              ) : (
+                <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setTab('wallet')}
+                className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
+              >
+                Marketing wallet →
+              </button>
+            </div>
           </div>
 
           <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
