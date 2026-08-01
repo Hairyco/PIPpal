@@ -115,6 +115,7 @@ export function PostLaunchDashboard({
   const [copiedMint, setCopiedMint] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
+  const [roadmapShareNotice, setRoadmapShareNotice] = useState<string | null>(null);
   const [roadmapApprovedFlash, setRoadmapApprovedFlash] = useState(false);
   /** First Approve unlocks spend; can pause/unpause after that. */
   const [spendUnlocked, setSpendUnlocked] = useState(false);
@@ -253,6 +254,48 @@ export function PostLaunchDashboard({
       }
     }
     window.setTimeout(() => setShareNotice(null), 2000);
+  };
+
+  const shareRoadmap = async () => {
+    const lines = POST_LAUNCH_SPEND_THRESHOLDS.map((tier) => {
+      const items = tier.items
+        .filter((item) => selected.has(item.id))
+        .map((item) => item.label);
+      if (items.length === 0) return null;
+      return `• At ${formatThresholdUsd(tier.thresholdUsd)}: ${items.join(', ')}`;
+    }).filter((line): line is string => line != null);
+
+    const text = [
+      `${symbol} spend roadmap — CTOgo`,
+      'Trade fees fill the marketing wallet. Spend unlocks at each threshold.',
+      '',
+      ...(lines.length > 0 ? lines : ['• Roadmap package selected on CTOgo']),
+      '',
+      shareLinks.token,
+    ].join('\n');
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({
+          title: `${symbol} spend roadmap`,
+          text,
+          url: shareLinks.token,
+        });
+        setRoadmapShareNotice('Shared');
+      } else {
+        await navigator.clipboard.writeText(text);
+        setRoadmapShareNotice('Copied');
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(text);
+        setRoadmapShareNotice('Copied');
+      } catch {
+        /* ignore */
+      }
+    }
+    window.setTimeout(() => setRoadmapShareNotice(null), 2000);
   };
 
   const needsSetup = mode === 'launch';
@@ -434,6 +477,19 @@ export function PostLaunchDashboard({
               <Share2 className="h-4 w-4 text-white/50" />
             )}
             {copiedLink === 'token' ? 'Link copied' : 'Share coin page'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void shareRoadmap()}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-[13px] font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+          >
+            {roadmapShareNotice ? (
+              <Check className="h-4 w-4 text-[#d5ff69]" />
+            ) : (
+              <Share2 className="h-4 w-4 text-white/50" />
+            )}
+            {roadmapShareNotice ?? 'Share roadmap'}
           </button>
 
           {!vaultLive && onAttachMarketingWallet ? (
