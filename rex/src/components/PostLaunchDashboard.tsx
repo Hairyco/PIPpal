@@ -114,6 +114,7 @@ export function PostLaunchDashboard({
   );
   const [copiedMint, setCopiedMint] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
+  const [copiedTelegram, setCopiedTelegram] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapShareNotice, setRoadmapShareNotice] = useState<string | null>(null);
   /** First Approve unlocks spend; can pause/unpause after that. */
@@ -222,6 +223,17 @@ export function PostLaunchDashboard({
       await navigator.clipboard.writeText(mktAddress);
       setCopiedMkt(true);
       window.setTimeout(() => setCopiedMkt(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const copyTelegram = async () => {
+    if (!telegramHref) return;
+    try {
+      await navigator.clipboard.writeText(telegramHref);
+      setCopiedTelegram(true);
+      window.setTimeout(() => setCopiedTelegram(false), 1600);
     } catch {
       /* ignore */
     }
@@ -411,12 +423,7 @@ export function PostLaunchDashboard({
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
             {telegramHref ? (
-              <a
-                href={telegramHref}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-3 border-b border-white/[0.06] px-3 py-3 transition hover:bg-white/[0.03]"
-              >
+              <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1.5 text-[11px] font-medium text-white/40">
                     <img
@@ -428,24 +435,29 @@ export function PostLaunchDashboard({
                   </p>
                   <p className="mt-0.5 text-[13px] font-semibold text-white">Group ready</p>
                 </div>
-                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
-              </a>
+                <button
+                  type="button"
+                  onClick={() => void copyTelegram()}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                >
+                  {copiedTelegram ? (
+                    <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedTelegram ? 'Copied' : 'Copy'}
+                </button>
+                <a
+                  href={telegramHref}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="shrink-0 text-[11px] font-semibold text-[#d5ff69] transition hover:text-[#e8ff9a]"
+                >
+                  Open →
+                </a>
+              </div>
             ) : null}
-            <button
-              type="button"
-              onClick={() => {
-                if (!spendUnlocked) {
-                  setTab('roadmap');
-                  return;
-                }
-                if (!marketingSpendOn) {
-                  setMarketingSpendOn(true);
-                  return;
-                }
-                setTab('wallet');
-              }}
-              className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
-            >
+            <div className="flex items-center gap-2 px-3 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium text-white/40">Marketing wallet</p>
                 <p className="mt-0.5 text-[13px] font-semibold text-white">
@@ -468,14 +480,42 @@ export function PostLaunchDashboard({
                   ) : null}
                 </p>
               </div>
-              <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">
+              {mktAddress ? (
+                <button
+                  type="button"
+                  onClick={() => void copyMarketingWallet()}
+                  className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
+                >
+                  {copiedMkt ? (
+                    <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedMkt ? 'Copied' : 'Copy'}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => {
+                  if (!spendUnlocked) {
+                    setTab('roadmap');
+                    return;
+                  }
+                  if (!marketingSpendOn) {
+                    setMarketingSpendOn(true);
+                    return;
+                  }
+                  setTab('wallet');
+                }}
+                className="shrink-0 text-[11px] font-semibold text-[#d5ff69] transition hover:text-[#e8ff9a]"
+              >
                 {!vaultLive || !spendUnlocked
                   ? 'Turn on'
                   : !marketingSpendOn
                     ? 'Unpause'
                     : 'Open →'}
-              </span>
-            </button>
+              </button>
+            </div>
           </section>
 
           <button
