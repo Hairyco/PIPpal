@@ -65,7 +65,7 @@ export function MarketingWalletPage() {
                 {[
                   {
                     title: 'Fills from trades',
-                    body: `${LAUNCH_MKT} of volume → vault at launch`,
+                    body: `${LAUNCH_MKT} of volume → wallet at launch`,
                   },
                   {
                     title: 'Spends on autopilot',
@@ -73,7 +73,7 @@ export function MarketingWalletPage() {
                   },
                   {
                     title: 'Can’t be drained',
-                    body: 'Protocol vault — not a free founder key',
+                    body: 'Protocol wallet — not a free founder key',
                   },
                 ].map((item) => (
                   <li
@@ -94,7 +94,7 @@ export function MarketingWalletPage() {
                   to="/launch?mode=list"
                   className="inline-flex items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 py-2.5 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
                 >
-                  List a CTO · add vault
+                  List a CTO · add wallet
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
                 <Link

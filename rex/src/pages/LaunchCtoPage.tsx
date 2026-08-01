@@ -101,7 +101,7 @@ export function LaunchCtoPage() {
   const [cloneStatusLabel, setCloneStatusLabel] = useState('');
   const [marketingAttached, setMarketingAttached] = useState(false);
   const [marketingAttachBusy, setMarketingAttachBusy] = useState(false);
-  /** Checkbox on the single-page List flow — opt in to $1 vault attach. */
+  /** Checkbox on the single-page List flow — opt in to $1 wallet attach. */
   const [listMarketingOptIn, setListMarketingOptIn] = useState(false);
   /** Stub invite — real Telegram Bot API create comes later; CTOgo remains chat admin. */
   const [telegramInvite, setTelegramInvite] = useState<string | null>(null);
@@ -848,7 +848,7 @@ export function LaunchCtoPage() {
                       [
                         {
                           icon: TrendingUp,
-                          title: 'Auto Marketing Vault',
+                          title: 'Auto Marketing Wallet',
                           detail: '0.40% of every trade goes straight to marketing funds.',
                         },
                         {
@@ -1673,31 +1673,11 @@ export function LaunchCtoPage() {
                     {burnAmount.trim() &&
                     Number.isFinite(Number(burnAmount)) &&
                     Number(burnAmount) > 0
-                      ? ' + gas'
+                      ? ' + gas fee'
                       : ''}
                     {hasBuyAtLaunch ? ` + ${buyAtLaunchSolNum} SOL` : ''}
                   </span>
                 </div>
-              </div>
-
-              <p className="text-[11px] leading-relaxed text-white/40">
-                One wallet approval: marketing wallet fee
-                {burnAmount.trim() &&
-                Number.isFinite(Number(burnAmount)) &&
-                Number(burnAmount) > 0
-                  ? ' + burn gas'
-                  : ''}
-                {hasBuyAtLaunch ? ` + ${buyAtLaunchSolNum} SOL buy` : ''}. Nothing is charged until
-                you pay.
-              </p>
-
-              <div className="px-0.5">
-                <Link
-                  to="/marketing-wallet"
-                  className="text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                >
-                  How marketing wallet works
-                </Link>
               </div>
 
               {listNotice ? (

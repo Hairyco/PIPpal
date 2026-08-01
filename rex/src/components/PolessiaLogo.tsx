@@ -6,7 +6,7 @@ type PolessiaLogoProps = {
 };
 
 /**
- * Polessia — autonomous marketing / vault spend brand.
+ * Polessia — autonomous marketing / wallet spend brand.
  * CTOgo surfaces this as the funnel; Polessia is the product.
  */
 export function PolessiaLogo({

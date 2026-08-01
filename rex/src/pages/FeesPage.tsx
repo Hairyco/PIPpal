@@ -34,7 +34,7 @@ export function FeesPage() {
           <p className="mt-2 text-[13px] leading-relaxed text-white/75">
             External coins (PumpSwap, Pump.fun, Raydium, etc.) are tradeable on CTOgo. Every trade
             through our UI takes a platform fee. A marketing wallet is optional on List a CTO —
-            when attached, CTOgo-routed volume also fills that vault.
+            when attached, CTOgo-routed volume also fills that wallet.
           </p>
           <dl className="mt-3 space-y-1.5 text-[12px]">
             <div className="flex items-center justify-between gap-3">

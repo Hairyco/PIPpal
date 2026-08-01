@@ -83,7 +83,7 @@ export function PostLaunchAffiliateTab({
         <div className="min-w-0">
           <p className="text-sm font-semibold text-white">Enable affiliate programme</p>
           <p className="mt-1 text-[12px] leading-relaxed text-white/40">
-            List {symbol} in the promoter catalogue. Payouts pause if the vault is empty.
+            List {symbol} in the promoter catalogue. Payouts pause if the wallet is empty.
           </p>
         </div>
       </label>

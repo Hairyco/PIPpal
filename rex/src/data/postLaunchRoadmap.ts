@@ -13,7 +13,7 @@ export type SpendItem = {
 export type SpendThreshold = {
   id: string;
   label: string;
-  /** Vault balance required to unlock this tier. */
+  /** Wallet balance required to unlock this tier. */
   thresholdUsd: number;
   items: SpendItem[];
 };

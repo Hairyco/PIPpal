@@ -33,7 +33,7 @@ function statusStyles(status: SpendStatus) {
   };
 }
 
-/** Progress tracker — spends unlock as the marketing vault fills from trades. */
+/** Progress tracker — spends unlock as the marketing wallet fills from trades. */
 export function MarketingWalletProgressTracker({
   balanceUsd = 420,
   compact = false,
@@ -105,7 +105,7 @@ export function MarketingWalletProgressTracker({
 }
 
 /**
- * Marketing vault story — live milestone tracking.
+ * Marketing wallet story — live milestone tracking.
  * Fill-rate schedule lives in FAQ; full fee math on /fees.
  */
 export function MarketingWalletExplainer({
@@ -153,7 +153,7 @@ export function MarketingWalletExplainer({
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
           <p className="text-[11px] text-white/35">
-            Vault fill rate & dump / quiet-coin rules →{' '}
+            Wallet fill rate & dump / quiet-coin rules →{' '}
             <Link to="/faq#marketing-wallet" className="font-semibold text-[#d5ff69] hover:underline">
               FAQ
             </Link>

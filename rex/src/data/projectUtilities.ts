@@ -51,7 +51,7 @@ export const projectUtilities: Record<string, Record<string, string[]>> = {
     '4': ['Agent platform', 'Automation SaaS'],
   },
   defi: {
-    '1': ['Yield vault', 'Auto-compound', 'Staking'],
+    '1': ['Yield wallet', 'Auto-compound', 'Staking'],
     '2': ['DEX swap', 'Liquidity pools'],
     '3': ['Lending protocol', 'Collateral loans'],
     '4': ['Staking rewards', 'Governance'],

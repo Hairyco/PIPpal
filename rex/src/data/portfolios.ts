@@ -65,7 +65,7 @@ const talentPortfolios: Record<string, PortfolioItem[]> = {
   ],
   t4: [
     { title: 'ERC-20 + tax router', type: 'Smart contract', result: 'Mainnet deploy · audited' },
-    { title: 'Staking vault', type: 'DeFi', result: '$4M locked' },
+    { title: 'Staking wallet', type: 'DeFi', result: '$4M locked' },
     { title: 'Multisig treasury', type: 'On-chain', result: 'Gnosis-safe integration' },
   ],
   t5: [

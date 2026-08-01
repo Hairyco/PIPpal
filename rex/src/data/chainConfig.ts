@@ -63,7 +63,7 @@ export function formatBpsPercent(bps: number): string {
 /**
  * Irreversible on-chain toggle at deployment.
  * Mode A — creator keeps the creator/trader pool cut.
- * Mode B — cut is auto-swept to trader cashback vault.
+ * Mode B — cut is auto-swept to trader cashback wallet.
  * Neither mode blocks bonding-curve → Raydium migration or V1→V2 CTO relaunch.
  */
 export type CreatorFeeMode = 'creator' | 'traders';
@@ -88,7 +88,7 @@ export const CREATOR_FEE_MODES: {
     id: 'traders',
     title: 'Split with traders',
     subtitle: 'Mode B · Automated cashback',
-    destination: 'Trader volume vault — rebates to traders',
+    destination: 'Trader volume wallet — rebates to traders',
     migration: 'Raydium graduation + V1→V2 CTO path available',
     useCase: 'High-frequency / sniper / PVP volume coins',
   },
@@ -119,9 +119,9 @@ export const ABANDONMENT_RULE = {
     'Unlike Pump.fun (dev keeps collecting until a manual fee-key change), Rex revokes the dump wallet’s cut on-chain automatically.',
 } as const;
 
-/** Marketing vault auto-spend threshold (USD). */
+/** Marketing wallet auto-spend threshold (USD). */
 export const MARKETING_AUTO_SPEND_USD = 500;
-/** Hours of $0 volume before an under-threshold vault is swept. */
+/** Hours of $0 volume before an under-threshold wallet is swept. */
 export const MARKETING_INACTIVITY_HOURS = 72;
 /** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
 export const MARKETING_V2_DEADLINE_DAYS = 30;
@@ -133,24 +133,24 @@ export const FEE_GUIDELINES = [
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing vault: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
+  `Marketing wallet: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
 /**
- * Marketing Vault Inactivity & Sweep Lifecycle.
+ * Marketing wallet Inactivity & Sweep Lifecycle.
  * Unspent balances under the auto-spend threshold are not left stranded forever.
  */
 export const MARKETING_VAULT_SWEEP_RULE = {
-  title: 'Marketing vault inactivity & sweep',
+  title: 'Marketing wallet inactivity & sweep',
   autoSpendLabel: `Automated threshold · $${MARKETING_AUTO_SPEND_USD}`,
   autoSpend:
-    `When a vault accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) fires automatically — even if trading volume starts to slow.`,
+    `When a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) fires automatically — even if trading volume starts to slow.`,
   inactivityLabel: `${MARKETING_INACTIVITY_HOURS}-hour inactivity sweep`,
   inactivity:
     `If a token accumulates under $${MARKETING_AUTO_SPEND_USD} and records $0 trading volume for ${MARKETING_INACTIVITY_HOURS} consecutive hours, unspent funds are swept into the Rex Protocol CTO Reserve.`,
   ctoRestorationLabel: 'CTO restoration',
   ctoRestoration:
-    'If the community executes a Native V2 CTO migration, Rex’s protocol reserve automatically credits 100% of the swept funds into the fresh V2 marketing vault.',
+    'If the community executes a Native V2 CTO migration, Rex’s protocol reserve automatically credits 100% of the swept funds into the fresh V2 marketing wallet.',
   v1RestartLabel: 'V1 trading restart (without V2)',
   v1Restart:
     'If trading resumes on the old V1 token without migrating, swept funds remain in the reserve and V1 accumulates fresh marketing fees from new volume.',
@@ -289,7 +289,7 @@ export const SECURITY_CONTROLS = [
   },
   {
     id: 'marketing-pda',
-    title: 'Marketing vault PDA + whitelist',
+    title: 'Marketing wallet PDA + whitelist',
     detail:
       'Marketing SOL only leaves via whitelisted supplier disburse under Rex authority — not a free EOA the deployer can drain.',
   },
@@ -297,7 +297,7 @@ export const SECURITY_CONTROLS = [
     id: 'creator-withdraw',
     title: 'Creator withdraw gates',
     detail:
-      'Mode A only, founder signer required, abandonment check diverts the cut if holdings < 10%. Mode B never pays the founder vault.',
+      'Mode A only, founder signer required, abandonment check diverts the cut if holdings < 10%. Mode B never pays the founder wallet.',
   },
   {
     id: 'checked-math',

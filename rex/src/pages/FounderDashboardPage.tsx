@@ -380,7 +380,7 @@ export function FounderDashboardPage() {
                   <div>
                     <h2 className="font-semibold text-white">Share marketing wallet</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Investors can fund growth by sending SOL to this vault. Trade fees fill it
+                      Investors can fund growth by sending SOL to this wallet. Trade fees fill it
                       automatically too.
                     </p>
                   </div>

@@ -177,7 +177,7 @@ export function MarketingSpendFlowChart() {
                     textAnchor="end"
                     className="fill-muted-foreground text-[9px]"
                   >
-                    {tick === 0 ? '$0' : tick === 1 ? '$3.5K' : `$${Math.round(tick * 3.5)}K`}
+                    {tick === 0 ? '$0' : tick === 1 ? '$1.2K' : `$${Math.round(tick * 1.2)}K`}
                   </text>
                 </g>
               );

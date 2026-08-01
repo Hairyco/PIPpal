@@ -40,13 +40,13 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'native-vs-external',
         question: 'What is the difference between Native V2, External, and Launch?',
         answer:
-          'External coins are indexed from other venues (PumpSwap, Pump.fun, Raydium, etc.) and are tradeable on CTOgo immediately — we take a platform fee on every CTOgo trade. List a CTO claims the page (wallet) and optionally attaches a marketing wallet for $1 so CTOgo-routed volume also fills growth. Native V2 / Launch coins are minted on CTOgo with a marketing vault included automatically.',
+          'External coins are indexed from other venues (PumpSwap, Pump.fun, Raydium, etc.) and are tradeable on CTOgo immediately — we take a platform fee on every CTOgo trade. List a CTO claims the page (wallet) and optionally attaches a marketing wallet for $1 so CTOgo-routed volume also fills growth. Native V2 / Launch coins are minted on CTOgo with a marketing wallet included automatically.',
       },
       {
         id: 'who-can-start',
         question: 'Who can start a CTO?',
         answer:
-          'Anyone. Complete List or Launch first, then create a free CTOgo account (Google or email) to claim the page. Connect a Solana wallet only when you pay — launch fee, optional $1 marketing vault on List, or Advertise packs. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
+          'Anyone. Complete List or Launch first, then create a free CTOgo account (Google or email) to claim the page. Connect a Solana wallet only when you pay — launch fee, optional $1 marketing wallet on List, or Advertise packs. Whoever lists or launches becomes the page operator; CTOgo remains admin of the Telegram group we create. Unhappy communities can Launch a Native V2 instead of fighting over the old page.',
       },
     ],
   },
@@ -55,21 +55,21 @@ export const FAQ_SECTIONS: FaqSection[] = [
     label: 'Marketing wallet',
     items: [
       {
-        id: 'what-is-vault',
+        id: 'what-is-wallet',
         question: 'What is the marketing wallet?',
         answer:
-          'A non-custodial vault attached to the coin — powered by Polessia. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this vault.',
+          'A non-custodial wallet attached to the coin — powered by Polessia. On Native Launch / V2 it is included automatically. On listed external coins it is optional ($1 to open on-chain — rent/tx from that fee, remainder to treasury). A share of CTOgo-routed trades flows into it for growth — trending spots, banners, Telegram — instead of a free founder wallet. Volume on other venues does not fill this wallet.',
       },
       {
-        id: 'vault-fill-rate',
-        question: 'What is the vault fill rate?',
-        answer: `A slice of each CTOgo trade lands in the marketing vault automatically. At launch it is ${formatBpsPercent(FEE_TIERS[0].marketingBps)} of volume (${FEE_TIERS[0].marketCap} mcap). As market cap grows the rate steps down — ${FEE_TIERS.map((t) => `${t.label}: ${formatBpsPercent(t.marketingBps)} (${t.marketCap})`).join('; ')}. Growth keeps funding without you wiring ads by hand. Full trade fee split is on the Fees page.`,
+        id: 'wallet-fill-rate',
+        question: 'What is the wallet fill rate?',
+        answer: `A slice of each CTOgo trade lands in the marketing wallet automatically. At launch it is ${formatBpsPercent(FEE_TIERS[0].marketingBps)} of volume (${FEE_TIERS[0].marketCap} mcap). As market cap grows the rate steps down — ${FEE_TIERS.map((t) => `${t.label}: ${formatBpsPercent(t.marketingBps)} (${t.marketCap})`).join('; ')}. Growth keeps funding without you wiring ads by hand. Full trade fee split is on the Fees page.`,
       },
       {
         id: 'who-controls',
         question: 'Can the founder drain it?',
         answer:
-          'No. Funds only leave the vault PDA through whitelisted suppliers under protocol authority, so there is no free wallet to withdraw from.',
+          'No. Funds only leave the wallet PDA through whitelisted suppliers under protocol authority, so there is no free wallet to withdraw from.',
       },
       {
         id: 'auto-spend',
@@ -85,7 +85,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'inactive',
         question: 'What happens if the coin goes quiet?',
-        answer: `If the vault is under $${MARKETING_AUTO_SPEND_USD} and records $0 volume for ${MARKETING_INACTIVITY_HOURS} hours, the balance is swept into the protocol CTO Reserve. A Native V2 takeover restores 100% of it into the new vault. If no Native V2 happens within ${MARKETING_V2_DEADLINE_DAYS} days of the V1 mint, the funds go to the protocol treasury.`,
+        answer: `If the wallet is under $${MARKETING_AUTO_SPEND_USD} and records $0 volume for ${MARKETING_INACTIVITY_HOURS} hours, the balance is swept into the protocol CTO Reserve. A Native V2 takeover restores 100% of it into the new wallet. If no Native V2 happens within ${MARKETING_V2_DEADLINE_DAYS} days of the V1 mint, the funds go to the protocol treasury.`,
       },
       {
         id: 'verify',
@@ -102,13 +102,13 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'trade-fee',
         question: 'What is the trade fee?',
-        answer: `${TRADE_FEE_LABEL} on Native CTOgo coins. For any coin traded through CTOgo (including external listings), CTOgo always takes a platform/integrator fee. If a marketing wallet is attached, a marketing cut of CTOgo-routed volume also fills that vault.`,
+        answer: `${TRADE_FEE_LABEL} on Native CTOgo coins. For any coin traded through CTOgo (including external listings), CTOgo always takes a platform/integrator fee. If a marketing wallet is attached, a marketing cut of CTOgo-routed volume also fills that wallet.`,
       },
       {
         id: 'list-marketing-wallet-fee',
         question: 'What does it cost to add a marketing wallet when I List a CTO?',
         answer:
-          '$1 one-time. That covers opening the on-chain vault (rent + transaction). Whatever is left from the $1 goes to the CTOgo treasury. Listing the page itself is free — the vault is optional.',
+          '$1 one-time. That covers opening the on-chain wallet (rent + transaction). Whatever is left from the $1 goes to the CTOgo treasury. Listing the page itself is free — the wallet is optional.',
       },
       {
         id: 'raydium-first',
@@ -120,7 +120,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'graduation-liquidity',
         question: 'What happens to the bonding-curve money at graduation?',
         answer:
-          'Almost all of it becomes locked Raydium liquidity. Two amounts come off the top: the 2 SOL CTOgo migration protocol fee and ~0.20 SOL for Raydium’s pool-creation cost. Everything else from the curve SOL vault, plus remaining curve tokens, is deposited into the pool. The LP tokens are burned (or permanently locked). If liquidity is not seeded or LP is not burned, migration must fail — otherwise the coin would graduate with no depth and could be rugged.',
+          'Almost all of it becomes locked Raydium liquidity. Two amounts come off the top: the 2 SOL CTOgo migration protocol fee and ~0.20 SOL for Raydium’s pool-creation cost. Everything else from the curve SOL wallet, plus remaining curve tokens, is deposited into the pool. The LP tokens are burned (or permanently locked). If liquidity is not seeded or LP is not burned, migration must fail — otherwise the coin would graduate with no depth and could be rugged.',
       },
       {
         id: 'migration-fee',
@@ -156,19 +156,19 @@ export const FAQ_SECTIONS: FaqSection[] = [
         id: 'safety-vs-marketing',
         question: 'Do those locks turn off the marketing wallet or fees?',
         answer:
-          'No. Mint, freeze, and metadata locks protect the coin — they do not control trade fees. Every trade still fills the marketing vault and the platform cut. We lock dangerous founder powers; we keep the fee engine on so growth spend keeps working.',
+          'No. Mint, freeze, and metadata locks protect the coin — they do not control trade fees. Every trade still fills the marketing wallet and the platform cut. We lock dangerous founder powers; we keep the fee engine on so growth spend keeps working.',
       },
       {
         id: 'what-stays-on',
         question: 'What stays on for the business model?',
         answer:
-          'The trade tax schedule (marketing never turns off), the marketing vault (protocol-controlled, not a free founder wallet), Mode A / Mode B routing, the abandonment rule if a creator dumps, and fees after Raydium migration. Those are protocol rules — not something a founder key can turn off.',
+          'The trade tax schedule (marketing never turns off), the marketing wallet (protocol-controlled, not a free founder wallet), Mode A / Mode B routing, the abandonment rule if a creator dumps, and fees after Raydium migration. Those are protocol rules — not something a founder key can turn off.',
       },
       {
         id: 'vs-pump',
         question: 'Isn’t this already true on Pump.fun?',
         answer:
-          'Pump coins usually revoke mint and freeze at launch, but that alone is not a full safety story. Metadata is often still mutable, and a dumped creator can keep collecting fees until someone changes keys manually. CTOgo adds locked metadata, a non-drainable marketing vault, fees that survive migration, and automatic creator-fee revoke on dump.',
+          'Pump coins usually revoke mint and freeze at launch, but that alone is not a full safety story. Metadata is often still mutable, and a dumped creator can keep collecting fees until someone changes keys manually. CTOgo adds locked metadata, a non-drainable marketing wallet, fees that survive migration, and automatic creator-fee revoke on dump.',
       },
     ],
   },

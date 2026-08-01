@@ -204,7 +204,7 @@ export function AuthModal() {
             )}
           </p>
           <p className="text-[10px] leading-relaxed text-white/30">
-            Accounts are free. Paying for launch fees, vault attach, or Advertise packs still needs a
+            Accounts are free. Paying for launch fees, wallet attach, or Advertise packs still needs a
             connected Solana wallet.
           </p>
         </div>

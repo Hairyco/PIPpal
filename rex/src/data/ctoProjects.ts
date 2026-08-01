@@ -859,7 +859,7 @@ function demoAddress(seedKey: string): string {
   return out;
 }
 
-/** Deterministic demo marketing vault until live PDA wiring. */
+/** Deterministic demo marketing wallet until live PDA wiring. */
 export function demoMarketingWalletAddress(ticker: string): string {
   return demoAddress(`${ticker.trim().toUpperCase() || 'CTO'}-mkt`);
 }
@@ -905,7 +905,7 @@ export function shortMint(mint: string): string {
   return `${mint.slice(0, 4)}…${mint.slice(-4)}`;
 }
 
-/** Full marketing vault address for explorers. Demo-derived until live PDA wiring. */
+/** Full marketing wallet address for explorers. Demo-derived until live PDA wiring. */
 export function resolveMarketingWalletAddress(
   project: Pick<CtoProject, 'ticker' | 'marketingWallet' | 'marketingWalletAddress'>,
 ): string | null {

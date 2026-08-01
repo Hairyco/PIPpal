@@ -177,7 +177,7 @@ export function MarketingWalletActivity({
       ) : null}
 
       <p className="mt-3 text-[10px] leading-relaxed text-white/30">
-        Demo ledger. On-chain memos (e.g. “DexScreener”) on Solscan will appear when the vault
+        Demo ledger. On-chain memos (e.g. “DexScreener”) on Solscan will appear when the wallet
         contract is final.
       </p>
     </section>

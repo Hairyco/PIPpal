@@ -171,7 +171,7 @@ function AdsUnlockVisual() {
             </p>
 
             <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#2b5278] px-3 py-2 text-[11px] leading-snug text-white/90">
-              Vault hit $500 — unlock DexScreener trending?
+              Wallet hit $500 — unlock DexScreener trending?
               <p className="mt-1 text-right text-[9px] text-white/40">9:38</p>
             </div>
 
@@ -186,7 +186,7 @@ function AdsUnlockVisual() {
                 Your DexScreener trending ad is now running.
               </p>
               <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
-                $MPEG · 24h boost live. Paid from marketing vault — no founder invoice.
+                $MPEG · 24h boost live. Paid from marketing wallet — no founder invoice.
               </p>
               <div className="mt-2.5 overflow-hidden rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-300">
@@ -224,11 +224,11 @@ function LiveTrackingVisual() {
               Live tracking
             </p>
             <p className="mt-0.5 text-[12px] text-white/50">
-              Milestones unlock as the vault fills
+              Milestones unlock as the wallet fills
             </p>
           </div>
           <div className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-2.5 py-1.5 text-right">
-            <p className="text-[9px] font-medium uppercase tracking-wide text-white/35">Vault</p>
+            <p className="text-[9px] font-medium uppercase tracking-wide text-white/35">Wallet</p>
             <p className="font-mono text-sm font-bold tabular-nums text-white">$420</p>
           </div>
         </div>

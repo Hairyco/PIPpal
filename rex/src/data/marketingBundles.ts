@@ -1,6 +1,6 @@
 /**
  * Marketing wallet spend bundles — ordered packages founders can buy
- * up-front or queue until the marketing vault fills from trade tax.
+ * up-front or queue until the marketing wallet fills from trade tax.
  */
 
 export type BundleFunding = 'pay-now' | 'wait-wallet';

@@ -52,7 +52,7 @@ type PostLaunchDashboardProps = {
   onCopyLink: (key: keyof ShareLinks) => void;
   marketingAttached: boolean;
   marketingAddress?: string | null;
-  /** Demo vault balance until live PDA. */
+  /** Demo wallet balance until live PDA. */
   vaultBalanceUsd?: number;
   artExtrasLine?: string | null;
   signedIn: boolean;
@@ -280,14 +280,14 @@ export function PostLaunchDashboard({
 
   const vaultLive = marketingAttached || mode === 'launch';
   const marketingFillPct = formatBpsPercent(FEE_TIERS[0].marketingBps);
-  /** Demo volume until live indexer — scaled so vault ≈ marketing cut of volume. */
+  /** Demo volume until live indexer — scaled so wallet ≈ marketing cut of volume. */
   const tradingVolumeUsd = vaultLive
     ? Math.max(
         Math.round((vaultBalanceUsd / (FEE_TIERS[0].marketingBps / 10_000)) * 0.92),
         vaultBalanceUsd * 20,
       )
     : 0;
-  /** Demo share of vault inflows from buys vs sells. */
+  /** Demo share of wallet inflows from buys vs sells. */
   const buyFillSharePct = 58;
   const sellFillSharePct = 42;
 
@@ -559,7 +559,7 @@ export function PostLaunchDashboard({
                   <p className="text-[13px] font-semibold text-[#d5ff69]">Add marketing wallet</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/50">
                     Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once
-                    to unlock Auto Marketing Vault + Scout Rewards.
+                    to unlock Auto Marketing Wallet + Scout Rewards.
                   </p>
                 </div>
               </div>
@@ -583,8 +583,8 @@ export function PostLaunchDashboard({
             </p>
             <p className="mt-1.5 text-sm text-white/45">
               {vaultLive && !marketingSpendOn
-                ? 'Vault can fill from trades. Auto spend is off until you turn settings on.'
-                : 'Trade fees fill this vault. Spend unlocks at each threshold — powered by Polessia.'}
+                ? 'Wallet can fill from trades. Auto spend is off until you turn settings on.'
+                : 'Trade fees fill this wallet. Spend unlocks at each threshold — powered by Polessia.'}
             </p>
           </div>
 
@@ -602,7 +602,7 @@ export function PostLaunchDashboard({
                   <p className="text-[13px] font-semibold text-white">Auto marketing</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/50">
                     {marketingSpendOn
-                      ? 'On — Polessia can spend from the vault at unlock thresholds.'
+                      ? 'On — Polessia can spend from the wallet at unlock thresholds.'
                       : 'Off — turn on when you’re ready for autonomous spend.'}
                   </p>
                 </div>
@@ -669,7 +669,7 @@ export function PostLaunchDashboard({
               <p className="text-[13px] font-semibold text-white">Not attached yet</p>
               <p className="text-[12px] leading-relaxed text-white/50">
                 Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once to
-                unlock the vault.
+                unlock the wallet.
               </p>
               <button type="button" onClick={onAttachMarketingWallet} className={primaryBtnClass}>
                 Connect wallet &amp; attach · $1
@@ -688,7 +688,7 @@ export function PostLaunchDashboard({
               <div>
                 <p className="text-sm font-bold text-white">Share &amp; fund manually</p>
                 <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                  Investors can send SOL straight to this vault. Trade fees also fill it
+                  Investors can send SOL straight to this wallet. Trade fees also fill it
                   automatically on CTOgo.
                 </p>
               </div>
@@ -750,7 +750,7 @@ export function PostLaunchDashboard({
               </div>
 
               <div>
-                <p className="text-[11px] font-medium text-white/45">Vault fill from trades</p>
+                <p className="text-[11px] font-medium text-white/45">Wallet fill from trades</p>
                 <p className="mt-1.5 text-sm font-semibold text-white">
                   {marketingFillPct} of every buy · {marketingFillPct} of every sell
                 </p>
@@ -806,7 +806,7 @@ export function PostLaunchDashboard({
             </div>
           ) : (
             <p className="text-[12px] text-white/40">
-              Attach a marketing wallet from the coin page ($1) to start filling the vault.
+              Attach a marketing wallet from the coin page ($1) to start filling the wallet.
             </p>
           )}
 
@@ -855,12 +855,12 @@ export function PostLaunchDashboard({
 
           {roadmapMode === 'polessia' ? (
             <p className="text-[12px] leading-relaxed text-white/40">
-              Polessia runs one package per tier as the vault fills. Activity prices are on the
+              Polessia runs one package per tier as the wallet fills. Activity prices are on the
               right.
             </p>
           ) : (
             <p className="text-[12px] leading-relaxed text-white/40">
-              Toggle individual activities. Spend still waits for vault balance.
+              Toggle individual activities. Spend still waits for wallet balance.
             </p>
           )}
 

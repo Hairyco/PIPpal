@@ -26,7 +26,7 @@ export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
     name: 'DexScreener',
     logo: '/images/partners/dexscreener.ico',
     summary:
-      'Paid placements and enhanced info need creative ready before the vault pays. Header is a wide 3:1 strip — not a square logo.',
+      'Paid placements and enhanced info need creative ready before the wallet pays. Header is a wide 3:1 strip — not a square logo.',
     items: [
       {
         id: 'ds-icon',
@@ -54,7 +54,7 @@ export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
       {
         id: 'ds-pay',
         label: 'Wallet ready to pay DexScreener',
-        detail: 'Enhanced info / boost / ads are paid on their side — vault balance alone is not enough without assets above',
+        detail: 'Enhanced info / boost / ads are paid on their side — wallet balance alone is not enough without assets above',
       },
     ],
   },

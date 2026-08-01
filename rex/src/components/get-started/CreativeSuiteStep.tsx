@@ -307,7 +307,7 @@ export function CreativeSuiteStep({
               <FundingOption
                 icon={Clock}
                 title="Wait for marketing wallet"
-                description="Queue the bundle — runs when trade tax funds the vault"
+                description="Queue the bundle — runs when trade tax funds the wallet"
                 selected={value.starterBundleFunding === 'wait-wallet'}
                 onClick={() => selectBundleFunding('wait-wallet')}
               />
@@ -325,7 +325,7 @@ export function CreativeSuiteStep({
               <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-200/90">
                 {value.starterBundleFunding === 'pay-now'
                   ? 'Pay-now selected. After payment you get a change-request form for site edits (fee TBD).'
-                  : 'Queued on the marketing wallet. Same change-request form unlocks once the bundle is paid from the vault.'}
+                  : 'Queued on the marketing wallet. Same change-request form unlocks once the bundle is paid from the wallet.'}
               </p>
             ) : null}
           </section>

@@ -869,7 +869,7 @@ export function CtoTradeView({
             <p className="mt-2 text-center text-[10px] text-white/30">
               {isExternal
                 ? `CTOgo takes a platform fee on every trade${
-                    marketingAddress ? ' · marketing cut fills the vault' : ''
+                    marketingAddress ? ' · marketing cut fills the wallet' : ''
                   }`
                 : `Max slippage ${slippageLabel} · tip ${priorityFee || '0'} SOL`}
             </p>
@@ -935,7 +935,7 @@ export function CtoTradeView({
               <p className="mt-1 text-[11px] text-white/40">
                 {isExternal ? (
                   <>
-                    No vault yet —{' '}
+                    No wallet yet —{' '}
                     <Link
                       to="/launch?mode=list"
                       className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"

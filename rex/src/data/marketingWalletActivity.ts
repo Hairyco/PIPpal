@@ -1,4 +1,4 @@
-/** Demo marketing-vault ledger until live PDA + indexed txs. */
+/** Demo marketing-wallet ledger until live PDA + indexed txs. */
 
 export type MarketingTxKind =
   | 'trade_fee'
@@ -18,7 +18,7 @@ export type MarketingWalletTx = {
   counterparty: string;
   /**
    * Display note (DexScreener, Telegram, etc.).
-   * On-chain memos on Solscan land when the vault contract is final.
+   * On-chain memos on Solscan land when the wallet contract is final.
    */
   note: string | null;
   amountUsd: number;
@@ -52,7 +52,7 @@ function demoSig(seed: string): string {
   return out;
 }
 
-/** Deterministic demo ledger for a vault (ticker-scoped). */
+/** Deterministic demo ledger for a wallet (ticker-scoped). */
 export function demoMarketingWalletActivity(ticker: string): MarketingWalletTx[] {
   const t = ticker.replace(/^\$/, '').toUpperCase() || 'CTO';
   const rows: Omit<MarketingWalletTx, 'id' | 'signature' | 'direction'>[] = [

@@ -3,7 +3,7 @@ import { Check, SlidersHorizontal, X } from 'lucide-react';
 
 export type RangeFilter = { min: number; max: number };
 export type VolumeFilter = 'any' | 'gt10k' | 'gt50k' | 'gt100k';
-/** Polessia marketing vault attached to the CTO listing. */
+/** Polessia marketing wallet attached to the CTO listing. */
 export type MarketingWalletFilter = 'any' | 'with' | 'without';
 
 export type DiscoveryFilterState = {
@@ -59,8 +59,8 @@ const VOLUME_OPTIONS: { id: VolumeFilter; label: string }[] = [
 
 const MARKETING_WALLET_OPTIONS: { id: MarketingWalletFilter; label: string }[] = [
   { id: 'any', label: 'Any' },
-  { id: 'with', label: 'Has vault' },
-  { id: 'without', label: 'No vault' },
+  { id: 'with', label: 'Has wallet' },
+  { id: 'without', label: 'No wallet' },
 ];
 
 export const DEFAULT_DISCOVERY_FILTERS: DiscoveryFilterState = {
@@ -232,9 +232,9 @@ export function matchesDiscoveryFilters(
   }
 
   if (filters.marketingWallet !== 'any') {
-    const hasVault = Boolean(project.marketingWallet);
-    if (filters.marketingWallet === 'with' && !hasVault) return false;
-    if (filters.marketingWallet === 'without' && hasVault) return false;
+    const hasWallet = Boolean(project.marketingWallet);
+    if (filters.marketingWallet === 'with' && !hasWallet) return false;
+    if (filters.marketingWallet === 'without' && hasWallet) return false;
   }
 
   return true;
@@ -447,12 +447,12 @@ export function DiscoveryFiltersPanel({
               </p>
               {filters.marketingWallet !== 'any' ? (
                 <p className="text-[11px] font-semibold text-[#d5ff69]">
-                  {filters.marketingWallet === 'with' ? 'Has vault' : 'No vault'}
+                  {filters.marketingWallet === 'with' ? 'Has wallet' : 'No wallet'}
                 </p>
               ) : null}
             </div>
             <p className="mt-1 text-[11px] text-white/40">
-              Polessia vaults — filter CTOs with (or without) a marketing wallet.
+              Polessia wallets — filter CTOs with (or without) a marketing wallet.
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {MARKETING_WALLET_OPTIONS.map((option) => {
