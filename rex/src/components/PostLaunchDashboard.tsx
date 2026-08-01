@@ -882,8 +882,6 @@ export function PostLaunchDashboard({
           initialTwitter={twitter}
           initialTelegram={telegramCommunity || shareLinks.telegram}
           initialDiscord={discord}
-          initialWebsiteUrl={websiteUrl}
-          initialWebsiteKind={websiteKind}
           primaryBtnClass={primaryBtnClass}
           backBtnClass={backBtnClass}
         />
