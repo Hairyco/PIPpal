@@ -119,15 +119,32 @@ export function PostLaunchDashboard({
   /** First Approve unlocks spend; can pause/unpause after that. */
   const [spendUnlocked, setSpendUnlocked] = useState(false);
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
-  /** Launch path: carousel after pay; spend stays off until settings turned on. */
-  const [showLaunchCarousel, setShowLaunchCarousel] = useState(mode === 'launch');
+  /** Launch path: carousel after pay — once per coin after acknowledged. */
+  const [showLaunchCarousel, setShowLaunchCarousel] = useState(() => {
+    if (mode !== 'launch') return false;
+    try {
+      return localStorage.getItem(`ctogo-launch-carousel-seen-${symbol.trim().toUpperCase()}`) !== '1';
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
-    if (mode === 'launch') setShowLaunchCarousel(true);
+    if (mode !== 'launch') {
+      setShowLaunchCarousel(false);
+      return;
+    }
+    try {
+      setShowLaunchCarousel(
+        localStorage.getItem(`ctogo-launch-carousel-seen-${symbol.trim().toUpperCase()}`) !== '1',
+      );
+    } catch {
+      setShowLaunchCarousel(true);
+    }
   }, [mode, symbol]);
 
   const nextThreshold = useMemo(() => {
