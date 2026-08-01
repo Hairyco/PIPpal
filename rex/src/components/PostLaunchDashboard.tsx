@@ -397,28 +397,26 @@ export function PostLaunchDashboard({
           </span>
         )}
         <div className="min-w-0">
-          <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
-            {symbol}
-          </h1>
-          <p className="text-[12px] text-white/40">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+            <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
+              {symbol}
+            </h1>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-0.5">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-[#c8ff3d]" aria-hidden />
+              <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#d5ff69]">
+                Live
+              </span>
+            </span>
+          </div>
+          <p className="mt-0.5 text-[12px] text-white/40">
             {needsSetup
               ? listingConfirmed
                 ? 'Live on CTOgo'
-                : 'Listed · trading paused'
+                : 'On CTOgo · finish setup below'
               : 'On the CTOgo board'}
           </p>
         </div>
       </div>
-
-      {needsSetup && tab === 'overview' && !listingConfirmed ? (
-        <div className="rounded-xl border border-amber-400/25 bg-amber-400/[0.07] px-3.5 py-3">
-          <p className="text-[13px] font-semibold text-amber-100">Your coin is listed</p>
-          <p className="mt-1 text-[12px] leading-relaxed text-amber-100/70">
-            Trading stays paused until you confirm setup below. Finish what you can, then confirm to
-            go live.
-          </p>
-        </div>
-      ) : null}
 
       <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="inline-flex min-w-full gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
@@ -454,6 +452,31 @@ export function PostLaunchDashboard({
             </button>
           ) : null}
 
+          {telegramHref ? (
+            <a
+              href={telegramHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3.5 overflow-hidden rounded-xl border border-[#2AABEE]/30 bg-gradient-to-br from-[#2AABEE]/[0.12] via-transparent to-[#c8ff3d]/[0.06] px-3.5 py-3.5 transition hover:border-[#2AABEE]/50 hover:bg-[#2AABEE]/[0.14]"
+            >
+              <img
+                src="/images/partners/telegram.svg"
+                alt=""
+                className="h-12 w-12 shrink-0 drop-shadow-[0_6px_16px_rgba(42,171,238,0.35)]"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[14px] font-semibold text-white">
+                  Telegram group ready
+                </span>
+                <span className="mt-0.5 block text-[12px] leading-relaxed text-white/50">
+                  Your official Telegram room is live. Join now to direct raids, coordinate holders,
+                  and post updates.
+                </span>
+              </span>
+              <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
+            </a>
+          ) : null}
+
           {needsSetup ? (
             <>
               <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
@@ -470,28 +493,6 @@ export function PostLaunchDashboard({
                 </p>
               )}
             </>
-          ) : null}
-
-          {mode === 'add' && (telegramCommunity || shareLinks.telegram).trim() ? (
-            <a
-              href={(telegramCommunity || shareLinks.telegram).trim()}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3.5 rounded-xl border border-[#2AABEE]/30 bg-[#2AABEE]/[0.08] px-3.5 py-3.5 transition hover:border-[#2AABEE]/50 hover:bg-[#2AABEE]/[0.12]"
-            >
-              <img
-                src="/images/partners/telegram.svg"
-                alt=""
-                className="h-11 w-11 shrink-0"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[13px] font-semibold text-white">Your community</span>
-                <span className="mt-0.5 block text-[12px] text-white/50">
-                  Open your Telegram group — use this chat going forward
-                </span>
-              </span>
-              <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
-            </a>
           ) : null}
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
