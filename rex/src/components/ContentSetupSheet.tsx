@@ -33,20 +33,20 @@ const CHANNEL_META: Record<
   },
   website: {
     title: 'Set up website',
-    body: 'Use your CTOgo coin page, or clone an old site from Content / Socials.',
+    body: 'Use your CTOgo coin page, or request website changes via Contact.',
     externalLabel: 'Open CTOgo home',
     externalHref: '/',
   },
   logo: {
     title: 'Logo',
     body: 'Generate or download your 1:1 mark, then use it on Dex, X, and Telegram.',
-    externalLabel: 'Back to Content',
+    externalLabel: 'Done',
     externalHref: '',
   },
   banner: {
     title: 'Dex / X banner',
     body: '3:1 header for DexScreener and a close match for X profile headers.',
-    externalLabel: 'Back to Content',
+    externalLabel: 'Done',
     externalHref: '',
   },
 };
@@ -92,7 +92,7 @@ export function ContentSetupSheet({
       await downloadDataUrl(logoUrl, `${symbol || 'CTO'}-logo.png`);
       setNotice('Logo saved — check Downloads / gallery, then upload on the platform.');
     } catch {
-      setNotice('Could not save. Long-press the image or use Content tab.');
+      setNotice('Could not save. Long-press the image instead.');
     }
   };
 
@@ -106,7 +106,7 @@ export function ContentSetupSheet({
       await downloadDataUrl(bannerUrl, `${symbol || 'CTO'}-banner-3x1.png`);
       setNotice('Banner saved — upload as X header or DexScreener token header.');
     } catch {
-      setNotice('Could not save. Long-press the image or use Content tab.');
+      setNotice('Could not save. Long-press the image instead.');
     }
   };
 

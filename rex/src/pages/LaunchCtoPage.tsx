@@ -62,7 +62,7 @@ import { demoMarketingWalletAddress } from '../data/ctoProjects';
 type LaunchMode = 'launch' | 'add';
 type FlowStep = 'coin' | 'fees' | 'website' | 'burn' | 'summary' | 'fresh' | 'done';
 type WebsiteKind = 'none' | 'clone';
-type DashEntryTab = 'overview' | 'wallet' | 'content' | 'socials';
+type DashEntryTab = 'overview' | 'wallet' | 'socials';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -2016,7 +2016,7 @@ export function LaunchCtoPage() {
               onAddXLogo={() => {
                 if (!logoPreview) makeLogo(logoSalt);
                 setSetupChannel('x');
-                goToListDashboard('content');
+                goToListDashboard('overview');
               }}
               onContinueToDashboard={() => goToListDashboard('overview')}
               onSkipToDashboard={() => goToListDashboard('overview')}
@@ -2090,7 +2090,7 @@ export function LaunchCtoPage() {
         onClose={() => setSetupChannel(null)}
         onGenerateLogo={() => makeLogo(logoSalt + 1)}
         onGenerateBanner={() => void makeDexHeader(dexHeaderSalt)}
-        onGoContent={() => goToListDashboard('content')}
+        onGoContent={() => goToListDashboard('overview')}
       />
 
       <WebsitePreviewOverlay

@@ -14,12 +14,6 @@ import {
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
-import { PostLaunchContentTab } from './PostLaunchContentTab';
-import { ContentSetupSheet, type SetupChannel } from './ContentSetupSheet';
-import {
-  generateCtoLogoDataUrl,
-  generateDexScreenerHeaderWithLogo,
-} from '../utils/ctoCollateralGenerate';
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
@@ -33,7 +27,7 @@ import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
 
-type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
+type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
 type ShareLinks = {
   token: string;
@@ -74,7 +68,6 @@ const LAUNCH_TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
-  { id: 'content', label: 'Content' },
   { id: 'socials', label: 'Socials' },
   { id: 'affiliate', label: 'Affiliate' },
 ];
@@ -82,7 +75,6 @@ const LAUNCH_TABS: { id: DashTab; label: string }[] = [
 const LIST_TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'wallet', label: 'Wallet' },
-  { id: 'content', label: 'Content' },
   { id: 'socials', label: 'Socials' },
 ];
 
@@ -107,8 +99,8 @@ export function PostLaunchDashboard({
   twitter = '',
   telegramCommunity = '',
   discord = '',
-  websiteUrl = '',
-  websiteKind = 'own',
+  websiteUrl: _websiteUrl = '',
+  websiteKind: _websiteKind = 'own',
   logoUrl = null,
   initialTab = 'overview',
   onAttachMarketingWallet,
@@ -123,10 +115,6 @@ export function PostLaunchDashboard({
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapApproved, setRoadmapApproved] = useState(false);
-  const [collateralChecked, setCollateralChecked] = useState<string[]>([]);
-  const [logoUrlState, setLogoUrlState] = useState<string | null>(logoUrl);
-  const [bannerUrlState, setBannerUrlState] = useState<string | null>(null);
-  const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
   /** Launch path: carousel after pay; spend stays off until settings turned on. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(mode === 'launch');
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
@@ -138,61 +126,6 @@ export function PostLaunchDashboard({
   useEffect(() => {
     if (mode === 'launch') setShowLaunchCarousel(true);
   }, [mode, symbol]);
-
-  useEffect(() => {
-    setLogoUrlState(logoUrl);
-  }, [logoUrl]);
-
-  useEffect(() => {
-    const t = symbol.trim().toUpperCase() || 'CTO';
-    try {
-      const storedLogo = sessionStorage.getItem(`ctogo-logo-${t}`);
-      const storedBanner = sessionStorage.getItem(`ctogo-dex-header-${t}`);
-      if (storedLogo) setLogoUrlState(storedLogo);
-      if (storedBanner) setBannerUrlState(storedBanner);
-    } catch {
-      /* ignore */
-    }
-  }, [symbol]);
-
-  const persistLogo = (url: string | null) => {
-    setLogoUrlState(url);
-    if (!url) return;
-    try {
-      sessionStorage.setItem(`ctogo-logo-${symbol.trim().toUpperCase()}`, url);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const persistBanner = (url: string | null) => {
-    setBannerUrlState(url);
-    if (!url) return;
-    try {
-      sessionStorage.setItem(`ctogo-dex-header-${symbol.trim().toUpperCase()}`, url);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  const generateLogoNow = () => {
-    const url = generateCtoLogoDataUrl({
-      projectName: symbol,
-      ticker: symbol,
-      salt: Date.now() % 997,
-    });
-    persistLogo(url);
-  };
-
-  const generateBannerNow = () => {
-    void generateDexScreenerHeaderWithLogo({
-      projectName: symbol,
-      ticker: symbol,
-      logoDataUrl: logoUrlState,
-      tagline: 'Community owned · No rugs',
-      salt: Date.now() % 997,
-    }).then(persistBanner);
-  };
 
   const nextThreshold = useMemo(() => {
     return (
@@ -859,22 +792,6 @@ export function PostLaunchDashboard({
         </div>
       ) : null}
 
-      {tab === 'content' ? (
-        <PostLaunchContentTab
-          symbol={symbol}
-          logoUrl={logoUrlState}
-          bannerUrl={bannerUrlState}
-          onLogoChange={persistLogo}
-          onBannerChange={persistBanner}
-          collateralChecked={collateralChecked}
-          onToggleCollateral={(id) =>
-            setCollateralChecked((prev) =>
-              prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-            )
-          }
-        />
-      ) : null}
-
       {tab === 'socials' ? (
         <PostLaunchSocialsTab
           symbol={symbol}
@@ -934,18 +851,6 @@ export function PostLaunchDashboard({
           </button>
         </div>
       ) : null}
-
-      <ContentSetupSheet
-        open={setupChannel != null}
-        channel={setupChannel}
-        symbol={symbol}
-        logoUrl={logoUrlState}
-        bannerUrl={bannerUrlState}
-        onClose={() => setSetupChannel(null)}
-        onGenerateLogo={generateLogoNow}
-        onGenerateBanner={generateBannerNow}
-        onGoContent={() => setTab('content')}
-      />
     </div>
   );
 }
