@@ -1447,16 +1447,40 @@ export function LaunchCtoPage() {
                 </div>
               </div>
 
-              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+              <div
+                className={`overflow-hidden rounded-xl border bg-white/[0.02] ${
+                  vestingAccepted
+                    ? 'border-white/[0.08]'
+                    : 'border-[#c8ff3d]/35'
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setVestingOpen((v) => !v)}
                   className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
                 >
-                  <span>
-                    <span className="block text-[13px] font-semibold text-white">Vesting</span>
-                    <span className="mt-0.5 block text-[11px] text-white/40">
-                      V2 unlocks over 7 days
+                  <span className="flex min-w-0 items-start gap-3">
+                    <span
+                      className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${
+                        vestingAccepted
+                          ? 'bg-[#c8ff3d] text-[#090b14]'
+                          : 'border-2 border-[#c8ff3d] bg-[#c8ff3d]/15 shadow-[0_0_0_3px_rgba(200,255,61,0.12)]'
+                      }`}
+                      aria-hidden
+                    >
+                      {vestingAccepted ? (
+                        <Check className="h-3 w-3" strokeWidth={2.5} />
+                      ) : (
+                        <span className="h-2 w-2 rounded-full bg-[#c8ff3d]" />
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-semibold text-white">Vesting</span>
+                      <span className="mt-0.5 block text-[11px] text-white/40">
+                        {vestingAccepted
+                          ? 'Disclaimer accepted'
+                          : 'Accept disclaimer to continue'}
+                      </span>
                     </span>
                   </span>
                   <ChevronDown
