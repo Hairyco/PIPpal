@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Check,
   Copy,
@@ -346,17 +347,7 @@ export function PostLaunchDashboard({
             ) : null}
             <button
               type="button"
-              onClick={() => {
-                setTab('wallet');
-                if (!marketingSpendOn) {
-                  window.setTimeout(() => {
-                    document.getElementById('marketing-wallet-settings')?.scrollIntoView({
-                      behavior: 'smooth',
-                      block: 'center',
-                    });
-                  }, 80);
-                }
-              }}
+              onClick={() => setTab('wallet')}
               className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
