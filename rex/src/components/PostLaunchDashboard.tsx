@@ -724,6 +724,28 @@ export function PostLaunchDashboard({
             <PolessiaLogo variant="powered" size="xs" />
           </div>
 
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="text-[11px] font-medium text-white/40">Wallet balance</p>
+              <p className="font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
+                ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
+              </p>
+            </div>
+            {nextThreshold ? (
+              <>
+                <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full bg-[#c8ff3d] transition-[width]"
+                    style={{ width: `${fillPct}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-[12px] text-white/40">
+                  {fillPct}% to next unlock · {formatThresholdUsd(nextThreshold.thresholdUsd)}
+                </p>
+              </>
+            ) : null}
+          </div>
+
           <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
             <button
               type="button"
