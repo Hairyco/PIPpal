@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Check,
   Copy,
@@ -838,19 +837,6 @@ export function PostLaunchDashboard({
             'Approve'
           )}
         </button>
-      ) : mode !== 'add' ? (
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-4 text-[12px]">
-          <Link to="/" className="font-semibold text-white/45 transition hover:text-white">
-            Back to home
-          </Link>
-          <button
-            type="button"
-            onClick={onReset}
-            className="font-semibold text-white/35 transition hover:text-white/60"
-          >
-            Launch another
-          </button>
-        </div>
       ) : null}
     </div>
   );
