@@ -115,10 +115,12 @@ export function PostLaunchDashboard({
   const [copiedMint, setCopiedMint] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
-  const [roadmapApproved, setRoadmapApproved] = useState(false);
+  const [roadmapApprovedFlash, setRoadmapApprovedFlash] = useState(false);
+  /** First Approve unlocks spend; can pause/unpause after that. */
+  const [spendUnlocked, setSpendUnlocked] = useState(false);
+  const [marketingSpendOn, setMarketingSpendOn] = useState(false);
   /** Launch path: carousel after pay; spend stays off until settings turned on. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(mode === 'launch');
-  const [marketingSpendOn, setMarketingSpendOn] = useState(false);
 
   useEffect(() => {
     setTab(initialTab);
@@ -178,9 +180,15 @@ export function PostLaunchDashboard({
   const setManual = () => setRoadmapMode('manual');
 
   const approveRoadmap = () => {
-    setRoadmapApproved(true);
+    setSpendUnlocked(true);
     setMarketingSpendOn(true);
-    window.setTimeout(() => setRoadmapApproved(false), 2000);
+    setRoadmapApprovedFlash(true);
+    window.setTimeout(() => setRoadmapApprovedFlash(false), 2000);
+  };
+
+  const toggleMarketingSpend = () => {
+    if (!spendUnlocked) return;
+    setMarketingSpendOn((v) => !v);
   };
 
   const copyMint = async () => {
@@ -348,7 +356,17 @@ export function PostLaunchDashboard({
             ) : null}
             <button
               type="button"
-              onClick={() => setTab('roadmap')}
+              onClick={() => {
+                if (!spendUnlocked) {
+                  setTab('roadmap');
+                  return;
+                }
+                if (!marketingSpendOn) {
+                  setMarketingSpendOn(true);
+                  return;
+                }
+                setTab('wallet');
+              }}
               className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
@@ -356,18 +374,29 @@ export function PostLaunchDashboard({
                 <p className="mt-0.5 text-[13px] font-semibold text-white">
                   {!vaultLive
                     ? 'Not attached yet'
-                    : !marketingSpendOn
+                    : !spendUnlocked
                       ? 'Pending'
-                      : `$${vaultBalanceUsd.toLocaleString()}`}
-                  {vaultLive && marketingSpendOn ? (
+                      : !marketingSpendOn
+                        ? 'Paused'
+                        : `$${vaultBalanceUsd.toLocaleString()}`}
+                  {vaultLive && spendUnlocked && marketingSpendOn ? (
                     <span className="ml-1.5 font-normal text-white/35">
                       · {fillPct}% to next unlock
+                    </span>
+                  ) : null}
+                  {vaultLive && spendUnlocked && !marketingSpendOn ? (
+                    <span className="ml-1.5 font-normal text-white/35">
+                      · fees still collect
                     </span>
                   ) : null}
                 </p>
               </div>
               <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">
-                {!vaultLive || !marketingSpendOn ? 'Turn on' : 'Open →'}
+                {!vaultLive || !spendUnlocked
+                  ? 'Turn on'
+                  : !marketingSpendOn
+                    ? 'Unpause'
+                    : 'Open →'}
               </span>
             </button>
           </section>
@@ -446,6 +475,52 @@ export function PostLaunchDashboard({
                 <Wallet className="h-5 w-5" />
               </span>
             </div>
+
+            {vaultLive && spendUnlocked ? (
+              <div
+                className={`space-y-3 border-b border-white/[0.06] px-3 py-3 ${
+                  marketingSpendOn
+                    ? 'bg-[#c8ff3d]/[0.05]'
+                    : 'bg-amber-400/[0.06]'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium text-white/40">Marketing spend</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-white">
+                      {marketingSpendOn ? 'On' : 'Paused'}
+                    </p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-white/50">
+                      {marketingSpendOn
+                        ? 'Auto marketing transactions are running at unlock thresholds.'
+                        : 'All marketing transactions stopped. Fees still collect, the wallet still fills, and manual pay-ins still work.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={marketingSpendOn}
+                    onClick={toggleMarketingSpend}
+                    className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                      marketingSpendOn ? 'bg-[#c8ff3d]' : 'bg-white/15'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+                        marketingSpendOn ? 'left-[1.35rem]' : 'left-0.5'
+                      }`}
+                    />
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleMarketingSpend}
+                  className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
+                >
+                  {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+                </button>
+              </div>
+            ) : null}
 
             {!vaultLive && onAttachMarketingWallet ? (
               <div className="space-y-3 border-b border-white/[0.06] px-3 py-3">
@@ -799,21 +874,31 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'roadmap' ? (
-        <button
-          id="roadmap-approve"
-          type="button"
-          onClick={approveRoadmap}
-          className={`${primaryBtnClass} scroll-mt-4`}
-        >
-          {roadmapApproved ? (
-            <>
-              Approved
-              <Check className="h-4 w-4" />
-            </>
-          ) : (
-            'Approve'
-          )}
-        </button>
+        spendUnlocked ? (
+          <button
+            type="button"
+            onClick={toggleMarketingSpend}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+          </button>
+        ) : (
+          <button
+            id="roadmap-approve"
+            type="button"
+            onClick={approveRoadmap}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            {roadmapApprovedFlash ? (
+              <>
+                Approved
+                <Check className="h-4 w-4" />
+              </>
+            ) : (
+              'Approve'
+            )}
+          </button>
+        )
       ) : null}
     </div>
   );

@@ -79,9 +79,30 @@ const WEBSITE_CHANGE_OPTIONS = [
 
 type WebsiteChangeKind = (typeof WEBSITE_CHANGE_OPTIONS)[number]['id'];
 
+const MARKETING_QUERY_OPTIONS = [
+  { id: 'pause', label: 'Pause / unpause spend' },
+  { id: 'balance', label: 'Balance or fill issue' },
+  { id: 'manual', label: 'Manual payment / pay-in' },
+  { id: 'address', label: 'Wallet address / Solscan' },
+  { id: 'spend', label: 'Auto spend not running' },
+  { id: 'other', label: 'Other marketing wallet question' },
+] as const;
+
+type MarketingQueryKind = (typeof MARKETING_QUERY_OPTIONS)[number]['id'];
+
 export function ContactPage() {
-  const [requestType, setRequestType] = useState<RequestType>('general');
+  const [searchParams] = useSearchParams();
+  const topicParam = searchParams.get('topic');
+  const initialType = useMemo<RequestType>(() => {
+    if (topicParam && REQUEST_TYPES.some((t) => t.id === topicParam)) {
+      return topicParam as RequestType;
+    }
+    return 'general';
+  }, [topicParam]);
+
+  const [requestType, setRequestType] = useState<RequestType>(initialType);
   const [websiteChange, setWebsiteChange] = useState<WebsiteChangeKind>('own');
+  const [marketingQuery, setMarketingQuery] = useState<MarketingQueryKind>('pause');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [ticker, setTicker] = useState('');
   const [email, setEmail] = useState('');
@@ -89,6 +110,7 @@ export function ContactPage() {
   const [sent, setSent] = useState(false);
 
   const isWebsite = requestType === 'website';
+  const isMarketing = requestType === 'marketing';
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -96,9 +118,13 @@ export function ContactPage() {
       ? `Website changes · $${ticker.trim() || 'CTO'} · ${
           WEBSITE_CHANGE_OPTIONS.find((o) => o.id === websiteChange)?.label ?? websiteChange
         }`
-      : `${REQUEST_TYPES.find((t) => t.id === requestType)?.label ?? 'Contact'} · $${
-          ticker.trim() || 'CTO'
-        }`;
+      : isMarketing
+        ? `Marketing wallet · $${ticker.trim() || 'CTO'} · ${
+            MARKETING_QUERY_OPTIONS.find((o) => o.id === marketingQuery)?.label ?? marketingQuery
+          }`
+        : `${REQUEST_TYPES.find((t) => t.id === requestType)?.label ?? 'Contact'} · $${
+            ticker.trim() || 'CTO'
+          }`;
 
     const body = [
       `Request: ${REQUEST_TYPES.find((t) => t.id === requestType)?.label ?? requestType}`,
@@ -112,6 +138,11 @@ export function ContactPage() {
       isWebsite && websiteUrl.trim() ? `Website URL: ${websiteUrl.trim()}` : null,
       isWebsite && websiteChange === 'clone'
         ? `Note: clone + hosting is ${CLONE_HOSTING_FEE_SOL} SOL from the marketing wallet`
+        : null,
+      isMarketing
+        ? `Marketing query: ${
+            MARKETING_QUERY_OPTIONS.find((o) => o.id === marketingQuery)?.label ?? marketingQuery
+          }`
         : null,
       '',
       message.trim() || '(no message)',
@@ -130,7 +161,7 @@ export function ContactPage() {
         <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Talk to CTOgo</h1>
         <p className="mt-2 text-sm text-white/50">
           Check the FAQ first — most launch and marketing wallet questions are answered there.
-          Website changes are requested here.
+          Website changes and marketing wallet queries are requested here.
         </p>
 
         <section className="mt-8 space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
@@ -160,6 +191,23 @@ export function ContactPage() {
                   className="w-full appearance-none rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
                 >
                   {WEBSITE_CHANGE_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id} className="bg-[#0c0e16] text-white">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+
+            {isMarketing ? (
+              <label className="block space-y-1.5">
+                <span className="text-[11px] font-semibold text-white/40">Marketing wallet query</span>
+                <select
+                  value={marketingQuery}
+                  onChange={(e) => setMarketingQuery(e.target.value as MarketingQueryKind)}
+                  className="w-full appearance-none rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white outline-none focus:border-[#c8ff3d]/40"
+                >
+                  {MARKETING_QUERY_OPTIONS.map((opt) => (
                     <option key={opt.id} value={opt.id} className="bg-[#0c0e16] text-white">
                       {opt.label}
                     </option>
@@ -220,7 +268,9 @@ export function ContactPage() {
                 placeholder={
                   isWebsite
                     ? 'Describe the website change you need…'
-                    : 'How can we help?'
+                    : isMarketing
+                      ? 'Describe your marketing wallet question…'
+                      : 'How can we help?'
                 }
                 className="w-full resize-y rounded-lg border border-white/[0.1] bg-white/[0.03] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#c8ff3d]/40"
               />
