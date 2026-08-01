@@ -796,12 +796,7 @@ export function PostLaunchDashboard({
             </button>
           </div>
 
-          {roadmapMode === 'polessia' ? (
-            <p className="text-[12px] leading-relaxed text-white/40">
-              Polessia runs one package per tier as the wallet fills. Activity prices are on the
-              right.
-            </p>
-          ) : (
+          {roadmapMode === 'polessia' ? null : (
             <p className="text-[12px] leading-relaxed text-white/40">
               Toggle individual activities. Spend still waits for wallet balance.
             </p>
