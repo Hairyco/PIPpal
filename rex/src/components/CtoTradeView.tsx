@@ -14,8 +14,7 @@ import {
   X,
   Pin,
 } from 'lucide-react';
-import { MigrateToV2Banner, UpgradedOnCtogoBanner } from './OriginBadge';
-import { CoinHeaderBanner } from './CoinHeaderBanner';
+import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
@@ -260,9 +259,6 @@ export function CtoTradeView({
   const [sellPct, setSellPct] = useState('25');
   const [chartWindow, setChartWindow] = useState('5m');
   const [chartVersion, setChartVersion] = useState<'v1' | 'v2'>('v2');
-  const [headerBannerSrc, setHeaderBannerSrc] = useState<string | null>(
-    project.headerBanner ?? null,
-  );
   const [copied, setCopied] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [mktHistoryOpen, setMktHistoryOpen] = useState(false);
@@ -305,15 +301,7 @@ export function CtoTradeView({
   useEffect(() => {
     setChartVersion('v2');
     setStickyChartPinned(true);
-    const catalog = project.headerBanner ?? null;
-    let stored: string | null = null;
-    try {
-      stored = sessionStorage.getItem(`ctogo-dex-header-${project.ticker}`);
-    } catch {
-      /* ignore */
-    }
-    setHeaderBannerSrc(stored || catalog);
-  }, [project.ticker, project.headerBanner]);
+  }, [project.ticker]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -511,30 +499,6 @@ export function CtoTradeView({
             sourceVenue={project.sourceVenue}
             devDumpedPct={project.devDumpedPct}
             href={launchHref}
-          />
-        </div>
-      ) : null}
-
-      {linkedV1 ? (
-        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
-          <UpgradedOnCtogoBanner
-            ticker={project.ticker}
-            onViewV1={() => {
-              setChartVersion('v1');
-              window.setTimeout(() => scrollToChart(), 50);
-            }}
-          />
-        </div>
-      ) : null}
-
-      {headerBannerSrc ? (
-        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
-          <CoinHeaderBanner
-            ticker={project.ticker}
-            name={project.name}
-            logo={project.logo}
-            colors={project.colors}
-            src={headerBannerSrc}
           />
         </div>
       ) : null}
