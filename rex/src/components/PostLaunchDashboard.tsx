@@ -327,17 +327,23 @@ export function PostLaunchDashboard({
       />
 
       <div className="flex items-center gap-3">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt=""
-            className="h-10 w-10 shrink-0 rounded-xl border border-white/[0.1] object-cover"
-          />
-        ) : (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
-            {symbol.replace(/^\$/, '').slice(0, 2)}
-          </span>
-        )}
+        <Link
+          to={coinPagePath}
+          aria-label={`Open ${symbol} coin page`}
+          className="shrink-0 rounded-xl transition hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c8ff3d]"
+        >
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              className="h-10 w-10 rounded-xl border border-white/[0.1] object-cover"
+            />
+          ) : (
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
+              {symbol.replace(/^\$/, '').slice(0, 2)}
+            </span>
+          )}
+        </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
