@@ -822,10 +822,11 @@ export function PostLaunchDashboard({
 
       {tab === 'roadmap' ? (
         <div className="space-y-6">
-          <div>
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <p className="font-serif text-xl font-bold tracking-tight text-white">
               Spend roadmap
             </p>
+            <PolessiaLogo variant="powered" size="xs" />
           </div>
 
           <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
