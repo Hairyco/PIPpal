@@ -696,11 +696,19 @@ export function PostLaunchDashboard({
           </div>
 
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
-            <div className="flex items-baseline justify-between gap-3">
-              <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
-              <p className="font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
-                ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
-              </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
+                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
+                  ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-medium text-white/40">Trading volume</p>
+                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
+                  ${tradingVolumeUsd.toLocaleString()}
+                </p>
+              </div>
             </div>
             {nextThreshold ? (
               <>
