@@ -77,6 +77,12 @@ export const FAQ_SECTIONS: FaqSection[] = [
         answer: `Trade fees always fill the marketing wallet. Auto spend stays off until you approve the spend roadmap. After that, unlocks start from $${MARKETING_AUTO_SPEND_USD} — nothing spends while the roadmap is unapproved.`,
       },
       {
+        id: 'auto-pay-fail',
+        question: 'What if an auto payment fails?',
+        answer:
+          'If an auto payment fails once, CTOgo retries once. If it fails a second time, it is referred to you and we attempt manual payment from the marketing wallet.',
+      },
+      {
         id: 'abandonment',
         question: 'What if the creator dumps?',
         answer:

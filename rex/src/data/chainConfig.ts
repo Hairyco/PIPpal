@@ -127,9 +127,25 @@ export const MARKETING_INACTIVITY_HOURS = 72;
 export const MARKETING_V2_DEADLINE_DAYS = 30;
 
 /**
+ * Auto-pay failure handling (ops rule).
+ * One automatic retry; a second failure escalates to the founder for manual payment.
+ */
+export const MARKETING_AUTO_PAY_FAILURE_RULE = {
+  id: 'auto-pay-double-fail',
+  maxAutoAttempts: 2,
+  summary:
+    'If an auto payment fails once, CTOgo retries once. If it fails a second time, it is referred to you — we attempt manual payment.',
+  steps: [
+    'Auto payment attempt 1 fails → automatic retry',
+    'Auto payment attempt 2 fails → referred to you',
+    'You (and CTOgo ops) attempt manual payment from the marketing wallet',
+  ],
+} as const;
+
+/**
  * Law A — marketing wallet spend is opt-in.
  * Fees fill the wallet from attach/launch. Auto spend stays off until the
- * founder turns settings on; then unlock thresholds (e.g. $500) can fire.
+ * founder approves the spend roadmap; then unlock thresholds (e.g. $500) can fire.
  */
 export const MARKETING_SPEND_OPT_IN = {
   id: 'opt-in-settings',
@@ -147,7 +163,7 @@ export const FEE_GUIDELINES = [
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing wallet: fees fill always; auto spend stays off until settings are on, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
+  `Marketing wallet: fees fill always; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Auto pay: one retry on fail, second fail → referred to you for manual payment. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
 /**
@@ -160,7 +176,7 @@ export const MARKETING_VAULT_SWEEP_RULE = {
   optIn: MARKETING_SPEND_OPT_IN.summary,
   autoSpendLabel: `Spend unlock threshold · $${MARKETING_AUTO_SPEND_USD}`,
   autoSpend:
-    `After settings are on, when a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) can unlock — even if trading volume starts to slow. Nothing spends while settings are off.`,
+    `After the spend roadmap is approved, when a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) can unlock — even if trading volume starts to slow. Nothing spends while the roadmap is unapproved. ${MARKETING_AUTO_PAY_FAILURE_RULE.summary}`,
   inactivityLabel: `${MARKETING_INACTIVITY_HOURS}-hour inactivity sweep`,
   inactivity:
     `If a token accumulates under $${MARKETING_AUTO_SPEND_USD} and records $0 trading volume for ${MARKETING_INACTIVITY_HOURS} consecutive hours, unspent funds are swept into the Rex Protocol CTO Reserve.`,
