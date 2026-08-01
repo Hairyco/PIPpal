@@ -298,6 +298,14 @@ export function PostLaunchDashboard({
 
   const needsSetup = mode === 'launch';
   const telegramHref = (telegramCommunity || shareLinks.telegram || '').trim();
+  const coinPagePath = useMemo(() => {
+    try {
+      const url = new URL(shareLinks.token, typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.app');
+      return `${url.pathname}${url.search}` || '/';
+    } catch {
+      return shareLinks.token.startsWith('/') ? shareLinks.token : '/';
+    }
+  }, [shareLinks.token]);
 
   const configureFromCarousel = () => {
     try {
