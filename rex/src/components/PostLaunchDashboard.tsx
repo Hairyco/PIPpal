@@ -443,6 +443,28 @@ export function PostLaunchDashboard({
             </>
           ) : null}
 
+          {mode === 'add' && (telegramCommunity || shareLinks.telegram).trim() ? (
+            <a
+              href={(telegramCommunity || shareLinks.telegram).trim()}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3.5 rounded-xl border border-[#2AABEE]/30 bg-[#2AABEE]/[0.08] px-3.5 py-3.5 transition hover:border-[#2AABEE]/50 hover:bg-[#2AABEE]/[0.12]"
+            >
+              <img
+                src="/images/partners/telegram.svg"
+                alt=""
+                className="h-11 w-11 shrink-0"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-semibold text-white">Your community</span>
+                <span className="mt-0.5 block text-[12px] text-white/50">
+                  Open your Telegram group — use this chat going forward
+                </span>
+              </span>
+              <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
+            </a>
+          ) : null}
+
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
             <div className="flex items-center gap-3 px-3 py-3">
               <div className="min-w-0 flex-1">
