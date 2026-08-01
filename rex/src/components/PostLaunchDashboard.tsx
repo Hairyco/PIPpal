@@ -15,7 +15,6 @@ import {
 } from './PostLaunchSocialsTab';
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
 import { PostLaunchContentTab } from './PostLaunchContentTab';
-import { OverviewSetupChecklist } from './OverviewSetupChecklist';
 import { ContentSetupSheet, type SetupChannel } from './ContentSetupSheet';
 import {
   generateCtoLogoDataUrl,
@@ -90,8 +89,8 @@ const LIST_TABS: { id: DashTab; label: string }[] = [
 export function PostLaunchDashboard({
   symbol,
   mode,
-  listingConfirmed,
-  onConfirmListing,
+  listingConfirmed: _listingConfirmed,
+  onConfirmListing: _onConfirmListing,
   shareLinks,
   copiedLink,
   onCopyLink,
@@ -156,48 +155,6 @@ export function PostLaunchDashboard({
     }
   }, [symbol]);
 
-  const hasLogo = Boolean(logoUrlState);
-  const hasBanner = Boolean(bannerUrlState);
-  const hasWebsite =
-    websiteKind === 'clone' ||
-    (websiteKind !== 'none' && Boolean(websiteUrl.trim()));
-  const hasTelegram = Boolean((telegramCommunity || shareLinks.telegram || '').trim());
-  const hasX = Boolean(twitter.trim());
-
-  const overviewItems = useMemo(
-    () => [
-      {
-        id: 'content' as const,
-        label: 'Logo & banner',
-        detail: '',
-        done: hasLogo && hasBanner,
-        actionLabel: 'Add',
-      },
-      {
-        id: 'website' as const,
-        label: 'Website',
-        detail: '',
-        done: hasWebsite,
-        actionLabel: 'Add',
-      },
-      {
-        id: 'telegram' as const,
-        label: 'Telegram',
-        detail: '',
-        done: hasTelegram,
-        actionLabel: 'Add',
-      },
-      {
-        id: 'x' as const,
-        label: 'X',
-        detail: '',
-        done: hasX,
-        actionLabel: 'Add',
-      },
-    ],
-    [hasLogo, hasBanner, hasWebsite, hasTelegram, hasX],
-  );
-
   const persistLogo = (url: string | null) => {
     setLogoUrlState(url);
     if (!url) return;
@@ -235,28 +192,6 @@ export function PostLaunchDashboard({
       tagline: 'Community owned · No rugs',
       salt: Date.now() % 997,
     }).then(persistBanner);
-  };
-
-  const onChecklistAction = (id: (typeof overviewItems)[number]['id']) => {
-    if (id === 'content') {
-      if (!hasLogo) generateLogoNow();
-      if (!hasBanner) generateBannerNow();
-      setSetupChannel(hasBanner ? 'banner' : 'logo');
-      return;
-    }
-    if (id === 'website') {
-      setTab('socials');
-      return;
-    }
-    if (id === 'telegram') {
-      setSetupChannel('telegram');
-      return;
-    }
-    if (id === 'x') {
-      if (!hasLogo) generateLogoNow();
-      if (!hasBanner) generateBannerNow();
-      setSetupChannel('x');
-    }
   };
 
   const nextThreshold = useMemo(() => {
@@ -409,11 +344,7 @@ export function PostLaunchDashboard({
             </span>
           </div>
           <p className="mt-0.5 text-[12px] text-white/40">
-            {needsSetup
-              ? listingConfirmed
-                ? 'Live on CTOgo'
-                : 'On CTOgo · finish setup below'
-              : 'On the CTOgo board'}
+            {needsSetup ? 'Live on CTOgo' : 'On the CTOgo board'}
           </p>
         </div>
       </div>
@@ -452,50 +383,31 @@ export function PostLaunchDashboard({
             </button>
           ) : null}
 
-          {telegramHref ? (
-            <a
-              href={telegramHref}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3.5 overflow-hidden rounded-xl border border-[#2AABEE]/30 bg-gradient-to-br from-[#2AABEE]/[0.12] via-transparent to-[#c8ff3d]/[0.06] px-3.5 py-3.5 transition hover:border-[#2AABEE]/50 hover:bg-[#2AABEE]/[0.14]"
-            >
-              <img
-                src="/images/partners/telegram.svg"
-                alt=""
-                className="h-12 w-12 shrink-0 drop-shadow-[0_6px_16px_rgba(42,171,238,0.35)]"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[14px] font-semibold text-white">
-                  Telegram group ready
-                </span>
-                <span className="mt-0.5 block text-[12px] leading-relaxed text-white/50">
-                  Your official Telegram room is live. Join now to direct raids, coordinate holders,
-                  and post updates.
-                </span>
-              </span>
-              <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
-            </a>
-          ) : null}
-
-          {needsSetup ? (
-            <>
-              <OverviewSetupChecklist items={overviewItems} onAction={onChecklistAction} />
-
-              {!listingConfirmed ? (
-                <button type="button" onClick={onConfirmListing} className={primaryBtnClass}>
-                  Confirm setup · go live
-                  <ExternalLink className="h-4 w-4" />
-                </button>
-              ) : (
-                <p className="flex items-center gap-2 text-[13px] font-semibold text-[#d5ff69]">
-                  <Check className="h-4 w-4" />
-                  Trading live · listing confirmed
-                </p>
-              )}
-            </>
-          ) : null}
-
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            {telegramHref ? (
+              <a
+                href={telegramHref}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3.5 border-b border-white/[0.06] bg-gradient-to-br from-[#2AABEE]/[0.1] via-transparent to-transparent px-3 py-3.5 transition hover:bg-[#2AABEE]/[0.12]"
+              >
+                <img
+                  src="/images/partners/telegram.svg"
+                  alt=""
+                  className="h-11 w-11 shrink-0 drop-shadow-[0_6px_16px_rgba(42,171,238,0.35)]"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-semibold text-white">
+                    Telegram group ready
+                  </span>
+                  <span className="mt-0.5 block text-[12px] leading-relaxed text-white/50">
+                    Your official Telegram room is live. Join now to direct raids, coordinate
+                    holders, and post updates.
+                  </span>
+                </span>
+                <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
+              </a>
+            ) : null}
             <div className="flex items-center gap-3 px-3 py-3">
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium text-white/40">Contract</p>
