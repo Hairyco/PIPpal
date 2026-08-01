@@ -310,6 +310,7 @@ export function PostLaunchDashboard({
 
   const approveRoadmap = () => {
     setRoadmapApproved(true);
+    setMarketingSpendOn(true);
     window.setTimeout(() => setRoadmapApproved(false), 2000);
   };
 
@@ -365,11 +366,11 @@ export function PostLaunchDashboard({
 
   const configureFromCarousel = () => {
     setShowLaunchCarousel(false);
-    setTab('wallet');
+    setTab('roadmap');
     window.setTimeout(() => {
-      document.getElementById('marketing-wallet-settings')?.scrollIntoView({
+      document.getElementById('roadmap-approve')?.scrollIntoView({
         behavior: 'smooth',
-        block: 'start',
+        block: 'center',
       });
     }, 80);
   };

@@ -17,7 +17,7 @@ const SLIDES = [
   {
     id: 'wallet',
     title: 'Marketing wallet is off',
-    body: 'Auto spend stays off until you turn it on in settings. Fees can still fill the wallet — nothing spends until you configure.',
+    body: 'Auto spend stays off until you approve the spend roadmap. Fees can still fill the wallet — nothing spends until you configure.',
   },
 ] as const;
 
