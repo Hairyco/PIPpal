@@ -392,14 +392,17 @@ export function PostLaunchDashboard({
                 className="flex items-center gap-3 border-b border-white/[0.06] px-3 py-3 transition hover:bg-white/[0.03]"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-medium text-white/40">Telegram</p>
+                  <p className="flex items-center gap-1.5 text-[11px] font-medium text-white/40">
+                    <img
+                      src="/images/partners/telegram.svg"
+                      alt=""
+                      className="h-3.5 w-3.5 shrink-0"
+                    />
+                    Telegram
+                  </p>
                   <p className="mt-0.5 text-[13px] font-semibold text-white">Group ready</p>
                 </div>
-                <img
-                  src="/images/partners/telegram.svg"
-                  alt="Open Telegram"
-                  className="h-6 w-6 shrink-0"
-                />
+                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
               </a>
             ) : null}
             <div className="flex items-center gap-3 px-3 py-3">
