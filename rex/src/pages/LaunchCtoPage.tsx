@@ -60,7 +60,7 @@ import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils
 import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'fresh' | 'done';
+type FlowStep = 'coin' | 'fees' | 'website' | 'burn' | 'summary' | 'fresh' | 'done';
 type WebsiteKind = 'none' | 'clone';
 type DashEntryTab = 'overview' | 'wallet' | 'content' | 'socials';
 
@@ -296,9 +296,13 @@ export function LaunchCtoPage() {
           { id: 'fees' as const, label: 'Fees' },
           { id: 'website' as const, label: 'Website' },
           { id: 'burn' as const, label: 'Burn' },
+          { id: 'summary' as const, label: 'Pay' },
         ]
       : [];
-  const stepIndex = steps.findIndex((s) => s.id === step);
+  const stepIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.id === step),
+  );
   const buyAtLaunchSolNum = Number(buyAtLaunchSol);
   const hasBuyAtLaunch =
     Boolean(buyAtLaunchSol.trim()) &&
@@ -531,10 +535,16 @@ export function LaunchCtoPage() {
     setStep('burn');
   };
 
-  /** Final publish: connect once, optionally burn V1, then pay launch / marketing wallet. */
-  const publishFromBurn = async () => {
+  /** Burn step only: confirm burn (optional), then go to payment summary. */
+  const continueFromBurn = async (opts?: { skip?: boolean }) => {
     setListNotice(null);
     setBurnConfirmError(null);
+
+    if (opts?.skip) {
+      setBurnAmount('');
+      setStep('summary');
+      return;
+    }
 
     const wantBurn =
       !burned &&
@@ -542,72 +552,84 @@ export function LaunchCtoPage() {
       Number.isFinite(Number(burnAmount)) &&
       Number(burnAmount) > 0;
 
-    if (wantBurn && !vestingAccepted) {
+    if (!wantBurn) {
+      setStep('summary');
+      return;
+    }
+
+    if (!vestingAccepted) {
       setVestingOpen(true);
       setBurnConfirmError('Confirm the unlock terms to continue.');
       return;
     }
 
     if (!connected) {
-      setListNotice(
-        wantBurn
-          ? hasBuyAtLaunch
-            ? `Connect your wallet to pay burn + launch fee + ${buyAtLaunchSolNum} SOL buy`
-            : 'Connect your wallet to pay burn + launch / marketing wallet fees'
-          : hasBuyAtLaunch
-            ? `Connect your wallet to pay the launch fee + ${buyAtLaunchSolNum} SOL buy`
-            : 'Connect your wallet to pay the launch fee',
-      );
       const next = await connect();
       if (!next) return;
       setBurnWalletReady(true);
     }
 
-    if (wantBurn) {
-      setBurnConfirmBusy(true);
-      let burnOk = false;
-      try {
-        const amt = Number(burnAmount);
-        const walletAddress = address ?? (await connect());
-        if (!walletAddress) {
-          setBurnConfirmError('Connect a wallet to pay the burn fee.');
-          return;
-        }
-        setBurnWalletReady(true);
-        const available = await scanV1BalanceNow(walletAddress);
-        if (amt > available) {
-          setBurnConfirmError(
-            `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
-          );
-          return;
-        }
-        await new Promise((r) => window.setTimeout(r, 600));
-        setBurned(true);
-        burnOk = true;
-      } catch {
-        setBurnConfirmError('Burn failed. Try again.');
+    setBurnConfirmBusy(true);
+    try {
+      const amt = Number(burnAmount);
+      const walletAddress = address ?? (await connect());
+      if (!walletAddress) {
+        setBurnConfirmError('Connect a wallet to burn.');
         return;
-      } finally {
-        setBurnConfirmBusy(false);
       }
-      if (!burnOk) return;
+      setBurnWalletReady(true);
+      const available = await scanV1BalanceNow(walletAddress);
+      if (amt > available) {
+        setBurnConfirmError(
+          `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
+        );
+        return;
+      }
+      await new Promise((r) => window.setTimeout(r, 600));
+      setBurned(true);
+      setStep('summary');
+    } catch {
+      setBurnConfirmError('Burn failed. Try again.');
+    } finally {
+      setBurnConfirmBusy(false);
+    }
+  };
+
+  /** Summary / Pay step: collect launch fees then open dashboard. */
+  const payAndLaunch = async () => {
+    setListNotice(null);
+    if (!connected) {
+      setListNotice(
+        hasBuyAtLaunch
+          ? `Connect your wallet to pay launch fee + ${buyAtLaunchSolNum} SOL buy`
+          : 'Connect your wallet to pay the launch fee',
+      );
+      const next = await connect();
+      if (!next) return;
     }
 
-    const t = ticker.trim().toUpperCase() || 'CTO';
+    setBurnConfirmBusy(true);
     try {
-      if (dexHeaderPreview) {
-        sessionStorage.setItem(`ctogo-dex-header-${t}`, dexHeaderPreview);
+      await new Promise((r) => window.setTimeout(r, 700));
+      const t = ticker.trim().toUpperCase() || 'CTO';
+      try {
+        if (dexHeaderPreview) {
+          sessionStorage.setItem(`ctogo-dex-header-${t}`, dexHeaderPreview);
+        }
+        if (bannerPreview) {
+          sessionStorage.setItem(`ctogo-banner-${t}`, bannerPreview);
+        }
+        if (logoPreview) {
+          sessionStorage.setItem(`ctogo-logo-${t}`, logoPreview);
+        }
+      } catch {
+        /* ignore quota */
       }
-      if (bannerPreview) {
-        sessionStorage.setItem(`ctogo-banner-${t}`, bannerPreview);
-      }
-      if (logoPreview) {
-        sessionStorage.setItem(`ctogo-logo-${t}`, logoPreview);
-      }
-    } catch {
-      /* ignore quota */
+      setMarketingAttached(true);
+      await finishLaunch();
+    } finally {
+      setBurnConfirmBusy(false);
     }
-    await finishLaunch();
   };
 
   const makeLogo = (salt = logoSalt) => {
@@ -810,7 +832,9 @@ export function LaunchCtoPage() {
                       ? 'Burn'
                       : step === 'website'
                         ? 'Website'
-                        : 'Launch a CTO'}
+                        : step === 'summary'
+                          ? 'Summary'
+                          : 'Launch a CTO'}
               </h1>
               {mode === 'add' ? (
                 <div className="mt-4 rounded-2xl border border-white/[0.1] bg-gradient-to-br from-[#c8ff3d]/[0.1] via-white/[0.02] to-transparent p-4">
@@ -861,7 +885,9 @@ export function LaunchCtoPage() {
                 </p>
               ) : step === 'burn' ? (
                 <p className="mt-1.5 text-sm leading-snug text-white/45">
-                  Connect wallet to burn your old tokens for the same amount of V2.
+                  {connected
+                    ? 'Burn your old tokens for the same amount of V2.'
+                    : 'Connect wallet to burn your old tokens for the same amount of V2.'}
                   <span className="group relative ml-1.5 inline-flex translate-y-[1px] align-middle">
                     <button
                       type="button"
@@ -880,11 +906,15 @@ export function LaunchCtoPage() {
                     </span>
                   </span>
                 </p>
+              ) : step === 'summary' ? (
+                <p className="mt-1.5 text-sm text-white/45">
+                  Review what’s included, then pay to launch.
+                </p>
               ) : null}
             </>
           ) : null}
 
-          {step !== 'done' && mode === 'launch' ? (
+          {step !== 'done' && step !== 'fresh' && mode === 'launch' ? (
             <nav aria-label="Launch steps" className="mt-5">
               <div className="relative">
                 <span
@@ -1377,10 +1407,7 @@ export function LaunchCtoPage() {
                   <button
                     type="button"
                     disabled={walletBusy || burnConfirmBusy}
-                    onClick={() => {
-                      setBurnAmount('');
-                      void publishFromBurn();
-                    }}
+                    onClick={() => void continueFromBurn({ skip: true })}
                     className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
                   >
                     Skip
@@ -1388,37 +1415,6 @@ export function LaunchCtoPage() {
                 </div>
               ) : (
                 <>
-                  <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
-                        <Wallet className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-semibold text-white">Marketing wallet</p>
-                        <p className="mt-1 text-[12px] leading-relaxed text-white/50">
-                          Thinks, builds and markets your coin autonomously. Fills with{' '}
-                          {formatBpsPercent(FEE_TIERS[0].marketingBps)} of every trade.
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="font-mono text-[15px] font-bold text-[#d5ff69]">
-                          ${CLAIM_FEE}
-                        </p>
-                        <p className="mt-0.5 text-[10px] font-medium text-white/40">fee</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-3 text-[11px]">
-                      <span className="text-white/45">Included with launch</span>
-                      <Link
-                        to="/marketing-wallet"
-                        className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-                      >
-                        How it works
-                      </Link>
-                    </div>
-                    <PolessiaLogo variant="powered" size="xs" />
-                  </div>
-
                   {address ? (
                     <div>
                       <p className="text-[11px] font-medium text-white/45">Wallet</p>
@@ -1541,69 +1537,175 @@ export function LaunchCtoPage() {
                     ) : null}
                   </div>
 
-                  {burned ? (
-                    <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
-                      <Check className="h-4 w-4" />
-                      Burn complete — V2 queued
-                    </p>
-                  ) : null}
-
                   {burnConfirmError ? (
                     <p className="text-[12px] font-medium text-rose-300">{burnConfirmError}</p>
                   ) : null}
 
-                  {listNotice && mode === 'launch' ? (
-                    <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
-                  ) : null}
-
-                  {(() => {
-                    const wantsBurn =
-                      !burned &&
-                      Boolean(burnAmount.trim()) &&
-                      Number.isFinite(Number(burnAmount)) &&
-                      Number(burnAmount) > 0;
-                    const busy = burnConfirmBusy || walletBusy;
-                    let label = 'List coin';
-                    if (busy) {
-                      label = burnConfirmBusy ? 'Burning…' : 'Connecting…';
-                    } else if (wantsBurn) {
-                      label = hasBuyAtLaunch
-                        ? `Burn & list · ${buyAtLaunchSolNum} SOL buy`
-                        : 'Burn & list';
-                    } else if (hasBuyAtLaunch) {
-                      label = `List coin · ${buyAtLaunchSolNum} SOL buy`;
-                    }
-
-                    return (
-                      <div className="space-y-3">
-                        <button
-                          type="button"
-                          onClick={() => void publishFromBurn()}
-                          disabled={busy}
-                          className={primaryBtnClass}
-                        >
-                          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                          {label}
-                          {!busy ? <ArrowRight className="h-4 w-4" /> : null}
-                        </button>
-                        {!burned ? (
-                          <button
-                            type="button"
-                            disabled={busy}
-                            onClick={() => {
-                              setBurnAmount('');
-                              void publishFromBurn();
-                            }}
-                            className={backBtnClass}
-                          >
-                            Skip burn
-                          </button>
-                        ) : null}
-                      </div>
-                    );
-                  })()}
+                  <div className="space-y-3">
+                    <button
+                      type="button"
+                      onClick={() => void continueFromBurn()}
+                      disabled={
+                        burnConfirmBusy ||
+                        !(
+                          burnAmount.trim() &&
+                          Number.isFinite(Number(burnAmount)) &&
+                          Number(burnAmount) > 0
+                        )
+                      }
+                      className={primaryBtnClass}
+                    >
+                      {burnConfirmBusy ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Burning…
+                        </>
+                      ) : (
+                        <>
+                          Burn
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={burnConfirmBusy}
+                      onClick={() => void continueFromBurn({ skip: true })}
+                      className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                    >
+                      Skip
+                    </button>
+                  </div>
                 </>
               )}
+            </div>
+          ) : null}
+
+          {step === 'summary' ? (
+            <div className="mt-6 space-y-5">
+              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <div className="border-b border-white/[0.06] px-4 py-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                    Order summary
+                  </p>
+                </div>
+                <ul className="divide-y divide-white/[0.06]">
+                  <li className="flex items-start gap-3 px-4 py-3.5">
+                    <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                      <Wallet className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold text-white">
+                        Marketing wallet
+                      </span>
+                      <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
+                        Thinks, builds and markets your coin autonomously ·{' '}
+                        {formatBpsPercent(FEE_TIERS[0].marketingBps)} of every trade
+                      </span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[13px] font-bold text-[#d5ff69]">
+                      ${CLAIM_FEE}
+                    </span>
+                  </li>
+                  {burned && burnAmount ? (
+                    <li className="flex items-start gap-3 px-4 py-3.5">
+                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Check className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] font-semibold text-white">
+                          V1 burn → V2
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-white/45">
+                          {Number(burnAmount).toLocaleString()} {displayTicker} burned
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-[12px] font-semibold text-white/50">Done</span>
+                    </li>
+                  ) : null}
+                  {websiteKind === 'clone' ? (
+                    <li className="flex items-start gap-3 px-4 py-3.5">
+                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Globe className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] font-semibold text-white">
+                          Clone + hosting
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-white/45">
+                          Deducted from marketing wallet
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-mono text-[13px] font-bold text-white/80">
+                        {CLONE_HOSTING_FEE_SOL} SOL
+                      </span>
+                    </li>
+                  ) : null}
+                  {hasBuyAtLaunch ? (
+                    <li className="flex items-start gap-3 px-4 py-3.5">
+                      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <Coins className="h-4 w-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13px] font-semibold text-white">
+                          Buy at launch
+                        </span>
+                        <span className="mt-0.5 block text-[11px] text-white/45">
+                          Into the curve at deploy
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-mono text-[13px] font-bold text-white/80">
+                        {buyAtLaunchSolNum} SOL
+                      </span>
+                    </li>
+                  ) : null}
+                </ul>
+                <div className="flex items-center justify-between gap-3 border-t border-white/[0.08] bg-white/[0.02] px-4 py-3">
+                  <span className="text-[12px] font-semibold text-white/55">Due now</span>
+                  <span className="font-mono text-[15px] font-bold text-[#d5ff69]">
+                    ${CLAIM_FEE}
+                    {hasBuyAtLaunch ? ` + ${buyAtLaunchSolNum} SOL` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 px-0.5">
+                <PolessiaLogo variant="powered" size="xs" />
+                <Link
+                  to="/marketing-wallet"
+                  className="text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+                >
+                  How marketing wallet works
+                </Link>
+              </div>
+
+              {listNotice ? (
+                <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => void payAndLaunch()}
+                disabled={burnConfirmBusy || walletBusy}
+                className={primaryBtnClass}
+              >
+                {burnConfirmBusy || walletBusy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {walletBusy ? 'Connecting…' : 'Paying…'}
+                  </>
+                ) : connected ? (
+                  <>
+                    Pay &amp; launch
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                ) : (
+                  <>
+                    <Wallet className="h-4 w-4" />
+                    Connect wallet &amp; pay
+                  </>
+                )}
+              </button>
             </div>
           ) : null}
 
