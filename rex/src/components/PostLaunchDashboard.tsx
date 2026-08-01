@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Check,
+  ChevronDown,
   Copy,
   ExternalLink,
   Share2,
@@ -411,200 +412,231 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'wallet' ? (
-        <div className="space-y-6">
-          <div>
-            <p className="font-serif text-xl font-bold tracking-tight text-white">
-              Marketing wallet
-            </p>
-            <p className="mt-1.5 text-sm text-white/45">
-              Trade fees fill this wallet. Spend unlocks at each threshold.
-            </p>
-          </div>
+        <div className="space-y-5">
+          <p className="text-sm text-white/45">
+            Trade fees fill this wallet. Spend unlocks at each threshold.
+          </p>
 
-          <div className="space-y-3 border-y border-white/[0.06] py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
-                  Balance
-                </p>
-                <p className="mt-1 font-serif text-3xl font-bold text-[#d5ff69]">
+          <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-3 py-3.5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-white/40">Balance</p>
+                <p className="mt-0.5 font-serif text-3xl font-bold text-[#d5ff69]">
                   ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
                 </p>
+                {mktSolscan && mktAddress ? (
+                  <a
+                    href={mktSolscan}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                    title={`View ${mktAddress} on Solscan`}
+                  >
+                    {shortAddr}
+                    <ExternalLink className="h-3 w-3 shrink-0" />
+                  </a>
+                ) : (
+                  <p className="mt-1.5 font-mono text-[12px] text-white/50">{shortAddr}</p>
+                )}
+                <div className="mt-2">
+                  <PolessiaLogo variant="powered" size="xs" />
+                </div>
               </div>
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
                 <Wallet className="h-5 w-5" />
               </span>
             </div>
-            {mktSolscan && mktAddress ? (
-              <a
-                href={mktSolscan}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                title={`View ${mktAddress} on Solscan`}
-              >
-                {shortAddr}
-                <ExternalLink className="h-3 w-3 shrink-0" />
-                <span className="font-sans text-[10px] font-semibold">Solscan</span>
-              </a>
-            ) : (
-              <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
-            )}
-            <PolessiaLogo variant="powered" size="xs" />
-          </div>
 
-          {!vaultLive && onAttachMarketingWallet ? (
-            <div className="space-y-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
-              <p className="text-[13px] font-semibold text-white">Not attached yet</p>
-              <p className="text-[12px] leading-relaxed text-white/50">
-                Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once to
-                unlock the wallet.
-              </p>
-              <button type="button" onClick={onAttachMarketingWallet} className={primaryBtnClass}>
-                Connect wallet &amp; attach · $1
-              </button>
-              <Link
-                to="/marketing-wallet"
-                className="inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
-              >
-                How it works
-              </Link>
-            </div>
-          ) : null}
-
-          {vaultLive && mktAddress ? (
-            <section className="space-y-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] p-4">
-              <div>
-                <p className="text-sm font-bold text-white">Share &amp; fund manually</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-white/55">
-                  Investors can send SOL straight to this wallet. Trade fees also fill it
-                  automatically on CTOgo.
-                </p>
-              </div>
-              <p className="break-all font-mono text-[12px] text-white/80">{mktAddress}</p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => void copyMarketingWallet()}
-                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
-                >
-                  {copiedMkt ? (
-                    <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" />
-                  )}
-                  {copiedMkt ? 'Copied' : 'Copy address'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void shareMarketingWallet()}
-                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                  {shareNotice ?? 'Share'}
-                </button>
-                <a
-                  href={mktSolscan!}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
-                >
-                  Open Solscan
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-              <p className="text-[11px] text-white/40">
-                Paste the address in any Solana wallet to pay in. On Solscan, use Transfer to send
-                SOL to this account.
-              </p>
-            </section>
-          ) : null}
-
-          {vaultLive ? (
-            <MarketingWalletActivity ticker={symbol} />
-          ) : null}
-
-          {vaultLive ? (
-            <section className="space-y-4">
-              <div className="flex items-baseline justify-between gap-3 border-b border-white/[0.08] pb-3">
+            {!vaultLive && onAttachMarketingWallet ? (
+              <div className="space-y-3 border-b border-white/[0.06] px-3 py-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/35">
-                    Trading volume
-                  </p>
-                  <p className="mt-1 font-serif text-2xl font-bold text-white">
-                    ${tradingVolumeUsd.toLocaleString()}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-white/35">CTOgo-routed · all time (demo)</p>
+                  <p className="text-[11px] font-medium text-white/40">Status</p>
+                  <p className="mt-0.5 text-[13px] font-semibold text-white">Not attached yet</p>
                 </div>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-medium text-white/45">Wallet fill from trades</p>
-                <p className="mt-1.5 text-sm font-semibold text-white">
-                  {marketingFillPct} of every buy · {marketingFillPct} of every sell
+                <p className="text-[12px] leading-relaxed text-white/50">
+                  Connect wallet and pay $1 once to unlock the marketing wallet.
                 </p>
-                <p className="mt-1 text-[11px] leading-relaxed text-white/35">
-                  Launch tier marketing cut ({FEE_TIERS[0].marketCap}). Same rate on buys and sells
-                  until mcap steps the schedule down.
+                <button type="button" onClick={onAttachMarketingWallet} className={primaryBtnClass}>
+                  Connect wallet &amp; attach · $1
+                </button>
+              </div>
+            ) : null}
+
+            {vaultLive && mktAddress ? (
+              <details className="group border-b border-white/[0.06]">
+                <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-medium text-white/40">Fund wallet</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-white">
+                      Share or send SOL
+                    </p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition group-open:rotate-180" />
+                </summary>
+                <div className="space-y-3 px-3 pb-3.5">
+                  <p className="text-[12px] leading-relaxed text-white/50">
+                    Investors can send SOL straight to this wallet. Trade fees also fill it on
+                    CTOgo.
+                  </p>
+                  <p className="break-all font-mono text-[12px] text-white/80">{mktAddress}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void copyMarketingWallet()}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                    >
+                      {copiedMkt ? (
+                        <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                      {copiedMkt ? 'Copied' : 'Copy address'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void shareMarketingWallet()}
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                      {shareNotice ?? 'Share'}
+                    </button>
+                    {mktSolscan ? (
+                      <a
+                        href={mktSolscan}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
+                      >
+                        Open Solscan
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </details>
+            ) : null}
+
+            {vaultLive ? (
+              <details className="group border-b border-white/[0.06]">
+                <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-medium text-white/40">Activity</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-white">
+                      Fees, pay-ins, payouts
+                    </p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition group-open:rotate-180" />
+                </summary>
+                <div className="px-3 pb-3.5">
+                  <MarketingWalletActivity ticker={symbol} compact />
+                </div>
+              </details>
+            ) : null}
+
+            {vaultLive ? (
+              <details className="group border-b border-white/[0.06]">
+                <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-medium text-white/40">Trading volume</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-white">
+                      ${tradingVolumeUsd.toLocaleString()}
+                      <span className="ml-1.5 font-normal text-white/35">
+                        · {marketingFillPct} fill
+                      </span>
+                    </p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition group-open:rotate-180" />
+                </summary>
+                <div className="space-y-3 px-3 pb-3.5">
+                  <p className="text-[12px] text-white/45">CTOgo-routed · all time (demo)</p>
+                  <div>
+                    <p className="text-[11px] font-medium text-white/45">Wallet fill from trades</p>
+                    <p className="mt-1 text-sm font-semibold text-white">
+                      {marketingFillPct} of every buy · {marketingFillPct} of every sell
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-white/35">
+                      Launch tier marketing cut ({FEE_TIERS[0].marketCap}). Same rate on buys and
+                      sells until mcap steps the schedule down.
+                    </p>
+                    <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                      <div
+                        className="h-full bg-[#c8ff3d]"
+                        style={{ width: `${buyFillSharePct}%` }}
+                        title={`Buys ${buyFillSharePct}%`}
+                      />
+                      <div
+                        className="h-full bg-[#c8ff3d]/40"
+                        style={{ width: `${sellFillSharePct}%` }}
+                        title={`Sells ${sellFillSharePct}%`}
+                      />
+                    </div>
+                    <div className="mt-2 flex justify-between text-[11px] text-white/45">
+                      <span>
+                        Buys <span className="font-semibold text-white">{buyFillSharePct}%</span> of
+                        fill
+                      </span>
+                      <span>
+                        Sells <span className="font-semibold text-white">{sellFillSharePct}%</span> of
+                        fill
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            ) : null}
+
+            {vaultLive && nextThreshold ? (
+              <details className="group border-b border-white/[0.06] last:border-b-0">
+                <summary className="flex cursor-pointer list-none items-center gap-3 px-3 py-3 transition hover:bg-white/[0.03] [&::-webkit-details-marker]:hidden">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-medium text-white/40">Next unlock</p>
+                    <p className="mt-0.5 text-[13px] font-semibold text-white">
+                      {formatThresholdUsd(nextThreshold.thresholdUsd)}
+                      <span className="ml-1.5 font-normal text-white/35">· {fillPct}% filled</span>
+                    </p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition group-open:rotate-180" />
+                </summary>
+                <div className="space-y-3 px-3 pb-3.5">
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                    <div
+                      className="h-full rounded-full bg-[#c8ff3d] transition-[width]"
+                      style={{ width: `${fillPct}%` }}
+                    />
+                  </div>
+                  <p className="text-[12px] text-white/40">
+                    {nextThreshold.items.map((i) => i.label).join(' · ')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setTab('roadmap')}
+                    className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
+                  >
+                    View spend roadmap →
+                  </button>
+                </div>
+              </details>
+            ) : !vaultLive ? (
+              <div className="px-3 py-3">
+                <p className="text-[12px] text-white/40">
+                  Attach a marketing wallet to start filling from trades.
                 </p>
-                <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                  <div
-                    className="h-full bg-[#c8ff3d]"
-                    style={{ width: `${buyFillSharePct}%` }}
-                    title={`Buys ${buyFillSharePct}%`}
-                  />
-                  <div
-                    className="h-full bg-[#c8ff3d]/40"
-                    style={{ width: `${sellFillSharePct}%` }}
-                    title={`Sells ${sellFillSharePct}%`}
-                  />
-                </div>
-                <div className="mt-2 flex justify-between text-[11px] text-white/45">
-                  <span>
-                    Buys <span className="font-semibold text-white">{buyFillSharePct}%</span> of fill
-                  </span>
-                  <span>
-                    Sells <span className="font-semibold text-white">{sellFillSharePct}%</span> of fill
-                  </span>
-                </div>
               </div>
-            </section>
-          ) : null}
+            ) : null}
 
-          {vaultLive && nextThreshold ? (
-            <div>
-              <p className="text-[11px] font-medium text-white/45">
-                Next unlock · {formatThresholdUsd(nextThreshold.thresholdUsd)}
-              </p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                <div
-                  className="h-full rounded-full bg-[#c8ff3d] transition-[width]"
-                  style={{ width: `${fillPct}%` }}
-                />
+            <Link
+              to="/marketing-wallet"
+              className="flex items-center gap-3 px-3 py-3 transition hover:bg-white/[0.03]"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] font-medium text-white/40">Learn more</p>
+                <p className="mt-0.5 text-[13px] font-semibold text-white">
+                  How the marketing wallet works
+                </p>
               </div>
-              <p className="mt-2 text-[12px] text-white/40">
-                {fillPct}% filled · {nextThreshold.items.map((i) => i.label).join(' · ')}
-              </p>
-              <button
-                type="button"
-                onClick={() => setTab('roadmap')}
-                className="mt-3 text-[12px] font-semibold text-[#d5ff69] hover:underline"
-              >
-                View spend roadmap →
-              </button>
-            </div>
-          ) : (
-            <p className="text-[12px] text-white/40">
-              Attach a marketing wallet from the coin page ($1) to start filling the wallet.
-            </p>
-          )}
-
-          <Link
-            to="/marketing-wallet"
-            className="inline-flex text-[12px] font-semibold text-white/45 underline decoration-white/20 underline-offset-2 hover:text-white"
-          >
-            How the marketing wallet works
-          </Link>
+              <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+            </Link>
+          </section>
         </div>
       ) : null}
 
