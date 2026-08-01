@@ -259,6 +259,11 @@ export function PostLaunchDashboard({
   const telegramHref = (telegramCommunity || shareLinks.telegram || '').trim();
 
   const configureFromCarousel = () => {
+    try {
+      localStorage.setItem(`ctogo-launch-carousel-seen-${symbol.trim().toUpperCase()}`, '1');
+    } catch {
+      /* ignore */
+    }
     setShowLaunchCarousel(false);
     setTab('overview');
   };
@@ -462,6 +467,59 @@ export function PostLaunchDashboard({
           <p className="text-sm text-white/45">
             Trade fees fill this wallet. Spend unlocks at each threshold.
           </p>
+
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
+                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
+                  ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[11px] font-medium text-white/40">Trading volume</p>
+                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
+                  ${tradingVolumeUsd.toLocaleString()}
+                </p>
+              </div>
+            </div>
+            {nextThreshold ? (
+              <>
+                <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full bg-[#c8ff3d] transition-[width]"
+                    style={{ width: `${fillPct}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-[12px] text-white/40">
+                  {fillPct}% to next unlock · {formatThresholdUsd(nextThreshold.thresholdUsd)}
+                </p>
+              </>
+            ) : null}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
+              {mktSolscan && mktAddress ? (
+                <a
+                  href={mktSolscan}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
+                  title={`View ${mktAddress} on Solscan`}
+                >
+                  {shortAddr}
+                  <ExternalLink className="h-3 w-3 shrink-0" />
+                </a>
+              ) : (
+                <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
+              )}
+              <button
+                type="button"
+                onClick={() => setTab('roadmap')}
+                className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
+              >
+                Spend roadmap →
+              </button>
+            </div>
+          </div>
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
             {vaultLive && spendUnlocked ? (
@@ -710,59 +768,6 @@ export function PostLaunchDashboard({
               Spend roadmap
             </p>
             <PolessiaLogo variant="powered" size="xs" />
-          </div>
-
-          <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
-                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
-                  ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-[11px] font-medium text-white/40">Trading volume</p>
-                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
-                  ${tradingVolumeUsd.toLocaleString()}
-                </p>
-              </div>
-            </div>
-            {nextThreshold ? (
-              <>
-                <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                  <div
-                    className="h-full rounded-full bg-[#c8ff3d] transition-[width]"
-                    style={{ width: `${fillPct}%` }}
-                  />
-                </div>
-                <p className="mt-2 text-[12px] text-white/40">
-                  {fillPct}% to next unlock · {formatThresholdUsd(nextThreshold.thresholdUsd)}
-                </p>
-              </>
-            ) : null}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
-              {mktSolscan && mktAddress ? (
-                <a
-                  href={mktSolscan}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 font-mono text-[12px] text-[#c8ff3d] underline-offset-2 hover:text-[#d5ff69] hover:underline"
-                  title={`View ${mktAddress} on Solscan`}
-                >
-                  {shortAddr}
-                  <ExternalLink className="h-3 w-3 shrink-0" />
-                </a>
-              ) : (
-                <p className="font-mono text-[12px] text-white/50">{shortAddr}</p>
-              )}
-              <button
-                type="button"
-                onClick={() => setTab('wallet')}
-                className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
-              >
-                Transactions →
-              </button>
-            </div>
           </div>
 
           <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
