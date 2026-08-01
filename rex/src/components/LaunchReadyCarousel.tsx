@@ -12,7 +12,7 @@ const SLIDES = [
   {
     id: 'telegram',
     title: 'Telegram group ready',
-    body: 'Your community group is set up. Use it for updates, burns, and holder chat going forward.',
+    body: 'Your official Telegram room is live. Join now to direct raids, coordinate holders, and post updates.',
   },
   {
     id: 'wallet',
