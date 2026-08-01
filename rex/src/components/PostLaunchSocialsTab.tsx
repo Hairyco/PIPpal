@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Check, Loader2, ShieldCheck } from 'lucide-react';
 import { notifyCommunityOnChange } from '../utils/notifyCommunityOnChange';
 import {
@@ -111,12 +112,12 @@ export function PostLaunchSocialsTab({
         <p className="font-serif text-xl font-bold tracking-tight text-white">Socials</p>
         <p className="mt-1.5 text-sm text-white/45">
           Update X, Telegram, and Discord.{' '}
-          <a
-            href="/contact"
+          <Link
+            to="/contact?topic=website"
             className="font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
           >
             Website changes → Contact
-          </a>
+          </Link>
         </p>
       </div>
 
