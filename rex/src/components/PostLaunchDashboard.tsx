@@ -398,7 +398,7 @@ export function PostLaunchDashboard({
                 <img
                   src="/images/partners/telegram.svg"
                   alt="Open Telegram"
-                  className="h-8 w-8 shrink-0"
+                  className="h-6 w-6 shrink-0"
                 />
               </a>
             ) : null}
