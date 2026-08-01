@@ -902,19 +902,19 @@ export function LaunchCtoPage() {
                   Choose how creator fees work, then optionally buy at launch.
                 </p>
               ) : step === 'burn' ? (
-                <p className="mt-1.5 flex items-start gap-1.5 text-sm text-white/45">
-                  <span>Burn your old tokens for the same amount of V2.</span>
-                  <span className="group relative inline-flex shrink-0 pt-0.5">
+                <p className="mt-1.5 text-sm leading-snug text-white/45">
+                  Burn your old tokens for the same amount of V2.
+                  <span className="group relative ml-1.5 inline-flex translate-y-[1px] align-middle">
                     <button
                       type="button"
-                      className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
+                      className="inline-flex h-[1.05em] w-[1.05em] items-center justify-center rounded-full text-white/40 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
                       aria-label="What burning does"
                     >
-                      <Info className="h-3.5 w-3.5" aria-hidden />
+                      <Info className="h-[0.95em] w-[0.95em]" aria-hidden />
                     </button>
                     <span
                       role="tooltip"
-                      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-auto sm:right-0 sm:translate-x-0"
+                      className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-20 w-64 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-auto sm:right-0 sm:translate-x-0"
                     >
                       Burning destroys your V1 tokens and credits the same amount of V2. It also stops
                       developer fees on the old V1 token so the previous dev can’t keep collecting on
