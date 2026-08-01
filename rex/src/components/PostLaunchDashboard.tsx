@@ -697,7 +697,7 @@ export function PostLaunchDashboard({
 
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
             <div className="flex items-baseline justify-between gap-3">
-              <p className="text-[11px] font-medium text-white/40">Wallet balance</p>
+              <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
               <p className="font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
                 ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
               </p>
