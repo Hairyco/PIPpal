@@ -258,7 +258,7 @@ export function PostLaunchDashboard({
             {symbol.replace(/^\$/, '').slice(0, 2)}
           </span>
         )}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
             <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {symbol}
@@ -274,6 +274,21 @@ export function PostLaunchDashboard({
             {needsSetup ? 'Live on CTOgo' : 'On the CTOgo board'}
           </p>
         </div>
+        {tradedContract.trim() ? (
+          <button
+            type="button"
+            onClick={() => void copyMint()}
+            title={tradedContract.trim()}
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2.5 text-[11px] font-semibold text-white/70 transition hover:border-white/20 hover:text-white"
+          >
+            {copiedMint ? (
+              <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+            {copiedMint ? 'Copied' : 'CA'}
+          </button>
+        ) : null}
       </div>
 
       <div className="flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
@@ -330,26 +345,6 @@ export function PostLaunchDashboard({
                 <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
               </a>
             ) : null}
-            <div className="flex items-center gap-3 px-3 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-medium text-white/40">Contract</p>
-                <p className="mt-0.5 font-mono text-[13px] text-white">
-                  {shortMint(tradedContract.trim()) || '—'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void copyMint()}
-                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/55 transition hover:border-white/20 hover:text-white"
-              >
-                {copiedMint ? (
-                  <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5" />
-                )}
-                {copiedMint ? 'Copied' : 'Copy'}
-              </button>
-            </div>
             <button
               type="button"
               onClick={() => {
@@ -363,7 +358,7 @@ export function PostLaunchDashboard({
                   }, 80);
                 }
               }}
-              className="flex w-full items-center gap-3 border-t border-white/[0.06] px-3 py-3 text-left transition hover:bg-white/[0.03]"
+              className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium text-white/40">Marketing wallet</p>
