@@ -928,42 +928,56 @@ export function LaunchCtoPage() {
 
           {step !== 'done' && mode === 'launch' ? (
             <nav aria-label="Launch steps" className="mt-5">
-              <ol className="grid grid-cols-4 gap-0">
-                {steps.map((s, i) => {
-                  const done = i < stepIndex;
-                  const active = i === stepIndex;
-                  return (
-                    <li key={s.id} className="relative flex flex-col items-center gap-2">
-                      {i < steps.length - 1 ? (
+              <div className="relative">
+                <span
+                  aria-hidden
+                  className="absolute left-[11px] right-[11px] top-[11px] h-px bg-white/[0.1]"
+                />
+                <span
+                  aria-hidden
+                  className="absolute left-[11px] top-[11px] h-px bg-[#c8ff3d]/40 transition-[width] duration-300"
+                  style={{
+                    width:
+                      stepIndex <= 0
+                        ? '0px'
+                        : `calc((100% - 22px) * ${stepIndex / Math.max(steps.length - 1, 1)})`,
+                  }}
+                />
+                <ol className="relative z-[1] flex items-start justify-between">
+                  {steps.map((s, i) => {
+                    const done = i < stepIndex;
+                    const active = i === stepIndex;
+                    const align =
+                      i === 0
+                        ? 'items-start text-left'
+                        : i === steps.length - 1
+                          ? 'items-end text-right'
+                          : 'items-center text-center';
+                    return (
+                      <li key={s.id} className={`flex flex-col gap-2 ${align}`}>
                         <span
-                          aria-hidden
-                          className={`absolute left-[calc(50%+12px)] right-[calc(-50%+12px)] top-[11px] h-px ${
-                            done || active ? 'bg-[#c8ff3d]/35' : 'bg-white/[0.1]'
+                          className={`grid h-[22px] w-[22px] place-items-center rounded-full text-[10px] font-bold transition ${
+                            active
+                              ? 'bg-[#c8ff3d] text-[#090b14] ring-4 ring-[#c8ff3d]/15'
+                              : done
+                                ? 'bg-[#c8ff3d]/20 text-[#d5ff69]'
+                                : 'border border-white/15 bg-[#090b14] text-white/35'
                           }`}
-                        />
-                      ) : null}
-                      <span
-                        className={`relative z-[1] grid h-[22px] w-[22px] place-items-center rounded-full text-[10px] font-bold transition ${
-                          active
-                            ? 'bg-[#c8ff3d] text-[#090b14] ring-4 ring-[#c8ff3d]/15'
-                            : done
-                              ? 'bg-[#c8ff3d]/20 text-[#d5ff69]'
-                              : 'border border-white/15 bg-[#090b14] text-white/35'
-                        }`}
-                      >
-                        {done ? <Check className="h-3 w-3" strokeWidth={2.5} /> : i + 1}
-                      </span>
-                      <span
-                        className={`text-[11px] font-semibold tracking-tight ${
-                          active ? 'text-[#d5ff69]' : done ? 'text-white/55' : 'text-white/30'
-                        }`}
-                      >
-                        {s.label}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ol>
+                        >
+                          {done ? <Check className="h-3 w-3" strokeWidth={2.5} /> : i + 1}
+                        </span>
+                        <span
+                          className={`text-[11px] font-semibold tracking-tight ${
+                            active ? 'text-[#d5ff69]' : done ? 'text-white/55' : 'text-white/30'
+                          }`}
+                        >
+                          {s.label}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
             </nav>
           ) : null}
 
