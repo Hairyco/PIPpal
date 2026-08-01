@@ -91,7 +91,7 @@ export function PostLaunchDashboard({
   artExtrasLine,
   signedIn,
   onClaimAccount,
-  onReset,
+  onReset: _onReset,
   primaryBtnClass,
   backBtnClass,
   tradedContract,
@@ -426,55 +426,9 @@ export function PostLaunchDashboard({
               Marketing wallet
             </p>
             <p className="mt-1.5 text-sm text-white/45">
-              {vaultLive && !marketingSpendOn
-                ? 'Wallet can fill from trades. Auto spend is off until you turn settings on.'
-                : 'Trade fees fill this wallet. Spend unlocks at each threshold — powered by Polessia.'}
+              Trade fees fill this wallet. Spend unlocks at each threshold — powered by Polessia.
             </p>
           </div>
-
-          {vaultLive ? (
-            <section
-              id="marketing-wallet-settings"
-              className={`scroll-mt-4 space-y-3 rounded-xl border p-4 ${
-                marketingSpendOn
-                  ? 'border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07]'
-                  : 'border-amber-400/30 bg-amber-400/[0.07]'
-              }`}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-semibold text-white">Auto marketing</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-white/50">
-                    {marketingSpendOn
-                      ? 'On — Polessia can spend from the wallet at unlock thresholds.'
-                      : 'Off — turn on when you’re ready for autonomous spend.'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={marketingSpendOn}
-                  onClick={() => setMarketingSpendOn((v) => !v)}
-                  className={`relative h-7 w-12 shrink-0 rounded-full transition ${
-                    marketingSpendOn ? 'bg-[#c8ff3d]' : 'bg-white/15'
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
-                      marketingSpendOn ? 'left-[1.35rem]' : 'left-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
-              <p
-                className={`text-[11px] font-semibold uppercase tracking-[0.1em] ${
-                  marketingSpendOn ? 'text-[#d5ff69]' : 'text-amber-200/80'
-                }`}
-              >
-                {marketingSpendOn ? 'Settings on' : 'Settings off'}
-              </p>
-            </section>
-          ) : null}
 
           <div className="space-y-3 border-y border-white/[0.06] py-4">
             <div className="flex items-start justify-between gap-3">
