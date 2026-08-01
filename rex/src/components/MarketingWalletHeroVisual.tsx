@@ -171,7 +171,7 @@ function AdsUnlockVisual() {
             </p>
 
             <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-[#2b5278] px-3 py-2 text-[11px] leading-snug text-white/90">
-              Wallet hit $500 — unlock DexScreener trending?
+              Settings on · wallet hit $500 — unlock DexScreener trending?
               <p className="mt-1 text-right text-[9px] text-white/40">9:38</p>
             </div>
 

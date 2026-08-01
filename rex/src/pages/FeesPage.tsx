@@ -167,6 +167,12 @@ export function FeesPage() {
           <div className="mt-3 space-y-3 text-[12px] leading-relaxed text-white/55">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
+                {MARKETING_VAULT_SWEEP_RULE.optInLabel}
+              </p>
+              <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.optIn}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-sky-300/90">
                 {MARKETING_VAULT_SWEEP_RULE.autoSpendLabel}
               </p>
               <p className="mt-1">{MARKETING_VAULT_SWEEP_RULE.autoSpend}</p>

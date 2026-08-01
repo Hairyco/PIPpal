@@ -94,7 +94,7 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 4. Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.
 5. After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.
 6. Graduation is Raydium-first (Pump-style): remaining curve SOL + tokens **seed the Raydium pool**; **LP is burned/locked**. A **2 SOL Rex migration protocol fee** plus ~0.20 SOL for Raydium’s create-pool fee come off the curve first — the create fee is required or the pool cannot open.
-7. Marketing wallet: at $500 auto-spend fires; under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
+7. Marketing wallet: fees fill always; auto spend stays off until settings are on, then unlocks from $500. Under $500 with $0 volume for 72h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within 30 days of a Rex V1 mint → funds go to the Rex treasury.
 
 ---
 
@@ -102,7 +102,8 @@ Rex platform fee and marketing wallet **keep collecting**. Total trade tax stays
 
 | Rule | Detail |
 |------|--------|
-| **Automated threshold** | When a wallet accumulates **$500**, programmatic spending (ads/trending) fires automatically — even if volume slows. |
+| **Opt-in auto spend** | Trade fees always fill the marketing wallet. Auto spend stays off until the founder turns it on in settings. |
+| **Spend unlock threshold** | After settings are on, when a wallet accumulates **$500**, programmatic spending (ads/trending) can unlock — even if volume slows. Nothing spends while settings are off. |
 | **72-hour inactivity sweep** | Under **$500** with **$0** trading volume for **72 consecutive hours** → unspent funds sweep to the **Rex Protocol CTO Reserve**. |
 | **CTO restoration** | Native V2 CTO migration → reserve credits **100%** of swept funds into the fresh V2 marketing wallet. |
 | **V1 restart (no V2)** | Trading resumes on old V1 without migrating → swept funds stay in the reserve; V1 accrues **fresh** marketing fees from new volume. |
@@ -209,7 +210,7 @@ Bonding-curve → Raydium graduation **does not disable fees**. Platform, market
 | Rex migration protocol fee | 2 SOL one-time at graduate | YES | CTOgo revenue, paid from curve SOL |
 | Migration create fee | ~0.20 SOL Raydium create + buffer · cap 0.25 | YES | Pass-through; rest of curve SOL is LP |
 | Post-migration tax | Fees continue after Raydium | YES | Platform + marketing + pool stay on |
-| Marketing wallet sweep | $500 auto-spend · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |
+| Marketing wallet sweep | Opt-in settings · $500 unlock · 72h inactivity → CTO Reserve · 30d no V2 → treasury | YES | 100% restore on Native V2 |
 | Security controls | Mint lock, LP seed+burn, PDA wallets, fee invariant | YES | See Security controls section |
 
 **Note:** On-chain MVP still hardcodes Launch-tier constants; Growth/Scale tier switching needs oracle/config before live cutover. Next contract work: `migrate_to_raydium` (**seed pool + burn LP** + pay Raydium create fee + post-grad fee hooks) — not a custom AMM.

@@ -81,7 +81,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
     bullets: [
       `${TRADE_FEE_LABEL} on buys and sells`,
       LAUNCH_TRADE_NOTE,
-      'Milestone thresholds unlock payouts to approved suppliers automatically',
+      'Milestone thresholds unlock payouts only after auto spend is turned on in settings',
       'Investors can track wallet balance and upcoming supplier spend live',
       'Platform takes a 5–10% management fee on milestone payouts',
     ],

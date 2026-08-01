@@ -119,12 +119,26 @@ export const ABANDONMENT_RULE = {
     'Unlike Pump.fun (dev keeps collecting until a manual fee-key change), Rex revokes the dump wallet’s cut on-chain automatically.',
 } as const;
 
-/** Marketing wallet auto-spend threshold (USD). */
+/** Marketing wallet auto-spend threshold (USD) — only after settings are on. */
 export const MARKETING_AUTO_SPEND_USD = 500;
 /** Hours of $0 volume before an under-threshold wallet is swept. */
 export const MARKETING_INACTIVITY_HOURS = 72;
 /** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
 export const MARKETING_V2_DEADLINE_DAYS = 30;
+
+/**
+ * Law A — marketing wallet spend is opt-in.
+ * Fees fill the wallet from attach/launch. Auto spend stays off until the
+ * founder turns settings on; then unlock thresholds (e.g. $500) can fire.
+ */
+export const MARKETING_SPEND_OPT_IN = {
+  id: 'opt-in-settings',
+  summary:
+    'Trade fees always fill the marketing wallet. Auto spend stays off until the founder turns it on in settings — then threshold unlocks apply.',
+  fillsAlways: 'CTOgo-routed trade cut fills the marketing wallet whether auto spend is on or off.',
+  spendRequiresSettings:
+    'Nothing spends until Auto marketing settings are turned on. After that, programmatic spend can unlock at configured thresholds.',
+} as const;
 
 export const FEE_GUIDELINES = [
   'Dynamic tiers: total trade tax scales down with market cap; marketing never turns off.',
@@ -133,7 +147,7 @@ export const FEE_GUIDELINES = [
   'Revoked creator cut redirects to marketing (default) or the trader rebate pool — not to the dumped wallet.',
   'After Raydium graduation, the same fee schedule still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing wallet: at $${MARKETING_AUTO_SPEND_USD} auto-spend fires; under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
+  `Marketing wallet: fees fill always; auto spend stays off until settings are on, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
 /**
@@ -142,9 +156,11 @@ export const FEE_GUIDELINES = [
  */
 export const MARKETING_VAULT_SWEEP_RULE = {
   title: 'Marketing wallet inactivity & sweep',
-  autoSpendLabel: `Automated threshold · $${MARKETING_AUTO_SPEND_USD}`,
+  optInLabel: 'Opt-in auto spend',
+  optIn: MARKETING_SPEND_OPT_IN.summary,
+  autoSpendLabel: `Spend unlock threshold · $${MARKETING_AUTO_SPEND_USD}`,
   autoSpend:
-    `When a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) fires automatically — even if trading volume starts to slow.`,
+    `After settings are on, when a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) can unlock — even if trading volume starts to slow. Nothing spends while settings are off.`,
   inactivityLabel: `${MARKETING_INACTIVITY_HOURS}-hour inactivity sweep`,
   inactivity:
     `If a token accumulates under $${MARKETING_AUTO_SPEND_USD} and records $0 trading volume for ${MARKETING_INACTIVITY_HOURS} consecutive hours, unspent funds are swept into the Rex Protocol CTO Reserve.`,
