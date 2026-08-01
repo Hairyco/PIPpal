@@ -482,15 +482,17 @@ export function PostLaunchDashboard({
 
           <button
             type="button"
+            disabled={!spendUnlocked}
             onClick={() => void shareRoadmap()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-[13px] font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-[13px] font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-white/[0.1] disabled:hover:bg-white/[0.03]"
           >
             {roadmapShareNotice ? (
               <Check className="h-4 w-4 text-[#d5ff69]" />
             ) : (
               <Share2 className="h-4 w-4 text-white/50" />
             )}
-            {roadmapShareNotice ?? 'Share roadmap'}
+            {roadmapShareNotice ??
+              (spendUnlocked ? 'Share roadmap' : 'Approve roadmap to share')}
           </button>
 
           {!vaultLive && onAttachMarketingWallet ? (
