@@ -417,7 +417,7 @@ export function PostLaunchDashboard({
               Marketing wallet
             </p>
             <p className="mt-1.5 text-sm text-white/45">
-              Trade fees fill this wallet. Spend unlocks at each threshold — powered by Polessia.
+              Trade fees fill this wallet. Spend unlocks at each threshold.
             </p>
           </div>
 
