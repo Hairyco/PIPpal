@@ -244,7 +244,7 @@ export function PostLaunchDashboard({
   };
 
   return (
-    <div className="mt-2 space-y-5">
+    <div className="space-y-5">
       <LaunchReadyCarousel
         open={showLaunchCarousel && mode === 'launch'}
         symbol={symbol}

@@ -819,7 +819,11 @@ export function LaunchCtoPage() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-xl px-3 py-8 sm:px-5">
+        <main
+          className={`mx-auto max-w-xl px-3 sm:px-5 ${
+            step === 'done' ? 'pb-8 pt-3' : 'py-8'
+          }`}
+        >
           {step !== 'done' && step !== 'fresh' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
