@@ -134,10 +134,10 @@ export const MARKETING_V2_DEADLINE_DAYS = 30;
 export const MARKETING_SPEND_OPT_IN = {
   id: 'opt-in-settings',
   summary:
-    'Trade fees always fill the marketing wallet. Auto spend stays off until the founder turns it on in settings — then threshold unlocks apply.',
+    'Trade fees always fill the marketing wallet. Auto spend stays off until the founder approves the spend roadmap — then threshold unlocks apply.',
   fillsAlways: 'CTOgo-routed trade cut fills the marketing wallet whether auto spend is on or off.',
   spendRequiresSettings:
-    'Nothing spends until Auto marketing settings are turned on. After that, programmatic spend can unlock at configured thresholds.',
+    'Nothing spends until the spend roadmap is approved. After that, programmatic spend can unlock at configured thresholds.',
 } as const;
 
 export const FEE_GUIDELINES = [

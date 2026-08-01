@@ -74,7 +74,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'auto-spend',
         question: 'When does the wallet actually spend?',
-        answer: `Trade fees always fill the marketing wallet. Auto spend stays off until you turn it on in settings. After that, unlocks start from $${MARKETING_AUTO_SPEND_USD} — nothing spends while settings are off.`,
+        answer: `Trade fees always fill the marketing wallet. Auto spend stays off until you approve the spend roadmap. After that, unlocks start from $${MARKETING_AUTO_SPEND_USD} — nothing spends while the roadmap is unapproved.`,
       },
       {
         id: 'abandonment',
