@@ -282,23 +282,21 @@ export function PostLaunchDashboard({
         </div>
       </div>
 
-      <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <div className="inline-flex min-w-full gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setTab(t.id)}
-              className={`shrink-0 rounded-md px-3 py-2 text-[11px] font-semibold transition ${
-                tab === t.id
-                  ? 'bg-[#c8ff3d] text-[#090b14]'
-                  : 'text-white/50 hover:text-white'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`min-w-0 flex-1 rounded-md px-1 py-2 text-center text-[11px] font-semibold transition sm:px-2 ${
+              tab === t.id
+                ? 'bg-[#c8ff3d] text-[#090b14]'
+                : 'text-white/50 hover:text-white'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       {tab === 'overview' ? (
