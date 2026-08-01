@@ -288,49 +288,6 @@ export function LaunchCtoPage() {
     return amount;
   };
 
-  const onBurnConfirm = async () => {
-    if (burnConfirmBusy) return;
-    setBurnConfirmError(null);
-    const amt = Number(burnAmount);
-    if (!Number.isFinite(amt) || amt <= 0) {
-      setBurnConfirmError('Enter an amount to burn.');
-      return;
-    }
-    if (!vestingAccepted) {
-      setVestingOpen(true);
-      setBurnConfirmError('Confirm the unlock terms to continue.');
-      return;
-    }
-
-    setBurnConfirmBusy(true);
-    try {
-      let walletAddress = burnWalletReady ? address : null;
-      if (!walletAddress) {
-        // Burn fee is paid at confirmation, so connect at this stage if needed.
-        const next = await connect();
-        if (!next) {
-          setBurnConfirmError('Connect a wallet to pay the burn fee.');
-          return;
-        }
-        walletAddress = next;
-        setBurnWalletReady(true);
-      }
-
-      const available = await scanV1BalanceNow(walletAddress);
-      if (amt > available) {
-        setBurnConfirmError(
-          `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
-        );
-        return;
-      }
-
-      // Demo-only: simulate burn + fee payment.
-      await new Promise((r) => window.setTimeout(r, 600));
-      setBurned(true);
-    } finally {
-      setBurnConfirmBusy(false);
-    }
-  };
   const steps =
     mode === 'launch'
       ? [
