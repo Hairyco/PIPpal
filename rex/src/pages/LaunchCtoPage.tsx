@@ -225,20 +225,26 @@ export function LaunchCtoPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  /** Demo: burn step always starts without a linked wallet in the burn UI. */
+  /** Reset burn fields when entering the step. */
   useEffect(() => {
     if (step !== 'burn') return;
-    setBurnWalletReady(false);
     setBurnAmount('');
     setV1Balance(null);
     setBalanceScanning(false);
     setBurnConfirmError(null);
+    setBurnWalletReady(Boolean(connected && address));
   }, [step]);
+
+  /** Keep burn wallet in sync if they connect from the header. */
+  useEffect(() => {
+    if (step !== 'burn') return;
+    if (connected && address) setBurnWalletReady(true);
+  }, [step, connected, address]);
 
   /** Demo: scan connected wallet for V1 balance of the launch mint. */
   useEffect(() => {
     if (step !== 'burn') return;
-    if (!burnWalletReady || !connected || !address) {
+    if (!connected || !address) {
       setV1Balance(null);
       setBalanceScanning(false);
       return;
@@ -259,7 +265,7 @@ export function LaunchCtoPage() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [step, burnWalletReady, connected, address, contract]);
+  }, [step, connected, address, contract]);
 
   const displayTicker = ticker.trim() ? `$${ticker.trim().toUpperCase()}` : 'your coin';
 
@@ -1377,13 +1383,9 @@ export function LaunchCtoPage() {
 
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
-              <p className="text-[12px] text-white/40">
-                Connect the wallet that holds your V1 tokens.
-              </p>
-
               <div>
                 <p className="text-[11px] font-medium text-white/45">Wallet</p>
-                {burnWalletReady && connected && address ? (
+                {connected && address ? (
                   <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                     <div className="min-w-0">
                       <p className="truncate font-mono text-[13px] text-white">
@@ -1400,20 +1402,9 @@ export function LaunchCtoPage() {
                     <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    disabled={walletBusy}
-                    onClick={() => {
-                      void (async () => {
-                        const next = await connect();
-                        if (next) setBurnWalletReady(true);
-                      })();
-                    }}
-                    className={`${primaryBtnClass} mt-1.5`}
-                  >
-                    <Wallet className="h-4 w-4" />
-                    {walletBusy ? 'Connecting…' : 'Connect wallet to scan'}
-                  </button>
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-white/45">
+                    Connect once below to scan V1, burn, and pay launch / marketing wallet fees.
+                  </p>
                 )}
               </div>
 
