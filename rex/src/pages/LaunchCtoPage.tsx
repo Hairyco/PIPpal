@@ -1516,27 +1516,10 @@ export function LaunchCtoPage() {
               </div>
 
               {!burned ? (
-                <>
-                  <p className="text-[11px] text-white/35">
-                    Burn fee and launch / marketing wallet are paid together when you list — one
-                    wallet connection.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => void onBurnConfirm()}
-                    disabled={
-                      burnConfirmBusy ||
-                      !vestingAccepted ||
-                      !burnAmount ||
-                      !Number.isFinite(Number(burnAmount)) ||
-                      Number(burnAmount) <= 0
-                    }
-                    className={`${primaryBtnClass} disabled:cursor-not-allowed disabled:opacity-40`}
-                  >
-                    {burnConfirmBusy ? 'Confirming…' : 'Confirm burn & receive V2'}
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </>
+                <p className="text-[11px] text-white/35">
+                  Burn fee and launch / marketing wallet are paid together when you list — one
+                  wallet connection.
+                </p>
               ) : (
                 <p className="flex items-center justify-center gap-2 text-sm font-semibold text-[#d5ff69]">
                   <Check className="h-4 w-4" />
@@ -1552,46 +1535,45 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => void publishFromBurn()}
-                disabled={burnConfirmBusy || walletBusy}
-                className={primaryBtnClass}
-              >
-                {burnConfirmBusy || walletBusy ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {burnConfirmBusy ? 'Confirming…' : 'Connecting…'}
-                  </>
-                ) : connected ? (
-                  burned ||
-                  !(
-                    burnAmount.trim() &&
-                    Number.isFinite(Number(burnAmount)) &&
-                    Number(burnAmount) > 0
-                  ) ? (
-                    hasBuyAtLaunch ? (
-                      `List coin · ${buyAtLaunchSolNum} SOL buy`
-                    ) : (
-                      'List coin'
-                    )
-                  ) : hasBuyAtLaunch ? (
-                    `Burn & list · ${buyAtLaunchSolNum} SOL buy`
-                  ) : (
-                    'Burn & list'
-                  )
-                ) : burned ||
-                  !(
-                    burnAmount.trim() &&
-                    Number.isFinite(Number(burnAmount)) &&
-                    Number(burnAmount) > 0
-                  ) ? (
-                  'Connect wallet & list'
-                ) : (
-                  'Connect wallet · burn & list'
-                )}
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              {(() => {
+                const wantsBurn =
+                  !burned &&
+                  Boolean(burnAmount.trim()) &&
+                  Number.isFinite(Number(burnAmount)) &&
+                  Number(burnAmount) > 0;
+                const busy = burnConfirmBusy || walletBusy;
+                let label = 'List coin';
+                if (busy) {
+                  label = burnConfirmBusy ? 'Confirming…' : 'Connecting…';
+                } else if (!connected) {
+                  label = wantsBurn
+                    ? hasBuyAtLaunch
+                      ? `Connect wallet · burn & list · ${buyAtLaunchSolNum} SOL buy`
+                      : 'Connect wallet · burn & list'
+                    : hasBuyAtLaunch
+                      ? `Connect wallet & list · ${buyAtLaunchSolNum} SOL buy`
+                      : 'Connect wallet & list';
+                } else if (wantsBurn) {
+                  label = hasBuyAtLaunch
+                    ? `Burn & list · ${buyAtLaunchSolNum} SOL buy`
+                    : 'Burn & list';
+                } else if (hasBuyAtLaunch) {
+                  label = `List coin · ${buyAtLaunchSolNum} SOL buy`;
+                }
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => void publishFromBurn()}
+                    disabled={busy}
+                    className={primaryBtnClass}
+                  >
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                    {label}
+                    {!busy ? <ArrowRight className="h-4 w-4" /> : null}
+                  </button>
+                );
+              })()}
             </div>
           ) : null}
 
