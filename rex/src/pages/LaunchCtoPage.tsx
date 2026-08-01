@@ -1382,16 +1382,10 @@ export function LaunchCtoPage() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <button type="button" onClick={() => setStep('coin')} className={backBtnClass}>
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-                <button type="submit" className={`${primaryBtnClass} sm:flex-1`}>
-                  Looks good
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+              <button type="submit" className={primaryBtnClass}>
+                Looks good
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </form>
           ) : null}
 
@@ -1558,56 +1552,46 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <button
-                  type="button"
-                  onClick={() => setStep('website')}
-                  className={backBtnClass}
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void publishFromBurn()}
-                  disabled={burnConfirmBusy || walletBusy}
-                  className={`${primaryBtnClass} sm:flex-1`}
-                >
-                  {burnConfirmBusy || walletBusy ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {burnConfirmBusy ? 'Confirming…' : 'Connecting…'}
-                    </>
-                  ) : connected ? (
-                    burned ||
-                    !(
-                      burnAmount.trim() &&
-                      Number.isFinite(Number(burnAmount)) &&
-                      Number(burnAmount) > 0
-                    ) ? (
-                      hasBuyAtLaunch ? (
-                        `List coin · ${buyAtLaunchSolNum} SOL buy`
-                      ) : (
-                        'List coin'
-                      )
-                    ) : hasBuyAtLaunch ? (
-                      `Burn & list · ${buyAtLaunchSolNum} SOL buy`
+              <button
+                type="button"
+                onClick={() => void publishFromBurn()}
+                disabled={burnConfirmBusy || walletBusy}
+                className={primaryBtnClass}
+              >
+                {burnConfirmBusy || walletBusy ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {burnConfirmBusy ? 'Confirming…' : 'Connecting…'}
+                  </>
+                ) : connected ? (
+                  burned ||
+                  !(
+                    burnAmount.trim() &&
+                    Number.isFinite(Number(burnAmount)) &&
+                    Number(burnAmount) > 0
+                  ) ? (
+                    hasBuyAtLaunch ? (
+                      `List coin · ${buyAtLaunchSolNum} SOL buy`
                     ) : (
-                      'Burn & list'
+                      'List coin'
                     )
-                  ) : burned ||
-                    !(
-                      burnAmount.trim() &&
-                      Number.isFinite(Number(burnAmount)) &&
-                      Number(burnAmount) > 0
-                    ) ? (
-                    'Connect wallet & list'
+                  ) : hasBuyAtLaunch ? (
+                    `Burn & list · ${buyAtLaunchSolNum} SOL buy`
                   ) : (
-                    'Connect wallet · burn & list'
-                  )}
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+                    'Burn & list'
+                  )
+                ) : burned ||
+                  !(
+                    burnAmount.trim() &&
+                    Number.isFinite(Number(burnAmount)) &&
+                    Number(burnAmount) > 0
+                  ) ? (
+                  'Connect wallet & list'
+                ) : (
+                  'Connect wallet · burn & list'
+                )}
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           ) : null}
 
@@ -1892,20 +1876,14 @@ export function LaunchCtoPage() {
                 </p>
               ) : null}
 
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <button type="button" onClick={() => setStep('fees')} className={backBtnClass}>
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={!canPublishSite}
-                  className={`${primaryBtnClass} sm:flex-1`}
-                >
-                  Continue
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={!canPublishSite}
+                className={primaryBtnClass}
+              >
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </form>
           ) : null}
 
