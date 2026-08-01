@@ -234,13 +234,7 @@ export function PostLaunchDashboard({
 
   const configureFromCarousel = () => {
     setShowLaunchCarousel(false);
-    setTab('roadmap');
-    window.setTimeout(() => {
-      document.getElementById('roadmap-approve')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }, 80);
+    setTab('overview');
   };
 
   return (
@@ -358,23 +352,37 @@ export function PostLaunchDashboard({
             </div>
             <button
               type="button"
-              onClick={() => setTab('wallet')}
+              onClick={() => {
+                setTab('wallet');
+                if (!marketingSpendOn) {
+                  window.setTimeout(() => {
+                    document.getElementById('marketing-wallet-settings')?.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'center',
+                    });
+                  }, 80);
+                }
+              }}
               className="flex w-full items-center gap-3 border-t border-white/[0.06] px-3 py-3 text-left transition hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-medium text-white/40">Marketing wallet</p>
                 <p className="mt-0.5 text-[13px] font-semibold text-white">
-                  {vaultLive
-                    ? `$${vaultBalanceUsd.toLocaleString()}`
-                    : 'Not attached yet'}
-                  {vaultLive ? (
+                  {!vaultLive
+                    ? 'Not attached yet'
+                    : !marketingSpendOn
+                      ? 'Pending'
+                      : `$${vaultBalanceUsd.toLocaleString()}`}
+                  {vaultLive && marketingSpendOn ? (
                     <span className="ml-1.5 font-normal text-white/35">
                       · {fillPct}% to next unlock
                     </span>
                   ) : null}
                 </p>
               </div>
-              <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
+              <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">
+                {!vaultLive || !marketingSpendOn ? 'Turn on' : 'Open →'}
+              </span>
             </button>
           </section>
 

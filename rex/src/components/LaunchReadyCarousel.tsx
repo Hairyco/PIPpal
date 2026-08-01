@@ -17,7 +17,7 @@ const SLIDES = [
   {
     id: 'wallet',
     title: 'Marketing wallet is off',
-    body: 'Auto spend stays off until you approve the spend roadmap. Fees can still fill the wallet — nothing spends until you configure.',
+    body: 'Auto spend stays off until you approve the spend roadmap. Fees can still fill the wallet — nothing spends until you turn it on.',
   },
 ] as const;
 
@@ -99,7 +99,7 @@ export function LaunchReadyCarousel({ open, symbol, telegramUrl, onConfigure }: 
       aria-labelledby="launch-ready-title"
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-2xl border border-white/[0.1] bg-[#0c0e16] shadow-2xl shadow-black/50 touch-pan-y"
+        className="w-full max-w-md overflow-hidden rounded-2xl border border-white/[0.1] bg-[#0c0e16] shadow-2xl shadow-black/50"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -112,7 +112,7 @@ export function LaunchReadyCarousel({ open, symbol, telegramUrl, onConfigure }: 
         <div
           ref={trackRef}
           onScroll={onTrackScroll}
-          className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex touch-pan-x snap-x snap-mandatory overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {SLIDES.map((slide) => (
@@ -189,7 +189,7 @@ export function LaunchReadyCarousel({ open, symbol, telegramUrl, onConfigure }: 
                 onClick={onConfigure}
                 className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] px-4 text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
               >
-                Configure
+                Turn on
                 <ArrowRight className="h-4 w-4" />
               </button>
             ) : (
