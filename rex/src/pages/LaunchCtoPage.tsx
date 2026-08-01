@@ -1692,8 +1692,7 @@ export function LaunchCtoPage() {
                 you pay.
               </p>
 
-              <div className="flex items-center justify-between gap-3 px-0.5">
-                <PolessiaLogo variant="powered" size="xs" />
+              <div className="px-0.5">
                 <Link
                   to="/marketing-wallet"
                   className="text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
