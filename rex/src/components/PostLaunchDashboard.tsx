@@ -514,7 +514,7 @@ export function PostLaunchDashboard({
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-medium text-white/40">Fund wallet</p>
                     <p className="mt-0.5 text-[13px] font-semibold text-white">
-                      Share or send SOL
+                      Share or top up
                     </p>
                   </div>
                   <ChevronDown className="h-4 w-4 shrink-0 text-white/40 transition group-open:rotate-180" />
