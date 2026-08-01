@@ -389,23 +389,17 @@ export function PostLaunchDashboard({
                 href={telegramHref}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-3.5 border-b border-white/[0.06] bg-gradient-to-br from-[#2AABEE]/[0.1] via-transparent to-transparent px-3 py-3.5 transition hover:bg-[#2AABEE]/[0.12]"
+                className="flex items-center gap-3 border-b border-white/[0.06] px-3 py-3 transition hover:bg-white/[0.03]"
               >
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-medium text-white/40">Telegram</p>
+                  <p className="mt-0.5 text-[13px] font-semibold text-white">Group ready</p>
+                </div>
                 <img
                   src="/images/partners/telegram.svg"
-                  alt=""
-                  className="h-11 w-11 shrink-0 drop-shadow-[0_6px_16px_rgba(42,171,238,0.35)]"
+                  alt="Open Telegram"
+                  className="h-8 w-8 shrink-0"
                 />
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-semibold text-white">
-                    Telegram group ready
-                  </span>
-                  <span className="mt-0.5 block text-[12px] leading-relaxed text-white/50">
-                    Your official Telegram room is live. Join now to direct raids, coordinate
-                    holders, and post updates.
-                  </span>
-                </span>
-                <ExternalLink className="h-4 w-4 shrink-0 text-[#2AABEE]" />
               </a>
             ) : null}
             <div className="flex items-center gap-3 px-3 py-3">
