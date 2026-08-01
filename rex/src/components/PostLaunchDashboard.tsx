@@ -24,14 +24,12 @@ import {
 import {
   POLESSIA_DEFAULT_SELECTED,
   POST_LAUNCH_SPEND_THRESHOLDS,
-  ROADMAP_OPS_CHECKLIST,
-  ROADMAP_OPS_TODOS,
   formatActivityPrice,
   formatThresholdUsd,
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
-import { FEE_TIERS, formatBpsPercent, MARKETING_AUTO_PAY_FAILURE_RULE } from '../data/chainConfig';
+import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
@@ -133,8 +131,6 @@ export function PostLaunchDashboard({
   /** Launch path: carousel after pay; spend stays off until settings turned on. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(mode === 'launch');
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
-  const [opsChecks, setOpsChecks] = useState<Set<string>>(() => new Set());
-  const [opsTodos, setOpsTodos] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     setTab(initialTab);
@@ -843,7 +839,7 @@ export function PostLaunchDashboard({
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" />
-              Polessia wizard
+              Wizard
             </button>
             <button
               type="button"
@@ -949,97 +945,6 @@ export function PostLaunchDashboard({
               );
             })}
           </div>
-
-          <section className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
-              For us to check
-            </p>
-            <ul className="space-y-2">
-              {ROADMAP_OPS_CHECKLIST.map((item) => {
-                const on = opsChecks.has(item.id);
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpsChecks((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(item.id)) next.delete(item.id);
-                          else next.add(item.id);
-                          return next;
-                        })
-                      }
-                      className="flex w-full items-start gap-3 rounded-lg px-1 py-1.5 text-left transition hover:bg-white/[0.03]"
-                    >
-                      <span
-                        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border ${
-                          on
-                            ? 'border-[#c8ff3d]/50 bg-[#c8ff3d]/15 text-[#d5ff69]'
-                            : 'border-white/15 text-transparent'
-                        }`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span
-                        className={`text-[13px] leading-snug ${
-                          on ? 'text-white/80' : 'text-white/55'
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-
-          <section className="space-y-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-200/80">
-              To do
-            </p>
-            <ul className="space-y-2">
-              {ROADMAP_OPS_TODOS.map((item) => {
-                const on = opsTodos.has(item.id);
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setOpsTodos((prev) => {
-                          const next = new Set(prev);
-                          if (next.has(item.id)) next.delete(item.id);
-                          else next.add(item.id);
-                          return next;
-                        })
-                      }
-                      className="flex w-full items-start gap-3 rounded-lg px-1 py-1.5 text-left transition hover:bg-white/[0.03]"
-                    >
-                      <span
-                        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded border ${
-                          on
-                            ? 'border-amber-300/50 bg-amber-300/15 text-amber-200'
-                            : 'border-white/15 text-transparent'
-                        }`}
-                      >
-                        <Check className="h-3 w-3" />
-                      </span>
-                      <span
-                        className={`text-[13px] leading-snug ${
-                          on ? 'text-white/80' : 'text-white/55'
-                        }`}
-                      >
-                        {item.label}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="border-t border-white/[0.06] pt-3 text-[12px] leading-relaxed text-white/50">
-              {MARKETING_AUTO_PAY_FAILURE_RULE.summary}
-            </p>
-          </section>
         </div>
       ) : null}
 
