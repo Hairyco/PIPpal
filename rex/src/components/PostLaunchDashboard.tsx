@@ -32,6 +32,8 @@ import {
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
+import { LaunchReadyCarousel } from './LaunchReadyCarousel';
+
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
 
 type ShareLinks = {
@@ -126,10 +128,17 @@ export function PostLaunchDashboard({
   const [logoUrlState, setLogoUrlState] = useState<string | null>(logoUrl);
   const [bannerUrlState, setBannerUrlState] = useState<string | null>(null);
   const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
+  /** Launch path: carousel after pay; spend stays off until settings turned on. */
+  const [showLaunchCarousel, setShowLaunchCarousel] = useState(mode === 'launch');
+  const [marketingSpendOn, setMarketingSpendOn] = useState(false);
 
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    if (mode === 'launch') setShowLaunchCarousel(true);
+  }, [mode, symbol]);
 
   useEffect(() => {
     setLogoUrlState(logoUrl);
@@ -352,9 +361,28 @@ export function PostLaunchDashboard({
   };
 
   const needsSetup = mode === 'launch';
+  const telegramHref = (telegramCommunity || shareLinks.telegram || '').trim();
+
+  const configureFromCarousel = () => {
+    setShowLaunchCarousel(false);
+    setTab('wallet');
+    window.setTimeout(() => {
+      document.getElementById('marketing-wallet-settings')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 80);
+  };
 
   return (
     <div className="mt-2 space-y-5">
+      <LaunchReadyCarousel
+        open={showLaunchCarousel && mode === 'launch'}
+        symbol={symbol}
+        telegramUrl={telegramHref}
+        onConfigure={configureFromCarousel}
+      />
+
       <div className="flex items-center gap-3">
         {logoUrl ? (
           <img
@@ -554,9 +582,55 @@ export function PostLaunchDashboard({
               Marketing wallet
             </p>
             <p className="mt-1.5 text-sm text-white/45">
-              Trade fees fill this vault. Spend unlocks at each threshold — powered by Polessia.
+              {vaultLive && !marketingSpendOn
+                ? 'Vault can fill from trades. Auto spend is off until you turn settings on.'
+                : 'Trade fees fill this vault. Spend unlocks at each threshold — powered by Polessia.'}
             </p>
           </div>
+
+          {vaultLive ? (
+            <section
+              id="marketing-wallet-settings"
+              className={`scroll-mt-4 space-y-3 rounded-xl border p-4 ${
+                marketingSpendOn
+                  ? 'border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07]'
+                  : 'border-amber-400/30 bg-amber-400/[0.07]'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-white">Auto marketing</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-white/50">
+                    {marketingSpendOn
+                      ? 'On — Polessia can spend from the vault at unlock thresholds.'
+                      : 'Off — turn on when you’re ready for autonomous spend.'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={marketingSpendOn}
+                  onClick={() => setMarketingSpendOn((v) => !v)}
+                  className={`relative h-7 w-12 shrink-0 rounded-full transition ${
+                    marketingSpendOn ? 'bg-[#c8ff3d]' : 'bg-white/15'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+                      marketingSpendOn ? 'left-[1.35rem]' : 'left-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+              <p
+                className={`text-[11px] font-semibold uppercase tracking-[0.1em] ${
+                  marketingSpendOn ? 'text-[#d5ff69]' : 'text-amber-200/80'
+                }`}
+              >
+                {marketingSpendOn ? 'Settings on' : 'Settings off'}
+              </p>
+            </section>
+          ) : null}
 
           <div className="space-y-3 border-y border-white/[0.06] py-4">
             <div className="flex items-start justify-between gap-3">
