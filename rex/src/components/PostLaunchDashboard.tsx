@@ -67,8 +67,8 @@ type PostLaunchDashboardProps = {
 
 const LAUNCH_TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
-  { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
+  { id: 'wallet', label: 'Wallet' },
   { id: 'socials', label: 'Socials' },
   { id: 'affiliate', label: 'Affiliate' },
 ];
@@ -348,7 +348,7 @@ export function PostLaunchDashboard({
             ) : null}
             <button
               type="button"
-              onClick={() => setTab('wallet')}
+              onClick={() => setTab('roadmap')}
               className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/[0.03]"
             >
               <div className="min-w-0 flex-1">
