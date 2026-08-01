@@ -1348,9 +1348,9 @@ export function LaunchCtoPage() {
 
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
-              <div>
-                <p className="text-[11px] font-medium text-white/45">Wallet</p>
-                {connected && address ? (
+              {connected && address ? (
+                <div>
+                  <p className="text-[11px] font-medium text-white/45">Wallet</p>
                   <div className="mt-1.5 flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
                     <div className="min-w-0">
                       <p className="truncate font-mono text-[13px] text-white">
@@ -1366,12 +1366,8 @@ export function LaunchCtoPage() {
                     </div>
                     <Wallet className="h-4 w-4 shrink-0 text-[#d5ff69]" />
                   </div>
-                ) : (
-                  <p className="mt-1.5 text-[12px] leading-relaxed text-white/45">
-                    Connect once below to scan V1, burn, and pay launch / marketing wallet fees.
-                  </p>
-                )}
-              </div>
+                </div>
+              ) : null}
 
               <div className="grid grid-cols-[1fr_auto] items-end gap-3">
                 <div className="min-w-0">
