@@ -32,7 +32,7 @@ import { ContentSetupSheet, type SetupChannel } from '../components/ContentSetup
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
+import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -96,6 +96,8 @@ export function LaunchCtoPage() {
   const [mode, setMode] = useState<LaunchMode>('launch');
   const [step, setStep] = useState<FlowStep>('coin');
   const [listNotice, setListNotice] = useState<string | null>(null);
+  const [cloneProgress, setCloneProgress] = useState(0);
+  const [cloneStatusLabel, setCloneStatusLabel] = useState('');
   const [marketingAttached, setMarketingAttached] = useState(false);
   const [marketingAttachBusy, setMarketingAttachBusy] = useState(false);
   /** Checkbox on the single-page List flow — opt in to $1 vault attach. */
@@ -117,6 +119,7 @@ export function LaunchCtoPage() {
   const [buyAtLaunchSol, setBuyAtLaunchSol] = useState('');
   const [burnAmount, setBurnAmount] = useState('');
   const [vestingAccepted, setVestingAccepted] = useState(false);
+  const [vestingOpen, setVestingOpen] = useState(false);
   const [burned, setBurned] = useState(false);
   /** Demo V1 balance after wallet scan — real RPC later. */
   const [v1Balance, setV1Balance] = useState<string | null>(null);
@@ -135,7 +138,6 @@ export function LaunchCtoPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [coinReady, setCoinReady] = useState(false);
   const [venueLabel, setVenueLabel] = useState('Solana');
-  const [showAdvanced, setShowAdvanced] = useState(false);
   const [editArt, setEditArt] = useState(false);
   const [websiteKind, setWebsiteKind] = useState<WebsiteKind>('none');
   const [cloneUrl, setCloneUrl] = useState('');
@@ -289,6 +291,7 @@ export function LaunchCtoPage() {
       return;
     }
     if (!vestingAccepted) {
+      setVestingOpen(true);
       setBurnConfirmError('Confirm the unlock terms to continue.');
       return;
     }
@@ -357,6 +360,7 @@ export function LaunchCtoPage() {
     setBuyAtLaunchSol('');
     setBurnAmount('');
     setVestingAccepted(false);
+    setVestingOpen(false);
     setBurned(false);
     setV1Balance(null);
     setBalanceScanning(false);
@@ -373,10 +377,11 @@ export function LaunchCtoPage() {
     setLookupError(null);
     setCoinReady(false);
     setVenueLabel('Solana');
-    setShowAdvanced(false);
     setEditArt(false);
     setWebsiteKind('none');
     setCloneUrl('');
+    setCloneProgress(0);
+    setCloneStatusLabel('');
     setExtraLogoGens(0);
     setExtraBannerGens(0);
     setSiteGenerated(false);
@@ -674,6 +679,8 @@ export function LaunchCtoPage() {
     setSiteGenerated(false);
     setPreviewOpen(false);
     setEditSite(false);
+    setCloneProgress(0);
+    setCloneStatusLabel('');
   };
 
   const openSiteEditor = () => {
@@ -686,9 +693,22 @@ export function LaunchCtoPage() {
     if (websiteKind !== 'clone') return;
     if (!cloneUrl.trim() && !website.trim()) return;
     setGeneratingSite(true);
+    setCloneProgress(0);
+    setCloneStatusLabel('Fetching page…');
     try {
       if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
-      await new Promise((r) => window.setTimeout(r, 450));
+      const stages = [
+        { pct: 22, label: 'Fetching page…' },
+        { pct: 48, label: 'Cloning layout…' },
+        { pct: 72, label: 'Applying brand…' },
+        { pct: 90, label: 'Building preview…' },
+        { pct: 100, label: 'Clone ready' },
+      ] as const;
+      for (const stage of stages) {
+        setCloneStatusLabel(stage.label);
+        setCloneProgress(stage.pct);
+        await new Promise((r) => window.setTimeout(r, 380));
+      }
       setSiteGenerated(true);
       setPreviewOpen(true);
     } finally {
@@ -761,10 +781,18 @@ export function LaunchCtoPage() {
           {step !== 'done' && step !== 'fresh' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                {mode === 'add' ? 'List for exposure' : 'CTO Launch Wizard'}
+                {mode === 'add' ? 'List for exposure' : 'Launch'}
               </p>
               <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
-                {mode === 'launch' ? 'Launch a CTO' : 'List a CTO'}
+                {mode === 'add'
+                  ? 'List a CTO'
+                  : step === 'fees'
+                    ? 'Fees'
+                    : step === 'burn'
+                      ? 'Burn'
+                      : step === 'website'
+                        ? 'Website'
+                        : 'Launch a CTO'}
               </h1>
               {mode === 'add' ? (
                 <div className="mt-4 rounded-2xl border border-white/[0.1] bg-gradient-to-br from-[#c8ff3d]/[0.1] via-white/[0.02] to-transparent p-4">
@@ -805,17 +833,19 @@ export function LaunchCtoPage() {
                     ))}
                   </ul>
                 </div>
-              ) : (
+              ) : step === 'coin' ? (
                 <p className="mt-1.5 text-sm text-white/45">
-                  {step === 'coin'
-                    ? 'Set the name, ticker, and mint for your CTO.'
-                    : step === 'fees'
-                      ? 'Choose how creator fees work, then optionally buy at launch.'
-                      : step === 'burn'
-                        ? 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'
-                        : 'Optional website — then list the coin. Setup finishes after listing.'}
+                  Set the name, ticker, and mint for your CTO.
                 </p>
-              )}
+              ) : step === 'fees' ? (
+                <p className="mt-1.5 text-sm text-white/45">
+                  Choose how creator fees work, then optionally buy at launch.
+                </p>
+              ) : step === 'burn' ? (
+                <p className="mt-1.5 text-sm text-white/45">
+                  Burn your old tokens for the same amount of V2.
+                </p>
+              ) : null}
             </>
           ) : null}
 
@@ -1043,62 +1073,7 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              {mode === 'launch' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvanced((v) => !v)}
-                    className="flex w-full items-center justify-between rounded-xl border border-white/[0.06] px-3 py-2.5 text-left text-[11px] font-semibold text-white/45 hover:text-white/70"
-                  >
-                    Advanced (old socials)
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-
-                  {showAdvanced ? (
-                    <div className="space-y-3 rounded-xl border border-white/[0.06] bg-black/20 p-3">
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/40">Old Telegram</span>
-                        <input
-                          value={telegram}
-                          onChange={(event) => setTelegram(event.target.value)}
-                          placeholder="https://t.me/…"
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/40">Old X / Twitter</span>
-                        <input
-                          value={twitter}
-                          onChange={(event) => setTwitter(event.target.value)}
-                          placeholder="https://x.com/…"
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/40">Old website</span>
-                        <input
-                          value={website}
-                          onChange={(event) => setWebsite(event.target.value)}
-                          placeholder="https://…"
-                          className={fieldClass}
-                        />
-                      </label>
-                      <label className="block">
-                        <span className="text-[11px] font-semibold text-white/40">Notes</span>
-                        <textarea
-                          value={note}
-                          onChange={(event) => setNote(event.target.value)}
-                          rows={2}
-                          placeholder="Optional"
-                          className="mt-1.5 w-full resize-y rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                        />
-                      </label>
-                    </div>
-                  ) : null}
-                </>
-              ) : (
+              {mode === 'add' ? (
                 <label
                   className={`flex cursor-pointer items-start gap-3 rounded-xl px-3 py-3 transition ${
                     listMarketingOptIn
@@ -1136,7 +1111,7 @@ export function LaunchCtoPage() {
                     </span>
                   </span>
                 </label>
-              )}
+              ) : null}
 
               {listNotice && mode === 'add' ? (
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
@@ -1314,38 +1289,25 @@ export function LaunchCtoPage() {
 
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="font-serif text-xl font-bold tracking-tight text-white">Burn</p>
-                  <span className="group relative inline-flex">
-                    <button
-                      type="button"
-                      className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
-                      aria-label="Why burn matters"
-                      title="Burning stops the old developer from collecting fees on trades."
-                    >
-                      <Info className="h-3.5 w-3.5" aria-hidden />
-                    </button>
-                    <span
-                      role="tooltip"
-                      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-52 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100"
-                    >
-                      Burning stops the old developer from collecting fees on trades.
-                    </span>
+              <div className="flex items-center gap-2">
+                <span className="group relative inline-flex">
+                  <button
+                    type="button"
+                    className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
+                    aria-label="Why burn matters"
+                    title="Burning stops the old developer from collecting fees on trades."
+                  >
+                    <Info className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                  <span
+                    role="tooltip"
+                    className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-52 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100"
+                  >
+                    Burning stops the old developer from collecting fees on trades.
                   </span>
-                </div>
-                <p className="mt-1.5 text-[12px] text-white/35">
-                  Day 1–5: 10% each · Day 6: 25% · Day 7: 25%.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[11px] font-medium text-white/45">V1 mint</p>
-                <p className="mt-1 font-mono text-[13px] text-white/80">
-                  {contract.trim() ? formatMintPreview(contract) : '—'}
-                </p>
-                <p className="mt-0.5 text-[11px] text-white/35">
-                  {displayTicker} · from earlier step
+                </span>
+                <p className="text-[12px] text-white/40">
+                  Connect the wallet that holds your V1 tokens.
                 </p>
               </div>
 
@@ -1414,30 +1376,50 @@ export function LaunchCtoPage() {
                 </div>
               </div>
 
-              <div>
-                <p className="text-[11px] font-medium text-white/45">Unlock schedule</p>
-                <ul className="mt-2 divide-y divide-white/[0.06] border-y border-white/[0.06]">
-                  {VESTING_SCHEDULE.map((row) => (
-                    <li
-                      key={row.label}
-                      className="flex items-center justify-between py-2.5 text-[13px]"
-                    >
-                      <span className="text-white/55">{row.label}</span>
-                      <span className="font-semibold tabular-nums text-white">{row.amount}</span>
-                    </li>
-                  ))}
-                </ul>
-                <label className="mt-3 flex cursor-pointer items-start gap-2.5">
-                  <input
-                    type="checkbox"
-                    checked={vestingAccepted}
-                    onChange={(event) => setVestingAccepted(event.target.checked)}
-                    className="mt-0.5 h-4 w-4 rounded accent-[#c8ff3d]"
-                  />
-                  <span className="text-[12px] leading-relaxed text-white/45">
-                    I understand V2 unlocks on this schedule
+              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+                <button
+                  type="button"
+                  onClick={() => setVestingOpen((v) => !v)}
+                  className="flex w-full items-center justify-between gap-3 px-3.5 py-3 text-left"
+                >
+                  <span>
+                    <span className="block text-[13px] font-semibold text-white">Vesting</span>
+                    <span className="mt-0.5 block text-[11px] text-white/40">
+                      V2 unlocks over 7 days
+                    </span>
                   </span>
-                </label>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-white/40 transition-transform ${
+                      vestingOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {vestingOpen ? (
+                  <div className="space-y-3 border-t border-white/[0.06] px-3.5 pb-3.5 pt-2">
+                    <ul className="divide-y divide-white/[0.06]">
+                      {VESTING_SCHEDULE.map((row) => (
+                        <li
+                          key={row.label}
+                          className="flex items-center justify-between py-2.5 text-[13px]"
+                        >
+                          <span className="text-white/55">{row.label}</span>
+                          <span className="font-semibold tabular-nums text-white">{row.amount}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <label className="flex cursor-pointer items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={vestingAccepted}
+                        onChange={(event) => setVestingAccepted(event.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded accent-[#c8ff3d]"
+                      />
+                      <span className="text-[12px] leading-relaxed text-white/45">
+                        I understand V2 unlocks on this schedule
+                      </span>
+                    </label>
+                  </div>
+                ) : null}
               </div>
 
               {!burned ? (
@@ -1493,13 +1475,6 @@ export function LaunchCtoPage() {
 
           {step === 'website' ? (
             <form onSubmit={onWebsiteFinish} className="mt-6 space-y-4">
-              <div>
-                <p className="text-sm font-bold text-white">Website</p>
-                <p className="mt-1 text-[12px] text-white/45">
-                  Optional. Skip to list now — finish logo, banner, and socials after listing.
-                </p>
-              </div>
-
               <p className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[11px] text-white/45">
                 Coin page will be at{' '}
                 <span className="font-mono text-white/70">
@@ -1531,11 +1506,6 @@ export function LaunchCtoPage() {
                 >
                   <p className="text-[11px] font-bold text-white">Clone</p>
                   <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
-                  {websiteKind === 'clone' ? (
-                    <p className="mt-1.5 text-[9px] leading-snug text-white/45">
-                      {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet · clone + hosting
-                    </p>
-                  ) : null}
                 </button>
               </div>
 
@@ -1552,15 +1522,34 @@ export function LaunchCtoPage() {
                       onChange={(event) => {
                         setCloneUrl(event.target.value);
                         setSiteGenerated(false);
+                        setCloneProgress(0);
+                        setCloneStatusLabel('');
                       }}
                       placeholder="https://…"
                       className={fieldClass}
                     />
                   </label>
-                  <p className="text-[11px] leading-relaxed text-white/40">
-                    {CLONE_HOSTING_FEE_SOL} SOL will be deducted from the marketing wallet for clone +
-                    hosting.
-                  </p>
+                </div>
+              ) : null}
+
+              {websiteKind === 'clone' && (generatingSite || siteGenerated) ? (
+                <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[12px] font-semibold text-white">
+                      {generatingSite
+                        ? cloneStatusLabel || 'Cloning…'
+                        : cloneStatusLabel || 'Clone ready'}
+                    </p>
+                    <p className="font-mono text-[11px] tabular-nums text-white/45">
+                      {cloneProgress}%
+                    </p>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/[0.08]">
+                    <div
+                      className="h-full rounded-full bg-[#c8ff3d] transition-[width] duration-300 ease-out"
+                      style={{ width: `${Math.max(cloneProgress, generatingSite ? 4 : 0)}%` }}
+                    />
+                  </div>
                 </div>
               ) : null}
 
@@ -1646,10 +1635,6 @@ export function LaunchCtoPage() {
                           className={fieldClass}
                         />
                       </label>
-                      <p className="text-[11px] leading-relaxed text-white/40">
-                        {CLONE_HOSTING_FEE_SOL} SOL will be deducted from the marketing wallet for clone
-                        + hosting.
-                      </p>
 
                       <button
                         type="button"
