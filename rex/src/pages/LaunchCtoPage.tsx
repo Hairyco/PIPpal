@@ -535,7 +535,7 @@ export function LaunchCtoPage() {
     setStep('burn');
   };
 
-  /** Burn step: queue burn selection (paid with marketing wallet on Summary). */
+  /** Burn step: choose amount only — fee + gas both charge on Summary Pay. */
   const continueFromBurn = async (opts?: { skip?: boolean }) => {
     setListNotice(null);
     setBurnConfirmError(null);
@@ -584,12 +584,12 @@ export function LaunchCtoPage() {
       return;
     }
 
-    // Burn executes with marketing-wallet payment on the Summary step — not here.
+    // Do not burn here — burn gas + marketing fee share one Pay session on Summary.
     setBurned(false);
     setStep('summary');
   };
 
-  /** Summary / Pay: marketing wallet fee + queued burn settle in one payment. */
+  /** Summary / Pay: one approval — marketing wallet fee + optional burn gas together. */
   const payAndLaunch = async () => {
     setListNotice(null);
     if (!connected) {
@@ -1621,9 +1621,12 @@ export function LaunchCtoPage() {
                           V1 burn → V2
                         </span>
                         <span className="mt-0.5 block text-[11px] text-white/45">
-                          {Number(burnAmount).toLocaleString()} {displayTicker} · settled with
-                          marketing wallet payment
+                          {Number(burnAmount).toLocaleString()} {displayTicker} · network gas
+                          charged when you pay
                         </span>
+                      </span>
+                      <span className="shrink-0 font-mono text-[13px] font-bold text-white/80">
+                        Gas
                       </span>
                     </li>
                   ) : null}
@@ -1668,10 +1671,26 @@ export function LaunchCtoPage() {
                   <span className="text-[12px] font-semibold text-white/55">Due now</span>
                   <span className="font-mono text-[15px] font-bold text-[#d5ff69]">
                     ${CLAIM_FEE}
+                    {burnAmount.trim() &&
+                    Number.isFinite(Number(burnAmount)) &&
+                    Number(burnAmount) > 0
+                      ? ' + gas'
+                      : ''}
                     {hasBuyAtLaunch ? ` + ${buyAtLaunchSolNum} SOL` : ''}
                   </span>
                 </div>
               </div>
+
+              <p className="text-[11px] leading-relaxed text-white/40">
+                One wallet approval: marketing wallet fee
+                {burnAmount.trim() &&
+                Number.isFinite(Number(burnAmount)) &&
+                Number(burnAmount) > 0
+                  ? ' + burn gas'
+                  : ''}
+                {hasBuyAtLaunch ? ` + ${buyAtLaunchSolNum} SOL buy` : ''}. Nothing is charged until
+                you pay.
+              </p>
 
               <div className="flex items-center justify-between gap-3 px-0.5">
                 <PolessiaLogo variant="powered" size="xs" />
