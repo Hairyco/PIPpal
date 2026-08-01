@@ -329,7 +329,7 @@ export function LaunchCtoPage() {
     mode === 'launch'
       ? [
           { id: 'coin' as const, label: 'Coin' },
-          { id: 'fees' as const, label: 'Fees & buy' },
+          { id: 'fees' as const, label: 'Fees' },
           { id: 'website' as const, label: 'Website' },
           { id: 'burn' as const, label: 'Burn' },
         ]
@@ -904,27 +904,44 @@ export function LaunchCtoPage() {
           ) : null}
 
           {step !== 'done' && mode === 'launch' ? (
-            <div className="mt-4 flex flex-nowrap items-center gap-1 overflow-x-auto">
-              {steps.map((s, i) => (
-                <div key={s.id} className="flex min-w-0 flex-1 items-center gap-1">
-                  <span
-                    className={`inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[10px] font-semibold whitespace-nowrap ${
-                      i === stepIndex
-                        ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                        : i < stepIndex
-                          ? 'text-white/55'
-                          : 'text-white/30'
-                    }`}
-                  >
-                    {i < stepIndex ? <Check className="h-3 w-3" /> : null}
-                    {s.label}
-                  </span>
-                  {i < steps.length - 1 ? (
-                    <span className="h-px min-w-[8px] flex-1 bg-white/10" aria-hidden />
-                  ) : null}
-                </div>
-              ))}
-            </div>
+            <nav aria-label="Launch steps" className="mt-5">
+              <ol className="grid grid-cols-4 gap-0">
+                {steps.map((s, i) => {
+                  const done = i < stepIndex;
+                  const active = i === stepIndex;
+                  return (
+                    <li key={s.id} className="relative flex flex-col items-center gap-2">
+                      {i < steps.length - 1 ? (
+                        <span
+                          aria-hidden
+                          className={`absolute left-[calc(50%+12px)] right-[calc(-50%+12px)] top-[11px] h-px ${
+                            done || active ? 'bg-[#c8ff3d]/35' : 'bg-white/[0.1]'
+                          }`}
+                        />
+                      ) : null}
+                      <span
+                        className={`relative z-[1] grid h-[22px] w-[22px] place-items-center rounded-full text-[10px] font-bold transition ${
+                          active
+                            ? 'bg-[#c8ff3d] text-[#090b14] ring-4 ring-[#c8ff3d]/15'
+                            : done
+                              ? 'bg-[#c8ff3d]/20 text-[#d5ff69]'
+                              : 'border border-white/15 bg-[#090b14] text-white/35'
+                        }`}
+                      >
+                        {done ? <Check className="h-3 w-3" strokeWidth={2.5} /> : i + 1}
+                      </span>
+                      <span
+                        className={`text-[11px] font-semibold tracking-tight ${
+                          active ? 'text-[#d5ff69]' : done ? 'text-white/55' : 'text-white/30'
+                        }`}
+                      >
+                        {s.label}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
           ) : null}
 
           {step === 'coin' ? (
