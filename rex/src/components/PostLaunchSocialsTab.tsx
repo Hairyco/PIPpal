@@ -270,7 +270,7 @@ export function PostLaunchSocialsTab({
             </label>
             {websiteKind === 'clone' ? (
               <p className="text-[11px] leading-relaxed text-white/40">
-                ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone +
+                {CLONE_HOSTING_FEE_SOL} SOL will be deducted from the marketing wallet for clone +
                 hosting.
               </p>
             ) : null}

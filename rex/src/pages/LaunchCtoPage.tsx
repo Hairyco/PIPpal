@@ -18,12 +18,17 @@ import {
   Upload,
   Users,
   Wallet,
+  Zap,
+  ShieldCheck,
+  TrendingUp,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
+import { ListStartFreshPage } from '../components/ListStartFreshPage';
+import { ContentSetupSheet, type SetupChannel } from '../components/ContentSetupSheet';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
@@ -54,8 +59,9 @@ import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils
 import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'done';
+type FlowStep = 'coin' | 'fees' | 'burn' | 'website' | 'fresh' | 'done';
 type WebsiteKind = 'none' | 'clone';
+type DashEntryTab = 'overview' | 'wallet' | 'content' | 'socials';
 
 const fieldClass =
   'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
@@ -143,6 +149,8 @@ export function LaunchCtoPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
   const [editSite, setEditSite] = useState(false);
+  const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
+  const [dashEntryTab, setDashEntryTab] = useState<DashEntryTab>('overview');
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const dexHeaderRef = useRef<HTMLInputElement>(null);
@@ -383,6 +391,8 @@ export function LaunchCtoPage() {
     setTelegramInvite(null);
     setListingConfirmed(false);
     setCopiedLink(null);
+    setDashEntryTab('overview');
+    setSetupChannel(null);
   };
 
   const switchMode = (next: LaunchMode) => {
@@ -467,8 +477,17 @@ export function LaunchCtoPage() {
     if (withMarketing !== undefined) setMarketingAttached(withMarketing);
     setTelegramInvite(`https://t.me/ctogo_${coinSlug}`);
     setListingConfirmed(false);
-    setStep('done');
+    if (mode === 'add') {
+      setStep('fresh');
+    } else {
+      setStep('done');
+    }
     await claimAccountAfterPublish();
+  };
+
+  const goToListDashboard = (tab: DashEntryTab = 'overview') => {
+    setDashEntryTab(tab);
+    setStep('done');
   };
 
   const confirmListing = () => {
@@ -713,8 +732,15 @@ export function LaunchCtoPage() {
       <AppSidebar />
       <div className="relative z-[1]">
         <header className="border-b border-white/[0.07] bg-[#090b14]">
-          <div className="mx-auto flex h-14 max-w-xl items-center gap-3 px-3 sm:px-5">
-            <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="CTOgo home">
+          <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-2 sm:px-3">
+            <Link
+              to="/"
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1.5 text-xs font-medium text-white/45 transition hover:bg-white/[0.04] hover:text-white"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </Link>
+            <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2" aria-label="CTOgo home">
               <CtoGoLogo size={32} className="rounded-xl" />
               <span className="flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
                 CTOgo
@@ -723,21 +749,16 @@ export function LaunchCtoPage() {
                 </span>
               </span>
             </Link>
-            <Link
-              to="/"
-              className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-white/45 transition hover:text-white"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back
-            </Link>
-            <AuthButton />
-            <ConnectWalletButton />
-            <AppSidebarMenuButton />
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <AuthButton />
+              <ConnectWalletButton />
+              <AppSidebarMenuButton />
+            </div>
           </div>
         </header>
 
         <main className="mx-auto max-w-xl px-3 py-8 sm:px-5">
-          {step !== 'done' ? (
+          {step !== 'done' && step !== 'fresh' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                 {mode === 'add' ? 'List for exposure' : 'CTO Launch Wizard'}
@@ -745,17 +766,56 @@ export function LaunchCtoPage() {
               <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
                 {mode === 'launch' ? 'Launch a CTO' : 'List a CTO'}
               </h1>
-              <p className="mt-1.5 text-sm text-white/45">
-                {mode === 'add'
-                  ? 'Already trading on an exchange? Paste the mint to put it on the CTOgo board. Trading stays live where it is.'
-                  : step === 'coin'
+              {mode === 'add' ? (
+                <div className="mt-4 rounded-2xl border border-white/[0.1] bg-gradient-to-br from-[#c8ff3d]/[0.1] via-white/[0.02] to-transparent p-4">
+                  <p className="text-[13px] font-semibold leading-snug text-white">
+                    Bring your existing contract to CTOgo and unlock built-in utility:
+                  </p>
+                  <ul className="mt-3 space-y-2.5">
+                    {(
+                      [
+                        {
+                          icon: TrendingUp,
+                          title: 'Auto Marketing Vault',
+                          detail: '0.40% of every trade goes straight to marketing funds.',
+                        },
+                        {
+                          icon: Zap,
+                          title: 'Scout Rewards',
+                          detail: 'Pay your raiders 0.05% SOL on every buy link they share.',
+                        },
+                        {
+                          icon: ShieldCheck,
+                          title: 'Verified CTO Status',
+                          detail: 'Secure your canonical social links and holder dashboard.',
+                        },
+                      ] as const
+                    ).map(({ icon: Icon, title, detail }) => (
+                      <li key={title} className="flex items-start gap-3">
+                        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                          <Icon className="h-3.5 w-3.5" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-[12px] font-semibold text-white">{title}</span>
+                          <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
+                            {detail}
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="mt-1.5 text-sm text-white/45">
+                  {step === 'coin'
                     ? 'Set the name, ticker, and mint for your CTO.'
                     : step === 'fees'
                       ? 'Choose how creator fees work, then optionally buy at launch.'
                       : step === 'burn'
                         ? 'Burn your old tokens for the same amount of V2. Connect the wallet that holds them. We match the V1 mint from this launch.'
                         : 'Optional website — then list the coin. Setup finishes after listing.'}
-              </p>
+                </p>
+              )}
             </>
           ) : null}
 
@@ -1062,7 +1122,7 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      CTOgo trades fill it to pay for ads and growth.
+                      Thinks, builds and markets your coin autonomously.
                     </span>
                     <span className="mt-2 flex flex-wrap items-center gap-3">
                       <Link
@@ -1498,7 +1558,7 @@ export function LaunchCtoPage() {
                     />
                   </label>
                   <p className="text-[11px] leading-relaxed text-white/40">
-                    ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone +
+                    {CLONE_HOSTING_FEE_SOL} SOL will be deducted from the marketing wallet for clone +
                     hosting.
                   </p>
                 </div>
@@ -1587,7 +1647,7 @@ export function LaunchCtoPage() {
                         />
                       </label>
                       <p className="text-[11px] leading-relaxed text-white/40">
-                        ${CLONE_HOSTING_FEE_USD} will be deducted from the marketing wallet for clone
+                        {CLONE_HOSTING_FEE_SOL} SOL will be deducted from the marketing wallet for clone
                         + hosting.
                       </p>
 
@@ -1733,6 +1793,27 @@ export function LaunchCtoPage() {
             </form>
           ) : null}
 
+          {step === 'fresh' ? (
+            <ListStartFreshPage
+              symbol={displaySymbol}
+              logoUrl={dashboardLogoUrl}
+              primaryBtnClass={primaryBtnClass}
+              backBtnClass={backBtnClass}
+              onCloneSite={() => {
+                setWebsiteKind('clone');
+                goToListDashboard('socials');
+              }}
+              onAddSocials={() => goToListDashboard('socials')}
+              onAddXLogo={() => {
+                if (!logoPreview) makeLogo(logoSalt);
+                setSetupChannel('x');
+                goToListDashboard('content');
+              }}
+              onContinueToDashboard={() => goToListDashboard('overview')}
+              onSkipToDashboard={() => goToListDashboard('overview')}
+            />
+          ) : null}
+
           {step === 'done' ? (
             <PostLaunchDashboard
               symbol={displaySymbol}
@@ -1765,10 +1846,43 @@ export function LaunchCtoPage() {
                   : website.trim() || cloneUrl.trim()
               }
               websiteKind={websiteKind === 'none' ? 'none' : 'clone'}
+              initialTab={dashEntryTab}
+              onAttachMarketingWallet={
+                mode === 'add' && !marketingAttached
+                  ? () => {
+                      setListMarketingOptIn(true);
+                      void (async () => {
+                        if (!connected) {
+                          const next = await connect();
+                          if (!next) return;
+                        }
+                        setMarketingAttachBusy(true);
+                        try {
+                          await new Promise((r) => window.setTimeout(r, 600));
+                          setMarketingAttached(true);
+                        } finally {
+                          setMarketingAttachBusy(false);
+                        }
+                      })();
+                    }
+                  : undefined
+              }
             />
           ) : null}
         </main>
       </div>
+
+      <ContentSetupSheet
+        open={setupChannel != null && (step === 'fresh' || step === 'done')}
+        channel={setupChannel}
+        symbol={ticker.trim() || 'CTO'}
+        logoUrl={logoPreview}
+        bannerUrl={bannerPreview || dexHeaderPreview}
+        onClose={() => setSetupChannel(null)}
+        onGenerateLogo={() => makeLogo(logoSalt + 1)}
+        onGenerateBanner={() => void makeDexHeader(dexHeaderSalt)}
+        onGoContent={() => goToListDashboard('content')}
+      />
 
       <WebsitePreviewOverlay
         open={previewOpen && step === 'website' && websiteKind !== 'none'}
@@ -1786,3 +1900,4 @@ export function LaunchCtoPage() {
     </div>
     </AppSidebarProvider>
   );
+}

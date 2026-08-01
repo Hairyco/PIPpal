@@ -4,8 +4,6 @@ import {
   Check,
   Copy,
   ExternalLink,
-  Globe,
-  MessageCircle,
   Share2,
   Sparkles,
   Wallet,
@@ -34,8 +32,6 @@ import {
 import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
-import { CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
-
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'content' | 'socials' | 'affiliate';
 
 type ShareLinks = {
@@ -69,15 +65,24 @@ type PostLaunchDashboardProps = {
   websiteUrl?: string;
   websiteKind?: DashWebsiteKind;
   logoUrl?: string | null;
+  initialTab?: DashTab;
+  onAttachMarketingWallet?: () => void;
 };
 
-const TABS: { id: DashTab; label: string }[] = [
+const LAUNCH_TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'wallet', label: 'Wallet' },
   { id: 'roadmap', label: 'Roadmap' },
   { id: 'content', label: 'Content' },
   { id: 'socials', label: 'Socials' },
   { id: 'affiliate', label: 'Affiliate' },
+];
+
+const LIST_TABS: { id: DashTab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'wallet', label: 'Wallet' },
+  { id: 'content', label: 'Content' },
+  { id: 'socials', label: 'Socials' },
 ];
 
 export function PostLaunchDashboard({
@@ -104,8 +109,11 @@ export function PostLaunchDashboard({
   websiteUrl = '',
   websiteKind = 'own',
   logoUrl = null,
+  initialTab = 'overview',
+  onAttachMarketingWallet,
 }: PostLaunchDashboardProps) {
-  const [tab, setTab] = useState<DashTab>('overview');
+  const tabs = mode === 'add' ? LIST_TABS : LAUNCH_TABS;
+  const [tab, setTab] = useState<DashTab>(initialTab);
   const [roadmapMode, setRoadmapMode] = useState<'polessia' | 'manual'>('polessia');
   const [selected, setSelected] = useState<Set<SpendItemId>>(
     () => new Set(POLESSIA_DEFAULT_SELECTED),
@@ -118,6 +126,10 @@ export function PostLaunchDashboard({
   const [logoUrlState, setLogoUrlState] = useState<string | null>(logoUrl);
   const [bannerUrlState, setBannerUrlState] = useState<string | null>(null);
   const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
 
   useEffect(() => {
     setLogoUrlState(logoUrl);
@@ -379,85 +391,9 @@ export function PostLaunchDashboard({
         </div>
       ) : null}
 
-      {!needsSetup && tab === 'overview' ? (
-        <div className="space-y-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] px-3.5 py-3.5">
-          <div>
-            <p className="text-[13px] font-semibold text-[#d5ff69]">Start fresh?</p>
-            <p className="mt-1 text-[12px] leading-relaxed text-white/50">
-              You’re on the board — trading stays on the exchange. Optionally replace the old site
-              and socials so holders see a clean CTO.
-            </p>
-          </div>
-          <ul className="space-y-2">
-            <li>
-              <button
-                type="button"
-                onClick={() => setTab('socials')}
-                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
-                  <Globe className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-semibold text-white">
-                    Clone existing website
-                  </span>
-                  <span className="mt-0.5 block text-[11px] text-white/40">
-                    ${CLONE_HOSTING_FEE_USD} from marketing wallet · hosting included
-                  </span>
-                </span>
-                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                onClick={() => setTab('socials')}
-                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
-                  <MessageCircle className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-semibold text-white">Add new socials</span>
-                  <span className="mt-0.5 block text-[11px] text-white/40">
-                    Fresh X, Telegram, Discord links for the CTO
-                  </span>
-                </span>
-                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                onClick={() => {
-                  if (!hasLogo) generateLogoNow();
-                  if (!hasBanner) generateBannerNow();
-                  setSetupChannel('x');
-                }}
-                className="flex w-full items-center gap-3 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left transition hover:border-white/20"
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-semibold text-white">
-                    Add logo for X
-                  </span>
-                  <span className="mt-0.5 block text-[11px] text-white/40">
-                    Save the mark, then upload as your X profile photo
-                  </span>
-                </span>
-                <span className="shrink-0 text-[11px] font-semibold text-[#d5ff69]">Open →</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      ) : null}
-
       <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className="inline-flex min-w-full gap-1 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -563,6 +499,26 @@ export function PostLaunchDashboard({
             {copiedLink === 'token' ? 'Link copied' : 'Share coin page'}
           </button>
 
+          {!vaultLive && onAttachMarketingWallet ? (
+            <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#c8ff3d]/15 text-[#d5ff69]">
+                  <Wallet className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-[#d5ff69]">Add marketing wallet</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-white/50">
+                    Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once
+                    to unlock Auto Marketing Vault + Scout Rewards.
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={onAttachMarketingWallet} className={primaryBtnClass}>
+                Connect wallet &amp; attach · $1
+              </button>
+            </div>
+          ) : null}
+
           {artExtrasLine ? (
             <p className="text-[11px] text-white/35">{artExtrasLine}</p>
           ) : null}
@@ -611,6 +567,25 @@ export function PostLaunchDashboard({
             )}
             <PolessiaLogo variant="powered" size="xs" />
           </div>
+
+          {!vaultLive && onAttachMarketingWallet ? (
+            <div className="space-y-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
+              <p className="text-[13px] font-semibold text-white">Not attached yet</p>
+              <p className="text-[12px] leading-relaxed text-white/50">
+                Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once to
+                unlock the vault.
+              </p>
+              <button type="button" onClick={onAttachMarketingWallet} className={primaryBtnClass}>
+                Connect wallet &amp; attach · $1
+              </button>
+              <Link
+                to="/marketing-wallet"
+                className="inline-block text-[11px] font-semibold text-[#d5ff69] underline decoration-[#c8ff3d]/40 underline-offset-2"
+              >
+                How it works
+              </Link>
+            </div>
+          ) : null}
 
           {vaultLive && mktAddress ? (
             <section className="space-y-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] p-4">
@@ -934,7 +909,7 @@ export function PostLaunchDashboard({
             'Approve'
           )}
         </button>
-      ) : (
+      ) : mode !== 'add' ? (
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 border-t border-white/[0.06] pt-4 text-[12px]">
           <Link to="/" className="font-semibold text-white/45 transition hover:text-white">
             Back to home
@@ -944,10 +919,10 @@ export function PostLaunchDashboard({
             onClick={onReset}
             className="font-semibold text-white/35 transition hover:text-white/60"
           >
-            {mode === 'add' ? 'List another' : 'Launch another'}
+            Launch another
           </button>
         </div>
-      )}
+      ) : null}
 
       <ContentSetupSheet
         open={setupChannel != null}

@@ -12,16 +12,21 @@ export function MarketingWalletPage() {
     <AppShell>
       <div className="min-h-screen bg-black text-[#f5f7fb]">
         <header className="border-b border-white/[0.07] bg-black">
-          <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 pl-14 md:pl-4">
+          <div className="mx-auto flex h-14 max-w-3xl items-center gap-3 px-3 pr-14 sm:px-4 sm:pr-16">
             <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white"
+              to="/launch?mode=list"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-1 py-1.5 text-sm text-white/55 transition hover:bg-white/[0.04] hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
-              Home
+              Back
             </Link>
-            <p className="font-serif text-base font-bold">Marketing wallet</p>
-            <Link to="/fees" className="text-sm text-[#c8ff3d] hover:text-[#d5ff69]">
+            <p className="min-w-0 flex-1 truncate text-center font-serif text-base font-bold">
+              Marketing wallet
+            </p>
+            <Link
+              to="/fees"
+              className="shrink-0 text-sm text-[#c8ff3d] hover:text-[#d5ff69]"
+            >
               Fees
             </Link>
           </div>
