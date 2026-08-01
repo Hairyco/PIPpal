@@ -1621,12 +1621,11 @@ export function LaunchCtoPage() {
                           V1 burn → V2
                         </span>
                         <span className="mt-0.5 block text-[11px] text-white/45">
-                          {Number(burnAmount).toLocaleString()} {displayTicker} · network gas
-                          charged when you pay
+                          {Number(burnAmount).toLocaleString()} {displayTicker}
                         </span>
                       </span>
                       <span className="shrink-0 font-mono text-[13px] font-bold text-white/80">
-                        Gas
+                        Gas fee
                       </span>
                     </li>
                   ) : null}
