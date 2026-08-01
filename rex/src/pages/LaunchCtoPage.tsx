@@ -896,8 +896,25 @@ export function LaunchCtoPage() {
                   Choose how creator fees work, then optionally buy at launch.
                 </p>
               ) : step === 'burn' ? (
-                <p className="mt-1.5 text-sm text-white/45">
-                  Burn your old tokens for the same amount of V2.
+                <p className="mt-1.5 flex items-start gap-1.5 text-sm text-white/45">
+                  <span>Burn your old tokens for the same amount of V2.</span>
+                  <span className="group relative inline-flex shrink-0 pt-0.5">
+                    <button
+                      type="button"
+                      className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
+                      aria-label="What burning does"
+                    >
+                      <Info className="h-3.5 w-3.5" aria-hidden />
+                    </button>
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-64 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-auto sm:right-0 sm:translate-x-0"
+                    >
+                      Burning destroys your V1 tokens and credits the same amount of V2. It also stops
+                      developer fees on the old V1 token so the previous dev can’t keep collecting on
+                      trades.
+                    </span>
+                  </span>
                 </p>
               ) : null}
             </>
@@ -1360,27 +1377,9 @@ export function LaunchCtoPage() {
 
           {step === 'burn' ? (
             <div className="mt-6 space-y-6">
-              <div className="flex items-center gap-2">
-                <span className="group relative inline-flex">
-                  <button
-                    type="button"
-                    className="grid h-5 w-5 place-items-center rounded-full text-white/35 transition hover:text-[#d5ff69] focus-visible:text-[#d5ff69] focus-visible:outline-none"
-                    aria-label="Why burn matters"
-                    title="Burning stops the old developer from collecting fees on trades."
-                  >
-                    <Info className="h-3.5 w-3.5" aria-hidden />
-                  </button>
-                  <span
-                    role="tooltip"
-                    className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-52 -translate-x-1/2 rounded-lg border border-white/10 bg-[#0a0e17] px-2.5 py-2 text-[11px] leading-relaxed text-white/70 opacity-0 shadow-xl transition group-hover:opacity-100 group-focus-within:opacity-100"
-                  >
-                    Burning stops the old developer from collecting fees on trades.
-                  </span>
-                </span>
-                <p className="text-[12px] text-white/40">
-                  Connect the wallet that holds your V1 tokens.
-                </p>
-              </div>
+              <p className="text-[12px] text-white/40">
+                Connect the wallet that holds your V1 tokens.
+              </p>
 
               <div>
                 <p className="text-[11px] font-medium text-white/45">Wallet</p>
