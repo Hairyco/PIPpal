@@ -117,6 +117,7 @@ export function PostLaunchDashboard({
   const [copiedTelegram, setCopiedTelegram] = useState(false);
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [roadmapShareNotice, setRoadmapShareNotice] = useState<string | null>(null);
+  const [modeNotice, setModeNotice] = useState<string | null>(null);
   /** First Approve unlocks spend; can pause/unpause after that. */
   const [spendUnlocked, setSpendUnlocked] = useState(false);
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
@@ -193,9 +194,19 @@ export function PostLaunchDashboard({
   const setPolessia = () => {
     setRoadmapMode('polessia');
     setSelected(new Set(POLESSIA_DEFAULT_SELECTED));
+    if (spendUnlocked) {
+      setModeNotice('Wizard mode on');
+      window.setTimeout(() => setModeNotice(null), 1800);
+    }
   };
 
-  const setManual = () => setRoadmapMode('manual');
+  const setManual = () => {
+    setRoadmapMode('manual');
+    if (spendUnlocked) {
+      setModeNotice('Manual mode on');
+      window.setTimeout(() => setModeNotice(null), 1800);
+    }
+  };
 
   const approveRoadmap = () => {
     setSpendUnlocked(true);
@@ -889,37 +900,78 @@ export function PostLaunchDashboard({
             <PolessiaLogo variant="powered" size="xs" />
           </div>
 
-          <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
-            <button
-              type="button"
-              onClick={setPolessia}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-[11px] font-semibold transition ${
-                roadmapMode === 'polessia'
-                  ? 'bg-[#c8ff3d] text-[#090b14]'
-                  : 'text-white/50 hover:text-white'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Wizard
-            </button>
-            <button
-              type="button"
-              onClick={setManual}
-              className={`flex-1 rounded-md px-2 py-2 text-[11px] font-semibold transition ${
-                roadmapMode === 'manual'
-                  ? 'bg-[#c8ff3d] text-[#090b14]'
-                  : 'text-white/50 hover:text-white'
-              }`}
-            >
-              Manual
-            </button>
-          </div>
+          {spendUnlocked ? (
+            <div className="flex items-center gap-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.08] px-3.5 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[#d5ff69]">
+                  <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />
+                  Roadmap confirmed
+                </p>
+                <p className="mt-0.5 text-[12px] text-white/45">Share it with your community</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void shareRoadmap()}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 py-2 text-[11px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+              >
+                {roadmapShareNotice ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5" />
+                )}
+                {roadmapShareNotice ?? 'Share'}
+              </button>
+            </div>
+          ) : null}
 
-          {roadmapMode === 'polessia' ? null : (
-            <p className="text-[12px] leading-relaxed text-white/40">
-              Toggle individual activities. Spend still waits for wallet balance.
-            </p>
-          )}
+          <div>
+            <div className="mb-1.5 flex items-center justify-between gap-2">
+              <p className="text-[11px] font-medium text-white/40">
+                {spendUnlocked ? 'Spend mode' : 'Plan mode'}
+              </p>
+              {modeNotice ? (
+                <p className="text-[11px] font-semibold text-[#d5ff69]">{modeNotice}</p>
+              ) : spendUnlocked ? (
+                <p className="text-[11px] text-white/35">Switch anytime</p>
+              ) : null}
+            </div>
+            <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
+              <button
+                type="button"
+                onClick={setPolessia}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-2 text-[11px] font-semibold transition ${
+                  roadmapMode === 'polessia'
+                    ? 'bg-[#c8ff3d] text-[#090b14]'
+                    : 'text-white/50 hover:text-white'
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Wizard
+              </button>
+              <button
+                type="button"
+                onClick={setManual}
+                className={`flex-1 rounded-md px-2 py-2 text-[11px] font-semibold transition ${
+                  roadmapMode === 'manual'
+                    ? 'bg-[#c8ff3d] text-[#090b14]'
+                    : 'text-white/50 hover:text-white'
+                }`}
+              >
+                Manual
+              </button>
+            </div>
+            {spendUnlocked ? (
+              <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+                {roadmapMode === 'polessia'
+                  ? 'Wizard runs the Polessia package at each unlock. Pause on Wallet stops all spend.'
+                  : 'Manual lets you toggle activities. Pause on Wallet stops all spend.'}
+              </p>
+            ) : roadmapMode === 'manual' ? (
+              <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+                Toggle individual activities. Spend still waits for Approve and wallet balance.
+              </p>
+            ) : null}
+          </div>
 
           <div className="space-y-5">
             {POST_LAUNCH_SPEND_THRESHOLDS.map((tier) => {
@@ -1034,49 +1086,24 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'roadmap' ? (
-        <div className="space-y-3">
-          {spendUnlocked ? (
-            <>
-              <div className="flex items-center gap-3 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.08] px-3.5 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[#d5ff69]">
-                    <Check className="h-4 w-4 shrink-0" strokeWidth={2.5} />
-                    Roadmap confirmed
-                  </p>
-                  <p className="mt-0.5 text-[12px] text-white/45">Share it with your community</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void shareRoadmap()}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3 py-2 text-[11px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
-                >
-                  {roadmapShareNotice ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : (
-                    <Share2 className="h-3.5 w-3.5" />
-                  )}
-                  {roadmapShareNotice ?? 'Share'}
-                </button>
-              </div>
-              <button
-                type="button"
-                onClick={toggleMarketingSpend}
-                className={`${primaryBtnClass} scroll-mt-4`}
-              >
-                {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
-              </button>
-            </>
-          ) : (
-            <button
-              id="roadmap-approve"
-              type="button"
-              onClick={approveRoadmap}
-              className={`${primaryBtnClass} scroll-mt-4`}
-            >
-              Approve
-            </button>
-          )}
-        </div>
+        spendUnlocked ? (
+          <button
+            type="button"
+            onClick={toggleMarketingSpend}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+          </button>
+        ) : (
+          <button
+            id="roadmap-approve"
+            type="button"
+            onClick={approveRoadmap}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            Approve
+          </button>
+        )
       ) : null}
     </div>
   );
