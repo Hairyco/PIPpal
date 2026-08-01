@@ -330,8 +330,8 @@ export function LaunchCtoPage() {
       ? [
           { id: 'coin' as const, label: 'Coin' },
           { id: 'fees' as const, label: 'Fees & buy' },
-          { id: 'burn' as const, label: 'Burn' },
           { id: 'website' as const, label: 'Website' },
+          { id: 'burn' as const, label: 'Burn' },
         ]
       : [];
   const stepIndex = steps.findIndex((s) => s.id === step);
@@ -558,23 +558,77 @@ export function LaunchCtoPage() {
 
   const onFeesContinue = (event: FormEvent) => {
     event.preventDefault();
+    setStep('website');
+  };
+
+  const onWebsiteContinue = (event: FormEvent) => {
+    event.preventDefault();
+    if (websiteKind !== 'none' && !siteGenerated) return;
     setStep('burn');
   };
 
-  const goToWebsite = () => setStep('website');
+  /** Final publish: connect once, optionally burn V1, then pay launch / marketing wallet. */
+  const publishFromBurn = async () => {
+    setListNotice(null);
+    setBurnConfirmError(null);
 
-  const onWebsiteFinish = async (event: FormEvent) => {
-    event.preventDefault();
-    if (websiteKind !== 'none' && !siteGenerated) return;
+    const wantBurn =
+      !burned &&
+      Boolean(burnAmount.trim()) &&
+      Number.isFinite(Number(burnAmount)) &&
+      Number(burnAmount) > 0;
+
+    if (wantBurn && !vestingAccepted) {
+      setVestingOpen(true);
+      setBurnConfirmError('Confirm the unlock terms to continue.');
+      return;
+    }
+
     if (!connected) {
       setListNotice(
-        hasBuyAtLaunch
-          ? `Connect your wallet to pay the launch fee + ${buyAtLaunchSolNum} SOL buy`
-          : 'Connect your wallet to pay the launch fee',
+        wantBurn
+          ? hasBuyAtLaunch
+            ? `Connect your wallet to pay burn + launch fee + ${buyAtLaunchSolNum} SOL buy`
+            : 'Connect your wallet to pay burn + launch / marketing wallet fees'
+          : hasBuyAtLaunch
+            ? `Connect your wallet to pay the launch fee + ${buyAtLaunchSolNum} SOL buy`
+            : 'Connect your wallet to pay the launch fee',
       );
       const next = await connect();
       if (!next) return;
+      setBurnWalletReady(true);
     }
+
+    if (wantBurn) {
+      setBurnConfirmBusy(true);
+      let burnOk = false;
+      try {
+        const amt = Number(burnAmount);
+        const walletAddress = address ?? (await connect());
+        if (!walletAddress) {
+          setBurnConfirmError('Connect a wallet to pay the burn fee.');
+          return;
+        }
+        setBurnWalletReady(true);
+        const available = await scanV1BalanceNow(walletAddress);
+        if (amt > available) {
+          setBurnConfirmError(
+            `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
+          );
+          return;
+        }
+        await new Promise((r) => window.setTimeout(r, 600));
+        setBurned(true);
+        burnOk = true;
+      } catch {
+        setBurnConfirmError('Burn failed. Try again.');
+        return;
+      } finally {
+        setBurnConfirmBusy(false);
+      }
+      if (!burnOk) return;
+    }
+
     const t = ticker.trim().toUpperCase() || 'CTO';
     try {
       if (dexHeaderPreview) {
@@ -1425,9 +1479,8 @@ export function LaunchCtoPage() {
               {!burned ? (
                 <>
                   <p className="text-[11px] text-white/35">
-                    {burnWalletReady && connected
-                      ? 'Burn fee will be paid from your connected wallet.'
-                      : 'Confirming will connect your wallet and pay the burn fee.'}
+                    Burn fee and launch / marketing wallet are paid together when you list — one
+                    wallet connection.
                   </p>
                   <button
                     type="button"
@@ -1456,17 +1509,57 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-rose-300">{burnConfirmError}</p>
               ) : null}
 
+              {listNotice && mode === 'launch' ? (
+                <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
+              ) : null}
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                 <button
                   type="button"
-                  onClick={() => setStep(mode === 'launch' ? 'fees' : 'coin')}
+                  onClick={() => setStep('website')}
                   className={backBtnClass}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <button type="button" onClick={goToWebsite} className={`${primaryBtnClass} sm:flex-1`}>
-                  {burned ? 'Continue' : 'Skip burn'}
+                <button
+                  type="button"
+                  onClick={() => void publishFromBurn()}
+                  disabled={burnConfirmBusy || walletBusy}
+                  className={`${primaryBtnClass} sm:flex-1`}
+                >
+                  {burnConfirmBusy || walletBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {burnConfirmBusy ? 'Confirming…' : 'Connecting…'}
+                    </>
+                  ) : connected ? (
+                    burned ||
+                    !(
+                      burnAmount.trim() &&
+                      Number.isFinite(Number(burnAmount)) &&
+                      Number(burnAmount) > 0
+                    ) ? (
+                      hasBuyAtLaunch ? (
+                        `List coin · ${buyAtLaunchSolNum} SOL buy`
+                      ) : (
+                        'List coin'
+                      )
+                    ) : hasBuyAtLaunch ? (
+                      `Burn & list · ${buyAtLaunchSolNum} SOL buy`
+                    ) : (
+                      'Burn & list'
+                    )
+                  ) : burned ||
+                    !(
+                      burnAmount.trim() &&
+                      Number.isFinite(Number(burnAmount)) &&
+                      Number(burnAmount) > 0
+                    ) ? (
+                    'Connect wallet & list'
+                  ) : (
+                    'Connect wallet · burn & list'
+                  )}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -1474,7 +1567,7 @@ export function LaunchCtoPage() {
           ) : null}
 
           {step === 'website' ? (
-            <form onSubmit={onWebsiteFinish} className="mt-6 space-y-4">
+            <form onSubmit={onWebsiteContinue} className="mt-6 space-y-4">
               <p className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[11px] text-white/45">
                 Coin page will be at{' '}
                 <span className="font-mono text-white/70">
@@ -1747,12 +1840,12 @@ export function LaunchCtoPage() {
 
               {hasBuyAtLaunch ? (
                 <p className="text-center text-[11px] font-medium text-[#d5ff69]/90">
-                  At publish: {buyAtLaunchSolNum} SOL buy into the curve
+                  Buy at launch ({buyAtLaunchSolNum} SOL) is paid with burn &amp; list next
                 </p>
               ) : null}
 
               <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                <button type="button" onClick={() => setStep('burn')} className={backBtnClass}>
+                <button type="button" onClick={() => setStep('fees')} className={backBtnClass}>
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back
                 </button>
@@ -1761,17 +1854,7 @@ export function LaunchCtoPage() {
                   disabled={!canPublishSite}
                   className={`${primaryBtnClass} sm:flex-1`}
                 >
-                  {websiteKind === 'none'
-                    ? connected
-                      ? hasBuyAtLaunch
-                        ? `List coin · ${buyAtLaunchSolNum} SOL buy`
-                        : 'List coin'
-                      : 'Connect wallet & list'
-                    : connected
-                      ? hasBuyAtLaunch
-                        ? `List coin · ${buyAtLaunchSolNum} SOL buy`
-                        : 'List coin'
-                      : 'Connect wallet & list'}
+                  Continue
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
