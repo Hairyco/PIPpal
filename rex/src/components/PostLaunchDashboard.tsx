@@ -257,6 +257,7 @@ export function PostLaunchDashboard({
   };
 
   const shareRoadmap = async () => {
+    if (!spendUnlocked) return;
     const lines = POST_LAUNCH_SPEND_THRESHOLDS.map((tier) => {
       const items = tier.items
         .filter((item) => selected.has(item.id))
@@ -971,31 +972,47 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'roadmap' ? (
-        spendUnlocked ? (
-          <button
-            type="button"
-            onClick={toggleMarketingSpend}
-            className={`${primaryBtnClass} scroll-mt-4`}
-          >
-            {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
-          </button>
-        ) : (
-          <button
-            id="roadmap-approve"
-            type="button"
-            onClick={approveRoadmap}
-            className={`${primaryBtnClass} scroll-mt-4`}
-          >
-            {roadmapApprovedFlash ? (
-              <>
-                Approved
-                <Check className="h-4 w-4" />
-              </>
-            ) : (
-              'Approve'
-            )}
-          </button>
-        )
+        <div className="space-y-3">
+          {spendUnlocked ? (
+            <button
+              type="button"
+              onClick={() => void shareRoadmap()}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-4 py-3 text-[13px] font-semibold text-white transition hover:border-white/20 hover:bg-white/[0.05]"
+            >
+              {roadmapShareNotice ? (
+                <Check className="h-4 w-4 text-[#d5ff69]" />
+              ) : (
+                <Share2 className="h-4 w-4 text-white/50" />
+              )}
+              {roadmapShareNotice ?? 'Share roadmap'}
+            </button>
+          ) : null}
+          {spendUnlocked ? (
+            <button
+              type="button"
+              onClick={toggleMarketingSpend}
+              className={`${primaryBtnClass} scroll-mt-4`}
+            >
+              {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+            </button>
+          ) : (
+            <button
+              id="roadmap-approve"
+              type="button"
+              onClick={approveRoadmap}
+              className={`${primaryBtnClass} scroll-mt-4`}
+            >
+              {roadmapApprovedFlash ? (
+                <>
+                  Approved
+                  <Check className="h-4 w-4" />
+                </>
+              ) : (
+                'Approve'
+              )}
+            </button>
+          )}
+        </div>
       ) : null}
     </div>
   );
