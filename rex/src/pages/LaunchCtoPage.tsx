@@ -32,7 +32,7 @@ import { ContentSetupSheet, type SetupChannel } from '../components/ContentSetup
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
-import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD } from '../data/claimPricing';
+import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -1639,6 +1639,9 @@ export function LaunchCtoPage() {
                       className={fieldClass}
                     />
                   </label>
+                  <p className="text-[11px] leading-relaxed text-white/40">
+                    {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet · clone + hosting
+                  </p>
                 </div>
               ) : null}
 
