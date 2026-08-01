@@ -535,19 +535,19 @@ export function LaunchCtoPage() {
     setStep('burn');
   };
 
-  /** Burn step only: confirm burn (optional), then go to payment summary. */
+  /** Burn step: queue burn selection (paid with marketing wallet on Summary). */
   const continueFromBurn = async (opts?: { skip?: boolean }) => {
     setListNotice(null);
     setBurnConfirmError(null);
 
     if (opts?.skip) {
       setBurnAmount('');
+      setBurned(false);
       setStep('summary');
       return;
     }
 
     const wantBurn =
-      !burned &&
       Boolean(burnAmount.trim()) &&
       Number.isFinite(Number(burnAmount)) &&
       Number(burnAmount) > 0;
@@ -569,33 +569,27 @@ export function LaunchCtoPage() {
       setBurnWalletReady(true);
     }
 
-    setBurnConfirmBusy(true);
-    try {
-      const amt = Number(burnAmount);
-      const walletAddress = address ?? (await connect());
-      if (!walletAddress) {
-        setBurnConfirmError('Connect a wallet to burn.');
-        return;
-      }
-      setBurnWalletReady(true);
-      const available = await scanV1BalanceNow(walletAddress);
-      if (amt > available) {
-        setBurnConfirmError(
-          `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
-        );
-        return;
-      }
-      await new Promise((r) => window.setTimeout(r, 600));
-      setBurned(true);
-      setStep('summary');
-    } catch {
-      setBurnConfirmError('Burn failed. Try again.');
-    } finally {
-      setBurnConfirmBusy(false);
+    const amt = Number(burnAmount);
+    const walletAddress = address ?? (await connect());
+    if (!walletAddress) {
+      setBurnConfirmError('Connect a wallet to continue.');
+      return;
     }
+    setBurnWalletReady(true);
+    const available = await scanV1BalanceNow(walletAddress);
+    if (amt > available) {
+      setBurnConfirmError(
+        `Not enough V1. Available: ${available.toLocaleString()} ${displayTicker}.`,
+      );
+      return;
+    }
+
+    // Burn executes with marketing-wallet payment on the Summary step — not here.
+    setBurned(false);
+    setStep('summary');
   };
 
-  /** Summary / Pay step: collect launch fees then open dashboard. */
+  /** Summary / Pay: marketing wallet fee + queued burn settle in one payment. */
   const payAndLaunch = async () => {
     setListNotice(null);
     if (!connected) {
@@ -608,9 +602,18 @@ export function LaunchCtoPage() {
       if (!next) return;
     }
 
+    const wantBurn =
+      Boolean(burnAmount.trim()) &&
+      Number.isFinite(Number(burnAmount)) &&
+      Number(burnAmount) > 0;
+
     setBurnConfirmBusy(true);
     try {
+      // One wallet session: marketing wallet attach + optional V1 burn.
       await new Promise((r) => window.setTimeout(r, 700));
+      if (wantBurn) setBurned(true);
+      setMarketingAttached(true);
+
       const t = ticker.trim().toUpperCase() || 'CTO';
       try {
         if (dexHeaderPreview) {
@@ -625,7 +628,6 @@ export function LaunchCtoPage() {
       } catch {
         /* ignore quota */
       }
-      setMarketingAttached(true);
       await finishLaunch();
     } finally {
       setBurnConfirmBusy(false);
@@ -1558,11 +1560,11 @@ export function LaunchCtoPage() {
                       {burnConfirmBusy ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Burning…
+                          Continuing…
                         </>
                       ) : (
                         <>
-                          Burn
+                          Continue
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}
@@ -1607,20 +1609,22 @@ export function LaunchCtoPage() {
                       ${CLAIM_FEE}
                     </span>
                   </li>
-                  {burned && burnAmount ? (
+                  {burnAmount.trim() &&
+                  Number.isFinite(Number(burnAmount)) &&
+                  Number(burnAmount) > 0 ? (
                     <li className="flex items-start gap-3 px-4 py-3.5">
                       <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
-                        <Check className="h-4 w-4" />
+                        <Sparkles className="h-4 w-4" />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block text-[13px] font-semibold text-white">
                           V1 burn → V2
                         </span>
                         <span className="mt-0.5 block text-[11px] text-white/45">
-                          {Number(burnAmount).toLocaleString()} {displayTicker} burned
+                          {Number(burnAmount).toLocaleString()} {displayTicker} · settled with
+                          marketing wallet payment
                         </span>
                       </span>
-                      <span className="shrink-0 text-[12px] font-semibold text-white/50">Done</span>
                     </li>
                   ) : null}
                   {websiteKind === 'clone' ? (
