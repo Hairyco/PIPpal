@@ -12,6 +12,7 @@ import {
 import { ChevronDown, Copy, Check, Link2, LogOut, Wallet } from 'lucide-react';
 import { SolanaLogo } from './SolanaLogo';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
+import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import {
   buildRaidLink,
   RAID_EARNINGS_PERIODS,
@@ -294,8 +295,17 @@ export function ConnectWalletButton({
 
           <div className="space-y-2.5 border-b border-white/[0.07] p-3">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
-              <div className="inline-flex rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
+              <div className="min-w-0">
+                <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
+                <p className="mt-0.5 text-[10px] text-white/35">
+                  Raid rate{' '}
+                  <span className="font-semibold text-[#d5ff69]">
+                    {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}
+                  </span>{' '}
+                  of swap volume
+                </p>
+              </div>
+              <div className="inline-flex shrink-0 rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
                 {RAID_EARNINGS_PERIODS.map((p) => (
                   <button
                     key={p.id}
