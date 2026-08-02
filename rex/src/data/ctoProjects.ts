@@ -171,7 +171,7 @@ export const HYBRID_FEED_TABS: {
     id: 'all',
     label: 'All CTOs',
     title: 'All CTOs',
-    subtitle: 'Discover new CTOs. Trade with ready made communities.',
+    subtitle: 'Trade with ready made communities.',
   },
   {
     id: 'native_cto',

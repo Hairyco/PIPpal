@@ -1092,7 +1092,7 @@ export function HomePage() {
     }
     const venue =
       SOURCE_VENUE_FILTERS.find((item) => item.id === venueFilter) ?? SOURCE_VENUE_FILTERS[0];
-    const baseSubtitle = 'Discover new CTOs. Trade with ready made communities.';
+    const baseSubtitle = 'Trade with ready made communities.';
     const venueNote =
       venueFilter === 'all' ? baseSubtitle : `${baseSubtitle} · ${venue.label}`;
     if (activeMode === 'Gainers') {
