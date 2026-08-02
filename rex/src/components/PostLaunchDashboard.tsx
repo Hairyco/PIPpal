@@ -23,7 +23,7 @@ import {
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import { LAUNCH_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
@@ -172,11 +172,11 @@ export function PostLaunchDashboard({
   const mktSolscan = mktAddress ? solscanAccountUrl(mktAddress) : null;
 
   const vaultLive = marketingAttached || mode === 'launch';
-  const marketingFillPct = formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps);
+  const marketingFillPct = formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps);
   /** Demo volume until live indexer — scaled so wallet ≈ marketing cut of volume. */
   const tradingVolumeUsd = vaultLive
     ? Math.max(
-        Math.round((vaultBalanceUsd / (SCOUT_FEE_ENGINE.marketingBps / 10_000)) * 0.92),
+        Math.round((vaultBalanceUsd / (LAUNCH_FEE_ENGINE.marketingBps / 10_000)) * 0.92),
         vaultBalanceUsd * 20,
       )
     : 0;
@@ -811,7 +811,7 @@ export function PostLaunchDashboard({
                       {marketingFillPct} of every buy · {marketingFillPct} of every sell
                     </p>
                     <p className="mt-1 text-[11px] leading-relaxed text-white/35">
-                      Fixed marketing cut ({formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of volume). Same rate on buys and
+                      Fixed marketing cut ({formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} of volume). Same rate on buys and
                       sells until mcap steps the schedule down.
                     </p>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">

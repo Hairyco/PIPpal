@@ -39,8 +39,9 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
 /** Raid programme defaults — protocol-fixed rate from SCOUT_FEE_ENGINE. */
 export const affiliateProgramDefaults = {
   /** Protocol raid cut of swap volume (bps → percent display). */
-  scoutCommissionPct: 0.55,
+  scoutCommissionPct: 0.5,
   attributionHours: 24,
   attributionLabel: '24-hour last-click attribution',
-  payout: 'Instant SOL to raid wallet on referred CTOgo swaps (when fee engine is live on-chain)',
+  payout:
+    'Instant SOL to raid wallet on referred CTOgo swaps; unclaimed raid (no link / bot CA paste) → CTOgo treasury',
 } as const;

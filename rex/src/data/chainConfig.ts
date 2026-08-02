@@ -2,38 +2,104 @@
 
 export const BPS_DENOMINATOR = 10_000;
 
+/** Shared raid cut on every CTOgo-routed swap (Launch + List). */
+export const RAID_FEE_BPS = 50;
+
 /**
- * Primary CTOgo swap fee engine (approved raid architecture).
- * 1.25% total → 0.55% raid · 0.40% marketing wallet · 0.30% CTOgo.
+ * Launch a CTO (Native / has dev) — 1.30% total
+ * 0.50% raid · 0.30% marketing · 0.20% creator · 0.30% CTOgo
  */
-export const SCOUT_FEE_BPS = 55;
-export const MARKETING_FEE_BPS = 40;
-export const PLATFORM_FEE_BPS = 30;
-export const TRADE_FEE_BPS = SCOUT_FEE_BPS + MARKETING_FEE_BPS + PLATFORM_FEE_BPS;
-
-export const TRADE_FEE_LABEL =
-  '1.25% (0.55% raid · 0.40% marketing wallet · 0.30% CTOgo)';
-
-/** @deprecated Legacy creator/trader pool cut — superseded by raid fee for CTOgo-routed swaps. */
-export const CREATOR_FEE_BPS = 20;
-
-export const SCOUT_FEE_ENGINE = {
-  totalBps: TRADE_FEE_BPS,
-  scoutBps: SCOUT_FEE_BPS,
-  marketingBps: MARKETING_FEE_BPS,
-  platformBps: PLATFORM_FEE_BPS,
+export const LAUNCH_FEE_ENGINE = {
+  id: 'launch' as const,
+  totalBps: 130,
+  raidBps: RAID_FEE_BPS,
+  marketingBps: 30,
+  creatorBps: 20,
+  platformBps: 30,
   attributionHours: 24,
-  linkFormat: '/coin/{TICKER}?ref={SCOUT_WALLET}',
-  summary: TRADE_FEE_LABEL,
-  scout:
-    '0.55% streams as instant SOL to the raid wallet whose referral link last attributed the swap (24h last-click). Not paid from the marketing wallet roadmap.',
-  marketing:
-    '0.40% fills the token marketing wallet for milestone spend (DexScreener, pins, trending).',
+  linkFormat: '/coin/{TICKER}?ref={WALLET}',
+  label: 'Launch a CTO · 1.30%',
+  summary: '1.30% (0.50% raid · 0.30% marketing · 0.20% creator · 0.30% CTOgo)',
+  raid: '0.50% instant SOL to the raid wallet with last-click attribution (24h).',
+  marketing: '0.30% fills the token marketing wallet for milestone spend.',
+  creator: '0.20% streams to the creator / deployer wallet (industry-standard creator fee).',
   platform: '0.30% CTOgo protocol revenue for infrastructure.',
+} as const;
+
+/**
+ * List a CTO (imported / dumped) — 1.25% total
+ * 0.50% raid · 0.40% marketing · 0.35% CTOgo · no creator cut
+ */
+export const LIST_FEE_ENGINE = {
+  id: 'list' as const,
+  totalBps: 125,
+  raidBps: RAID_FEE_BPS,
+  marketingBps: 40,
+  creatorBps: 0,
+  platformBps: 35,
+  attributionHours: 24,
+  linkFormat: '/coin/{TICKER}?ref={WALLET}',
+  label: 'List a CTO · 1.25%',
+  summary: '1.25% (0.50% raid · 0.40% marketing · 0.35% CTOgo)',
+  raid: '0.50% instant SOL to the raid wallet with last-click attribution (24h).',
+  marketing: '0.40% fills the token marketing wallet for milestone spend (larger growth pot for CTOs).',
+  platform: '0.35% CTOgo protocol revenue — takes the creator seat on imported coins.',
+} as const;
+
+/**
+ * When no raid referrer is attached to the swap, CTOgo claims the 0.50% raid cut.
+ * Covers: no ?ref=, expired attribution, CA pasted into Trojan / BullX / Axiom / Photon, etc.
+ */
+export const UNCLAIMED_RAID_RULE = {
+  title: 'Unclaimed raid → CTOgo treasury',
+  raidBps: RAID_FEE_BPS,
+  summary:
+    'If a swap has no active raid referrer — no raid link, expired 24h attribution, or a CTOgo contract pasted into Trojan / BullX / Axiom / Photon — the 0.50% raid cut routes to the CTOgo treasury (not a raider wallet).',
+  cases: [
+    'No ?ref= on the swap / no stored last-click referrer',
+    'Raid attribution older than 24 hours',
+    'Direct bot buy with CTOgo CA and no affiliate / raid link',
+  ],
+  effectLaunch:
+    'Launch: platform effective take becomes 0.80% (0.30% base + 0.50% unclaimed raid) when no referrer.',
+  effectList:
+    'List: platform effective take becomes 0.85% (0.35% base + 0.50% unclaimed raid) when no referrer.',
+} as const;
+
+/** @deprecated Prefer RAID_FEE_BPS — same value. */
+export const SCOUT_FEE_BPS = RAID_FEE_BPS;
+/** List-path marketing default (CTO listings). Launch uses LAUNCH_FEE_ENGINE.marketingBps. */
+export const MARKETING_FEE_BPS = LIST_FEE_ENGINE.marketingBps;
+/** List-path platform default. */
+export const PLATFORM_FEE_BPS = LIST_FEE_ENGINE.platformBps;
+/** Launch creator fee (0.20%). */
+export const CREATOR_FEE_BPS = LAUNCH_FEE_ENGINE.creatorBps;
+/** Default display total = List engine. */
+export const TRADE_FEE_BPS = LIST_FEE_ENGINE.totalBps;
+
+export const TRADE_FEE_LABEL = `List ${LIST_FEE_ENGINE.summary} · Launch ${LAUNCH_FEE_ENGINE.summary}`;
+
+/**
+ * Shared raid programme surface (List rates for marketing/platform display).
+ * Prefer LAUNCH_FEE_ENGINE / LIST_FEE_ENGINE when the path is known.
+ */
+export const SCOUT_FEE_ENGINE = {
+  totalBps: LIST_FEE_ENGINE.totalBps,
+  scoutBps: RAID_FEE_BPS,
+  marketingBps: LIST_FEE_ENGINE.marketingBps,
+  platformBps: LIST_FEE_ENGINE.platformBps,
+  creatorBps: 0,
+  attributionHours: 24,
+  linkFormat: LIST_FEE_ENGINE.linkFormat,
+  summary: TRADE_FEE_LABEL,
+  scout: LIST_FEE_ENGINE.raid,
+  marketing: LIST_FEE_ENGINE.marketing,
+  platform: LIST_FEE_ENGINE.platform,
+  unclaimedRaid: UNCLAIMED_RAID_RULE.summary,
   washTradeNote:
-    'Wash trading cannot profit: total fee 1.25% exceeds raid commission 0.55%, so self-referral loops lose money every trade.',
+    'Wash trading cannot profit: total fee (1.25% List / 1.30% Launch) exceeds raid commission 0.50%, so self-referral loops lose money every trade.',
   tabSeparation:
-    'Roadmap = marketing wallet spend only. Affiliate = raid links and 0.55% earnings. Do not list raid payouts inside the Spend Roadmap.',
+    'Roadmap = marketing wallet spend only. Affiliate = raid links and 0.50% earnings. Unclaimed raid (no link / bot CA paste) → CTOgo treasury. Do not list raid payouts inside the Spend Roadmap.',
 } as const;
 
 export type FeeTierId = 'launch' | 'growth' | 'scale';
@@ -49,7 +115,7 @@ export type FeeTier = {
 
 /**
  * Legacy dynamic tiers (creator/trader pool era). Kept for Mode A/B + abandonment docs.
- * Primary CTOgo-routed swap tax is SCOUT_FEE_ENGINE (flat 1.25%).
+ * Primary CTOgo-routed swap tax is LAUNCH_FEE_ENGINE / LIST_FEE_ENGINE.
  */
 export const FEE_TIERS: FeeTier[] = [
   {
@@ -82,9 +148,13 @@ export function totalFeeBps(tier: FeeTier): number {
   return tier.marketingBps + tier.creatorPoolBps + tier.platformBps;
 }
 
-/** Primary raid-engine total (125 bps). */
+/** Primary raid-engine totals. */
 export function scoutEngineTotalBps(): number {
-  return TRADE_FEE_BPS;
+  return LIST_FEE_ENGINE.totalBps;
+}
+
+export function launchEngineTotalBps(): number {
+  return LAUNCH_FEE_ENGINE.totalBps;
 }
 
 export function formatBpsPercent(bps: number): string {
@@ -190,14 +260,15 @@ export const MARKETING_SPEND_OPT_IN = {
 } as const;
 
 export const FEE_GUIDELINES = [
-  `${TRADE_FEE_LABEL} on CTOgo-routed swaps. Raid cut streams to the referrer wallet; marketing wallet never turns off.`,
+  `List: ${LIST_FEE_ENGINE.summary}. Launch: ${LAUNCH_FEE_ENGINE.summary}. Raid cut streams to the referrer wallet when attributed; marketing wallet never turns off.`,
   'Anyone with a wallet is a Raider when they share /coin/{TICKER}?ref={WALLET}. Last-click attribution for 24 hours.',
-  'Raid commissions are not paid from the Spend Roadmap — only the 0.40% marketing cut funds milestones.',
-  'Mode A / Mode B (legacy creator/trader pool) remains available at deploy for Native launches where applicable.',
+  UNCLAIMED_RAID_RULE.summary,
+  'Raid commissions are not paid from the Spend Roadmap — only the marketing cut funds milestones (0.40% List / 0.30% Launch).',
+  'Launch includes a fixed 0.20% creator fee to the deployer wallet. List has no creator cut — that seat goes to CTOgo (0.35%).',
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
-  'After Raydium graduation, the same 1.25% raid fee engine still applies — migration does not turn off tax.',
+  'After Raydium graduation, the same fee engine for that coin type still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing wallet: 0.40% fills always; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Auto pay: one retry on fail, second fail → referred to you for manual payment. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
+  `Marketing wallet: fills always at the path rate; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Auto pay: one retry on fail, second fail → referred to you for manual payment. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
 
 /**
@@ -311,17 +382,18 @@ export const GRADUATION_LIQUIDITY_POLICY = {
 export const POST_MIGRATION_FEES = {
   title: 'After Raydium migration',
   summary:
-    'Bonding-curve → Raydium graduation does not disable fees. The 1.25% raid fee engine (raid · marketing wallet · CTOgo) keeps applying on post-migration CTOgo-routed volume.',
+    'Bonding-curve → Raydium graduation does not disable fees. The Launch (1.30%) or List (1.25%) fee engine keeps applying on post-migration CTOgo-routed volume.',
   mechanism:
-    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps still route raid, marketing, and protocol cuts. Engineering priority: migrate_to_raydium (seed pool + burn LP + fee hooks) — not a custom AMM.',
+    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps still route raid, marketing, creator (Launch), and protocol cuts. Engineering priority: migrate_to_raydium (seed pool + burn LP + fee hooks) — not a custom AMM.',
   rules: [
     'Destination is Raydium (Raydium-first) — not a private CTOgo AMM.',
     'Curve SOL + remaining tokens seed the Raydium pool; LP is burned/locked (required).',
     `Rex migration protocol fee is ${REX_MIGRATION_PROTOCOL_FEE_SOL} SOL, taken once at graduate.`,
     'Only ~0.20 SOL of curve SOL pays Raydium create fee; the rest is pool liquidity.',
-    'Marketing floor stays on (0.40%) after graduation.',
-    'Raid commission (0.55%) continues to attributed referrer wallets.',
-    'CTOgo platform cut (0.30%) continues into the protocol treasury.',
+    'Marketing floor stays on (0.30% Launch / 0.40% List) after graduation.',
+    'Raid commission (0.50%) continues to attributed referrer wallets; unclaimed raid still routes to CTOgo treasury.',
+    'Creator fee (0.20%) continues on Launch coins; List has no creator cut.',
+    'CTOgo platform cut continues into the protocol treasury.',
     'Abandonment still applies — dumped creators cannot keep collecting after migrate.',
     'No migration instruction may zero, pause, or redirect fees to an attacker wallet.',
   ],
@@ -333,7 +405,7 @@ export const SECURITY_CONTROLS = [
     id: 'fee-lock',
     title: 'Fee schedule lock',
     detail:
-      'Raid fee engine (1.25% split) and Mode A/B are set at deploy. No single-key admin path to silently cut marketing or platform fees to zero.',
+      'Launch (1.30%) / List (1.25%) fee engines and Mode A/B are set at deploy. No single-key admin path to silently cut marketing or platform fees to zero. Unclaimed raid always accrues to treasury.',
   },
   {
     id: 'migration-invariant',
@@ -379,18 +451,44 @@ export const SECURITY_CONTROLS = [
   },
 ] as const;
 
-/** Primary CTOgo-routed swap split (raid engine). */
+/** Primary CTOgo-routed swap split. Unclaimed raid (no referrer) → platform/treasury. */
+export function splitRaidFeesLamports(
+  grossLamports: number,
+  opts: { engine: 'launch' | 'list'; hasReferrer: boolean },
+): {
+  raidToWallet: number;
+  raidToTreasury: number;
+  marketing: number;
+  creator: number;
+  platform: number;
+  net: number;
+} {
+  const eng = opts.engine === 'launch' ? LAUNCH_FEE_ENGINE : LIST_FEE_ENGINE;
+  const raid = Math.floor((grossLamports * eng.raidBps) / BPS_DENOMINATOR);
+  const marketing = Math.floor((grossLamports * eng.marketingBps) / BPS_DENOMINATOR);
+  const creator = Math.floor((grossLamports * eng.creatorBps) / BPS_DENOMINATOR);
+  const platformBase = Math.floor((grossLamports * eng.platformBps) / BPS_DENOMINATOR);
+  const raidToWallet = opts.hasReferrer ? raid : 0;
+  const raidToTreasury = opts.hasReferrer ? 0 : raid;
+  const platform = platformBase + raidToTreasury;
+  const net = grossLamports - raid - marketing - creator - platformBase;
+  return { raidToWallet, raidToTreasury, marketing, creator, platform, net };
+}
+
+/** @deprecated Prefer splitRaidFeesLamports. Defaults to List engine with referrer. */
 export function splitScoutFeesLamports(grossLamports: number): {
   scout: number;
   marketing: number;
   platform: number;
   net: number;
 } {
-  const scout = Math.floor((grossLamports * SCOUT_FEE_BPS) / BPS_DENOMINATOR);
-  const marketing = Math.floor((grossLamports * MARKETING_FEE_BPS) / BPS_DENOMINATOR);
-  const platform = Math.floor((grossLamports * PLATFORM_FEE_BPS) / BPS_DENOMINATOR);
-  const net = grossLamports - scout - marketing - platform;
-  return { scout, marketing, platform, net };
+  const split = splitRaidFeesLamports(grossLamports, { engine: 'list', hasReferrer: true });
+  return {
+    scout: split.raidToWallet,
+    marketing: split.marketing,
+    platform: split.platform,
+    net: split.net,
+  };
 }
 
 /** @deprecated Prefer splitScoutFeesLamports for CTOgo-routed swaps. */

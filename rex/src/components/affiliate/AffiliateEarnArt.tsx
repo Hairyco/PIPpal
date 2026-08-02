@@ -106,7 +106,7 @@ export function AffiliateEarnArt({ className = '' }: { className?: string }) {
         fill="none"
       />
 
-      {/* 0.55% chip */}
+      {/* 0.50% chip */}
       <g transform="translate(124,118)">
         <rect width="72" height="22" rx="7" fill="#c8ff3d" fillOpacity="0.15" />
         <rect width="72" height="22" rx="7" stroke="#c8ff3d" strokeOpacity="0.45" />
@@ -119,7 +119,7 @@ export function AffiliateEarnArt({ className = '' }: { className?: string }) {
           fontWeight="700"
           fontFamily="ui-sans-serif, system-ui, sans-serif"
         >
-          0.55%
+          0.50%
         </text>
       </g>
 

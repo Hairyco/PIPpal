@@ -88,6 +88,10 @@ export function AffiliatePromoSheet() {
             </li>
             <li className="flex gap-1.5 text-[11px] text-white/70">
               <span className="text-[#c8ff3d]">·</span>
+              No raid link / bot CA paste → CTOgo keeps the {SCOUT_PCT}
+            </li>
+            <li className="flex gap-1.5 text-[11px] text-white/70">
+              <span className="text-[#c8ff3d]">·</span>
               Copy your link from any coin page Affiliate tab
             </li>
           </ul>

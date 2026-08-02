@@ -748,15 +748,15 @@ export function FounderDashboardPage() {
                 <h2 className="mt-2 font-semibold text-white">Raid share & earn</h2>
                 <p className="mt-1 break-words text-sm text-muted-foreground">
                   Community and raiders share {project.projectName} with wallet ref links. They earn
-                  0.55% instant SOL on attributed CTOgo swaps — paid to their wallets, not from your
+                  0.50% instant SOL on attributed CTOgo swaps — paid to their wallets, not from your
                   marketing wallet roadmap.
                 </p>
                 <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    Protocol-fixed 0.55% raid cut · 24h last-click attribution
+                    Protocol-fixed 0.50% raid cut · 24h last-click · unclaimed → CTOgo treasury
                   </li>
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    Marketing wallet still gets 0.40% for roadmap spend
+                    Marketing wallet still gets 0.40% (List) / 0.30% (Launch) for roadmap spend
                   </li>
                 </ul>
                 <div className="mt-4 flex flex-wrap gap-3">

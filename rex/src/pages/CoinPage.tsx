@@ -176,6 +176,10 @@ export function CoinPage() {
                   {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} wallet
                   {' · '}
                   {formatBpsPercent(SCOUT_FEE_ENGINE.platformBps)} CTOgo
+                  <span className="block mt-1 text-[11px] font-normal text-white/40">
+                    No raid link → {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} to CTOgo treasury.
+                    Launch adds 0.20% creator.
+                  </span>
                 </p>
               </div>
               <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">

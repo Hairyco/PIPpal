@@ -15,9 +15,9 @@ export function GrowSection() {
             Grow with Raiders
           </h2>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Community and raiders share coin links with their wallet as ref. They earn 0.55% instant
-            SOL on attributed CTOgo swaps while your marketing wallet still fills at 0.40% for
-            roadmap spend.
+            Community and raiders share coin links with their wallet as ref. They earn 0.50% instant
+            SOL on attributed CTOgo swaps while your marketing wallet still fills (0.40% List /
+            0.30% Launch). No raid link → CTOgo keeps the 0.50%.
           </p>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2">

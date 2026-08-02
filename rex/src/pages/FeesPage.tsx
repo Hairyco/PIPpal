@@ -11,12 +11,14 @@ import {
   FEE_GUIDELINES,
   GRADUATION_LIQUIDITY_POLICY,
   GRADUATION_POLICY,
+  LAUNCH_FEE_ENGINE,
+  LIST_FEE_ENGINE,
   MARKETING_VAULT_SWEEP_RULE,
   MIGRATION_FEE_POLICY,
   POST_MIGRATION_FEES,
-  SCOUT_FEE_ENGINE,
   SECURITY_CONTROLS,
   TRADE_FEE_LABEL,
+  UNCLAIMED_RAID_RULE,
   formatBpsPercent,
 } from '../data/chainConfig';
 
@@ -52,25 +54,48 @@ export function FeesPage() {
           </p>
         </section>
 
-        <section id="raid-fee-engine" className="mt-8 scroll-mt-20 space-y-2">
-          <h2 className="text-sm font-semibold text-white/80">CTOgo swap fee · 1.25%</h2>
-          <p className="text-[12px] leading-relaxed text-white/45">{SCOUT_FEE_ENGINE.washTradeNote}</p>
+        <section
+          id="raid-fee-engine"
+          className="mt-8 scroll-mt-20 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.06] p-4"
+        >
+          <h2 className="text-sm font-semibold text-[#d5ff69]">{UNCLAIMED_RAID_RULE.title}</h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-white/75">
+            {UNCLAIMED_RAID_RULE.summary}
+          </p>
+          <ul className="mt-3 space-y-1 text-[12px] text-white/55">
+            {UNCLAIMED_RAID_RULE.cases.map((c) => (
+              <li key={c}>· {c}</li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[11px] leading-relaxed text-white/40">
+            {UNCLAIMED_RAID_RULE.effectList}
+          </p>
+          <p className="mt-1 text-[11px] leading-relaxed text-white/40">
+            {UNCLAIMED_RAID_RULE.effectLaunch}
+          </p>
+        </section>
+
+        <section className="mt-8 scroll-mt-20 space-y-2">
+          <h2 className="text-sm font-semibold text-white/80">{LIST_FEE_ENGINE.label}</h2>
+          <p className="text-[12px] leading-relaxed text-white/45">
+            Imported / dumped coins — no creator cut. Larger marketing vault for CTO growth.
+          </p>
           {(
             [
               {
                 label: 'Raid commission',
-                bps: SCOUT_FEE_ENGINE.scoutBps,
-                detail: SCOUT_FEE_ENGINE.scout,
+                bps: LIST_FEE_ENGINE.raidBps,
+                detail: LIST_FEE_ENGINE.raid,
               },
               {
                 label: 'Marketing wallet',
-                bps: SCOUT_FEE_ENGINE.marketingBps,
-                detail: SCOUT_FEE_ENGINE.marketing,
+                bps: LIST_FEE_ENGINE.marketingBps,
+                detail: LIST_FEE_ENGINE.marketing,
               },
               {
                 label: 'CTOgo revenue',
-                bps: SCOUT_FEE_ENGINE.platformBps,
-                detail: SCOUT_FEE_ENGINE.platform,
+                bps: LIST_FEE_ENGINE.platformBps,
+                detail: LIST_FEE_ENGINE.platform,
               },
             ] as const
           ).map((row) => (
@@ -85,7 +110,48 @@ export function FeesPage() {
               <p className="mt-1 text-[11px] leading-relaxed text-white/40">{row.detail}</p>
             </div>
           ))}
-          <p className="text-[11px] text-white/35">{SCOUT_FEE_ENGINE.tabSeparation}</p>
+        </section>
+
+        <section className="mt-8 scroll-mt-20 space-y-2">
+          <h2 className="text-sm font-semibold text-white/80">{LAUNCH_FEE_ENGINE.label}</h2>
+          <p className="text-[12px] leading-relaxed text-white/45">
+            Native launches — includes 0.20% creator fee to the deployer wallet.
+          </p>
+          {(
+            [
+              {
+                label: 'Raid commission',
+                bps: LAUNCH_FEE_ENGINE.raidBps,
+                detail: LAUNCH_FEE_ENGINE.raid,
+              },
+              {
+                label: 'Marketing wallet',
+                bps: LAUNCH_FEE_ENGINE.marketingBps,
+                detail: LAUNCH_FEE_ENGINE.marketing,
+              },
+              {
+                label: 'Creator fee',
+                bps: LAUNCH_FEE_ENGINE.creatorBps,
+                detail: LAUNCH_FEE_ENGINE.creator,
+              },
+              {
+                label: 'CTOgo revenue',
+                bps: LAUNCH_FEE_ENGINE.platformBps,
+                detail: LAUNCH_FEE_ENGINE.platform,
+              },
+            ] as const
+          ).map((row) => (
+            <div
+              key={row.label}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">{row.label}</p>
+                <p className="text-sm font-bold text-[#d5ff69]">{formatBpsPercent(row.bps)}</p>
+              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/40">{row.detail}</p>
+            </div>
+          ))}
         </section>
 
         <section className="mt-8 space-y-2">

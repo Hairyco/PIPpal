@@ -30,7 +30,7 @@ const DEMO_NOTIFICATIONS: AppNotification[] = [
     id: 'raid-share-mpeg',
     kind: 'raid_link',
     title: 'Share your raid link',
-    body: 'Drop your $MPEG raid link in Telegram — 0.55% SOL on attributed CTOgo buys.',
+    body: 'Drop your $MPEG raid link in Telegram — 0.50% SOL on attributed CTOgo buys.',
     time: '12m',
     href: '/coin/MPEG',
   },

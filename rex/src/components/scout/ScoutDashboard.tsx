@@ -109,9 +109,12 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
           <p className="font-medium text-white/70">Fee split on every CTOgo swap</p>
           <ul className="mt-2 space-y-1">
-            <li>{formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} → raid wallet (you)</li>
             <li>
-              {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} → marketing wallet (roadmap)
+              {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} → raid wallet (you) · or CTOgo treasury
+              if no raid link
+            </li>
+            <li>
+              {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} → marketing wallet (List roadmap)
             </li>
             <li>{formatBpsPercent(SCOUT_FEE_ENGINE.platformBps)} → CTOgo</li>
           </ul>

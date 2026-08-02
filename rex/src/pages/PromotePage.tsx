@@ -87,8 +87,9 @@ export function PromotePage() {
             <div>
               <p className="text-sm font-medium text-white">Marketing wallet</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Buy/sell tax fills this wallet (0.40% marketing cut). Category boosts come from here.
-                Raid commissions (0.55%) stream to raid wallets — not from this balance.
+                Buy/sell tax fills this wallet (0.40% List / 0.30% Launch marketing cut). Category
+                boosts come from here. Raid commissions (0.50%) stream to raid wallets — not from
+                this balance. No raid link → CTOgo keeps the 0.50%.
               </p>
             </div>
           </div>
@@ -210,7 +211,8 @@ export function PromotePage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Category boosts come from your marketing wallet. Raid commissions fill raid wallets.
+          Category boosts come from your marketing wallet. Raid commissions fill raid wallets —
+          unclaimed raid (no link / bot CA paste) goes to CTOgo.
         </p>
       </div>
     </Layout>

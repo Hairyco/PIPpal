@@ -846,12 +846,13 @@ export function LaunchCtoPage() {
                         {
                           icon: TrendingUp,
                           title: 'Auto Marketing Wallet',
-                          detail: '0.40% of every trade goes straight to marketing funds.',
+                          detail: '0.40% of every CTOgo-routed trade goes straight to marketing funds.',
                         },
                         {
                           icon: Zap,
                           title: 'Raid Rewards',
-                          detail: 'Raiders earn 0.55% instant SOL on every buy through their raid link.',
+                          detail:
+                            'Raiders earn 0.50% instant SOL on buys through their raid link. No link → CTOgo keeps the 0.50%.',
                         },
                         {
                           icon: ShieldCheck,

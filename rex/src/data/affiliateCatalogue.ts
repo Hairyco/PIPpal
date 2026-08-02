@@ -18,7 +18,7 @@ export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
     category: 'Celebrity Coins',
     conversion: '3.2%',
     epc: '$3.19',
-    commission: '0.55%',
+    commission: '0.50%',
   },
   {
     id: 'cwh',
@@ -27,7 +27,7 @@ export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
     category: 'Meme Coins',
     conversion: '4.1%',
     epc: '$2.84',
-    commission: '0.55%',
+    commission: '0.50%',
   },
   {
     id: 'prex',
@@ -36,7 +36,7 @@ export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
     category: 'Meme Coins',
     conversion: '2.8%',
     epc: '$2.41',
-    commission: '0.55%',
+    commission: '0.50%',
   },
   {
     id: 'fit',
@@ -45,7 +45,7 @@ export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
     category: 'Artificial Intelligence',
     conversion: '1.9%',
     epc: '$5.02',
-    commission: '0.55%',
+    commission: '0.50%',
   },
   {
     id: 'orbit',
@@ -54,6 +54,6 @@ export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
     category: 'Apps',
     conversion: '2.2%',
     epc: '$3.88',
-    commission: '0.55%',
+    commission: '0.50%',
   },
 ];
