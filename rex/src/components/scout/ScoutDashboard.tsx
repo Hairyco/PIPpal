@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, Copy, Link2, Wallet } from 'lucide-react';
+import { Check, Copy, Wallet } from 'lucide-react';
 import { useConnectedWallet } from '../ConnectWalletButton';
 import { SolanaLogo } from '../SolanaLogo';
 import { SolWalletPanel } from '../SolWalletPanel';
@@ -102,12 +102,6 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
               {copied ? 'Copied' : 'Copy my raid link'}
             </button>
           </div>
-
-          <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-white/35">
-            <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Rate is protocol-fixed at {scoutPct} — SOL routes in the swap tx into your balance above.
-            No withdraw button.
-          </p>
         </div>
       )}
 
