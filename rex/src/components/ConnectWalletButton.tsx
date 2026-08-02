@@ -14,7 +14,6 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, Copy, Check, Link2, LogOut, Wallet } from 'lucide-react';
 import { SolanaLogo } from './SolanaLogo';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import {
   buildRaidLink,
   RAID_EARNINGS_PERIODS,
