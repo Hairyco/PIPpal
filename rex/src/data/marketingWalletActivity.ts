@@ -40,7 +40,7 @@ const KIND_META: Record<
   supplier_payout: { direction: 'out', defaultNote: null },
   affiliate_payout: {
     direction: 'out',
-    defaultNote: 'Legacy affiliate (demo) — scouts now earn 0.55% to their own wallets',
+    defaultNote: 'Legacy affiliate (demo) — raiders now earn 0.55% to their own wallets',
   },
 };
 

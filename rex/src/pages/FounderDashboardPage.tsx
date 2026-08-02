@@ -745,15 +745,15 @@ export function FounderDashboardPage() {
                   </span>
                   <DemoPreviewBadge />
                 </div>
-                <h2 className="mt-2 font-semibold text-white">Scout share & earn</h2>
+                <h2 className="mt-2 font-semibold text-white">Raid share & earn</h2>
                 <p className="mt-1 break-words text-sm text-muted-foreground">
-                  Community and scouts share {project.projectName} with wallet ref links. They earn
+                  Community and raiders share {project.projectName} with wallet ref links. They earn
                   0.55% instant SOL on attributed CTOgo swaps — paid to their wallets, not from your
                   marketing wallet roadmap.
                 </p>
                 <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    Protocol-fixed 0.55% scout cut · 24h last-click attribution
+                    Protocol-fixed 0.55% raid cut · 24h last-click attribution
                   </li>
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
                     Marketing wallet still gets 0.40% for roadmap spend
@@ -761,10 +761,10 @@ export function FounderDashboardPage() {
                 </ul>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link to={`${promoteUrl}#affiliate`} className="dex-btn-green">
-                    View scout programme
+                    View raid programme
                   </Link>
                   <Link to="/affiliates" className="dex-btn">
-                    Scout catalogue
+                    Raid catalogue
                   </Link>
                 </div>
               </div>

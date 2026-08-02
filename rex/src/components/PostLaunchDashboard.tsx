@@ -579,7 +579,7 @@ export function PostLaunchDashboard({
                   <p className="text-[13px] font-semibold text-[#d5ff69]">Add marketing wallet</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/50">
                     Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once
-                    to unlock Auto Marketing Wallet + Scout programme.
+                    to unlock Auto Marketing Wallet + Raid programme.
                   </p>
                 </div>
               </div>
@@ -598,7 +598,7 @@ export function PostLaunchDashboard({
       {tab === 'wallet' ? (
         <div className="space-y-5">
           <p className="text-sm text-white/45">
-            Trade fees fill the marketing wallet. Scout commissions fill your connected SOL wallet.
+            Trade fees fill the marketing wallet. Raid commissions fill your connected SOL wallet.
           </p>
 
           <SolWalletPanel />

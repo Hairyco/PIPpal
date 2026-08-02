@@ -87,7 +87,7 @@ export function captureScoutRefFromSearch(
   return saved?.ref ?? getActiveScoutRef(now);
 }
 
-/** Demo earnings keyed by scout wallet — local until indexer exists. */
+/** Demo earnings keyed by raid wallet — local until indexer exists. */
 const EARNINGS_KEY = 'ctogo-scout-earnings';
 
 export type ScoutEarningsDemo = {

@@ -900,7 +900,7 @@ export function HomePage() {
     if (!raw) return;
     const ticker = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (!ticker) return;
-    // Legacy deep links → public coin page (scout-ready)
+    // Legacy deep links → public coin page (raid-ready)
     navigate(`/coin/${encodeURIComponent(ticker)}${searchParams.get('ref') ? `?ref=${encodeURIComponent(searchParams.get('ref')!)}` : ''}`, {
       replace: true,
     });

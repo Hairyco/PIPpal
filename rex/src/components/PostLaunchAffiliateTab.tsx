@@ -17,7 +17,7 @@ export function PostLaunchAffiliateTab({
     <div className="space-y-8">
       <ScoutDashboard symbol={symbol} />
       <Link to="/affiliates" className={backBtnClass}>
-        Browse scout coins
+        Browse raid coins
       </Link>
     </div>
   );

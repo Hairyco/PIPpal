@@ -36,11 +36,11 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
   },
 ];
 
-/** Scout programme defaults — protocol-fixed rate from SCOUT_FEE_ENGINE. */
+/** Raid programme defaults — protocol-fixed rate from SCOUT_FEE_ENGINE. */
 export const affiliateProgramDefaults = {
-  /** Protocol scout cut of swap volume (bps → percent display). */
+  /** Protocol raid cut of swap volume (bps → percent display). */
   scoutCommissionPct: 0.55,
   attributionHours: 24,
   attributionLabel: '24-hour last-click attribution',
-  payout: 'Instant SOL to scout wallet on referred CTOgo swaps (when fee engine is live on-chain)',
+  payout: 'Instant SOL to raid wallet on referred CTOgo swaps (when fee engine is live on-chain)',
 } as const;

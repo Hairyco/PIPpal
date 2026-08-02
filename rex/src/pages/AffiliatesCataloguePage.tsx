@@ -16,20 +16,20 @@ export function AffiliatesCataloguePage() {
         <div className="mt-6 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">
-              Scout catalogue
+              Raid catalogue
             </p>
             <DemoPreviewBadge />
           </div>
           <h1 className="mt-2 font-serif text-3xl text-white md:text-4xl">Share & earn</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Open any coin page, connect your wallet, and copy your scout link. Earn {SCOUT_PCT}{' '}
+            Open any coin page, connect your wallet, and copy your raid link. Earn {SCOUT_PCT}{' '}
             instant SOL on CTOgo swaps attributed to you ({SCOUT_FEE_ENGINE.attributionHours}h
             last-click). Commissions fill your wallet — not the project marketing wallet.
           </p>
         </div>
 
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          On-chain scout payouts go live with the fee engine. Attribution and coin pages are wired
+          On-chain raid payouts go live with the fee engine. Attribution and coin pages are wired
           now — SOL streaming lands when the swap instruction routes {SCOUT_PCT} to your ref wallet.
         </div>
 
@@ -53,7 +53,7 @@ export function AffiliatesCataloguePage() {
                   <dd className="mt-0.5 font-medium text-white">{row.epc}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Scout</dt>
+                  <dt className="text-muted-foreground">Raid</dt>
                   <dd className="mt-0.5 font-medium text-sky-300">{row.commission}</dd>
                 </div>
               </dl>
@@ -75,7 +75,7 @@ export function AffiliatesCataloguePage() {
                 <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium">Conv.</th>
                 <th className="px-4 py-3 font-medium">EPC</th>
-                <th className="px-4 py-3 font-medium">Scout cut</th>
+                <th className="px-4 py-3 font-medium">Raid cut</th>
                 <th className="px-4 py-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -109,7 +109,7 @@ export function AffiliatesCataloguePage() {
           <Link to="/launch" className="text-sky-400 hover:text-sky-300">
             List or launch on CTOgo
           </Link>{' '}
-          — every coin page includes Scout share links automatically.
+          — every coin page includes Raid share links automatically.
         </p>
       </div>
     </Layout>

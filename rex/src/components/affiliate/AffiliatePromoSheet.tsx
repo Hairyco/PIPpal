@@ -53,7 +53,7 @@ export function AffiliatePromoSheet() {
             </span>
             <div>
               <p id="affiliate-sheet-title" className="font-serif text-lg font-bold text-white">
-                Scout rewards
+                Raid Rewards
               </p>
               <p className="text-[11px] text-white/40">Share links · earn instant SOL</p>
             </div>
@@ -79,7 +79,7 @@ export function AffiliatePromoSheet() {
           </div>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/60">
             Get <span className="font-semibold text-[#d5ff69]">{SCOUT_PCT}</span> of swap volume as
-            instant SOL when someone buys through your scout link — filled straight into your wallet
+            instant SOL when someone buys through your raid link — filled straight into your wallet
             when the fee engine is live on-chain.
           </p>
           <ul className="mt-2.5 space-y-1">
@@ -104,7 +104,7 @@ export function AffiliatePromoSheet() {
             onClick={dismiss}
             className="inline-flex flex-1 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 py-3 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
           >
-            Browse scout coins
+            Browse raid coins
           </Link>
           <button
             type="button"

@@ -3,8 +3,8 @@
 export const BPS_DENOMINATOR = 10_000;
 
 /**
- * Primary CTOgo swap fee engine (approved scout architecture).
- * 1.25% total → 0.55% scout · 0.40% marketing wallet · 0.30% CTOgo.
+ * Primary CTOgo swap fee engine (approved raid architecture).
+ * 1.25% total → 0.55% raid · 0.40% marketing wallet · 0.30% CTOgo.
  */
 export const SCOUT_FEE_BPS = 55;
 export const MARKETING_FEE_BPS = 40;
@@ -12,9 +12,9 @@ export const PLATFORM_FEE_BPS = 30;
 export const TRADE_FEE_BPS = SCOUT_FEE_BPS + MARKETING_FEE_BPS + PLATFORM_FEE_BPS;
 
 export const TRADE_FEE_LABEL =
-  '1.25% (0.55% scout · 0.40% marketing wallet · 0.30% CTOgo)';
+  '1.25% (0.55% raid · 0.40% marketing wallet · 0.30% CTOgo)';
 
-/** @deprecated Legacy creator/trader pool cut — superseded by scout fee for CTOgo-routed swaps. */
+/** @deprecated Legacy creator/trader pool cut — superseded by raid fee for CTOgo-routed swaps. */
 export const CREATOR_FEE_BPS = 20;
 
 export const SCOUT_FEE_ENGINE = {
@@ -26,14 +26,14 @@ export const SCOUT_FEE_ENGINE = {
   linkFormat: '/coin/{TICKER}?ref={SCOUT_WALLET}',
   summary: TRADE_FEE_LABEL,
   scout:
-    '0.55% streams as instant SOL to the scout wallet whose referral link last attributed the swap (24h last-click). Not paid from the marketing wallet roadmap.',
+    '0.55% streams as instant SOL to the raid wallet whose referral link last attributed the swap (24h last-click). Not paid from the marketing wallet roadmap.',
   marketing:
     '0.40% fills the token marketing wallet for milestone spend (DexScreener, pins, trending).',
   platform: '0.30% CTOgo protocol revenue for infrastructure.',
   washTradeNote:
-    'Wash trading cannot profit: total fee 1.25% exceeds scout commission 0.55%, so self-referral loops lose money every trade.',
+    'Wash trading cannot profit: total fee 1.25% exceeds raid commission 0.55%, so self-referral loops lose money every trade.',
   tabSeparation:
-    'Roadmap = marketing wallet spend only. Affiliate = scout links and 0.55% earnings. Do not list scout payouts inside the Spend Roadmap.',
+    'Roadmap = marketing wallet spend only. Affiliate = raid links and 0.55% earnings. Do not list raid payouts inside the Spend Roadmap.',
 } as const;
 
 export type FeeTierId = 'launch' | 'growth' | 'scale';
@@ -82,7 +82,7 @@ export function totalFeeBps(tier: FeeTier): number {
   return tier.marketingBps + tier.creatorPoolBps + tier.platformBps;
 }
 
-/** Primary scout-engine total (125 bps). */
+/** Primary raid-engine total (125 bps). */
 export function scoutEngineTotalBps(): number {
   return TRADE_FEE_BPS;
 }
@@ -190,12 +190,12 @@ export const MARKETING_SPEND_OPT_IN = {
 } as const;
 
 export const FEE_GUIDELINES = [
-  `${TRADE_FEE_LABEL} on CTOgo-routed swaps. Scout cut streams to the referrer wallet; marketing wallet never turns off.`,
-  'Anyone with a wallet is a Scout when they share /coin/{TICKER}?ref={WALLET}. Last-click attribution for 24 hours.',
-  'Scout commissions are not paid from the Spend Roadmap — only the 0.40% marketing cut funds milestones.',
+  `${TRADE_FEE_LABEL} on CTOgo-routed swaps. Raid cut streams to the referrer wallet; marketing wallet never turns off.`,
+  'Anyone with a wallet is a Raider when they share /coin/{TICKER}?ref={WALLET}. Last-click attribution for 24 hours.',
+  'Raid commissions are not paid from the Spend Roadmap — only the 0.40% marketing cut funds milestones.',
   'Mode A / Mode B (legacy creator/trader pool) remains available at deploy for Native launches where applicable.',
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
-  'After Raydium graduation, the same 1.25% scout fee engine still applies — migration does not turn off tax.',
+  'After Raydium graduation, the same 1.25% raid fee engine still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
   `Marketing wallet: 0.40% fills always; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Auto pay: one retry on fail, second fail → referred to you for manual payment. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
 ] as const;
@@ -311,16 +311,16 @@ export const GRADUATION_LIQUIDITY_POLICY = {
 export const POST_MIGRATION_FEES = {
   title: 'After Raydium migration',
   summary:
-    'Bonding-curve → Raydium graduation does not disable fees. The 1.25% scout fee engine (scout · marketing wallet · CTOgo) keeps applying on post-migration CTOgo-routed volume.',
+    'Bonding-curve → Raydium graduation does not disable fees. The 1.25% raid fee engine (raid · marketing wallet · CTOgo) keeps applying on post-migration CTOgo-routed volume.',
   mechanism:
-    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps still route scout, marketing, and protocol cuts. Engineering priority: migrate_to_raydium (seed pool + burn LP + fee hooks) — not a custom AMM.',
+    'Enforced via Token-2022 transfer-fee / post-migration AMM hooks so swaps still route raid, marketing, and protocol cuts. Engineering priority: migrate_to_raydium (seed pool + burn LP + fee hooks) — not a custom AMM.',
   rules: [
     'Destination is Raydium (Raydium-first) — not a private CTOgo AMM.',
     'Curve SOL + remaining tokens seed the Raydium pool; LP is burned/locked (required).',
     `Rex migration protocol fee is ${REX_MIGRATION_PROTOCOL_FEE_SOL} SOL, taken once at graduate.`,
     'Only ~0.20 SOL of curve SOL pays Raydium create fee; the rest is pool liquidity.',
     'Marketing floor stays on (0.40%) after graduation.',
-    'Scout commission (0.55%) continues to attributed referrer wallets.',
+    'Raid commission (0.55%) continues to attributed referrer wallets.',
     'CTOgo platform cut (0.30%) continues into the protocol treasury.',
     'Abandonment still applies — dumped creators cannot keep collecting after migrate.',
     'No migration instruction may zero, pause, or redirect fees to an attacker wallet.',
@@ -333,7 +333,7 @@ export const SECURITY_CONTROLS = [
     id: 'fee-lock',
     title: 'Fee schedule lock',
     detail:
-      'Scout fee engine (1.25% split) and Mode A/B are set at deploy. No single-key admin path to silently cut marketing or platform fees to zero.',
+      'Raid fee engine (1.25% split) and Mode A/B are set at deploy. No single-key admin path to silently cut marketing or platform fees to zero.',
   },
   {
     id: 'migration-invariant',
@@ -379,7 +379,7 @@ export const SECURITY_CONTROLS = [
   },
 ] as const;
 
-/** Primary CTOgo-routed swap split (scout engine). */
+/** Primary CTOgo-routed swap split (raid engine). */
 export function splitScoutFeesLamports(grossLamports: number): {
   scout: number;
   marketing: number;

@@ -5,11 +5,11 @@ export type AffiliateCatalogueEntry = {
   category: string;
   conversion: string;
   epc: string;
-  /** Display rate — protocol scout cut */
+  /** Display rate — protocol raid cut */
   commission: string;
 };
 
-/** Demo scout-ready coins for the promoter catalogue. */
+/** Demo raid-ready coins for the promoter catalogue. */
 export const affiliateCatalogue: AffiliateCatalogueEntry[] = [
   {
     id: 'swiftie',

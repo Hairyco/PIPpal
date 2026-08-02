@@ -32,12 +32,12 @@ export function AffiliateProgramDemo({
           <div className="flex flex-wrap items-center gap-2">
             <Users className="h-4 w-4 shrink-0 text-sky-400" />
             <span className="text-xs font-medium uppercase tracking-wider text-sky-400">
-              Scout programme
+              Raid programme
             </span>
             <DemoPreviewBadge />
           </div>
           <h2 className="mt-2 break-words text-lg font-semibold text-white">
-            Community & scouts earn {SCOUT_PCT} on shared buys
+            Community & raiders earn {SCOUT_PCT} on shared buys
           </h2>
           <p className="mt-1 break-words text-sm text-muted-foreground">
             Anyone shares {projectName} with their wallet as <code className="text-sky-300">?ref=</code>.
@@ -49,19 +49,19 @@ export function AffiliateProgramDemo({
         <div className="mt-5 flex min-w-0 items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
           <Zap className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
           <p className="min-w-0 break-words text-xs text-muted-foreground">
-            <span className="font-medium text-white">Protocol-fixed rate.</span> Scout cut is always{' '}
+            <span className="font-medium text-white">Protocol-fixed rate.</span> Raid cut is always{' '}
             {SCOUT_PCT} of swap volume — no founder commission slider. {affiliateProgramDefaults.attributionLabel}.
           </p>
         </div>
 
         <div className="mt-4 break-words rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          Instant SOL routing ships with the on-chain fee engine. Coin pages, scout links, and 24h
+          Instant SOL routing ships with the on-chain fee engine. Coin pages, raid links, and 24h
           attribution are live in the app now.
         </div>
 
         <div className="mt-6 space-y-4">
           <div>
-            <p className="mb-2 text-xs font-medium text-muted-foreground">Sample scout link</p>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">Sample raid link</p>
             <div className="flex min-w-0 gap-2">
               <code className="min-w-0 flex-1 break-all rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-sky-300">
                 {sampleLink}
@@ -88,7 +88,7 @@ export function AffiliateProgramDemo({
           <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-white/40" />
             <p className="text-xs text-muted-foreground">
-              Scouts do not drain your marketing wallet. Roadmap spend (pins, DexScreener) stays on
+              Raiders do not drain your marketing wallet. Roadmap spend (pins, DexScreener) stays on
               the {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} cut only.
             </p>
           </div>

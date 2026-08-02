@@ -88,7 +88,7 @@ export function PromotePage() {
               <p className="text-sm font-medium text-white">Marketing wallet</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Buy/sell tax fills this wallet (0.40% marketing cut). Category boosts come from here.
-                Scout commissions (0.55%) stream to scout wallets — not from this balance.
+                Raid commissions (0.55%) stream to raid wallets — not from this balance.
               </p>
             </div>
           </div>
@@ -210,7 +210,7 @@ export function PromotePage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Category boosts come from your marketing wallet. Scout commissions fill scout wallets.
+          Category boosts come from your marketing wallet. Raid commissions fill raid wallets.
         </p>
       </div>
     </Layout>

@@ -52,13 +52,13 @@ export function FeesPage() {
           </p>
         </section>
 
-        <section id="scout-fee-engine" className="mt-8 scroll-mt-20 space-y-2">
+        <section id="raid-fee-engine" className="mt-8 scroll-mt-20 space-y-2">
           <h2 className="text-sm font-semibold text-white/80">CTOgo swap fee · 1.25%</h2>
           <p className="text-[12px] leading-relaxed text-white/45">{SCOUT_FEE_ENGINE.washTradeNote}</p>
           {(
             [
               {
-                label: 'Scout commission',
+                label: 'Raid commission',
                 bps: SCOUT_FEE_ENGINE.scoutBps,
                 detail: SCOUT_FEE_ENGINE.scout,
               },

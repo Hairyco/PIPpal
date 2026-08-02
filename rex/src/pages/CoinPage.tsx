@@ -139,7 +139,7 @@ export function CoinPage() {
               </span>
             </p>
             <Link
-              to="/fees#scout-fee-engine"
+              to="/fees#raid-fee-engine"
               className="shrink-0 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.08] px-2 py-1 text-[10px] font-semibold text-[#d5ff69]"
             >
               {formatBpsPercent(SCOUT_FEE_ENGINE.totalBps)} fee
@@ -170,7 +170,7 @@ export function CoinPage() {
                 <p className="text-[11px] font-medium text-white/45">CTOgo swap split</p>
                 <p className="mt-1 text-[12px] text-white/70">
                   <span className="font-semibold text-[#d5ff69]">
-                    {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} scout
+                    {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} raid
                   </span>
                   {' · '}
                   {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} wallet
@@ -197,7 +197,7 @@ export function CoinPage() {
                 <p className="font-serif text-xl font-bold text-white">Spend roadmap</p>
                 <p className="mt-1.5 text-sm text-white/45">
                   Funded only by the {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} marketing
-                  wallet cut. Scout commissions are separate — see Affiliate.
+                  wallet cut. Raid commissions are separate — see Affiliate.
                 </p>
                 <div className="mt-2">
                   <PolessiaLogo variant="powered" size="xs" />
@@ -242,7 +242,7 @@ export function CoinPage() {
               <div>
                 <p className="font-serif text-xl font-bold text-white">Wallet</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Your SOL balance holds scout commissions ({formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}
+                  Your SOL balance holds raid commissions ({formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}
                   ). The project marketing wallet fills separately (
                   {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)}) for roadmap spend.
                 </p>

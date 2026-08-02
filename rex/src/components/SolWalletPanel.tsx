@@ -15,7 +15,7 @@ function shorten(address: string): string {
   return `${address.slice(0, 4)}…${address.slice(-4)}`;
 }
 
-/** Compact wallet summary for Wallet / Scout tabs — header pill is primary (Axiom-style). */
+/** Compact wallet summary for Wallet / Raid tabs — header pill is primary (Axiom-style). */
 export function SolWalletPanel({ showScoutEarnings = true, className = '' }: SolWalletPanelProps) {
   const { address, connected, connect, busy } = useConnectedWallet();
   const { sol, loading, error, refresh } = useSolBalance(address);
@@ -32,7 +32,7 @@ export function SolWalletPanel({ showScoutEarnings = true, className = '' }: Sol
             <span className="font-mono text-[12px] font-semibold text-white/40">0</span>
           </span>
           <p className="min-w-0 text-[12px] leading-relaxed text-white/45">
-            Connect to see your SOL balance in the header — scout commissions ({scoutPct}) fill it.
+            Connect to see your SOL balance in the header — raid commissions ({scoutPct}) fill it.
           </p>
         </div>
         <button
