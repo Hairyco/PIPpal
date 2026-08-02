@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom';
 import { ChevronDown, Copy, Check, Link2, LogOut, Wallet } from 'lucide-react';
 import { SolanaLogo } from './SolanaLogo';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
+import { useAuth } from './AuthProvider';
 import {
   buildRaidLink,
   RAID_EARNINGS_PERIODS,
@@ -174,7 +175,9 @@ export function ConnectWalletButton({
   alwaysLabel?: boolean;
 }) {
   const { address, busy, connect, disconnect } = useConnectedWallet();
-  const { sol, loading, refresh } = useSolBalance(address);
+  const { signedIn, requireAuth } = useAuth();
+  const liveAddress = signedIn ? address : null;
+  const { sol, loading, refresh } = useSolBalance(liveAddress);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedRaid, setCopiedRaid] = useState(false);
@@ -186,11 +189,13 @@ export function ConnectWalletButton({
   const menuId = useId();
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
-  const raidLink = address ? buildRaidLink(origin, address) : null;
+  const raidLink = liveAddress ? buildRaidLink(origin, liveAddress) : null;
   const periodEarnings = useMemo(
     () =>
-      address ? raidEarningsForPeriod(address, period) : { earnedSol: 0, volumeUsd: 0, clicks: 0 },
-    [address, period],
+      liveAddress
+        ? raidEarningsForPeriod(liveAddress, period)
+        : { earnedSol: 0, volumeUsd: 0, clicks: 0 },
+    [liveAddress, period],
   );
   const balanceLabel = loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 2);
   const labelClass = alwaysLabel ? 'inline' : 'hidden sm:inline';
@@ -238,13 +243,17 @@ export function ConnectWalletButton({
   }, [open]);
 
   useEffect(() => {
+    if (!signedIn) setOpen(false);
+  }, [signedIn]);
+
+  useEffect(() => {
     if (open) refresh();
   }, [open, refresh]);
 
   const copyAddress = async () => {
-    if (!address) return;
+    if (!liveAddress) return;
     try {
-      await navigator.clipboard.writeText(address);
+      await navigator.clipboard.writeText(liveAddress);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1400);
     } catch {
@@ -263,13 +272,21 @@ export function ConnectWalletButton({
     }
   };
 
-  if (!address) {
+  const onConnectClick = async () => {
+    if (!signedIn) {
+      const ok = await requireAuth('Sign in to connect your wallet.');
+      if (!ok) return;
+    }
+    await connect();
+  };
+
+  if (!liveAddress) {
     return (
       <button
         type="button"
-        onClick={() => void connect()}
+        onClick={() => void onConnectClick()}
         disabled={busy}
-        title="Connect wallet"
+        title={signedIn ? 'Connect wallet' : 'Sign in to connect wallet'}
         className={`inline-flex h-9 items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 text-xs font-semibold text-white/75 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white disabled:opacity-50 sm:px-3 ${className}`}
       >
         <Wallet className="h-3.5 w-3.5 shrink-0" />
@@ -300,7 +317,7 @@ export function ConnectWalletButton({
                 className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-white/45 transition hover:text-white/80"
               >
                 {copied ? <Check className="h-3 w-3 text-[#d5ff69]" /> : <Copy className="h-3 w-3" />}
-                {shorten(address)}
+                {shorten(liveAddress)}
               </button>
             </div>
 
@@ -348,10 +365,6 @@ export function ConnectWalletButton({
                   </p>
                 </div>
               </div>
-              <p className="text-[10px] text-white/35">
-                Vol ${periodEarnings.volumeUsd.toLocaleString()} · {periodEarnings.clicks} link
-                copies this window
-              </p>
             </div>
 
             <div className="border-b border-white/[0.07] px-3 py-2.5">
@@ -407,7 +420,7 @@ export function ConnectWalletButton({
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
         disabled={busy}
-        title={`${shorten(address)} · ${balanceLabel} SOL`}
+        title={`${shorten(liveAddress)} · ${balanceLabel} SOL`}
         className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#12141c] px-2 pl-2.5 text-white transition hover:border-white/20 hover:bg-[#181b26] disabled:opacity-50"
       >
         <Wallet className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={2} />

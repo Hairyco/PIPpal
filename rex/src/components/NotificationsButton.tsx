@@ -11,6 +11,7 @@ import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SCOUT_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../data/chainConfig';
+import { useAuth } from './AuthProvider';
 
 const READ_KEY = 'ctogo-notifications-read';
 
@@ -102,6 +103,7 @@ function KindIcon({ kind }: { kind: NotificationKind }) {
 }
 
 export function NotificationsButton({ className = '' }: { className?: string }) {
+  const { signedIn } = useAuth();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
@@ -113,6 +115,10 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
   useEffect(() => {
     setSeen(readSeenIds());
   }, []);
+
+  useEffect(() => {
+    if (!signedIn) setOpen(false);
+  }, [signedIn]);
 
   const unreadCount = useMemo(
     () => DEMO_NOTIFICATIONS.filter((n) => !seen.has(n.id)).length,
@@ -274,6 +280,8 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
           document.body,
         )
       : null;
+
+  if (!signedIn) return null;
 
   return (
     <div ref={rootRef} className={`relative ${className}`}>
