@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Layout, BackLink } from '../components/Layout';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { affiliateCatalogue } from '../data/affiliateCatalogue';
-import { DUAL_FEE_SHORT, SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import { coinPath } from '../utils/scoutReferral';
 
 const SCOUT_PCT = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
@@ -24,14 +24,18 @@ export function AffiliatesCataloguePage() {
           <p className="mt-2 text-sm text-muted-foreground">
             Open any coin page, connect your wallet, and copy your raid link. Earn {SCOUT_PCT}{' '}
             instant SOL on CTOgo swaps attributed to you ({SCOUT_FEE_ENGINE.attributionHours}h
-            last-click) — same raid rate on List and Launch. Commissions fill your wallet — not the
-            project marketing wallet. No link → CTOgo keeps {SCOUT_PCT}.
+            last-click). Commissions fill your wallet — not the project marketing wallet. No link →
+            CTOgo keeps {SCOUT_PCT}.
           </p>
         </div>
 
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          {DUAL_FEE_SHORT}. On-chain raid payouts go live with the fee engine — SOL streaming lands
-          when the swap routes {SCOUT_PCT} to your ref wallet (or treasury if unclaimed).
+          On-chain raid payouts go live with the fee engine — SOL streaming lands when the swap
+          routes {SCOUT_PCT} to your ref wallet (or treasury if unclaimed). Full swap splits:{' '}
+          <Link to="/fees" className="font-medium text-amber-100 underline-offset-2 hover:underline">
+            Fees
+          </Link>
+          .
         </div>
 
         <div className="mt-6 space-y-3 md:hidden">

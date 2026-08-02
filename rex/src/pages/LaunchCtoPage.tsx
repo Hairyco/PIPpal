@@ -1031,7 +1031,6 @@ export function LaunchCtoPage() {
                         { icon: Globe, label: 'Website' },
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: ShieldAlert, label: `${formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} creator fees` },
-                        { icon: Coins, label: 'Launch swap fee 1.30%' },
                       ].map(({ icon: Icon, label }) => (
                         <div
                           key={label}

@@ -56,10 +56,12 @@ export function AffiliateProgramDemo({
         </div>
 
         <div className="mt-4 break-words rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          List {formatBpsPercent(LIST_FEE_ENGINE.totalBps)} · Launch{' '}
-          {formatBpsPercent(LAUNCH_FEE_ENGINE.totalBps)} (adds{' '}
-          {formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} creator). Coin pages, raid links, and 24h
-          attribution are live in the app now.
+          Coin pages, raid links, and 24h attribution are live. Full List / Launch swap splits are
+          on the{' '}
+          <Link to="/fees" className="font-medium text-amber-100 underline-offset-2 hover:underline">
+            Fees
+          </Link>{' '}
+          page.
         </div>
 
         <div className="mt-6 space-y-4">

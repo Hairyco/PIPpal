@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Check, Copy, Wallet } from 'lucide-react';
 import { useConnectedWallet } from '../ConnectWalletButton';
 import { SolanaLogo } from '../SolanaLogo';
@@ -107,22 +108,20 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
 
       {!compact ? (
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
-          <p className="font-medium text-white/70">Fee split on every CTOgo swap</p>
+          <p className="font-medium text-white/70">Raid & marketing on CTOgo swaps</p>
           <ul className="mt-2 space-y-1">
             <li>
               {formatBpsPercent(LIST_FEE_ENGINE.raidBps)} raid → you · or CTOgo treasury if no link
-              (same on List & Launch)
             </li>
             <li>
               Marketing → {formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} List /{' '}
               {formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch
             </li>
             <li>
-              CTOgo → {formatBpsPercent(LIST_FEE_ENGINE.platformBps)} List /{' '}
-              {formatBpsPercent(LAUNCH_FEE_ENGINE.platformBps)} Launch
-            </li>
-            <li>
-              Creator → {formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} Launch only (List has none)
+              Full swap splits (incl. platform / creator) →{' '}
+              <a href="/fees#raid-fee-engine" className="text-[#d5ff69] hover:underline">
+                Fees
+              </a>
             </li>
           </ul>
         </div>
