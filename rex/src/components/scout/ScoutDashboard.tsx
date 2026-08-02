@@ -49,9 +49,7 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         <div>
           <p className="font-serif text-xl font-bold tracking-tight text-white">Raid</p>
           <p className="mt-1.5 text-sm text-white/45">
-            Share your link. Earn {scoutPct} instant SOL on CTOgo swaps attributed to you — filled
-            into your wallet when the fee engine is live on-chain. Not paid from the marketing
-            wallet roadmap.
+            Share your link. Earn {scoutPct} instant SOL on CTOgo swaps attributed to you.
           </p>
         </div>
       ) : (

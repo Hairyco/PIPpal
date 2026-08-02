@@ -79,17 +79,12 @@ export function AffiliatePromoSheet() {
           </div>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/60">
             Get <span className="font-semibold text-[#d5ff69]">{SCOUT_PCT}</span> of swap volume as
-            instant SOL when someone buys through your raid link — filled straight into your wallet
-            when the fee engine is live on-chain.
+            instant SOL when someone buys through your raid link.
           </p>
           <ul className="mt-2.5 space-y-1">
             <li className="flex gap-1.5 text-[11px] text-white/70">
               <span className="text-[#c8ff3d]">·</span>
               {SCOUT_FEE_ENGINE.attributionHours}h last-click attribution
-            </li>
-            <li className="flex gap-1.5 text-[11px] text-white/70">
-              <span className="text-[#c8ff3d]">·</span>
-              Not paid from the marketing wallet roadmap
             </li>
             <li className="flex gap-1.5 text-[11px] text-white/70">
               <span className="text-[#c8ff3d]">·</span>
