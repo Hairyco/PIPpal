@@ -1029,7 +1029,7 @@ export function LaunchCtoPage() {
                         { icon: Globe, label: 'Website' },
                         { icon: MessageCircle, label: 'New socials' },
                         { icon: Sparkles, label: 'Logo & Dex banner' },
-                        { icon: ShieldAlert, label: 'Stop dev fees' },
+                        { icon: ShieldAlert, label: '0.2% creator fees' },
                       ].map(({ icon: Icon, label }) => (
                         <div
                           key={label}
