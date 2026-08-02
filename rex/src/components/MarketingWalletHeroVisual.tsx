@@ -53,7 +53,7 @@ function AdsUnlockVisual() {
             <span className="h-2 w-2 rounded-full bg-white/20" />
             <span className="h-2 w-2 rounded-full bg-white/20" />
             <p className="ml-2 flex-1 truncate text-[10px] font-semibold text-white/45">
-              dexscreener.com/solana · $MPEG
+              dexscreener.com/solana · $CWH
             </p>
             <span className="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
               LIVE
@@ -64,7 +64,7 @@ function AdsUnlockVisual() {
             <div className="flex items-end justify-between gap-2">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                  Moon Pigeon
+                  Cat Wif Hat
                 </p>
                 <p className="mt-0.5 font-mono text-lg font-bold tabular-nums text-white">
                   $0.000421
@@ -186,7 +186,7 @@ function AdsUnlockVisual() {
                 Your DexScreener trending ad is now running.
               </p>
               <p className="mt-1.5 text-[11px] leading-relaxed text-white/55">
-                $MPEG · 24h boost live. Paid from marketing wallet — no founder invoice.
+                $CWH · 24h boost live. Paid from marketing wallet — no founder invoice.
               </p>
               <div className="mt-2.5 overflow-hidden rounded-lg border border-emerald-400/25 bg-emerald-400/10 px-2.5 py-2">
                 <p className="text-[10px] font-bold uppercase tracking-wide text-emerald-300">

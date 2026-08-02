@@ -2,11 +2,40 @@ import { useEffect, useState } from 'react';
 import { CtoGoLogo } from './CtoGoLogo';
 import { useAuth } from './AuthProvider';
 import { SolanaLogo } from './SolanaLogo';
-import { ctoProjects } from '../data/ctoProjects';
 
-const SEEN_KEY = 'ctogo-welcome-gate-v2';
+const SEEN_KEY = 'ctogo-welcome-gate-v3';
 
-const PREVIEW = ctoProjects.slice(0, 4);
+/** Recognisable community takeovers for the opening preview — not fake demo tickers. */
+const PREVIEW = [
+  {
+    ticker: 'CWH',
+    name: 'Cat Wif Hat',
+    marketCap: '$12.4M',
+    change24h: 18.2,
+    colors: 'from-amber-300 to-orange-700',
+  },
+  {
+    ticker: 'SHIB',
+    name: 'Shiba Inu',
+    marketCap: '$8.1B',
+    change24h: 4.6,
+    colors: 'from-orange-400 to-red-700',
+  },
+  {
+    ticker: 'BONK',
+    name: 'Bonk',
+    marketCap: '$1.9B',
+    change24h: 9.1,
+    colors: 'from-yellow-300 to-orange-600',
+  },
+  {
+    ticker: 'PEPE',
+    name: 'Pepe',
+    marketCap: '$3.2B',
+    change24h: -2.4,
+    colors: 'from-lime-300 to-emerald-700',
+  },
+] as const;
 
 function formatChange(n: number) {
   const sign = n >= 0 ? '+' : '';
@@ -34,7 +63,7 @@ function ProductPreview() {
         </div>
         <div className="space-y-1.5 p-2.5">
           <p className="px-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/35">
-            Trending CTOs
+            Community takeovers
           </p>
           {PREVIEW.map((p) => (
             <div
@@ -47,7 +76,7 @@ function ProductPreview() {
                 {p.ticker.slice(0, 2)}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-semibold text-white">{p.ticker}</p>
+                <p className="truncate text-xs font-semibold text-white">${p.ticker}</p>
                 <p className="truncate text-[10px] text-white/40">{p.name}</p>
               </div>
               <div className="text-right">
@@ -166,15 +195,17 @@ export function WelcomeGate() {
       <div className="relative z-[1] flex flex-1 flex-col items-center px-5 pb-2 pt-6 text-center sm:pt-10">
         <div className="animate-[welcomeIn_0.55s_ease-out]">
           <CtoGoLogo size={64} className="mx-auto rounded-2xl shadow-[0_0_48px_rgba(200,255,61,0.25)]" />
+          <p className="mt-4 font-serif text-xl font-bold tracking-tight text-white sm:text-2xl">
+            CTOgo
+          </p>
           <h1
             id="welcome-gate-title"
-            className="mt-5 font-serif text-5xl font-bold tracking-tight text-white sm:text-6xl"
+            className="mt-3 max-w-md font-serif text-3xl font-bold tracking-tight text-white sm:text-4xl"
           >
-            CTOgo
+            The Home of Community Takeovers
           </h1>
-          <p className="mt-3 text-lg font-semibold text-white/90 sm:text-xl">Community takeover</p>
-          <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-white/50 sm:text-base">
-            Discover, raid, and launch community-owned tokens on Solana.
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-white/55 sm:text-base">
+            CTOgo is the only platform where raiders get paid instant SOL yield on every single swap.
           </p>
           <button
             type="button"
