@@ -10,8 +10,8 @@ import {
 import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SCOUT_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../data/chainConfig';
 import { useAuth } from './AuthProvider';
+import { hasUserCtoLaunch, loadUserCtoLaunch } from '../utils/userCtoLaunch';
 
 const READ_KEY = 'ctogo-notifications-read';
 
@@ -26,54 +26,45 @@ type AppNotification = {
   href?: string;
 };
 
-const DEMO_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'raid-share-mpeg',
+/** Only real, actionable alerts for this session — never seed demo spam. */
+function buildActiveNotifications(): AppNotification[] {
+  const items: AppNotification[] = [];
+  const launch = loadUserCtoLaunch();
+  if (!launch) {
+    items.push({
+      id: 'setup-coin',
+      kind: 'promo',
+      title: 'Set up your first CTO',
+      body: 'Launch or list a coin to unlock your dashboard, raid links, and marketing wallet.',
+      time: 'Now',
+      href: '/launch',
+    });
+    return items;
+  }
+
+  const ticker = launch.ticker;
+  if (!launch.marketingAttached && launch.mode === 'add') {
+    items.push({
+      id: `mkt-attach-${ticker}`,
+      kind: 'wallet',
+      title: 'Attach marketing wallet',
+      body: `Add the Auto Marketing Wallet on $${ticker} to fund your spend roadmap.`,
+      time: 'Active',
+      href: '/launch?dashboard=1',
+    });
+  }
+
+  items.push({
+    id: `raid-share-${ticker}`,
     kind: 'raid_link',
-    title: 'Share your raid link',
-    body: 'Drop your $MPEG raid link in Telegram — 0.50% SOL on attributed CTOgo buys.',
-    time: '12m',
-    href: '/coin/MPEG',
-  },
-  {
-    id: 'earn-7d',
-    kind: 'earnings',
-    title: 'Raid earnings update',
-    body: 'You earned 0.084 SOL this week from referred swaps. Keep sharing your raid link.',
-    time: '1h',
-  },
-  {
-    id: 'raid-reminder-lmars',
-    kind: 'raid_link',
-    title: 'Raid link reminder',
-    body: '$LMARS is trending. Copy your raid link from the wallet menu or coin Affiliate tab.',
-    time: '3h',
-    href: '/coin/LMARS',
-  },
-  {
-    id: 'earn-click',
-    kind: 'earnings',
-    title: 'New attributed volume',
-    body: 'A buy through your raid link filled raid commission into your SOL balance.',
-    time: '5h',
-  },
-  {
-    id: 'wallet-fill',
-    kind: 'wallet',
-    title: 'Marketing wallet filling',
-    body: `${MARKETING_FILL_SHORT} of CTOgo-routed volume is funding your spend roadmap.`,
-    time: 'Yesterday',
-    href: '/marketing-wallet',
-  },
-  {
-    id: 'promo-list',
-    kind: 'promo',
-    title: 'Unlock Raid Rewards',
-    body: 'List a CTO to unlock built-in utility — Auto Marketing Wallet + Raid Rewards.',
-    time: '2d',
-    href: '/launch?mode=list',
-  },
-];
+    title: `Share your $${ticker} raid link`,
+    body: 'Copy your raid link from the wallet menu or coin Affiliate tab to earn on attributed buys.',
+    time: 'Active',
+    href: `/coin/${encodeURIComponent(ticker)}`,
+  });
+
+  return items;
+}
 
 function readSeenIds(): Set<string> {
   try {
@@ -106,6 +97,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
   const { signedIn } = useAuth();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
+  const [tick, setTick] = useState(0);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -120,9 +112,20 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
     if (!signedIn) setOpen(false);
   }, [signedIn]);
 
+  useEffect(() => {
+    if (!open) return;
+    setTick((n) => n + 1);
+  }, [open]);
+
+  const notifications = useMemo(() => {
+    void tick;
+    void hasUserCtoLaunch();
+    return buildActiveNotifications();
+  }, [tick, signedIn]);
+
   const unreadCount = useMemo(
-    () => DEMO_NOTIFICATIONS.filter((n) => !seen.has(n.id)).length,
-    [seen],
+    () => notifications.filter((n) => !seen.has(n.id)).length,
+    [notifications, seen],
   );
 
   const updateMenuPos = useCallback(() => {
@@ -168,7 +171,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
   }, [open]);
 
   const markAllRead = () => {
-    const next = new Set(DEMO_NOTIFICATIONS.map((n) => n.id));
+    const next = new Set(notifications.map((n) => n.id));
     setSeen(next);
     writeSeenIds(next);
   };
@@ -196,7 +199,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
             <div className="flex items-center justify-between gap-2 border-b border-white/[0.07] px-3.5 py-3">
               <div>
                 <p className="text-sm font-semibold text-white">Notifications</p>
-                <p className="text-[10px] text-white/40">Raid links · earnings · wallet</p>
+                <p className="text-[10px] text-white/40">Active alerts only</p>
               </div>
               {unreadCount > 0 ? (
                 <button
@@ -210,72 +213,82 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
               ) : null}
             </div>
 
-            <ul className="max-h-[min(70vh,24rem)] overflow-y-auto overscroll-contain">
-              {DEMO_NOTIFICATIONS.map((item) => {
-                const unread = !seen.has(item.id);
-                const content = (
-                  <>
-                    <span
-                      className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${
-                        unread
-                          ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                          : 'bg-white/[0.05] text-white/40'
-                      }`}
-                    >
-                      <KindIcon kind={item.kind} />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-start justify-between gap-2">
-                        <span
-                          className={`text-[12px] font-semibold ${
-                            unread ? 'text-white' : 'text-white/70'
-                          }`}
-                        >
-                          {item.title}
-                        </span>
-                        <span className="shrink-0 text-[10px] text-white/35">{item.time}</span>
-                      </span>
-                      <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
-                        {item.body}
-                      </span>
-                    </span>
-                    {unread ? (
+            {notifications.length === 0 ? (
+              <div className="px-3.5 py-10 text-center">
+                <Bell className="mx-auto h-6 w-6 text-white/25" />
+                <p className="mt-2 text-sm font-semibold text-white/70">No active notifications</p>
+                <p className="mt-1 text-[11px] text-white/40">
+                  Raid earnings and wallet fills will show up here.
+                </p>
+              </div>
+            ) : (
+              <ul className="max-h-[min(70vh,24rem)] overflow-y-auto overscroll-contain">
+                {notifications.map((item) => {
+                  const unread = !seen.has(item.id);
+                  const content = (
+                    <>
                       <span
-                        className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c8ff3d]"
-                        aria-hidden
-                      />
-                    ) : (
-                      <span className="w-1.5 shrink-0" aria-hidden />
-                    )}
-                  </>
-                );
+                        className={`mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg ${
+                          unread
+                            ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
+                            : 'bg-white/[0.05] text-white/40'
+                        }`}
+                      >
+                        <KindIcon kind={item.kind} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start justify-between gap-2">
+                          <span
+                            className={`text-[12px] font-semibold ${
+                              unread ? 'text-white' : 'text-white/70'
+                            }`}
+                          >
+                            {item.title}
+                          </span>
+                          <span className="shrink-0 text-[10px] text-white/35">{item.time}</span>
+                        </span>
+                        <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
+                          {item.body}
+                        </span>
+                      </span>
+                      {unread ? (
+                        <span
+                          className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c8ff3d]"
+                          aria-hidden
+                        />
+                      ) : (
+                        <span className="w-1.5 shrink-0" aria-hidden />
+                      )}
+                    </>
+                  );
 
-                return (
-                  <li key={item.id} className="border-b border-white/[0.05] last:border-0">
-                    {item.href ? (
-                      <Link
-                        to={item.href}
-                        onClick={() => {
-                          markOneRead(item.id);
-                          setOpen(false);
-                        }}
-                        className="flex items-start gap-2.5 px-3.5 py-3 transition hover:bg-white/[0.04]"
-                      >
-                        {content}
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => markOneRead(item.id)}
-                        className="flex w-full items-start gap-2.5 px-3.5 py-3 text-left transition hover:bg-white/[0.04]"
-                      >
-                        {content}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+                  return (
+                    <li key={item.id} className="border-b border-white/[0.05] last:border-0">
+                      {item.href ? (
+                        <Link
+                          to={item.href}
+                          onClick={() => {
+                            markOneRead(item.id);
+                            setOpen(false);
+                          }}
+                          className="flex items-start gap-2.5 px-3.5 py-3 transition hover:bg-white/[0.04]"
+                        >
+                          {content}
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => markOneRead(item.id)}
+                          className="flex w-full items-start gap-2.5 px-3.5 py-3 text-left transition hover:bg-white/[0.04]"
+                        >
+                          {content}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>,
           document.body,
         )

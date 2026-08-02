@@ -204,6 +204,27 @@ select {
   overflow-x: hidden;
 }
 
+@keyframes ctogo-ticker-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ticker-marquee {
+  animation: ctogo-ticker-scroll 28s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-marquee {
+    animation: none;
+  }
+}
+
 .page-gloss {
   display: none;
 }

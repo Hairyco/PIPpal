@@ -10,7 +10,9 @@ import {
   Loader2,
   MessageCircle,
   Pencil,
+  Plus,
   RefreshCw,
+  Rocket,
   Search,
   ShieldAlert,
   Sparkles,
@@ -32,6 +34,7 @@ import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
+import { loadUserCtoLaunch, saveUserCtoLaunch } from '../utils/userCtoLaunch';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -155,6 +158,7 @@ export function LaunchCtoPage() {
   const [editSite, setEditSite] = useState(false);
   const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
   const [dashEntryTab, setDashEntryTab] = useState<DashEntryTab>('overview');
+  const [dashboardEmpty, setDashboardEmpty] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const dexHeaderRef = useRef<HTMLInputElement>(null);
@@ -172,18 +176,36 @@ export function LaunchCtoPage() {
 
   /** Open the post-launch CTOgo dashboard (person icon / sidebar). */
   useEffect(() => {
-    if (searchParams.get('dashboard') !== '1') return;
-    setMode('launch');
+    if (searchParams.get('dashboard') !== '1') {
+      setDashboardEmpty(false);
+      return;
+    }
+    const saved = loadUserCtoLaunch();
+    if (!saved) {
+      setDashboardEmpty(true);
+      setStep('coin');
+      setName('');
+      setTicker('');
+      setContract('');
+      setCoinReady(false);
+      setLogoPreview(null);
+      setMarketingAttached(false);
+      setTelegramInvite(null);
+      return;
+    }
+    setDashboardEmpty(false);
+    setMode(saved.mode);
     setStep('done');
-    setName((n) => n.trim() || 'Pepe');
-    setTicker((t) => t.trim() || 'PEPE');
-    setContract((c) => (c.trim().length >= 32 ? c : DEMO_CONTRACT));
+    setName(saved.name);
+    setTicker(saved.ticker);
+    setContract(saved.contract);
     setCoinReady(true);
-    setVenueLabel('CTOgo');
-    setMarketingAttached(true);
-    setTelegramInvite((tg) => tg ?? 'https://t.me/ctogo_pepe');
-    // Demo PEPE uses catalog meme art — not the generated lettermark.
-    setLogoPreview('/meme-logos/peponk.png');
+    setVenueLabel(saved.mode === 'launch' ? 'CTOgo' : 'Listed');
+    setMarketingAttached(Boolean(saved.marketingAttached) || saved.mode === 'launch');
+    setTelegramInvite(saved.telegramInvite ?? null);
+    setLogoPreview(saved.logoUrl ?? null);
+    if (saved.twitter) setTwitter(saved.twitter);
+    if (saved.websiteUrl) setWebsite(saved.websiteUrl);
   }, [searchParams]);
 
   /** Prefill from a pasted mint in the URL — not the empty demo filler. */
@@ -450,8 +472,27 @@ export function LaunchCtoPage() {
 
   const openPublishedDashboard = async (withMarketing?: boolean) => {
     if (withMarketing !== undefined) setMarketingAttached(withMarketing);
-    setTelegramInvite(`https://t.me/ctogo_${coinSlug}`);
+    const attached =
+      withMarketing !== undefined ? withMarketing : marketingAttached || mode === 'launch';
+    const invite = `https://t.me/ctogo_${coinSlug}`;
+    setTelegramInvite(invite);
     setListingConfirmed(false);
+    setDashboardEmpty(false);
+    saveUserCtoLaunch({
+      name: name.trim() || 'CTOgo Coin',
+      ticker: (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO',
+      contract: contract.trim(),
+      mode,
+      logoUrl: logoPreview,
+      marketingAttached: attached,
+      websiteUrl:
+        websiteKind === 'clone'
+          ? cloneUrl.trim() || website.trim()
+          : website.trim() || cloneUrl.trim(),
+      twitter: twitter.trim(),
+      telegramInvite: invite,
+      savedAt: new Date().toISOString(),
+    });
     if (mode === 'add') {
       setStep('fresh');
     } else {
@@ -462,6 +503,22 @@ export function LaunchCtoPage() {
 
   const goToListDashboard = (tab: DashEntryTab = 'overview') => {
     setDashEntryTab(tab);
+    setDashboardEmpty(false);
+    saveUserCtoLaunch({
+      name: name.trim() || 'CTOgo Coin',
+      ticker: (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO',
+      contract: contract.trim(),
+      mode: 'add',
+      logoUrl: logoPreview,
+      marketingAttached,
+      websiteUrl:
+        websiteKind === 'clone'
+          ? cloneUrl.trim() || website.trim()
+          : website.trim() || cloneUrl.trim(),
+      twitter: twitter.trim(),
+      telegramInvite,
+      savedAt: new Date().toISOString(),
+    });
     setStep('done');
   };
 
@@ -816,10 +873,45 @@ export function LaunchCtoPage() {
 
         <main
           className={`mx-auto max-w-xl px-3 sm:px-5 ${
-            step === 'done' ? 'pb-8 pt-3' : 'py-8'
+            step === 'done' || dashboardEmpty ? 'pb-8 pt-3' : 'py-8'
           }`}
         >
-          {step !== 'done' && step !== 'fresh' ? (
+          {dashboardEmpty ? (
+            <div className="flex flex-col items-center px-2 py-16 text-center">
+              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
+                <Rocket className="h-7 w-7 text-[#d5ff69]" />
+              </span>
+              <h1 className="mt-5 font-serif text-2xl font-bold tracking-tight text-white">
+                Your dashboard is empty
+              </h1>
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/50">
+                Launch or list a CTO to unlock raid links, marketing wallet, and creator tools.
+              </p>
+              <div className="mt-8 flex w-full max-w-xs flex-col gap-2.5">
+                <Link
+                  to="/launch"
+                  onClick={() => setDashboardEmpty(false)}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+                >
+                  <Rocket className="h-4 w-4" />
+                  Launch a CTO
+                </Link>
+                <Link
+                  to="/launch?mode=list"
+                  onClick={() => {
+                    setDashboardEmpty(false);
+                    setMode('add');
+                  }}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] text-sm font-semibold text-white/80 transition hover:bg-white/[0.07] hover:text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  List a CTO
+                </Link>
+              </div>
+            </div>
+          ) : null}
+
+          {!dashboardEmpty && step !== 'done' && step !== 'fresh' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                 {mode === 'add' ? 'List for exposure' : 'Launch'}
@@ -915,7 +1007,7 @@ export function LaunchCtoPage() {
             </>
           ) : null}
 
-          {step !== 'done' && step !== 'fresh' && mode === 'launch' ? (
+          {!dashboardEmpty && step !== 'done' && step !== 'fresh' && mode === 'launch' ? (
             <nav aria-label="Launch steps" className="mt-5">
               <div className="relative">
                 <span
@@ -970,7 +1062,7 @@ export function LaunchCtoPage() {
             </nav>
           ) : null}
 
-          {step === 'coin' ? (
+          {!dashboardEmpty && step === 'coin' ? (
             <form onSubmit={onCoinContinue} className="mt-6 space-y-4">
               <div className="inline-flex w-full gap-0.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-0.5">
                 <button
@@ -1247,7 +1339,7 @@ export function LaunchCtoPage() {
             </form>
           ) : null}
 
-          {step === 'fees' ? (
+          {!dashboardEmpty && step === 'fees' ? (
             <form onSubmit={onFeesContinue} className="mt-6 space-y-4">
               <div className="space-y-2">
                 {CREATOR_FEE_MODES.map((option) => {
@@ -1377,7 +1469,7 @@ export function LaunchCtoPage() {
             </form>
           ) : null}
 
-          {step === 'burn' ? (
+          {!dashboardEmpty && step === 'burn' ? (
             <div className="mt-6 space-y-6">
               {!connected ? (
                 <div className="space-y-3">
@@ -1581,7 +1673,7 @@ export function LaunchCtoPage() {
             </div>
           ) : null}
 
-          {step === 'summary' ? (
+          {!dashboardEmpty && step === 'summary' ? (
             <div className="mt-6 space-y-5">
               <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
                 <div className="border-b border-white/[0.06] px-4 py-3">
@@ -1711,7 +1803,7 @@ export function LaunchCtoPage() {
             </div>
           ) : null}
 
-          {step === 'website' ? (
+          {!dashboardEmpty && step === 'website' ? (
             <form onSubmit={onWebsiteContinue} className="mt-6 space-y-4">
               <p className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-2 text-[11px] text-white/45">
                 Coin page will be at{' '}
@@ -2003,7 +2095,7 @@ export function LaunchCtoPage() {
             </form>
           ) : null}
 
-          {step === 'fresh' ? (
+          {!dashboardEmpty && step === 'fresh' ? (
             <ListStartFreshPage
               symbol={displaySymbol}
               logoUrl={dashboardLogoUrl}
@@ -2024,7 +2116,7 @@ export function LaunchCtoPage() {
             />
           ) : null}
 
-          {step === 'done' ? (
+          {!dashboardEmpty && step === 'done' ? (
             <PostLaunchDashboard
               symbol={displaySymbol}
               mode={mode}

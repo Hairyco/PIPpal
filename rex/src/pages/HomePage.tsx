@@ -865,32 +865,33 @@ export function HomePage() {
     captureScoutRefFromSearch(searchParams);
   }, [searchParams]);
 
-  /** Peek-scroll the header actions so the menu (sidebar) is discoverable when clipped. */
+  /** Peek-scroll the header actions so overflow controls are discoverable. */
   useEffect(() => {
     const el = headerActionsRef.current;
-    if (!el || headerActionsHintPlayed.current) return;
+    if (!el) return;
+    headerActionsHintPlayed.current = false;
 
     const run = () => {
-      if (!headerActionsRef.current || headerActionsHintPlayed.current) return;
       const node = headerActionsRef.current;
-      if (node.scrollWidth <= node.clientWidth + 8) return;
+      if (!node || headerActionsHintPlayed.current) return;
+      if (node.scrollWidth <= node.clientWidth + 4) return;
       headerActionsHintPlayed.current = true;
       const max = node.scrollWidth - node.clientWidth;
       window.setTimeout(() => {
-        node.scrollTo({ left: Math.min(max, 56), behavior: 'smooth' });
-      }, 700);
+        node.scrollTo({ left: Math.min(max, 72), behavior: 'smooth' });
+      }, 600);
       window.setTimeout(() => {
         node.scrollTo({ left: 0, behavior: 'smooth' });
-      }, 1400);
+      }, 1300);
     };
 
-    const t = window.setTimeout(run, 200);
+    const t = window.setTimeout(run, 350);
     window.addEventListener('resize', run);
     return () => {
       window.clearTimeout(t);
       window.removeEventListener('resize', run);
     };
-  }, []);
+  }, [signedIn]);
 
   useEffect(() => {
     const raw =
@@ -1164,7 +1165,7 @@ export function HomePage() {
             <span className="hidden sm:inline">Trending</span>
           </div>
           <div className="min-w-0 flex-1 overflow-hidden">
-            <div className="flex min-w-max animate-scroll-left-ticker items-center gap-7 text-xs text-white/50">
+            <div className="ticker-marquee flex w-max items-center gap-7 text-xs text-white/50">
               {[...tickerProjects, ...tickerProjects].map((project, index) => (
                 <button
                   key={`${project.ticker}-${index}`}
@@ -1244,10 +1245,11 @@ export function HomePage() {
               </label>
             </div>
 
-            <div className="flex min-w-0 max-w-[min(100%,22rem)] shrink-0 items-center gap-0.5 sm:max-w-none sm:gap-1">
+            <div className="flex min-w-0 flex-1 items-center justify-end gap-0.5 sm:flex-none sm:gap-1">
               <div
                 ref={headerActionsRef}
-                className="flex min-w-0 items-center gap-1 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
+                className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto overscroll-x-contain scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
+                style={{ touchAction: 'pan-x' }}
               >
                 <Link
                   to="/launch"
