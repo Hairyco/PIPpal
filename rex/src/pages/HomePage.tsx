@@ -1244,10 +1244,10 @@ export function HomePage() {
               </label>
             </div>
 
-            <div className="relative min-w-0 max-w-[48%] shrink sm:max-w-none sm:shrink-0">
+            <div className="flex min-w-0 max-w-[min(100%,22rem)] shrink-0 items-center gap-0.5 sm:max-w-none sm:gap-1">
               <div
                 ref={headerActionsRef}
-                className="flex items-center gap-1 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
+                className="flex min-w-0 items-center gap-1 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
               >
                 <Link
                   to="/launch"
@@ -1255,7 +1255,6 @@ export function HomePage() {
                 >
                   <Plus className="h-4 w-4" /> Submit CTO
                 </Link>
-                <AuthButton className="shrink-0" />
                 {signedIn ? (
                   <Link
                     to="/launch?dashboard=1"
@@ -1267,13 +1266,10 @@ export function HomePage() {
                   </Link>
                 ) : null}
                 <ConnectWalletButton className="shrink-0" />
+                <AuthButton className="shrink-0" />
                 <NotificationsButton className="shrink-0" />
-                <AppSidebarMenuButton className="shrink-0" />
               </div>
-              <div
-                className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-black to-transparent sm:hidden"
-                aria-hidden
-              />
+              <AppSidebarMenuButton className="shrink-0" />
             </div>
           </div>
 

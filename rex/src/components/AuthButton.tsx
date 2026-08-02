@@ -3,16 +3,26 @@ import { useAuth } from './AuthProvider';
 
 type AuthButtonProps = {
   className?: string;
-  /** Header: hidden (no door icon). Sidebar: sign in / account. */
+  /** Header: compact “Log in” when signed out. Sidebar: sign in / account. */
   variant?: 'header' | 'sidebar';
 };
 
 export function AuthButton({ className = '', variant = 'header' }: AuthButtonProps) {
   const { user, signedIn, signOut, requireAuth } = useAuth();
 
-  // Header: never show a signed-out login control — sign in via the menu.
-  // Profile/dashboard is a separate header link when signed in.
-  if (variant === 'header') return null;
+  if (variant === 'header') {
+    if (signedIn) return null;
+    return (
+      <button
+        type="button"
+        onClick={() => void requireAuth('Sign in with Google or email.')}
+        className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-2.5 text-xs font-semibold text-white/75 transition hover:border-white/25 hover:bg-white/[0.07] hover:text-white sm:px-3 ${className}`}
+      >
+        <LogIn className="h-3.5 w-3.5 shrink-0" />
+        Log in
+      </button>
+    );
+  }
 
   if (!signedIn || !user) {
     return (
