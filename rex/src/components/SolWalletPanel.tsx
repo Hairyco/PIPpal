@@ -50,9 +50,10 @@ export function SolWalletPanel({ showScoutEarnings = true, className = '' }: Sol
 
   return (
     <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 ${className}`}>
-      <p className="text-[11px] text-white/40">
-        Same balance as the header pill · {shorten(address)}
-      </p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium text-white/40">SOL balance</p>
+        <p className="font-mono text-[11px] text-white/35">{shorten(address)}</p>
+      </div>
       <div className="mt-3 inline-flex h-10 items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#12141c] px-3">
         <Wallet className="h-3.5 w-3.5 text-white/55" />
         <span className="h-3.5 w-px bg-white/[0.12]" aria-hidden />
