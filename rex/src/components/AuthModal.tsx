@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Mail, X } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 
@@ -41,6 +41,14 @@ export function AuthModal() {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!authModalOpen) return;
+    const reason = (authModalReason ?? '').toLowerCase();
+    if (reason.includes('sign in') || reason.includes('log in')) setMode('signin');
+    else setMode('register');
+    setError(null);
+  }, [authModalOpen, authModalReason]);
+
   if (!authModalOpen) return null;
 
   const onSubmit = async (event: FormEvent) => {
@@ -68,7 +76,7 @@ export function AuthModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4"
+      className="fixed inset-0 z-[120] flex items-end justify-center sm:items-center sm:p-4"
       role="dialog"
       aria-modal
       aria-labelledby="auth-modal-title"
