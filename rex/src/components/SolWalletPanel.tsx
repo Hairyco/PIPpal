@@ -51,7 +51,9 @@ export function SolWalletPanel({ showScoutEarnings = true, className = '' }: Sol
   return (
     <div className={`rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 ${className}`}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-medium text-white/40">SOL balance</p>
+        <p className="text-[11px] font-medium text-white/40">
+          {showScoutEarnings ? 'SOL balance · SOL earned' : 'SOL balance'}
+        </p>
         <p className="font-mono text-[11px] text-white/35">{shorten(address)}</p>
       </div>
       <div className="mt-3 inline-flex h-10 items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#12141c] px-3">
