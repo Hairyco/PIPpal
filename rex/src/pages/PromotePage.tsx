@@ -87,8 +87,8 @@ export function PromotePage() {
             <div>
               <p className="text-sm font-medium text-white">Marketing wallet</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Buy/sell tax on bonding-curve trades fills this wallet. Category boosts and affiliate
-                payouts always come from here — no separate checkout or founder top-up.
+                Buy/sell tax fills this wallet (0.40% marketing cut). Category boosts come from here.
+                Scout commissions (0.55%) stream to scout wallets — not from this balance.
               </p>
             </div>
           </div>
@@ -210,7 +210,7 @@ export function PromotePage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Category boosts and affiliate payouts always come from your marketing wallet.
+          Category boosts come from your marketing wallet. Scout commissions fill scout wallets.
         </p>
       </div>
     </Layout>

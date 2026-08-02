@@ -823,13 +823,18 @@ export function HomePage() {
   }, []);
 
   useEffect(() => {
-    const ticker = searchParams.get('ticker')?.trim().toUpperCase();
+    const raw =
+      searchParams.get('ticker')?.trim() ||
+      searchParams.get('coin')?.trim() ||
+      '';
+    if (!raw) return;
+    const ticker = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
     if (!ticker) return;
-    const match = projects.find((project) => project.ticker.toUpperCase() === ticker);
-    if (!match) return;
-    setSelectedTicker(match.ticker);
-    setViewMode('trade');
-  }, [searchParams]);
+    // Legacy deep links → public coin page (scout-ready)
+    navigate(`/coin/${encodeURIComponent(ticker)}${searchParams.get('ref') ? `?ref=${encodeURIComponent(searchParams.get('ref')!)}` : ''}`, {
+      replace: true,
+    });
+  }, [searchParams, navigate]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {

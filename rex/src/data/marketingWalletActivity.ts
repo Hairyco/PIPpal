@@ -38,7 +38,10 @@ const KIND_META: Record<
   trade_fee: { direction: 'in', defaultNote: 'Trade fee · CTOgo' },
   investor_in: { direction: 'in', defaultNote: 'Manual deposit' },
   supplier_payout: { direction: 'out', defaultNote: null },
-  affiliate_payout: { direction: 'out', defaultNote: 'Affiliate commission' },
+  affiliate_payout: {
+    direction: 'out',
+    defaultNote: 'Legacy affiliate (demo) — scouts now earn 0.55% to their own wallets',
+  },
 };
 
 function demoSig(seed: string): string {

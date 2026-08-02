@@ -2,6 +2,10 @@ import { Link } from 'react-router-dom';
 import { Layout, BackLink } from '../components/Layout';
 import { DemoPreviewBadge } from '../components/promote/DemoPreviewBadge';
 import { affiliateCatalogue } from '../data/affiliateCatalogue';
+import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import { coinPath } from '../utils/scoutReferral';
+
+const SCOUT_PCT = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
 
 export function AffiliatesCataloguePage() {
   return (
@@ -12,20 +16,21 @@ export function AffiliatesCataloguePage() {
         <div className="mt-6 max-w-2xl">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-sky-400">
-              Promoter catalogue
+              Scout catalogue
             </p>
             <DemoPreviewBadge />
           </div>
-          <h1 className="mt-2 font-serif text-3xl text-white md:text-4xl">Affiliate programmes</h1>
+          <h1 className="mt-2 font-serif text-3xl text-white md:text-4xl">Share & earn</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Join Rex projects that pay commission on referred bonding-curve buys. All payouts are
-            funded from each founder&apos;s marketing wallet — not a separate budget.
+            Open any coin page, connect your wallet, and copy your scout link. Earn {SCOUT_PCT}{' '}
+            instant SOL on CTOgo swaps attributed to you ({SCOUT_FEE_ENGINE.attributionHours}h
+            last-click). Commissions fill your wallet — not the project marketing wallet.
           </p>
         </div>
 
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          Tracking and payouts are not live yet. This catalogue shows how promoters will discover
-          and join programmes.
+          On-chain scout payouts go live with the fee engine. Attribution and coin pages are wired
+          now — SOL streaming lands when the swap instruction routes {SCOUT_PCT} to your ref wallet.
         </div>
 
         <div className="mt-6 space-y-3 md:hidden">
@@ -48,17 +53,16 @@ export function AffiliatesCataloguePage() {
                   <dd className="mt-0.5 font-medium text-white">{row.epc}</dd>
                 </div>
                 <div>
-                  <dt className="text-muted-foreground">Commission</dt>
+                  <dt className="text-muted-foreground">Scout</dt>
                   <dd className="mt-0.5 font-medium text-sky-300">{row.commission}</dd>
                 </div>
               </dl>
-              <button
-                type="button"
-                disabled
-                className="mt-3 w-full rounded-md bg-[#c8f542] py-2 text-xs font-semibold text-black opacity-60"
+              <Link
+                to={coinPath(row.symbol)}
+                className="mt-3 flex w-full items-center justify-center rounded-md bg-[#c8f542] py-2 text-xs font-semibold text-black transition hover:bg-[#d5ff69]"
               >
-                + Join
-              </button>
+                Open coin page
+              </Link>
             </div>
           ))}
         </div>
@@ -71,7 +75,7 @@ export function AffiliatesCataloguePage() {
                 <th className="px-4 py-3 font-medium">Category</th>
                 <th className="px-4 py-3 font-medium">Conv.</th>
                 <th className="px-4 py-3 font-medium">EPC</th>
-                <th className="px-4 py-3 font-medium">Commission</th>
+                <th className="px-4 py-3 font-medium">Scout cut</th>
                 <th className="px-4 py-3 font-medium">Action</th>
               </tr>
             </thead>
@@ -87,13 +91,12 @@ export function AffiliatesCataloguePage() {
                   <td className="px-4 py-3 text-muted-foreground">{row.epc}</td>
                   <td className="px-4 py-3 text-sky-300">{row.commission}</td>
                   <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      disabled
-                      className="rounded-md bg-[#c8f542] px-2.5 py-1 text-[10px] font-semibold text-black opacity-60"
+                    <Link
+                      to={coinPath(row.symbol)}
+                      className="rounded-md bg-[#c8f542] px-2.5 py-1 text-[10px] font-semibold text-black transition hover:bg-[#d5ff69]"
                     >
-                      + Join
-                    </button>
+                      Open
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -103,10 +106,10 @@ export function AffiliatesCataloguePage() {
 
         <p className="mt-8 text-center text-sm text-muted-foreground">
           Running a project?{' '}
-          <Link to="/get-started" className="text-sky-400 hover:text-sky-300">
-            Launch on Rex
+          <Link to="/launch" className="text-sky-400 hover:text-sky-300">
+            List or launch on CTOgo
           </Link>{' '}
-          and enable affiliates from Promote after launch.
+          — every coin page includes Scout share links automatically.
         </p>
       </div>
     </Layout>

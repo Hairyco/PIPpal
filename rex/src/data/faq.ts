@@ -1,8 +1,8 @@
 import {
-  FEE_TIERS,
   MARKETING_AUTO_SPEND_USD,
   MARKETING_INACTIVITY_HOURS,
   MARKETING_V2_DEADLINE_DAYS,
+  SCOUT_FEE_ENGINE,
   TRADE_FEE_LABEL,
   formatBpsPercent,
 } from './chainConfig';
@@ -63,7 +63,12 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'wallet-fill-rate',
         question: 'What is the wallet fill rate?',
-        answer: `A slice of each CTOgo trade lands in the marketing wallet automatically. At launch it is ${formatBpsPercent(FEE_TIERS[0].marketingBps)} of volume (${FEE_TIERS[0].marketCap} mcap). As market cap grows the rate steps down — ${FEE_TIERS.map((t) => `${t.label}: ${formatBpsPercent(t.marketingBps)} (${t.marketCap})`).join('; ')}. Growth keeps funding without you wiring ads by hand. Full trade fee split is on the Fees page.`,
+        answer: `Each CTOgo-routed swap takes ${TRADE_FEE_LABEL}. The marketing wallet receives a fixed ${formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of volume — always filling for growth spend. Scout commission (${formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}) goes to the referrer wallet, not the marketing wallet. Full split is on the Fees page.`,
+      },
+      {
+        id: 'scout-program',
+        question: 'How do Scouts earn?',
+        answer: `Anyone can share a coin link with their Solana wallet as ?ref=. When someone trades through CTOgo within ${SCOUT_FEE_ENGINE.attributionHours} hours (last-click), ${formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} of that swap streams as instant SOL to the scout wallet once the on-chain fee engine is live. Copy your link from the coin page Affiliate tab.`,
       },
       {
         id: 'who-controls',
@@ -108,7 +113,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'trade-fee',
         question: 'What is the trade fee?',
-        answer: `${TRADE_FEE_LABEL} on Native CTOgo coins. For any coin traded through CTOgo (including external listings), CTOgo always takes a platform/integrator fee. If a marketing wallet is attached, a marketing cut of CTOgo-routed volume also fills that wallet.`,
+        answer: `${TRADE_FEE_LABEL} on CTOgo-routed swaps (Native and external listings traded through our UI). ${formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} to the attributed scout, ${formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} to the marketing wallet when attached, ${formatBpsPercent(SCOUT_FEE_ENGINE.platformBps)} to CTOgo.`,
       },
       {
         id: 'list-marketing-wallet-fee',

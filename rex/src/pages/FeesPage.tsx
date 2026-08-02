@@ -9,16 +9,15 @@ import {
   ABANDONMENT_RULE,
   CREATOR_FEE_MODES,
   FEE_GUIDELINES,
-  FEE_TIERS,
   GRADUATION_LIQUIDITY_POLICY,
   GRADUATION_POLICY,
   MARKETING_VAULT_SWEEP_RULE,
   MIGRATION_FEE_POLICY,
   POST_MIGRATION_FEES,
+  SCOUT_FEE_ENGINE,
   SECURITY_CONTROLS,
   TRADE_FEE_LABEL,
   formatBpsPercent,
-  totalFeeBps,
 } from '../data/chainConfig';
 
 export function FeesPage() {
@@ -53,27 +52,40 @@ export function FeesPage() {
           </p>
         </section>
 
-        <section id="dynamic-tiers" className="mt-8 scroll-mt-20 space-y-2">
-          <h2 className="text-sm font-semibold text-white/80">Dynamic trade fees</h2>
-          {FEE_TIERS.map((tier) => (
+        <section id="scout-fee-engine" className="mt-8 scroll-mt-20 space-y-2">
+          <h2 className="text-sm font-semibold text-white/80">CTOgo swap fee · 1.25%</h2>
+          <p className="text-[12px] leading-relaxed text-white/45">{SCOUT_FEE_ENGINE.washTradeNote}</p>
+          {(
+            [
+              {
+                label: 'Scout commission',
+                bps: SCOUT_FEE_ENGINE.scoutBps,
+                detail: SCOUT_FEE_ENGINE.scout,
+              },
+              {
+                label: 'Marketing wallet',
+                bps: SCOUT_FEE_ENGINE.marketingBps,
+                detail: SCOUT_FEE_ENGINE.marketing,
+              },
+              {
+                label: 'CTOgo revenue',
+                bps: SCOUT_FEE_ENGINE.platformBps,
+                detail: SCOUT_FEE_ENGINE.platform,
+              },
+            ] as const
+          ).map((row) => (
             <div
-              key={tier.id}
-              className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
+              key={row.label}
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3"
             >
-              <div>
-                <p className="text-sm font-semibold">{tier.label}</p>
-                <p className="text-[11px] text-white/40">{tier.marketCap}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">{row.label}</p>
+                <p className="text-sm font-bold text-[#d5ff69]">{formatBpsPercent(row.bps)}</p>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#d5ff69]">{formatBpsPercent(totalFeeBps(tier))}</p>
-                <p className="text-[10px] text-white/35">
-                  {formatBpsPercent(tier.marketingBps)} mkt ·{' '}
-                  {formatBpsPercent(tier.creatorPoolBps)} pool ·{' '}
-                  {formatBpsPercent(tier.platformBps)} CTOgo
-                </p>
-              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-white/40">{row.detail}</p>
             </div>
           ))}
+          <p className="text-[11px] text-white/35">{SCOUT_FEE_ENGINE.tabSeparation}</p>
         </section>
 
         <section className="mt-8 space-y-2">

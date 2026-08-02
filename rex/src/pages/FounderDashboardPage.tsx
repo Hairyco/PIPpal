@@ -745,26 +745,26 @@ export function FounderDashboardPage() {
                   </span>
                   <DemoPreviewBadge />
                 </div>
-                <h2 className="mt-2 font-semibold text-white">Pay promoters from your wallet</h2>
+                <h2 className="mt-2 font-semibold text-white">Scout share & earn</h2>
                 <p className="mt-1 break-words text-sm text-muted-foreground">
-                  List {project.projectName} in the promoter catalogue. Commissions on referred
-                  bonding-curve buys are paid automatically from your marketing wallet — never from
-                  your personal funds.
+                  Community and scouts share {project.projectName} with wallet ref links. They earn
+                  0.55% instant SOL on attributed CTOgo swaps — paid to their wallets, not from your
+                  marketing wallet roadmap.
                 </p>
                 <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    Set commission % of marketing tax · tracked ref links per promoter
+                    Protocol-fixed 0.55% scout cut · 24h last-click attribution
                   </li>
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
-                    Payouts pause if the marketing wallet is empty
+                    Marketing wallet still gets 0.40% for roadmap spend
                   </li>
                 </ul>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link to={`${promoteUrl}#affiliate`} className="dex-btn-green">
-                    Set up affiliate programme
+                    View scout programme
                   </Link>
                   <Link to="/affiliates" className="dex-btn">
-                    Preview catalogue
+                    Scout catalogue
                   </Link>
                 </div>
               </div>

@@ -69,7 +69,7 @@ export function WatchlistPage() {
                 >
                   <button
                     type="button"
-                    onClick={() => navigate(`/?ticker=${encodeURIComponent(project.ticker)}`)}
+                    onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
                     className="flex min-w-0 flex-1 items-center gap-3 text-left"
                   >
                     <div

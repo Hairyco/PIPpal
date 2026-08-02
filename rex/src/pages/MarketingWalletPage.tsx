@@ -3,9 +3,9 @@ import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
 import { MarketingWalletHeroVisual } from '../components/MarketingWalletHeroVisual';
 import { PolessiaLogo } from '../components/PolessiaLogo';
-import { formatBpsPercent, FEE_TIERS } from '../data/chainConfig';
+import { formatBpsPercent, SCOUT_FEE_ENGINE } from '../data/chainConfig';
 
-const LAUNCH_MKT = formatBpsPercent(FEE_TIERS[0].marketingBps);
+const LAUNCH_MKT = formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps);
 
 export function MarketingWalletPage() {
   return (

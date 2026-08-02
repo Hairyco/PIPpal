@@ -36,7 +36,7 @@ import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } fro
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
-  FEE_TIERS,
+  SCOUT_FEE_ENGINE,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
@@ -429,8 +429,9 @@ export function LaunchCtoPage() {
   const shareLinks = (() => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
     const tg = telegramInvite ?? `https://t.me/ctogo_${coinSlug}`;
+    const coinTicker = (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO';
     return {
-      token: `${origin}/?coin=${coinSlug}`,
+      token: `${origin}/coin/${encodeURIComponent(coinTicker)}`,
       telegram: tg,
       burn: `${origin}/launch?burn=1&ticker=${encodeURIComponent(ticker.trim() || 'CTO')}&ca=${encodeURIComponent(contract.trim())}`,
     };
@@ -858,7 +859,7 @@ export function LaunchCtoPage() {
                         {
                           icon: Zap,
                           title: 'Scout Rewards',
-                          detail: 'Pay your raiders 0.05% SOL on every buy link they share.',
+                          detail: 'Raiders earn 0.55% instant SOL on every buy through their scout link.',
                         },
                         {
                           icon: ShieldCheck,
@@ -1606,7 +1607,7 @@ export function LaunchCtoPage() {
                       </span>
                       <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
                         Thinks, builds and markets your coin autonomously ·{' '}
-                        {formatBpsPercent(FEE_TIERS[0].marketingBps)} of every trade
+                        {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of every trade
                       </span>
                     </span>
                     <span className="shrink-0 font-mono text-[13px] font-bold text-[#d5ff69]">

@@ -23,7 +23,7 @@ import {
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
-import { FEE_TIERS, formatBpsPercent } from '../data/chainConfig';
+import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
@@ -75,8 +75,10 @@ const LAUNCH_TABS: { id: DashTab; label: string }[] = [
 
 const LIST_TABS: { id: DashTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
+  { id: 'roadmap', label: 'Roadmap' },
   { id: 'wallet', label: 'Wallet' },
   { id: 'socials', label: 'Socials' },
+  { id: 'affiliate', label: 'Affiliate' },
 ];
 
 export function PostLaunchDashboard({
@@ -169,11 +171,11 @@ export function PostLaunchDashboard({
   const mktSolscan = mktAddress ? solscanAccountUrl(mktAddress) : null;
 
   const vaultLive = marketingAttached || mode === 'launch';
-  const marketingFillPct = formatBpsPercent(FEE_TIERS[0].marketingBps);
+  const marketingFillPct = formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps);
   /** Demo volume until live indexer — scaled so wallet ≈ marketing cut of volume. */
   const tradingVolumeUsd = vaultLive
     ? Math.max(
-        Math.round((vaultBalanceUsd / (FEE_TIERS[0].marketingBps / 10_000)) * 0.92),
+        Math.round((vaultBalanceUsd / (SCOUT_FEE_ENGINE.marketingBps / 10_000)) * 0.92),
         vaultBalanceUsd * 20,
       )
     : 0;
@@ -576,7 +578,7 @@ export function PostLaunchDashboard({
                   <p className="text-[13px] font-semibold text-[#d5ff69]">Add marketing wallet</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/50">
                     Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once
-                    to unlock Auto Marketing Wallet + Scout Rewards.
+                    to unlock Auto Marketing Wallet + Scout programme.
                   </p>
                 </div>
               </div>
@@ -806,7 +808,7 @@ export function PostLaunchDashboard({
                       {marketingFillPct} of every buy · {marketingFillPct} of every sell
                     </p>
                     <p className="mt-1 text-[11px] leading-relaxed text-white/35">
-                      Launch tier marketing cut ({FEE_TIERS[0].marketCap}). Same rate on buys and
+                      Fixed marketing cut ({formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of volume). Same rate on buys and
                       sells until mcap steps the schedule down.
                     </p>
                     <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">

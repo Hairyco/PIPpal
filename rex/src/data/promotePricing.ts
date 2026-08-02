@@ -36,11 +36,11 @@ export const categoryBoostTiers: CategoryBoostTier[] = [
   },
 ];
 
+/** Scout programme defaults — protocol-fixed rate from SCOUT_FEE_ENGINE. */
 export const affiliateProgramDefaults = {
-  /** Commission % of marketing tax — always paid from the marketing wallet */
-  commissionMin: 5,
-  commissionMax: 40,
-  defaultCommission: 15,
-  attributionDays: 14,
-  minPayout: 25,
-};
+  /** Protocol scout cut of swap volume (bps → percent display). */
+  scoutCommissionPct: 0.55,
+  attributionHours: 24,
+  attributionLabel: '24-hour last-click attribution',
+  payout: 'Instant SOL to scout wallet on referred CTOgo swaps (when fee engine is live on-chain)',
+} as const;

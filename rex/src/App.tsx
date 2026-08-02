@@ -21,6 +21,7 @@ import { MarketingWalletPage } from './pages/MarketingWalletPage';
 import { FaqPage } from './pages/FaqPage';
 import { ContactPage } from './pages/ContactPage';
 import { WatchlistPage } from './pages/WatchlistPage';
+import { CoinPage } from './pages/CoinPage';
 import { WelcomeGate } from './components/WelcomeGate';
 
 export function App() {
@@ -32,6 +33,7 @@ export function App() {
           <WelcomeGate />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/coin/:ticker" element={<CoinPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/launch" element={<LaunchCtoPage />} />
             <Route path="/trade" element={<TradePage />} />

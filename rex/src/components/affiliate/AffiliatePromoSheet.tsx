@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Infinity, Users, X } from 'lucide-react';
+import { Users, X } from 'lucide-react';
 import { AffiliateEarnArt } from './AffiliateEarnArt';
+import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
 
 const SEEN_KEY = 'ctogo-affiliate-sheet-seen';
+const SCOUT_PCT = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
 
 export function AffiliatePromoSheet() {
   const [open, setOpen] = useState(false);
@@ -51,9 +53,9 @@ export function AffiliatePromoSheet() {
             </span>
             <div>
               <p id="affiliate-sheet-title" className="font-serif text-lg font-bold text-white">
-                Affiliate
+                Scout rewards
               </p>
-              <p className="text-[11px] text-white/40">Share links · earn on every trade</p>
+              <p className="text-[11px] text-white/40">Share links · earn instant SOL</p>
             </div>
           </div>
           <button
@@ -70,29 +72,28 @@ export function AffiliatePromoSheet() {
 
         <div className="mt-2 rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-3.5">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-white">Earn on referrals</p>
+            <p className="text-sm font-semibold text-white">Earn on every referred swap</p>
             <span className="inline-flex items-center gap-1 rounded-md bg-[#c8ff3d] px-2 py-0.5 text-xs font-bold text-[#090b14]">
-              0.2%
-              <Infinity className="h-3.5 w-3.5" aria-hidden />
+              {SCOUT_PCT}
             </span>
           </div>
           <p className="mt-1.5 text-[12px] leading-relaxed text-white/60">
-            Get <span className="font-semibold text-[#d5ff69]">0.2%</span> of referral trading fees —
-            forever. When someone trades through your link, you keep earning for as long as they
-            trade.
+            Get <span className="font-semibold text-[#d5ff69]">{SCOUT_PCT}</span> of swap volume as
+            instant SOL when someone buys through your scout link — filled straight into your wallet
+            when the fee engine is live on-chain.
           </p>
           <ul className="mt-2.5 space-y-1">
             <li className="flex gap-1.5 text-[11px] text-white/70">
-              <span className="text-[#c8ff3d]">∞</span>
-              Lifetime cut on referred volume
+              <span className="text-[#c8ff3d]">·</span>
+              {SCOUT_FEE_ENGINE.attributionHours}h last-click attribution
             </li>
             <li className="flex gap-1.5 text-[11px] text-white/70">
-              <span className="text-[#c8ff3d]">∞</span>
-              Paid from trading fees — not your pocket
+              <span className="text-[#c8ff3d]">·</span>
+              Not paid from the marketing wallet roadmap
             </li>
             <li className="flex gap-1.5 text-[11px] text-white/70">
-              <span className="text-[#c8ff3d]">∞</span>
-              Share from your dashboard when you list or launch
+              <span className="text-[#c8ff3d]">·</span>
+              Copy your link from any coin page Affiliate tab
             </li>
           </ul>
         </div>
@@ -103,7 +104,7 @@ export function AffiliatePromoSheet() {
             onClick={dismiss}
             className="inline-flex flex-1 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 py-3 text-sm font-semibold text-[#090b14] transition hover:bg-[#d5ff69]"
           >
-            See affiliate programmes
+            Browse scout coins
           </Link>
           <button
             type="button"
