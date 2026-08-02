@@ -214,8 +214,8 @@ export function ServicesPage() {
             </div>
 
             <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-              <Field label="Project / coin name *" value={projectName} onChange={setProjectName} placeholder="Moon Pigeon" />
-              <Field label="Ticker" value={ticker} onChange={setTicker} placeholder="MPEG" />
+              <Field label="Project / coin name *" value={projectName} onChange={setProjectName} placeholder="Cat Wif Hat" />
+              <Field label="Ticker" value={ticker} onChange={setTicker} placeholder="CWH" />
               <Field
                 label="Old website URL"
                 value={websiteUrl}
