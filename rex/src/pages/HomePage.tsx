@@ -782,6 +782,8 @@ export function HomePage() {
   const searchPanelRef = useRef<HTMLDivElement>(null);
   const searchPanelTouchRef = useRef(false);
   const [searchPanelMaxH, setSearchPanelMaxH] = useState<number | null>(null);
+  const headerActionsRef = useRef<HTMLDivElement>(null);
+  const headerActionsHintPlayed = useRef(false);
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
@@ -862,6 +864,33 @@ export function HomePage() {
   useEffect(() => {
     captureScoutRefFromSearch(searchParams);
   }, [searchParams]);
+
+  /** Peek-scroll the header actions so the menu (sidebar) is discoverable when clipped. */
+  useEffect(() => {
+    const el = headerActionsRef.current;
+    if (!el || headerActionsHintPlayed.current) return;
+
+    const run = () => {
+      if (!headerActionsRef.current || headerActionsHintPlayed.current) return;
+      const node = headerActionsRef.current;
+      if (node.scrollWidth <= node.clientWidth + 8) return;
+      headerActionsHintPlayed.current = true;
+      const max = node.scrollWidth - node.clientWidth;
+      window.setTimeout(() => {
+        node.scrollTo({ left: Math.min(max, 56), behavior: 'smooth' });
+      }, 700);
+      window.setTimeout(() => {
+        node.scrollTo({ left: 0, behavior: 'smooth' });
+      }, 1400);
+    };
+
+    const t = window.setTimeout(run, 200);
+    window.addEventListener('resize', run);
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('resize', run);
+    };
+  }, []);
 
   useEffect(() => {
     const raw =
@@ -1215,34 +1244,43 @@ export function HomePage() {
               </label>
             </div>
 
-            <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-              <Link
-                to="/launch"
-                className="hidden h-10 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
+            <div className="relative min-w-0 max-w-[48%] shrink sm:max-w-none sm:shrink-0">
+              <div
+                ref={headerActionsRef}
+                className="flex items-center gap-1 overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1.5 [&::-webkit-scrollbar]:hidden"
               >
-                <Plus className="h-4 w-4" /> Submit CTO
-              </Link>
-              <AuthButton className="shrink-0" />
-              {signedIn ? (
                 <Link
-                  to="/launch?dashboard=1"
-                  className="grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
-                  aria-label="Dashboard"
-                  title="Dashboard"
+                  to="/launch"
+                  className="hidden h-10 shrink-0 items-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] transition hover:bg-[#d7ff70] md:flex"
                 >
-                  <UserRound className="h-5 w-5" />
+                  <Plus className="h-4 w-4" /> Submit CTO
                 </Link>
-              ) : null}
-              <ConnectWalletButton className="shrink-0" />
-              <button
-                type="button"
-                className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
-                aria-label="Notifications"
-                title="Notifications"
-              >
-                <Bell className="h-5 w-5" />
-              </button>
-              <AppSidebarMenuButton />
+                <AuthButton className="shrink-0" />
+                {signedIn ? (
+                  <Link
+                    to="/launch?dashboard=1"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-[#d5ff69]"
+                    aria-label="Dashboard"
+                    title="Dashboard"
+                  >
+                    <UserRound className="h-5 w-5" />
+                  </Link>
+                ) : null}
+                <ConnectWalletButton className="shrink-0" />
+                <button
+                  type="button"
+                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
+                  aria-label="Notifications"
+                  title="Notifications"
+                >
+                  <Bell className="h-5 w-5" />
+                </button>
+                <AppSidebarMenuButton className="shrink-0" />
+              </div>
+              <div
+                className="pointer-events-none absolute inset-y-0 right-0 w-7 bg-gradient-to-l from-black to-transparent sm:hidden"
+                aria-hidden
+              />
             </div>
           </div>
 
