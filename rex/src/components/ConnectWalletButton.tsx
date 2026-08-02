@@ -195,7 +195,6 @@ export function ConnectWalletButton({
   );
   const balanceLabel = loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 2);
   const labelClass = alwaysLabel ? 'inline' : 'hidden sm:inline';
-  const raidRate = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
 
   const updateMenuPos = useCallback(() => {
     const el = triggerRef.current;
@@ -311,11 +310,8 @@ export function ConnectWalletButton({
                 <div className="min-w-0">
                   <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
                   <p className="mt-0.5 text-[10px] text-white/35">
-                    Raid rate <span className="font-semibold text-[#d5ff69]">{raidRate}</span> of
-                    swap volume · List & Launch
-                  </p>
-                  <p className="mt-0.5 text-[10px] leading-snug text-white/30">
-                    No raid link → CTOgo keeps {raidRate}
+                    Raid rate{' '}
+                    <span className="font-semibold text-[#d5ff69]">0.4–0.5%</span> of swap volume
                   </p>
                 </div>
                 <div className="inline-flex shrink-0 rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
