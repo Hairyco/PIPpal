@@ -1141,7 +1141,7 @@ export function HomePage() {
               </div>
             </a>
 
-            <div className="relative min-w-0 flex-1 sm:max-w-md md:max-w-lg">
+            <div className="relative min-w-[10.5rem] flex-[1.4] basis-0 sm:min-w-[18rem] sm:flex-1 lg:max-w-2xl">
               <label className="relative block">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
                 <input
@@ -1157,7 +1157,7 @@ export function HomePage() {
                   aria-keyshortcuts="/"
                   aria-expanded={showSearchPanel}
                   aria-controls="cto-search-panel"
-                  className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-base text-white outline-none transition placeholder:text-white/40 focus:border-[#c8ff3d]/40 sm:pr-11"
+                  className="h-10 w-full min-w-0 rounded-lg border border-white/[0.08] bg-white/[0.045] pl-9 pr-3 text-sm text-white outline-none transition placeholder:text-white/40 focus:border-[#c8ff3d]/40 sm:h-11 sm:pr-11 sm:text-base"
                 />
                 {!searchFocused && !query ? (
                   <kbd
@@ -1205,7 +1205,7 @@ export function HomePage() {
             <div
               id="cto-search-panel"
               role="listbox"
-              className="absolute inset-x-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)] sm:max-w-lg"
+              className="absolute inset-x-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
             >
               <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
                 <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
