@@ -3,7 +3,7 @@ import { Check, Copy, Link2, Users, Wallet, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DemoPreviewBadge } from './DemoPreviewBadge';
 import { affiliateProgramDefaults } from '../../data/promotePricing';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
+import { SCOUT_FEE_ENGINE, LIST_FEE_ENGINE, LAUNCH_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../../data/chainConfig';
 import { coinPath } from '../../utils/scoutReferral';
 
 const SCOUT_PCT = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
@@ -41,21 +41,24 @@ export function AffiliateProgramDemo({
           </h2>
           <p className="mt-1 break-words text-sm text-muted-foreground">
             Anyone shares {projectName} with their wallet as <code className="text-sky-300">?ref=</code>.
-            Attributed CTOgo swaps stream {SCOUT_PCT} SOL to their wallet. Marketing wallet still gets{' '}
-            {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} for roadmap spend — separate buckets.
+            Attributed CTOgo swaps stream {SCOUT_PCT} SOL to their wallet. Marketing wallet still
+            gets {MARKETING_FILL_SHORT} for roadmap spend — separate buckets.
           </p>
         </div>
 
         <div className="mt-5 flex min-w-0 items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
           <Zap className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
           <p className="min-w-0 break-words text-xs text-muted-foreground">
-            <span className="font-medium text-white">Protocol-fixed rate.</span> Raid cut is always{' '}
-            {SCOUT_PCT} of swap volume — no founder commission slider. {affiliateProgramDefaults.attributionLabel}.
+            <span className="font-medium text-white">Protocol-fixed raid rate.</span> Raid cut is
+            always {SCOUT_PCT} on List and Launch — no founder slider. Unclaimed raid → CTOgo
+            treasury. {affiliateProgramDefaults.attributionLabel}.
           </p>
         </div>
 
         <div className="mt-4 break-words rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-xs text-amber-200/90">
-          Instant SOL routing ships with the on-chain fee engine. Coin pages, raid links, and 24h
+          List {formatBpsPercent(LIST_FEE_ENGINE.totalBps)} · Launch{' '}
+          {formatBpsPercent(LAUNCH_FEE_ENGINE.totalBps)} (adds{' '}
+          {formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} creator). Coin pages, raid links, and 24h
           attribution are live in the app now.
         </div>
 
@@ -88,8 +91,8 @@ export function AffiliateProgramDemo({
           <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3">
             <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-white/40" />
             <p className="text-xs text-muted-foreground">
-              Raiders do not drain your marketing wallet. Roadmap spend (pins, DexScreener) stays on
-              the {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} cut only.
+              Raiders do not drain your marketing wallet. Roadmap spend stays on the{' '}
+              {MARKETING_FILL_SHORT} cut only.
             </p>
           </div>
         </div>

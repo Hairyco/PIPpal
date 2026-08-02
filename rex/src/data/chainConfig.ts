@@ -79,6 +79,13 @@ export const TRADE_FEE_BPS = LIST_FEE_ENGINE.totalBps;
 
 export const TRADE_FEE_LABEL = `List ${LIST_FEE_ENGINE.summary} · Launch ${LAUNCH_FEE_ENGINE.summary}`;
 
+/** Short dual-engine lines for UI (avoid List-only defaults looking universal). */
+export const DUAL_FEE_SHORT =
+  'List 1.25% · Launch 1.30% (Launch adds 0.20% creator)';
+export const MARKETING_FILL_SHORT = '0.40% List / 0.30% Launch';
+export const RAID_RATE_SHORT =
+  '0.50% on List and Launch — no raid link → CTOgo treasury';
+
 /**
  * Shared raid programme surface (List rates for marketing/platform display).
  * Prefer LAUNCH_FEE_ENGINE / LIST_FEE_ENGINE when the path is known.

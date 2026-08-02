@@ -1,6 +1,6 @@
 import { Wallet, Map, Building2, Rocket, Gift } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { TRADE_FEE_LABEL } from './chainConfig';
+import { DUAL_FEE_SHORT, MARKETING_FILL_SHORT } from './chainConfig';
 import { premiumFeatures } from './claimPricing';
 import { LAUNCH_NOTE, LAUNCH_TRADE_NOTE } from './launchTerms';
 
@@ -77,9 +77,10 @@ export const howItWorksSteps: HowItWorksStep[] = [
     title: 'Automated marketing wallet',
     subtitle: 'Trades fund the wallet — milestones pay providers',
     description:
-      `Built-in buy/sell tax on every trade — ${TRADE_FEE_LABEL} — flows into a dedicated marketing wallet. When milestones are reached, CTOgo pays vetted suppliers for the services your project needs.`,
+      `Built-in buy/sell tax on every CTOgo-routed trade — ${DUAL_FEE_SHORT} — flows into a dedicated marketing wallet (${MARKETING_FILL_SHORT}). When milestones are reached, CTOgo pays vetted suppliers for the services your project needs.`,
     bullets: [
-      `${TRADE_FEE_LABEL} on buys and sells`,
+      `${DUAL_FEE_SHORT}`,
+      `${MARKETING_FILL_SHORT} fills the marketing wallet`,
       LAUNCH_TRADE_NOTE,
       'Milestone thresholds unlock payouts only after auto spend is turned on in settings',
       'Investors can track wallet balance and upcoming supplier spend live',

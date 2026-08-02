@@ -35,7 +35,9 @@ import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } fro
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
-  SCOUT_FEE_ENGINE,
+  LAUNCH_FEE_ENGINE,
+  LIST_FEE_ENGINE,
+  MARKETING_FILL_SHORT,
   formatBpsPercent,
   type CreatorFeeMode,
 } from '../data/chainConfig';
@@ -846,13 +848,12 @@ export function LaunchCtoPage() {
                         {
                           icon: TrendingUp,
                           title: 'Auto Marketing Wallet',
-                          detail: '0.40% of every CTOgo-routed trade goes straight to marketing funds.',
+                          detail: `${formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} of every CTOgo-routed trade goes straight to marketing funds (List).`,
                         },
                         {
                           icon: Zap,
                           title: 'Raid Rewards',
-                          detail:
-                            'Raiders earn 0.50% instant SOL on buys through their raid link. No link → CTOgo keeps the 0.50%.',
+                          detail: `Raiders earn ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)} instant SOL on buys through their raid link. No link → CTOgo keeps the ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)}.`,
                         },
                         {
                           icon: ShieldCheck,
@@ -1029,7 +1030,8 @@ export function LaunchCtoPage() {
                       {[
                         { icon: Globe, label: 'Website' },
                         { icon: MessageCircle, label: 'New socials' },
-                        { icon: ShieldAlert, label: '0.2% creator fees' },
+                        { icon: ShieldAlert, label: `${formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} creator fees` },
+                        { icon: Coins, label: 'Launch swap fee 1.30%' },
                       ].map(({ icon: Icon, label }) => (
                         <div
                           key={label}
@@ -1599,7 +1601,10 @@ export function LaunchCtoPage() {
                       </span>
                       <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
                         Thinks, builds and markets your coin autonomously ·{' '}
-                        {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of every trade
+                        {mode === 'add'
+                          ? `${formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} List cut`
+                          : `${formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch cut`}{' '}
+                        ({MARKETING_FILL_SHORT})
                       </span>
                     </span>
                     <span className="shrink-0 font-mono text-[13px] font-bold text-[#d5ff69]">

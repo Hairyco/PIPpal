@@ -16,7 +16,8 @@ export const MARKETING_WALLET_ATTACH_POLICY = {
   summary:
     'Attaching a marketing wallet to a listed coin costs $1. On-chain rent and transaction fees come out of that; whatever is left goes to the CTOgo treasury.',
   paidWhen: 'Optional step on List a CTO — skip to list without a wallet',
-  fillsFrom: 'CTOgo-routed trades only (platform fee always; marketing cut when wallet is attached)',
+  fillsFrom:
+    'CTOgo-routed trades only (List 1.25% / Launch 1.30% engines; marketing cut when wallet is attached)',
 } as const;
 
 export interface PremiumFeature {

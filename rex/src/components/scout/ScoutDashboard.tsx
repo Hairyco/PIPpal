@@ -3,7 +3,7 @@ import { Check, Copy, Wallet } from 'lucide-react';
 import { useConnectedWallet } from '../ConnectWalletButton';
 import { SolanaLogo } from '../SolanaLogo';
 import { SolWalletPanel } from '../SolWalletPanel';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
+import { LAUNCH_FEE_ENGINE, LIST_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
 import { formatSolAmount } from '../../hooks/useSolBalance';
 import {
   buildScoutLink,
@@ -29,7 +29,7 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
     [address, copied],
   );
 
-  const scoutPct = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
+  const scoutPct = formatBpsPercent(LIST_FEE_ENGINE.raidBps);
 
   const copyLink = async () => {
     if (!scoutLink || !address) return;
@@ -56,7 +56,7 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         <div>
           <p className="text-sm font-semibold text-white">Share & earn</p>
           <p className="mt-1 text-[12px] leading-relaxed text-white/45">
-            {scoutPct} raid cut · {SCOUT_FEE_ENGINE.attributionHours}h last-click · streams to your
+            {scoutPct} raid cut · {LIST_FEE_ENGINE.attributionHours}h last-click · streams to your
             wallet
           </p>
         </div>
@@ -110,13 +110,20 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
           <p className="font-medium text-white/70">Fee split on every CTOgo swap</p>
           <ul className="mt-2 space-y-1">
             <li>
-              {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} → raid wallet (you) · or CTOgo treasury
-              if no raid link
+              {formatBpsPercent(LIST_FEE_ENGINE.raidBps)} raid → you · or CTOgo treasury if no link
+              (same on List & Launch)
             </li>
             <li>
-              {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} → marketing wallet (List roadmap)
+              Marketing → {formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} List /{' '}
+              {formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch
             </li>
-            <li>{formatBpsPercent(SCOUT_FEE_ENGINE.platformBps)} → CTOgo</li>
+            <li>
+              CTOgo → {formatBpsPercent(LIST_FEE_ENGINE.platformBps)} List /{' '}
+              {formatBpsPercent(LAUNCH_FEE_ENGINE.platformBps)} Launch
+            </li>
+            <li>
+              Creator → {formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} Launch only (List has none)
+            </li>
           </ul>
         </div>
       ) : null}

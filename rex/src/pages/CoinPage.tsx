@@ -14,7 +14,13 @@ import {
   formatThresholdUsd,
   tierTotalUsd,
 } from '../data/postLaunchRoadmap';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import {
+  LIST_FEE_ENGINE,
+  LAUNCH_FEE_ENGINE,
+  DUAL_FEE_SHORT,
+  RAID_RATE_SHORT,
+  formatBpsPercent,
+} from '../data/chainConfig';
 import { captureScoutRefFromSearch, coinPath, normalizeTicker } from '../utils/scoutReferral';
 
 type CoinTab = 'overview' | 'roadmap' | 'wallet' | 'socials' | 'affiliate';
@@ -142,7 +148,7 @@ export function CoinPage() {
               to="/fees#raid-fee-engine"
               className="shrink-0 rounded-md border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.08] px-2 py-1 text-[10px] font-semibold text-[#d5ff69]"
             >
-              {formatBpsPercent(SCOUT_FEE_ENGINE.totalBps)} fee
+              {DUAL_FEE_SHORT}
             </Link>
           </div>
           <div className="grid grid-cols-5 gap-0.5 px-2 pb-2 sm:px-3">
@@ -168,19 +174,22 @@ export function CoinPage() {
             <div className="space-y-4">
               <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3.5 py-3">
                 <p className="text-[11px] font-medium text-white/45">CTOgo swap split</p>
-                <p className="mt-1 text-[12px] text-white/70">
-                  <span className="font-semibold text-[#d5ff69]">
-                    {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} raid
-                  </span>
+                <p className="mt-1 text-[12px] leading-relaxed text-white/70">
+                  <span className="font-semibold text-[#d5ff69]">List 1.25%</span>
                   {' · '}
-                  {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} wallet
-                  {' · '}
-                  {formatBpsPercent(SCOUT_FEE_ENGINE.platformBps)} CTOgo
-                  <span className="block mt-1 text-[11px] font-normal text-white/40">
-                    No raid link → {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} to CTOgo treasury.
-                    Launch adds 0.20% creator.
-                  </span>
+                  {formatBpsPercent(LIST_FEE_ENGINE.raidBps)} raid ·{' '}
+                  {formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} wallet ·{' '}
+                  {formatBpsPercent(LIST_FEE_ENGINE.platformBps)} CTOgo
                 </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-white/70">
+                  <span className="font-semibold text-[#d5ff69]">Launch 1.30%</span>
+                  {' · '}
+                  {formatBpsPercent(LAUNCH_FEE_ENGINE.raidBps)} raid ·{' '}
+                  {formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} wallet ·{' '}
+                  {formatBpsPercent(LAUNCH_FEE_ENGINE.creatorBps)} creator ·{' '}
+                  {formatBpsPercent(LAUNCH_FEE_ENGINE.platformBps)} CTOgo
+                </p>
+                <p className="mt-1.5 text-[11px] text-white/40">{RAID_RATE_SHORT}</p>
               </div>
               <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
                 <ScoutDashboard symbol={project.ticker} compact />
@@ -200,8 +209,9 @@ export function CoinPage() {
               <div>
                 <p className="font-serif text-xl font-bold text-white">Spend roadmap</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Funded only by the {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} marketing
-                  wallet cut. Raid commissions are separate — see Affiliate.
+                  Funded only by the marketing cut ({formatBpsPercent(LIST_FEE_ENGINE.marketingBps)}{' '}
+                  List / {formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch). Raid commissions
+                  are separate — see Affiliate.
                 </p>
                 <div className="mt-2">
                   <PolessiaLogo variant="powered" size="xs" />
@@ -246,9 +256,10 @@ export function CoinPage() {
               <div>
                 <p className="font-serif text-xl font-bold text-white">Wallet</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Your SOL balance holds raid commissions ({formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}
+                  Your SOL balance holds raid commissions ({formatBpsPercent(LIST_FEE_ENGINE.raidBps)}
                   ). The project marketing wallet fills separately (
-                  {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)}) for roadmap spend.
+                  {formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} List /{' '}
+                  {formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch) for roadmap spend.
                 </p>
               </div>
               <SolWalletPanel />

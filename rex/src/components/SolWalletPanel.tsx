@@ -32,7 +32,8 @@ export function SolWalletPanel({ showScoutEarnings = true, className = '' }: Sol
             <span className="font-mono text-[12px] font-semibold text-white/40">0</span>
           </span>
           <p className="min-w-0 text-[12px] leading-relaxed text-white/45">
-            Connect to see your SOL balance in the header — raid commissions ({scoutPct}) fill it.
+            Connect to see your SOL balance in the header — raid commissions (0.50% List & Launch)
+            fill it when attributed.
           </p>
         </div>
         <button

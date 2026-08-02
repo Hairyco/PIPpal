@@ -312,7 +312,10 @@ export function ConnectWalletButton({
                   <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
                   <p className="mt-0.5 text-[10px] text-white/35">
                     Raid rate <span className="font-semibold text-[#d5ff69]">{raidRate}</span> of
-                    swap volume
+                    swap volume · List & Launch
+                  </p>
+                  <p className="mt-0.5 text-[10px] leading-snug text-white/30">
+                    No raid link → CTOgo keeps {raidRate}
                   </p>
                 </div>
                 <div className="inline-flex shrink-0 rounded-lg border border-white/[0.08] bg-black/25 p-0.5">

@@ -10,7 +10,7 @@ import {
 import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import { SCOUT_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../data/chainConfig';
 
 const READ_KEY = 'ctogo-notifications-read';
 
@@ -60,7 +60,7 @@ const DEMO_NOTIFICATIONS: AppNotification[] = [
     id: 'wallet-fill',
     kind: 'wallet',
     title: 'Marketing wallet filling',
-    body: `${formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} of CTOgo-routed volume is funding your spend roadmap.`,
+    body: `${MARKETING_FILL_SHORT} of CTOgo-routed volume is funding your spend roadmap.`,
     time: 'Yesterday',
     href: '/marketing-wallet',
   },

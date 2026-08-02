@@ -3,9 +3,10 @@ import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
 import { MarketingWalletHeroVisual } from '../components/MarketingWalletHeroVisual';
 import { PolessiaLogo } from '../components/PolessiaLogo';
-import { formatBpsPercent, SCOUT_FEE_ENGINE } from '../data/chainConfig';
+import { formatBpsPercent, LAUNCH_FEE_ENGINE, LIST_FEE_ENGINE, MARKETING_FILL_SHORT } from '../data/chainConfig';
 
-const LAUNCH_MKT = formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps);
+const LIST_MKT = formatBpsPercent(LIST_FEE_ENGINE.marketingBps);
+const LAUNCH_MKT = formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps);
 
 export function MarketingWalletPage() {
   return (
@@ -52,9 +53,9 @@ export function MarketingWalletPage() {
                     Thinks, builds and markets your coin autonomously.
                   </p>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
-                    Every trade on CTOgo puts {LAUNCH_MKT} into your coin’s marketing wallet. When
-                    you reach each milestone, spend unlocks — socials, callouts, more — managed
-                    automatically.
+                    Every trade on CTOgo puts {MARKETING_FILL_SHORT} into your coin’s marketing
+                    wallet ({LIST_MKT} on List · {LAUNCH_MKT} on Launch). When you reach each
+                    milestone, spend unlocks — socials, callouts, more — managed automatically.
                   </p>
                 </div>
               </div>
@@ -65,7 +66,7 @@ export function MarketingWalletPage() {
                 {[
                   {
                     title: 'Fills from trades',
-                    body: `${LAUNCH_MKT} of volume → wallet at launch`,
+                    body: `${MARKETING_FILL_SHORT} of volume → wallet`,
                   },
                   {
                     title: 'Spends on autopilot',
