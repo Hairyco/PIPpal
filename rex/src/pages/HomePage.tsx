@@ -778,6 +778,9 @@ export function HomePage() {
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
+  const searchPanelRef = useRef<HTMLDivElement>(null);
+  const searchPanelTouchRef = useRef(false);
+  const [searchPanelMaxH, setSearchPanelMaxH] = useState<number | null>(null);
   const [walletExplainerOpen, setWalletExplainerOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'trade'>('list');
   const [selectedTicker, setSelectedTicker] = useState(projects[0]?.ticker ?? 'MPEG');
@@ -817,6 +820,39 @@ export function HomePage() {
   }, [query]);
 
   const showSearchPanel = searchFocused;
+
+  useEffect(() => {
+    if (!showSearchPanel) {
+      setSearchPanelMaxH(null);
+      return;
+    }
+
+    const updateMaxHeight = () => {
+      const panel = searchPanelRef.current;
+      if (!panel) return;
+      const vv = window.visualViewport;
+      const rect = panel.getBoundingClientRect();
+      const viewportBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+      // Keep list above the soft keyboard / viewport bottom
+      const next = Math.floor(viewportBottom - rect.top - 10);
+      setSearchPanelMaxH(Math.max(140, next));
+    };
+
+    updateMaxHeight();
+    // Re-measure after layout / keyboard animation
+    const t1 = window.setTimeout(updateMaxHeight, 50);
+    const t2 = window.setTimeout(updateMaxHeight, 280);
+    window.visualViewport?.addEventListener('resize', updateMaxHeight);
+    window.visualViewport?.addEventListener('scroll', updateMaxHeight);
+    window.addEventListener('resize', updateMaxHeight);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      window.visualViewport?.removeEventListener('resize', updateMaxHeight);
+      window.visualViewport?.removeEventListener('scroll', updateMaxHeight);
+      window.removeEventListener('resize', updateMaxHeight);
+    };
+  }, [showSearchPanel, query, searchSuggestions.trending.length, searchSuggestions.rest.length]);
 
   useLayoutEffect(() => {
     forceNightTheme();
@@ -1151,7 +1187,11 @@ export function HomePage() {
                   onChange={(event) => setQuery(event.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   onBlur={() => {
-                    window.setTimeout(() => setSearchFocused(false), 120);
+                    window.setTimeout(() => {
+                      if (searchPanelTouchRef.current) return;
+                      if (searchPanelRef.current?.contains(document.activeElement)) return;
+                      setSearchFocused(false);
+                    }, 220);
                   }}
                   placeholder="Search CTOs"
                   aria-keyshortcuts="/"
@@ -1203,11 +1243,40 @@ export function HomePage() {
 
           {showSearchPanel ? (
             <div
+              ref={searchPanelRef}
               id="cto-search-panel"
               role="listbox"
+              onTouchStart={() => {
+                searchPanelTouchRef.current = true;
+              }}
+              onTouchEnd={() => {
+                window.setTimeout(() => {
+                  searchPanelTouchRef.current = false;
+                }, 400);
+              }}
+              onMouseDown={() => {
+                searchPanelTouchRef.current = true;
+              }}
+              onMouseUp={() => {
+                window.setTimeout(() => {
+                  searchPanelTouchRef.current = false;
+                }, 200);
+              }}
               className="absolute inset-x-0 top-[calc(100%+6px)] z-[70] overflow-hidden rounded-xl border border-white/[0.1] bg-[#050505] shadow-[0_18px_40px_rgba(0,0,0,0.55)]"
+              style={
+                searchPanelMaxH != null
+                  ? { maxHeight: searchPanelMaxH }
+                  : { maxHeight: 'min(52dvh, 420px)' }
+              }
             >
-              <div className="max-h-[min(60vh,420px)] overflow-y-auto overscroll-contain py-2">
+              <div
+                className="overflow-y-auto overscroll-contain py-2 [-webkit-overflow-scrolling:touch]"
+                style={
+                  searchPanelMaxH != null
+                    ? { maxHeight: searchPanelMaxH }
+                    : { maxHeight: 'min(52dvh, 420px)' }
+                }
+              >
                 <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                   Trending
                 </p>
@@ -1236,7 +1305,15 @@ export function HomePage() {
                           <p className="truncate text-[11px] text-white/35">{project.name}</p>
                         </div>
                         <span
-                          className={`shrink-0 whitespace-nowrap pl-1 text-right text-[11px] font-semibold tabular-nums ${
+                          className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                            project.launchInHours == null ? 'text-emerald-300' : 'text-white/45'
+                          }`}
+                          title="Listing age"
+                        >
+                          {formatLaunchLabel(project.launchInHours)}
+                        </span>
+                        <span
+                          className={`w-14 shrink-0 whitespace-nowrap text-right text-[11px] font-semibold tabular-nums ${
                             pct >= 0 ? 'text-lime-300' : 'text-rose-400'
                           }`}
                         >
@@ -1270,7 +1347,15 @@ export function HomePage() {
                             <p className="truncate text-[11px] text-white/35">{project.name}</p>
                           </div>
                           <span
-                            className={`shrink-0 whitespace-nowrap pl-1 text-right text-[11px] font-semibold tabular-nums ${
+                            className={`shrink-0 text-[11px] font-semibold tabular-nums ${
+                              project.launchInHours == null ? 'text-emerald-300' : 'text-white/45'
+                            }`}
+                            title="Listing age"
+                          >
+                            {formatLaunchLabel(project.launchInHours)}
+                          </span>
+                          <span
+                            className={`w-14 shrink-0 whitespace-nowrap text-right text-[11px] font-semibold tabular-nums ${
                               pct >= 0 ? 'text-lime-300' : 'text-rose-400'
                             }`}
                           >
@@ -1282,6 +1367,7 @@ export function HomePage() {
                     })}
                   </>
                 ) : null}
+                <div className="h-3 shrink-0" aria-hidden />
               </div>
             </div>
           ) : null}
