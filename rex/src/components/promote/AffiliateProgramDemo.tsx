@@ -3,7 +3,7 @@ import { Check, Copy, Link2, Users, Wallet, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DemoPreviewBadge } from './DemoPreviewBadge';
 import { affiliateProgramDefaults } from '../../data/promotePricing';
-import { SCOUT_FEE_ENGINE, LIST_FEE_ENGINE, LAUNCH_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../../data/chainConfig';
+import { SCOUT_FEE_ENGINE, MARKETING_FILL_SHORT, formatBpsPercent } from '../../data/chainConfig';
 import { coinPath } from '../../utils/scoutReferral';
 
 const SCOUT_PCT = formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps);
