@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode }
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { captureScoutRefFromSearch } from '../utils/scoutReferral';
 import {
-  Bell,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -28,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
+import { NotificationsButton } from '../components/NotificationsButton';
 import { AuthButton } from '../components/AuthButton';
 import { useAuth } from '../components/AuthProvider';
 import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
@@ -1267,14 +1267,7 @@ export function HomePage() {
                   </Link>
                 ) : null}
                 <ConnectWalletButton className="shrink-0" />
-                <button
-                  type="button"
-                  className="relative grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
-                  aria-label="Notifications"
-                  title="Notifications"
-                >
-                  <Bell className="h-5 w-5" />
-                </button>
+                <NotificationsButton className="shrink-0" />
                 <AppSidebarMenuButton className="shrink-0" />
               </div>
               <div
