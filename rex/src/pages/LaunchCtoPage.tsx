@@ -807,8 +807,8 @@ export function LaunchCtoPage() {
               </span>
             </Link>
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
-              <AuthButton />
               <ConnectWalletButton />
+              <AuthButton />
               <AppSidebarMenuButton />
             </div>
           </div>
