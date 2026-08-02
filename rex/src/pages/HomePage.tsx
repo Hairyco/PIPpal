@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { captureScoutRefFromSearch } from '../utils/scoutReferral';
 import {
   Bell,
   Check,
@@ -857,6 +858,10 @@ export function HomePage() {
   useLayoutEffect(() => {
     forceNightTheme();
   }, []);
+
+  useEffect(() => {
+    captureScoutRefFromSearch(searchParams);
+  }, [searchParams]);
 
   useEffect(() => {
     const raw =

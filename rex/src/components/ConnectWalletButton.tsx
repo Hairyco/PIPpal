@@ -9,10 +9,15 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ChevronDown, Copy, Check, LogOut, Wallet } from 'lucide-react';
+import { ChevronDown, Copy, Check, Link2, LogOut, Wallet } from 'lucide-react';
 import { SolanaLogo } from './SolanaLogo';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
-import { readScoutEarningsDemo } from '../utils/scoutReferral';
+import {
+  buildRaidLink,
+  RAID_EARNINGS_PERIODS,
+  raidEarningsForPeriod,
+  type RaidEarningsPeriod,
+} from '../utils/scoutReferral';
 
 const STORAGE_KEY = 'rex-connected-wallet';
 
@@ -170,10 +175,18 @@ export function ConnectWalletButton({
   const { sol, loading, refresh } = useSolBalance(address);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedRaid, setCopiedRaid] = useState(false);
+  const [period, setPeriod] = useState<RaidEarningsPeriod>('7d');
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
-  const earnings = address ? readScoutEarningsDemo(address) : { earnedSol: 0, volumeUsd: 0, clicks: 0 };
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
+  const raidLink = address ? buildRaidLink(origin, address) : null;
+  const periodEarnings = useMemo(
+    () =>
+      address ? raidEarningsForPeriod(address, period) : { earnedSol: 0, volumeUsd: 0, clicks: 0 },
+    [address, period],
+  );
   const balanceLabel = loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 2);
   const labelClass = alwaysLabel ? 'inline' : 'hidden sm:inline';
 
@@ -203,6 +216,17 @@ export function ConnectWalletButton({
       await navigator.clipboard.writeText(address);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const copyRaidLink = async () => {
+    if (!raidLink) return;
+    try {
+      await navigator.clipboard.writeText(raidLink);
+      setCopiedRaid(true);
+      window.setTimeout(() => setCopiedRaid(false), 1600);
     } catch {
       /* ignore */
     }
@@ -251,7 +275,7 @@ export function ConnectWalletButton({
           id={menuId}
           role="dialog"
           aria-label="Wallet"
-          className="absolute right-0 z-[80] mt-2 w-[min(100vw-1.5rem,18.5rem)] overflow-hidden rounded-2xl border border-white/[0.1] bg-[#14161f] shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
+          className="absolute right-0 z-[80] mt-2 w-[min(100vw-1.5rem,20rem)] overflow-hidden rounded-2xl border border-white/[0.1] bg-[#14161f] shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
         >
           <div className="border-b border-white/[0.07] px-3.5 py-3">
             <p className="text-[11px] font-medium text-white/40">Total value</p>
@@ -268,31 +292,73 @@ export function ConnectWalletButton({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 p-3">
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-              <div className="flex items-center gap-1.5">
-                <SolanaLogo className="h-4 w-4" />
-                <span className="text-[11px] font-medium text-white/50">SOL</span>
+          <div className="space-y-2.5 border-b border-white/[0.07] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
+              <div className="inline-flex rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
+                {RAID_EARNINGS_PERIODS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPeriod(p.id)}
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold transition ${
+                      period === p.id
+                        ? 'bg-[#c8ff3d] text-[#090b14]'
+                        : 'text-white/45 hover:text-white'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
-              <p className="mt-1.5 font-mono text-sm font-semibold tabular-nums text-white">
-                {loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 4)}
-              </p>
             </div>
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-              <p className="text-[11px] font-medium text-white/50">Scout earned</p>
-              <p className="mt-1.5 flex items-center gap-1 font-mono text-sm font-semibold tabular-nums text-[#d5ff69]">
-                <SolanaLogo className="h-3.5 w-3.5" />
-                {formatSolAmount(earnings.earnedSol, 3)}
-              </p>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+                <div className="flex items-center gap-1.5">
+                  <SolanaLogo className="h-4 w-4" />
+                  <span className="text-[11px] font-medium text-white/50">SOL</span>
+                </div>
+                <p className="mt-1.5 font-mono text-sm font-semibold tabular-nums text-white">
+                  {loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 4)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+                <p className="text-[11px] font-medium text-white/50">Earned · {period}</p>
+                <p className="mt-1.5 flex items-center gap-1 font-mono text-sm font-semibold tabular-nums text-[#d5ff69]">
+                  <SolanaLogo className="h-3.5 w-3.5" />
+                  {formatSolAmount(periodEarnings.earnedSol, 3)}
+                </p>
+              </div>
             </div>
+            <p className="text-[10px] text-white/35">
+              Vol ${periodEarnings.volumeUsd.toLocaleString()} · {periodEarnings.clicks} link copies
+              this window
+            </p>
           </div>
 
-          <div className="flex gap-2 border-t border-white/[0.07] p-3">
+          <div className="border-b border-white/[0.07] px-3 py-2.5">
+            <p className="text-[11px] font-medium text-white/50">Raid link</p>
+            <p
+              className="mt-1 truncate font-mono text-[11px] text-white/45"
+              title={raidLink ?? undefined}
+            >
+              {raidLink}
+            </p>
+            <button
+              type="button"
+              onClick={() => void copyRaidLink()}
+              className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/[0.1] px-3 py-2 text-[12px] font-bold text-[#d5ff69] transition hover:bg-[#c8ff3d]/[0.18]"
+            >
+              {copiedRaid ? <Check className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
+              {copiedRaid ? 'Raid link copied' : 'Copy raid link'}
+            </button>
+          </div>
+
+          <div className="flex gap-2 p-3">
             <button
               type="button"
               onClick={() => {
                 refresh();
-                setOpen(false);
               }}
               className="flex-1 rounded-xl bg-[#c8ff3d] px-3 py-2.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
             >

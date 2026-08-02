@@ -73,7 +73,7 @@ export function SolWalletPanel({ showScoutEarnings = true, className = '' }: Sol
 
       {showScoutEarnings ? (
         <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/[0.06] pt-3 text-[12px]">
-          <span className="text-white/40">Scout earned</span>
+          <span className="text-white/40">Raid Earnings</span>
           <span className="inline-flex items-center gap-1 font-mono font-semibold text-[#d5ff69]">
             <SolanaLogo className="h-3.5 w-3.5" />
             {formatSolAmount(earnings.earnedSol, 3)} SOL

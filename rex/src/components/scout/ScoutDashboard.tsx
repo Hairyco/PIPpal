@@ -84,7 +84,7 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
             <div className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
               <SolanaLogo className="h-7 w-7 shrink-0" />
               <div className="min-w-0">
-                <p className="text-[10px] text-white/35">Scout earned</p>
+                <p className="text-[10px] text-white/35">Raid Earnings</p>
                 <p className="font-mono text-[13px] font-semibold text-[#d5ff69]">
                   {formatSolAmount(earnings.earnedSol, 3)} SOL
                 </p>

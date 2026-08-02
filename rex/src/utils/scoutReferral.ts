@@ -96,6 +96,21 @@ export type ScoutEarningsDemo = {
   clicks: number;
 };
 
+export type RaidEarningsPeriod = '24h' | '7d' | '30d' | 'all';
+
+export const RAID_EARNINGS_PERIODS: { id: RaidEarningsPeriod; label: string }[] = [
+  { id: '24h', label: '24h' },
+  { id: '7d', label: '7d' },
+  { id: '30d', label: '30d' },
+  { id: 'all', label: 'All' },
+];
+
+/** Universal raid link — ref sticks for 24h last-click across CTOgo. */
+export function buildRaidLink(origin: string, wallet: string): string {
+  const base = origin.replace(/\/$/, '');
+  return `${base}/?ref=${encodeURIComponent(wallet.trim())}`;
+}
+
 export function readScoutEarningsDemo(wallet: string): ScoutEarningsDemo {
   try {
     const raw = localStorage.getItem(EARNINGS_KEY);
@@ -105,6 +120,26 @@ export function readScoutEarningsDemo(wallet: string): ScoutEarningsDemo {
   } catch {
     return { earnedSol: 0, volumeUsd: 0, clicks: 0 };
   }
+}
+
+/** Period slice of raid earnings — proportional demo until on-chain indexer exists. */
+export function raidEarningsForPeriod(
+  wallet: string,
+  period: RaidEarningsPeriod,
+): ScoutEarningsDemo {
+  const all = readScoutEarningsDemo(wallet);
+  const factor: Record<RaidEarningsPeriod, number> = {
+    '24h': 0.12,
+    '7d': 0.38,
+    '30d': 0.75,
+    all: 1,
+  };
+  const f = factor[period];
+  return {
+    earnedSol: Math.round(all.earnedSol * f * 1000) / 1000,
+    volumeUsd: Math.round(all.volumeUsd * f),
+    clicks: Math.round(all.clicks * f),
+  };
 }
 
 export function bumpScoutClickDemo(wallet: string): void {
