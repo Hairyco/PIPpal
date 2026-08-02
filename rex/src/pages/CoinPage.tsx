@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Wallet } from 'lucide-react';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { AppShell } from '../components/AppSidebar';
 import { CtoTradeView, type TradeViewProject } from '../components/CtoTradeView';
 import { AffiliatePromoSheet } from '../components/affiliate/AffiliatePromoSheet';
 import { ScoutDashboard } from '../components/scout/ScoutDashboard';
-import { useConnectedWallet } from '../components/ConnectWalletButton';
+import { SolWalletPanel } from '../components/SolWalletPanel';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import {
@@ -101,7 +101,6 @@ export function CoinPage() {
   const { ticker: tickerParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { address, connected, connect, busy } = useConnectedWallet();
   const [tab, setTab] = useState<CoinTab>('overview');
 
   const ticker = normalizeTicker(tickerParam ?? '') || 'COIN';
@@ -243,32 +242,12 @@ export function CoinPage() {
               <div>
                 <p className="font-serif text-xl font-bold text-white">Wallet</p>
                 <p className="mt-1.5 text-sm text-white/45">
-                  Scout commissions ({formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}) fill your
-                  connected wallet. The marketing wallet fills separately (
+                  Your SOL balance holds scout commissions ({formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)}
+                  ). The project marketing wallet fills separately (
                   {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)}) for roadmap spend.
                 </p>
               </div>
-              {!connected ? (
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void connect()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] px-4 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-60"
-                >
-                  <Wallet className="h-4 w-4" />
-                  {busy ? 'Connecting…' : 'Connect wallet'}
-                </button>
-              ) : (
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
-                  <p className="text-[11px] text-white/40">Connected</p>
-                  <p className="mt-1 break-all font-mono text-[13px] text-white/80">{address}</p>
-                  <p className="mt-3 text-[12px] leading-relaxed text-white/45">
-                    When the on-chain fee engine is live, referred CTOgo swaps stream{' '}
-                    {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} SOL here automatically — no
-                    withdraw step.
-                  </p>
-                </div>
-              )}
+              <SolWalletPanel />
               {project.marketingWalletAddress || project.marketingWallet ? (
                 <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3">
                   <p className="text-[11px] text-white/40">Marketing wallet (project)</p>

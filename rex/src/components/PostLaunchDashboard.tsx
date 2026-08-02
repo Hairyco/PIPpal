@@ -27,6 +27,7 @@ import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
+import { SolWalletPanel } from './SolWalletPanel';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -597,8 +598,10 @@ export function PostLaunchDashboard({
       {tab === 'wallet' ? (
         <div className="space-y-5">
           <p className="text-sm text-white/45">
-            Trade fees fill this wallet. Spend unlocks at each threshold.
+            Trade fees fill the marketing wallet. Scout commissions fill your connected SOL wallet.
           </p>
+
+          <SolWalletPanel />
 
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-3">
             <div className="grid grid-cols-2 gap-3">

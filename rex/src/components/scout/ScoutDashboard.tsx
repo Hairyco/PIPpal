@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Check, Copy, Link2, Wallet } from 'lucide-react';
 import { useConnectedWallet } from '../ConnectWalletButton';
+import { SolanaLogo } from '../SolanaLogo';
+import { SolWalletPanel } from '../SolWalletPanel';
 import { SCOUT_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
+import { formatSolAmount } from '../../hooks/useSolBalance';
 import {
   buildScoutLink,
   bumpScoutClickDemo,
@@ -61,18 +64,34 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         </div>
       )}
 
+      {!compact ? <SolWalletPanel showScoutEarnings /> : null}
+
       {!connected ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void connect()}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] px-4 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-60"
-        >
-          <Wallet className="h-4 w-4" />
-          {busy ? 'Connecting…' : 'Connect wallet for scout link'}
-        </button>
+        compact ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void connect()}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] px-4 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-60"
+          >
+            <Wallet className="h-4 w-4" />
+            {busy ? 'Connecting…' : 'Connect wallet for scout link'}
+          </button>
+        ) : null
       ) : (
         <div className="space-y-3">
+          {compact ? (
+            <div className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-2">
+              <SolanaLogo className="h-7 w-7 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] text-white/35">Scout earned</p>
+                <p className="font-mono text-[13px] font-semibold text-[#d5ff69]">
+                  {formatSolAmount(earnings.earnedSol, 3)} SOL
+                </p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
             <p className="text-[11px] font-medium text-white/40">Your scout link</p>
             <p className="mt-1 break-all font-mono text-[12px] text-white/70">{scoutLink}</p>
@@ -86,31 +105,10 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
             </button>
           </div>
 
-          {!compact ? (
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-                <p className="text-[10px] text-white/35">Earned SOL</p>
-                <p className="mt-0.5 font-mono text-sm font-semibold text-[#d5ff69]">
-                  {earnings.earnedSol.toFixed(3)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-                <p className="text-[10px] text-white/35">Volume</p>
-                <p className="mt-0.5 font-mono text-sm font-semibold text-white">
-                  ${earnings.volumeUsd.toLocaleString()}
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-                <p className="text-[10px] text-white/35">Link copies</p>
-                <p className="mt-0.5 font-mono text-sm font-semibold text-white">{earnings.clicks}</p>
-              </div>
-            </div>
-          ) : null}
-
           <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-white/35">
             <Link2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            Earnings telemetry is local until the on-chain scout fee indexer is live. Rate is
-            protocol-fixed at {scoutPct} — no withdraw button; SOL routes in the swap tx.
+            Rate is protocol-fixed at {scoutPct} — SOL routes in the swap tx into your balance above.
+            No withdraw button.
           </p>
         </div>
       )}
@@ -119,9 +117,7 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-[12px] leading-relaxed text-white/45">
           <p className="font-medium text-white/70">Fee split on every CTOgo swap</p>
           <ul className="mt-2 space-y-1">
-            <li>
-              {formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} → scout wallet (you)
-            </li>
+            <li>{formatBpsPercent(SCOUT_FEE_ENGINE.scoutBps)} → scout wallet (you)</li>
             <li>
               {formatBpsPercent(SCOUT_FEE_ENGINE.marketingBps)} → marketing wallet (roadmap)
             </li>

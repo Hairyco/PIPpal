@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft,
   ArrowRight,
   Check,
   ChevronDown,
@@ -796,13 +795,6 @@ export function LaunchCtoPage() {
       <div className="relative z-[1]">
         <header className="border-b border-white/[0.07] bg-[#090b14]">
           <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-2 sm:px-3">
-            <Link
-              to="/"
-              className="inline-flex shrink-0 items-center gap-1 rounded-lg px-1.5 py-1.5 text-xs font-medium text-white/45 transition hover:bg-white/[0.04] hover:text-white"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back
-            </Link>
             <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2" aria-label="CTOgo home">
               <CtoGoLogo size={32} className="rounded-xl" />
               <span className="flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
