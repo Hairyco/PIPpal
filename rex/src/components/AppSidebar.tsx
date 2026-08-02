@@ -181,10 +181,7 @@ export function AppSidebarMenuButton({ className = '' }: { className?: string })
     <button
       type="button"
       onClick={toggle}
-      className={
-        className ||
-        'grid h-10 w-10 place-items-center rounded-lg text-white/60 hover:bg-white/5'
-      }
+      className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg text-white/60 hover:bg-white/5 ${className}`.trim()}
       aria-label="Open menu"
     >
       <Menu className="h-5 w-5" />
