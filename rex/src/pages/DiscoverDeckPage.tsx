@@ -324,7 +324,7 @@ export function DiscoverDeckPage() {
         </button>
         <button
           type="button"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
+          className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
           aria-label="Filters"
         >
           <Filter className="h-[15px] w-[15px]" />
