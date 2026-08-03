@@ -243,8 +243,32 @@ function MarketCapPeakRow({
     () => peakMetricsFor(ticker, change24h, marketCap),
     [ticker, change24h, marketCap],
   );
+  const [athPct, setAthPct] = useState(metrics.athPct);
   const positive = change24h >= 0;
   const display = mode === 'peak' ? metrics.peakLabel : metrics.athLabel;
+
+  useEffect(() => {
+    setAthPct(metrics.athPct);
+  }, [metrics.athPct]);
+
+  useEffect(() => {
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    const base = metrics.athPct;
+    const drift = Math.min(6, Math.max(1.2, Math.abs(change24h) / 18));
+    const direction = change24h >= 0 ? 1 : -1;
+    let t = 0;
+    const id = window.setInterval(() => {
+      t += 1;
+      const wave = Math.sin(t / 7) * drift;
+      const next = Math.min(98, Math.max(8, base + direction * Math.abs(wave) * 0.55 + wave * 0.35));
+      setAthPct(Math.round(next));
+    }, 900);
+    return () => window.clearInterval(id);
+  }, [metrics.athPct, change24h]);
 
   return (
     <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
@@ -276,16 +300,16 @@ function MarketCapPeakRow({
         </p>
       </div>
 
-      <div className="flex items-baseline justify-end gap-1.5 self-baseline">
-        <span
-          className="peak-pillar"
-          role="img"
-          aria-label={`${metrics.athPct}% of all-time high`}
-          title={`${metrics.athPct}% of ATH`}
-        >
-          <span className="peak-pillar-fill" style={{ height: `${metrics.athPct}%` }} />
-        </span>
+      <div className="flex flex-col items-end self-baseline">
         <PeakFlashValue value={display} />
+        <div
+          className="peak-ath-track mt-1.5"
+          role="img"
+          aria-label={`${athPct}% of all-time high`}
+          title={`${athPct}% of ATH`}
+        >
+          <span className="peak-ath-fill" style={{ width: `${athPct}%` }} />
+        </div>
       </div>
     </div>
   );

@@ -421,24 +421,24 @@ select {
     peak-shimmer-fade-out 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-.peak-pillar {
-  display: inline-block;
-  vertical-align: baseline;
-  width: 6px;
-  height: 1.15em;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.16);
+.peak-ath-track {
+  display: block;
+  width: 100%;
+  min-width: 3.25rem;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
   overflow: hidden;
   position: relative;
 }
 
-.peak-pillar-fill {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  border-radius: 0 0 3px 3px;
-  background: linear-gradient(180deg, #e8ff9a 0%, #c8ff3d 55%, #9fd410 100%);
+.peak-ath-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #9fd410 0%, #c8ff3d 55%, #e8ff9a 100%);
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 0 8px rgba(200, 255, 61, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -449,5 +449,9 @@ select {
   .peak-flash-root[data-phase='active'] .peak-flash-glint,
   .peak-flash-root[data-phase='fading'] .peak-flash-glint {
     animation: none;
+  }
+
+  .peak-ath-fill {
+    transition: none;
   }
 }
