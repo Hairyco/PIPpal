@@ -324,9 +324,10 @@ select {
   display: inline-block;
   vertical-align: baseline;
   isolation: isolate;
-  --peak-flash-color: 251, 191, 36;
-  --peak-flash-highlight: 255, 240, 205;
-  --peak-flash-glow: 255, 215, 160;
+  /* CTOgo lime — distinct from gembot amber */
+  --peak-flash-color: 200, 255, 61;
+  --peak-flash-highlight: 245, 255, 210;
+  --peak-flash-glow: 213, 255, 105;
 }
 
 .peak-flash-text {
@@ -334,7 +335,7 @@ select {
   z-index: 1;
   display: inline-block;
   transform-origin: 50% 50%;
-  color: rgb(251, 191, 36);
+  color: #c8ff3d;
 }
 
 .peak-flash-shimmer {
@@ -437,7 +438,7 @@ select {
   right: 0;
   bottom: 0;
   border-radius: 0 0 3px 3px;
-  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 55%, #f59e0b 100%);
+  background: linear-gradient(180deg, #e8ff9a 0%, #c8ff3d 55%, #9fd410 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {

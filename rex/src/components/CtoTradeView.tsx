@@ -247,48 +247,45 @@ function MarketCapPeakRow({
   const display = mode === 'peak' ? metrics.peakLabel : metrics.athLabel;
 
   return (
-    <div className="mt-3 flex items-end justify-between gap-4">
-      <div className="min-w-0">
-        <p className="text-[11px] font-medium text-white/45">Market Cap</p>
-        <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p className="text-[22px] font-bold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">
-            {marketCap.startsWith('$') ? marketCap : `$${marketCap}`}
-          </p>
-          <p
-            className={`text-[12px] font-semibold leading-none tabular-nums ${
-              positive ? 'text-emerald-400' : 'text-rose-400'
-            }`}
-          >
-            {formatChange24hLabel(change24h)}
-            <span className="ml-1 font-medium text-white/35">24h</span>
-          </p>
-        </div>
+    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
+      <p className="flex h-5 items-center text-[11px] font-medium text-white/45">Market Cap</p>
+      <div className="flex h-5 items-center justify-end gap-1">
+        <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
+        <button
+          type="button"
+          onClick={() => setMode((m) => (m === 'peak' ? 'ath' : 'peak'))}
+          className="grid h-5 w-5 place-items-center rounded-full bg-white/[0.06] text-white/50 transition hover:bg-white/[0.1] hover:text-white"
+          aria-label="Cycle peak metric"
+          title={mode === 'peak' ? 'Show ATH' : 'Show Peak'}
+        >
+          <ArrowUpDown className="h-3 w-3" />
+        </button>
       </div>
 
-      <div className="shrink-0 text-right">
-        <div className="flex items-center justify-end gap-1">
-          <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
-          <button
-            type="button"
-            onClick={() => setMode((m) => (m === 'peak' ? 'ath' : 'peak'))}
-            className="grid h-5 w-5 place-items-center rounded-full bg-white/[0.06] text-white/50 transition hover:bg-white/[0.1] hover:text-white"
-            aria-label="Cycle peak metric"
-            title={mode === 'peak' ? 'Show ATH' : 'Show Peak'}
-          >
-            <ArrowUpDown className="h-3 w-3" />
-          </button>
-        </div>
-        <div className="mt-0.5 inline-flex items-end justify-end gap-1.5">
-          <span
-            className="peak-pillar"
-            role="img"
-            aria-label={`${metrics.athPct}% of all-time high`}
-            title={`${metrics.athPct}% of ATH`}
-          >
-            <span className="peak-pillar-fill" style={{ height: `${metrics.athPct}%` }} />
-          </span>
-          <PeakFlashValue value={display} />
-        </div>
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <p className="text-[22px] font-bold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">
+          {marketCap.startsWith('$') ? marketCap : `$${marketCap}`}
+        </p>
+        <p
+          className={`text-[12px] font-semibold leading-none tabular-nums ${
+            positive ? 'text-emerald-400' : 'text-rose-400'
+          }`}
+        >
+          {formatChange24hLabel(change24h)}
+          <span className="ml-1 font-medium text-white/35">24h</span>
+        </p>
+      </div>
+
+      <div className="flex items-baseline justify-end gap-1.5 self-baseline">
+        <span
+          className="peak-pillar"
+          role="img"
+          aria-label={`${metrics.athPct}% of all-time high`}
+          title={`${metrics.athPct}% of ATH`}
+        >
+          <span className="peak-pillar-fill" style={{ height: `${metrics.athPct}%` }} />
+        </span>
+        <PeakFlashValue value={display} />
       </div>
     </div>
   );
