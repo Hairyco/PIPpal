@@ -190,11 +190,17 @@ export function AppSidebarMenuButton({ className = '' }: { className?: string })
 }
 
 /** Simple layout: right drawer + main content. */
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  showTrigger = true,
+}: {
+  children: ReactNode;
+  showTrigger?: boolean;
+}) {
   return (
     <AppSidebarProvider>
       <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
-        <AppSidebar showTrigger />
+        <AppSidebar showTrigger={showTrigger} />
         <div>{children}</div>
       </div>
     </AppSidebarProvider>
