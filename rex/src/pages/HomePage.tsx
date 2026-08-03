@@ -1484,18 +1484,28 @@ export function HomePage() {
           </section>
         ) : (
           <section id="cto-rankings" className="min-w-0 scroll-mt-[13.5rem]">
-            <div className="mb-4">
-              <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
-              <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
-              {isPrelaunch ? (
-                <p className="mt-1 text-[11px] text-white/40">
-                  Voting requires a connected wallet
-                  {connected ? ' · wallet connected' : ''}.
-                </p>
-              ) : null}
-              {voteNotice ? (
-                <p className="mt-1 text-[11px] font-medium text-amber-300">{voteNotice}</p>
-              ) : null}
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-serif text-2xl font-bold">{sectionCopy.title}</h2>
+                <p className="mt-1 text-xs text-white/35">{sectionCopy.subtitle}</p>
+                {isPrelaunch ? (
+                  <p className="mt-1 text-[11px] text-white/40">
+                    Voting requires a connected wallet
+                    {connected ? ' · wallet connected' : ''}.
+                  </p>
+                ) : null}
+                {voteNotice ? (
+                  <p className="mt-1 text-[11px] font-medium text-amber-300">{voteNotice}</p>
+                ) : null}
+              </div>
+              <Link
+                to="/discover"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white/75 transition hover:border-[#c8ff3d]/40 hover:bg-[#c8ff3d]/10 hover:text-[#d5ff69]"
+                title="Switch to deck view"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+                Change view
+              </Link>
             </div>
 
             <div className="hide-scrollbar mb-2.5 flex gap-2 overflow-x-auto pb-1">

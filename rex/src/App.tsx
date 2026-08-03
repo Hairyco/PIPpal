@@ -23,6 +23,7 @@ import { ContactPage } from './pages/ContactPage';
 import { WatchlistPage } from './pages/WatchlistPage';
 import { CoinPage } from './pages/CoinPage';
 import { WelcomeGate } from './components/WelcomeGate';
+import { DiscoverDeckPage } from './pages/DiscoverDeckPage';
 
 export function App() {
   return (
@@ -33,6 +34,7 @@ export function App() {
           <WelcomeGate />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/discover" element={<DiscoverDeckPage />} />
             <Route path="/coin/:ticker" element={<CoinPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/launch" element={<LaunchCtoPage />} />
