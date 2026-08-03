@@ -27,8 +27,6 @@ const CHAINS = [
   { id: 'SOL', label: 'SOL', accent: true },
   { id: 'BSC', label: 'BSC', accent: false },
   { id: 'HOOD', label: 'HOOD', accent: false },
-  { id: 'BASE', label: 'BASE', accent: false },
-  { id: 'ETH', label: 'ETH', accent: false },
 ] as const;
 
 function salt(str: string, mod = 1000): number {
