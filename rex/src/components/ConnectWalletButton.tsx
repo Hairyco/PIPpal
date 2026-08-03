@@ -170,9 +170,12 @@ export function useConnectedWallet(): WalletContextValue {
 export function ConnectWalletButton({
   className = '',
   alwaysLabel = false,
+  defaultOpen = false,
 }: {
   className?: string;
   alwaysLabel?: boolean;
+  /** Start with the details menu open (e.g. Discover header). */
+  defaultOpen?: boolean;
 }) {
   const { address, busy, connect, disconnect } = useConnectedWallet();
   const { signedIn, requireAuth } = useAuth();
@@ -187,6 +190,7 @@ export function ConnectWalletButton({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+  const openedDefault = useRef(false);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
   const raidLink = liveAddress ? buildRaidLink(origin, liveAddress) : null;
@@ -245,6 +249,12 @@ export function ConnectWalletButton({
   useEffect(() => {
     if (!signedIn) setOpen(false);
   }, [signedIn]);
+
+  useEffect(() => {
+    if (!defaultOpen || openedDefault.current || !liveAddress) return;
+    openedDefault.current = true;
+    setOpen(true);
+  }, [defaultOpen, liveAddress]);
 
   useEffect(() => {
     if (open) refresh();

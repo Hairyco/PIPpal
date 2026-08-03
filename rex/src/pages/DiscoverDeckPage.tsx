@@ -14,6 +14,7 @@ import {
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
+import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import { useWatchlist } from '../hooks/useWatchlist';
 
@@ -202,7 +203,7 @@ export function DiscoverDeckPage() {
   return (
     <div className="deck-shell fixed inset-0 z-[40] flex flex-col bg-black text-white">
       {/* Top search row */}
-      <div className="flex shrink-0 items-center gap-2.5 px-3 pb-2 pt-[max(0.65rem,env(safe-area-inset-top))]">
+      <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <Link
           to="/"
           className="grid h-9 w-9 shrink-0 place-items-center text-white/90"
@@ -220,14 +221,7 @@ export function DiscoverDeckPage() {
             className="h-9 w-full rounded-full border-0 bg-[#1c1c1e] pl-9 pr-3 text-[14px] font-medium text-white outline-none placeholder:text-white/40"
           />
         </label>
-        <button
-          type="button"
-          onClick={() => navigate('/')}
-          className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[#1c1c1e] ring-1 ring-white/10"
-          aria-label="Home"
-        >
-          <CtoGoLogo size={28} className="rounded-full" />
-        </button>
+        <ConnectWalletButton className="shrink-0" alwaysLabel defaultOpen />
       </div>
 
       {/* Tabs */}
