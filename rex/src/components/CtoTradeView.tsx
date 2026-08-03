@@ -238,7 +238,7 @@ function MarketCapPeakRow({
   change24h: number;
   ticker: string;
 }) {
-  const [mode, setMode] = useState<'peak' | 'ath'>('peak');
+  const [mode, setMode] = useState<'peak' | 'ath'>('ath');
   const metrics = useMemo(
     () => peakMetricsFor(ticker, change24h, marketCap),
     [ticker, change24h, marketCap],
