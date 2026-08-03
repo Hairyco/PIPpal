@@ -288,7 +288,7 @@ export function DiscoverDeckPage() {
                   onClick={() => setChain(c.id)}
                   className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
                     active
-                      ? 'bg-[#2a2a2c] text-white ring-1 ring-[#c8ff3d]/45'
+                      ? 'bg-[#2a2a2c] text-white'
                       : 'bg-[#1c1c1e] text-white/70'
                   }`}
                 >
@@ -321,7 +321,7 @@ export function DiscoverDeckPage() {
                   onClick={() => setSource(venue.id)}
                   className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold ${
                     active
-                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
+                      ? 'bg-[#2a2a2c] text-white'
                       : 'bg-[#1c1c1e] text-white/65'
                   }`}
                 >
