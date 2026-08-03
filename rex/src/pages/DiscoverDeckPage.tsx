@@ -312,7 +312,7 @@ export function DiscoverDeckPage() {
         </button>
         <button
           type="button"
-          className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
+          className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
         >
           <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
           Token sort
