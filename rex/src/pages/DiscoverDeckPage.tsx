@@ -82,8 +82,6 @@ function ChainDot({ id }: { id: string }) {
   const colors: Record<string, string> = {
     BSC: 'bg-[#f0b90b]',
     HOOD: 'bg-[#00c805]',
-    BASE: 'bg-[#0052ff]',
-    ETH: 'bg-[#627eea]',
   };
   return <span className={`h-3.5 w-3.5 rounded-full ${colors[id] ?? 'bg-white/30'}`} />;
 }
