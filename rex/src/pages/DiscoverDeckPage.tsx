@@ -20,7 +20,7 @@ import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
 
-type TopTab = 'watchlist' | 'hot' | 'trending';
+type TopTab = 'watchlist' | 'growth' | 'trending';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 
 const CHAINS = [
@@ -155,7 +155,7 @@ export function DiscoverDeckPage() {
     let list = [...ctoProjects];
     if (topTab === 'watchlist') {
       list = list.filter((p) => starred[p.ticker]);
-    } else if (topTab === 'hot') {
+    } else if (topTab === 'growth') {
       list = [...list].sort((a, b) => b.score - a.score).slice(0, 12);
     } else {
       list = [...list].sort((a, b) => changeForWindow(b, timeWindow) - changeForWindow(a, timeWindow));
@@ -234,7 +234,7 @@ export function DiscoverDeckPage() {
         {(
           [
             { id: 'watchlist' as const, label: 'Watchlist' },
-            { id: 'hot' as const, label: 'Hot Searches' },
+            { id: 'growth' as const, label: 'Growth' },
             { id: 'trending' as const, label: 'Trending' },
           ] as const
         ).map((tab) => {
