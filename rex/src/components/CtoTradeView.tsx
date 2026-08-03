@@ -680,7 +680,7 @@ export function CtoTradeView({
       </div>
 
       {isExternal ? (
-        <div className="mx-auto max-w-7xl px-3 pt-3 sm:px-5">
+        <div className="mx-auto max-w-7xl border-b border-white/[0.08] px-3 py-3 sm:px-5 lg:border-0 lg:px-5 lg:pt-3">
           <MigrateToV2Banner
             ticker={project.ticker}
             sourceVenue={project.sourceVenue}
@@ -690,10 +690,10 @@ export function CtoTradeView({
         </div>
       ) : null}
 
-      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-3 px-3 py-3 sm:px-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)]">
+      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)] lg:gap-3 lg:px-5 lg:py-3">
         <div
           ref={chartRef}
-          className="relative z-20 min-w-0 overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]"
+          className="relative z-20 min-w-0 overflow-hidden border-b border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border"
         >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
@@ -834,11 +834,11 @@ export function CtoTradeView({
             ) : null}
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-3">
+        <aside className="flex min-w-0 flex-col gap-0 lg:gap-3">
           <div
             id="trade-panel"
             ref={tradePanelRef}
-            className="scroll-mt-4 rounded-xl border border-white/[0.1] bg-[#05070d] p-3"
+            className="scroll-mt-4 border-b border-white/[0.1] bg-[#05070d] p-3 lg:rounded-xl lg:border"
           >
             <div className="grid grid-cols-2 gap-1 rounded-lg bg-white/[0.03] p-1">
               <button
@@ -1062,7 +1062,7 @@ export function CtoTradeView({
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-xl border border-white/[0.1] bg-[#05070d]">
+          <div className="overflow-hidden border-b border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border">
             <div className="grid grid-cols-3 gap-px bg-white/[0.05] sm:flex sm:gap-0 sm:overflow-x-auto sm:bg-transparent">
               {stats.map((stat) => (
                 <div
@@ -1076,7 +1076,7 @@ export function CtoTradeView({
             </div>
           </div>
 
-          <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#05070d] p-3">
+          <div className="border-b border-[#c8ff3d]/20 bg-[#05070d] p-3 lg:rounded-xl lg:border">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
                 Marketing wallet
@@ -1199,7 +1199,7 @@ export function CtoTradeView({
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/[0.1] bg-[#05070d] p-3">
+          <div className="border-b border-white/[0.1] bg-[#05070d] p-3 lg:rounded-xl lg:border">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[10px] font-bold uppercase tracking-wide text-white/35">
                 Trades

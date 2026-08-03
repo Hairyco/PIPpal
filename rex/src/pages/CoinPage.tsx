@@ -167,28 +167,30 @@ export function CoinPage() {
           </div>
         </div>
 
-        <div className="px-3 pt-3 sm:px-4">
+        <div className={tab === 'overview' ? 'pt-0' : 'px-3 pt-3 sm:px-4'}>
           {tab === 'overview' ? (
-            <div className="space-y-4">
-              <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3.5 py-3">
-                <p className="text-[11px] font-medium text-white/45">Raid & marketing</p>
-                <p className="mt-1 text-[12px] leading-relaxed text-white/70">
-                  <span className="font-semibold text-[#d5ff69]">
-                    {formatBpsPercent(LIST_FEE_ENGINE.raidBps)} raid
-                  </span>
-                  {' · '}
-                  marketing fills the wallet · unclaimed raid → CTOgo
-                </p>
-                <p className="mt-1.5 text-[11px] text-white/40">
-                  Full List / Launch swap splits are on the{' '}
-                  <Link to="/fees#raid-fee-engine" className="text-[#d5ff69] hover:underline">
-                    Fees
-                  </Link>{' '}
-                  page.
-                </p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
-                <ScoutDashboard symbol={project.ticker} compact />
+            <div className="space-y-0">
+              <div className="space-y-4 px-3 pt-3 sm:px-4">
+                <div className="rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.06] px-3.5 py-3">
+                  <p className="text-[11px] font-medium text-white/45">Raid & marketing</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-white/70">
+                    <span className="font-semibold text-[#d5ff69]">
+                      {formatBpsPercent(LIST_FEE_ENGINE.raidBps)} raid
+                    </span>
+                    {' · '}
+                    marketing fills the wallet · unclaimed raid → CTOgo
+                  </p>
+                  <p className="mt-1.5 text-[11px] text-white/40">
+                    Full List / Launch swap splits are on the{' '}
+                    <Link to="/fees#raid-fee-engine" className="text-[#d5ff69] hover:underline">
+                      Fees
+                    </Link>{' '}
+                    page.
+                  </p>
+                </div>
+                <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-3.5">
+                  <ScoutDashboard symbol={project.ticker} compact />
+                </div>
               </div>
               <CtoTradeView
                 project={project}

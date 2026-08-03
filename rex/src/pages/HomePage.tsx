@@ -1470,7 +1470,7 @@ export function HomePage() {
         }`}
       >
         {viewMode === 'trade' && selectedProject ? (
-          <section id="cto-rankings" className="min-w-0 scroll-mt-4 pt-2">
+          <section id="cto-rankings" className="min-w-0 scroll-mt-4">
             <CtoTradeView
               project={selectedProject}
               projects={visibleProjects}
