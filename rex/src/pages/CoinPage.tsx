@@ -4,6 +4,7 @@ import { AppShell } from '../components/AppSidebar';
 import { CtoTradeView, type TradeViewProject } from '../components/CtoTradeView';
 import { AffiliatePromoSheet } from '../components/affiliate/AffiliatePromoSheet';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
+import { useWatchlist } from '../hooks/useWatchlist';
 import { captureScoutRefFromSearch, coinPath, normalizeTicker } from '../utils/scoutReferral';
 
 function stubProject(ticker: string): TradeViewProject {
@@ -71,6 +72,7 @@ export function CoinPage() {
   const { ticker: tickerParam } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { starred, toggle: toggleWatchlist } = useWatchlist();
 
   const ticker = normalizeTicker(tickerParam ?? '') || 'COIN';
 
@@ -97,6 +99,8 @@ export function CoinPage() {
           change={project.change24h}
           onSelect={(next) => navigate(coinPath(next))}
           onBack={() => navigate('/discover')}
+          starred={Boolean(starred[project.ticker])}
+          onToggleStar={() => toggleWatchlist(project.ticker)}
         />
       </div>
       <AffiliatePromoSheet />
