@@ -189,7 +189,7 @@ function PeakFlashValue({ value }: { value: string }) {
     };
 
     runFlash();
-    const interval = window.setInterval(runFlash, 4200);
+    const interval = window.setInterval(runFlash, 30_000);
     return () => {
       window.clearInterval(interval);
       if (fadeTimer) window.clearTimeout(fadeTimer);
