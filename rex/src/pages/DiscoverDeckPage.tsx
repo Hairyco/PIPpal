@@ -492,8 +492,16 @@ export function DiscoverDeckPage() {
                           loading="lazy"
                         />
                       </span>
-                      <span className="absolute -bottom-0.5 -right-0.5 grid h-[16px] w-[16px] place-items-center rounded-full bg-[#12d18e] ring-2 ring-black">
-                        <span className="h-[6px] w-[6px] rounded-full bg-white" />
+                      <span
+                        className="absolute -bottom-0.5 -right-0.5 grid h-[16px] w-[16px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
+                        title="Solana"
+                        aria-label="Solana"
+                      >
+                        <img
+                          src="/images/partners/solana.svg"
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </span>
                     </div>
 
