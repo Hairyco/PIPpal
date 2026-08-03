@@ -320,11 +320,11 @@ export function DiscoverDeckPage() {
       </div>
 
       {/* Column headers */}
-      <div className="flex shrink-0 items-center gap-1.5 px-3 pb-1.5 text-[11px] font-medium text-white/35">
-        <div className="min-w-0 flex-[1.2]">Age / Holders / Viewing</div>
-        <div className="w-[3.5rem] shrink-0 text-center">Chart</div>
-        <div className="w-[4.5rem] text-right">Vol / TXs</div>
-        <div className="w-[4.5rem] text-right">MC / {timeWindow}%</div>
+      <div className="grid shrink-0 grid-cols-[46px_minmax(0,1fr)_3.75rem_4.25rem_4.25rem] items-center gap-x-2 px-3 pb-1.5 text-[11px] font-medium text-white/35">
+        <div className="col-span-2">Age / Holders / Viewing</div>
+        <div className="text-center">Chart</div>
+        <div className="text-right">Vol / TXs</div>
+        <div className="text-right">MC / {timeWindow}%</div>
       </div>
 
       {/* List */}
@@ -360,7 +360,7 @@ export function DiscoverDeckPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="flex w-full items-center gap-1.5 border-b border-white/[0.06] px-3 py-2.5 text-left active:bg-white/[0.03]"
+                    className="grid w-full grid-cols-[46px_minmax(0,1fr)_3.75rem_4.25rem_4.25rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-2 text-left active:bg-white/[0.03]"
                   >
                     <div className="relative shrink-0">
                       <span className="block h-[46px] w-[46px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ring-1 ring-white/10">
@@ -376,7 +376,7 @@ export function DiscoverDeckPage() {
                       </span>
                     </div>
 
-                    <div className="min-w-0 flex-[1.2]">
+                    <div className="min-w-0">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <p className="truncate text-[15px] font-bold leading-tight text-white">
                           {project.name}
@@ -397,16 +397,16 @@ export function DiscoverDeckPage() {
                       </div>
                     </div>
 
-                    <div className="flex w-[3.5rem] shrink-0 items-center justify-center">
+                    <div className="flex h-full items-center justify-center self-center">
                       <Sparkline
                         seed={`${project.ticker}-${timeWindow}`}
                         changePct={pct}
-                        width={52}
-                        height={28}
+                        width={56}
+                        height={30}
                       />
                     </div>
 
-                    <div className="w-[4.5rem] shrink-0 text-right">
+                    <div className="text-right">
                       <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
                         {project.volume24h}
                       </p>
@@ -415,7 +415,7 @@ export function DiscoverDeckPage() {
                       </p>
                     </div>
 
-                    <div className="w-[4.5rem] shrink-0 text-right">
+                    <div className="text-right">
                       <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
                         {project.marketCap}
                       </p>
