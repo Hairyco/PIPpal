@@ -571,16 +571,18 @@ export function CtoTradeView({
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <div className="min-w-0">
                     <h2 className="font-serif text-lg font-bold leading-none tracking-tight sm:text-xl">
                       ${project.ticker}
                     </h2>
-                    <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
-                    {project.launchInHours != null && project.launchInHours < 24 ? (
-                      <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
-                        New
-                      </span>
-                    ) : null}
+                    <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
+                      {project.launchInHours != null && project.launchInHours < 24 ? (
+                        <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
+                          New
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-1.5 flex items-center gap-0.5">
