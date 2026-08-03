@@ -260,3 +260,193 @@ select {
 .rex-pupils {
   transition: transform 0.55s cubic-bezier(0.34, 1.2, 0.64, 1);
 }
+
+/* Peak / ATH flash (gembot-inspired) */
+@keyframes peak-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.07);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes peak-text-shimmer {
+  0% {
+    background-position: 140% 50%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -60% 50%;
+    opacity: 0;
+  }
+}
+
+@keyframes peak-shimmer-fade-out {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes peak-glint-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(45deg);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.15) rotate(90deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(135deg);
+  }
+}
+
+.peak-flash-root {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  isolation: isolate;
+  --peak-flash-color: 251, 191, 36;
+  --peak-flash-highlight: 255, 240, 205;
+  --peak-flash-glow: 255, 215, 160;
+}
+
+.peak-flash-text {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  transform-origin: 50% 50%;
+  color: rgb(251, 191, 36);
+}
+
+.peak-flash-shimmer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: inline-block;
+  pointer-events: none;
+  color: transparent;
+  background-image: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(var(--peak-flash-highlight), 0.15) 35%,
+    rgba(var(--peak-flash-highlight), 0.95) 50%,
+    rgba(var(--peak-flash-highlight), 0.15) 65%,
+    transparent 80%
+  );
+  background-size: 220% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  will-change: background-position, opacity, transform;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 4px rgba(var(--peak-flash-glow), 0.45));
+}
+
+.peak-flash-glints {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.peak-flash-glint {
+  position: absolute;
+  left: var(--g-x);
+  top: var(--g-y);
+  width: var(--g-size, 8px);
+  height: var(--g-size, 8px);
+  color: rgba(var(--peak-flash-color), 1);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.2);
+  will-change: opacity, transform;
+  filter:
+    drop-shadow(0 0 3px rgba(var(--peak-flash-color), 0.95))
+    drop-shadow(0 0 6px rgba(var(--peak-flash-glow), 0.75));
+}
+
+.peak-flash-gem {
+  width: 100%;
+  height: 100%;
+  stroke: rgba(var(--peak-flash-color), 1);
+  fill: rgba(var(--peak-flash-color), 0.45);
+  stroke-width: 2;
+}
+
+.peak-flash-root[data-phase='active'] .peak-flash-text,
+.peak-flash-root[data-phase='fading'] .peak-flash-text {
+  animation: peak-pulse 585ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.peak-flash-root[data-phase='active'] .peak-flash-shimmer {
+  animation:
+    peak-text-shimmer 585ms cubic-bezier(0.22, 1, 0.36, 1) infinite,
+    peak-pulse 585ms cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.peak-flash-root[data-phase='fading'] .peak-flash-shimmer {
+  animation:
+    peak-text-shimmer 585ms cubic-bezier(0.22, 1, 0.36, 1) infinite,
+    peak-pulse 585ms cubic-bezier(0.22, 1, 0.36, 1) infinite,
+    peak-shimmer-fade-out 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.peak-flash-root[data-phase='active'] .peak-flash-glint {
+  animation: peak-glint-pop 0.78s cubic-bezier(0.22, 1, 0.36, 1) var(--g-delay, 0ms) infinite;
+}
+
+.peak-flash-root[data-phase='fading'] .peak-flash-glint {
+  animation:
+    peak-glint-pop 0.78s cubic-bezier(0.22, 1, 0.36, 1) var(--g-delay, 0ms) infinite,
+    peak-shimmer-fade-out 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.peak-pillar {
+  display: inline-block;
+  vertical-align: baseline;
+  width: 6px;
+  height: 1.15em;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  position: relative;
+}
+
+.peak-pillar-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(180deg, #fde68a 0%, #fbbf24 55%, #f59e0b 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .peak-flash-root[data-phase='active'] .peak-flash-text,
+  .peak-flash-root[data-phase='fading'] .peak-flash-text,
+  .peak-flash-root[data-phase='active'] .peak-flash-shimmer,
+  .peak-flash-root[data-phase='fading'] .peak-flash-shimmer,
+  .peak-flash-root[data-phase='active'] .peak-flash-glint,
+  .peak-flash-root[data-phase='fading'] .peak-flash-glint {
+    animation: none;
+  }
+}

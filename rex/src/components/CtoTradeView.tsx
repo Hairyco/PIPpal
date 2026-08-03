@@ -1,6 +1,7 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  ArrowUpDown,
   Check,
   ChevronDown,
   ChevronUp,
@@ -107,6 +108,189 @@ function Pct({ value }: { value: number | null }) {
       {value >= 0 ? '+' : ''}
       {value.toFixed(2)}%
     </span>
+  );
+}
+
+function hashSeed(s: string) {
+  let h = 0;
+  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+function parseMarketCapUsd(raw: string) {
+  const cleaned = raw.replace(/[$,\s]/g, '').trim();
+  const match = cleaned.match(/^([\d.]+)([kmb])?$/i);
+  if (!match) return 0;
+  const n = Number(match[1]);
+  if (!Number.isFinite(n)) return 0;
+  const unit = (match[2] || '').toLowerCase();
+  if (unit === 'k') return n * 1_000;
+  if (unit === 'm') return n * 1_000_000;
+  if (unit === 'b') return n * 1_000_000_000;
+  return n;
+}
+
+function formatCompactUsd(amount: number) {
+  if (!Number.isFinite(amount) || amount <= 0) return '—';
+  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(2)}B`;
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(2)}M`;
+  if (amount >= 1_000) return `$${Math.round(amount).toLocaleString('en-US')}`;
+  return `$${Math.round(amount)}`;
+}
+
+function formatChange24hLabel(change: number) {
+  const abs = Math.abs(change);
+  const sign = change >= 0 ? '+' : '-';
+  if (abs >= 1000) return `${sign}${(abs / 1000).toFixed(2)}K%`;
+  if (abs >= 100) return `${sign}${abs.toFixed(0)}%`;
+  return `${sign}${abs.toFixed(2)}%`;
+}
+
+function peakMetricsFor(ticker: string, change24h: number, marketCap: string) {
+  const seed = hashSeed(ticker);
+  const mcap = parseMarketCapUsd(marketCap);
+  const peakX = Math.max(
+    1.2,
+    Math.min(99, Math.abs(change24h) / 14 + 1.4 + ((seed % 90) + 1) / 10),
+  );
+  const athPct = Math.min(92, Math.max(18, 28 + (seed % 55)));
+  const athMcap = mcap > 0 ? mcap / (athPct / 100) : peakX * 50_000;
+  return {
+    peakLabel: `${peakX.toFixed(1)}x`,
+    athLabel: formatCompactUsd(athMcap),
+    athPct,
+  };
+}
+
+const PEAK_GLINTS = [
+  { x: '18%', y: '22%', size: '7px', delay: '0ms' },
+  { x: '72%', y: '18%', size: '9px', delay: '90ms' },
+  { x: '48%', y: '78%', size: '6px', delay: '160ms' },
+  { x: '88%', y: '62%', size: '8px', delay: '240ms' },
+];
+
+function PeakFlashValue({ value }: { value: string }) {
+  const [phase, setPhase] = useState<'idle' | 'active' | 'fading'>('idle');
+
+  useEffect(() => {
+    let fadeTimer: number | undefined;
+    let idleTimer: number | undefined;
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    const runFlash = () => {
+      setPhase('active');
+      fadeTimer = window.setTimeout(() => {
+        setPhase('fading');
+        idleTimer = window.setTimeout(() => setPhase('idle'), 450);
+      }, 1170);
+    };
+
+    runFlash();
+    const interval = window.setInterval(runFlash, 4200);
+    return () => {
+      window.clearInterval(interval);
+      if (fadeTimer) window.clearTimeout(fadeTimer);
+      if (idleTimer) window.clearTimeout(idleTimer);
+    };
+  }, [value]);
+
+  return (
+    <span className="peak-flash-root" data-phase={phase === 'idle' ? undefined : phase}>
+      <span className="peak-flash-text text-[22px] font-bold leading-none tracking-tight tabular-nums sm:text-[26px]">
+        {value}
+      </span>
+      <span className="peak-flash-shimmer text-[22px] font-bold leading-none tracking-tight tabular-nums sm:text-[26px]" aria-hidden>
+        {value}
+      </span>
+      <span className="peak-flash-glints" aria-hidden>
+        {PEAK_GLINTS.map((g) => (
+          <span
+            key={`${g.x}-${g.y}`}
+            className="peak-flash-glint"
+            style={
+              {
+                '--g-x': g.x,
+                '--g-y': g.y,
+                '--g-size': g.size,
+                '--g-delay': g.delay,
+              } as CSSProperties
+            }
+          >
+            <svg viewBox="0 0 12 12" className="peak-flash-gem">
+              <path d="M6 1.2 10.2 6 6 10.8 1.8 6Z" />
+            </svg>
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+function MarketCapPeakRow({
+  marketCap,
+  change24h,
+  ticker,
+}: {
+  marketCap: string;
+  change24h: number;
+  ticker: string;
+}) {
+  const [mode, setMode] = useState<'peak' | 'ath'>('peak');
+  const metrics = useMemo(
+    () => peakMetricsFor(ticker, change24h, marketCap),
+    [ticker, change24h, marketCap],
+  );
+  const positive = change24h >= 0;
+  const display = mode === 'peak' ? metrics.peakLabel : metrics.athLabel;
+
+  return (
+    <div className="mt-3 flex items-end justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium text-white/45">Market Cap</p>
+        <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <p className="text-[22px] font-bold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">
+            {marketCap.startsWith('$') ? marketCap : `$${marketCap}`}
+          </p>
+          <p
+            className={`text-[12px] font-semibold leading-none tabular-nums ${
+              positive ? 'text-emerald-400' : 'text-rose-400'
+            }`}
+          >
+            {formatChange24hLabel(change24h)}
+            <span className="ml-1 font-medium text-white/35">24h</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="shrink-0 text-right">
+        <div className="flex items-center justify-end gap-1">
+          <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
+          <button
+            type="button"
+            onClick={() => setMode((m) => (m === 'peak' ? 'ath' : 'peak'))}
+            className="grid h-5 w-5 place-items-center rounded-full bg-white/[0.06] text-white/50 transition hover:bg-white/[0.1] hover:text-white"
+            aria-label="Cycle peak metric"
+            title={mode === 'peak' ? 'Show ATH' : 'Show Peak'}
+          >
+            <ArrowUpDown className="h-3 w-3" />
+          </button>
+        </div>
+        <div className="mt-0.5 inline-flex items-end justify-end gap-1.5">
+          <span
+            className="peak-pillar"
+            role="img"
+            aria-label={`${metrics.athPct}% of all-time high`}
+            title={`${metrics.athPct}% of ATH`}
+          >
+            <span className="peak-pillar-fill" style={{ height: `${metrics.athPct}%` }} />
+          </span>
+          <PeakFlashValue value={display} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -336,12 +520,12 @@ export function CtoTradeView({
   const highSlippage = Number.isFinite(slippageNum) && slippageNum >= 20;
 
   const stats = [
-    { label: 'Market Cap', value: project.marketCap },
     { label: 'TXs', value: project.txs },
     { label: 'Holders', value: project.holders },
     { label: 'Age', value: formatLaunchLabel(project.launchInHours) },
     { label: 'Vol 24h', value: project.volume24h },
     { label: 'FDV', value: project.fdv },
+    { label: 'Price', value: project.price },
   ];
 
   const copyTradeCa = async () => {
@@ -457,37 +641,41 @@ export function CtoTradeView({
                 </div>
               </div>
 
-              <div className="flex shrink-0 flex-col items-end gap-2">
-                <div className="text-right">
-                  <p className="text-lg font-semibold tabular-nums leading-none tracking-tight sm:text-xl">
+              <div className="flex shrink-0 items-center gap-1.5">
+                <div className="mr-1 hidden text-right sm:block">
+                  <p className="text-sm font-semibold tabular-nums leading-none tracking-tight text-white/90">
                     {project.price}
                   </p>
-                  <p className="mt-1 text-sm font-semibold leading-none">
+                  <p className="mt-1 text-xs font-semibold leading-none">
                     <Pct value={change} />
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={copyTradeCa}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
-                    title={tradeMint}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {copied ? 'OK' : 'CA'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onBack}
-                    className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
-                    aria-label="Back to board"
-                    title="Back to board"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={copyTradeCa}
+                  className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
+                  title={tradeMint}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  {copied ? 'OK' : 'CA'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
+                  aria-label="Back to board"
+                  title="Back to board"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
             </div>
+
+            <MarketCapPeakRow
+              marketCap={project.marketCap}
+              change24h={change ?? project.change24h}
+              ticker={project.ticker}
+            />
           </div>
         </div>
       </div>
