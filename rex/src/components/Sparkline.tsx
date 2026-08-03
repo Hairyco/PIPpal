@@ -82,7 +82,7 @@ export function Sparkline({
     return toPath(series, width, height);
   }, [seed, changePct, width, height]);
 
-  const stroke = positive ? '#86efac' : '#fb7185';
+  const stroke = positive ? '#12d18e' : '#ff5a6a';
   const fillId = `spark-${seed.replace(/[^a-zA-Z0-9]/g, '')}-${positive ? 'up' : 'dn'}`;
 
   return (
