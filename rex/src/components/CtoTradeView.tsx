@@ -600,6 +600,18 @@ export function CtoTradeView({
                       <h2 className="font-serif text-lg font-bold leading-none tracking-tight sm:text-xl">
                         ${project.ticker}
                       </h2>
+                      {onToggleStar ? (
+                        <button
+                          type="button"
+                          onClick={onToggleStar}
+                          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-white/35 transition hover:bg-white/[0.06] hover:text-[#c8ff3d]"
+                          aria-label={`Star ${project.ticker}`}
+                        >
+                          <Star
+                            className={`h-3.5 w-3.5 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`}
+                          />
+                        </button>
+                      ) : null}
                       {project.launchInHours != null && project.launchInHours < 24 ? (
                         <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
                           New
@@ -624,21 +636,8 @@ export function CtoTradeView({
                     </div>
                   </div>
 
+                  {onOpenSocials ? (
                   <div className="mt-1.5 flex items-center gap-0.5">
-                    {onToggleStar ? (
-                      <button
-                        type="button"
-                        onClick={onToggleStar}
-                        className="grid h-7 w-7 place-items-center rounded-md text-white/35 transition hover:bg-white/[0.06] hover:text-[#c8ff3d]"
-                        aria-label={`Star ${project.ticker}`}
-                      >
-                        <Star
-                          className={`h-3.5 w-3.5 ${starred ? 'fill-[#c8ff3d] text-[#c8ff3d]' : ''}`}
-                        />
-                      </button>
-                    ) : null}
-                    {onOpenSocials ? (
-                      <>
                         <button
                           type="button"
                           onClick={onOpenSocials}
@@ -675,9 +674,8 @@ export function CtoTradeView({
                         >
                           <Globe className="h-3.5 w-3.5" />
                         </button>
-                      </>
-                    ) : null}
                   </div>
+                  ) : null}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5">
