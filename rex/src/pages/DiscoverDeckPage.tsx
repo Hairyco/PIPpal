@@ -269,13 +269,13 @@ export function DiscoverDeckPage() {
           to="/launch?mode=list"
           className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
         >
-          List
+          List CTO
         </Link>
         <Link
           to="/launch"
           className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
         >
-          Launch
+          Launch CTO
         </Link>
       </div>
 
