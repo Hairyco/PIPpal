@@ -16,7 +16,7 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
-import { ctoProjects, type CtoProject } from '../data/ctoProjects';
+import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue, type SourceVenueFilter } from '../data/ctoProjects';
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
 
@@ -24,9 +24,11 @@ type TopTab = 'watchlist' | 'growth' | 'trending';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 
 const CHAINS = [
-  { id: 'SOL', label: 'SOL', accent: true },
-  { id: 'BSC', label: 'BSC', accent: false },
-  { id: 'HOOD', label: 'HOOD', accent: false },
+  { id: 'SOL', label: 'SOL' },
+  { id: 'BSC', label: 'BSC' },
+  { id: 'HOOD', label: 'HOOD' },
+  { id: 'SUI', label: 'SUI' },
+  { id: 'TRX', label: 'TRX' },
 ] as const;
 
 function salt(str: string, mod = 1000): number {
@@ -82,6 +84,8 @@ function ChainDot({ id }: { id: string }) {
   const colors: Record<string, string> = {
     BSC: 'bg-[#f0b90b]',
     HOOD: 'bg-[#00c805]',
+    SUI: 'bg-[#4da2ff]',
+    TRX: 'bg-[#ff060a]',
   };
   return <span className={`h-3.5 w-3.5 rounded-full ${colors[id] ?? 'bg-white/30'}`} />;
 }
@@ -146,6 +150,7 @@ export function DiscoverDeckPage() {
   const listRef = useRef<HTMLDivElement>(null);
   const [topTab, setTopTab] = useState<TopTab>('trending');
   const [chain, setChain] = useState<string>('SOL');
+  const [source, setSource] = useState<SourceVenueFilter>('all');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
   const [query, setQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
@@ -160,6 +165,9 @@ export function DiscoverDeckPage() {
     } else {
       list = [...list].sort((a, b) => changeForWindow(b, timeWindow) - changeForWindow(a, timeWindow));
     }
+    if (source !== 'all') {
+      list = list.filter((p) => matchesSourceVenue(p, source));
+    }
     const q = query.trim().toLowerCase();
     if (q) {
       list = list.filter(
@@ -171,7 +179,7 @@ export function DiscoverDeckPage() {
     // SOL-only product — other chains show empty for now
     if (chain !== 'SOL') return [];
     return list;
-  }, [topTab, starred, timeWindow, query, chain]);
+  }, [topTab, starred, timeWindow, query, chain, source]);
 
   const pinnedFeed = useMemo(
     () =>
@@ -267,26 +275,70 @@ export function DiscoverDeckPage() {
         </Link>
       </div>
 
-      {/* Chain chips */}
-      <div className="hide-scrollbar flex shrink-0 gap-2 overflow-x-auto px-3 pb-2 pt-2">
-        {CHAINS.map((c) => {
-          const active = chain === c.id;
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setChain(c.id)}
-              className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
-                active
-                  ? 'bg-[#2a2a2c] text-white ring-1 ring-[#c8ff3d]/45'
-                  : 'bg-[#1c1c1e] text-white/70'
-              }`}
-            >
-              <ChainDot id={c.id} />
-              {c.label}
-            </button>
-          );
-        })}
+      {/* Chain carousel + sources */}
+      <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
+        <div className="relative w-[11.25rem] shrink-0 overflow-hidden">
+          <div className="hide-scrollbar flex gap-2 overflow-x-auto pr-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {CHAINS.map((c) => {
+              const active = chain === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setChain(c.id)}
+                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+                    active
+                      ? 'bg-[#2a2a2c] text-white ring-1 ring-[#c8ff3d]/45'
+                      : 'bg-[#1c1c1e] text-white/70'
+                  }`}
+                >
+                  <ChainDot id={c.id} />
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black via-black/80 to-transparent"
+            aria-hidden
+          />
+        </div>
+
+        <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-white/35">
+          source:
+        </p>
+        <div className="hide-scrollbar min-w-0 flex-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-1.5 pr-1">
+            {SOURCE_VENUE_FILTERS.map((venue) => {
+              const active = source === venue.id;
+              const label = venue.id === 'all' ? 'All' : venue.label;
+              return (
+                <button
+                  key={venue.id}
+                  type="button"
+                  title={venue.title}
+                  aria-pressed={active}
+                  onClick={() => setSource(venue.id)}
+                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-[12px] font-semibold ${
+                    active
+                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
+                      : 'bg-[#1c1c1e] text-white/65'
+                  }`}
+                >
+                  {venue.logoSrc ? (
+                    <img
+                      src={venue.logoSrc}
+                      alt=""
+                      className="h-3.5 w-3.5 shrink-0 rounded-[3px] object-cover"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Filter row */}
