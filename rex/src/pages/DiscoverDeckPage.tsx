@@ -200,7 +200,7 @@ export function DiscoverDeckPage() {
   return (
     <div className="deck-shell fixed inset-0 z-[40] flex flex-col bg-black text-white">
       {/* Top search row */}
-      <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-[max(0.65rem,env(safe-area-inset-top))]">
+      <div className="flex shrink-0 items-center gap-2 px-3 pb-3.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <Link
           to="/"
           className="grid h-9 w-9 shrink-0 place-items-center text-white/90"
