@@ -173,23 +173,14 @@ export function DiscoverDeckPage() {
     return list;
   }, [topTab, starred, timeWindow, query, chain]);
 
-  const pinnedFeed = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return ctoProjects
-      .filter((project) => {
+  const pinnedFeed = useMemo(
+    () =>
+      rows.flatMap((project) => {
         const pin = pinnedByTicker[project.ticker];
-        if (!pin) return false;
-        if (chain !== 'SOL') return false;
-        if (!q) return true;
-        return (
-          project.name.toLowerCase().includes(q) ||
-          project.ticker.toLowerCase().includes(q) ||
-          pin.text.toLowerCase().includes(q)
-        );
-      })
-      .map((project) => ({ project, pin: pinnedByTicker[project.ticker]! }))
-      .sort((a, b) => a.pin.minutesAgo - b.pin.minutesAgo);
-  }, [query, chain]);
+        return pin ? [{ project, pin }] : [];
+      }),
+    [rows],
+  );
 
   const onScroll = () => {
     const el = listRef.current;

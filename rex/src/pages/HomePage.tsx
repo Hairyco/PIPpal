@@ -907,22 +907,14 @@ export function HomePage() {
     discoveryFilters,
   ]);
 
-  const pinnedFeed = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    return projects
-      .filter((project) => {
+  const pinnedFeed = useMemo(
+    () =>
+      visibleProjects.flatMap((project) => {
         const pin = pinnedByTicker[project.ticker];
-        if (!pin) return false;
-        if (!normalized) return true;
-        return (
-          project.name.toLowerCase().includes(normalized) ||
-          project.ticker.toLowerCase().includes(normalized) ||
-          pin.text.toLowerCase().includes(normalized)
-        );
-      })
-      .map((project) => ({ project, pin: pinnedByTicker[project.ticker] }))
-      .sort((a, b) => a.pin.minutesAgo - b.pin.minutesAgo);
-  }, [query]);
+        return pin ? [{ project, pin }] : [];
+      }),
+    [visibleProjects],
+  );
 
   const totalPages = Math.max(1, Math.ceil(visibleProjects.length / pageSize));
   const currentPage = Math.min(page, totalPages);
