@@ -502,7 +502,7 @@ export function DiscoverDeckPage() {
                         <p className="truncate text-[15px] font-bold leading-tight text-white">
                           {project.name}
                         </p>
-                        <span className="shrink-0 rounded-[5px] bg-[#2a2a2c] px-1.5 py-[1px] text-[10px] font-semibold tabular-nums text-white/50">
+                        <span className="shrink-0 rounded-[5px] bg-[#2a2a2c] px-1.5 py-[1px] text-[10px] font-semibold tabular-nums text-emerald-400">
                           {ageLabel(project)}
                         </span>
                       </div>
