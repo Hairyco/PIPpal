@@ -11,6 +11,7 @@ import {
   Search,
   Users,
 } from 'lucide-react';
+import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
@@ -353,7 +354,7 @@ export function DiscoverDeckPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="grid w-full grid-cols-[46px_minmax(0,1fr)_3.75rem_4.25rem_4.25rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-2 text-left active:bg-white/[0.03]"
+                    className="grid w-full grid-cols-[46px_minmax(0,9.75rem)_minmax(3.5rem,1fr)_4.25rem_4.25rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-2 text-left active:bg-white/[0.03]"
                   >
                     <div className="relative shrink-0">
                       <span className="block h-[46px] w-[46px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ring-1 ring-white/10">
@@ -390,11 +391,11 @@ export function DiscoverDeckPage() {
                       </div>
                     </div>
 
-                    <div className="flex h-full items-center justify-center self-center">
+                    <div className="flex h-full items-center justify-center self-center px-1">
                       <Sparkline
                         seed={`${project.ticker}-${timeWindow}`}
                         changePct={pct}
-                        width={56}
+                        width={64}
                         height={30}
                       />
                     </div>
