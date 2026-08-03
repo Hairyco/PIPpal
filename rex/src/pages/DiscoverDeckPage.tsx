@@ -222,6 +222,14 @@ export function DiscoverDeckPage() {
           />
         </label>
         <ConnectWalletButton className="shrink-0" alwaysLabel defaultOpen />
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[#1c1c1e] ring-1 ring-white/10"
+          aria-label="Home"
+        >
+          <CtoGoLogo size={28} className="rounded-full" />
+        </button>
       </div>
 
       {/* Tabs */}
@@ -255,8 +263,24 @@ export function DiscoverDeckPage() {
         })}
       </div>
 
+      {/* List / Launch */}
+      <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
+        <Link
+          to="/launch?mode=list"
+          className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+        >
+          List
+        </Link>
+        <Link
+          to="/launch"
+          className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
+        >
+          Launch
+        </Link>
+      </div>
+
       {/* Chain chips */}
-      <div className="hide-scrollbar flex shrink-0 gap-2 overflow-x-auto px-3 pb-2 pt-3">
+      <div className="hide-scrollbar flex shrink-0 gap-2 overflow-x-auto px-3 pb-2 pt-2">
         {CHAINS.map((c) => {
           const active = chain === c.id;
           return (
