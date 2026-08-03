@@ -11,7 +11,6 @@ import {
   Search,
   Users,
 } from 'lucide-react';
-import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
@@ -314,7 +313,7 @@ export function DiscoverDeckPage() {
       </div>
 
       {/* Column headers */}
-      <div className="grid shrink-0 grid-cols-[46px_minmax(0,1fr)_3.75rem_4.25rem_4.25rem] items-center gap-x-2 px-3 pb-1.5 text-[11px] font-medium text-white/35">
+      <div className="grid shrink-0 grid-cols-[46px_minmax(0,9.75rem)_minmax(3.5rem,1fr)_4.25rem_4.25rem] items-center gap-x-2 px-3 pb-1.5 text-[11px] font-medium text-white/35">
         <div className="col-span-2">Age / Holders / Viewing</div>
         <div className="text-center">Chart</div>
         <div className="text-right">Vol / TXs</div>
