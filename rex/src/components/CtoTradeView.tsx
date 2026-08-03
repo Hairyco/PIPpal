@@ -575,8 +575,21 @@ export function CtoTradeView({
                     <h2 className="font-serif text-lg font-bold leading-none tracking-tight sm:text-xl">
                       ${project.ticker}
                     </h2>
-                    <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                       <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
+                      <button
+                        type="button"
+                        onClick={copyTradeCa}
+                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label="Copy contract address"
+                        title={copied ? 'Copied' : tradeMint}
+                      >
+                        {copied ? (
+                          <Check className="h-3 w-3 text-[#d5ff69]" />
+                        ) : (
+                          <Copy className="h-3 w-3" />
+                        )}
+                      </button>
                       {project.launchInHours != null && project.launchInHours < 24 ? (
                         <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
                           New
@@ -652,21 +665,12 @@ export function CtoTradeView({
                   </div>
                   <button
                     type="button"
-                    onClick={copyTradeCa}
-                    className="inline-flex h-8 items-center gap-1 rounded-lg border border-white/[0.1] bg-white/[0.03] px-2 text-[11px] font-semibold text-white/60 transition hover:border-white/20 hover:text-white"
-                    title={tradeMint}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {copied ? 'OK' : 'CA'}
-                  </button>
-                  <button
-                    type="button"
                     onClick={onBack}
-                    className="grid h-8 w-8 place-items-center rounded-lg border border-white/[0.1] bg-white/[0.03] text-white/55 transition hover:border-white/20 hover:text-white"
-                    aria-label="Back to board"
-                    title="Back to board"
+                    className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.12] bg-white/[0.04] text-white/70 transition hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+                    aria-label="Back to Discover"
+                    title="Back to Discover"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4" strokeWidth={2.5} />
                   </button>
                 </div>
               </div>

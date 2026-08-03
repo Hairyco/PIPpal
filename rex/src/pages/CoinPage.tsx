@@ -197,7 +197,7 @@ export function CoinPage() {
                 projects={siblings.length ? siblings : [project]}
                 change={project.change24h}
                 onSelect={(next) => navigate(coinPath(next))}
-                onBack={() => navigate('/')}
+                onBack={() => navigate('/discover')}
               />
             </div>
           ) : null}

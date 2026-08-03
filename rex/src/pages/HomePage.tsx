@@ -1476,7 +1476,7 @@ export function HomePage() {
               projects={visibleProjects}
               change={changeForWindow(selectedProject, activeTimeWindow)}
               onSelect={setSelectedTicker}
-              onBack={() => setViewMode('list')}
+              onBack={() => navigate('/discover')}
               starred={Boolean(starred[selectedProject.ticker])}
               onToggleStar={() => toggleWatchlist(selectedProject.ticker)}
               onOpenSocials={() => setSocialsTicker(selectedProject.ticker)}
