@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
-import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import {
   AppSidebar,
@@ -427,14 +426,13 @@ export function DiscoverDeckPage() {
 
       {/* Column headers */}
       {!showPinned ? (
-      <div className="grid shrink-0 grid-cols-[46px_minmax(0,9.75rem)_minmax(3.5rem,1fr)_4.25rem_4.25rem] items-center gap-x-2 px-3 pb-1.5 text-[11px] font-medium text-white/35">
+      <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_4.75rem_5rem] items-center gap-x-2 px-3 pb-1 text-[10px] font-medium text-white/35">
         <div className="col-span-2">Age / Holders / Viewing</div>
-        <div className="text-center">Chart</div>
         <div className="text-right">Vol / TXs</div>
         <div className="text-right">MC / {timeWindow}%</div>
       </div>
       ) : (
-        <div className="px-3 pb-1.5 text-[11px] font-medium text-white/35">
+        <div className="px-3 pb-1 text-[10px] font-medium text-white/35">
           Pinned Telegram messages
         </div>
       )}
@@ -520,15 +518,16 @@ export function DiscoverDeckPage() {
             {rows.map((project) => {
               const pct = changeForWindow(project, timeWindow);
               const up = pct >= 0;
+              const showPeak = peakTickers.includes(project.ticker);
               return (
                 <li key={project.ticker}>
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="grid w-full grid-cols-[36px_minmax(0,1fr)_48px_3.15rem_3.35rem] items-center gap-x-1.5 border-b border-white/[0.06] px-2.5 py-1.5 text-left active:bg-white/[0.03]"
+                    className="grid w-full grid-cols-[42px_minmax(0,1fr)_4.75rem_5rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03]"
                   >
                     <div className="relative shrink-0">
-                      <span className="block h-9 w-9 overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
+                      <span className="block h-[42px] w-[42px] overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
                         <img
                           src={project.logo}
                           alt=""
@@ -537,7 +536,7 @@ export function DiscoverDeckPage() {
                         />
                       </span>
                       <span
-                        className="absolute -bottom-0.5 -right-0.5 grid h-[14px] w-[14px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
+                        className="absolute -bottom-0.5 -right-0.5 grid h-[15px] w-[15px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
                         title="Solana"
                         aria-label="Solana"
                       >
@@ -549,72 +548,65 @@ export function DiscoverDeckPage() {
                       </span>
                     </div>
 
-                    <div className="min-w-0">
-                      <div className="flex min-w-0 items-center gap-1">
-                        <p className="min-w-0 truncate text-[12px] font-bold leading-tight text-white">
+                    <div className="min-w-0 pr-1">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <p className="min-w-0 truncate text-[14px] font-semibold leading-none text-white">
                           {project.name}
                         </p>
                         {isNewListing(project) ? (
-                          <span className="shrink-0 rounded-[4px] bg-[#c8ff3d]/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-[#d5ff69]">
+                          <span className="shrink-0 rounded-[4px] bg-[#c8ff3d]/15 px-1.5 py-[2px] text-[10px] font-bold uppercase leading-none tracking-wide text-[#d5ff69]">
                             New
                           </span>
                         ) : (
                           <span
-                            className={`shrink-0 rounded-[4px] bg-[#2a2a2c] px-1 py-px text-[9px] font-semibold ${
+                            className={`shrink-0 rounded-[4px] px-1.5 py-[2px] text-[10px] font-semibold leading-none ${
                               ageLabel(project) === 'OG'
-                                ? 'tracking-wide text-amber-300'
-                                : 'tabular-nums text-emerald-400'
+                                ? 'bg-[#2a2a2c] tracking-wide text-amber-300'
+                                : 'bg-[#2a2a2c] tabular-nums text-emerald-400'
                             }`}
                           >
                             {ageLabel(project)}
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[10px] font-medium tabular-nums text-white/40">
+                      <div className="mt-1 flex items-center gap-2.5 text-[11px] font-medium tabular-nums leading-none text-white/40">
                         <span className="inline-flex items-center gap-0.5">
-                          <Users className="h-2.5 w-2.5" strokeWidth={2} />
+                          <Users className="h-3 w-3" strokeWidth={2} />
                           {holdersNum(project)}
                         </span>
                         <span className="inline-flex items-center gap-0.5">
-                          <Eye className="h-2.5 w-2.5" strokeWidth={2} />
+                          <Eye className="h-3 w-3" strokeWidth={2} />
                           {viewingCount(project)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex h-full items-center justify-center self-center">
-                      <Sparkline
-                        seed={`${project.ticker}-${timeWindow}`}
-                        changePct={pct}
-                        width={48}
-                        height={24}
-                      />
-                    </div>
-
                     <div className="min-w-0 text-right">
-                      <p className="truncate text-[11px] font-semibold tabular-nums leading-tight text-white">
+                      <p className="truncate text-[14px] font-semibold tabular-nums leading-none text-white">
                         {project.volume24h}
                       </p>
-                      <p className="mt-0.5 truncate text-[10px] font-medium tabular-nums text-white/40">
+                      <p className="mt-1 truncate text-[11px] font-medium tabular-nums leading-none text-white/40">
                         {project.txs}
                       </p>
                     </div>
 
                     <div className="min-w-0 text-right">
-                      {peakTickers.includes(project.ticker) ? (
+                      {showPeak ? (
                         <>
-                          <p className="truncate text-[11px] font-bold tabular-nums leading-tight text-[#c8ff3d] transition-opacity duration-300">
+                          <p className="truncate text-[14px] font-bold tabular-nums leading-none text-[#c8ff3d]">
                             {peakLabelFor(project.ticker, project.change24h)}
                           </p>
-                          <p className="mt-0.5 text-[9px] font-medium text-white/40">Peak</p>
+                          <p className="mt-1 text-[11px] font-medium leading-none text-white/40">
+                            Peak
+                          </p>
                         </>
                       ) : (
                         <>
-                          <p className="truncate text-[11px] font-semibold tabular-nums leading-tight text-white">
+                          <p className="truncate text-[14px] font-semibold tabular-nums leading-none text-white">
                             {project.marketCap}
                           </p>
                           <p
-                            className={`mt-0.5 truncate text-[10px] font-semibold tabular-nums ${
+                            className={`mt-1 truncate text-[11px] font-semibold tabular-nums leading-none ${
                               up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
                             }`}
                           >
