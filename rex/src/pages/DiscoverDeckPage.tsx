@@ -26,9 +26,6 @@ type TimeWindow = '5m' | '1h' | '6h' | '24h';
 const CHAINS = [
   { id: 'SOL', label: 'SOL' },
   { id: 'BSC', label: 'BSC' },
-  { id: 'HOOD', label: 'HOOD' },
-  { id: 'SUI', label: 'SUI' },
-  { id: 'TRX', label: 'TRX' },
 ] as const;
 
 function salt(str: string, mod = 1000): number {
@@ -89,13 +86,8 @@ function formatPct(n: number): string {
 
 function ChainDot({ id }: { id: string }) {
   if (id === 'SOL') return <SolanaLogo className="h-3.5 w-3.5" />;
-  const colors: Record<string, string> = {
-    BSC: 'bg-[#f0b90b]',
-    HOOD: 'bg-[#00c805]',
-    SUI: 'bg-[#4da2ff]',
-    TRX: 'bg-[#ff060a]',
-  };
-  return <span className={`h-3.5 w-3.5 rounded-full ${colors[id] ?? 'bg-white/30'}`} />;
+  if (id === 'BSC') return <span className="h-3.5 w-3.5 rounded-full bg-[#f0b90b]" />;
+  return <span className="h-3.5 w-3.5 rounded-full bg-white/30" />;
 }
 
 function TrackIcon({ className = '' }: { className?: string }) {
@@ -318,33 +310,27 @@ export function DiscoverDeckPage() {
         </Link>
       </div>
 
-      {/* Chain carousel + sources */}
+      {/* Chain chips + sources */}
       <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
-        <div className="relative w-[11.25rem] shrink-0 overflow-hidden">
-          <div className="hide-scrollbar flex gap-2 overflow-x-auto pr-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {CHAINS.map((c) => {
-              const active = chain === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setChain(c.id)}
-                  className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
-                    active
-                      ? 'bg-[#2a2a2c] text-white'
-                      : 'bg-[#1c1c1e] text-white/70'
-                  }`}
-                >
-                  <ChainDot id={c.id} />
-                  {c.label}
-                </button>
-              );
-            })}
-          </div>
-          <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-black via-black/80 to-transparent"
-            aria-hidden
-          />
+        <div className="flex shrink-0 gap-2">
+          {CHAINS.map((c) => {
+            const active = chain === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setChain(c.id)}
+                className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[13px] font-semibold ${
+                  active
+                    ? 'bg-[#2a2a2c] text-white'
+                    : 'bg-[#1c1c1e] text-white/70'
+                }`}
+              >
+                <ChainDot id={c.id} />
+                {c.label}
+              </button>
+            );
+          })}
         </div>
 
         <p className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-white/35">
