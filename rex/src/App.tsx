@@ -33,8 +33,9 @@ export function App() {
           <ScrollToTop />
           <WelcomeGate />
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/discover" element={<DiscoverDeckPage />} />
+            <Route path="/" element={<DiscoverDeckPage />} />
+            <Route path="/discover" element={<Navigate to="/" replace />} />
+            <Route path="/home" element={<HomePage />} />
             <Route path="/coin/:ticker" element={<CoinPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/launch" element={<LaunchCtoPage />} />

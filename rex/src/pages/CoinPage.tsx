@@ -98,7 +98,7 @@ export function CoinPage() {
           projects={siblings.length ? siblings : [project]}
           change={project.change24h}
           onSelect={(next) => navigate(coinPath(next))}
-          onBack={() => navigate('/discover')}
+          onBack={() => navigate('/')}
           starred={Boolean(starred[project.ticker])}
           onToggleStar={() => toggleWatchlist(project.ticker)}
         />

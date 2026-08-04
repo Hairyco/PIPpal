@@ -242,7 +242,7 @@ export function DiscoverDeckPage() {
       {/* Top search row */}
       <div className="flex shrink-0 items-center gap-2 px-3 pb-3.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
         <Link
-          to="/"
+          to="/home"
           className="grid h-9 w-9 shrink-0 place-items-center text-white/90"
           aria-label="Classic view"
           title="Classic view"
@@ -506,7 +506,7 @@ export function DiscoverDeckPage() {
                 : 'CTOgo is Solana-first for now.'}
             </p>
             <Link
-              to="/"
+              to="/home"
               className="mt-5 inline-flex rounded-full bg-[#c8ff3d] px-4 py-2 text-[13px] font-bold text-[#090b14]"
             >
               Classic view
@@ -632,7 +632,7 @@ export function DiscoverDeckPage() {
       <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="pointer-events-auto flex w-full max-w-[22rem] items-center justify-between rounded-[22px] bg-[#1c1c1e]/92 px-2 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
           <Link
-            to="/discover"
+            to="/"
             onClick={() => setShowPinned(false)}
             className="flex w-[18%] flex-col items-center gap-0.5"
             aria-current={showPinned ? undefined : 'page'}

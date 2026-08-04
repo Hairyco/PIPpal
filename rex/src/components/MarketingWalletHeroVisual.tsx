@@ -212,7 +212,7 @@ function AdsUnlockVisual() {
   );
 }
 
-function LiveTrackingVisual() {
+export function LiveTrackingVisual() {
   return (
     <div className="mkt-hero-track relative w-full select-none" aria-hidden>
       <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_40%_30%,rgba(200,255,61,0.12),transparent_55%)]" />

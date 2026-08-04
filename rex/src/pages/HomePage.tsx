@@ -1410,7 +1410,7 @@ export function HomePage() {
               projects={visibleProjects}
               change={changeForWindow(selectedProject, activeTimeWindow)}
               onSelect={setSelectedTicker}
-              onBack={() => navigate('/discover')}
+              onBack={() => navigate('/')}
               starred={Boolean(starred[selectedProject.ticker])}
               onToggleStar={() => toggleWatchlist(selectedProject.ticker)}
               onOpenSocials={() => setSocialsTicker(selectedProject.ticker)}
@@ -1433,7 +1433,7 @@ export function HomePage() {
                 ) : null}
               </div>
               <Link
-                to="/discover"
+                to="/"
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-2 text-[11px] font-semibold text-white/75 transition hover:border-[#c8ff3d]/40 hover:bg-[#c8ff3d]/10 hover:text-[#d5ff69]"
                 title="Switch to deck view"
               >
