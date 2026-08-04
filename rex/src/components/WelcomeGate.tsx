@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 import { AffiliateEarnArt } from './affiliate/AffiliateEarnArt';
 import { CtoGoLogo } from './CtoGoLogo';
 import { LiveTrackingVisual } from './MarketingWalletHeroVisual';
 
-const SEEN_KEY = 'ctogo-welcome-carousel-v1';
+const SEEN_KEY = 'ctogo-welcome-carousel-v2';
+const SWIPE_THRESHOLD_PX = 48;
 
 const SLIDES = [
   {
@@ -17,11 +18,66 @@ const SLIDES = [
     title: 'Raiders earn 0.50%',
     body: 'Share your raid link and earn 0.50% instant SOL on every trade it brings in. CTOgo is the only platform that pays raiders.',
   },
+  {
+    id: 'telegram',
+    title: 'Telegram bot',
+    body: 'Trade instantly from Telegram. Buy and sell CTOgo coins in chat — no app switch, same fee routing and raid attribution.',
+  },
 ] as const;
+
+function TelegramBotVisual() {
+  return (
+    <div className="mx-auto w-full max-w-[17.5rem] select-none" aria-hidden>
+      <div className="overflow-hidden rounded-[1.35rem] border border-white/[0.14] bg-[#0e1621] shadow-[0_20px_50px_rgba(0,0,0,0.55)] ring-1 ring-[#2aabee]/25">
+        <div className="flex items-center gap-2.5 border-b border-white/[0.06] bg-[#17212b] px-3 py-2.5">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-[#c8ff3d] text-[11px] font-black text-[#090b14]">
+            GO
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[13px] font-semibold text-white">CTOgo Trade Bot</p>
+            <p className="text-[10px] text-[#2aabee]">bot · online</p>
+          </div>
+          <img src="/images/partners/telegram.svg" alt="" className="h-4 w-4 opacity-80" />
+        </div>
+
+        <div className="space-y-2.5 bg-[radial-gradient(ellipse_at_top,rgba(42,171,238,0.08),transparent_55%),#0e1621] px-3 py-3">
+          <div className="max-w-[92%] rounded-2xl rounded-bl-md border border-white/[0.06] bg-[#182533] px-3 py-2.5">
+            <p className="text-[12px] font-semibold leading-snug text-white">
+              Instant trade ready
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-white/55">
+              $CWH · Buy 0.25 SOL
+            </p>
+            <div className="mt-2.5 flex gap-2">
+              <span className="flex-1 rounded-lg bg-[#c8ff3d] py-1.5 text-center text-[11px] font-bold text-[#090b14]">
+                Buy
+              </span>
+              <span className="flex-1 rounded-lg bg-white/10 py-1.5 text-center text-[11px] font-bold text-white/80">
+                Sell
+              </span>
+            </div>
+          </div>
+          <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-[#2b5278] px-3 py-2 text-[11px] leading-snug text-white/90">
+            Bought · 0.25 SOL · fees routed
+            <p className="mt-1 text-right text-[9px] text-white/40">just now ✓✓</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function WelcomeGate() {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const lockAxis = useRef<'x' | 'y' | null>(null);
+  const dragXRef = useRef(0);
+  const indexRef = useRef(index);
+  indexRef.current = index;
 
   useEffect(() => {
     try {
@@ -51,20 +107,68 @@ export function WelcomeGate() {
   };
 
   const go = (next: number) => {
-    setIndex(((next % SLIDES.length) + SLIDES.length) % SLIDES.length);
+    const clamped = Math.max(0, Math.min(SLIDES.length - 1, next));
+    setIndex(clamped);
+    dragXRef.current = 0;
+    setDragX(0);
   };
 
-  const onPrimary = () => {
-    if (index < SLIDES.length - 1) {
-      go(index + 1);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    if (!t) return;
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+    lockAxis.current = null;
+    dragXRef.current = 0;
+    setDragX(0);
+    setDragging(true);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null || touchStartY.current == null) return;
+    const t = e.touches[0];
+    if (!t) return;
+    const dx = t.clientX - touchStartX.current;
+    const dy = t.clientY - touchStartY.current;
+
+    if (lockAxis.current == null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      lockAxis.current = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (lockAxis.current !== 'x') return;
+
+    e.preventDefault();
+    const atStart = indexRef.current === 0 && dx > 0;
+    const atEnd = indexRef.current === SLIDES.length - 1 && dx < 0;
+    const next = atStart || atEnd ? dx * 0.35 : dx;
+    dragXRef.current = next;
+    setDragX(next);
+  };
+
+  const onTouchEnd = () => {
+    const dx = dragXRef.current;
+    touchStartX.current = null;
+    touchStartY.current = null;
+    lockAxis.current = null;
+    setDragging(false);
+
+    if (dx <= -SWIPE_THRESHOLD_PX && indexRef.current < SLIDES.length - 1) {
+      go(indexRef.current + 1);
       return;
     }
-    dismiss();
+    if (dx >= SWIPE_THRESHOLD_PX && indexRef.current > 0) {
+      go(indexRef.current - 1);
+      return;
+    }
+    dragXRef.current = 0;
+    setDragX(0);
   };
 
   if (!open) return null;
 
   const slide = SLIDES[index];
+  const isLast = index === SLIDES.length - 1;
+  const isFirst = index === 0;
 
   return (
     <div
@@ -96,10 +200,19 @@ export function WelcomeGate() {
           </button>
         </div>
 
-        <div className="overflow-hidden">
+        <div
+          className="overflow-hidden"
+          style={{ touchAction: 'pan-y' }}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={onTouchEnd}
+        >
           <div
-            className="flex transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
-            style={{ transform: `translateX(-${index * 100}%)` }}
+            className={`flex ${dragging ? '' : 'transition-transform duration-300 ease-out'}`}
+            style={{
+              transform: `translateX(calc(-${index * 100}% + ${dragX}px))`,
+            }}
           >
             <div className="w-full shrink-0 px-4 pb-2 pt-4">
               <div className="mx-auto max-h-[14.5rem] overflow-hidden sm:max-h-[16rem]">
@@ -111,16 +224,32 @@ export function WelcomeGate() {
             <div className="flex w-full shrink-0 items-center justify-center px-4 pb-2 pt-4">
               <AffiliateEarnArt className="h-auto w-full max-w-[18rem]" />
             </div>
+            <div className="flex w-full shrink-0 items-center justify-center px-4 pb-2 pt-4">
+              <TelegramBotVisual />
+            </div>
           </div>
         </div>
 
         <div className="px-5 pb-5 pt-1 text-center">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
-            {index + 1} / {SLIDES.length}
-          </p>
+          <div className="flex items-center justify-center gap-1.5" role="tablist" aria-label="Welcome slides">
+            {SLIDES.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={s.title}
+                onClick={() => go(i)}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === index ? 'w-6 bg-[#c8ff3d]' : 'w-1.5 bg-white/25 hover:bg-white/40'
+                }`}
+              />
+            ))}
+          </div>
+
           <h2
             id="welcome-carousel-title"
-            className="mt-2 text-xl font-bold tracking-tight text-white"
+            className="mt-3 text-xl font-bold tracking-tight text-white"
           >
             {slide.title}
           </h2>
@@ -128,51 +257,23 @@ export function WelcomeGate() {
             {slide.body}
           </p>
 
-          <div className="mt-5 flex items-center justify-center gap-3">
+          <div className="mt-5 grid grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => go(index - 1)}
-              disabled={index === 0}
-              className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/55 transition enabled:hover:text-white disabled:opacity-30"
-              aria-label="Previous"
+              disabled={isFirst}
+              className="rounded-full border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white/80 transition enabled:hover:bg-white/[0.08] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
             >
-              <ChevronLeft className="h-4 w-4" />
+              Back
             </button>
-
-            <div className="flex items-center gap-1.5" role="tablist" aria-label="Welcome slides">
-              {SLIDES.map((s, i) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === index}
-                  aria-label={s.title}
-                  onClick={() => go(i)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === index ? 'w-6 bg-[#c8ff3d]' : 'w-1.5 bg-white/25 hover:bg-white/40'
-                  }`}
-                />
-              ))}
-            </div>
-
             <button
               type="button"
-              onClick={() => go(index + 1)}
-              disabled={index === SLIDES.length - 1}
-              className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white/55 transition enabled:hover:text-white disabled:opacity-30"
-              aria-label="Next"
+              onClick={() => (isLast ? dismiss() : go(index + 1))}
+              className="rounded-full bg-[#c8ff3d] px-4 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
             >
-              <ChevronRight className="h-4 w-4" />
+              {isLast ? 'Enter CTOgo' : 'Next'}
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={onPrimary}
-            className="mt-4 w-full rounded-full bg-[#c8ff3d] px-6 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
-          >
-            {index < SLIDES.length - 1 ? 'Next' : 'Enter CTOgo'}
-          </button>
         </div>
       </div>
 
