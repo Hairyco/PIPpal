@@ -365,14 +365,14 @@ export function PostLaunchDashboard({
               className="h-10 w-10 rounded-xl border border-white/[0.1] object-cover"
             />
           ) : (
-            <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/[0.1] bg-white/[0.04] font-serif text-sm font-bold text-[#d5ff69]">
+            <span className="grid h-10 w-10 place-items-center rounded-full border border-white/[0.08] bg-[#1c1c1e] text-sm font-bold text-[#d5ff69]">
               {symbol.replace(/^\$/, '').slice(0, 2)}
             </span>
           )}
         </Link>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <h1 className="font-serif text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
               {symbol}
             </h1>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2 py-0.5">
@@ -607,13 +607,13 @@ export function PostLaunchDashboard({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-[11px] font-medium text-white/40">Marketing wallet balance</p>
-                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-[#d5ff69]">
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-[#d5ff69]">
                   ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-[11px] font-medium text-white/40">Trading volume</p>
-                <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
+                <p className="mt-0.5 text-xl font-bold tabular-nums text-white">
                   ${tradingVolumeUsd.toLocaleString()}
                 </p>
               </div>
@@ -739,7 +739,7 @@ export function PostLaunchDashboard({
                     <button
                       type="button"
                       onClick={() => void copyMarketingWallet()}
-                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
                     >
                       {copiedMkt ? (
                         <Check className="h-3.5 w-3.5 text-[#d5ff69]" />
@@ -751,7 +751,7 @@ export function PostLaunchDashboard({
                     <button
                       type="button"
                       onClick={() => void shareMarketingWallet()}
-                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
+                      className="inline-flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] px-3 text-[12px] font-semibold text-white transition hover:border-white/25 sm:flex-none"
                     >
                       <Share2 className="h-3.5 w-3.5" />
                       {shareNotice ?? 'Share'}
@@ -899,7 +899,7 @@ export function PostLaunchDashboard({
       {tab === 'roadmap' ? (
         <div className="space-y-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
-            <p className="font-serif text-xl font-bold tracking-tight text-white">
+            <p className="text-xl font-bold tracking-tight text-white">
               Spend roadmap
             </p>
             <PolessiaLogo variant="powered" size="xs" />

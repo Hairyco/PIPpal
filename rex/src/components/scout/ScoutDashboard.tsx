@@ -119,9 +119,9 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
             </li>
             <li>
               Full swap splits (incl. platform / creator) →{' '}
-              <a href="/fees#raid-fee-engine" className="text-[#d5ff69] hover:underline">
+              <Link to="/fees#raid-fee-engine" className="text-[#d5ff69] hover:underline">
                 Fees
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
