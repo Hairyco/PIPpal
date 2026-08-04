@@ -48,6 +48,11 @@ function ageLabel(project: CtoProject): string {
   return `${Math.round(hours / 24)}d`;
 }
 
+/** Under 24h since listing — show New badge on Discover. */
+function isNewListing(project: CtoProject): boolean {
+  return project.launchInHours != null && project.launchInHours < 24;
+}
+
 function viewingCount(project: CtoProject): string {
   const n = 40 + salt(project.ticker + 'view', 900);
   if (n >= 1000) return `${(n / 1000).toFixed(2)}K`;
@@ -520,10 +525,10 @@ export function DiscoverDeckPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="grid w-full grid-cols-[46px_minmax(0,9.75rem)_minmax(3.5rem,1fr)_4.25rem_4.25rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-2 text-left active:bg-white/[0.03]"
+                    className="grid w-full grid-cols-[36px_minmax(0,1fr)_48px_3.15rem_3.35rem] items-center gap-x-1.5 border-b border-white/[0.06] px-2.5 py-1.5 text-left active:bg-white/[0.03]"
                   >
                     <div className="relative shrink-0">
-                      <span className="block h-[46px] w-[46px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ring-1 ring-white/10">
+                      <span className="block h-9 w-9 overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
                         <img
                           src={project.logo}
                           alt=""
@@ -532,7 +537,7 @@ export function DiscoverDeckPage() {
                         />
                       </span>
                       <span
-                        className="absolute -bottom-0.5 -right-0.5 grid h-[16px] w-[16px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
+                        className="absolute -bottom-0.5 -right-0.5 grid h-[14px] w-[14px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
                         title="Solana"
                         aria-label="Solana"
                       >
@@ -545,65 +550,71 @@ export function DiscoverDeckPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        <p className="truncate text-[15px] font-bold leading-tight text-white">
+                      <div className="flex min-w-0 items-center gap-1">
+                        <p className="min-w-0 truncate text-[12px] font-bold leading-tight text-white">
                           {project.name}
                         </p>
-                        <span
-                          className={`shrink-0 rounded-[5px] bg-[#2a2a2c] px-1.5 py-[1px] text-[10px] font-semibold ${
-                            ageLabel(project) === 'OG'
-                              ? 'tracking-wide text-amber-300'
-                              : 'tabular-nums text-emerald-400'
-                          }`}
-                        >
-                          {ageLabel(project)}
-                        </span>
+                        {isNewListing(project) ? (
+                          <span className="shrink-0 rounded-[4px] bg-[#c8ff3d]/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-[#d5ff69]">
+                            New
+                          </span>
+                        ) : (
+                          <span
+                            className={`shrink-0 rounded-[4px] bg-[#2a2a2c] px-1 py-px text-[9px] font-semibold ${
+                              ageLabel(project) === 'OG'
+                                ? 'tracking-wide text-amber-300'
+                                : 'tabular-nums text-emerald-400'
+                            }`}
+                          >
+                            {ageLabel(project)}
+                          </span>
+                        )}
                       </div>
-                      <div className="mt-1 flex items-center gap-2.5 text-[12px] font-medium tabular-nums text-white/45">
+                      <div className="mt-0.5 flex items-center gap-2 text-[10px] font-medium tabular-nums text-white/40">
                         <span className="inline-flex items-center gap-0.5">
-                          <Users className="h-3 w-3" strokeWidth={2} />
+                          <Users className="h-2.5 w-2.5" strokeWidth={2} />
                           {holdersNum(project)}
                         </span>
                         <span className="inline-flex items-center gap-0.5">
-                          <Eye className="h-3 w-3" strokeWidth={2} />
+                          <Eye className="h-2.5 w-2.5" strokeWidth={2} />
                           {viewingCount(project)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex h-full items-center justify-center self-center px-1">
+                    <div className="flex h-full items-center justify-center self-center">
                       <Sparkline
                         seed={`${project.ticker}-${timeWindow}`}
                         changePct={pct}
-                        width={64}
-                        height={30}
+                        width={48}
+                        height={24}
                       />
                     </div>
 
-                    <div className="text-right">
-                      <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
+                    <div className="min-w-0 text-right">
+                      <p className="truncate text-[11px] font-semibold tabular-nums leading-tight text-white">
                         {project.volume24h}
                       </p>
-                      <p className="mt-0.5 text-[12px] font-medium tabular-nums text-white/40">
+                      <p className="mt-0.5 truncate text-[10px] font-medium tabular-nums text-white/40">
                         {project.txs}
                       </p>
                     </div>
 
-                    <div className="text-right">
+                    <div className="min-w-0 text-right">
                       {peakTickers.includes(project.ticker) ? (
                         <>
-                          <p className="text-[14px] font-bold tabular-nums leading-tight text-[#c8ff3d] transition-opacity duration-300">
+                          <p className="truncate text-[11px] font-bold tabular-nums leading-tight text-[#c8ff3d] transition-opacity duration-300">
                             {peakLabelFor(project.ticker, project.change24h)}
                           </p>
-                          <p className="mt-0.5 text-[11px] font-medium text-white/40">Peak</p>
+                          <p className="mt-0.5 text-[9px] font-medium text-white/40">Peak</p>
                         </>
                       ) : (
                         <>
-                          <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
+                          <p className="truncate text-[11px] font-semibold tabular-nums leading-tight text-white">
                             {project.marketCap}
                           </p>
                           <p
-                            className={`mt-0.5 text-[12px] font-semibold tabular-nums ${
+                            className={`mt-0.5 truncate text-[10px] font-semibold tabular-nums ${
                               up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
                             }`}
                           >
