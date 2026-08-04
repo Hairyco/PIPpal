@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
+import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import {
   AppSidebar,
@@ -426,8 +427,9 @@ export function DiscoverDeckPage() {
 
       {/* Column headers */}
       {!showPinned ? (
-      <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_4.75rem_5rem] items-center gap-x-2 px-3 pb-1 text-[10px] font-medium text-white/35">
+      <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
         <div className="col-span-2">Age / Holders / Viewing</div>
+        <div className="text-center">Chart</div>
         <div className="text-right">Vol / TXs</div>
         <div className="text-right">MC / {timeWindow}%</div>
       </div>
@@ -524,7 +526,7 @@ export function DiscoverDeckPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="grid w-full grid-cols-[42px_minmax(0,1fr)_4.75rem_5rem] items-center gap-x-2 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03]"
+                    className="grid w-full grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03]"
                   >
                     <div className="relative shrink-0">
                       <span className="block h-[42px] w-[42px] overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
@@ -548,7 +550,7 @@ export function DiscoverDeckPage() {
                       </span>
                     </div>
 
-                    <div className="min-w-0 pr-1">
+                    <div className="min-w-0 pr-0.5">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <p className="min-w-0 truncate text-[14px] font-semibold leading-none text-white">
                           {project.name}
@@ -581,8 +583,17 @@ export function DiscoverDeckPage() {
                       </div>
                     </div>
 
+                    <div className="flex items-center justify-center">
+                      <Sparkline
+                        seed={`${project.ticker}-${timeWindow}`}
+                        changePct={pct}
+                        width={40}
+                        height={22}
+                      />
+                    </div>
+
                     <div className="min-w-0 text-right">
-                      <p className="truncate text-[14px] font-semibold tabular-nums leading-none text-white">
+                      <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
                         {project.volume24h}
                       </p>
                       <p className="mt-1 truncate text-[11px] font-medium tabular-nums leading-none text-white/40">
@@ -593,7 +604,7 @@ export function DiscoverDeckPage() {
                     <div className="min-w-0 text-right">
                       {showPeak ? (
                         <>
-                          <p className="truncate text-[14px] font-bold tabular-nums leading-none text-[#c8ff3d]">
+                          <p className="truncate text-[13px] font-bold tabular-nums leading-none text-[#c8ff3d]">
                             {peakLabelFor(project.ticker, project.change24h)}
                           </p>
                           <p className="mt-1 text-[11px] font-medium leading-none text-white/40">
@@ -602,7 +613,7 @@ export function DiscoverDeckPage() {
                         </>
                       ) : (
                         <>
-                          <p className="truncate text-[14px] font-semibold tabular-nums leading-none text-white">
+                          <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
                             {project.marketCap}
                           </p>
                           <p
