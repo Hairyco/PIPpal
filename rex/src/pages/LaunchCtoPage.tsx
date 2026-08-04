@@ -932,7 +932,7 @@ export function LaunchCtoPage() {
               {mode === 'add' ? (
                 <div className="mt-4 rounded-2xl border border-white/[0.1] bg-gradient-to-br from-[#c8ff3d]/[0.1] via-white/[0.02] to-transparent p-4">
                   <p className="text-[13px] font-semibold leading-snug text-white">
-                    Unlock built-in utility for your CTO.
+                    Unlock built-in utility for any token.
                   </p>
                   <ul className="mt-3 space-y-2.5">
                     {(
