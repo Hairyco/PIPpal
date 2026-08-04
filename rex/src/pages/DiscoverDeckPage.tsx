@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownUp,
@@ -70,6 +70,12 @@ function changeForWindow(project: CtoProject, window: TimeWindow): number {
     default:
       return project.change24h;
   }
+}
+
+function peakLabelFor(ticker: string, change24h: number): string {
+  const h = salt(ticker, 10_000);
+  const peakX = Math.max(1.2, Math.min(99, Math.abs(change24h) / 14 + 1.4 + ((h % 90) + 1) / 10));
+  return `${peakX.toFixed(1)}x`;
 }
 
 function formatPct(n: number): string {
@@ -155,6 +161,7 @@ export function DiscoverDeckPage() {
   const [query, setQuery] = useState('');
   const [showTop, setShowTop] = useState(false);
   const [showPinned, setShowPinned] = useState(false);
+  const [peakTickers, setPeakTickers] = useState<string[]>([]);
 
   const rows = useMemo(() => {
     let list = [...ctoProjects];
@@ -189,6 +196,40 @@ export function DiscoverDeckPage() {
       }),
     [rows],
   );
+
+  useEffect(() => {
+    if (showPinned || rows.length === 0) {
+      setPeakTickers([]);
+      return;
+    }
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) return;
+
+    let hideTimer: number | undefined;
+    let cycle = 0;
+    const pick = () => {
+      const pool = rows.slice(0, Math.min(8, rows.length));
+      const count = Math.min(3, pool.length);
+      const picked: string[] = [];
+      for (let i = 0; i < count; i += 1) {
+        const idx = (cycle + i * 2) % pool.length;
+        const ticker = pool[idx]?.ticker;
+        if (ticker && !picked.includes(ticker)) picked.push(ticker);
+      }
+      cycle += 1;
+      setPeakTickers(picked);
+      hideTimer = window.setTimeout(() => setPeakTickers([]), 2600);
+    };
+
+    pick();
+    const interval = window.setInterval(pick, 8500);
+    return () => {
+      window.clearInterval(interval);
+      if (hideTimer) window.clearTimeout(hideTimer);
+    };
+  }, [rows, showPinned]);
 
   const onScroll = () => {
     const el = listRef.current;
@@ -545,16 +586,27 @@ export function DiscoverDeckPage() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
-                        {project.marketCap}
-                      </p>
-                      <p
-                        className={`mt-0.5 text-[12px] font-semibold tabular-nums ${
-                          up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
-                        }`}
-                      >
-                        {formatPct(pct)}
-                      </p>
+                      {peakTickers.includes(project.ticker) ? (
+                        <>
+                          <p className="text-[14px] font-bold tabular-nums leading-tight text-[#c8ff3d] transition-opacity duration-300">
+                            {peakLabelFor(project.ticker, project.change24h)}
+                          </p>
+                          <p className="mt-0.5 text-[11px] font-medium text-white/40">Peak</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-[14px] font-semibold tabular-nums leading-tight text-white">
+                            {project.marketCap}
+                          </p>
+                          <p
+                            className={`mt-0.5 text-[12px] font-semibold tabular-nums ${
+                              up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
+                            }`}
+                          >
+                            {formatPct(pct)}
+                          </p>
+                        </>
+                      )}
                     </div>
                   </button>
                 </li>
