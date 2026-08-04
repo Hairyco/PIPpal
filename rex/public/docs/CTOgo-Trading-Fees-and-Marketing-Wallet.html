@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>CTOgo — Trading, Fees & Marketing Wallet</title>
+<style>
+  body { font-family: Georgia, 'Times New Roman', serif; max-width: 820px; margin: 2rem auto; padding: 0 1.25rem 3rem; line-height: 1.55; color: #111; }
+  h1,h2,h3,h4 { font-family: system-ui, -apple-system, Segoe UI, sans-serif; line-height: 1.25; }
+  h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.35rem; margin-top: 2rem; border-bottom: 2px solid #c8ff3d; padding-bottom: 0.35rem; }
+  h3 { font-size: 1.1rem; margin-top: 1.4rem; }
+  h4 { font-size: 1rem; margin-top: 1.1rem; }
+  table { border-collapse: collapse; width: 100%; margin: 0.75rem 0 1.25rem; font-size: 0.92rem; font-family: system-ui, sans-serif; }
+  th, td { border: 1px solid #ccc; padding: 0.45rem 0.55rem; text-align: left; vertical-align: top; }
+  th { background: #f4f4f4; }
+  blockquote { border-left: 4px solid #c8ff3d; margin: 1rem 0; padding: 0.5rem 1rem; background: #f7ffe8; }
+  code, pre { font-family: ui-monospace, Consolas, monospace; font-size: 0.85rem; }
+  pre { background: #111; color: #eaeaea; padding: 1rem; overflow-x: auto; border-radius: 8px; white-space: pre-wrap; }
+  a { color: #0a7; }
+  .toolbar { font-family: system-ui, sans-serif; background: #0a0c12; color: #fff; padding: 0.85rem 1.25rem; margin: 0 0 1.5rem; border-radius: 10px; display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .toolbar button, .toolbar a { background: #c8ff3d; color: #090b14; border: 0; border-radius: 999px; padding: 0.5rem 1rem; font-weight: 700; font-size: 0.85rem; text-decoration: none; cursor: pointer; display: inline-block; }
+  @media print { .toolbar { display: none; } body { margin: 0; max-width: none; } }
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div><strong>CTOgo</strong> · Trading, fees & marketing wallet</div>
+  <div>
+    <button type="button" onclick="window.print()">Print / Save as PDF</button>
+    <a href="./CTOgo-Trading-Fees-and-Marketing-Wallet.md" download>Download Markdown</a>
+  </div>
+</div>
+<h1>CTOgo trading, fees &amp; marketing wallet</h1>
+<p>Plain-English product rules (as defined in the app today).<br>Use this to understand <strong>where money comes from</strong>, <strong>where traders can trade</strong>, and <strong>what breaks if they leave CTOgo</strong>.</p>
+<p><strong>Status note:</strong> Numbers and rules below are the <em>product model</em> in CTOgo. The live fee engine / on-chain program is still largely demo or MVP — treat this as “what we sell and intend,” and flag open inconsistencies at the end.</p>
+<p><strong>Pump.fun reference:</strong> Pump is the model we copy for bonding curve → graduate to an AMM → locked liquidity. We differ on marketing wallet, raid fees, List vs Launch, and Raydium-first graduation (we are not building our own PumpSwap yet).</p>
+<hr>
+<h2>Part 1 — Trading: buy, sell, curve, migrate, wrap</h2>
+<h3>1.1 Two ways a coin exists on CTOgo</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it is</th>
+<th>Marketing wallet</th>
+<th>Fee schedule</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Launch a CTO</strong></td>
+<td>Coin is created on CTOgo (native mint / bonding curve)</td>
+<td>Included automatically</td>
+<td><strong>Launch · 1.30%</strong></td>
+</tr>
+<tr>
+<td><strong>List a CTO</strong></td>
+<td>Coin already exists elsewhere (e.g. pump.fun) — we claim the page and optionally add growth tools</td>
+<td>Optional (<strong>$1</strong> to attach)</td>
+<td><strong>List · 1.25%</strong></td>
+</tr>
+</tbody></table>
+<p>Listing or indexing a coin ≠ taxing every trade on every app. Fees only apply when the trade is <strong>routed through CTOgo</strong> (see Part 2).</p>
+<hr>
+<h3>1.2 Buy and sell (simple)</h3>
+<ol>
+<li>Trader opens the coin on <strong>CTOgo</strong> and buys or sells.</li>
+<li>CTOgo takes a <strong>small % of that trade</strong> (the fee engine).</li>
+<li>That % is split into pots: raid / marketing / creator (Launch only) / CTOgo.</li>
+<li>The rest of the trade fills against the <strong>bonding curve</strong> (pre-graduate) or the <strong>Raydium pool</strong> (after graduate), depending on stage.</li>
+</ol>
+<p><strong>Buy and sell both pay the same total %</strong> on CTOgo-routed swaps (List 1.25% or Launch 1.30%).</p>
+<hr>
+<h3>1.3 Bonding curve (pre-graduate) — like early Pump.fun</h3>
+<p><strong>What it is</strong><br>A price formula: early buys are cheaper; later buys cost more as the curve fills. Selling works the other way.</p>
+<p><strong>Where it lives</strong><br>On CTOgo’s program (native Launch coins), not on pump.fun’s curve.</p>
+<p><strong>What we take while on the curve</strong><br>Every CTOgo buy/sell still runs the Launch (or List) fee split before/alongside the curve fill.</p>
+<p><strong>What we keep / retain</strong></p>
+<ul>
+<li>Fee split on CTOgo-routed volume</li>
+<li>Marketing wallet fills from the marketing cut</li>
+<li>Raid attribution if the trader came via a raid link</li>
+<li>Curve SOL + remaining tokens held for graduation liquidity</li>
+</ul>
+<hr>
+<h3>1.4 Migration / graduation — like Pump → AMM</h3>
+<p><strong>Target:</strong> Raydium (not a private CTOgo DEX). Reason: stay visible on Jupiter, DexScreener, bots.</p>
+<p><strong>What happens at graduate (required steps)</strong></p>
+<ol>
+<li>Take <strong>2 SOL</strong> CTOgo migration fee → CTOgo treasury  </li>
+<li>Pay <strong>~0.20 SOL</strong> to open the Raydium pool (Raydium’s cost, pass-through)  </li>
+<li>Put <strong>almost all remaining curve SOL + remaining tokens</strong> into the Raydium pool  </li>
+<li><strong>Burn / lock LP</strong> so nobody can pull liquidity  </li>
+<li>Close the bonding curve — further liquidity lives on Raydium</li>
+</ol>
+<p><strong>Total leaving the curve at migrate:</strong> about <strong>2.2 SOL</strong> (2 + ~0.20). The rest becomes locked pool liquidity.</p>
+<p><strong>Fees after migrate</strong><br>Product rule: <strong>fees do not turn off.</strong> Platform / marketing / creator (Launch) / raid cuts should still apply on <strong>CTOgo-routed</strong> volume after Raydium.<br>Mechanism planned: Token-2022 transfer fee and/or hooks so CTOgo swaps still tax.<br>Risk to retain awareness of: if traders swap the graduated mint on Jupiter/Raydium <strong>without</strong> going through CTOgo, we may <strong>leak fees</strong> unless wrap / transfer-fee / router integration is live.</p>
+<hr>
+<h3>1.5 Contract wrapping (external / List coins)</h3>
+<p><strong>Idea (product / demo)</strong><br>External coins (pump.fun etc.) may get a <strong>CTOgo wrap mint</strong> so that trading the wrap on CTOgo can route fees even when the “real” coin lives elsewhere.</p>
+<p><strong>What wrapping is meant to do</strong></p>
+<ul>
+<li>Give CTOgo a mint we control for fee routing  </li>
+<li>Let discovery stay multi-venue while fee capture stays on CTOgo trades</li>
+</ul>
+<p><strong>What wrapping does <em>not</em> do (today)</strong></p>
+<ul>
+<li>It does <strong>not</strong> tax native pump.fun / PumpSwap / Raydium / Jupiter volume by magic  </li>
+<li>Wrap addresses in the app are still <strong>demo</strong> until live program wiring</li>
+</ul>
+<p><strong>What we should retain</strong></p>
+<ul>
+<li>Clear rule: <strong>fee = CTOgo-routed trade</strong> (wrap or native), never “all Solana volume”  </li>
+<li>If wrap ships: traders who want marketing fills + CTOgo fees must trade the <strong>CTOgo path</strong>, not only the pump mint on Trojan</li>
+</ul>
+<hr>
+<h3>1.6 Fees we charge (swap tax)</h3>
+<h4>Launch a CTO — <strong>1.30%</strong> total</h4>
+<table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>%</th>
+<th>Goes to</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Raid</td>
+<td>0.50%</td>
+<td>Raider wallet (if valid link) or CTOgo if unclaimed</td>
+</tr>
+<tr>
+<td>Marketing</td>
+<td>0.30%</td>
+<td>Coin marketing wallet</td>
+</tr>
+<tr>
+<td>Creator</td>
+<td>0.20%</td>
+<td>Creator / deployer</td>
+</tr>
+<tr>
+<td>CTOgo</td>
+<td>0.30%</td>
+<td>Platform</td>
+</tr>
+</tbody></table>
+<h4>List a CTO — <strong>1.25%</strong> total</h4>
+<table>
+<thead>
+<tr>
+<th>Slice</th>
+<th>%</th>
+<th>Goes to</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Raid</td>
+<td>0.50%</td>
+<td>Raider or CTOgo if unclaimed</td>
+</tr>
+<tr>
+<td>Marketing</td>
+<td>0.40%</td>
+<td>Marketing wallet (if attached)</td>
+</tr>
+<tr>
+<td>Creator</td>
+<td>—</td>
+<td>None (imported coin)</td>
+</tr>
+<tr>
+<td>CTOgo</td>
+<td>0.35%</td>
+<td>Platform (takes the “creator seat”)</td>
+</tr>
+</tbody></table>
+<h4>Unclaimed raid</h4>
+<p>If there is <strong>no</strong> active raid referrer (no <code>?ref=</code>, attribution older than <strong>24 hours</strong>, or someone pastes the CA into a bot with no raid link):</p>
+<ul>
+<li>The <strong>0.50% raid</strong> goes to <strong>CTOgo treasury</strong>, not a raider  </li>
+<li>Effective CTOgo take becomes <strong>~0.80% Launch</strong> or <strong>~0.85% List</strong> (base + unclaimed raid)</li>
+</ul>
+<h4>Other one-off fees</h4>
+<table>
+<thead>
+<tr>
+<th>Fee</th>
+<th>Amount</th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Claim / launch pack</td>
+<td>$1</td>
+<td>Launch / claim flows (product)</td>
+</tr>
+<tr>
+<td>Attach marketing wallet (List)</td>
+<td>$1</td>
+<td>Optional on List</td>
+</tr>
+<tr>
+<td>Clone + host site</td>
+<td>0.4 SOL</td>
+<td>From marketing wallet</td>
+</tr>
+<tr>
+<td>Migration (CTOgo)</td>
+<td>2 SOL</td>
+<td>At graduate</td>
+</tr>
+<tr>
+<td>Raydium create</td>
+<td>~0.20 SOL</td>
+<td>At graduate (pass-through)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Part 2 — Marketing wallet (plain English)</h2>
+<h3>2.1 What it is</h3>
+<p>A <strong>dedicated growth piggy bank</strong> for the coin (branded with Polessia).</p>
+<ul>
+<li>Not the founder’s personal wallet they can drain freely  </li>
+<li>Filled mainly by a <strong>cut of trades that go through CTOgo</strong>  </li>
+<li>Used to pay for growth: DexScreener trending, ads, raids spend, roadmap suppliers, etc.  </li>
+<li>Spend can be manual or “auto” after a roadmap is approved</li>
+</ul>
+<p><strong>Launch:</strong> wallet created with the coin.<br><strong>List:</strong> optional — attach for <strong>$1</strong>, or list without it (then CTOgo can still take platform fee on CTOgo trades, but no marketing pot fills).</p>
+<hr>
+<h3>2.2 The one sentence that matters</h3>
+<blockquote>
+<p><strong>The marketing wallet fills from CTOgo-routed trades. Volume on pump.fun, Jupiter, Trojan, Banana, etc. does not fill it — unless that trade somehow still goes through CTOgo’s fee path (it usually doesn’t).</strong></p>
+</blockquote>
+<p>Same sentence for <strong>CTOgo’s platform fee</strong>: we earn when the swap is routed through us.</p>
+<hr>
+<h3>2.3 How any coin “adds” the marketing wallet</h3>
+<p><strong>A. Pump.fun / external coin (most coins)</strong>  </p>
+<ol>
+<li>Coin is discovered / indexed on CTOgo  </li>
+<li>Someone <strong>Lists</strong> (claims the page)  </li>
+<li>Optionally pays <strong>$1</strong> to attach marketing wallet  </li>
+<li>Community is told: <strong>trade on CTOgo</strong> (or CTOgo Telegram bot when live) if you want the wallet to fill  </li>
+<li>They can keep chatting / holding the pump mint everywhere else — but <strong>those trades don’t fund the wallet</strong></li>
+</ol>
+<p><strong>B. Native Launch on CTOgo</strong>  </p>
+<ol>
+<li>Launch creates mint + curve + marketing wallet  </li>
+<li>Early trades on CTOgo fill wallet automatically (0.30% marketing cut)  </li>
+<li>Later graduate to Raydium; CTOgo-routed trades should keep filling</li>
+</ol>
+<p><strong>C. Manual top-up (product direction / hybrid)</strong><br>Teams can also <strong>deposit</strong> SOL into the wallet so Polessia can spend even when volume is elsewhere. That is separate from swap tax. (Deposit path is a product choice; auto tax remains CTOgo-routed only.)</p>
+<hr>
+<h3>2.4 Where must they trade for fees + marketing to work?</h3>
+<table>
+<thead>
+<tr>
+<th>Where they trade</th>
+<th>CTOgo platform fee?</th>
+<th>Marketing wallet fill?</th>
+<th>Raid 0.50% to raider?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>CTOgo website</strong> (Buy/Sell)</td>
+<td>Yes</td>
+<td>Yes (if MW attached / Launch)</td>
+<td>Yes if raid link active</td>
+</tr>
+<tr>
+<td><strong>CTOgo Telegram trade bot</strong> (when live, CTOgo-routed)</td>
+<td>Yes (intent)</td>
+<td>Yes (intent)</td>
+<td>Yes if attributed</td>
+</tr>
+<tr>
+<td><strong>pump.fun / PumpSwap</strong> native UI</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+</tr>
+<tr>
+<td><strong>Jupiter / Raydium UI</strong> (bypass CTOgo)</td>
+<td>No*</td>
+<td>No*</td>
+<td>No*</td>
+</tr>
+<tr>
+<td><strong>Trojan / Banana / BullX / Axiom / Photon</strong> with CA paste</td>
+<td>No*</td>
+<td>No*</td>
+<td>Raid share → <strong>CTOgo treasury</strong> only if somehow a CTOgo-routed swap still happens <strong>without</strong> a ref; usually <strong>no fee at all</strong> if the bot never hits CTOgo</td>
+</tr>
+</tbody></table>
+<p>*Unless transfer-fee / wrap / exclusive router is live. Today’s honest rule: <strong>assume no</strong>.</p>
+<hr>
+<h2>Part 3 — Scenarios (read these)</h2>
+<h3>Scenario A — Classic pump.fun coin Lists on CTOgo + attaches MW</h3>
+<ol>
+<li>Coin lives on pump.fun.  </li>
+<li>CTO Lists on CTOgo, pays $1, marketing wallet opens.  </li>
+<li>80% of traders keep buying on pump.fun / Trojan.  </li>
+<li><strong>Result:</strong> Wallet stays near empty; CTOgo earns almost nothing.  </li>
+<li><strong>What works:</strong> Only the minority who buy/sell <strong>on CTOgo</strong> fill MW and pay fees.</li>
+</ol>
+<p><strong>Takeaway:</strong> Listing is distribution + optional growth OS. It is <strong>not</strong> a tax on all pump volume.</p>
+<hr>
+<h3>Scenario B — Same coin, community pushes “trade on CTOgo”</h3>
+<ol>
+<li>Raid links shared: <code>ctogo…/coin/TICKER?ref=WALLET</code>  </li>
+<li>Traders click link → trade on CTOgo within 24h  </li>
+<li><strong>Result:</strong> List 1.25% splits; 0.40% → MW; 0.50% → raider; 0.35% → CTOgo</li>
+</ol>
+<hr>
+<h3>Scenario C — Trader uses Trojan / Banana with the contract address</h3>
+<ol>
+<li>Someone copies CA from CTOgo (or pump) into Trojan/Banana.  </li>
+<li>Bot executes on its own routing (usually Jupiter / pool), <strong>not</strong> CTOgo UI.  </li>
+<li><strong>Result:</strong>  <ul>
+<li>No CTOgo platform fee  </li>
+<li>No marketing fill  </li>
+<li>No raider payout from that trade</li>
+</ul>
+</li>
+<li>Product rule if a CTOgo-routed swap somehow has <strong>no ref</strong>: unclaimed <strong>0.50% raid → CTOgo</strong> — but that only matters <strong>if</strong> the swap was CTOgo-routed. Pasting CA into Trojan usually <strong>skips CTOgo entirely</strong>.</li>
+</ol>
+<p><strong>Takeaway:</strong> Bots that don’t trade through CTOgo are outside the fee system. Don’t promise otherwise.</p>
+<hr>
+<h3>Scenario D — Native Launch, then graduate to Raydium</h3>
+<ol>
+<li>Launch on CTOgo; curve fills; MW fills from 0.30%.  </li>
+<li>Graduate: ~2.2 SOL leave curve; rest → Raydium LP burned.  </li>
+<li>Traders can now find the coin on Jupiter/DexScreener.  </li>
+<li><strong>If they still buy via CTOgo:</strong> fees + MW continue (product rule).  </li>
+<li><strong>If they only buy via Jupiter:</strong> fee leakage risk until transfer-fee/wrap/hooks are real.</li>
+</ol>
+<p><strong>Retain:</strong> Raydium for visibility; CTOgo UI/bot for fee capture; don’t claim Jupiter volume is taxed until engineering says so.</p>
+<hr>
+<h3>Scenario E — List without marketing wallet</h3>
+<ol>
+<li>Page claimed; no $1 MW.  </li>
+<li>CTOgo trades still take List platform (+ raid) cuts.  </li>
+<li><strong>No marketing pot</strong> for that coin until attached.</li>
+</ol>
+<hr>
+<h3>Scenario F — Raid link expired or missing</h3>
+<ol>
+<li>Trade on CTOgo but no valid <code>?ref=</code> / older than 24h.  </li>
+<li>Marketing + platform (+ creator on Launch) still apply.  </li>
+<li><strong>0.50% raid → CTOgo treasury</strong> (unclaimed).</li>
+</ol>
+<hr>
+<h3>Scenario G — “Can we skim all pump.fun volume?”</h3>
+<p><strong>No.</strong> Not without pump.fun partnership or controlling the mint/AMM path.<br>99% pump origin is fine for <strong>discovery</strong>; fee capture needs <strong>CTOgo-routed</strong> flow (or deposits).</p>
+<hr>
+<h2>Part 4 — What to retain (product principles)</h2>
+<ol>
+<li><strong>Fee = CTOgo-routed volume</strong> — say it everywhere.  </li>
+<li><strong>Two engines</strong> — List 1.25% / Launch 1.30% — don’t blur them.  </li>
+<li><strong>Marketing wallet ≠ founder wallet</strong> — growth pot, spend rules.  </li>
+<li><strong>Raid is separate from marketing spend</strong> — 0.50% to wallets; unclaimed → CTOgo.  </li>
+<li><strong>Graduate like Pump</strong> — seed Raydium, burn LP, keep fee intent after migrate.  </li>
+<li><strong>No private DEX yet</strong> — Raydium-first; revisit only when CTOgo already owns the funnel.  </li>
+<li><strong>Bots that bypass us don’t pay us</strong> — Trojan/Banana/Jupiter are not free fee oracles.  </li>
+<li><strong>Wrap is optional future tech</strong> — never sell wrap as “taxes pump.fun” unless live.  </li>
+<li><strong>Optional deposits</strong> — only way Polessia works for teams who won’t move volume.  </li>
+<li><strong>Wash trades don’t profit</strong> — total fee &gt; 0.50% raid, so self-referral loses money.</li>
+</ol>
+<hr>
+<h2>Part 5 — Inconsistencies / open questions (to clean up)</h2>
+<p>Use this checklist in product/engineering reviews:</p>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Conflict</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Wrap vs FAQ</strong></td>
+<td>Code comments say wrap could route fees from other venues; FAQ says other venues do <strong>not</strong> fill MW. Resolve: wrap only helps if users trade the wrap <strong>on CTOgo</strong> — not if they trade pump mint on Trojan.</td>
+</tr>
+<tr>
+<td><strong>UI fees vs on-chain MVP</strong></td>
+<td>UI sells 1.25% / 1.30% + raid. Contract MVP often cited as <strong>0.95%</strong> without raid. Align before mainnet.</td>
+</tr>
+<tr>
+<td><strong>Post-Raydium fees</strong></td>
+<td>Product says fees continue; enforcement (Token-2022 / hooks) not fully live — leakage possible.</td>
+</tr>
+<tr>
+<td><strong>Unclaimed raid + bots</strong></td>
+<td>Copy implies pasting CA into Trojan sends raid to treasury — only true for <strong>CTOgo-routed</strong> swaps. Clarify bot language.</td>
+</tr>
+<tr>
+<td><strong>Demo vs live MW</strong></td>
+<td>App still uses demo ledger / demo addresses in places.</td>
+</tr>
+<tr>
+<td><strong>Polessia standalone</strong></td>
+<td>Polessia can be the spend UX; fee funnel remains CTOgo unless deposit-funded.</td>
+</tr>
+<tr>
+<td><strong>Legacy fee tiers</strong></td>
+<td>Old Launch/Growth/Scale docs (0.95% / 0.70% / 0.40%) still exist — mark legacy vs dual engines.</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>Part 6 — One-page cheat sheet</h2>
+<pre><code>Pump.fun coin
+    │
+    ├─ Trade on pump / Trojan / Jupiter ──► CTOgo earns $0, MW gets $0
+    │
+    └─ List on CTOgo (+ optional $1 MW)
+            │
+            └─ Trade on CTOgo (site or our bot)
+                    │
+                    ├─ 0.50% raid → raider (or CTOgo if no link)
+                    ├─ 0.40% marketing → MW   [List]
+                    └─ 0.35% → CTOgo          [List]
+
+Native Launch on CTOgo
+    │
+    ├─ On curve: Launch 1.30% split (0.30% → MW)
+    └─ Graduate → Raydium LP burned
+            │
+            └─ Still need CTOgo-routed trades for ongoing fees
+</code></pre>
+<hr>
+<h2>Document source (for maintainers)</h2>
+<p>Primary product constants live in:</p>
+<ul>
+<li><a href="../src/data/chainConfig.ts"><code>rex/src/data/chainConfig.ts</code></a> — fee engines, raid, migration, graduation  </li>
+<li><a href="../src/data/claimPricing.ts"><code>rex/src/data/claimPricing.ts</code></a> — $1 MW attach  </li>
+<li><a href="../src/data/faq.ts"><code>rex/src/data/faq.ts</code></a> — user-facing wording  </li>
+<li><a href="../src/data/ctoProjects.ts"><code>rex/src/data/ctoProjects.ts</code></a> — wrap mint comment (demo)</li>
+</ul>
+<p>Update this doc when those files change.</p>
+
+</body>
+</html>
