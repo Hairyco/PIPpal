@@ -1,17 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { AffiliateEarnArt } from './affiliate/AffiliateEarnArt';
 import { CtoGoLogo } from './CtoGoLogo';
-import { LiveTrackingVisual } from './MarketingWalletHeroVisual';
 
-const SEEN_KEY = 'ctogo-welcome-carousel-v2';
+const SEEN_KEY = 'ctogo-welcome-carousel-v3';
 const SWIPE_THRESHOLD_PX = 48;
 
 const SLIDES = [
   {
     id: 'wallet',
     title: 'Marketing wallet',
-    body: 'CTOgo-routed trade fees fill a dedicated marketing wallet that pays for growth — ads, raids, and roadmap spend — without founder invoices.',
+    body: 'Autonomous wallets that pay for growth — ads, raids, and roadmap spend — funded by CTOgo-routed trade fees.',
   },
   {
     id: 'raid',
@@ -21,9 +19,132 @@ const SLIDES = [
   {
     id: 'telegram',
     title: 'Telegram bot',
-    body: 'Trade instantly from Telegram. Buy and sell CTOgo coins in chat — no app switch, same fee routing and raid attribution.',
+    body: 'Trade instantly from Telegram. Buy and sell CTOgo coins in chat — no app switch.',
   },
 ] as const;
+
+function XMarkIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.727-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function DiscordGlyph({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden fill="#5865F2">
+      <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+    </svg>
+  );
+}
+
+/** DexScreener + Dextools trending placements (no Telegram). */
+function MarketingWalletWelcomeVisual() {
+  return (
+    <div className="mx-auto w-full max-w-[20rem] select-none space-y-2.5" aria-hidden>
+      <div className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-3 py-2">
+        <p className="text-[11px] font-semibold text-white/70">Update socials</p>
+        <span className="rounded-md bg-emerald-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">
+          Live
+        </span>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#070a10] shadow-[0_16px_40px_rgba(0,0,0,0.45)] ring-1 ring-emerald-400/20">
+        <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.03] px-3 py-2">
+          <img
+            src="/images/partners/dexscreener.ico"
+            alt=""
+            className="h-4 w-4 rounded-sm object-contain"
+          />
+          <p className="flex-1 truncate text-[11px] font-semibold text-white/70">DexScreener</p>
+          <span className="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
+            Trending
+          </span>
+        </div>
+        <div className="px-3 py-2.5">
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              <p className="text-[10px] font-semibold text-white/40">$CWH · Solana</p>
+              <p className="mt-0.5 font-mono text-sm font-bold tabular-nums text-white">$0.000421</p>
+            </div>
+            <p className="rounded-md bg-emerald-400/15 px-2 py-1 text-[11px] font-bold text-emerald-300">
+              +34.8%
+            </p>
+          </div>
+          <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-emerald-400/80 to-[#c8ff3d]" />
+          </div>
+          <p className="mt-1.5 text-[9px] font-medium text-white/30">Trending bar · paid placement</p>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#070a10] shadow-[0_16px_40px_rgba(0,0,0,0.45)] ring-1 ring-[#05a3c7]/25">
+        <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.03] px-3 py-2">
+          <img
+            src="/images/partners/dextools.svg"
+            alt=""
+            className="h-4 w-4 object-contain"
+          />
+          <p className="flex-1 truncate text-[11px] font-semibold text-white/70">DexTools</p>
+          <span className="rounded bg-[#05a3c7]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#5ed0ef]">
+            Trending
+          </span>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-semibold text-white/40">Hot pairs · Solana</p>
+            <p className="mt-0.5 truncate text-[12px] font-bold text-white">Cat Wif Hat · #4</p>
+          </div>
+          <div className="h-8 w-16 shrink-0">
+            <svg viewBox="0 0 64 32" className="h-full w-full" preserveAspectRatio="none">
+              <path
+                d="M0 24 L8 20 L16 22 L24 14 L32 16 L40 8 L48 11 L56 5 L64 7"
+                fill="none"
+                stroke="#05a3c7"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Social collage for the raiders slide. */
+function RaidersSocialCollage() {
+  return (
+    <div className="relative mx-auto h-[9.5rem] w-full max-w-[17rem] select-none" aria-hidden>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(200,255,61,0.14),transparent_65%)]" />
+
+      {/* Telegram */}
+      <div className="absolute left-[8%] top-[18%] grid h-14 w-14 -rotate-6 place-items-center rounded-2xl border border-white/15 bg-[#0e1621] shadow-[0_12px_28px_rgba(0,0,0,0.45)] ring-1 ring-[#2aabee]/35">
+        <img src="/images/partners/telegram.svg" alt="" className="h-7 w-7" />
+      </div>
+
+      {/* X */}
+      <div className="absolute left-1/2 top-[6%] grid h-16 w-16 -translate-x-1/2 rotate-3 place-items-center rounded-2xl border border-white/15 bg-black shadow-[0_14px_32px_rgba(0,0,0,0.5)] ring-1 ring-white/20">
+        <XMarkIcon className="h-7 w-7 text-white" />
+      </div>
+
+      {/* Discord */}
+      <div className="absolute right-[6%] top-[22%] grid h-14 w-14 rotate-6 place-items-center rounded-2xl border border-white/15 bg-[#0e1621] shadow-[0_12px_28px_rgba(0,0,0,0.45)] ring-1 ring-[#5865F2]/40">
+        <DiscordGlyph className="h-7 w-7" />
+      </div>
+
+      {/* 0.50% earn chip */}
+      <div className="absolute bottom-1 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[#c8ff3d]/35 bg-[#0a0c12]/95 px-3.5 py-2 shadow-[0_10px_30px_rgba(200,255,61,0.15)]">
+        <span className="text-[11px] font-semibold text-white/55">Raid share</span>
+        <span className="rounded-md bg-[#c8ff3d] px-2 py-0.5 text-[12px] font-black tabular-nums text-[#090b14]">
+          0.50%
+        </span>
+      </div>
+    </div>
+  );
+}
 
 function TelegramBotVisual() {
   return (
@@ -58,7 +179,7 @@ function TelegramBotVisual() {
             </div>
           </div>
           <div className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-[#2b5278] px-3 py-2 text-[11px] leading-snug text-white/90">
-            Bought · 0.25 SOL · fees routed
+            Bought · 0.25 SOL
             <p className="mt-1 text-right text-[9px] text-white/40">just now ✓✓</p>
           </div>
         </div>
@@ -137,7 +258,6 @@ export function WelcomeGate() {
     }
     if (lockAxis.current !== 'x') return;
 
-    e.preventDefault();
     const atStart = indexRef.current === 0 && dx > 0;
     const atEnd = indexRef.current === SLIDES.length - 1 && dx < 0;
     const next = atStart || atEnd ? dx * 0.35 : dx;
@@ -185,15 +305,20 @@ export function WelcomeGate() {
       />
 
       <div className="welcome-modal relative z-[1] w-full max-w-md overflow-hidden rounded-[1.35rem] border border-white/[0.12] bg-[#0a0c12] shadow-[0_32px_80px_rgba(0,0,0,0.7)] ring-1 ring-[#c8ff3d]/15">
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
-          <div className="flex items-center gap-2">
-            <CtoGoLogo size={28} className="rounded-lg" />
-            <span className="text-sm font-bold text-white">CTOgo</span>
+        <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+          <div className="flex min-w-0 items-start gap-2.5">
+            <CtoGoLogo size={32} className="mt-0.5 shrink-0 rounded-lg" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold leading-tight text-white">CTOgo</p>
+              <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/45">
+                The Home of Community Takeovers
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={dismiss}
-            className="grid h-8 w-8 place-items-center rounded-full text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/45 transition hover:bg-white/[0.06] hover:text-white"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -214,15 +339,11 @@ export function WelcomeGate() {
               transform: `translateX(calc(-${index * 100}% + ${dragX}px))`,
             }}
           >
-            <div className="w-full shrink-0 px-4 pb-2 pt-4">
-              <div className="mx-auto max-h-[14.5rem] overflow-hidden sm:max-h-[16rem]">
-                <div className="origin-top scale-[0.92] sm:scale-100">
-                  <LiveTrackingVisual />
-                </div>
-              </div>
-            </div>
             <div className="flex w-full shrink-0 items-center justify-center px-4 pb-2 pt-4">
-              <AffiliateEarnArt className="h-auto w-full max-w-[18rem]" />
+              <MarketingWalletWelcomeVisual />
+            </div>
+            <div className="flex w-full shrink-0 items-center justify-center px-4 pb-2 pt-5">
+              <RaidersSocialCollage />
             </div>
             <div className="flex w-full shrink-0 items-center justify-center px-4 pb-2 pt-4">
               <TelegramBotVisual />
