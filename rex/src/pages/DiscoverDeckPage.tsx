@@ -20,7 +20,7 @@ import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue,
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
 
-type TopTab = 'watchlist' | 'growth' | 'trending';
+type TopTab = 'watchlist' | 'growth' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 
 const CHAINS = [
@@ -163,6 +163,14 @@ export function DiscoverDeckPage() {
       list = list.filter((p) => starred[p.ticker]);
     } else if (topTab === 'growth') {
       list = [...list].sort((a, b) => b.score - a.score).slice(0, 12);
+    } else if (topTab === 'prelaunch') {
+      list = list
+        .filter((p) => p.stage !== 'Live' && p.launchInHours != null)
+        .sort(
+          (a, b) =>
+            (a.launchInHours ?? Number.POSITIVE_INFINITY) -
+            (b.launchInHours ?? Number.POSITIVE_INFINITY),
+        );
     } else {
       list = [...list].sort((a, b) => changeForWindow(b, timeWindow) - changeForWindow(a, timeWindow));
     }
@@ -270,6 +278,7 @@ export function DiscoverDeckPage() {
             { id: 'watchlist' as const, label: 'Watchlist' },
             { id: 'growth' as const, label: 'Growth' },
             { id: 'trending' as const, label: 'Trending' },
+            { id: 'prelaunch' as const, label: 'Prelaunch' },
           ] as const
         ).map((tab) => {
           const active = topTab === tab.id;
@@ -491,7 +500,9 @@ export function DiscoverDeckPage() {
             <p className="mt-1 text-[13px] text-white/35">
               {topTab === 'watchlist'
                 ? 'Star coins on classic view to fill your watchlist.'
-                : 'CTOgo is Solana-first for now.'}
+                : topTab === 'prelaunch'
+                  ? 'No staging CTOs right now — Launch a CTO to appear here.'
+                  : 'CTOgo is Solana-first for now.'}
             </p>
             <Link
               to="/home"
