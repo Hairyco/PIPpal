@@ -7,7 +7,6 @@ import {
   Compass,
   Eye,
   Filter,
-  Hexagon,
   Pin,
   Search,
   Users,
@@ -16,6 +15,11 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import {
+  AppSidebar,
+  AppSidebarMenuButton,
+  AppSidebarProvider,
+} from '../components/AppSidebar';
 import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue, type SourceVenueFilter } from '../data/ctoProjects';
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
@@ -240,17 +244,12 @@ export function DiscoverDeckPage() {
   };
 
   return (
+    <AppSidebarProvider>
     <div className="deck-shell fixed inset-0 z-[40] flex flex-col bg-black text-white">
+      <AppSidebar side="left" />
       {/* Top search row */}
       <div className="flex shrink-0 items-center gap-2 px-3 pb-3.5 pt-[max(0.65rem,env(safe-area-inset-top))]">
-        <Link
-          to="/home"
-          className="grid h-9 w-9 shrink-0 place-items-center text-white/90"
-          aria-label="Classic view"
-          title="Classic view"
-        >
-          <Hexagon className="h-[22px] w-[22px]" strokeWidth={1.75} />
-        </Link>
+        <AppSidebarMenuButton icon="hexagon" />
         <label className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-white/35" />
           <input
@@ -696,5 +695,6 @@ export function DiscoverDeckPage() {
         </div>
       </nav>
     </div>
+    </AppSidebarProvider>
   );
 }
