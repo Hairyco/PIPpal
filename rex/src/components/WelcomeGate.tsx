@@ -43,22 +43,22 @@ function DiscordGlyph({ className = '' }: { className?: string }) {
 function MarketingWalletWelcomeVisual() {
   return (
     <div className="mx-auto w-full max-w-[20rem] select-none space-y-2.5" aria-hidden>
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-white/[0.1] bg-white/[0.03] px-3 py-2">
+      <div className="flex items-center justify-between gap-2 rounded-full border border-white/[0.08] bg-[#1c1c1e] px-3 py-2">
         <p className="text-[11px] font-semibold text-white/70">Update socials</p>
-        <span className="rounded-md bg-emerald-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">
+        <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-emerald-300">
           Live
         </span>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#070a10] shadow-[0_16px_40px_rgba(0,0,0,0.45)] ring-1 ring-emerald-400/20">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.03] px-3 py-2">
+      <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1c1c1e]">
+        <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2">
           <img
             src="/images/partners/dexscreener.ico"
             alt=""
             className="h-4 w-4 rounded-sm object-contain"
           />
           <p className="flex-1 truncate text-[11px] font-semibold text-white/70">DexScreener</p>
-          <span className="rounded bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-bold text-emerald-300">
+          <span className="rounded-full bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold text-[#d5ff69]">
             Trending
           </span>
         </div>
@@ -68,26 +68,26 @@ function MarketingWalletWelcomeVisual() {
               <p className="text-[10px] font-semibold text-white/40">$CWH · Solana</p>
               <p className="mt-0.5 font-mono text-sm font-bold tabular-nums text-white">$0.000421</p>
             </div>
-            <p className="rounded-md bg-emerald-400/15 px-2 py-1 text-[11px] font-bold text-emerald-300">
+            <p className="rounded-full bg-emerald-400/15 px-2 py-1 text-[11px] font-bold text-emerald-300">
               +34.8%
             </p>
           </div>
           <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-emerald-400/80 to-[#c8ff3d]" />
+            <div className="h-full w-[72%] rounded-full bg-[#c8ff3d]" />
           </div>
           <p className="mt-1.5 text-[9px] font-medium text-white/30">Trending bar · paid placement</p>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-white/[0.12] bg-[#070a10] shadow-[0_16px_40px_rgba(0,0,0,0.45)] ring-1 ring-[#05a3c7]/25">
-        <div className="flex items-center gap-2 border-b border-white/[0.06] bg-white/[0.03] px-3 py-2">
+      <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#1c1c1e]">
+        <div className="flex items-center gap-2 border-b border-white/[0.06] px-3 py-2">
           <img
             src="/images/partners/dextools.svg"
             alt=""
             className="h-4 w-4 object-contain"
           />
           <p className="flex-1 truncate text-[11px] font-semibold text-white/70">DexTools</p>
-          <span className="rounded bg-[#05a3c7]/20 px-1.5 py-0.5 text-[9px] font-bold text-[#5ed0ef]">
+          <span className="rounded-full bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold text-[#d5ff69]">
             Trending
           </span>
         </div>
@@ -304,13 +304,15 @@ export function WelcomeGate() {
         onClick={dismiss}
       />
 
-      <div className="welcome-modal relative z-[1] w-full max-w-md overflow-hidden rounded-[1.35rem] border border-white/[0.12] bg-[#0a0c12] shadow-[0_32px_80px_rgba(0,0,0,0.7)] ring-1 ring-[#c8ff3d]/15">
-        <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+      <div className="welcome-modal relative z-[1] w-full max-w-md overflow-hidden rounded-[22px] border border-white/[0.1] bg-[#121214] shadow-[0_32px_80px_rgba(0,0,0,0.7)] ring-1 ring-white/10">
+        <div className="flex items-start justify-between gap-3 border-b border-white/[0.08] px-4 py-3">
           <div className="flex min-w-0 items-start gap-2.5">
-            <CtoGoLogo size={32} className="mt-0.5 shrink-0 rounded-lg" />
+            <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[#1c1c1e] ring-1 ring-white/10">
+              <CtoGoLogo size={28} className="rounded-full" />
+            </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold leading-tight text-white">CTOgo</p>
-              <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/45">
+              <p className="text-[15px] font-bold leading-tight text-white">CTOgo</p>
+              <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/40">
                 The Home of Community Takeovers
               </p>
             </div>
@@ -318,7 +320,7 @@ export function WelcomeGate() {
           <button
             type="button"
             onClick={dismiss}
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white/45 transition hover:bg-[#1c1c1e] hover:text-white"
             aria-label="Close"
           >
             <X className="h-4 w-4" />
@@ -383,14 +385,14 @@ export function WelcomeGate() {
               type="button"
               onClick={() => go(index - 1)}
               disabled={isFirst}
-              className="rounded-full border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white/80 transition enabled:hover:bg-white/[0.08] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+              className="rounded-full border border-white/[0.12] bg-[#1c1c1e] px-4 py-3 text-[13px] font-bold text-white/80 transition enabled:hover:bg-[#2a2a2c] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
             >
               Back
             </button>
             <button
               type="button"
               onClick={() => (isLast ? dismiss() : go(index + 1))}
-              className="rounded-full bg-[#c8ff3d] px-4 py-3 text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+              className="rounded-full bg-[#c8ff3d] px-4 py-3 text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
             >
               {isLast ? 'Enter CTOgo' : 'Next'}
             </button>

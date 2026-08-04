@@ -93,12 +93,12 @@ export function FounderDashboardPage() {
     if (hasAnyServiceOrders()) {
       return (
         <Layout>
-          <div className="container py-8 pb-16">
+          <div className="mx-auto max-w-7xl px-3 py-6 pb-16 sm:px-5">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <DemoPreviewBadge />
-                <h1 className="mt-3 font-serif text-3xl font-bold text-white">Advertise dashboard</h1>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <h1 className="mt-3 text-3xl font-bold text-white">Advertise dashboard</h1>
+                <p className="mt-2 text-sm text-white/45">
                   Track direct SOL orders. Launch a CTO anytime to unlock the full founder toolkit.
                 </p>
               </div>
@@ -116,10 +116,10 @@ export function FounderDashboardPage() {
 
     return (
       <Layout>
-        <div className="container py-16 text-center">
-          <Rocket className="mx-auto h-12 w-12 text-sky-400" />
-          <h1 className="mt-6 font-serif text-2xl font-bold text-white">Founder dashboard</h1>
-          <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+        <div className="mx-auto max-w-7xl px-3 py-16 text-center sm:px-5">
+          <Rocket className="mx-auto h-12 w-12 text-[#d5ff69]" />
+          <h1 className="mt-6 text-2xl font-bold text-white">Founder dashboard</h1>
+          <p className="mx-auto mt-3 max-w-md text-white/45">
             Launch a CTO or buy an Advertise pack to unlock your dashboard.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -128,7 +128,7 @@ export function FounderDashboardPage() {
             </Link>
             <Link
               to="/advertise"
-              className="inline-flex rounded-md border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-200"
+              className="inline-flex rounded-full border border-white/[0.12] bg-[#1c1c1e] px-4 py-2.5 text-[13px] font-semibold text-white/85"
             >
               Advertise
             </Link>
@@ -236,7 +236,7 @@ export function FounderDashboardPage() {
 
   return (
     <Layout>
-      <div className="container py-8 pb-16">
+      <div className="mx-auto max-w-7xl px-3 py-6 pb-16 sm:px-5">
         {welcome && (
           <div
             className={`mb-6 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
@@ -275,13 +275,13 @@ export function FounderDashboardPage() {
           <div className="flex items-center gap-4">
             <TokenIcon symbol={symbol} size="lg" imageUrl={projectImageUrl} />
             <div>
-              <p className="text-sm font-medium uppercase tracking-wider text-sky-400">
+              <p className="text-sm font-medium uppercase tracking-wider text-[#d5ff69]">
                 Founder dashboard
               </p>
-              <h1 className="font-serif text-2xl font-bold text-white md:text-3xl">
+              <h1 className="text-2xl font-bold text-white md:text-3xl">
                 {project.projectName}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/45">
                 {symbol} · {industry?.name ?? project.categoryId}
                 {isStaging ? (
                   <>
@@ -314,20 +314,21 @@ export function FounderDashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-8 border-b border-white/10">
-          <div className="mt-8 flex gap-1 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:overflow-visible">
+        <div className="mt-8 border-b border-white/[0.08]">
+          <div className="flex gap-5 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TABS.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => selectTab(item.id)}
-                className={`shrink-0 border-b-2 px-3 py-3 text-sm font-medium transition-colors sm:px-4 ${
-                  tab === item.id
-                    ? 'border-sky-400 text-white'
-                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                className={`relative shrink-0 pb-3 pt-1 text-[13px] font-semibold transition-colors ${
+                  tab === item.id ? 'text-white' : 'text-white/40 hover:text-white/70'
                 }`}
               >
                 {item.label}
+                {tab === item.id ? (
+                  <span className="absolute inset-x-0 -bottom-px mx-auto h-[2.5px] w-8 rounded-full bg-white" />
+                ) : null}
               </button>
             ))}
           </div>
@@ -338,12 +339,12 @@ export function FounderDashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: 'Marketing wallet', value: '$1,240', icon: Wallet, accent: 'text-emerald-400' },
-                { label: 'Milestones', value: `${milestones.length} planned`, icon: TrendingUp, accent: 'text-sky-400' },
+                { label: 'Milestones', value: `${milestones.length} planned`, icon: TrendingUp, accent: 'text-[#d5ff69]' },
                 {
                   label: 'Vendor chats',
                   value: String(project.vendorChats.length),
                   icon: MessageCircle,
-                  accent: 'text-sky-400',
+                  accent: 'text-[#d5ff69]',
                 },
                 {
                   label: 'Deliverables',
@@ -355,14 +356,14 @@ export function FounderDashboardPage() {
                 <div key={stat.label} className="dex-card">
                   <div className="relative z-[1]">
                     <stat.icon className={`h-4 w-4 ${stat.accent}`} />
-                    <p className="mt-2 text-xs text-muted-foreground">{stat.label}</p>
+                    <p className="mt-2 text-xs text-white/45">{stat.label}</p>
                     <p className="mt-1 text-xl font-semibold text-white">{stat.value}</p>
                     {stat.label === 'Marketing wallet' ? (
                       <a
                         href={marketingSolscan}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
+                        className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-[#d5ff69] underline-offset-2 hover:text-[#d5ff69] hover:underline"
                         title={`View ${marketingAddress} on Solscan`}
                       >
                         {marketingShort}
@@ -379,7 +380,7 @@ export function FounderDashboardPage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="font-semibold text-white">Share marketing wallet</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-white/45">
                       Investors can fund growth by sending SOL to this wallet. Trade fees fill it
                       automatically too.
                     </p>
@@ -412,7 +413,7 @@ export function FounderDashboardPage() {
                     href={marketingSolscan}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 text-xs font-semibold text-sky-200 transition hover:bg-sky-500/20"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/20"
                   >
                     Solscan
                     <ExternalLink className="h-3.5 w-3.5" />
@@ -428,7 +429,7 @@ export function FounderDashboardPage() {
               <div className="dex-card">
                 <div className="relative z-[1]">
                   <h2 className="font-semibold text-white">Project image</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-1 text-xs text-white/45">
                     Upload free, or generate with AI using {REX_TOKEN_SYMBOL} token.
                   </p>
                   <div className="mt-4">
@@ -451,13 +452,13 @@ export function FounderDashboardPage() {
                     {project.coinUtilities.map((id) => (
                       <span
                         key={id}
-                        className="rounded-full border border-sky-500/25 bg-sky-500/10 px-2.5 py-0.5 text-xs text-sky-300"
+                        className="rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-2.5 py-0.5 text-xs text-[#d5ff69]"
                       >
                         {getCoinUtilityLabel(id)}
                       </span>
                     ))}
                   </div>
-                  <p className="mt-4 text-sm text-muted-foreground line-clamp-3">{project.description}</p>
+                  <p className="mt-4 text-sm text-white/45 line-clamp-3">{project.description}</p>
                 </div>
               </div>
 
@@ -468,7 +469,7 @@ export function FounderDashboardPage() {
                     <h2 className="font-semibold text-white">
                       {kycCompleted ? 'Founder verified' : 'Unlock founder allocation & controls'}
                     </h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-white/45">
                       {kycCompleted
                         ? 'Your vesting clock is running. Manage allocation and exit from the Ownership tab.'
                         : `Complete KYC ($${KYC_FEE}) to unlock your 15% founder token allocation, edit milestones, and approve marketing spend.`}
@@ -501,7 +502,7 @@ export function FounderDashboardPage() {
               <div className="relative z-[1] min-w-0">
                 <div className="mb-5">
                   <h2 className="font-semibold text-white">Project roadmap</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm text-white/45">
                     {getRoadmapHorizon(roadmapHorizon).label} horizon · Marketing campaign and build
                     milestones
                   </p>
@@ -523,7 +524,7 @@ export function FounderDashboardPage() {
               <div className="relative z-[1] space-y-4">
                 <div>
                   <h2 className="font-semibold text-white">Founder ownership</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-1 text-sm text-white/45">
                     {getRoadmapHorizon(roadmapHorizon).label} vesting · KYC-gated unlock · optional
                     exit marketplace
                   </p>
@@ -557,11 +558,11 @@ export function FounderDashboardPage() {
               <div className="relative z-[1]">
                 <h2 className="font-semibold text-white">Studios</h2>
                 {project.studioSkipped ? (
-                  <p className="mt-2 text-sm text-muted-foreground">No studio shortlisted yet.</p>
+                  <p className="mt-2 text-sm text-white/45">No studio shortlisted yet.</p>
                 ) : project.ownSupplierName ? (
                   <p className="mt-2 text-sm text-white">
                     {project.ownSupplierName}{' '}
-                    <span className="text-muted-foreground">(own supplier · pending vetting)</span>
+                    <span className="text-white/45">(own supplier · pending vetting)</span>
                   </p>
                 ) : (
                   <ul className="mt-3 space-y-2">
@@ -574,7 +575,7 @@ export function FounderDashboardPage() {
                           className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2"
                         >
                           <span className="text-sm text-white">{studio.name}</span>
-                          <span className="text-xs text-muted-foreground">Invited at unlock</span>
+                          <span className="text-xs text-white/45">Invited at unlock</span>
                         </li>
                       );
                     })}
@@ -587,7 +588,7 @@ export function FounderDashboardPage() {
               <div className="relative z-[1]">
                 <h2 className="font-semibold text-white">Talent</h2>
                 {Object.entries(project.talentAssignments).filter(([, id]) => id).length === 0 ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-sm text-white/45">
                     No freelancers assigned — finalise hires in chat when ready.
                   </p>
                 ) : (
@@ -603,8 +604,8 @@ export function FounderDashboardPage() {
                             className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm"
                           >
                             <span className="text-white">{d?.label}</span>
-                            <span className="text-muted-foreground"> · </span>
-                            <span className="text-sky-400">{t?.name}</span>
+                            <span className="text-white/45"> · </span>
+                            <span className="text-[#d5ff69]">{t?.name}</span>
                           </li>
                         );
                       })}
@@ -616,11 +617,11 @@ export function FounderDashboardPage() {
             <div className="dex-card">
               <div className="relative z-[1]">
                 <h2 className="font-semibold text-white">Vendor conversations</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-1 text-sm text-white/45">
                   Finalise scope and pricing here — no need to block your launch.
                 </p>
                 {project.vendorChats.length === 0 ? (
-                  <p className="mt-3 text-sm text-muted-foreground">
+                  <p className="mt-3 text-sm text-white/45">
                     No chats yet. Message studios or talent from the launch flow.
                   </p>
                 ) : (
@@ -632,12 +633,12 @@ export function FounderDashboardPage() {
                       >
                         <div>
                           <p className="text-sm font-medium text-white">{chat.name}</p>
-                          <p className="text-xs text-muted-foreground">{chat.subtitle}</p>
+                          <p className="text-xs text-white/45">{chat.subtitle}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => setChatTarget(chat)}
-                          className="inline-flex items-center gap-1 text-xs font-medium text-sky-400 hover:text-sky-300"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-[#d5ff69] hover:text-[#d5ff69]"
                         >
                           <MessageCircle className="h-3.5 w-3.5" />
                           Open chat
@@ -653,11 +654,11 @@ export function FounderDashboardPage() {
 
         {tab === 'promote' && (
           <div className="mt-6 min-w-0 space-y-6 overflow-x-hidden">
-            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-sky-500/20 bg-sky-500/5 px-4 py-3">
-              <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/10 px-4 py-3">
+              <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-[#d5ff69]" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-white">Marketing wallet</p>
-                <p className="mt-0.5 break-words text-xs text-muted-foreground">
+                <p className="mt-0.5 break-words text-xs text-white/45">
                   Category boosts and affiliate payouts always come from here — $2,430 available.
                   Investors can also pay in manually.
                 </p>
@@ -665,7 +666,7 @@ export function FounderDashboardPage() {
                   href={marketingSolscan}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1.5 font-mono text-[11px] text-sky-300 underline-offset-2 hover:text-sky-200 hover:underline"
+                  className="mt-2 inline-flex items-center gap-1.5 font-mono text-[11px] text-[#d5ff69] underline-offset-2 hover:text-[#d5ff69] hover:underline"
                   title={`View ${marketingAddress} on Solscan`}
                 >
                   {marketingShort}
@@ -696,13 +697,13 @@ export function FounderDashboardPage() {
             <div className="dex-card min-w-0 overflow-hidden">
               <div className="relative z-[1] min-w-0">
                 <div className="flex items-center gap-2">
-                  <Megaphone className="h-4 w-4 text-sky-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                  <Megaphone className="h-4 w-4 text-[#d5ff69]" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-[#d5ff69]">
                     Category boosts
                   </span>
                 </div>
                 <h2 className="mt-2 font-semibold text-white">Rank higher in {industry?.name}</h2>
-                <p className="mt-1 break-words text-sm text-muted-foreground">
+                <p className="mt-1 break-words text-sm text-white/45">
                   Pin or boost your listing on the category page. Activate a tier and the cost is
                   deducted from your marketing wallet.
                 </p>
@@ -714,11 +715,11 @@ export function FounderDashboardPage() {
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-white">{tier.name}</p>
-                        <p className="text-xs text-muted-foreground">{tier.position}</p>
+                        <p className="text-xs text-white/45">{tier.position}</p>
                       </div>
-                      <p className="shrink-0 text-sm font-semibold text-sky-400">
+                      <p className="shrink-0 text-sm font-semibold text-[#d5ff69]">
                         ${tier.price}
-                        <span className="text-xs font-normal text-muted-foreground">
+                        <span className="text-xs font-normal text-white/45">
                           /{tier.period}
                         </span>
                       </p>
@@ -739,19 +740,19 @@ export function FounderDashboardPage() {
             <div className="dex-card min-w-0 overflow-hidden">
               <div className="relative z-[1] min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Users className="h-4 w-4 text-sky-400" />
-                  <span className="text-xs font-medium uppercase tracking-wider text-sky-400">
+                  <Users className="h-4 w-4 text-[#d5ff69]" />
+                  <span className="text-xs font-medium uppercase tracking-wider text-[#d5ff69]">
                     Affiliate programme
                   </span>
                   <DemoPreviewBadge />
                 </div>
                 <h2 className="mt-2 font-semibold text-white">Raid share & earn</h2>
-                <p className="mt-1 break-words text-sm text-muted-foreground">
+                <p className="mt-1 break-words text-sm text-white/45">
                   Community and raiders share {project.projectName} with wallet ref links. They earn
                   0.50% instant SOL on attributed CTOgo swaps — paid to their wallets, not from your
                   marketing wallet roadmap.
                 </p>
-                <ul className="mt-4 space-y-2 text-xs text-muted-foreground">
+                <ul className="mt-4 space-y-2 text-xs text-white/45">
                   <li className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
                     Protocol-fixed 0.50% raid cut · 24h last-click · unclaimed → CTOgo treasury
                   </li>

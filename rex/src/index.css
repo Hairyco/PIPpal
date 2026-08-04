@@ -44,23 +44,15 @@ select {
 
 @layer components {
   .dex-card {
-    @apply relative flex w-full flex-col gap-2 rounded-2xl bg-gradient-to-b from-blue-300/5 to-blue-300/10 p-4;
-  }
-
-  .dex-card::before {
-    content: '';
-    @apply pointer-events-none absolute inset-0 select-none rounded-[inherit] bg-gradient-to-b from-white/10 to-white/5 p-px;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
+    @apply relative flex w-full flex-col gap-2 rounded-2xl border border-white/[0.08] bg-[#121214] p-4;
   }
 
   .dex-btn {
-    @apply inline-flex w-fit items-center rounded-md bg-rex-gradient px-4 py-2 text-sm text-white transition-opacity hover:opacity-90;
+    @apply inline-flex w-fit items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] px-4 py-2.5 text-[13px] font-semibold text-white/85 transition hover:bg-[#2a2a2c] hover:text-white;
   }
 
   .dex-btn-green {
-    @apply inline-flex w-fit items-center rounded-md bg-[#c8f542] px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90;
+    @apply inline-flex w-fit items-center justify-center rounded-full bg-[#c8ff3d] px-4 py-2.5 text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69];
   }
 }
 

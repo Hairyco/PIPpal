@@ -69,16 +69,16 @@ type WebsiteKind = 'none' | 'clone';
 type DashEntryTab = 'overview' | 'wallet' | 'socials';
 
 const fieldClass =
-  'mt-1.5 h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40';
+  'mt-1.5 h-11 w-full rounded-full border-0 bg-[#1c1c1e] px-4 text-[14px] font-medium text-white outline-none transition placeholder:text-white/40 ring-1 ring-white/10 focus:ring-[#c8ff3d]/40';
 
 const primaryBtnClass =
-  'flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:cursor-not-allowed disabled:opacity-40';
+  'flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:cursor-not-allowed disabled:opacity-40';
 
 /** Pump.fun-style creator buy presets (SOL) at deploy. */
 const BUY_AT_LAUNCH_PRESETS = [0.1, 0.25, 0.5, 1, 2];
 
 const backBtnClass =
-  'inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white sm:w-auto sm:px-5';
+  'inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white sm:w-auto sm:px-5';
 
 /** Vesting: Day 1-5 = 10% each, then Day 6 = 25% and Day 7 = 25%. */
 const VESTING_SCHEDULE = [
@@ -849,17 +849,19 @@ export function LaunchCtoPage() {
 
   return (
     <AppSidebarProvider>
-    <div className="page-shell theme-dark min-h-screen text-[#f5f7fb]">
+    <div className="page-shell theme-dark min-h-screen bg-black text-white">
       <AppSidebar />
       <div className="relative z-[1]">
-        <header className="border-b border-white/[0.07] bg-[#090b14]">
-          <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-2 sm:px-3">
-            <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2" aria-label="CTOgo home">
-              <CtoGoLogo size={32} className="rounded-xl" />
-              <span className="flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
-                CTOgo
-                <span className="rounded bg-white/[0.08] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white/45">
-                  beta
+        <header className="border-b border-white/[0.08] bg-black">
+          <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-3">
+            <Link to="/" className="flex min-w-0 shrink-0 items-center gap-2.5" aria-label="CTOgo home">
+              <span className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-[#1c1c1e] ring-1 ring-white/10">
+                <CtoGoLogo size={28} className="rounded-full" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[15px] font-bold leading-tight tracking-tight">CTOgo</span>
+                <span className="block text-[10px] font-medium leading-snug text-white/40">
+                  List &amp; Launch
                 </span>
               </span>
             </Link>
@@ -878,20 +880,20 @@ export function LaunchCtoPage() {
         >
           {dashboardEmpty ? (
             <div className="flex flex-col items-center px-2 py-16 text-center">
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.04] ring-1 ring-white/10">
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-[#1c1c1e] ring-1 ring-white/10">
                 <Rocket className="h-7 w-7 text-[#d5ff69]" />
               </span>
-              <h1 className="mt-5 font-serif text-2xl font-bold tracking-tight text-white">
+              <h1 className="mt-5 text-2xl font-bold tracking-tight text-white">
                 Your dashboard is empty
               </h1>
-              <p className="mt-2 max-w-sm text-sm leading-relaxed text-white/50">
+              <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-white/45">
                 Launch or list a CTO to unlock raid links, marketing wallet, and creator tools.
               </p>
               <div className="mt-8 flex w-full max-w-xs flex-col gap-2.5">
                 <Link
                   to="/launch"
                   onClick={() => setDashboardEmpty(false)}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#c8ff3d] text-sm font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
                 >
                   <Rocket className="h-4 w-4" />
                   Launch a CTO
@@ -902,7 +904,7 @@ export function LaunchCtoPage() {
                     setDashboardEmpty(false);
                     setMode('add');
                   }}
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] text-sm font-semibold text-white/80 transition hover:bg-white/[0.07] hover:text-white"
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition hover:bg-[#2a2a2c] hover:text-white"
                 >
                   <Plus className="h-4 w-4" />
                   List a CTO
@@ -916,7 +918,7 @@ export function LaunchCtoPage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                 {mode === 'add' ? 'List for exposure' : 'Launch'}
               </p>
-              <h1 className="mt-1 font-serif text-2xl font-bold tracking-tight">
+              <h1 className="mt-1 text-2xl font-bold tracking-tight">
                 {mode === 'add'
                   ? 'List a CTO'
                   : step === 'fees'
@@ -930,7 +932,7 @@ export function LaunchCtoPage() {
                           : 'Launch a CTO'}
               </h1>
               {mode === 'add' ? (
-                <div className="mt-4 rounded-2xl border border-white/[0.1] bg-gradient-to-br from-[#c8ff3d]/[0.1] via-white/[0.02] to-transparent p-4">
+                <div className="mt-4 rounded-2xl border border-white/[0.08] bg-[#121214] p-4">
                   <p className="text-[13px] font-semibold leading-snug text-white">
                     Unlock built-in utility for any token.
                   </p>
@@ -955,7 +957,7 @@ export function LaunchCtoPage() {
                       ] as const
                     ).map(({ icon: Icon, title, detail }) => (
                       <li key={title} className="flex items-start gap-3">
-                        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#d5ff69]">
+                        <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#c8ff3d]/15 text-[#d5ff69]">
                           <Icon className="h-3.5 w-3.5" />
                         </span>
                         <span className="min-w-0">
@@ -1090,7 +1092,7 @@ export function LaunchCtoPage() {
               </div>
 
               {mode === 'launch' ? (
-                <div className="rounded-xl border border-[#c8ff3d]/30 bg-gradient-to-br from-[#c8ff3d]/12 to-transparent p-4">
+                <div className="rounded-2xl border border-[#c8ff3d]/25 bg-[#121214] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
@@ -1099,7 +1101,7 @@ export function LaunchCtoPage() {
                       <p className="mt-1 text-sm font-semibold text-white">Everything you need to go live</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-serif text-3xl font-bold leading-none text-[#d5ff69]">
+                      <p className="text-3xl font-bold leading-none text-[#d5ff69]">
                         ${CLAIM_FEE}
                       </p>
                       <p className="mt-1 text-[10px] font-medium text-white/40">one-time</p>
@@ -1140,7 +1142,7 @@ export function LaunchCtoPage() {
               ) : null}
 
               {fromCoinPage ? (
-                <p className="rounded-lg border border-sky-400/25 bg-sky-500/10 px-3 py-2 text-[11px] text-sky-200">
+                <p className="rounded-full border border-[#c8ff3d]/25 bg-[#c8ff3d]/10 px-3 py-2 text-[11px] text-[#d5ff69]">
                   Prefilling from the coin page…
                 </p>
               ) : null}
@@ -1156,13 +1158,13 @@ export function LaunchCtoPage() {
                       setLookupError(null);
                     }}
                     placeholder="Contract address"
-                    className="h-11 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 font-mono text-[12px] text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                    className="h-11 w-full rounded-2xl border border-white/[0.08] bg-[#1c1c1e] px-3 font-mono text-[12px] text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                   />
                   <button
                     type="button"
                     onClick={() => void findContract()}
                     disabled={lookupBusy}
-                    className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-bold text-[#d5ff69] disabled:opacity-40"
+                    className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-bold text-[#d5ff69] disabled:opacity-40"
                   >
                     {lookupBusy ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1179,14 +1181,14 @@ export function LaunchCtoPage() {
               ) : null}
 
               {lookupBusy ? (
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-6 text-center text-[12px] text-white/45">
+                <div className="rounded-2xl border border-white/[0.08] bg-[#121214] px-4 py-6 text-center text-[12px] text-white/45">
                   <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-[#c8ff3d]" />
                   Looking up coin…
                 </div>
               ) : null}
 
               {coinReady && !lookupBusy ? (
-                <div className="rounded-xl border border-[#c8ff3d]/25 bg-[#c8ff3d]/[0.07] p-4">
+                <div className="rounded-2xl border border-[#c8ff3d]/25 bg-[#1c1c1e] p-4">
                   <div className="flex items-center gap-3">
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-white/10 to-white/5 ring-1 ring-white/10">
                       {logoPreview ? (
@@ -1199,7 +1201,7 @@ export function LaunchCtoPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate font-serif text-lg font-bold text-white">
+                        <p className="truncate text-lg font-bold text-white">
                           {name || 'Unknown'}
                         </p>
                         <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#d5ff69]">
@@ -1385,7 +1387,7 @@ export function LaunchCtoPage() {
                 })}
               </div>
 
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] p-4">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#121214] p-4">
                 <div className="flex items-start gap-3">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[#c8ff3d]/15 text-[#c8ff3d]">
                     <Coins className="h-4 w-4" />
@@ -1500,7 +1502,7 @@ export function LaunchCtoPage() {
                     type="button"
                     disabled={walletBusy || burnConfirmBusy}
                     onClick={() => void continueFromBurn({ skip: true })}
-                    className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                    className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
                   >
                     Skip
                   </button>
@@ -1539,7 +1541,7 @@ export function LaunchCtoPage() {
                           }
                           placeholder="0"
                           inputMode="decimal"
-                          className="h-11 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                          className="h-11 min-w-0 flex-1 rounded-2xl border border-white/[0.08] bg-[#1c1c1e] px-3 text-base text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
                         />
                         <button
                           type="button"
@@ -1560,7 +1562,7 @@ export function LaunchCtoPage() {
                   </div>
 
                   <div
-                    className={`overflow-hidden rounded-xl border bg-white/[0.02] ${
+                    className={`overflow-hidden rounded-2xl border bg-[#121214] ${
                       vestingAccepted ? 'border-white/[0.08]' : 'border-[#c8ff3d]/35'
                     }`}
                   >
@@ -1663,7 +1665,7 @@ export function LaunchCtoPage() {
                       type="button"
                       disabled={burnConfirmBusy}
                       onClick={() => void continueFromBurn({ skip: true })}
-                      className="inline-flex h-12 w-full items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] text-xs font-semibold text-white/55 transition hover:bg-white/[0.04] hover:text-white"
+                      className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
                     >
                       Skip
                     </button>
@@ -1675,7 +1677,7 @@ export function LaunchCtoPage() {
 
           {!dashboardEmpty && step === 'summary' ? (
             <div className="mt-6 space-y-5">
-              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">
+              <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#121214]">
                 <div className="border-b border-white/[0.06] px-4 py-3">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40">
                     Order summary
@@ -1840,7 +1842,7 @@ export function LaunchCtoPage() {
               </div>
 
               {websiteKind === 'none' ? (
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-3 text-[12px] text-white/50">
+                <div className="rounded-2xl border border-white/[0.08] bg-[#121214] px-3 py-3 text-[12px] text-white/50">
                   You’ll list with the CTOgo coin page only. Add a cloned site anytime after listing.
                 </div>
               ) : websiteKind === 'clone' ? (
@@ -1866,7 +1868,7 @@ export function LaunchCtoPage() {
               ) : null}
 
               {websiteKind === 'clone' && (generatingSite || siteGenerated) ? (
-                <div className="space-y-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
+                <div className="space-y-2 rounded-2xl border border-white/[0.08] bg-[#121214] px-3.5 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[12px] font-semibold text-white">
                       {generatingSite
@@ -1944,7 +1946,7 @@ export function LaunchCtoPage() {
                   </div>
 
                   {editSite ? (
-                    <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-3">
+                    <div className="space-y-3 rounded-2xl border border-white/[0.08] bg-[#121214] p-3">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[11px] font-bold uppercase tracking-wide text-white/45">
                           Editing
