@@ -38,11 +38,13 @@ function salt(str: string, mod = 1000): number {
 }
 
 function ageLabel(project: CtoProject): string {
-  const mins = 8 + salt(project.ticker, 180);
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
+  // null launchInHours = older live coin — demo age past the OG threshold
+  const hours =
+    project.launchInHours != null ? project.launchInHours : 72 + salt(project.ticker, 200);
+  if (hours >= 72) return 'OG';
+  if (hours < 1) return '<1h';
+  if (hours < 24) return `${Math.max(1, Math.round(hours))}h`;
+  return `${Math.round(hours / 24)}d`;
 }
 
 function viewingCount(project: CtoProject): string {
@@ -551,7 +553,13 @@ export function DiscoverDeckPage() {
                         <p className="truncate text-[15px] font-bold leading-tight text-white">
                           {project.name}
                         </p>
-                        <span className="shrink-0 rounded-[5px] bg-[#2a2a2c] px-1.5 py-[1px] text-[10px] font-semibold tabular-nums text-emerald-400">
+                        <span
+                          className={`shrink-0 rounded-[5px] bg-[#2a2a2c] px-1.5 py-[1px] text-[10px] font-semibold ${
+                            ageLabel(project) === 'OG'
+                              ? 'tracking-wide text-amber-300'
+                              : 'tabular-nums text-emerald-400'
+                          }`}
+                        >
                           {ageLabel(project)}
                         </span>
                       </div>

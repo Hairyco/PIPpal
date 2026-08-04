@@ -83,11 +83,11 @@ export type TradeViewProject = {
   feeMode?: FeeModeKind;
 };
 
-function formatLaunchLabel(hours: number | null): string {
-  if (hours == null) return 'Live';
-  if (hours < 1) return '<1h';
-  if (hours < 24) return `${hours}h`;
-  return `${Math.round(hours / 24)}d`;
+function formatCoinPageAge(hours: number | null, ticker: string): string {
+  const resolved = hours != null ? hours : 72 + (hashSeed(ticker) % 200);
+  if (resolved < 1) return '<1h';
+  if (resolved < 24) return `${Math.max(1, Math.round(resolved))}h`;
+  return `${Math.round(resolved / 24)}d`;
 }
 
 function parseUsdAmount(balance?: string) {
@@ -543,7 +543,7 @@ export function CtoTradeView({
   const stats = [
     { label: 'TXs', value: project.txs },
     { label: 'Holders', value: project.holders },
-    { label: 'Age', value: formatLaunchLabel(project.launchInHours) },
+    { label: 'Age', value: formatCoinPageAge(project.launchInHours, project.ticker) },
     { label: 'Vol 24h', value: project.volume24h },
     { label: 'FDV', value: project.fdv },
     { label: 'Price', value: project.price },

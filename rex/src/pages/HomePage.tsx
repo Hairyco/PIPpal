@@ -283,7 +283,8 @@ const tableColsPrelaunch =
   '30px 200px 80px 68px 56px 76px 72px 96px 72px 56px 148px 64px 28px';
 
 function formatLaunchLabel(hours: number | null): string {
-  if (hours == null) return 'Live';
+  if (hours == null) return 'OG';
+  if (hours >= 72) return 'OG';
   if (hours < 1) return '<1h';
   if (hours < 24) return `${hours}h`;
   const days = Math.round(hours / 24);
