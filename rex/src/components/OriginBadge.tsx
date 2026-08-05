@@ -1,9 +1,8 @@
-import { Link } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Check, Copy, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { ORIGIN_META, type ProjectOrigin } from '../data/ctoProjects';
-
-const CTOGO_MINT_TICKS = ['Marketing wallet', 'No dev', 'No rugs'] as const;
+import { bumpScoutClickDemo, buildScoutLink } from '../utils/scoutReferral';
+import { useConnectedWallet } from './ConnectWalletButton';
 
 export function OriginBadge({
   origin,
@@ -24,34 +23,70 @@ export function OriginBadge({
   );
 }
 
+/** Raid earn CTA — formerly “Launch {ticker} CTO”. */
 export function MigrateToV2Banner({
   ticker,
-  href = '/launch',
 }: {
   ticker: string;
   sourceVenue?: string;
   devDumpedPct?: number;
   href?: string;
 }) {
+  const { address, connected, connect, busy } = useConnectedWallet();
+  const [copied, setCopied] = useState(false);
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
+  const scoutLink = address ? buildScoutLink(origin, ticker, address) : null;
+
+  const copyLink = async () => {
+    if (!scoutLink || !address) return;
+    try {
+      await navigator.clipboard.writeText(scoutLink);
+      bumpScoutClickDemo(address);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="rounded-xl border border-[#c8ff3d]/25 bg-gradient-to-br from-[#c8ff3d]/10 via-transparent to-transparent px-4 py-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 pt-1.5 text-sm font-semibold text-white">Launch on CTOgo</p>
-        <Link
-          to={href}
-          className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69]"
-        >
-          Launch {ticker} CTO
-        </Link>
+      <div className="flex items-start gap-2">
+        <span className="text-lg leading-none" aria-hidden>
+          ⚡
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold uppercase tracking-wide text-white">Get paid instantly</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-white/60">
+            Earn 0.4–0.5% SOL on every trade from anyone using your link.
+          </p>
+        </div>
       </div>
-      <ul className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5">
-        {CTOGO_MINT_TICKS.map((item) => (
-          <li key={item} className="flex items-center gap-1.5 text-[12px] text-white/70">
-            <Check className="h-3.5 w-3.5 shrink-0 text-[#c8ff3d]" strokeWidth={2.5} aria-hidden />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+
+      {!connected || !scoutLink ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void connect()}
+          className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69] disabled:opacity-60 sm:w-auto"
+        >
+          <Wallet className="h-3.5 w-3.5" />
+          {busy ? 'Connecting…' : 'Connect wallet to create your link'}
+        </button>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <p className="break-all font-mono text-[11px] text-white/55">{scoutLink}</p>
+          <button
+            type="button"
+            onClick={() => void copyLink()}
+            className="inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69] sm:w-auto"
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? 'Copied — ready to share' : 'Copy my share link'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
