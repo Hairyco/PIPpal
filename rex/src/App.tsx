@@ -3,6 +3,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { AuthModal } from './components/AuthModal';
 import { AuthProvider } from './components/AuthProvider';
 import { WalletProvider } from './components/ConnectWalletButton';
+import { RaidEarningsWatcher } from './components/RaidEarningsWatcher';
 import { HomePage } from './pages/HomePage';
 import { LaunchCtoPage } from './pages/LaunchCtoPage';
 import { CategoryPage } from './pages/CategoryPage';
@@ -32,6 +33,7 @@ export function App() {
         <BrowserRouter>
           <ScrollToTop />
           <WelcomeGate />
+          <RaidEarningsWatcher />
           <Routes>
             <Route path="/" element={<DiscoverDeckPage />} />
             <Route path="/discover" element={<Navigate to="/" replace />} />

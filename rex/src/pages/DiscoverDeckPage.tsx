@@ -15,6 +15,7 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { NotificationsButton } from '../components/NotificationsButton';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -265,6 +266,7 @@ export function DiscoverDeckPage() {
           />
         </label>
         <ConnectWalletButton className="shrink-0" alwaysLabel defaultOpen />
+        <NotificationsButton className="shrink-0" />
         <button
           type="button"
           onClick={() => navigate('/')}

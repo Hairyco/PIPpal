@@ -11,7 +11,17 @@ import { createPortal } from 'react-dom';
 import { Bell, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
+import { useConnectedWallet } from './ConnectWalletButton';
 import { hasUserCtoLaunch, loadUserCtoLaunch } from '../utils/userCtoLaunch';
+import { formatSolAmount } from '../hooks/useSolBalance';
+import {
+  formatRaidNoticeTime,
+  listRaidPayoutNotices,
+  markRaidNoticeRead,
+  RAID_ALERTS_CHANGED,
+} from '../utils/raidEarningsAlerts';
+import { RAID_EARNING_EVENT } from '../utils/scoutReferral';
+import { unlockRaidAudio } from '../utils/raidBell';
 
 const READ_KEY = 'ctogo-notifications-read';
 
@@ -27,18 +37,34 @@ type AppNotification = {
 };
 
 /** Only real, actionable alerts for this session — never seed demo spam. */
-function buildActiveNotifications(): AppNotification[] {
+function buildActiveNotifications(wallet: string | null): AppNotification[] {
   const items: AppNotification[] = [];
+
+  const payouts = listRaidPayoutNotices(wallet).slice(0, 12);
+  for (const p of payouts) {
+    const tickerBit = p.ticker ? ` on $${p.ticker}` : '';
+    items.push({
+      id: p.id,
+      kind: 'earnings',
+      title: `Raid fee +${formatSolAmount(p.amountSol, 4)} SOL`,
+      body: `Instant SOL from a trade through your link${tickerBit}.`,
+      time: formatRaidNoticeTime(p.at),
+      href: undefined,
+    });
+  }
+
   const launch = loadUserCtoLaunch();
   if (!launch) {
-    items.push({
-      id: 'setup-coin',
-      kind: 'promo',
-      title: 'Set up your first CTO',
-      body: 'Launch or list a coin to unlock your dashboard, raid links, and marketing wallet.',
-      time: 'Now',
-      href: '/launch',
-    });
+    if (items.length === 0) {
+      items.push({
+        id: 'setup-coin',
+        kind: 'promo',
+        title: 'Set up your first CTO',
+        body: 'Launch or list a coin to unlock your dashboard, raid links, and marketing wallet.',
+        time: 'Now',
+        href: '/launch',
+      });
+    }
     return items;
   }
 
@@ -95,6 +121,7 @@ function KindIcon({ kind }: { kind: NotificationKind }) {
 
 export function NotificationsButton({ className = '' }: { className?: string }) {
   const { signedIn } = useAuth();
+  const { address } = useConnectedWallet();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [tick, setTick] = useState(0);
@@ -117,16 +144,31 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
     setTick((n) => n + 1);
   }, [open]);
 
+  useEffect(() => {
+    const refresh = () => setTick((n) => n + 1);
+    window.addEventListener(RAID_EARNING_EVENT, refresh);
+    window.addEventListener(RAID_ALERTS_CHANGED, refresh);
+    return () => {
+      window.removeEventListener(RAID_EARNING_EVENT, refresh);
+      window.removeEventListener(RAID_ALERTS_CHANGED, refresh);
+    };
+  }, []);
+
   const notifications = useMemo(() => {
     void tick;
     void hasUserCtoLaunch();
-    return buildActiveNotifications();
-  }, [tick, signedIn]);
+    return buildActiveNotifications(signedIn ? address : null);
+  }, [tick, signedIn, address]);
 
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !seen.has(n.id)).length,
-    [notifications, seen],
-  );
+  const unreadCount = useMemo(() => {
+    const payoutUnread = listRaidPayoutNotices(signedIn ? address : null).filter(
+      (n) => !n.read,
+    ).length;
+    const staticUnread = notifications.filter(
+      (n) => !n.id.startsWith('raid-') && !seen.has(n.id),
+    ).length;
+    return payoutUnread + staticUnread;
+  }, [notifications, seen, signedIn, address, tick]);
 
   const updateMenuPos = useCallback(() => {
     const el = triggerRef.current;
@@ -174,15 +216,30 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
     const next = new Set(notifications.map((n) => n.id));
     setSeen(next);
     writeSeenIds(next);
+    for (const n of notifications) {
+      if (n.id.startsWith('raid-')) markRaidNoticeRead(n.id);
+    }
   };
 
   const markOneRead = (id: string) => {
+    if (id.startsWith('raid-')) {
+      markRaidNoticeRead(id);
+      setTick((n) => n + 1);
+      return;
+    }
     setSeen((prev) => {
       const next = new Set(prev);
       next.add(id);
       writeSeenIds(next);
       return next;
     });
+  };
+
+  const isUnread = (id: string) => {
+    if (id.startsWith('raid-')) {
+      return listRaidPayoutNotices(address).some((n) => n.id === id && !n.read);
+    }
+    return !seen.has(id);
   };
 
   const menu =
@@ -199,7 +256,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
             <div className="flex items-center justify-between gap-2 border-b border-white/[0.07] px-3.5 py-3">
               <div>
                 <p className="text-sm font-semibold text-white">Notifications</p>
-                <p className="text-[10px] text-white/40">Active alerts only</p>
+                <p className="text-[10px] text-white/40">Raid fees & active alerts</p>
               </div>
               {unreadCount > 0 ? (
                 <button
@@ -224,7 +281,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
             ) : (
               <ul className="max-h-[min(70vh,24rem)] overflow-y-auto overscroll-contain">
                 {notifications.map((item) => {
-                  const unread = !seen.has(item.id);
+                  const unread = isUnread(item.id);
                   const content = (
                     <>
                       <span
@@ -304,8 +361,11 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={menuId}
-        onClick={() => setOpen((v) => !v)}
-        className="relative grid h-10 w-10 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white"
+        onClick={() => {
+          unlockRaidAudio();
+          setOpen((v) => !v);
+        }}
+        className="relative grid h-9 w-9 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white sm:h-10 sm:w-10"
         aria-label={
           unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
         }
@@ -313,7 +373,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 ? (
-          <span className="absolute right-1.5 top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-[#c8ff3d] px-1 text-[9px] font-bold leading-none text-[#090b14]">
+          <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#c8ff3d] px-1 text-[9px] font-bold leading-none text-[#090b14]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         ) : null}

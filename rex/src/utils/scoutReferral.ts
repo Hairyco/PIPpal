@@ -154,3 +154,51 @@ export function bumpScoutClickDemo(wallet: string): void {
     /* ignore */
   }
 }
+
+export const RAID_EARNING_EVENT = 'ctogo-raid-earning';
+
+export type RaidEarningDetail = {
+  wallet: string;
+  amountSol: number;
+  totalEarnedSol: number;
+  volumeUsd: number;
+  ticker?: string;
+  at: number;
+};
+
+/** Credit raid fee SOL to a wallet and broadcast so UI can bell / notify / badge. */
+export function creditScoutEarningsDemo(
+  wallet: string,
+  amountSol: number,
+  opts?: { volumeUsd?: number; ticker?: string },
+): RaidEarningDetail | null {
+  const ref = wallet.trim();
+  // Accept full pubkeys or short local demo wallets from ConnectWalletButton.
+  if ((!isValidScoutWallet(ref) && ref.length < 10) || !(amountSol > 0)) return null;
+  try {
+    const raw = localStorage.getItem(EARNINGS_KEY);
+    const all = (raw ? JSON.parse(raw) : {}) as Record<string, ScoutEarningsDemo>;
+    const prev = all[ref] ?? { earnedSol: 0, volumeUsd: 0, clicks: 0 };
+    const next: ScoutEarningsDemo = {
+      earnedSol: Math.round((prev.earnedSol + amountSol) * 1e6) / 1e6,
+      volumeUsd: Math.round(prev.volumeUsd + (opts?.volumeUsd ?? amountSol * 200 * 100)),
+      clicks: prev.clicks,
+    };
+    all[ref] = next;
+    localStorage.setItem(EARNINGS_KEY, JSON.stringify(all));
+    const detail: RaidEarningDetail = {
+      wallet: ref,
+      amountSol,
+      totalEarnedSol: next.earnedSol,
+      volumeUsd: next.volumeUsd,
+      ticker: opts?.ticker,
+      at: Date.now(),
+    };
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(RAID_EARNING_EVENT, { detail }));
+    }
+    return detail;
+  } catch {
+    return null;
+  }
+}
