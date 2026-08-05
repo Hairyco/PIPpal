@@ -187,6 +187,37 @@ export default async function handler(req, res) {
     }
 
     // Sweep warnings (30d / 7d) — no funds moved here; on-chain sweep is separate ix.
+    try {
+      const warnProjects = await sbFetch(
+        'mw_projects?marketing_attached=eq.true&spend_paused=eq.false&select=id,mint,ticker,last_marketing_activity_at',
+      );
+      const now = Date.now();
+      for (const p of warnProjects || []) {
+        if (!p.last_marketing_activity_at) continue;
+        const idleMs = now - new Date(p.last_marketing_activity_at).getTime();
+        const idleDays = idleMs / (24 * 60 * 60 * 1000);
+        for (const warnDays of [30, 7]) {
+          const dueAfter = 180 - warnDays;
+          if (idleDays < dueAfter) continue;
+          try {
+            await sbFetch('mw_sweep_warnings', {
+              method: 'POST',
+              body: JSON.stringify({ project_id: p.id, warn_days: warnDays }),
+            });
+            await audit(
+              'sweep_warning',
+              { mint: p.mint, ticker: p.ticker, warnDays, idleDays: Math.floor(idleDays) },
+              p.id,
+            );
+          } catch {
+            /* unique constraint = already warned */
+          }
+        }
+      }
+    } catch {
+      /* warnings are best-effort */
+    }
+
     return res.status(200).json({ ok: true, processed: results.length, results });
   } catch (err) {
     const status = err.statusCode || 500;

@@ -35,6 +35,7 @@ import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
 import { SolWalletPanel } from './SolWalletPanel';
 import { fetchMwProjectStatus, type MwProjectStatus } from '../lib/marketingWalletApi';
+import { useConnectedWallet } from './ConnectWalletButton';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -134,6 +135,10 @@ export function PostLaunchDashboard({
   const [spendUnlocked, setSpendUnlocked] = useState(false);
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
   const [mwStatus, setMwStatus] = useState<MwProjectStatus | null>(null);
+  const { address: walletAddress, connected: walletConnected, connect: connectWallet, signMessage } =
+    useConnectedWallet();
+  const [approveBusy, setApproveBusy] = useState(false);
+  const [approveNotice, setApproveNotice] = useState<string | null>(null);
   /** Launch path: carousel after pay — once per coin after acknowledged. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(() => {
     if (mode !== 'launch') return false;
@@ -239,14 +244,115 @@ export function PostLaunchDashboard({
     }
   };
 
-  const approveRoadmap = () => {
-    setSpendUnlocked(true);
-    setMarketingSpendOn(true);
+  const approveRoadmap = async () => {
+    setApproveNotice(null);
+    setApproveBusy(true);
+    try {
+      if (!walletConnected || !walletAddress) {
+        await connectWallet();
+      }
+      const wallet = walletAddress || (await connectWallet());
+      if (!wallet || /Wallet111111111$/i.test(wallet)) {
+        // Preview / demo wallet — unlock UI only; never treat as money authority.
+        setSpendUnlocked(true);
+        setMarketingSpendOn(true);
+        setApproveNotice('Demo unlock only — connect Phantom + Supabase for live signed approval.');
+        return;
+      }
+
+      const planId = crypto.randomUUID();
+      const challengeRes = await fetch('/api/mw-approve-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'challenge',
+          wallet,
+          planId,
+          purpose: 'approve_spend_plan',
+        }),
+      });
+      if (!challengeRes.ok) {
+        // Backend not configured — local unlock with explicit notice.
+        setSpendUnlocked(true);
+        setMarketingSpendOn(true);
+        setApproveNotice('Backend offline — local unlock only (no money moves).');
+        return;
+      }
+      const challenge = await challengeRes.json();
+      const signature = await signMessage(challenge.message);
+      if (!signature) {
+        setApproveNotice('Wallet could not sign. Approval cancelled.');
+        return;
+      }
+
+      const approveRes = await fetch('/api/mw-approve-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'approve',
+          wallet,
+          planId,
+          nonce: challenge.nonce,
+          signature,
+          message: challenge.message,
+          mint: tradedContract || marketingAddress || symbol,
+          ticker: symbol,
+          engine: mode === 'launch' ? 'launch' : 'list',
+          marketingVault: marketingAddress,
+          selectedOfferIds: [],
+          mode: roadmapMode,
+        }),
+      });
+      if (!approveRes.ok) {
+        const err = await approveRes.json().catch(() => ({}));
+        setApproveNotice(err.error || 'Approval failed');
+        return;
+      }
+      setSpendUnlocked(true);
+      setMarketingSpendOn(true);
+      setApproveNotice('Spend roadmap approved with wallet signature.');
+      void fetchMwProjectStatus(tradedContract || marketingAddress).then(setMwStatus);
+    } finally {
+      setApproveBusy(false);
+      window.setTimeout(() => setApproveNotice(null), 5000);
+    }
   };
 
-  const toggleMarketingSpend = () => {
+  const toggleMarketingSpend = async () => {
     if (!spendUnlocked) return;
+    const nextPaused = marketingSpendOn; // currently on → pause
     setMarketingSpendOn((v) => !v);
+
+    const wallet = walletAddress;
+    if (!wallet || /Wallet111111111$/i.test(wallet) || isDemoLedger) return;
+
+    try {
+      const planId = `pause:${tradedContract || symbol}`;
+      const challengeRes = await fetch('/api/mw-approve-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'challenge', wallet, planId, purpose: 'pause_spend' }),
+      });
+      if (!challengeRes.ok) return;
+      const challenge = await challengeRes.json();
+      const signature = await signMessage(challenge.message);
+      if (!signature) return;
+      await fetch('/api/mw-approve-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'pause',
+          wallet,
+          mint: tradedContract || marketingAddress,
+          spendPaused: nextPaused,
+          signature,
+          message: challenge.message,
+          nonce: challenge.nonce,
+        }),
+      });
+    } catch {
+      /* local toggle already applied */
+    }
   };
 
   const copyMint = async () => {
@@ -714,7 +820,7 @@ export function PostLaunchDashboard({
                     type="button"
                     role="switch"
                     aria-checked={marketingSpendOn}
-                    onClick={toggleMarketingSpend}
+                    onClick={() => void toggleMarketingSpend()}
                     className={`relative h-7 w-12 shrink-0 rounded-full transition ${
                       marketingSpendOn ? 'bg-[#c8ff3d]' : 'bg-white/15'
                     }`}
@@ -728,7 +834,7 @@ export function PostLaunchDashboard({
                 </div>
                 <button
                   type="button"
-                  onClick={toggleMarketingSpend}
+                  onClick={() => void toggleMarketingSpend()}
                   className="text-[12px] font-semibold text-[#d5ff69] hover:underline"
                 >
                   {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
@@ -1130,7 +1236,7 @@ export function PostLaunchDashboard({
         spendUnlocked ? (
           <button
             type="button"
-            onClick={toggleMarketingSpend}
+            onClick={() => void toggleMarketingSpend()}
             className={`${primaryBtnClass} scroll-mt-4`}
           >
             {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
@@ -1165,11 +1271,15 @@ export function PostLaunchDashboard({
             <button
               id="roadmap-approve"
               type="button"
-              onClick={approveRoadmap}
+              onClick={() => void approveRoadmap()}
+              disabled={approveBusy}
               className={`${primaryBtnClass} scroll-mt-4`}
             >
-              Approve
+              {approveBusy ? 'Approving…' : 'Approve'}
             </button>
+            {approveNotice ? (
+              <p className="text-center text-[12px] text-amber-200/90">{approveNotice}</p>
+            ) : null}
           </div>
         )
       ) : null}

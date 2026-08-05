@@ -151,7 +151,7 @@ export const ORIGIN_META: Record<
     label: 'Native Launch',
     emoji: '⚡',
     title: 'Native Launch',
-    description: 'Deployed on CTOgo with Mode A or Mode B fees. Dynamic 0.95%→0.40% schedule.',
+    description: 'Deployed on CTOgo with Mode A or Mode B fees. Launch path 1.30% (raid · marketing · creator · platform).',
     badgeClass: 'border-sky-400/35 bg-sky-400/15 text-sky-200',
   },
 };

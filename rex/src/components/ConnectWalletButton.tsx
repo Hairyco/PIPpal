@@ -37,6 +37,10 @@ type SolanaProvider = {
   publicKey?: { toString(): string } | null;
   connect: (opts?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString(): string } }>;
   disconnect: () => Promise<void>;
+  signMessage?: (
+    message: Uint8Array,
+    display?: 'utf8' | 'hex',
+  ) => Promise<{ signature: Uint8Array } | Uint8Array>;
   on?: (event: string, handler: () => void) => void;
   off?: (event: string, handler: () => void) => void;
 };
@@ -84,7 +88,33 @@ type WalletContextValue = {
   busy: boolean;
   connect: () => Promise<string | null>;
   disconnect: () => Promise<void>;
+  /** Phantom signMessage → base58 signature. Returns null if wallet can't sign. */
+  signMessage: (message: string) => Promise<string | null>;
 };
+
+const BASE58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+function encodeBase58(bytes: Uint8Array): string {
+  const digits = [0];
+  for (const byte of bytes) {
+    let carry = byte;
+    for (let j = 0; j < digits.length; j++) {
+      carry += digits[j] << 8;
+      digits[j] = carry % 58;
+      carry = (carry / 58) | 0;
+    }
+    while (carry > 0) {
+      digits.push(carry % 58);
+      carry = (carry / 58) | 0;
+    }
+  }
+  let zeros = 0;
+  for (const b of bytes) {
+    if (b !== 0) break;
+    zeros++;
+  }
+  return '1'.repeat(zeros) + digits.reverse().map((d) => BASE58[d]).join('');
+}
 
 const WalletContext = createContext<WalletContextValue | null>(null);
 
@@ -151,6 +181,19 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setBusy(false);
   }, []);
 
+  const signMessage = useCallback(async (message: string) => {
+    const provider = getProvider();
+    if (!provider?.signMessage) return null;
+    try {
+      const encoded = new TextEncoder().encode(message);
+      const raw = await provider.signMessage(encoded, 'utf8');
+      const sig = raw instanceof Uint8Array ? raw : raw.signature;
+      return encodeBase58(sig);
+    } catch {
+      return null;
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       address,
@@ -158,8 +201,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       busy,
       connect,
       disconnect,
+      signMessage,
     }),
-    [address, busy, connect, disconnect],
+    [address, busy, connect, disconnect, signMessage],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

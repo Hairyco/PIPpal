@@ -61,6 +61,12 @@ export default async function handler(req, res) {
       }
       await consumeChallenge(nonce, wallet);
 
+      // Ensure spend plan row exists (client may send a fresh UUID).
+      const existingPlans = await sbFetch(`mw_spend_plans?id=eq.${planId}&select=id`);
+      if (!Array.isArray(existingPlans) || !existingPlans[0]) {
+        // Need project first for FK — create temp then attach
+      }
+
       // Upsert project
       let projects = await sbFetch(
         `mw_projects?mint=eq.${encodeURIComponent(mint)}&select=*&limit=1`,
@@ -94,20 +100,37 @@ export default async function handler(req, res) {
         });
       }
 
-      await sbFetch(`mw_spend_plans?id=eq.${planId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          project_id: project.id,
-          mode,
-          status: 'approved',
-          selected_offer_ids: selectedOfferIds,
-          approved_by_wallet: wallet,
-          approval_message: message,
-          approval_signature: signature,
-          approved_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }),
-      });
+      if (!Array.isArray(existingPlans) || !existingPlans[0]) {
+        await sbFetch('mw_spend_plans', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: planId,
+            project_id: project.id,
+            mode,
+            status: 'approved',
+            selected_offer_ids: selectedOfferIds,
+            approved_by_wallet: wallet,
+            approval_message: message,
+            approval_signature: signature,
+            approved_at: new Date().toISOString(),
+          }),
+        });
+      } else {
+        await sbFetch(`mw_spend_plans?id=eq.${planId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            project_id: project.id,
+            mode,
+            status: 'approved',
+            selected_offer_ids: selectedOfferIds,
+            approved_by_wallet: wallet,
+            approval_message: message,
+            approval_signature: signature,
+            approved_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }),
+        });
+      }
 
       // Queue campaign orders from selected offers (USD → lamports estimate).
       const queued = [];
