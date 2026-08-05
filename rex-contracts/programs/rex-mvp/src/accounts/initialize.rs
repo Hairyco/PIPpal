@@ -3,8 +3,11 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    /// CHECK: protocol treasury receives 1% trade fees
+    /// CHECK: protocol treasury receives platform + unclaimed raid + service fees
     pub protocol_treasury: UncheckedAccount<'info>,
+
+    /// CHECK: restricted keeper for disbursements / sweeps (defaults to authority if same)
+    pub keeper: UncheckedAccount<'info>,
 
     #[account(
         init,

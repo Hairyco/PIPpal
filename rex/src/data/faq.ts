@@ -2,8 +2,8 @@ import {
   LAUNCH_FEE_ENGINE,
   LIST_FEE_ENGINE,
   MARKETING_AUTO_SPEND_USD,
-  MARKETING_INACTIVITY_HOURS,
-  MARKETING_V2_DEADLINE_DAYS,
+  MARKETING_INACTIVITY_DAYS,
+  MARKETING_SERVICE_FEE_LABEL,
   SCOUT_FEE_ENGINE,
   TRADE_FEE_LABEL,
   formatBpsPercent,
@@ -98,7 +98,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'inactive',
         question: 'What happens if the coin goes quiet?',
-        answer: `If the wallet is under $${MARKETING_AUTO_SPEND_USD} and records $0 volume for ${MARKETING_INACTIVITY_HOURS} hours, the balance is swept into the protocol CTO Reserve. A Native V2 takeover restores 100% of it into the new wallet. If no Native V2 happens within ${MARKETING_V2_DEADLINE_DAYS} days of the V1 mint, the funds go to the protocol treasury.`,
+        answer: `After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL (above rent) may sweep to the CTOgo treasury. Ops warns at 30 and 7 days. Spend pause or a queued payment blocks the sweep. Supplier payouts always debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 → $120).`,
       },
       {
         id: 'verify',

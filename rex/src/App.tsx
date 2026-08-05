@@ -25,6 +25,7 @@ import { WatchlistPage } from './pages/WatchlistPage';
 import { CoinPage } from './pages/CoinPage';
 import { WelcomeGate } from './components/WelcomeGate';
 import { DiscoverDeckPage } from './pages/DiscoverDeckPage';
+import { OpsProvidersPage } from './pages/OpsProvidersPage';
 
 export function App() {
   return (
@@ -46,6 +47,7 @@ export function App() {
             <Route path="/services" element={<Navigate to="/advertise" replace />} />
             <Route path="/fees" element={<FeesPage />} />
             <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
+            <Route path="/ops/providers" element={<OpsProvidersPage />} />
             <Route path="/faq" element={<FaqPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/category/:categoryId" element={<CategoryPage />} />

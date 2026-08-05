@@ -6,6 +6,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "crons": [
+    {
+      "path": "/api/mw-keeper-tick",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!api/).*)",

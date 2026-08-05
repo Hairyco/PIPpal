@@ -88,11 +88,17 @@ mod tests {
             mint: Pubkey::default(),
             launched_at: 0,
             trading_enabled: true,
+            fee_mode: 0,
+            engine: 0,
+            marketing_attached: true,
+            spend_paused: false,
+            last_marketing_activity_at: 0,
             virtual_sol_reserves: INITIAL_VIRTUAL_SOL,
             virtual_token_reserves: INITIAL_VIRTUAL_TOKENS,
             real_sol_reserves: 0,
             bump: 0,
             marketing_bump: 0,
+            creator_bump: 0,
             curve_bump: 0,
         }
     }

@@ -1,18 +1,7 @@
-//! Rex MVP — Solana smart contract entry point.
+//! CTOgo MVP — Solana smart contract entry point.
 //!
-//! # Module map (for investors and auditors)
-//!
-//! | Module        | Purpose                                                    |
-//! |---------------|------------------------------------------------------------|
-//! | `constants`   | Fee percentages and curve defaults                         |
-//! | `fees`        | Launch tier 0.35% + 0.20% + 0.40% (0.95%); Mode A/B at deploy |
-//! | `curve`       | Bonding curve pricing math                                 |
-//! | `state`       | On-chain account layouts                                   |
-//! | `accounts`    | Per-instruction account validation                         |
-//! | `instructions`| Business logic handlers                                    |
-//! | `events`      | On-chain logs for indexers / UI                            |
-//! | `transfer`    | SOL movement helpers                                       |
-//! | `errors`      | Human-readable failure reasons                             |
+//! Dual fee engines: List 1.25% / Launch 1.30% with raid + marketing wallet.
+//! Marketing disbursements charge 20% CTOgo service fee on top of supplier invoice.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -28,9 +17,8 @@ pub mod transfer;
 
 use constants::TOKEN_DECIMALS;
 use errors::RexError;
-use state::{Project, RexConfig, WhitelistedProvider};
+use state::{DisbursementReceipt, Project, RexConfig, WhitelistedProvider};
 
-// Account validation structs must be in the crate root for Anchor's `#[program]` macro.
 include!("accounts/initialize.rs");
 include!("accounts/launch.rs");
 include!("accounts/buy.rs");
@@ -38,6 +26,7 @@ include!("accounts/sell.rs");
 include!("accounts/whitelist.rs");
 include!("accounts/disburse.rs");
 include!("accounts/withdraw_creator.rs");
+include!("accounts/admin.rs");
 
 pub use constants::*;
 pub use events::*;
@@ -49,40 +38,75 @@ declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 pub mod rex_mvp {
     use super::*;
 
-    /// One-time Rex protocol setup.
+    /// One-time CTOgo protocol setup (authority, treasury, keeper).
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         instructions::initialize(ctx)
     }
 
     /// Founder launches a project: token mint + marketing/creator vaults + curve.
     /// `fee_mode`: 0 = creator keeps fees, 1 = trader cashback.
-    /// Mode does not block Raydium graduation; post-migration fees remain required.
+    /// `engine`: 0 = Launch (1.30%), 1 = List (1.25%).
     pub fn launch_project(
         ctx: Context<LaunchProject>,
         trading_enabled: bool,
         fee_mode: u8,
+        engine: u8,
     ) -> Result<()> {
-        instructions::launch_project(ctx, trading_enabled, fee_mode)
+        instructions::launch_project(ctx, trading_enabled, fee_mode, engine)
     }
 
-    /// Investor buys project tokens with SOL (launch-tier 0.95% tax).
+    /// Investor buys project tokens with SOL (engine tax + optional raid).
     pub fn buy(ctx: Context<Buy>, sol_amount: u64, min_tokens_out: u64) -> Result<()> {
         instructions::buy(ctx, sol_amount, min_tokens_out)
     }
 
-    /// Investor sells project tokens for SOL (launch-tier 0.95% tax on gross SOL out).
+    /// Investor sells project tokens for SOL (engine tax on gross SOL out).
     pub fn sell(ctx: Context<Sell>, token_amount: u64, min_sol_out: u64) -> Result<()> {
         instructions::sell(ctx, token_amount, min_sol_out)
     }
 
-    /// Rex authority adds a supplier wallet to the whitelist.
+    /// Authority adds a supplier wallet to the whitelist.
     pub fn add_whitelist_provider(ctx: Context<AddWhitelistProvider>) -> Result<()> {
         instructions::add_whitelist_provider(ctx)
     }
 
-    /// Rex authority pays a whitelisted supplier from the marketing wallet.
-    pub fn disburse_marketing(ctx: Context<DisburseMarketing>, amount: u64) -> Result<()> {
-        instructions::disburse_marketing(ctx, amount)
+    /// Authority activates or deactivates a whitelisted supplier.
+    pub fn set_whitelist_active(ctx: Context<SetWhitelistActive>, active: bool) -> Result<()> {
+        instructions::set_whitelist_active(ctx, active)
+    }
+
+    /// Authority or keeper pays invoice + 20% CTOgo fee from marketing vault (idempotent).
+    pub fn disburse_marketing(
+        ctx: Context<DisburseMarketing>,
+        invoice_id: [u8; 32],
+        invoice_lamports: u64,
+    ) -> Result<()> {
+        instructions::disburse_marketing(ctx, invoice_id, invoice_lamports)
+    }
+
+    /// List path: flip marketing destination from treasury → vault.
+    pub fn attach_marketing_wallet(ctx: Context<AttachMarketingWallet>) -> Result<()> {
+        instructions::attach_marketing_wallet(ctx)
+    }
+
+    /// Authority pauses/unpauses all trading + disbursements.
+    pub fn set_protocol_paused(ctx: Context<SetProtocolPaused>, paused: bool) -> Result<()> {
+        instructions::set_protocol_paused(ctx, paused)
+    }
+
+    /// Founder or authority pauses marketing spend for one project.
+    pub fn set_spend_paused(ctx: Context<SetSpendPaused>, spend_paused: bool) -> Result<()> {
+        instructions::set_spend_paused(ctx, spend_paused)
+    }
+
+    /// Authority rotates the keeper key.
+    pub fn set_keeper(ctx: Context<SetKeeper>) -> Result<()> {
+        instructions::set_keeper(ctx)
+    }
+
+    /// Sweep inactive marketing vault (≥180 days) to protocol treasury.
+    pub fn sweep_inactive_marketing(ctx: Context<SweepInactiveMarketing>) -> Result<()> {
+        instructions::sweep_inactive_marketing(ctx)
     }
 
     /// Founder withdraws accumulated creator fees to their wallet.

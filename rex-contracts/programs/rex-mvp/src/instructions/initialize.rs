@@ -6,6 +6,8 @@ pub fn handler(ctx: Context<Initialize>) -> Result<()> {
     let config = &mut ctx.accounts.config;
     config.authority = ctx.accounts.authority.key();
     config.protocol_treasury = ctx.accounts.protocol_treasury.key();
+    config.keeper = ctx.accounts.keeper.key();
+    config.paused = false;
     config.bump = ctx.bumps.config;
     Ok(())
 }

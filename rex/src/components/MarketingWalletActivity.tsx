@@ -4,6 +4,7 @@ import {
   demoMarketingWalletActivity,
   formatMarketingSol,
   formatMarketingUsd,
+  MARKETING_ACTIVITY_IS_DEMO,
   solscanTxUrl,
   type MarketingTxDirection,
   type MarketingWalletTx,
@@ -74,6 +75,11 @@ export function MarketingWalletActivity({
               Fees, investor pay-ins, and whitelisted supplier payouts — live here without opening
               Solscan.
             </p>
+            {MARKETING_ACTIVITY_IS_DEMO ? (
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
+                Demo ledger · replace when indexer + receipts are live
+              </p>
+            ) : null}
           </div>
           <div className="text-right text-[11px] text-white/40">
             <p>

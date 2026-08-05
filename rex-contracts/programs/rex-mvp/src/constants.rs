@@ -1,131 +1,81 @@
-//! Fee and curve constants — single source of truth for investor review.
-//!
-//! Launch-phase defaults (under $100k mcap) from final CTO launchpad spec:
-//! | Constant            | Value | Meaning                              |
-//! |---------------------|-------|--------------------------------------|
-//! | PLATFORM_FEE_BPS    | 35    | 0.35% to Rex protocol treasury       |
-//! | CREATOR_FEE_BPS     | 20    | 0.20% creator/trader pool            |
-//! | MARKETING_FEE_BPS   | 40    | 0.40% to marketing wallet            |
-//! | Total trade tax     | 95 bps = 0.95%                       |
-//!
-//! Higher mcap tiers reduce fees on-chain via oracle/config (frontend mirrors FEE_TIERS).
-//! Fee destination mode (creator keep vs trader cashback) is locked at `launch_project`.
-//!
-//! # Marketing vault inactivity & sweep
-//! At $500 USD equivalent, programmatic ad/trending spend fires automatically.
-//! Under $500 with $0 volume for 72h → sweep unspent SOL to Rex Protocol CTO Reserve.
-//! Native V2 CTO migration restores 100% of swept funds to the new V2 marketing vault.
-//! V1 volume restart without V2 leaves swept funds in the reserve; V1 accrues fresh fees.
-//! If no Native V2 within 30 days of a Rex V1 mint, reserve/unspent funds go to Rex treasury.
-//!
-//! # Post-migration (bonding curve → Raydium)
-//! CTOgo is **Raydium-first**: graduate to Raydium for Jupiter / DexScreener visibility.
-//! Do **not** prioritize a private CTOgo AMM until organic volume justifies it.
-//!
-//! # Graduation liquidity (Pump-style — required)
-//! 1. Take the **Rex migration protocol fee (2 SOL)** from curve SOL → protocol treasury.
-//! 2. Pay Raydium CPMM create fee (~0.20 SOL) from curve SOL.
-//! 3. Deposit **remaining** curve SOL + remaining curve tokens into the Raydium pool.
-//! 4. **Burn (or permanently lock) 100% of LP tokens** — migrate must fail otherwise.
-//! 5. Close the bonding curve. Further trades go through Raydium / Jupiter.
-//! Without seeding liquidity + burning LP, graduation is broken (empty pool / rug risk).
-//!
-//! Fees **do not stop** at graduation. Platform + marketing + creator/trader pool cuts must
-//! continue on post-migration volume (Token-2022 transfer fee / AMM hook → same PDAs).
-//! Migration must not zero taxes, revoke marketing, or hand fee authority to a free EOA.
-//! Migrate create fee: **~0.20 SOL** from curve — **required** for Raydium pool open
-//! (0.15 SOL create-pool fee + ~0.05 SOL rent/priority; cap 0.25 SOL).
-//! Rex migration protocol fee: **2 SOL** from curve → Rex treasury (CTOgo revenue),
-//! charged on top of the Raydium pass-through (~2.20 SOL total off the curve).
-//!
-//! # Engineering priority
-//! Ship `migrate_to_raydium` (create fee + **seed pool** + **burn LP** + fee hooks) before any custom AMM.
-//!
-//! # Abandonment trigger
-//! If the creator wallet holds under `CREATOR_MIN_HOLD_BPS` of initial allocation
-//! (dumped 90%+), the creator cut is revoked permanently for that wallet and redirected
-//! (default: marketing boost). Platform + marketing fees continue — do not halt all tax.
+//! Fee and curve constants — CTOgo dual-engine + marketing wallet.
 
-/// 0.35% — Rex protocol fee on buys and sells (basis points). Launch tier.
-pub const PLATFORM_FEE_BPS: u64 = 35;
-
-/// 0.20% — creator / trader pool on buys and sells (basis points). Launch tier.
-/// Mode A: accumulates in creator vault; founder withdraws.
-/// Mode B: same vault acts as trader rebate pool (founder withdraw disabled).
-/// After abandonment trigger, this cut is diverted away from the dumped wallet.
-pub const CREATOR_FEE_BPS: u64 = 20;
-
-/// 0.40% — project marketing wallet on buys and sells (basis points). Launch tier.
-pub const MARKETING_FEE_BPS: u64 = 40;
-
+/// Basis points denominator (100% = 10_000).
 pub const BPS_DENOMINATOR: u64 = 10_000;
 
-/// Total launch-tier trade fee (platform + creator pool + marketing).
-pub const TRADE_FEE_BPS: u64 = PLATFORM_FEE_BPS + CREATOR_FEE_BPS + MARKETING_FEE_BPS;
+/// Raid / referrer cut on CTOgo-routed trades (0.50%).
+pub const RAID_FEE_BPS: u64 = 50;
+
+/// CTOgo service fee on marketing disbursements — 20% **on top** of supplier invoice.
+/// $100 invoice → $20 fee → $120 total vault debit.
+pub const CTOGO_SERVICE_FEE_BPS: u64 = 2_000;
+
+/// Engine id locked at project create: Launch path.
+pub const ENGINE_LAUNCH: u8 = 0;
+/// Engine id locked at project create: List (external / CTO) path.
+pub const ENGINE_LIST: u8 = 1;
+
+// --- Launch 1.30%: raid 50 + marketing 30 + creator 20 + platform 30 ---
+pub const LAUNCH_RAID_BPS: u64 = RAID_FEE_BPS;
+pub const LAUNCH_MARKETING_BPS: u64 = 30;
+pub const LAUNCH_CREATOR_BPS: u64 = 20;
+pub const LAUNCH_PLATFORM_BPS: u64 = 30;
+pub const LAUNCH_TRADE_FEE_BPS: u64 =
+    LAUNCH_RAID_BPS + LAUNCH_MARKETING_BPS + LAUNCH_CREATOR_BPS + LAUNCH_PLATFORM_BPS;
+
+// --- List 1.25%: raid 50 + marketing 40 + creator 0 + platform 35 ---
+pub const LIST_RAID_BPS: u64 = RAID_FEE_BPS;
+pub const LIST_MARKETING_BPS: u64 = 40;
+pub const LIST_CREATOR_BPS: u64 = 0;
+pub const LIST_PLATFORM_BPS: u64 = 35;
+pub const LIST_TRADE_FEE_BPS: u64 =
+    LIST_RAID_BPS + LIST_MARKETING_BPS + LIST_CREATOR_BPS + LIST_PLATFORM_BPS;
+
+/// @deprecated Prefer engine-specific constants. Legacy alias = List platform.
+pub const PLATFORM_FEE_BPS: u64 = LIST_PLATFORM_BPS;
+/// @deprecated Prefer LAUNCH_CREATOR_BPS.
+pub const CREATOR_FEE_BPS: u64 = LAUNCH_CREATOR_BPS;
+/// @deprecated Prefer LIST_MARKETING_BPS.
+pub const MARKETING_FEE_BPS: u64 = LIST_MARKETING_BPS;
+/// @deprecated Prefer LIST_TRADE_FEE_BPS / LAUNCH_TRADE_FEE_BPS.
+pub const TRADE_FEE_BPS: u64 = LIST_TRADE_FEE_BPS;
 
 /// Mode A — creator keeps the pool cut.
 pub const FEE_MODE_CREATOR: u8 = 0;
-
 /// Mode B — pool cut is trader cashback (founder withdraw disabled).
-/// Does **not** block bonding-curve → Raydium migration or V1→V2 CTO relaunch.
 pub const FEE_MODE_TRADER_CASHBACK: u8 = 1;
 
 /// USD equivalent threshold for automatic marketing spend (ads / trending).
 pub const MARKETING_AUTO_SPEND_USD: u64 = 500;
 
-/// Hours of consecutive $0 volume before an under-threshold vault is swept
-/// into the Rex Protocol CTO Reserve.
-pub const MARKETING_INACTIVITY_HOURS: u64 = 72;
+/// Days of no CTOgo marketing activity before inactive vault SOL may be swept to treasury.
+pub const MARKETING_INACTIVITY_DAYS: u64 = 180;
+pub const MARKETING_INACTIVITY_SECS: i64 = (MARKETING_INACTIVITY_DAYS * 24 * 60 * 60) as i64;
 
-/// Days after a Rex V1 mint without a Native V2 CTO before reserve/unspent
-/// marketing funds are sent to the Rex protocol treasury.
+/// Warning windows (off-chain + optional on-chain checks).
+pub const MARKETING_SWEEP_WARN_DAYS_30: u64 = 30;
+pub const MARKETING_SWEEP_WARN_DAYS_7: u64 = 7;
+
+/// Legacy Rex V1 constants — retained for docs/compat; CTOgo uses 180-day sweep.
+pub const MARKETING_INACTIVITY_HOURS: u64 = 72;
 pub const MARKETING_V2_DEADLINE_DAYS: u64 = 30;
 
-/// Product invariant: after Raydium graduation, trade tax must still apply.
-/// Migration instructions must keep platform + marketing (+ pool) routing live.
-/// Destination is Raydium (Raydium-first). Migrate must fund Raydium CPMM create fee from curve.
 pub const POST_MIGRATION_FEES_REQUIRED: bool = true;
-
-/// Raydium CPMM one-time create-pool fee (lamports). Source: Raydium protocol docs (~0.15 SOL).
 pub const RAYDIUM_CREATE_POOL_FEE_LAMPORTS: u64 = 150_000_000;
-
-/// Rent + priority-fee buffer on top of Raydium create fee (~0.05 SOL).
 pub const RAYDIUM_MIGRATE_RENT_BUFFER_LAMPORTS: u64 = 50_000_000;
-
-/// Total SOL reserved from curve at graduate (~0.20 SOL). Required or migrate fails.
 pub const MIGRATION_FEE_LAMPORTS: u64 =
     RAYDIUM_CREATE_POOL_FEE_LAMPORTS + RAYDIUM_MIGRATE_RENT_BUFFER_LAMPORTS;
-
-/// Hard cap if Raydium raises create fee or congestion needs more priority fees (~0.25 SOL).
 pub const MIGRATION_FEE_LAMPORTS_CAP: u64 = 250_000_000;
-
-/// Rex migration protocol fee (2 SOL) — CTOgo revenue charged once at graduate,
-/// paid from curve SOL to the protocol treasury before the pool is seeded.
 pub const REX_MIGRATION_PROTOCOL_FEE_LAMPORTS: u64 = 2_000_000_000;
-
-/// Total SOL leaving the curve at graduate: Rex migration fee + Raydium create cost (~2.20 SOL).
 pub const TOTAL_MIGRATION_COST_LAMPORTS: u64 =
     REX_MIGRATION_PROTOCOL_FEE_LAMPORTS + MIGRATION_FEE_LAMPORTS;
-
-/// Product invariant: remaining curve SOL + tokens must seed the Raydium pool at graduate.
 pub const GRADUATION_SEED_POOL_REQUIRED: bool = true;
-
-/// Product invariant: 100% of Raydium LP from graduation must be burned or permanently locked.
 pub const GRADUATION_BURN_LP_REQUIRED: bool = true;
 
-/// Creator must retain at least this share of initial allocation (basis points of 10_000).
-/// Below 10% remaining (= dumped 90%+) → abandonment trigger fires.
 pub const CREATOR_MIN_HOLD_BPS: u64 = 1_000;
-
-/// Where revoked creator fees go after abandonment: 0 = marketing vault, 1 = trader pool.
 pub const CREATOR_FEE_REDIRECT_MARKETING: u8 = 0;
 pub const CREATOR_FEE_REDIRECT_TRADERS: u8 = 1;
 
-/// SPL token decimals for project coins.
 pub const TOKEN_DECIMALS: u8 = 6;
-
-/// Starting virtual SOL reserves for the bonding curve (30 SOL).
 pub const INITIAL_VIRTUAL_SOL: u64 = 30_000_000_000;
-
-/// Starting virtual token reserves (1.073B tokens at 6 decimals).
 pub const INITIAL_VIRTUAL_TOKENS: u64 = 1_073_000_000_000_000;

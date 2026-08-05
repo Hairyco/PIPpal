@@ -1,4 +1,8 @@
-/** Demo marketing-wallet ledger until live PDA + indexed txs. */
+/** Demo marketing-wallet ledger until live PDA + indexed txs.
+ * UI must show an explicit demo badge when using this data.
+ */
+
+export const MARKETING_ACTIVITY_IS_DEMO = true;
 
 export type MarketingTxKind =
   | 'trade_fee'
@@ -83,9 +87,9 @@ export function demoMarketingWalletActivity(ticker: string): MarketingWalletTx[]
       kind: 'supplier_payout',
       label: 'DexScreener socials update',
       counterparty: 'DexScreener',
-      note: 'DexScreener',
-      amountUsd: 350,
-      amountSol: 2.41,
+      note: 'Supplier $350 + CTOgo 20% on top ($70) = $420 debit',
+      amountUsd: 420,
+      amountSol: 2.89,
       when: '1d ago',
       minutesAgo: 1440,
     },

@@ -84,7 +84,7 @@ export const howItWorksSteps: HowItWorksStep[] = [
       LAUNCH_TRADE_NOTE,
       'Milestone thresholds unlock payouts only after auto spend is turned on in settings',
       'Investors can track wallet balance and upcoming supplier spend live',
-      'Platform takes a 5–10% management fee on milestone payouts',
+      'CTOgo adds a 20% automation fee on top of supplier invoices ($100 service → $120 vault debit)',
     ],
   },
   {

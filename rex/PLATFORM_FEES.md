@@ -1,3 +1,10 @@
+# Rex platform fees — LEGACY review doc
+
+> **Superseded for CTOgo product math.** Use [`src/data/chainConfig.ts`](src/data/chainConfig.ts) and
+> [`docs/MARKETING_WALLET_PRODUCTION.md`](docs/MARKETING_WALLET_PRODUCTION.md).
+> Live engines: **List 1.25%** / **Launch 1.30%** with raid; marketing disbursements charge **20% on top**;
+> inactivity sweep is **180 days** to CTOgo treasury. The tables below retain the old Rex 0.95% / 72h model for archaeology only.
+
 # Rex platform fees — review doc
 
 Dynamic per-trade tax on Native V2 CTOs.  

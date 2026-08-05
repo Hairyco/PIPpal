@@ -20,14 +20,21 @@ import {
   POST_LAUNCH_SPEND_THRESHOLDS,
   formatActivityPrice,
   formatThresholdUsd,
+  selectedSpendAllIn,
+  spendItemAllIn,
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
-import { LAUNCH_FEE_ENGINE, formatBpsPercent } from '../data/chainConfig';
+import {
+  LAUNCH_FEE_ENGINE,
+  MARKETING_SERVICE_FEE_LABEL,
+  formatBpsPercent,
+} from '../data/chainConfig';
 import { shortMint, solscanAccountUrl } from '../data/ctoProjects';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { LaunchReadyCarousel } from './LaunchReadyCarousel';
 import { SolWalletPanel } from './SolWalletPanel';
+import { fetchMwProjectStatus, type MwProjectStatus } from '../lib/marketingWalletApi';
 
 type DashTab = 'overview' | 'wallet' | 'roadmap' | 'socials' | 'affiliate';
 
@@ -126,6 +133,7 @@ export function PostLaunchDashboard({
   /** First Approve unlocks spend; can pause/unpause after that. */
   const [spendUnlocked, setSpendUnlocked] = useState(false);
   const [marketingSpendOn, setMarketingSpendOn] = useState(false);
+  const [mwStatus, setMwStatus] = useState<MwProjectStatus | null>(null);
   /** Launch path: carousel after pay — once per coin after acknowledged. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(() => {
     if (mode !== 'launch') return false;
@@ -139,6 +147,24 @@ export function PostLaunchDashboard({
   useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const mint = tradedContract || marketingAddress;
+    void fetchMwProjectStatus(mint).then((status) => {
+      if (!cancelled) {
+        setMwStatus(status);
+        if (status.project?.spend_unlocked) setSpendUnlocked(true);
+        if (status.project && !status.project.spend_paused) setMarketingSpendOn(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tradedContract, marketingAddress]);
+
+  const selectedAllIn = useMemo(() => selectedSpendAllIn(selected), [selected]);
+  const isDemoLedger = !mwStatus || mwStatus.demo !== false;
 
   useEffect(() => {
     if (mode !== 'launch') {
@@ -612,6 +638,11 @@ export function PostLaunchDashboard({
                 <p className="mt-0.5 text-xl font-bold tabular-nums text-[#d5ff69]">
                   ${(vaultLive ? vaultBalanceUsd : 0).toLocaleString()}
                 </p>
+                {isDemoLedger ? (
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-300/80">
+                    Demo balance · connect Supabase for live vault
+                  </p>
+                ) : null}
               </div>
               <div className="text-right">
                 <p className="text-[11px] font-medium text-white/40">Trading volume</p>
@@ -1045,11 +1076,14 @@ export function PostLaunchDashboard({
                               {item.label}
                             </span>
                             <span
-                              className={`shrink-0 text-[13px] font-semibold tabular-nums ${
+                              className={`shrink-0 text-right text-[12px] font-semibold tabular-nums ${
                                 itemOn ? 'text-[#d5ff69]' : 'text-white/30'
                               }`}
                             >
-                              {formatActivityPrice(item.priceUsd)}
+                              <span className="block">{formatActivityPrice(item.priceUsd)}</span>
+                              <span className="block text-[10px] font-medium text-white/35">
+                                {formatActivityPrice(spendItemAllIn(item).totalDebitUsd)} all-in
+                              </span>
                             </span>
                           </button>
                         </li>
@@ -1102,14 +1136,41 @@ export function PostLaunchDashboard({
             {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
           </button>
         ) : (
-          <button
-            id="roadmap-approve"
-            type="button"
-            onClick={approveRoadmap}
-            className={`${primaryBtnClass} scroll-mt-4`}
-          >
-            Approve
-          </button>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] text-white/55">
+              <p className="font-semibold text-white/80">Before Approve — vault debit</p>
+              <p className="mt-1.5 flex justify-between gap-2">
+                <span>Supplier invoices</span>
+                <span className="tabular-nums text-white">
+                  {formatActivityPrice(selectedAllIn.invoiceUsd)}
+                </span>
+              </p>
+              <p className="mt-1 flex justify-between gap-2">
+                <span>{MARKETING_SERVICE_FEE_LABEL}</span>
+                <span className="tabular-nums text-white">
+                  {formatActivityPrice(selectedAllIn.serviceFeeUsd)}
+                </span>
+              </p>
+              <p className="mt-2 flex justify-between gap-2 border-t border-white/[0.08] pt-2 font-semibold text-[#d5ff69]">
+                <span>Total debit</span>
+                <span className="tabular-nums">
+                  {formatActivityPrice(selectedAllIn.totalDebitUsd)}
+                </span>
+              </p>
+              <p className="mt-2 text-[11px] text-white/40">
+                Suppliers receive 100% of their invoice. CTOgo&apos;s 20% is charged on top from the
+                marketing vault.
+              </p>
+            </div>
+            <button
+              id="roadmap-approve"
+              type="button"
+              onClick={approveRoadmap}
+              className={`${primaryBtnClass} scroll-mt-4`}
+            >
+              Approve
+            </button>
+          </div>
         )
       ) : null}
     </div>

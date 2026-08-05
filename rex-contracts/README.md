@@ -1,18 +1,24 @@
-# Rex MVP Contracts (Solana / Anchor)
+# Rex / CTOgo MVP Contracts (Solana / Anchor)
 
-Proof-of-concept bonding curve with **marketing + creator/trader fee routing** and **whitelisted supplier disbursements**.
+Bonding curve with **dual fee engines**, **raid cut**, **marketing wallet routing**, and **whitelisted supplier disbursements** (invoice + **20% CTOgo fee on top**, idempotent receipt PDA).
 
-Launch-tier trade tax is **0.95%** (0.35% Rex + 0.20% creator/trader pool + 0.40% marketing). Creators lock Mode A (keep fees) or Mode B (trader cashback) at deploy.
+| Engine | Total | Raid | Marketing | Creator | Platform |
+|--------|-------|------|-----------|---------|----------|
+| Launch | **1.30%** | 0.50% | 0.30% | 0.20% | 0.30% |
+| List   | **1.25%** | 0.50% | 0.40% | 0% | 0.35% |
+
+Unclaimed raid folds into treasury. List marketing tax routes to treasury until `attach_marketing_wallet`. Inactivity sweep: **180 days** → protocol treasury.
 
 **Not technical?** Read [GETTING_STARTED.md](./GETTING_STARTED.md) first.  
-**Investor / auditor?** Read [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md).
+**Investor / auditor?** Read [INVESTOR_GUIDE.md](./INVESTOR_GUIDE.md).  
+**Ops / production:** [../rex/docs/MARKETING_WALLET_PRODUCTION.md](../rex/docs/MARKETING_WALLET_PRODUCTION.md).
 
-## Fee model (launch tier · 0.95%)
+## Fee model (CTOgo)
 
-| Action | Rex (platform) | Creator/trader pool | Marketing wallet | Total |
-|--------|----------------|---------------------|------------------|-------|
-| Buy    | 0.35%          | 0.20%               | 0.40%            | 0.95% |
-| Sell   | 0.35%          | 0.20%               | 0.40%            | 0.95% |
+| Action | Engine tax | Notes |
+|--------|------------|-------|
+| Buy / Sell | List 1.25% or Launch 1.30% | Optional `raider` account; else treasury |
+| Disburse | invoice × 1.2 | Supplier 100% + CTOgo 20% on top |
 
 Mode A founders withdraw pool fees with `withdraw_creator_fees`. Mode B disables founder withdraw (trader cashback).
 
@@ -23,15 +29,15 @@ Mode A founders withdraw pool fees with `withdraw_creator_fees`. Mode B disables
 ```text
 programs/rex-mvp/src/
   lib.rs              ← entry point + instruction routing
-  constants.rs        ← fee % and curve defaults ★ investors start here
-  fees.rs             ← 0.35% + 0.20% + 0.40% tax split + tests
+  constants.rs        ← dual-engine bps + 180d sweep ★ investors start here
+  fees.rs             ← List/Launch split + invoice×1.2 + tests
   curve.rs            ← bonding curve math + tests
-  state.rs            ← account struct definitions
+  state.rs            ← config/keeper, project flags, receipt PDA
   events.rs           ← on-chain event logs
   errors.rs           ← error codes
-  transfer.rs         ← SOL transfer helpers
+  transfer.rs         ← SOL transfer helpers (PDA-safe)
   accounts/           ← per-instruction account validation
-  instructions/       ← business logic (buy, sell, withdraw, disburse, …)
+  instructions/       ← buy, sell, disburse, whitelist, pause, sweep, …
 ```
 
 ## Quick start (developers)

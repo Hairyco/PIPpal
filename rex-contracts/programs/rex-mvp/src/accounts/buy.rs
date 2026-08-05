@@ -16,13 +16,17 @@ pub struct Buy<'info> {
     )]
     pub buyer_token_account: Account<'info, TokenAccount>,
 
-    /// CHECK: marketing vault PDA
+    /// CHECK: marketing vault PDA (may receive fees when attached)
     #[account(
         mut,
         seeds = [b"marketing_vault", project.key().as_ref()],
         bump = project.marketing_bump,
     )]
     pub marketing_vault: UncheckedAccount<'info>,
+
+    /// CHECK: vault if attached, else protocol treasury — validated in handler
+    #[account(mut)]
+    pub marketing_destination: UncheckedAccount<'info>,
 
     /// CHECK: creator fee vault PDA
     #[account(
@@ -38,6 +42,10 @@ pub struct Buy<'info> {
         constraint = protocol_treasury.key() == config.protocol_treasury @ RexError::Unauthorized,
     )]
     pub protocol_treasury: UncheckedAccount<'info>,
+
+    /// CHECK: raid referrer; pass protocol_treasury when unclaimed
+    #[account(mut)]
+    pub raider: UncheckedAccount<'info>,
 
     #[account(seeds = [b"config"], bump = config.bump)]
     pub config: Account<'info, RexConfig>,

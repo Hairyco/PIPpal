@@ -1,12 +1,14 @@
 /** Post-launch marketing spend thresholds — Polessia wizard defaults. */
 
+import { invoiceUsdWithServiceFee } from './chainConfig';
+
 export type SpendItemId = 'tg-pinned' | 'dex-socials' | 'dex-trending';
 
 export type SpendItem = {
   id: SpendItemId;
   label: string;
   logo: string;
-  /** Display price for this activity (USD). */
+  /** Supplier invoice (USD). CTOgo adds 20% on top at disbursement. */
   priceUsd: number;
 };
 
@@ -69,4 +71,20 @@ export function formatActivityPrice(amount: number): string {
 
 export function tierTotalUsd(tier: SpendThreshold): number {
   return tier.items.reduce((sum, item) => sum + item.priceUsd, 0);
+}
+
+/** Supplier invoice + 20% CTOgo fee on top for display before Approve. */
+export function spendItemAllIn(item: SpendItem) {
+  return invoiceUsdWithServiceFee(item.priceUsd);
+}
+
+export function selectedSpendAllIn(ids: Iterable<SpendItemId>) {
+  const set = new Set(ids);
+  let invoiceUsd = 0;
+  for (const tier of POST_LAUNCH_SPEND_THRESHOLDS) {
+    for (const item of tier.items) {
+      if (set.has(item.id)) invoiceUsd += item.priceUsd;
+    }
+  }
+  return invoiceUsdWithServiceFee(invoiceUsd);
 }

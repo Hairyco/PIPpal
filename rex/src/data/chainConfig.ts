@@ -231,10 +231,28 @@ export const ABANDONMENT_RULE = {
 
 /** Marketing wallet auto-spend threshold (USD) — only after settings are on. */
 export const MARKETING_AUTO_SPEND_USD = 500;
-/** Hours of $0 volume before an under-threshold wallet is swept. */
+
+/** CTOgo service fee on supplier invoices — 20% ON TOP (not taken from supplier). */
+export const MARKETING_SERVICE_FEE_BPS = 2000;
+export const MARKETING_SERVICE_FEE_LABEL = '20% CTOgo automation fee on top';
+
+/** Days of no marketing activity before inactive vault SOL may sweep to CTOgo treasury. */
+export const MARKETING_INACTIVITY_DAYS = 180;
+/** @deprecated Prefer MARKETING_INACTIVITY_DAYS (CTOgo 180-day sweep). */
 export const MARKETING_INACTIVITY_HOURS = 72;
-/** Days after a Rex V1 mint without Native V2 CTO before reserve funds go to treasury. */
+/** @deprecated Legacy Rex V1 deadline — CTOgo uses 180-day treasury sweep. */
 export const MARKETING_V2_DEADLINE_DAYS = 30;
+
+export function invoiceUsdWithServiceFee(invoiceUsd: number): {
+  invoiceUsd: number;
+  serviceFeeUsd: number;
+  totalDebitUsd: number;
+} {
+  const serviceFeeUsd =
+    Math.round(invoiceUsd * (MARKETING_SERVICE_FEE_BPS / BPS_DENOMINATOR) * 100) / 100;
+  const totalDebitUsd = Math.round((invoiceUsd + serviceFeeUsd) * 100) / 100;
+  return { invoiceUsd, serviceFeeUsd, totalDebitUsd };
+}
 
 /**
  * Auto-pay failure handling (ops rule).
@@ -275,12 +293,12 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'After Raydium graduation, the same fee engine for that coin type still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing wallet: fills always at the path rate; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Auto pay: one retry on fail, second fail → referred to you for manual payment. Under $${MARKETING_AUTO_SPEND_USD} with $0 volume for ${MARKETING_INACTIVITY_HOURS}h sweeps to the Rex CTO Reserve (restored 100% on Native V2 migration). No V2 within ${MARKETING_V2_DEADLINE_DAYS} days of a Rex V1 mint → funds go to the Rex treasury.`,
+  `Marketing wallet: fills always at the path rate; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Supplier invoices debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 service → $120 vault debit). Auto pay: one retry on fail, second fail → referred to you for manual payment. After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL may sweep to the CTOgo treasury (warnings at 30 and 7 days; no sweep while spend is paused or a payment is queued).`,
 ] as const;
 
 /**
- * Marketing wallet Inactivity & Sweep Lifecycle.
- * Unspent balances under the auto-spend threshold are not left stranded forever.
+ * Marketing wallet Inactivity & Sweep Lifecycle (CTOgo).
+ * Unspent balances are not left stranded forever — 180-day treasury sweep.
  */
 export const MARKETING_VAULT_SWEEP_RULE = {
   title: 'Marketing wallet inactivity & sweep',
@@ -289,18 +307,21 @@ export const MARKETING_VAULT_SWEEP_RULE = {
   autoSpendLabel: `Spend unlock threshold · $${MARKETING_AUTO_SPEND_USD}`,
   autoSpend:
     `After the spend roadmap is approved, when a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) can unlock — even if trading volume starts to slow. Nothing spends while the roadmap is unapproved. ${MARKETING_AUTO_PAY_FAILURE_RULE.summary}`,
-  inactivityLabel: `${MARKETING_INACTIVITY_HOURS}-hour inactivity sweep`,
+  serviceFeeLabel: MARKETING_SERVICE_FEE_LABEL,
+  serviceFee:
+    'Supplier receives 100% of the quoted invoice. CTOgo adds 20% on top from the marketing vault ($100 → $120 total debit).',
+  inactivityLabel: `${MARKETING_INACTIVITY_DAYS}-day inactivity sweep`,
   inactivity:
-    `If a token accumulates under $${MARKETING_AUTO_SPEND_USD} and records $0 trading volume for ${MARKETING_INACTIVITY_HOURS} consecutive hours, unspent funds are swept into the Rex Protocol CTO Reserve.`,
-  ctoRestorationLabel: 'CTO restoration',
+    `If a marketing vault records no CTOgo marketing activity for ${MARKETING_INACTIVITY_DAYS} consecutive days, unspent SOL (above rent) may be swept to the CTOgo protocol treasury. Ops warns at 30 and 7 days. Spend pause or a queued/approved payment blocks the sweep.`,
+  ctoRestorationLabel: 'Activity reset',
   ctoRestoration:
-    'If the community executes a Native V2 CTO migration, Rex’s protocol reserve automatically credits 100% of the swept funds into the fresh V2 marketing wallet.',
-  v1RestartLabel: 'V1 trading restart (without V2)',
+    'New CTOgo-routed marketing fills or an approved campaign disbursement reset the inactivity clock.',
+  v1RestartLabel: 'Legacy Rex note',
   v1Restart:
-    'If trading resumes on the old V1 token without migrating, swept funds remain in the reserve and V1 accumulates fresh marketing fees from new volume.',
-  v2DeadlineLabel: `${MARKETING_V2_DEADLINE_DAYS}-day V2 deadline`,
+    'The old Rex 72-hour CTO-reserve / V1→V2 restoration model is retired for CTOgo. Funds sweep to treasury after 180 days of inactivity.',
+  v2DeadlineLabel: 'Treasury destination',
   v2Deadline:
-    `If a V1 CTO was minted on Rex and no Native V2 CTO is created within ${MARKETING_V2_DEADLINE_DAYS} days, unspent / reserve funds for that V1 are automatically sent to the Rex protocol treasury.`,
+    'Swept balances go to the CTOgo protocol treasury — not a temporary CTO reserve.',
 } as const;
 
 /**

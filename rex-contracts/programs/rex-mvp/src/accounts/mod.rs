@@ -1,5 +1,6 @@
 //! Account validation structs — each instruction's required accounts.
 
+pub mod admin;
 pub mod buy;
 pub mod disburse;
 pub mod initialize;
@@ -8,6 +9,7 @@ pub mod sell;
 pub mod whitelist;
 pub mod withdraw_creator;
 
+pub use admin::*;
 pub use buy::*;
 pub use disburse::*;
 pub use initialize::*;
