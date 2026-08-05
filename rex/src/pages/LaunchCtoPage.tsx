@@ -28,8 +28,7 @@ import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
-import { ListStartFreshPage } from '../components/ListStartFreshPage';
-import { ContentSetupSheet, type SetupChannel } from '../components/ContentSetupSheet';
+import { PostSuccessCommunitySetup } from '../components/PostSuccessCommunitySetup';
 import { useAuth } from '../components/AuthProvider';
 import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWalletButton';
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
@@ -64,7 +63,7 @@ import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils
 import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
 type LaunchMode = 'launch' | 'add';
-type FlowStep = 'coin' | 'fees' | 'website' | 'burn' | 'summary' | 'fresh' | 'done';
+type FlowStep = 'coin' | 'fees' | 'website' | 'burn' | 'summary' | 'community' | 'done';
 type WebsiteKind = 'none' | 'clone';
 type DashEntryTab = 'overview' | 'wallet' | 'socials';
 
@@ -156,7 +155,6 @@ export function LaunchCtoPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [generatingSite, setGeneratingSite] = useState(false);
   const [editSite, setEditSite] = useState(false);
-  const [setupChannel, setSetupChannel] = useState<SetupChannel | null>(null);
   const [dashEntryTab, setDashEntryTab] = useState<DashEntryTab>('overview');
   const [dashboardEmpty, setDashboardEmpty] = useState(false);
   const logoRef = useRef<HTMLInputElement>(null);
@@ -388,7 +386,6 @@ export function LaunchCtoPage() {
     setListingConfirmed(false);
     setCopiedLink(null);
     setDashEntryTab('overview');
-    setSetupChannel(null);
   };
 
   const switchMode = (next: LaunchMode) => {
@@ -493,30 +490,31 @@ export function LaunchCtoPage() {
       telegramInvite: invite,
       savedAt: new Date().toISOString(),
     });
-    if (mode === 'add') {
-      setStep('fresh');
-    } else {
-      setStep('done');
-    }
+    setStep('community');
     await claimAccountAfterPublish();
   };
 
-  const goToListDashboard = (tab: DashEntryTab = 'overview') => {
-    setDashEntryTab(tab);
+  const completeCommunitySetup = (details: {
+    website: string;
+    telegram: string;
+    twitter: string;
+  }) => {
+    setWebsite(details.website);
+    setTwitter(details.twitter);
+    setTelegram(details.telegram);
+    setTelegramInvite(details.telegram || null);
+    setDashEntryTab('overview');
     setDashboardEmpty(false);
     saveUserCtoLaunch({
       name: name.trim() || 'CTOgo Coin',
       ticker: (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO',
       contract: contract.trim(),
-      mode: 'add',
+      mode,
       logoUrl: logoPreview,
-      marketingAttached,
-      websiteUrl:
-        websiteKind === 'clone'
-          ? cloneUrl.trim() || website.trim()
-          : website.trim() || cloneUrl.trim(),
-      twitter: twitter.trim(),
-      telegramInvite,
+      marketingAttached: marketingAttached || mode === 'launch',
+      websiteUrl: details.website,
+      twitter: details.twitter,
+      telegramInvite: details.telegram || null,
       savedAt: new Date().toISOString(),
     });
     setStep('done');
@@ -913,7 +911,7 @@ export function LaunchCtoPage() {
             </div>
           ) : null}
 
-          {!dashboardEmpty && step !== 'done' && step !== 'fresh' ? (
+          {!dashboardEmpty && step !== 'done' && step !== 'community' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
                 {mode === 'add' ? 'List for exposure' : 'Launch'}
@@ -1009,7 +1007,7 @@ export function LaunchCtoPage() {
             </>
           ) : null}
 
-          {!dashboardEmpty && step !== 'done' && step !== 'fresh' && mode === 'launch' ? (
+          {!dashboardEmpty && step !== 'done' && step !== 'community' && mode === 'launch' ? (
             <nav aria-label="Launch steps" className="mt-5">
               <div className="relative">
                 <span
@@ -2097,24 +2095,19 @@ export function LaunchCtoPage() {
             </form>
           ) : null}
 
-          {!dashboardEmpty && step === 'fresh' ? (
-            <ListStartFreshPage
+          {!dashboardEmpty && step === 'community' ? (
+            <PostSuccessCommunitySetup
+              mode={mode}
               symbol={displaySymbol}
               logoUrl={dashboardLogoUrl}
-              primaryBtnClass={primaryBtnClass}
-              backBtnClass={backBtnClass}
-              onCloneSite={() => {
-                setWebsiteKind('clone');
-                goToListDashboard('socials');
-              }}
-              onAddSocials={() => goToListDashboard('socials')}
-              onAddXLogo={() => {
-                if (!logoPreview) makeLogo(logoSalt);
-                setSetupChannel('x');
-                goToListDashboard('overview');
-              }}
-              onContinueToDashboard={() => goToListDashboard('overview')}
-              onSkipToDashboard={() => goToListDashboard('overview')}
+              initialWebsite={
+                websiteKind === 'clone'
+                  ? cloneUrl.trim() || website.trim()
+                  : website.trim() || cloneUrl.trim()
+              }
+              initialTelegram={telegramInvite ?? telegram}
+              initialTwitter={twitter}
+              onContinue={completeCommunitySetup}
             />
           ) : null}
 
@@ -2151,6 +2144,7 @@ export function LaunchCtoPage() {
               }
               websiteKind={websiteKind === 'none' ? 'none' : 'clone'}
               initialTab={dashEntryTab}
+              showReadyCarousel={false}
               onAttachMarketingWallet={
                 mode === 'add' && !marketingAttached
                   ? () => {
@@ -2164,6 +2158,7 @@ export function LaunchCtoPage() {
                         try {
                           await new Promise((r) => window.setTimeout(r, 600));
                           setMarketingAttached(true);
+                          setStep('community');
                         } finally {
                           setMarketingAttachBusy(false);
                         }
@@ -2175,18 +2170,6 @@ export function LaunchCtoPage() {
           ) : null}
         </main>
       </div>
-
-      <ContentSetupSheet
-        open={setupChannel != null && (step === 'fresh' || step === 'done')}
-        channel={setupChannel}
-        symbol={ticker.trim() || 'CTO'}
-        logoUrl={logoPreview}
-        bannerUrl={bannerPreview || dexHeaderPreview}
-        onClose={() => setSetupChannel(null)}
-        onGenerateLogo={() => makeLogo(logoSalt + 1)}
-        onGenerateBanner={() => void makeDexHeader(dexHeaderSalt)}
-        onGoContent={() => goToListDashboard('overview')}
-      />
 
       <WebsitePreviewOverlay
         open={previewOpen && step === 'website' && websiteKind !== 'none'}

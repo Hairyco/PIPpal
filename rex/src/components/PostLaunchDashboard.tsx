@@ -63,6 +63,7 @@ type PostLaunchDashboardProps = {
   websiteKind?: DashWebsiteKind;
   logoUrl?: string | null;
   initialTab?: DashTab;
+  showReadyCarousel?: boolean;
   onAttachMarketingWallet?: () => void;
 };
 
@@ -107,6 +108,7 @@ export function PostLaunchDashboard({
   websiteKind: _websiteKind = 'own',
   logoUrl = null,
   initialTab = 'overview',
+  showReadyCarousel = true,
   onAttachMarketingWallet,
 }: PostLaunchDashboardProps) {
   const tabs = mode === 'add' ? LIST_TABS : LAUNCH_TABS;
@@ -346,7 +348,7 @@ export function PostLaunchDashboard({
   return (
     <div className="space-y-5">
       <LaunchReadyCarousel
-        open={showLaunchCarousel && mode === 'launch'}
+        open={showReadyCarousel && showLaunchCarousel && mode === 'launch'}
         symbol={symbol}
         telegramUrl={telegramHref}
         onConfigure={configureFromCarousel}

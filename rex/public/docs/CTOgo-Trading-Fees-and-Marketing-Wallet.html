@@ -175,6 +175,17 @@
 <td>Platform (takes the “creator seat”)</td>
 </tr>
 </tbody></table>
+<h4>Unclaimed / no marketing wallet (external List coin)</h4>
+<p>The full <strong>1.25% List fee</strong> still applies when an external coin is traded through CTOgo before
+anyone claims its page:</p>
+<ul>
+<li><strong>0.50% raid</strong> → attributed raider when a valid <code>?ref=</code> is active; otherwise CTOgo treasury</li>
+<li><strong>0.40% marketing</strong> → CTOgo treasury until that coin has an attached marketing wallet</li>
+<li><strong>0.35% platform</strong> → CTOgo treasury</li>
+<li>Claim status never blocks raid earnings — anyone can raid any token</li>
+</ul>
+<p>After a marketing wallet is attached, only the 0.40% marketing destination changes from treasury
+to that coin&#39;s wallet.</p>
 <h4>Unclaimed raid</h4>
 <p>If there is <strong>no</strong> active raid referrer (no <code>?ref=</code>, attribution older than <strong>24 hours</strong>, or someone pastes the CA into a bot with no raid link):</p>
 <ul>
@@ -247,7 +258,10 @@
 <ol>
 <li>Launch creates mint + curve + marketing wallet  </li>
 <li>Early trades on CTOgo fill wallet automatically (0.30% marketing cut)  </li>
-<li>Later graduate to Raydium; CTOgo-routed trades should keep filling</li>
+<li>Later graduate to Raydium; the CTOgo coin-page terminal auto-switches to Jupiter-backed routing,
+and CTOgo-terminal trades keep the 1.30% engine</li>
+<li>Trades made on other UIs are accepted fee leakage; mint-level transfer tax is optional later,
+not the default product model</li>
 </ol>
 <p><strong>C. Manual top-up (product direction / hybrid)</strong><br>Teams can also <strong>deposit</strong> SOL into the wallet so Polessia can spend even when volume is elsewhere. That is separate from swap tax. (Deposit path is a product choice; auto tax remains CTOgo-routed only.)</p>
 <hr>
