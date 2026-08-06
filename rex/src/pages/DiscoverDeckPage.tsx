@@ -230,13 +230,13 @@ function GrowthIcon({ className = '' }: { className?: string }) {
 
 function GrowthNavGlyph() {
   return (
-    <span className="growth-nav-alive relative grid h-9 w-9 place-items-center">
+    <span className="growth-nav-alive relative grid h-11 w-11 place-items-center">
       <span className="growth-nav-glow absolute inset-0 rounded-full" aria-hidden />
       <span className="growth-spark growth-spark-a" aria-hidden />
       <span className="growth-spark growth-spark-b" aria-hidden />
       <span className="growth-spark growth-spark-c" aria-hidden />
       <span className="growth-spark growth-spark-d" aria-hidden />
-      <GrowthIcon className="relative z-[1] h-[18px] w-[18px]" />
+      <GrowthIcon className="relative z-[1] h-[22px] w-[22px]" />
     </span>
   );
 }
