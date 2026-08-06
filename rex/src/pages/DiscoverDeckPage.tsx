@@ -249,7 +249,15 @@ function demoHoldingsForWallet(address: string | null): DemoHolding[] {
 
 function ChainDot({ id }: { id: string }) {
   if (id === 'SOL') return <SolanaLogo className="h-3.5 w-3.5" />;
-  if (id === 'BSC') return <span className="h-3.5 w-3.5 rounded-full bg-[#f0b90b]" />;
+  if (id === 'BSC') {
+    return (
+      <img
+        src="/images/partners/bsc.png"
+        alt=""
+        className="h-3.5 w-3.5 object-contain"
+      />
+    );
+  }
   return <span className="h-3.5 w-3.5 rounded-full bg-white/30" />;
 }
 
