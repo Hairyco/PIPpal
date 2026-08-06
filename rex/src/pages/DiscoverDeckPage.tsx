@@ -916,7 +916,9 @@ export function DiscoverDeckPage() {
                   ) : item.id === 'growth' ? (
                     <GrowthIcon className="h-[18px] w-[18px]" />
                   ) : (
-                    <BotIcon className="h-[18px] w-[18px]" />
+                    <span className="text-[18px] leading-none" aria-hidden>
+                      🤖
+                    </span>
                   )}
                 </span>
                 <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
