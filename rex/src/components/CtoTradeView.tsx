@@ -688,11 +688,29 @@ export function CtoTradeView({
                           />
                         </button>
                       ) : null}
-                      {project.launchInHours != null && project.launchInHours < 24 ? (
-                        <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-[#d5ff69]">
-                          New
-                        </span>
-                      ) : null}
+                      <div className="flex items-center gap-0.5" aria-label="Social links">
+                        {projectSocialLinks(project).map((link) => (
+                          <a
+                            key={link.id}
+                            href={link.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                            aria-label={`${link.label} for $${project.ticker}`}
+                            title={link.label}
+                          >
+                            {link.id === 'x' ? (
+                              <XMarkIcon className="h-3.5 w-3.5" />
+                            ) : link.id === 'telegram' ? (
+                              <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
+                            ) : link.id === 'discord' ? (
+                              <DiscordGlyph className="h-3.5 w-3.5" />
+                            ) : (
+                              <Globe className="h-3.5 w-3.5" />
+                            )}
+                          </a>
+                        ))}
+                      </div>
                     </div>
                     <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
                       <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
@@ -710,30 +728,6 @@ export function CtoTradeView({
                         )}
                       </button>
                     </div>
-                  </div>
-
-                  <div className="mt-1.5 flex items-center gap-0.5" aria-label="Social links">
-                    {projectSocialLinks(project).map((link) => (
-                      <a
-                        key={link.id}
-                        href={link.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
-                        aria-label={`${link.label} for $${project.ticker}`}
-                        title={link.label}
-                      >
-                        {link.id === 'x' ? (
-                          <XMarkIcon className="h-3.5 w-3.5" />
-                        ) : link.id === 'telegram' ? (
-                          <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-                        ) : link.id === 'discord' ? (
-                          <DiscordGlyph className="h-3.5 w-3.5" />
-                        ) : (
-                          <Globe className="h-3.5 w-3.5" />
-                        )}
-                      </a>
-                    ))}
                   </div>
                 </div>
 

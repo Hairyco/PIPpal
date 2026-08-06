@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/AppSidebar';
 import { CtoTradeView, type TradeViewProject } from '../components/CtoTradeView';
-import { AffiliatePromoSheet } from '../components/affiliate/AffiliatePromoSheet';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { captureScoutRefFromSearch, coinPath, normalizeTicker } from '../utils/scoutReferral';
@@ -104,7 +103,6 @@ export function CoinPage() {
           onToggleStar={() => toggleWatchlist(project.ticker)}
         />
       </div>
-      <AffiliatePromoSheet />
     </AppShell>
   );
 }
