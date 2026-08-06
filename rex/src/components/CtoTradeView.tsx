@@ -82,7 +82,32 @@ export type TradeViewProject = {
   sourceVenue: SourceVenue;
   devDumpedPct?: number;
   feeMode?: FeeModeKind;
+  /** Discord invite URL. Omit for auto demo; set '' to hide. */
+  discordUrl?: string;
 };
+
+type CoinSocialId = 'x' | 'telegram' | 'discord' | 'website';
+
+function resolveDiscordUrl(project: Pick<TradeViewProject, 'ticker' | 'discordUrl'>): string | null {
+  if (project.discordUrl === '') return null;
+  if (project.discordUrl) return project.discordUrl;
+  const seed = hashSeed(project.ticker);
+  if (seed % 3 === 0) return null;
+  return `https://discord.gg/${project.ticker.toLowerCase()}`;
+}
+
+/** Demo social links until projects carry live URLs. */
+function projectSocialLinks(project: Pick<TradeViewProject, 'ticker' | 'community' | 'discordUrl'>) {
+  const slug = project.ticker.toLowerCase().replace(/[^a-z0-9]/g, '') || 'ctogo';
+  const links: Array<{ id: CoinSocialId; label: string; href: string }> = [
+    { id: 'x', label: 'X / Twitter', href: `https://x.com/${slug}` },
+    { id: 'telegram', label: 'Telegram', href: `https://t.me/${slug}` },
+  ];
+  const discord = resolveDiscordUrl(project);
+  if (discord) links.push({ id: 'discord', label: 'Discord', href: discord });
+  links.push({ id: 'website', label: 'Website', href: `https://${slug}.fun` });
+  return links;
+}
 
 function formatCoinPageAge(hours: number | null, ticker: string): string {
   const resolved = hours != null ? hours : 72 + (hashSeed(ticker) % 200);
@@ -477,7 +502,7 @@ export function CtoTradeView({
   onBack,
   starred,
   onToggleStar,
-  onOpenSocials,
+  onOpenSocials: _onOpenSocials,
 }: CtoTradeViewProps) {
   const { address, connected, connect, busy: walletBusy } = useConnectedWallet();
   const { sol: solBalance, loading: solLoading } = useSolBalance(address);
@@ -687,46 +712,29 @@ export function CtoTradeView({
                     </div>
                   </div>
 
-                  {onOpenSocials ? (
-                  <div className="mt-1.5 flex items-center gap-0.5">
-                        <button
-                          type="button"
-                          onClick={onOpenSocials}
-                          className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
-                          aria-label="Open X"
-                          title="X / Twitter"
-                        >
+                  <div className="mt-1.5 flex items-center gap-0.5" aria-label="Social links">
+                    {projectSocialLinks(project).map((link) => (
+                      <a
+                        key={link.id}
+                        href={link.href}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
+                        aria-label={`${link.label} for $${project.ticker}`}
+                        title={link.label}
+                      >
+                        {link.id === 'x' ? (
                           <XMarkIcon className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={onOpenSocials}
-                          className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
-                          aria-label="Open Telegram"
-                          title="Telegram"
-                        >
+                        ) : link.id === 'telegram' ? (
                           <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={onOpenSocials}
-                          className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
-                          aria-label="Open Discord"
-                          title="Discord"
-                        >
+                        ) : link.id === 'discord' ? (
                           <DiscordGlyph className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={onOpenSocials}
-                          className="grid h-7 w-7 place-items-center rounded-md text-white/45 transition hover:bg-white/[0.06] hover:text-white"
-                          aria-label="Open website"
-                          title="Website"
-                        >
+                        ) : (
                           <Globe className="h-3.5 w-3.5" />
-                        </button>
+                        )}
+                      </a>
+                    ))}
                   </div>
-                  ) : null}
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1.5">

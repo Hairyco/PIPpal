@@ -65,6 +65,7 @@ function toTradeView(p: CtoProject): TradeViewProject {
     sourceVenue: p.sourceVenue,
     devDumpedPct: p.devDumpedPct,
     feeMode: p.feeMode,
+    discordUrl: p.discordUrl,
   };
 }
 
