@@ -19,6 +19,7 @@ import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
+import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
 import {
   hasLinkedV1,
   launchCtoHref,
@@ -405,6 +406,26 @@ const SELL_PRESETS = [25, 50, 75, 100];
 const SLIPPAGE_PRESETS = [1, 5, 10, 20];
 const DEFAULT_SLIPPAGE = 5;
 const DEFAULT_PRIORITY_FEE = '0.0005';
+/** Leave room for signature, ATA rent on first buy, and priority tip. */
+const BASE_GAS_RESERVE_SOL = 0.005;
+
+function parsePriorityFeeSol(raw: string): number {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+/** Max SOL spendable while keeping enough for gas / tip. */
+function maxSpendableSol(balanceSol: number, priorityFeeRaw: string): number {
+  const reserve = BASE_GAS_RESERVE_SOL + parsePriorityFeeSol(priorityFeeRaw);
+  const max = balanceSol - reserve;
+  if (!Number.isFinite(max) || max <= 0) return 0;
+  return Math.floor(max * 1e6) / 1e6;
+}
+
+function formatTradeSolInput(sol: number): string {
+  if (!Number.isFinite(sol) || sol <= 0) return '0';
+  return String(sol);
+}
 
 type DemoTrade = {
   id: string;
@@ -458,7 +479,8 @@ export function CtoTradeView({
   onToggleStar,
   onOpenSocials,
 }: CtoTradeViewProps) {
-  const { connected, connect, busy: walletBusy } = useConnectedWallet();
+  const { address, connected, connect, busy: walletBusy } = useConnectedWallet();
+  const { sol: solBalance, loading: solLoading } = useSolBalance(address);
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [amount, setAmount] = useState('0.5');
   const [sellPct, setSellPct] = useState('25');
@@ -539,6 +561,35 @@ export function CtoTradeView({
   const slippageNum = Number(slippage);
   const slippageLabel = Number.isFinite(slippageNum) && slippageNum > 0 ? `${slippageNum}%` : '—';
   const highSlippage = Number.isFinite(slippageNum) && slippageNum >= 20;
+
+  const maxBuySol =
+    connected && solBalance != null ? maxSpendableSol(solBalance, priorityFee) : 0;
+  const hasGasForTrade =
+    connected && solBalance != null
+      ? solBalance >= BASE_GAS_RESERVE_SOL + parsePriorityFeeSol(priorityFee)
+      : false;
+
+  const applyMaxBuy = () => {
+    if (!connected) {
+      void connect();
+      return;
+    }
+    setAmount(formatTradeSolInput(maxBuySol));
+  };
+
+  const applyMaxSell = () => {
+    if (!connected) {
+      void connect();
+      return;
+    }
+    setSellPct('100');
+  };
+
+  const walletBalanceLabel = !connected
+    ? '—'
+    : solLoading && solBalance == null
+      ? '…'
+      : `${formatSolAmount(solBalance ?? 0, 4)} SOL`;
 
   const stats = [
     { label: 'TXs', value: project.txs },
@@ -972,8 +1023,12 @@ export function CtoTradeView({
             {side === 'buy' ? (
               <>
                 <label className="mt-3 block">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                    Amount (SOL)
+                  <span className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                    <span>Amount (SOL)</span>
+                    <span className="normal-case tracking-normal text-white/45">
+                      Balance{' '}
+                      <span className="font-mono tabular-nums text-white/70">{walletBalanceLabel}</span>
+                    </span>
                   </span>
                   <input
                     value={amount}
@@ -996,13 +1051,39 @@ export function CtoTradeView({
                       {preset}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={applyMaxBuy}
+                    disabled={connected && maxBuySol <= 0}
+                    className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                      amount === formatTradeSolInput(maxBuySol) && maxBuySol > 0
+                        ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                        : 'border-white/[0.08] text-white/45 hover:text-white'
+                    }`}
+                    title={
+                      connected
+                        ? `Leaves ~${formatSolAmount(BASE_GAS_RESERVE_SOL + parsePriorityFeeSol(priorityFee), 4)} SOL for gas`
+                        : 'Connect wallet'
+                    }
+                  >
+                    Max
+                  </button>
                 </div>
+                {connected && solBalance != null && !hasGasForTrade ? (
+                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                    Need a little SOL left for gas — top up or lower the tip.
+                  </p>
+                ) : null}
               </>
             ) : (
               <>
                 <label className="mt-3 block">
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
-                    Sell amount (%)
+                  <span className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
+                    <span>Sell amount (%)</span>
+                    <span className="normal-case tracking-normal text-white/45">
+                      Balance{' '}
+                      <span className="font-mono tabular-nums text-white/70">{walletBalanceLabel}</span>
+                    </span>
                   </span>
                   <input
                     value={sellPct}
@@ -1013,7 +1094,7 @@ export function CtoTradeView({
                   />
                 </label>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {SELL_PRESETS.map((preset) => (
+                  {SELL_PRESETS.filter((preset) => preset !== 100).map((preset) => (
                     <button
                       key={preset}
                       type="button"
@@ -1027,7 +1108,31 @@ export function CtoTradeView({
                       {preset}%
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    onClick={applyMaxSell}
+                    disabled={connected && !hasGasForTrade}
+                    className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                      sellPct === '100'
+                        ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
+                        : 'border-white/[0.08] text-white/45 hover:text-white'
+                    }`}
+                    title={
+                      connected
+                        ? hasGasForTrade
+                          ? `Sells 100% · keeps ~${formatSolAmount(BASE_GAS_RESERVE_SOL + parsePriorityFeeSol(priorityFee), 4)} SOL for gas`
+                          : 'Need SOL in wallet for gas fees'
+                        : 'Connect wallet'
+                    }
+                  >
+                    Max
+                  </button>
                 </div>
+                {connected && solBalance != null && !hasGasForTrade ? (
+                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                    Keep some SOL for gas — sells still need a fee to land.
+                  </p>
+                ) : null}
               </>
             )}
 
