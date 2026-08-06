@@ -37,6 +37,7 @@ type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'bot';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
 type GrowthStageId =
   | 'telegram'
+  | 'x'
   | 'dexscreener'
   | 'dextools'
   | 'coinzilla'
@@ -68,6 +69,7 @@ const GROWTH_STAGES: {
   logo: string;
 }[] = [
   { id: 'telegram', label: 'Telegram', logo: '/images/partners/telegram.svg' },
+  { id: 'x', label: 'X', logo: '/images/partners/x.svg' },
   { id: 'dexscreener', label: 'DexScreener', logo: '/images/partners/dexscreener.ico' },
   { id: 'dextools', label: 'DexTools', logo: '/images/partners/dextools.svg' },
   { id: 'coinzilla', label: 'Coinzilla', logo: '/images/partners/coinzilla.svg' },
@@ -143,13 +145,15 @@ function mwProgress(project: CtoProject): { balance: number; target: number; pct
 function growthStageFor(project: CtoProject): GrowthStageId {
   const spend = (project.nextAdSpend || '').toLowerCase();
   if (spend.includes('telegram') || spend.includes('pin')) return 'telegram';
+  if (spend.includes('twitter') || spend.includes(' x ') || spend === 'x') return 'x';
   if (spend.includes('trend')) return 'dexscreener';
   if (spend.includes('social')) return 'dexscreener';
   const { pct } = mwProgress(project);
-  if (pct < 20) return 'telegram';
-  if (pct < 35) return 'dexscreener';
-  if (pct < 50) return 'dextools';
-  if (pct < 65) return 'coinzilla';
+  if (pct < 14) return 'telegram';
+  if (pct < 28) return 'x';
+  if (pct < 42) return 'dexscreener';
+  if (pct < 55) return 'dextools';
+  if (pct < 68) return 'coinzilla';
   if (pct < 80) return 'coingecko';
   if (pct < 92) return 'cmc';
   return 'ads';
@@ -717,23 +721,23 @@ export function DiscoverDeckPage() {
               Marketing stage
             </p>
           </div>
-          <div className="flex items-center gap-1.5 pt-0.5 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setGrowthStageFilter('all')}
-              className={`inline-flex h-10 shrink-0 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition sm:px-3 ${
-                growthStageFilter === 'all'
-                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
-                  : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
-              }`}
-              aria-pressed={growthStageFilter === 'all'}
-            >
-              All
-              <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
-                {growthStageCounts.total}
-              </span>
-            </button>
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-1">
+          <div className="overflow-x-auto overflow-y-visible py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max items-center gap-2 pr-1">
+              <button
+                type="button"
+                onClick={() => setGrowthStageFilter('all')}
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition ${
+                  growthStageFilter === 'all'
+                    ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+                    : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
+                }`}
+                aria-pressed={growthStageFilter === 'all'}
+              >
+                All
+                <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
+                  {growthStageCounts.total}
+                </span>
+              </button>
               {GROWTH_STAGES.map((stage) => {
                 const active = growthStageFilter === stage.id;
                 const count = growthStageCounts.counts[stage.id];
@@ -745,7 +749,7 @@ export function DiscoverDeckPage() {
                     onClick={() =>
                       setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
                     }
-                    className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition ${
+                    className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
                       active
                         ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
                         : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
@@ -756,16 +760,14 @@ export function DiscoverDeckPage() {
                     <img
                       src={stage.logo}
                       alt=""
-                      className={`h-4 w-4 object-contain sm:h-[18px] sm:w-[18px] ${
-                        active ? 'opacity-100' : 'opacity-70'
-                      }`}
+                      className="h-5 w-5 object-contain"
                       loading="lazy"
                     />
                     <span
-                      className={`absolute -right-0.5 -top-0.5 z-[1] grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold tabular-nums ring-1 ${
+                      className={`absolute -bottom-0.5 -right-0.5 z-[1] grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[8px] font-bold tabular-nums ring-1 ${
                         count > 0
-                          ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/40'
-                          : 'bg-[#2a2a2c] text-white/40 ring-white/10'
+                          ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/35'
+                          : 'bg-[#0c0c0e] text-white/55 ring-white/10'
                       }`}
                     >
                       {count}
@@ -1316,8 +1318,8 @@ export function DiscoverDeckPage() {
       ) : null}
 
       {/* Bottom nav — Growth centered */}
-      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-6 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
-        <div className="pointer-events-auto flex w-full max-w-[18.5rem] items-end justify-between rounded-[18px] bg-[#1c1c1e]/92 px-1 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.5)] ring-1 ring-white/10 backdrop-blur-md">
+      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
+        <div className="pointer-events-auto flex w-full max-w-[26rem] items-end justify-between rounded-[18px] bg-[#1c1c1e]/92 px-1.5 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.5)] ring-1 ring-white/10 backdrop-blur-md">
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
