@@ -446,4 +446,104 @@ select {
   .peak-ath-fill {
     transition: none;
   }
+
+  .growth-nav-glow,
+  .growth-spark {
+    animation: none !important;
+  }
+}
+
+/* Growth nav — alive green pulse + lightning sparks */
+@keyframes growth-nav-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 0 rgba(200, 255, 61, 0.35),
+      0 0 10px 1px rgba(200, 255, 61, 0.2);
+    background: rgba(200, 255, 61, 0.12);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 6px rgba(200, 255, 61, 0),
+      0 0 18px 4px rgba(200, 255, 61, 0.45);
+    background: rgba(200, 255, 61, 0.22);
+  }
+}
+
+@keyframes growth-spark-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.35) rotate(var(--spark-rot, 0deg));
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--sx), var(--sy)) scale(0.15) rotate(calc(var(--spark-rot, 0deg) + 40deg));
+  }
+}
+
+.growth-nav-alive {
+  color: #c8ff3d;
+}
+
+.growth-nav-glow {
+  animation: growth-nav-pulse 2.1s ease-in-out infinite;
+  background: rgba(200, 255, 61, 0.14);
+  box-shadow: 0 0 12px 2px rgba(200, 255, 61, 0.28);
+}
+
+.growth-nav-alive:hover .growth-nav-glow,
+button:hover .growth-nav-glow {
+  animation-duration: 1s;
+  background: rgba(200, 255, 61, 0.28);
+}
+
+.growth-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 9px;
+  margin: -4.5px 0 0 -1.5px;
+  pointer-events: none;
+  background: linear-gradient(180deg, #f4ffb0 0%, #c8ff3d 45%, transparent 100%);
+  clip-path: polygon(50% 0%, 70% 45%, 55% 45%, 80% 100%, 20% 55%, 42% 55%);
+  filter: drop-shadow(0 0 3px rgba(200, 255, 61, 0.9));
+  animation: growth-spark-fly 1.55s ease-out infinite;
+}
+
+.growth-spark-a {
+  --sx: -14px;
+  --sy: -16px;
+  --spark-rot: -25deg;
+  animation-delay: 0s;
+}
+
+.growth-spark-b {
+  --sx: 15px;
+  --sy: -14px;
+  --spark-rot: 20deg;
+  animation-delay: 0.35s;
+}
+
+.growth-spark-c {
+  --sx: -12px;
+  --sy: 12px;
+  --spark-rot: -55deg;
+  animation-delay: 0.7s;
+}
+
+.growth-spark-d {
+  --sx: 13px;
+  --sy: 11px;
+  --spark-rot: 50deg;
+  animation-delay: 1.05s;
+}
+
+button:hover .growth-spark {
+  animation-duration: 0.95s;
 }

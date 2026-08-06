@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownUp,
+  Briefcase,
   ChevronDown,
   ChevronUp,
   Compass,
@@ -16,7 +17,7 @@ import {
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
-import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { NotificationsButton } from '../components/NotificationsButton';
 import {
   AppSidebar,
@@ -29,8 +30,15 @@ import { useWatchlist } from '../hooks/useWatchlist';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
-type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'bot';
+type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'bot';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
+
+type DemoHolding = {
+  project: CtoProject;
+  tokens: string;
+  valueUsd: number;
+  pnlPct: number;
+};
 
 const PRELAUNCH_FILTERS: { id: PrelaunchFilter; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -167,6 +175,38 @@ function formatPct(n: number): string {
   return `${n >= 0 ? '+' : '-'}${body}%`;
 }
 
+function formatHoldingUsd(n: number): string {
+  if (!Number.isFinite(n) || n <= 0) return '$0';
+  if (n >= 1000) return `$${(n / 1000).toFixed(2)}K`;
+  return `$${n.toFixed(2)}`;
+}
+
+/** Demo wallet holdings until live SPL balances are wired. */
+function demoHoldingsForWallet(address: string | null): DemoHolding[] {
+  if (!address) return [];
+  const live = ctoProjects.filter((p) => p.stage === 'Live' || p.launchInHours == null);
+  const pool = live.length ? live : ctoProjects;
+  const count = Math.min(pool.length, 3 + salt(address, 2));
+  const out: DemoHolding[] = [];
+  const used = new Set<string>();
+  for (let i = 0; i < count; i += 1) {
+    const idx = salt(`${address}-hold-${i}`, pool.length);
+    const project = pool[idx];
+    if (!project || used.has(project.ticker)) continue;
+    used.add(project.ticker);
+    const tokens = 1_200 + salt(`${address}${project.ticker}`, 88_000);
+    const valueUsd = 18 + salt(`${project.ticker}${address}`, 420) / 10;
+    const pnlPct = ((salt(`${address}-pnl-${project.ticker}`, 800) - 320) / 10);
+    out.push({
+      project,
+      tokens: tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}K` : String(tokens),
+      valueUsd,
+      pnlPct,
+    });
+  }
+  return out.sort((a, b) => b.valueUsd - a.valueUsd);
+}
+
 function ChainDot({ id }: { id: string }) {
   if (id === 'SOL') return <SolanaLogo className="h-3.5 w-3.5" />;
   if (id === 'BSC') return <span className="h-3.5 w-3.5 rounded-full bg-[#f0b90b]" />;
@@ -188,6 +228,19 @@ function GrowthIcon({ className = '' }: { className?: string }) {
   );
 }
 
+function GrowthNavGlyph() {
+  return (
+    <span className="growth-nav-alive relative grid h-9 w-9 place-items-center">
+      <span className="growth-nav-glow absolute inset-0 rounded-full" aria-hidden />
+      <span className="growth-spark growth-spark-a" aria-hidden />
+      <span className="growth-spark growth-spark-b" aria-hidden />
+      <span className="growth-spark growth-spark-c" aria-hidden />
+      <span className="growth-spark growth-spark-d" aria-hidden />
+      <GrowthIcon className="relative z-[1] h-[18px] w-[18px]" />
+    </span>
+  );
+}
+
 function BotIcon({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
@@ -203,6 +256,7 @@ function BotIcon({ className = '' }: { className?: string }) {
 
 export function DiscoverDeckPage() {
   const navigate = useNavigate();
+  const { address, connected, connect, busy: walletBusy } = useConnectedWallet();
   const { starred, count: watchCount } = useWatchlist();
   const listRef = useRef<HTMLDivElement>(null);
   const [topTab, setTopTab] = useState<TopTab>('trending');
@@ -216,6 +270,9 @@ export function DiscoverDeckPage() {
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
   const isPrelaunchView = bottomTab === 'prelaunch' || topTab === 'prelaunch';
+  const isPortfolioView = bottomTab === 'portfolio';
+  const hideDiscoverChrome =
+    bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
 
   const rows = useMemo(() => {
     let list = [...ctoProjects];
@@ -267,11 +324,33 @@ export function DiscoverDeckPage() {
     [],
   );
 
+  const portfolioHoldings = useMemo(() => {
+    const holdings = demoHoldingsForWallet(address);
+    const q = query.trim().toLowerCase();
+    if (!q) return holdings;
+    return holdings.filter(
+      (h) =>
+        h.project.name.toLowerCase().includes(q) ||
+        h.project.ticker.toLowerCase().includes(q),
+    );
+  }, [address, query]);
+
+  const portfolioTotalUsd = useMemo(
+    () => portfolioHoldings.reduce((sum, h) => sum + h.valueUsd, 0),
+    [portfolioHoldings],
+  );
+
   const selectBottom = (tab: BottomTab) => {
     setBottomTab(tab);
     setShowPinned(false);
     if (tab === 'prelaunch') setTopTab('prelaunch');
     if (tab === 'discover' && topTab === 'prelaunch') setTopTab('trending');
+  };
+
+  const goBuy = () => {
+    setBottomTab('discover');
+    setTopTab('trending');
+    setShowPinned(false);
   };
 
   const pinnedFeed = useMemo(
@@ -360,11 +439,7 @@ export function DiscoverDeckPage() {
             { id: 'trending' as const, label: 'Trending' },
           ] as const
         ).map((tab) => {
-          const active =
-            topTab === tab.id &&
-            bottomTab !== 'growth' &&
-            bottomTab !== 'bot' &&
-            bottomTab !== 'prelaunch';
+          const active = topTab === tab.id && !hideDiscoverChrome;
           return (
             <button
               key={tab.id}
@@ -390,23 +465,46 @@ export function DiscoverDeckPage() {
         })}
       </div>
 
-      {/* List / Launch */}
-      <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
-        <Link
-          to="/launch?mode=list"
-          className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
-        >
-          List CTO
-        </Link>
-        <Link
-          to="/launch"
-          className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
-        >
-          Launch CTO
-        </Link>
-      </div>
+      {/* List / Launch — or Portfolio Buy */}
+      {isPortfolioView ? (
+        <div className="flex shrink-0 flex-col gap-2 px-3 pb-1 pt-2.5">
+          <div className="flex items-center justify-between gap-2 px-0.5">
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wide text-white/35">
+                Portfolio value
+              </p>
+              <p className="mt-0.5 text-[18px] font-bold tabular-nums text-white">
+                {connected ? formatHoldingUsd(portfolioTotalUsd) : '—'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={goBuy}
+              className="inline-flex h-9 min-w-[5.5rem] items-center justify-center rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+            >
+              Buy
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
+          <Link
+            to="/launch?mode=list"
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+          >
+            List CTO
+          </Link>
+          <Link
+            to="/launch"
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
+          >
+            Launch CTO
+          </Link>
+        </div>
+      )}
 
       {/* Chain chips + sources */}
+      {!isPortfolioView && bottomTab !== 'bot' ? (
       <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
         <div className="flex shrink-0 gap-2">
           {CHAINS.map((c) => {
@@ -465,9 +563,10 @@ export function DiscoverDeckPage() {
           </div>
         </div>
       </div>
+      ) : null}
 
       {/* Filter row */}
-      {isPrelaunchView ? (
+      {isPortfolioView || bottomTab === 'bot' ? null : isPrelaunchView ? (
         <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
           <div className="inline-flex w-full gap-0.5 rounded-full border border-white/[0.08] bg-[#1c1c1e] p-0.5">
             {PRELAUNCH_FILTERS.map((f) => {
@@ -536,6 +635,13 @@ export function DiscoverDeckPage() {
       {/* Column headers */}
       {bottomTab === 'bot' ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">CTOgo Bot</div>
+      ) : isPortfolioView ? (
+        <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
+          <div className="col-span-2">Holding / Qty</div>
+          <div className="text-center">Chart</div>
+          <div className="text-right">Value / PnL</div>
+          <div className="text-right">Trade</div>
+        </div>
       ) : showPinned && bottomTab !== 'growth' && !isPrelaunchView ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">
           Pinned Telegram messages
@@ -586,6 +692,136 @@ export function DiscoverDeckPage() {
               List or launch a CTO
             </Link>
           </div>
+        ) : isPortfolioView ? (
+          !connected ? (
+            <div className="px-5 py-12 text-center">
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.06] text-white/80 ring-1 ring-white/10">
+                <Briefcase className="h-7 w-7" />
+              </span>
+              <p className="mt-4 text-[17px] font-bold text-white">Your holdings</p>
+              <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-white/45">
+                Connect a wallet to see tokens you hold on CTOgo.
+              </p>
+              <button
+                type="button"
+                disabled={walletBusy}
+                onClick={() => void connect()}
+                className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14] disabled:opacity-60"
+              >
+                {walletBusy ? 'Connecting…' : 'Connect wallet'}
+              </button>
+              <button
+                type="button"
+                onClick={goBuy}
+                className="mt-3 inline-flex h-10 items-center justify-center rounded-full border border-white/[0.12] px-5 text-[13px] font-semibold text-white/80"
+              >
+                Buy
+              </button>
+            </div>
+          ) : portfolioHoldings.length === 0 ? (
+            <div className="px-5 py-12 text-center">
+              <p className="text-[15px] font-semibold text-white/70">No holdings yet</p>
+              <p className="mt-1 text-[13px] text-white/35">
+                Buy a CTOgo coin and it will show up here.
+              </p>
+              <button
+                type="button"
+                onClick={goBuy}
+                className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14]"
+              >
+                Buy
+              </button>
+            </div>
+          ) : (
+            <ul>
+              {portfolioHoldings.map((holding) => {
+                const { project } = holding;
+                const up = holding.pnlPct >= 0;
+                return (
+                  <li key={project.ticker}>
+                    <div className="grid w-full grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px]">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
+                        className="relative shrink-0 text-left"
+                        aria-label={`Open $${project.ticker}`}
+                      >
+                        <span className="block h-[42px] w-[42px] overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
+                          <img
+                            src={project.logo}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </span>
+                        <span
+                          className="absolute -bottom-0.5 -right-0.5 grid h-[15px] w-[15px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
+                          title="Solana"
+                          aria-label="Solana"
+                        >
+                          <img
+                            src="/images/partners/solana.svg"
+                            alt=""
+                            className="h-full w-full object-cover"
+                          />
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
+                        className="min-w-0 pr-0.5 text-left"
+                      >
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <p className="min-w-0 truncate text-[14px] font-semibold leading-none text-white">
+                            {project.name}
+                          </p>
+                          <span className="shrink-0 rounded-[4px] bg-[#2a2a2c] px-1.5 py-[2px] text-[10px] font-semibold leading-none text-white/55">
+                            ${project.ticker}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[11px] font-medium tabular-nums leading-none text-white/40">
+                          {holding.tokens} tokens
+                        </p>
+                      </button>
+
+                      <div className="flex items-center justify-center">
+                        <Sparkline
+                          seed={`${project.ticker}-portfolio`}
+                          changePct={holding.pnlPct}
+                          width={40}
+                          height={22}
+                        />
+                      </div>
+
+                      <div className="min-w-0 text-right">
+                        <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
+                          {formatHoldingUsd(holding.valueUsd)}
+                        </p>
+                        <p
+                          className={`mt-1 truncate text-[11px] font-medium tabular-nums leading-none ${
+                            up ? 'text-emerald-400' : 'text-rose-400'
+                          }`}
+                        >
+                          {formatPct(holding.pnlPct)}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
+                          className="inline-flex h-8 items-center justify-center rounded-full bg-[#c8ff3d] px-2.5 text-[11px] font-bold text-[#090b14] active:brightness-95"
+                        >
+                          Buy
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )
         ) : showPinned && bottomTab !== 'growth' ? (
           pinnedFeed.length === 0 ? (
             <div className="px-6 py-16 text-center">
@@ -884,44 +1120,58 @@ export function DiscoverDeckPage() {
         </button>
       ) : null}
 
-      {/* Bottom nav */}
-      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="pointer-events-auto flex w-full max-w-[22rem] items-center justify-between rounded-[22px] bg-[#1c1c1e]/92 px-2 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
+      {/* Bottom nav — Growth centered */}
+      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="pointer-events-auto flex w-full max-w-[26rem] items-end justify-between rounded-[22px] bg-[#1c1c1e]/92 px-1.5 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
               { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
-              { id: 'growth' as const, label: 'Growth', kind: 'custom' as const },
-              { id: 'bot' as const, label: 'Bot', kind: 'custom' as const },
+              { id: 'growth' as const, label: 'Growth', kind: 'growth' as const },
+              { id: 'portfolio' as const, label: 'Portfolio', kind: 'lucide' as const, Lucide: Briefcase },
+              { id: 'bot' as const, label: 'Bot', kind: 'bot' as const },
             ] as const
           ).map((item) => {
             const active = bottomTab === item.id;
+            const isGrowth = item.id === 'growth';
             return (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => selectBottom(item.id)}
-                className={`flex w-[22%] flex-col items-center gap-0.5 transition ${
-                  active ? 'text-[#c8ff3d]' : 'text-white/45'
+                className={`flex w-[19%] flex-col items-center gap-0.5 transition ${
+                  isGrowth
+                    ? active
+                      ? 'text-[#c8ff3d]'
+                      : 'text-[#b8ef45]/90 hover:text-[#c8ff3d]'
+                    : active
+                      ? 'text-[#c8ff3d]'
+                      : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
+                {isGrowth ? (
+                  <GrowthNavGlyph />
+                ) : (
+                  <span
+                    className={`grid h-8 w-8 place-items-center rounded-full ${
+                      active ? 'bg-[#c8ff3d]/15' : ''
+                    }`}
+                  >
+                    {item.kind === 'lucide' ? (
+                      <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
+                    ) : (
+                      <span className="text-[18px] leading-none" aria-hidden>
+                        🤖
+                      </span>
+                    )}
+                  </span>
+                )}
                 <span
-                  className={`grid h-8 w-8 place-items-center rounded-full ${
-                    active ? 'bg-[#c8ff3d]/15' : ''
+                  className={`text-[10px] ${
+                    active || isGrowth ? 'font-semibold' : 'font-medium'
                   }`}
                 >
-                  {item.kind === 'lucide' ? (
-                    <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
-                  ) : item.id === 'growth' ? (
-                    <GrowthIcon className="h-[18px] w-[18px]" />
-                  ) : (
-                    <span className="text-[18px] leading-none" aria-hidden>
-                      🤖
-                    </span>
-                  )}
-                </span>
-                <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
                 </span>
               </button>
