@@ -264,14 +264,20 @@ function GrowthIcon({ className = '' }: { className?: string }) {
   );
 }
 
-function GrowthNavGlyph() {
+function GrowthNavGlyph({ alive }: { alive: boolean }) {
   return (
-    <span className="growth-nav-alive relative grid h-11 w-11 place-items-center">
-      <span className="growth-nav-glow absolute inset-0 rounded-full" aria-hidden />
-      <span className="growth-spark growth-spark-a" aria-hidden />
-      <span className="growth-spark growth-spark-b" aria-hidden />
-      <span className="growth-spark growth-spark-c" aria-hidden />
-      <span className="growth-spark growth-spark-d" aria-hidden />
+    <span
+      className={`relative grid h-11 w-11 place-items-center ${alive ? 'growth-nav-alive' : ''}`}
+    >
+      {alive ? (
+        <>
+          <span className="growth-nav-glow absolute inset-0 rounded-full" aria-hidden />
+          <span className="growth-spark growth-spark-a" aria-hidden />
+          <span className="growth-spark growth-spark-b" aria-hidden />
+          <span className="growth-spark growth-spark-c" aria-hidden />
+          <span className="growth-spark growth-spark-d" aria-hidden />
+        </>
+      ) : null}
       <GrowthIcon className="relative z-[1] h-[22px] w-[22px]" />
     </span>
   );
@@ -309,6 +315,8 @@ export function DiscoverDeckPage() {
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
+  /** Sparks while on Growth, or Discover (top Watchlist / Volume / Trending). Off on other bottom tabs. */
+  const growthNavAlive = bottomTab === 'growth' || bottomTab === 'discover';
   const hideDiscoverChrome =
     bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
 
@@ -1270,18 +1278,12 @@ export function DiscoverDeckPage() {
                 type="button"
                 onClick={() => selectBottom(item.id)}
                 className={`flex w-[19%] flex-col items-center gap-0.5 transition ${
-                  isGrowth
-                    ? active
-                      ? 'text-[#c8ff3d]'
-                      : 'text-[#b8ef45]/90 hover:text-[#c8ff3d]'
-                    : active
-                      ? 'text-[#c8ff3d]'
-                      : 'text-white/45'
+                  active ? 'text-[#c8ff3d]' : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
                 {isGrowth ? (
-                  <GrowthNavGlyph />
+                  <GrowthNavGlyph alive={growthNavAlive} />
                 ) : (
                   <span
                     className={`grid h-10 w-10 place-items-center rounded-full ${
@@ -1297,11 +1299,7 @@ export function DiscoverDeckPage() {
                     )}
                   </span>
                 )}
-                <span
-                  className={`text-[11px] ${
-                    active || isGrowth ? 'font-semibold' : 'font-medium'
-                  }`}
-                >
+                <span className={`text-[11px] ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
                 </span>
               </button>
