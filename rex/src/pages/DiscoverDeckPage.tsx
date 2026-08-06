@@ -386,6 +386,28 @@ export function DiscoverDeckPage() {
     return list;
   }, [growthStageFilter, query]);
 
+  const growthStageCounts = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const counts = Object.fromEntries(GROWTH_STAGES.map((s) => [s.id, 0])) as Record<
+      GrowthStageId,
+      number
+    >;
+    let total = 0;
+    for (const p of ctoProjects) {
+      if (!p.marketingBalance && !p.marketingWallet) continue;
+      if (
+        q &&
+        !p.name.toLowerCase().includes(q) &&
+        !p.ticker.toLowerCase().includes(q)
+      ) {
+        continue;
+      }
+      counts[growthStageFor(p)] += 1;
+      total += 1;
+    }
+    return { counts, total };
+  }, [query]);
+
   const portfolioHoldings = useMemo(() => {
     const holdings = demoHoldingsForWallet(address);
     const q = query.trim().toLowerCase();
@@ -668,6 +690,92 @@ export function DiscoverDeckPage() {
             })}
           </div>
         </div>
+      ) : isGrowthView ? (
+        <div className="sticky top-0 z-[5] shrink-0 space-y-2 border-b border-white/[0.06] bg-black px-3 pb-3 pt-1">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                setTimeWindow((w) =>
+                  w === '1h' ? '5m' : w === '5m' ? '6h' : w === '6h' ? '24h' : '1h',
+                )
+              }
+              className="inline-flex h-8 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
+            >
+              {timeWindow}
+              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
+            >
+              <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
+              Token sort
+              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+            </button>
+            <p className="ml-auto text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
+              Marketing stage
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 pt-0.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setGrowthStageFilter('all')}
+              className={`inline-flex h-10 shrink-0 items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition sm:px-3 ${
+                growthStageFilter === 'all'
+                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+                  : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
+              }`}
+              aria-pressed={growthStageFilter === 'all'}
+            >
+              All
+              <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
+                {growthStageCounts.total}
+              </span>
+            </button>
+            <div className="flex min-w-0 flex-1 items-center justify-between gap-1">
+              {GROWTH_STAGES.map((stage) => {
+                const active = growthStageFilter === stage.id;
+                const count = growthStageCounts.counts[stage.id];
+                return (
+                  <button
+                    key={stage.id}
+                    type="button"
+                    title={`${stage.label} · ${count} coin${count === 1 ? '' : 's'}`}
+                    onClick={() =>
+                      setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
+                    }
+                    className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition ${
+                      active
+                        ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
+                        : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
+                    }`}
+                    aria-pressed={active}
+                    aria-label={`${stage.label}: ${count} coins`}
+                  >
+                    <img
+                      src={stage.logo}
+                      alt=""
+                      className={`h-4 w-4 object-contain sm:h-[18px] sm:w-[18px] ${
+                        active ? 'opacity-100' : 'opacity-70'
+                      }`}
+                      loading="lazy"
+                    />
+                    <span
+                      className={`absolute -right-0.5 -top-0.5 z-[1] grid h-4 min-w-4 place-items-center rounded-full px-1 text-[9px] font-bold tabular-nums ring-1 ${
+                        count > 0
+                          ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/40'
+                          : 'bg-[#2a2a2c] text-white/40 ring-white/10'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
@@ -691,84 +799,27 @@ export function DiscoverDeckPage() {
               Token sort
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
             </button>
-            {!isGrowthView ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setShowPinned((v) => !v)}
-                  className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
-                    showPinned
-                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
-                      : 'bg-[#1c1c1e] text-white/85'
-                  }`}
-                  aria-pressed={showPinned}
-                >
-                  <Pin className="h-3.5 w-3.5" />
-                  Pinned
-                </button>
-                <button
-                  type="button"
-                  className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
-                  aria-label="Filters"
-                >
-                  <Filter className="h-[15px] w-[15px]" />
-                </button>
-              </>
-            ) : (
-              <p className="ml-auto text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
-                Marketing stage
-              </p>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowPinned((v) => !v)}
+              className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
+                showPinned
+                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
+                  : 'bg-[#1c1c1e] text-white/85'
+              }`}
+              aria-pressed={showPinned}
+            >
+              <Pin className="h-3.5 w-3.5" />
+              Pinned
+            </button>
+            <button
+              type="button"
+              className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
+              aria-label="Filters"
+            >
+              <Filter className="h-[15px] w-[15px]" />
+            </button>
           </div>
-
-          {isGrowthView ? (
-            <div className="shrink-0 px-3 pb-2.5">
-              <div className="hide-scrollbar flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <button
-                  type="button"
-                  onClick={() => setGrowthStageFilter('all')}
-                  className={`inline-flex h-9 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold transition ${
-                    growthStageFilter === 'all'
-                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
-                      : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
-                  }`}
-                  aria-pressed={growthStageFilter === 'all'}
-                >
-                  All stages
-                </button>
-                {GROWTH_STAGES.map((stage, index) => {
-                  const active = growthStageFilter === stage.id;
-                  return (
-                    <button
-                      key={stage.id}
-                      type="button"
-                      title={`${index + 1}. ${stage.label}`}
-                      onClick={() =>
-                        setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
-                      }
-                      className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
-                        active
-                          ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
-                          : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
-                      }`}
-                      aria-pressed={active}
-                      aria-label={`Stage ${index + 1}: ${stage.label}`}
-                    >
-                      <img
-                        src={stage.logo}
-                        alt=""
-                        className={`h-4 w-4 object-contain ${active ? 'opacity-100' : 'opacity-70'}`}
-                        loading="lazy"
-                      />
-                      <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-[#0c0c0e] px-0.5 text-[8px] font-bold tabular-nums text-white/55 ring-1 ring-white/10">
-                        {index + 1}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
         </>
       )}
 
