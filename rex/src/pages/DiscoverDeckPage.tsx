@@ -72,9 +72,9 @@ const GROWTH_STAGES: {
   { id: 'x', label: 'X', logo: '/images/partners/x.svg' },
   { id: 'dexscreener', label: 'DexScreener', logo: '/images/partners/dexscreener.ico' },
   { id: 'dextools', label: 'DexTools', logo: '/images/partners/dextools.svg' },
-  { id: 'coinzilla', label: 'Coinzilla', logo: '/images/partners/coinzilla.svg' },
-  { id: 'coingecko', label: 'CoinGecko', logo: '/images/partners/coingecko.svg' },
-  { id: 'cmc', label: 'CoinMarketCap', logo: '/images/partners/coinmarketcap.svg' },
+  { id: 'coinzilla', label: 'Coinzilla', logo: '/images/partners/coinzilla.png' },
+  { id: 'coingecko', label: 'CoinGecko', logo: '/images/partners/coingecko.png' },
+  { id: 'cmc', label: 'CoinMarketCap', logo: '/images/partners/coinmarketcap.png' },
   { id: 'ads', label: 'Ad networks', logo: '/images/partners/cointraffic.svg' },
 ];
 

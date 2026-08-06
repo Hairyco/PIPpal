@@ -61,7 +61,7 @@ export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
   {
     id: 'coingecko',
     name: 'CoinGecko',
-    logo: '/images/partners/coingecko.svg',
+    logo: '/images/partners/coingecko.png',
     summary: 'CTO listing needs clean branding and proof links before you spend listing fees.',
     items: [
       {

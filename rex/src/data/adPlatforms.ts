@@ -189,7 +189,7 @@ export const adPlatforms: AdPlatform[] = [
     id: 'coinzilla',
     name: 'Coinzilla',
     category: 'ad-network',
-    logo: '/images/partners/coinzilla.svg',
+    logo: '/images/partners/coinzilla.png',
     brandColor: '#f97316',
     tagline: 'Programmatic banners, pop-unders & sticky mobile',
     options: [
@@ -297,7 +297,7 @@ export const adPlatforms: AdPlatform[] = [
     id: 'coinmarketcap',
     name: 'CoinMarketCap',
     category: 'charting',
-    logo: '/images/partners/coinmarketcap.svg',
+    logo: '/images/partners/coinmarketcap.png',
     brandColor: '#3861fb',
     tagline: 'Sponsored search & premium banners',
     options: [
@@ -316,7 +316,7 @@ export const adPlatforms: AdPlatform[] = [
     id: 'coingecko',
     name: 'CoinGecko',
     category: 'charting',
-    logo: '/images/partners/coingecko.svg',
+    logo: '/images/partners/coingecko.png',
     brandColor: '#8dc647',
     tagline: 'Community boosting & native timeline placement',
     options: [

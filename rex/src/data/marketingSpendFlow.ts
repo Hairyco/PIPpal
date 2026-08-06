@@ -40,7 +40,7 @@ export const MARKETING_SPEND_FLOW: MarketingSpendNode[] = [
     id: 'coingecko-cto',
     label: 'Register CTO',
     cost: 250,
-    logo: '/images/partners/coingecko.svg',
+    logo: '/images/partners/coingecko.png',
     x: 0.84,
     y: 0.9,
   },
