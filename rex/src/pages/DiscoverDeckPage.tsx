@@ -277,7 +277,7 @@ function AliveNavGlyph({
 }) {
   return (
     <span
-      className={`relative grid h-7 w-7 place-items-center ${
+      className={`relative grid h-9 w-9 place-items-center ${
         alive ? 'growth-nav-alive text-[#c8ff3d]' : ''
       }`}
     >
@@ -1318,8 +1318,8 @@ export function DiscoverDeckPage() {
       ) : null}
 
       {/* Bottom nav — Growth centered */}
-      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.65rem,env(safe-area-inset-bottom))]">
-        <div className="pointer-events-auto flex w-full max-w-[26rem] items-end justify-between rounded-[18px] bg-[#1c1c1e]/92 px-1.5 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.5)] ring-1 ring-white/10 backdrop-blur-md">
+      <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="pointer-events-auto flex w-full max-w-[26rem] items-end justify-between rounded-[22px] bg-[#1c1c1e]/92 px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
@@ -1335,23 +1335,23 @@ export function DiscoverDeckPage() {
                 key={item.id}
                 type="button"
                 onClick={() => selectBottom(item.id)}
-                className={`flex w-[19%] flex-col items-center gap-px transition ${
+                className={`flex w-[19%] flex-col items-center gap-0.5 transition ${
                   active ? 'text-[#c8ff3d]' : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
                 <AliveNavGlyph alive={active}>
                   {item.kind === 'lucide' ? (
-                    <item.Lucide className="h-[16px] w-[16px]" strokeWidth={2} />
+                    <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
                   ) : item.kind === 'growth' ? (
-                    <GrowthIcon className="h-[16px] w-[16px]" />
+                    <GrowthIcon className="h-[18px] w-[18px]" />
                   ) : (
-                    <span className="text-[15px] leading-none" aria-hidden>
+                    <span className="text-[18px] leading-none" aria-hidden>
                       🤖
                     </span>
                   )}
                 </AliveNavGlyph>
-                <span className={`text-[9px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
+                <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
                 </span>
               </button>
