@@ -95,11 +95,6 @@ function ageLabel(project: CtoProject): string {
   return `${Math.round(hours / 24)}d`;
 }
 
-/** Under 24h since listing — show New badge on Discover. */
-function isNewListing(project: CtoProject): boolean {
-  return project.launchInHours != null && project.launchInHours < 24;
-}
-
 function viewingCount(project: CtoProject): string {
   const n = 40 + salt(project.ticker + 'view', 900);
   if (n >= 1000) return `${(n / 1000).toFixed(2)}K`;
@@ -686,21 +681,15 @@ export function DiscoverDeckPage() {
                         <p className="min-w-0 truncate text-[14px] font-semibold leading-none text-white">
                           {project.name}
                         </p>
-                        {isNewListing(project) ? (
-                          <span className="shrink-0 rounded-[4px] bg-[#c8ff3d]/15 px-1.5 py-[2px] text-[10px] font-bold uppercase leading-none tracking-wide text-[#d5ff69]">
-                            New
-                          </span>
-                        ) : (
-                          <span
-                            className={`shrink-0 rounded-[4px] px-1.5 py-[2px] text-[10px] font-semibold leading-none ${
-                              ageLabel(project) === 'OG'
-                                ? 'bg-[#2a2a2c] tracking-wide text-amber-300'
-                                : 'bg-[#2a2a2c] tabular-nums text-emerald-400'
-                            }`}
-                          >
-                            {ageLabel(project)}
-                          </span>
-                        )}
+                        <span
+                          className={`shrink-0 rounded-[4px] px-1.5 py-[2px] text-[10px] font-semibold leading-none ${
+                            ageLabel(project) === 'OG'
+                              ? 'bg-[#2a2a2c] tracking-wide text-amber-300'
+                              : 'bg-[#2a2a2c] tabular-nums text-emerald-400'
+                          }`}
+                        >
+                          {ageLabel(project)}
+                        </span>
                       </div>
                       <div className="mt-1 flex items-center gap-2.5 text-[11px] font-medium tabular-nums leading-none text-white/40">
                         <span className="inline-flex items-center gap-0.5">
