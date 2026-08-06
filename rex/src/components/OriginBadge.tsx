@@ -1,8 +1,39 @@
 import { Check, Copy, Wallet } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ORIGIN_META, type ProjectOrigin } from '../data/ctoProjects';
 import { bumpScoutClickDemo, buildScoutLink } from '../utils/scoutReferral';
 import { useConnectedWallet } from './ConnectWalletButton';
+
+const HIDE_RAID_EARN_KEY = 'ctogo-hide-raid-earn';
+
+function readHiddenRaidEarnTickers(): Record<string, true> {
+  try {
+    const raw = localStorage.getItem(HIDE_RAID_EARN_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    return parsed as Record<string, true>;
+  } catch {
+    return {};
+  }
+}
+
+function isRaidEarnHidden(ticker: string): boolean {
+  const key = ticker.trim().toUpperCase();
+  if (!key) return false;
+  return Boolean(readHiddenRaidEarnTickers()[key]);
+}
+
+function hideRaidEarnForTicker(ticker: string) {
+  const key = ticker.trim().toUpperCase();
+  if (!key) return;
+  try {
+    const next = { ...readHiddenRaidEarnTickers(), [key]: true as const };
+    localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+}
 
 export function OriginBadge({
   origin,
@@ -34,6 +65,12 @@ export function MigrateToV2Banner({
 }) {
   const { address, connected, connect, busy } = useConnectedWallet();
   const [copied, setCopied] = useState(false);
+  const [hidden, setHidden] = useState(() => isRaidEarnHidden(ticker));
+
+  useEffect(() => {
+    setHidden(isRaidEarnHidden(ticker));
+    setCopied(false);
+  }, [ticker]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
   const scoutLink = address ? buildScoutLink(origin, ticker, address) : null;
@@ -50,6 +87,13 @@ export function MigrateToV2Banner({
     }
   };
 
+  const hide = () => {
+    hideRaidEarnForTicker(ticker);
+    setHidden(true);
+  };
+
+  if (hidden) return null;
+
   return (
     <div className="rounded-xl border border-[#c8ff3d]/25 bg-gradient-to-br from-[#c8ff3d]/10 via-transparent to-transparent px-4 py-3.5">
       <div className="flex items-start gap-2">
@@ -62,6 +106,14 @@ export function MigrateToV2Banner({
             Earn 0.4–0.5% SOL on every trade from anyone using your link.
           </p>
         </div>
+        <button
+          type="button"
+          onClick={hide}
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/45 hover:border-white/20 hover:text-white"
+          aria-label={`Hide raid earn for $${ticker}`}
+        >
+          Hide
+        </button>
       </div>
 
       {!connected || !scoutLink ? (
