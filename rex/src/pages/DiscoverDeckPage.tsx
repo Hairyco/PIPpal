@@ -22,6 +22,7 @@ import { SolanaLogo } from '../components/SolanaLogo';
 import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { NotificationsButton } from '../components/NotificationsButton';
+import { PolessiaLogo } from '../components/PolessiaLogo';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -725,9 +726,12 @@ export function DiscoverDeckPage() {
               Token sort
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
             </button>
-            <p className="ml-auto text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
-              Marketing stage
-            </p>
+            <div className="ml-auto flex flex-col items-end gap-0.5">
+              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
+                Marketing stage
+              </p>
+              <PolessiaLogo variant="powered" size="xs" />
+            </div>
           </div>
           <div className="overflow-x-auto overflow-y-visible py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-max items-center gap-2 pr-1">
