@@ -21,7 +21,9 @@ function readHiddenRaidEarnTickers(): Record<string, true> {
 function isRaidEarnHidden(ticker: string): boolean {
   const key = ticker.trim().toUpperCase();
   if (!key) return false;
-  return Boolean(readHiddenRaidEarnTickers()[key]);
+  const hidden = readHiddenRaidEarnTickers();
+  // Only per-ticker hide — never treat a blank/global key as hidden for all pages
+  return Object.prototype.hasOwnProperty.call(hidden, key) && hidden[key] === true;
 }
 
 function hideRaidEarnForTicker(ticker: string) {
@@ -29,6 +31,8 @@ function hideRaidEarnForTicker(ticker: string) {
   if (!key) return;
   try {
     const next = { ...readHiddenRaidEarnTickers(), [key]: true as const };
+    // Drop accidental empty keys from older builds
+    delete (next as Record<string, true | undefined>)[''];
     localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
   } catch {
     // ignore

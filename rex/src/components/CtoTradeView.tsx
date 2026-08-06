@@ -760,16 +760,14 @@ export function CtoTradeView({
         </div>
       </div>
 
-      {isExternal ? (
-        <div className="mx-auto max-w-7xl border-b border-white/[0.08] px-3 py-3 sm:px-5 lg:border-0 lg:px-5 lg:pt-3">
-          <MigrateToV2Banner
-            ticker={project.ticker}
-            sourceVenue={project.sourceVenue}
-            devDumpedPct={project.devDumpedPct}
-            href={launchHref}
-          />
-        </div>
-      ) : null}
+      <div className="mx-auto max-w-7xl border-b border-white/[0.08] px-3 py-3 sm:px-5 lg:border-0 lg:px-5 lg:pt-3">
+        <MigrateToV2Banner
+          ticker={project.ticker}
+          sourceVenue={project.sourceVenue}
+          devDumpedPct={project.devDumpedPct}
+          href={launchHref}
+        />
+      </div>
 
       <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)] lg:gap-3 lg:px-5 lg:py-3">
         <div
