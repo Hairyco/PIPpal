@@ -9,7 +9,7 @@
   "crons": [
     {
       "path": "/api/mw-keeper-tick",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 12 * * *"
     }
   ],
   "rewrites": [
