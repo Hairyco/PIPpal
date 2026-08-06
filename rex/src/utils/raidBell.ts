@@ -1,5 +1,7 @@
 /** Soft cash-register / bell chime for raid fee credits. Free — Web Audio, no asset. */
 
+import { areNotificationsMuted } from './raidEarningsAlerts';
+
 let audioCtx: AudioContext | null = null;
 
 function getCtx(): AudioContext | null {
@@ -20,6 +22,7 @@ export function unlockRaidAudio(): void {
 }
 
 export function playRaidBell(): void {
+  if (areNotificationsMuted()) return;
   try {
     const ctx = getCtx();
     if (!ctx) return;

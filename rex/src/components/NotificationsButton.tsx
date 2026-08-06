@@ -8,17 +8,20 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
+import { Bell, BellOff, CheckCheck, Link2, Sparkles, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import { useConnectedWallet } from './ConnectWalletButton';
 import { hasUserCtoLaunch, loadUserCtoLaunch } from '../utils/userCtoLaunch';
 import { formatSolAmount } from '../hooks/useSolBalance';
 import {
+  areNotificationsMuted,
   formatRaidNoticeTime,
   listRaidPayoutNotices,
   markRaidNoticeRead,
+  NOTIFICATIONS_PREFS_CHANGED,
   RAID_ALERTS_CHANGED,
+  setNotificationsMuted,
 } from '../utils/raidEarningsAlerts';
 import { RAID_EARNING_EVENT } from '../utils/scoutReferral';
 import { unlockRaidAudio } from '../utils/raidBell';
@@ -125,6 +128,9 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState<Set<string>>(() => new Set());
   const [tick, setTick] = useState(0);
+  const [muted, setMuted] = useState(() =>
+    typeof window !== 'undefined' ? areNotificationsMuted() : false,
+  );
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -133,6 +139,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
 
   useEffect(() => {
     setSeen(readSeenIds());
+    setMuted(areNotificationsMuted());
   }, []);
 
   useEffect(() => {
@@ -146,11 +153,14 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
 
   useEffect(() => {
     const refresh = () => setTick((n) => n + 1);
+    const onPrefs = () => setMuted(areNotificationsMuted());
     window.addEventListener(RAID_EARNING_EVENT, refresh);
     window.addEventListener(RAID_ALERTS_CHANGED, refresh);
+    window.addEventListener(NOTIFICATIONS_PREFS_CHANGED, onPrefs);
     return () => {
       window.removeEventListener(RAID_EARNING_EVENT, refresh);
       window.removeEventListener(RAID_ALERTS_CHANGED, refresh);
+      window.removeEventListener(NOTIFICATIONS_PREFS_CHANGED, onPrefs);
     };
   }, []);
 
@@ -161,6 +171,7 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
   }, [tick, signedIn, address]);
 
   const unreadCount = useMemo(() => {
+    if (muted) return 0;
     const payoutUnread = listRaidPayoutNotices(signedIn ? address : null).filter(
       (n) => !n.read,
     ).length;
@@ -168,7 +179,13 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
       (n) => !n.id.startsWith('raid-') && !seen.has(n.id),
     ).length;
     return payoutUnread + staticUnread;
-  }, [notifications, seen, signedIn, address, tick]);
+  }, [notifications, seen, signedIn, address, tick, muted]);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setNotificationsMuted(next);
+    setMuted(next);
+  };
 
   const updateMenuPos = useCallback(() => {
     const el = triggerRef.current;
@@ -256,18 +273,34 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
             <div className="flex items-center justify-between gap-2 border-b border-white/[0.07] px-3.5 py-3">
               <div>
                 <p className="text-sm font-semibold text-white">Notifications</p>
-                <p className="text-[10px] text-white/40">Raid fees & active alerts</p>
+                <p className="text-[10px] text-white/40">
+                  {muted ? 'Muted · alerts paused' : 'Raid fees & active alerts'}
+                </p>
               </div>
-              {unreadCount > 0 ? (
+              <div className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
-                  onClick={markAllRead}
-                  className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-white/50 transition hover:bg-white/5 hover:text-[#d5ff69]"
+                  onClick={toggleMute}
+                  className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold transition hover:bg-white/5 ${
+                    muted ? 'text-[#d5ff69]' : 'text-white/50 hover:text-white'
+                  }`}
+                  aria-pressed={muted}
+                  title={muted ? 'Unmute notifications' : 'Mute notifications'}
                 >
-                  <CheckCheck className="h-3.5 w-3.5" />
-                  Mark all read
+                  {muted ? <BellOff className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
+                  {muted ? 'Unmute' : 'Mute'}
                 </button>
-              ) : null}
+                {unreadCount > 0 ? (
+                  <button
+                    type="button"
+                    onClick={markAllRead}
+                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[11px] font-semibold text-white/50 transition hover:bg-white/5 hover:text-[#d5ff69]"
+                  >
+                    <CheckCheck className="h-3.5 w-3.5" />
+                    Mark all read
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {notifications.length === 0 ? (
@@ -367,12 +400,16 @@ export function NotificationsButton({ className = '' }: { className?: string }) 
         }}
         className="relative grid h-9 w-9 place-items-center rounded-lg text-white/60 transition hover:bg-white/5 hover:text-white sm:h-10 sm:w-10"
         aria-label={
-          unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
+          muted
+            ? 'Notifications muted'
+            : unreadCount > 0
+              ? `Notifications, ${unreadCount} unread`
+              : 'Notifications'
         }
-        title="Notifications"
+        title={muted ? 'Notifications muted' : 'Notifications'}
       >
-        <Bell className="h-5 w-5" />
-        {unreadCount > 0 ? (
+        {muted ? <BellOff className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+        {!muted && unreadCount > 0 ? (
           <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#c8ff3d] px-1 text-[9px] font-bold leading-none text-[#090b14]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>

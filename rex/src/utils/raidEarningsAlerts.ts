@@ -2,7 +2,9 @@ import type { RaidEarningDetail } from './scoutReferral';
 
 const NOTICES_KEY = 'ctogo-raid-payout-notices';
 const SEEN_KEY = 'ctogo-raid-earnings-seen';
+const MUTE_KEY = 'ctogo-notifications-muted';
 export const RAID_ALERTS_CHANGED = 'ctogo-raid-alerts-changed';
+export const NOTIFICATIONS_PREFS_CHANGED = 'ctogo-notifications-prefs-changed';
 
 export type RaidPayoutNotice = {
   id: string;
@@ -17,6 +19,29 @@ export type RaidPayoutNotice = {
 function emitChange() {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new Event(RAID_ALERTS_CHANGED));
+}
+
+function emitPrefsChange() {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(NOTIFICATIONS_PREFS_CHANGED));
+}
+
+export function areNotificationsMuted(): boolean {
+  try {
+    return localStorage.getItem(MUTE_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setNotificationsMuted(muted: boolean): void {
+  try {
+    if (muted) localStorage.setItem(MUTE_KEY, '1');
+    else localStorage.removeItem(MUTE_KEY);
+  } catch {
+    /* ignore */
+  }
+  emitPrefsChange();
 }
 
 function readNotices(): RaidPayoutNotice[] {

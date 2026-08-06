@@ -20,14 +20,9 @@ import {
   RAID_EARNING_EVENT,
   RAID_EARNINGS_PERIODS,
   raidEarningsForPeriod,
-  readScoutEarningsDemo,
   type RaidEarningsPeriod,
 } from '../utils/scoutReferral';
-import {
-  hasRaidEarningsBadge,
-  markRaidEarningsSeen,
-  RAID_ALERTS_CHANGED,
-} from '../utils/raidEarningsAlerts';
+import { RAID_ALERTS_CHANGED } from '../utils/raidEarningsAlerts';
 import { unlockRaidAudio } from '../utils/raidBell';
 
 const STORAGE_KEY = 'rex-connected-wallet';
@@ -243,7 +238,6 @@ export function ConnectWalletButton({
   const [period, setPeriod] = useState<RaidEarningsPeriod>('7d');
   const [menuPos, setMenuPos] = useState<WalletMenuLayout | null>(null);
   const [earnTick, setEarnTick] = useState(0);
-  const [showEarnDot, setShowEarnDot] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -259,10 +253,6 @@ export function ConnectWalletButton({
         : { earnedSol: 0, volumeUsd: 0, clicks: 0 },
     [liveAddress, period, earnTick],
   );
-  const totalEarned = useMemo(
-    () => (liveAddress ? readScoutEarningsDemo(liveAddress).earnedSol : 0),
-    [liveAddress, earnTick],
-  );
 
   useEffect(() => {
     const refresh = () => setEarnTick((n) => n + 1);
@@ -274,13 +264,6 @@ export function ConnectWalletButton({
     };
   }, []);
 
-  useEffect(() => {
-    if (!liveAddress) {
-      setShowEarnDot(false);
-      return;
-    }
-    setShowEarnDot(hasRaidEarningsBadge(liveAddress, totalEarned));
-  }, [liveAddress, totalEarned, earnTick]);
   const balanceLabel = loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 2);
   const labelClass = alwaysLabel ? 'inline' : 'hidden sm:inline';
 
@@ -361,12 +344,6 @@ export function ConnectWalletButton({
   useEffect(() => {
     if (open) refresh();
   }, [open, refresh]);
-
-  useEffect(() => {
-    if (!open || !liveAddress) return;
-    markRaidEarningsSeen(liveAddress, totalEarned);
-    setShowEarnDot(false);
-  }, [open, liveAddress, totalEarned]);
 
   const copyAddress = async () => {
     if (!liveAddress) return;
@@ -576,11 +553,7 @@ export function ConnectWalletButton({
           setOpen((v) => !v);
         }}
         disabled={busy}
-        title={
-          showEarnDot
-            ? `New raid earnings · ${shorten(liveAddress)} · ${balanceLabel} SOL`
-            : `${shorten(liveAddress)} · ${balanceLabel} SOL`
-        }
+        title={`${shorten(liveAddress)} · ${balanceLabel} SOL`}
         className="relative inline-flex h-9 items-center gap-1.5 rounded-full border border-white/[0.1] bg-[#12141c] px-2 pl-2.5 text-white transition hover:border-white/20 hover:bg-[#181b26] disabled:opacity-50"
       >
         <Wallet className="h-3.5 w-3.5 shrink-0 text-white/55" strokeWidth={2} />
@@ -592,12 +565,6 @@ export function ConnectWalletButton({
         <ChevronDown
           className={`h-3.5 w-3.5 shrink-0 text-white/40 transition ${open ? 'rotate-180' : ''}`}
         />
-        {showEarnDot ? (
-          <span
-            className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-[#c8ff3d] ring-2 ring-black"
-            aria-hidden
-          />
-        ) : null}
       </button>
       {menu}
     </div>
