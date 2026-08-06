@@ -540,6 +540,11 @@ export function DiscoverDeckPage() {
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">
           Pinned Telegram messages
         </div>
+      ) : isPrelaunchView ? (
+        <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_minmax(6.5rem,8rem)] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
+          <div className="col-span-2">Age / Holders / Viewing</div>
+          <div className="text-right">X · TG · Web</div>
+        </div>
       ) : (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
           <div className="col-span-2">Age / Holders / Viewing</div>
@@ -549,8 +554,6 @@ export function DiscoverDeckPage() {
               <div className="text-right">MW / Next</div>
               <div className="text-right">Fill</div>
             </>
-          ) : isPrelaunchView ? (
-            <div className="col-span-2 text-right">X · TG · Web</div>
           ) : (
             <>
               <div className="text-right">Vol / TXs</div>
@@ -674,7 +677,11 @@ export function DiscoverDeckPage() {
                   <button
                     type="button"
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className="grid w-full grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03]"
+                    className={`grid w-full items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03] ${
+                      isPrelaunchView
+                        ? 'grid-cols-[42px_minmax(0,1fr)_minmax(6.5rem,8rem)]'
+                        : 'grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem]'
+                    }`}
                   >
                     <div className="relative shrink-0">
                       <span className="block h-[42px] w-[42px] overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
@@ -725,14 +732,16 @@ export function DiscoverDeckPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-center">
-                      <Sparkline
-                        seed={`${project.ticker}-${timeWindow}`}
-                        changePct={pct}
-                        width={40}
-                        height={22}
-                      />
-                    </div>
+                    {!isPrelaunchView ? (
+                      <div className="flex items-center justify-center">
+                        <Sparkline
+                          seed={`${project.ticker}-${timeWindow}`}
+                          changePct={pct}
+                          width={40}
+                          height={22}
+                        />
+                      </div>
+                    ) : null}
 
                     {fill && supplier ? (
                       <>
@@ -771,7 +780,7 @@ export function DiscoverDeckPage() {
                         </div>
                       </>
                     ) : isPrelaunchView ? (
-                      <div className="col-span-2 flex items-center justify-end gap-1.5">
+                      <div className="flex items-center justify-end gap-1.5">
                         {(() => {
                           const socials = projectSocials(project);
                           return (
