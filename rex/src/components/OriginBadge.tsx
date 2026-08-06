@@ -99,47 +99,71 @@ export function MigrateToV2Banner({
   if (hidden) return null;
 
   return (
-    <div className="rounded-xl border border-[#c8ff3d]/25 bg-gradient-to-br from-[#c8ff3d]/10 via-transparent to-transparent px-4 py-3.5">
-      <div className="flex items-center gap-2">
-        <span className="text-lg leading-none" aria-hidden>
-          ⚡
-        </span>
-        <p className="min-w-0 flex-1 text-sm font-bold uppercase tracking-wide text-white">
-          <span className="text-[#c8ff3d]">Growth:</span> Get paid instantly
-        </p>
-        <button
-          type="button"
-          onClick={hide}
-          className="inline-flex h-7 shrink-0 items-center justify-center rounded-lg border border-white/[0.1] px-2.5 text-[11px] font-semibold text-white/45 hover:border-white/20 hover:text-white"
-          aria-label={`Hide raid earn for $${ticker}`}
-        >
-          Hide
-        </button>
-      </div>
-      <p className="mt-1.5 pl-7 text-[12px] leading-relaxed text-white/60">
-        Earn 0.4–0.5% SOL on every trade from anyone using your link.
-      </p>
+    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0c12]">
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-[#c8ff3d]"
+        aria-hidden
+      />
+      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#c8ff3d]/[0.07] blur-2xl" aria-hidden />
 
-      {!connected || !scoutLink ? (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void connect()}
-          className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69] disabled:opacity-60 sm:w-auto"
-        >
-          <Wallet className="h-3.5 w-3.5" />
-          {busy ? 'Connecting…' : 'Connect wallet to create your link'}
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={() => void copyLink()}
-          className="mt-3 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-4 text-xs font-bold text-[#090b14] hover:bg-[#d5ff69] sm:w-auto"
-        >
-          {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-          {copied ? 'Copied — ready to share' : 'Copy my share link'}
-        </button>
-      )}
+      <div className="relative flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
+                Growth
+              </p>
+              <p className="mt-0.5 text-[15px] font-semibold tracking-tight text-white">
+                Get paid instantly
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={hide}
+              className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-medium text-white/35 transition hover:bg-white/[0.05] hover:text-white/70 sm:hidden"
+              aria-label={`Hide raid earn for $${ticker}`}
+            >
+              Hide
+            </button>
+          </div>
+          <p className="mt-1.5 max-w-md text-[12px] leading-relaxed text-white/45">
+            Earn{' '}
+            <span className="font-semibold tabular-nums text-white/75">0.4–0.5% SOL</span> on every
+            trade from anyone who uses your link.
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          {!connected || !scoutLink ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void connect()}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ff3d] px-3.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-60 sm:flex-none"
+            >
+              <Wallet className="h-3.5 w-3.5" />
+              {busy ? 'Connecting…' : 'Connect wallet'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void copyLink()}
+              className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
+            >
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? 'Copied' : 'Copy share link'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={hide}
+            className="hidden h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/40 transition hover:border-white/15 hover:text-white/70 sm:inline-flex"
+            aria-label={`Hide raid earn for $${ticker}`}
+          >
+            Hide
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
