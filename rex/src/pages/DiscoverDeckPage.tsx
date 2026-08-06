@@ -5,14 +5,17 @@ import {
   Briefcase,
   ChevronDown,
   ChevronUp,
+  Clock,
   Compass,
   Eye,
   Filter,
   Globe,
+  Layers,
   Pin,
   Rocket,
   Search,
   Users,
+  Vault,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
@@ -40,10 +43,14 @@ type DemoHolding = {
   pnlPct: number;
 };
 
-const PRELAUNCH_FILTERS: { id: PrelaunchFilter; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'live_soon', label: 'Live soon' },
-  { id: 'with_vault', label: 'With vault' },
+const PRELAUNCH_FILTERS: {
+  id: PrelaunchFilter;
+  label: string;
+  Icon: typeof Layers;
+}[] = [
+  { id: 'all', label: 'All', Icon: Layers },
+  { id: 'live_soon', label: 'Live soon', Icon: Clock },
+  { id: 'with_vault', label: 'With vault', Icon: Vault },
 ];
 
 /** Demo social links until projects carry live URLs. */
@@ -269,7 +276,7 @@ export function DiscoverDeckPage() {
   const [showPinned, setShowPinned] = useState(false);
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
-  const isPrelaunchView = bottomTab === 'prelaunch' || topTab === 'prelaunch';
+  const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const hideDiscoverChrome =
     bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
@@ -280,7 +287,7 @@ export function DiscoverDeckPage() {
       list = list.filter((p) => starred[p.ticker]);
     } else if (topTab === 'volume') {
       list = [...list].sort((a, b) => volumeUsd(b) - volumeUsd(a));
-    } else if (topTab === 'prelaunch') {
+    } else if (topTab === 'prelaunch' || bottomTab === 'prelaunch') {
       list = list
         .filter((p) => p.stage !== 'Live' && p.launchInHours != null)
         .filter((p) => {
@@ -314,7 +321,7 @@ export function DiscoverDeckPage() {
     // SOL-only product — other chains show empty for now
     if (chain !== 'SOL') return [];
     return list;
-  }, [topTab, starred, timeWindow, query, chain, source, prelaunchFilter]);
+  }, [topTab, bottomTab, starred, timeWindow, query, chain, source, prelaunchFilter]);
 
   const growthRows = useMemo(
     () =>
@@ -343,8 +350,11 @@ export function DiscoverDeckPage() {
   const selectBottom = (tab: BottomTab) => {
     setBottomTab(tab);
     setShowPinned(false);
-    if (tab === 'prelaunch') setTopTab('prelaunch');
-    if (tab === 'discover' && topTab === 'prelaunch') setTopTab('trending');
+    if (tab === 'prelaunch') {
+      setTopTab('prelaunch');
+    } else if (topTab === 'prelaunch') {
+      setTopTab('trending');
+    }
   };
 
   const goBuy = () => {
@@ -565,25 +575,38 @@ export function DiscoverDeckPage() {
       </div>
       ) : null}
 
-      {/* Filter row */}
-      {isPortfolioView || bottomTab === 'bot' ? null : isPrelaunchView ? (
-        <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
-          <div className="inline-flex w-full gap-0.5 rounded-full border border-white/[0.08] bg-[#1c1c1e] p-0.5">
+      {/* Filter row — Prelaunch-only segment; Growth keeps MW progress on rows */}
+      {isPortfolioView || bottomTab === 'bot' || bottomTab === 'growth' ? null : isPrelaunchView ? (
+        <div className="shrink-0 px-3 pb-2.5 pt-0.5">
+          <div
+            className="flex items-center gap-1 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+            role="tablist"
+            aria-label="Prelaunch filters"
+          >
             {PRELAUNCH_FILTERS.map((f) => {
               const active = prelaunchFilter === f.id;
+              const Icon = f.Icon;
               return (
                 <button
                   key={f.id}
                   type="button"
+                  role="tab"
                   onClick={() => setPrelaunchFilter(f.id)}
-                  className={`flex-1 rounded-full px-2 py-1.5 text-[12px] font-semibold transition ${
+                  className={`relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-[12px] transition ${
                     active
-                      ? 'bg-[#c8ff3d] text-[#090b14]'
-                      : 'text-white/55 hover:text-white'
+                      ? 'bg-white/[0.1] font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.06)] ring-1 ring-white/[0.12]'
+                      : 'font-medium text-white/40 hover:bg-white/[0.04] hover:text-white/70'
                   }`}
-                  aria-pressed={active}
+                  aria-selected={active}
                 >
-                  {f.label}
+                  <Icon
+                    className={`h-3.5 w-3.5 shrink-0 ${active ? 'text-[#c8ff3d]' : 'text-white/35'}`}
+                    strokeWidth={2}
+                  />
+                  <span className="truncate">{f.label}</span>
+                  {active ? (
+                    <span className="absolute inset-x-4 -bottom-px h-px bg-gradient-to-r from-transparent via-[#c8ff3d]/80 to-transparent" />
+                  ) : null}
                 </button>
               );
             })}
@@ -996,7 +1019,7 @@ export function DiscoverDeckPage() {
                         </div>
                         <div className="min-w-0">
                           <div
-                            className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]"
+                            className="h-[3px] overflow-hidden rounded-full bg-white/[0.08]"
                             role="progressbar"
                             aria-valuenow={fill.pct}
                             aria-valuemin={0}
@@ -1154,21 +1177,21 @@ export function DiscoverDeckPage() {
                   <GrowthNavGlyph />
                 ) : (
                   <span
-                    className={`grid h-8 w-8 place-items-center rounded-full ${
+                    className={`grid h-10 w-10 place-items-center rounded-full ${
                       active ? 'bg-[#c8ff3d]/15' : ''
                     }`}
                   >
                     {item.kind === 'lucide' ? (
-                      <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
+                      <item.Lucide className="h-[22px] w-[22px]" strokeWidth={2} />
                     ) : (
-                      <span className="text-[18px] leading-none" aria-hidden>
+                      <span className="text-[22px] leading-none" aria-hidden>
                         🤖
                       </span>
                     )}
                   </span>
                 )}
                 <span
-                  className={`text-[10px] ${
+                  className={`text-[11px] ${
                     active || isGrowth ? 'font-semibold' : 'font-medium'
                   }`}
                 >
