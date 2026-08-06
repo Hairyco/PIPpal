@@ -35,6 +35,14 @@ type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'bot';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
+type GrowthStageId =
+  | 'telegram'
+  | 'dexscreener'
+  | 'dextools'
+  | 'coinzilla'
+  | 'coingecko'
+  | 'cmc'
+  | 'ads';
 
 type DemoHolding = {
   project: CtoProject;
@@ -51,6 +59,21 @@ const PRELAUNCH_FILTERS: {
   { id: 'all', label: 'All', Icon: Layers },
   { id: 'live_soon', label: 'Live soon', Icon: Clock },
   { id: 'with_vault', label: 'With vault', Icon: Vault },
+];
+
+/** Marketing ladder shown on Growth — current stage per coin. */
+const GROWTH_STAGES: {
+  id: GrowthStageId;
+  label: string;
+  logo: string;
+}[] = [
+  { id: 'telegram', label: 'Telegram', logo: '/images/partners/telegram.svg' },
+  { id: 'dexscreener', label: 'DexScreener', logo: '/images/partners/dexscreener.ico' },
+  { id: 'dextools', label: 'DexTools', logo: '/images/partners/dextools.svg' },
+  { id: 'coinzilla', label: 'Coinzilla', logo: '/images/partners/coinzilla.svg' },
+  { id: 'coingecko', label: 'CoinGecko', logo: '/images/partners/coingecko.svg' },
+  { id: 'cmc', label: 'CoinMarketCap', logo: '/images/partners/coinmarketcap.svg' },
+  { id: 'ads', label: 'Ad networks', logo: '/images/partners/cointraffic.svg' },
 ];
 
 /** Demo social links until projects carry live URLs. */
@@ -97,26 +120,16 @@ function nextSupplier(project: CtoProject): {
   logo: string;
   priceUsd: number;
 } {
+  const stage = growthStageFor(project);
+  const meta = GROWTH_STAGES.find((s) => s.id === stage) ?? GROWTH_STAGES[0];
   const spend = (project.nextAdSpend || '').toLowerCase();
   if (spend.includes('telegram') || spend.includes('pin')) {
-    return {
-      label: 'Pinned message · Telegram',
-      logo: '/images/partners/telegram.svg',
-      priceUsd: 150,
-    };
+    return { label: 'Pinned message · Telegram', logo: meta.logo, priceUsd: 150 };
   }
   if (spend.includes('trend')) {
-    return {
-      label: 'DexScreener trending bar',
-      logo: '/images/partners/dexscreener.ico',
-      priceUsd: 2000,
-    };
+    return { label: 'DexScreener trending bar', logo: meta.logo, priceUsd: 2000 };
   }
-  return {
-    label: 'DexScreener socials update',
-    logo: '/images/partners/dexscreener.ico',
-    priceUsd: 350,
-  };
+  return { label: `${meta.label} · next spend`, logo: meta.logo, priceUsd: 350 };
 }
 
 function mwProgress(project: CtoProject): { balance: number; target: number; pct: number } {
@@ -124,6 +137,22 @@ function mwProgress(project: CtoProject): { balance: number; target: number; pct
   const target = Math.max(1, project.nextAdTargetUsd || 500);
   const pct = Math.min(100, Math.round((balance / target) * 100));
   return { balance, target, pct };
+}
+
+/** Demo marketing stage from spend target + wallet fill. */
+function growthStageFor(project: CtoProject): GrowthStageId {
+  const spend = (project.nextAdSpend || '').toLowerCase();
+  if (spend.includes('telegram') || spend.includes('pin')) return 'telegram';
+  if (spend.includes('trend')) return 'dexscreener';
+  if (spend.includes('social')) return 'dexscreener';
+  const { pct } = mwProgress(project);
+  if (pct < 20) return 'telegram';
+  if (pct < 35) return 'dexscreener';
+  if (pct < 50) return 'dextools';
+  if (pct < 65) return 'coinzilla';
+  if (pct < 80) return 'coingecko';
+  if (pct < 92) return 'cmc';
+  return 'ads';
 }
 
 function salt(str: string, mod = 1000): number {
@@ -276,8 +305,10 @@ export function DiscoverDeckPage() {
   const [showPinned, setShowPinned] = useState(false);
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
+  const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
+  const isGrowthView = bottomTab === 'growth';
   const hideDiscoverChrome =
     bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
 
@@ -323,13 +354,23 @@ export function DiscoverDeckPage() {
     return list;
   }, [topTab, bottomTab, starred, timeWindow, query, chain, source, prelaunchFilter]);
 
-  const growthRows = useMemo(
-    () =>
-      [...ctoProjects]
-        .filter((p) => Boolean(p.marketingBalance || p.marketingWallet))
-        .sort((a, b) => marketingBalanceUsd(b) - marketingBalanceUsd(a)),
-    [],
-  );
+  const growthRows = useMemo(() => {
+    let list = [...ctoProjects]
+      .filter((p) => Boolean(p.marketingBalance || p.marketingWallet))
+      .sort((a, b) => marketingBalanceUsd(b) - marketingBalanceUsd(a));
+    if (growthStageFilter !== 'all') {
+      list = list.filter((p) => growthStageFor(p) === growthStageFilter);
+    }
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.ticker.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [growthStageFilter, query]);
 
   const portfolioHoldings = useMemo(() => {
     const holdings = demoHoldingsForWallet(address);
@@ -355,6 +396,7 @@ export function DiscoverDeckPage() {
     } else if (topTab === 'prelaunch') {
       setTopTab('trending');
     }
+    if (tab !== 'growth') setGrowthStageFilter('all');
   };
 
   const goBuy = () => {
@@ -575,8 +617,8 @@ export function DiscoverDeckPage() {
       </div>
       ) : null}
 
-      {/* Filter row — Prelaunch-only segment; Growth keeps MW progress on rows */}
-      {isPortfolioView || bottomTab === 'bot' || bottomTab === 'growth' ? null : isPrelaunchView ? (
+      {/* Filter row */}
+      {isPortfolioView || bottomTab === 'bot' ? null : isPrelaunchView ? (
         <div className="shrink-0 px-3 pb-2.5 pt-0.5">
           <div
             className="flex items-center gap-1 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -613,46 +655,107 @@ export function DiscoverDeckPage() {
           </div>
         </div>
       ) : (
-      <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
-        <button
-          type="button"
-          onClick={() =>
-            setTimeWindow((w) => (w === '1h' ? '5m' : w === '5m' ? '6h' : w === '6h' ? '24h' : '1h'))
-          }
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
-        >
-          {timeWindow}
-          <ChevronDown className="h-3.5 w-3.5 text-white/45" />
-        </button>
-        <button
-          type="button"
-          className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
-        >
-          <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
-          Token sort
-          <ChevronDown className="h-3.5 w-3.5 text-white/45" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowPinned((v) => !v)}
-          className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
-            showPinned
-              ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
-              : 'bg-[#1c1c1e] text-white/85'
-          }`}
-          aria-pressed={showPinned}
-        >
-          <Pin className="h-3.5 w-3.5" />
-          Pinned
-        </button>
-        <button
-          type="button"
-          className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
-          aria-label="Filters"
-        >
-          <Filter className="h-[15px] w-[15px]" />
-        </button>
-      </div>
+        <>
+          <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
+            <button
+              type="button"
+              onClick={() =>
+                setTimeWindow((w) =>
+                  w === '1h' ? '5m' : w === '5m' ? '6h' : w === '6h' ? '24h' : '1h',
+                )
+              }
+              className="inline-flex h-8 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
+            >
+              {timeWindow}
+              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+            </button>
+            <button
+              type="button"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
+            >
+              <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
+              Token sort
+              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+            </button>
+            {!isGrowthView ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowPinned((v) => !v)}
+                  className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
+                    showPinned
+                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
+                      : 'bg-[#1c1c1e] text-white/85'
+                  }`}
+                  aria-pressed={showPinned}
+                >
+                  <Pin className="h-3.5 w-3.5" />
+                  Pinned
+                </button>
+                <button
+                  type="button"
+                  className="ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c1e] text-white/80"
+                  aria-label="Filters"
+                >
+                  <Filter className="h-[15px] w-[15px]" />
+                </button>
+              </>
+            ) : (
+              <p className="ml-auto text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
+                Marketing stage
+              </p>
+            )}
+          </div>
+
+          {isGrowthView ? (
+            <div className="shrink-0 px-3 pb-2.5">
+              <div className="hide-scrollbar flex items-center gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={() => setGrowthStageFilter('all')}
+                  className={`inline-flex h-9 shrink-0 items-center rounded-full px-3 text-[11px] font-semibold transition ${
+                    growthStageFilter === 'all'
+                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+                      : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
+                  }`}
+                  aria-pressed={growthStageFilter === 'all'}
+                >
+                  All stages
+                </button>
+                {GROWTH_STAGES.map((stage, index) => {
+                  const active = growthStageFilter === stage.id;
+                  return (
+                    <button
+                      key={stage.id}
+                      type="button"
+                      title={`${index + 1}. ${stage.label}`}
+                      onClick={() =>
+                        setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
+                      }
+                      className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+                        active
+                          ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
+                          : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
+                      }`}
+                      aria-pressed={active}
+                      aria-label={`Stage ${index + 1}: ${stage.label}`}
+                    >
+                      <img
+                        src={stage.logo}
+                        alt=""
+                        className={`h-4 w-4 object-contain ${active ? 'opacity-100' : 'opacity-70'}`}
+                        loading="lazy"
+                      />
+                      <span className="absolute -bottom-0.5 -right-0.5 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-[#0c0c0e] px-0.5 text-[8px] font-bold tabular-nums text-white/55 ring-1 ring-white/10">
+                        {index + 1}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+        </>
       )}
 
       {/* Column headers */}
@@ -900,14 +1003,18 @@ export function DiscoverDeckPage() {
           <div className="px-6 py-16 text-center">
             <p className="text-[15px] font-semibold text-white/70">
               {bottomTab === 'growth'
-                ? 'No marketing wallets yet'
+                ? growthStageFilter !== 'all'
+                  ? `No coins at ${GROWTH_STAGES.find((s) => s.id === growthStageFilter)?.label ?? 'this'} stage`
+                  : 'No marketing wallets yet'
                 : chain !== 'SOL'
                   ? `${chain} coming soon`
                   : 'No tokens yet'}
             </p>
             <p className="mt-1 text-[13px] text-white/35">
               {bottomTab === 'growth'
-                ? 'Coins with a CTOgo marketing wallet show fill progress here.'
+                ? growthStageFilter !== 'all'
+                  ? 'Tap All stages or another logo to see more.'
+                  : 'Coins with a CTOgo marketing wallet show fill progress here.'
                 : topTab === 'watchlist'
                   ? 'Star coins on classic view to fill your watchlist.'
                   : topTab === 'prelaunch'
