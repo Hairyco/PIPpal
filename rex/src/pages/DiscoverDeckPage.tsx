@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownUp,
@@ -264,10 +264,18 @@ function GrowthIcon({ className = '' }: { className?: string }) {
   );
 }
 
-function GrowthNavGlyph({ alive }: { alive: boolean }) {
+function AliveNavGlyph({
+  alive,
+  children,
+}: {
+  alive: boolean;
+  children: ReactNode;
+}) {
   return (
     <span
-      className={`relative grid h-11 w-11 place-items-center ${alive ? 'growth-nav-alive' : ''}`}
+      className={`relative grid h-11 w-11 place-items-center ${
+        alive ? 'growth-nav-alive text-[#c8ff3d]' : ''
+      }`}
     >
       {alive ? (
         <>
@@ -278,7 +286,7 @@ function GrowthNavGlyph({ alive }: { alive: boolean }) {
           <span className="growth-spark growth-spark-d" aria-hidden />
         </>
       ) : null}
-      <GrowthIcon className="relative z-[1] h-[22px] w-[22px]" />
+      <span className="relative z-[1] grid place-items-center">{children}</span>
     </span>
   );
 }
@@ -302,7 +310,7 @@ export function DiscoverDeckPage() {
   const { starred, count: watchCount } = useWatchlist();
   const listRef = useRef<HTMLDivElement>(null);
   const [topTab, setTopTab] = useState<TopTab>('trending');
-  const [bottomTab, setBottomTab] = useState<BottomTab>('discover');
+  const [bottomTab, setBottomTab] = useState<BottomTab>('growth');
   const [chain, setChain] = useState<string>('SOL');
   const [source, setSource] = useState<SourceVenueFilter>('all');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
@@ -315,8 +323,6 @@ export function DiscoverDeckPage() {
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
-  /** Sparks while on Growth, or Discover (top Watchlist / Volume / Trending). Off on other bottom tabs. */
-  const growthNavAlive = bottomTab === 'growth' || bottomTab === 'discover';
   const hideDiscoverChrome =
     bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
 
@@ -1271,7 +1277,6 @@ export function DiscoverDeckPage() {
             ] as const
           ).map((item) => {
             const active = bottomTab === item.id;
-            const isGrowth = item.id === 'growth';
             return (
               <button
                 key={item.id}
@@ -1282,23 +1287,17 @@ export function DiscoverDeckPage() {
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
-                {isGrowth ? (
-                  <GrowthNavGlyph alive={growthNavAlive} />
-                ) : (
-                  <span
-                    className={`grid h-10 w-10 place-items-center rounded-full ${
-                      active ? 'bg-[#c8ff3d]/15' : ''
-                    }`}
-                  >
-                    {item.kind === 'lucide' ? (
-                      <item.Lucide className="h-[22px] w-[22px]" strokeWidth={2} />
-                    ) : (
-                      <span className="text-[22px] leading-none" aria-hidden>
-                        🤖
-                      </span>
-                    )}
-                  </span>
-                )}
+                <AliveNavGlyph alive={active}>
+                  {item.kind === 'lucide' ? (
+                    <item.Lucide className="h-[22px] w-[22px]" strokeWidth={2} />
+                  ) : item.kind === 'growth' ? (
+                    <GrowthIcon className="h-[22px] w-[22px]" />
+                  ) : (
+                    <span className="text-[22px] leading-none" aria-hidden>
+                      🤖
+                    </span>
+                  )}
+                </AliveNavGlyph>
                 <span className={`text-[11px] ${active ? 'font-semibold' : 'font-medium'}`}>
                   {item.label}
                 </span>
