@@ -315,17 +315,20 @@ export function DiscoverDeckPage() {
             { id: 'watchlist' as const, label: 'Watchlist' },
             { id: 'volume' as const, label: 'Volume' },
             { id: 'trending' as const, label: 'Trending' },
-            { id: 'prelaunch' as const, label: 'Prelaunch' },
           ] as const
         ).map((tab) => {
-          const active = topTab === tab.id && bottomTab !== 'growth' && bottomTab !== 'bot';
+          const active =
+            topTab === tab.id &&
+            bottomTab !== 'growth' &&
+            bottomTab !== 'bot' &&
+            bottomTab !== 'prelaunch';
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => {
                 setTopTab(tab.id);
-                setBottomTab(tab.id === 'prelaunch' ? 'prelaunch' : 'discover');
+                setBottomTab('discover');
                 setShowPinned(false);
               }}
               className={`relative pb-2.5 text-[15px] font-semibold transition ${
@@ -783,14 +786,14 @@ export function DiscoverDeckPage() {
                 key={item.id}
                 type="button"
                 onClick={() => selectBottom(item.id)}
-                className={`flex w-[22%] flex-col items-center gap-0.5 ${
-                  active ? 'text-white' : 'text-white/45'
+                className={`flex w-[22%] flex-col items-center gap-0.5 transition ${
+                  active ? 'text-[#c8ff3d]' : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
                 <span
                   className={`grid h-8 w-8 place-items-center rounded-full ${
-                    active ? 'bg-white/15' : ''
+                    active ? 'bg-[#c8ff3d]/15' : ''
                   }`}
                 >
                   {item.kind === 'lucide' ? (
