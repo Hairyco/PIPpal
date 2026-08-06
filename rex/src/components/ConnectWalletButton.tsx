@@ -32,6 +32,10 @@ import { unlockRaidAudio } from '../utils/raidBell';
 
 const STORAGE_KEY = 'rex-connected-wallet';
 
+type WalletMenuLayout =
+  | { mode: 'sheet' }
+  | { mode: 'dropdown'; top?: number; bottom?: number; right: number; maxHeight: number };
+
 type SolanaProvider = {
   isPhantom?: boolean;
   publicKey?: { toString(): string } | null;
@@ -237,7 +241,7 @@ export function ConnectWalletButton({
   const [copied, setCopied] = useState(false);
   const [copiedRaid, setCopiedRaid] = useState(false);
   const [period, setPeriod] = useState<RaidEarningsPeriod>('7d');
-  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
+  const [menuPos, setMenuPos] = useState<WalletMenuLayout | null>(null);
   const [earnTick, setEarnTick] = useState(0);
   const [showEarnDot, setShowEarnDot] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -283,11 +287,24 @@ export function ConnectWalletButton({
   const updateMenuPos = useCallback(() => {
     const el = triggerRef.current;
     if (!el) return;
+    // iPhone / narrow viewports: bottom sheet so the panel isn't clipped by browser chrome.
+    if (window.matchMedia('(max-width: 639px)').matches) {
+      setMenuPos({ mode: 'sheet' });
+      return;
+    }
     const rect = el.getBoundingClientRect();
-    setMenuPos({
-      top: rect.bottom + 8,
-      right: Math.max(8, window.innerWidth - rect.right),
-    });
+    const gap = 8;
+    const margin = 12;
+    const spaceBelow = window.innerHeight - rect.bottom - gap - margin;
+    const spaceAbove = rect.top - gap - margin;
+    const placeBelow = spaceBelow >= 320 || spaceBelow >= spaceAbove;
+    const maxHeight = Math.max(200, placeBelow ? spaceBelow : spaceAbove);
+    const right = Math.max(8, window.innerWidth - rect.right);
+    setMenuPos(
+      placeBelow
+        ? { mode: 'dropdown', top: rect.bottom + gap, right, maxHeight }
+        : { mode: 'dropdown', bottom: window.innerHeight - rect.top + gap, right, maxHeight },
+    );
   }, []);
 
   useLayoutEffect(() => {
@@ -321,6 +338,15 @@ export function ConnectWalletButton({
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open || menuPos?.mode !== 'sheet') return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open, menuPos?.mode]);
 
   useEffect(() => {
     if (!signedIn) setOpen(false);
@@ -388,117 +414,151 @@ export function ConnectWalletButton({
     );
   }
 
+  const menuBody = (
+    <>
+      <div className="border-b border-white/[0.07] px-3.5 py-3">
+        <p className="text-[11px] font-medium text-white/40">Total value</p>
+        <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
+          {loading && sol == null ? '…' : `${formatSolAmount(sol ?? 0, 4)} SOL`}
+        </p>
+        <button
+          type="button"
+          onClick={() => void copyAddress()}
+          className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-white/45 transition hover:text-white/80"
+        >
+          {copied ? <Check className="h-3 w-3 text-[#d5ff69]" /> : <Copy className="h-3 w-3" />}
+          {shorten(liveAddress)}
+        </button>
+      </div>
+
+      <div className="space-y-2.5 border-b border-white/[0.07] p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
+            <p className="mt-0.5 text-[10px] text-white/35">
+              Raid rate{' '}
+              <span className="font-semibold text-[#d5ff69]">0.4–0.5%</span> of swap volume
+            </p>
+          </div>
+          <div className="inline-flex shrink-0 rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
+            {RAID_EARNINGS_PERIODS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setPeriod(p.id)}
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold transition ${
+                  period === p.id
+                    ? 'bg-[#c8ff3d] text-[#090b14]'
+                    : 'text-white/45 hover:text-white'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+            <div className="flex items-center gap-1.5">
+              <SolanaLogo className="h-4 w-4" />
+              <span className="text-[11px] font-medium text-white/50">SOL</span>
+            </div>
+            <p className="mt-1.5 font-mono text-sm font-semibold tabular-nums text-white">
+              {loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 4)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+            <p className="text-[11px] font-medium text-white/50">Earned · {period}</p>
+            <p className="mt-1.5 flex items-center gap-1 font-mono text-sm font-semibold tabular-nums text-[#d5ff69]">
+              <SolanaLogo className="h-3.5 w-3.5" />
+              {formatSolAmount(periodEarnings.earnedSol, 3)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-b border-white/[0.07] px-3 py-2.5">
+        <p className="text-[11px] font-medium text-white/50">Raid link</p>
+        <p
+          className="mt-1 truncate font-mono text-[11px] text-white/45"
+          title={raidLink ?? undefined}
+        >
+          {raidLink}
+        </p>
+        <button
+          type="button"
+          onClick={() => void copyRaidLink()}
+          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/[0.1] px-3 py-2 text-[12px] font-bold text-[#d5ff69] transition hover:bg-[#c8ff3d]/[0.18]"
+        >
+          {copiedRaid ? <Check className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
+          {copiedRaid ? 'Raid link copied' : 'Copy raid link'}
+        </button>
+      </div>
+
+      <div className="flex gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <button
+          type="button"
+          onClick={() => refresh()}
+          className="flex-1 rounded-xl bg-[#c8ff3d] px-3 py-2.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+        >
+          Refresh
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(false);
+            void disconnect();
+          }}
+          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-[12px] font-semibold text-white/75 transition hover:bg-white/[0.08] hover:text-white"
+        >
+          <LogOut className="h-3.5 w-3.5" />
+          Disconnect
+        </button>
+      </div>
+    </>
+  );
+
   const menu =
     open && menuPos
       ? createPortal(
-          <div
-            ref={menuRef}
-            id={menuId}
-            role="dialog"
-            aria-label="Wallet"
-            style={{ top: menuPos.top, right: menuPos.right }}
-            className="fixed z-[200] w-[min(100vw-1.5rem,20rem)] overflow-hidden rounded-2xl border border-white/[0.1] bg-[#14161f] shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
-          >
-            <div className="border-b border-white/[0.07] px-3.5 py-3">
-              <p className="text-[11px] font-medium text-white/40">Total value</p>
-              <p className="mt-0.5 font-serif text-xl font-bold tabular-nums text-white">
-                {loading && sol == null ? '…' : `${formatSolAmount(sol ?? 0, 4)} SOL`}
-              </p>
+          menuPos.mode === 'sheet' ? (
+            <div className="fixed inset-0 z-[200] flex items-end justify-center" role="presentation">
               <button
                 type="button"
-                onClick={() => void copyAddress()}
-                className="mt-1.5 inline-flex items-center gap-1 font-mono text-[11px] text-white/45 transition hover:text-white/80"
+                className="absolute inset-0 bg-black/55 backdrop-blur-[1px]"
+                aria-label="Dismiss wallet"
+                onClick={() => setOpen(false)}
+              />
+              <div
+                ref={menuRef}
+                id={menuId}
+                role="dialog"
+                aria-label="Wallet"
+                className="relative z-[1] max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top)-0.75rem))] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-b-0 border-white/[0.1] bg-[#14161f] shadow-[0_-16px_48px_rgba(0,0,0,0.55)]"
               >
-                {copied ? <Check className="h-3 w-3 text-[#d5ff69]" /> : <Copy className="h-3 w-3" />}
-                {shorten(liveAddress)}
-              </button>
-            </div>
-
-            <div className="space-y-2.5 border-b border-white/[0.07] p-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium text-white/50">Raid Earnings</p>
-                  <p className="mt-0.5 text-[10px] text-white/35">
-                    Raid rate{' '}
-                    <span className="font-semibold text-[#d5ff69]">0.4–0.5%</span> of swap volume
-                  </p>
+                <div className="sticky top-0 z-[1] bg-[#14161f] px-3.5 pb-1 pt-3" aria-hidden>
+                  <div className="mx-auto h-1 w-10 rounded-full bg-white/20" />
                 </div>
-                <div className="inline-flex shrink-0 rounded-lg border border-white/[0.08] bg-black/25 p-0.5">
-                  {RAID_EARNINGS_PERIODS.map((p) => (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setPeriod(p.id)}
-                      className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold transition ${
-                        period === p.id
-                          ? 'bg-[#c8ff3d] text-[#090b14]'
-                          : 'text-white/45 hover:text-white'
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <SolanaLogo className="h-4 w-4" />
-                    <span className="text-[11px] font-medium text-white/50">SOL</span>
-                  </div>
-                  <p className="mt-1.5 font-mono text-sm font-semibold tabular-nums text-white">
-                    {loading && sol == null ? '…' : formatSolAmount(sol ?? 0, 4)}
-                  </p>
-                </div>
-                <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
-                  <p className="text-[11px] font-medium text-white/50">Earned · {period}</p>
-                  <p className="mt-1.5 flex items-center gap-1 font-mono text-sm font-semibold tabular-nums text-[#d5ff69]">
-                    <SolanaLogo className="h-3.5 w-3.5" />
-                    {formatSolAmount(periodEarnings.earnedSol, 3)}
-                  </p>
-                </div>
+                {menuBody}
               </div>
             </div>
-
-            <div className="border-b border-white/[0.07] px-3 py-2.5">
-              <p className="text-[11px] font-medium text-white/50">Raid link</p>
-              <p
-                className="mt-1 truncate font-mono text-[11px] text-white/45"
-                title={raidLink ?? undefined}
-              >
-                {raidLink}
-              </p>
-              <button
-                type="button"
-                onClick={() => void copyRaidLink()}
-                className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#c8ff3d]/30 bg-[#c8ff3d]/[0.1] px-3 py-2 text-[12px] font-bold text-[#d5ff69] transition hover:bg-[#c8ff3d]/[0.18]"
-              >
-                {copiedRaid ? <Check className="h-3.5 w-3.5" /> : <Link2 className="h-3.5 w-3.5" />}
-                {copiedRaid ? 'Raid link copied' : 'Copy raid link'}
-              </button>
+          ) : (
+            <div
+              ref={menuRef}
+              id={menuId}
+              role="dialog"
+              aria-label="Wallet"
+              style={{
+                top: menuPos.top,
+                bottom: menuPos.bottom,
+                right: menuPos.right,
+                maxHeight: menuPos.maxHeight,
+              }}
+              className="fixed z-[200] w-[min(100vw-1.5rem,20rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/[0.1] bg-[#14161f] shadow-[0_16px_48px_rgba(0,0,0,0.55)]"
+            >
+              {menuBody}
             </div>
-
-            <div className="flex gap-2 p-3">
-              <button
-                type="button"
-                onClick={() => refresh()}
-                className="flex-1 rounded-xl bg-[#c8ff3d] px-3 py-2.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
-              >
-                Refresh
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  void disconnect();
-                }}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-[12px] font-semibold text-white/75 transition hover:bg-white/[0.08] hover:text-white"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-                Disconnect
-              </button>
-            </div>
-          </div>,
+          ),
           document.body,
         )
       : null;
