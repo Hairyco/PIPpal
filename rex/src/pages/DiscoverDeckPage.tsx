@@ -71,12 +71,18 @@ function nextSupplier(project: CtoProject): {
       priceUsd: 2000,
     };
   }
-  // Default / "Update socials"
   return {
     label: 'DexScreener socials update',
     logo: '/images/partners/dexscreener.ico',
     priceUsd: 350,
   };
+}
+
+function mwProgress(project: CtoProject): { balance: number; target: number; pct: number } {
+  const balance = marketingBalanceUsd(project);
+  const target = Math.max(1, project.nextAdTargetUsd || 500);
+  const pct = Math.min(100, Math.round((balance / target) * 100));
+  return { balance, target, pct };
 }
 
 function salt(str: string, mod = 1000): number {
@@ -466,23 +472,27 @@ export function DiscoverDeckPage() {
       </div>
 
       {/* Column headers */}
-      {bottomTab === 'growth' ? (
-        <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-2 px-3 pb-1 text-[10px] font-medium text-white/35">
-          <div>Marketing wallet</div>
-          <div className="text-right">Balance</div>
-        </div>
-      ) : bottomTab === 'bot' ? (
+      {bottomTab === 'bot' ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">CTOgo Bot</div>
-      ) : !showPinned ? (
-      <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
-        <div className="col-span-2">Age / Holders / Viewing</div>
-        <div className="text-center">Chart</div>
-        <div className="text-right">Vol / TXs</div>
-        <div className="text-right">MC / {timeWindow}%</div>
-      </div>
-      ) : (
+      ) : showPinned && bottomTab !== 'growth' ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">
           Pinned Telegram messages
+        </div>
+      ) : (
+        <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
+          <div className="col-span-2">Age / Holders / Viewing</div>
+          <div className="text-center">Chart</div>
+          {bottomTab === 'growth' ? (
+            <>
+              <div className="text-right">MW / Next</div>
+              <div className="text-right">Fill</div>
+            </>
+          ) : (
+            <>
+              <div className="text-right">Vol / TXs</div>
+              <div className="text-right">MC / {timeWindow}%</div>
+            </>
+          )}
         </div>
       )}
 
@@ -492,72 +502,7 @@ export function DiscoverDeckPage() {
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[5.5rem]"
       >
-        {bottomTab === 'growth' ? (
-          growthRows.length === 0 ? (
-            <div className="px-6 py-16 text-center">
-              <p className="text-[15px] font-semibold text-white/70">No marketing wallets yet</p>
-              <p className="mt-1 text-[13px] text-white/35">
-                Coins with a CTOgo marketing wallet show balance and the next ad supplier here.
-              </p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-white/[0.06]">
-              {growthRows.map((project) => {
-                const supplier = nextSupplier(project);
-                return (
-                  <li key={project.ticker}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                      className="flex w-full flex-col gap-2 px-3 py-3 text-left active:bg-white/[0.03]"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="block h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
-                          <img
-                            src={project.logo}
-                            alt=""
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[15px] font-bold text-white">
-                            ${project.ticker}
-                            <span className="ml-1.5 text-[12px] font-medium text-white/40">
-                              {project.name}
-                            </span>
-                          </p>
-                          <p className="mt-0.5 text-[11px] text-white/40">Marketing wallet</p>
-                        </div>
-                        <p className="shrink-0 text-[15px] font-bold tabular-nums text-[#d5ff69]">
-                          {project.marketingBalance || '$0'}
-                        </p>
-                      </div>
-                      <div className="ml-[3.25rem] flex items-center gap-2 rounded-xl bg-white/[0.03] px-2.5 py-2 ring-1 ring-white/[0.06]">
-                        <img
-                          src={supplier.logo}
-                          alt=""
-                          className="h-5 w-5 shrink-0 rounded object-contain"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-medium uppercase tracking-wide text-white/35">
-                            Next supplier
-                          </p>
-                          <p className="truncate text-[12px] font-semibold text-white/85">
-                            {supplier.label}
-                          </p>
-                        </div>
-                        <p className="shrink-0 text-[12px] font-semibold tabular-nums text-white/55">
-                          ${supplier.priceUsd}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )
-        ) : bottomTab === 'bot' ? (
+        {bottomTab === 'bot' ? (
           <div className="px-5 py-12 text-center">
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.06] text-white/80 ring-1 ring-white/10">
               <BotIcon className="h-7 w-7" />
@@ -574,7 +519,7 @@ export function DiscoverDeckPage() {
               List or launch a CTO
             </Link>
           </div>
-        ) : showPinned ? (
+        ) : showPinned && bottomTab !== 'growth' ? (
           pinnedFeed.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <p className="text-[15px] font-semibold text-white/70">No pinned messages</p>
@@ -625,31 +570,41 @@ export function DiscoverDeckPage() {
               ))}
             </ul>
           )
-        ) : rows.length === 0 ? (
+        ) : (bottomTab === 'growth' ? growthRows : rows).length === 0 ? (
           <div className="px-6 py-16 text-center">
             <p className="text-[15px] font-semibold text-white/70">
-              {chain !== 'SOL' ? `${chain} coming soon` : 'No tokens yet'}
+              {bottomTab === 'growth'
+                ? 'No marketing wallets yet'
+                : chain !== 'SOL'
+                  ? `${chain} coming soon`
+                  : 'No tokens yet'}
             </p>
             <p className="mt-1 text-[13px] text-white/35">
-              {topTab === 'watchlist'
-                ? 'Star coins on classic view to fill your watchlist.'
-                : topTab === 'prelaunch'
-                  ? 'No staging CTOs right now — Launch a CTO to appear here.'
-                  : 'CTOgo is Solana-first for now.'}
+              {bottomTab === 'growth'
+                ? 'Coins with a CTOgo marketing wallet show fill progress here.'
+                : topTab === 'watchlist'
+                  ? 'Star coins on classic view to fill your watchlist.'
+                  : topTab === 'prelaunch'
+                    ? 'No staging CTOs right now — Launch a CTO to appear here.'
+                    : 'CTOgo is Solana-first for now.'}
             </p>
-            <Link
-              to="/home"
-              className="mt-5 inline-flex rounded-full bg-[#c8ff3d] px-4 py-2 text-[13px] font-bold text-[#090b14]"
-            >
-              Classic view
-            </Link>
+            {bottomTab !== 'growth' ? (
+              <Link
+                to="/home"
+                className="mt-5 inline-flex rounded-full bg-[#c8ff3d] px-4 py-2 text-[13px] font-bold text-[#090b14]"
+              >
+                Classic view
+              </Link>
+            ) : null}
           </div>
         ) : (
           <ul>
-            {rows.map((project) => {
+            {(bottomTab === 'growth' ? growthRows : rows).map((project) => {
               const pct = changeForWindow(project, timeWindow);
               const up = pct >= 0;
               const showPeak = peakTickers.includes(project.ticker);
+              const fill = bottomTab === 'growth' ? mwProgress(project) : null;
+              const supplier = bottomTab === 'growth' ? nextSupplier(project) : null;
               return (
                 <li key={project.ticker}>
                   <button
@@ -715,40 +670,80 @@ export function DiscoverDeckPage() {
                       />
                     </div>
 
-                    <div className="min-w-0 text-right">
-                      <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
-                        {project.volume24h}
-                      </p>
-                      <p className="mt-1 truncate text-[11px] font-medium tabular-nums leading-none text-white/40">
-                        {project.txs}
-                      </p>
-                    </div>
-
-                    <div className="min-w-0 text-right">
-                      {showPeak ? (
-                        <>
-                          <p className="truncate text-[13px] font-bold tabular-nums leading-none text-[#c8ff3d]">
-                            {peakLabelFor(project.ticker, project.change24h)}
+                    {fill && supplier ? (
+                      <>
+                        <div className="min-w-0 text-right">
+                          <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-[#d5ff69]">
+                            {project.marketingBalance || `$${fill.balance}`}
                           </p>
-                          <p className="mt-1 text-[11px] font-medium leading-none text-white/40">
-                            Peak
+                          <p className="mt-1 flex items-center justify-end gap-1 truncate text-[11px] font-medium leading-none text-white/40">
+                            <img
+                              src={supplier.logo}
+                              alt=""
+                              className="h-3 w-3 shrink-0 rounded-sm object-contain"
+                            />
+                            <span className="truncate">${fill.target}</span>
                           </p>
-                        </>
-                      ) : (
-                        <>
-                          <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
-                            {project.marketCap}
-                          </p>
-                          <p
-                            className={`mt-1 truncate text-[11px] font-semibold tabular-nums leading-none ${
-                              up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
-                            }`}
+                        </div>
+                        <div className="min-w-0">
+                          <div
+                            className="h-1.5 overflow-hidden rounded-full bg-white/[0.08]"
+                            role="progressbar"
+                            aria-valuenow={fill.pct}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-label={`Marketing wallet ${fill.pct}% to next spend`}
                           >
-                            {formatPct(pct)}
+                            <div
+                              className={`h-full rounded-full transition-[width] ${
+                                fill.pct >= 100 ? 'bg-emerald-400' : 'bg-[#c8ff3d]'
+                              }`}
+                              style={{ width: `${Math.max(fill.pct, fill.pct > 0 ? 4 : 0)}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 truncate text-right text-[11px] font-semibold tabular-nums leading-none text-white/55">
+                            {fill.pct}%
                           </p>
-                        </>
-                      )}
-                    </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="min-w-0 text-right">
+                          <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
+                            {project.volume24h}
+                          </p>
+                          <p className="mt-1 truncate text-[11px] font-medium tabular-nums leading-none text-white/40">
+                            {project.txs}
+                          </p>
+                        </div>
+
+                        <div className="min-w-0 text-right">
+                          {showPeak ? (
+                            <>
+                              <p className="truncate text-[13px] font-bold tabular-nums leading-none text-[#c8ff3d]">
+                                {peakLabelFor(project.ticker, project.change24h)}
+                              </p>
+                              <p className="mt-1 text-[11px] font-medium leading-none text-white/40">
+                                Peak
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="truncate text-[13px] font-semibold tabular-nums leading-none text-white">
+                                {project.marketCap}
+                              </p>
+                              <p
+                                className={`mt-1 truncate text-[11px] font-semibold tabular-nums leading-none ${
+                                  up ? 'text-[#12d18e]' : 'text-[#ff5a6a]'
+                                }`}
+                              >
+                                {formatPct(pct)}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </button>
                 </li>
               );
