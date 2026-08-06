@@ -50,6 +50,16 @@ export type FounderProject = {
   queuedBannerCount?: number;
   starterBundleSelected?: boolean;
   starterBundleFunding?: 'pay-now' | 'wait-wallet' | null;
+  /** DexScreener Token Ad + Trending Bar creative pack for Polessia */
+  dexAdPack?: {
+    adTitle: string;
+    adPitch: string;
+    squareImageUrl: string | null;
+    websiteUrl: string;
+    xUrl: string;
+    telegramUrl: string;
+    discordUrl: string;
+  };
   telegramGroup: string;
   discordUrl?: string;
 };

@@ -28,6 +28,7 @@ import {
   CreativeSuiteStep,
   type CreativeSuiteState,
 } from '../components/get-started/CreativeSuiteStep';
+import { dexPaidAdsPackReady } from '../data/dexscreenerAdPack';
 import { saveFounderProject } from '../utils/founderProject';
 import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
 import type { ProjectOrigin } from '../utils/projectOrigin';
@@ -67,6 +68,15 @@ const EMPTY_CREATIVE: CreativeSuiteState = {
   queuedBannerCount: 0,
   starterBundleSelected: false,
   starterBundleFunding: null,
+  dexAdPack: {
+    adTitle: '',
+    adPitch: '',
+    squareImageUrl: null,
+    websiteUrl: '',
+    xUrl: '',
+    telegramUrl: '',
+    discordUrl: '',
+  },
 };
 
 export function GetStartedPage() {
@@ -204,6 +214,7 @@ export function GetStartedPage() {
       queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
       starterBundleSelected: creativeSuite.starterBundleSelected || undefined,
       starterBundleFunding: creativeSuite.starterBundleFunding,
+      dexAdPack: creativeSuite.dexAdPack,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     }),
@@ -295,6 +306,7 @@ export function GetStartedPage() {
       queuedBannerCount: creativeSuite.queuedBannerCount || undefined,
       starterBundleSelected: creativeSuite.starterBundleSelected || undefined,
       starterBundleFunding: creativeSuite.starterBundleFunding,
+      dexAdPack: creativeSuite.dexAdPack,
       telegramGroup: communityLinks.telegramGroup,
       discordUrl: communityLinks.discordUrl,
     });
@@ -708,6 +720,9 @@ export function GetStartedPage() {
                         creativeSuite.bannerUrl || creativeSuite.bannerAssets.length
                           ? 'Banner ready'
                           : 'No banner',
+                        dexPaidAdsPackReady(creativeSuite.dexAdPack)
+                          ? 'Dex ad pack ready'
+                          : 'Dex ad pack incomplete — Token Ad / Trending Bar stay queued',
                       ].join(' · ')}
                     </p>
                     {creativeSuite.starterBundleSelected ? (

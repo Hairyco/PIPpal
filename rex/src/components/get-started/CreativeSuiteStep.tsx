@@ -16,6 +16,14 @@ import {
   getMarketingBundle,
   type BundleFunding,
 } from '../../data/marketingBundles';
+import {
+  DEX_AD_PACK_BLOCK_COPY,
+  DEX_SQUARE_IMAGE_SPEC,
+  EMPTY_DEX_AD_PACK,
+  dexAdPackMissing,
+  dexPaidAdsPackReady,
+  type DexAdPackAssets,
+} from '../../data/dexscreenerAdPack';
 import { generateProjectImageDataUrl, readImageFile } from '../../utils/projectImageGenerate';
 
 export type CreativeFunding = 'marketing-wallet' | 'pay-now';
@@ -33,6 +41,8 @@ export type CreativeSuiteState = {
   queuedBannerCount: number;
   starterBundleSelected: boolean;
   starterBundleFunding: BundleFunding | null;
+  /** DexScreener Token Ad + Trending Bar pack for Polessia fulfilment */
+  dexAdPack: DexAdPackAssets;
 };
 
 const EMPTY_PREVIEW_HINT =
@@ -59,11 +69,17 @@ export function CreativeSuiteStep({
 }: CreativeSuiteStepProps) {
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const dexSquareRef = useRef<HTMLInputElement>(null);
   const [cloning, setCloning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const starter = getMarketingBundle('launch-starter')!;
   const patch = (partial: Partial<CreativeSuiteState>) => onChange({ ...value, ...partial });
+  const pack = value.dexAdPack ?? EMPTY_DEX_AD_PACK;
+  const dexMissing = dexAdPackMissing(pack);
+  const dexReady = dexPaidAdsPackReady(pack);
+  const patchDex = (partial: Partial<DexAdPackAssets>) =>
+    patch({ dexAdPack: { ...pack, ...partial } });
   const complexity = assessWebsiteCloneComplexity(value.sourceWebsiteUrl);
   const hostSlug = projectName.trim()
     ? `${projectName.trim().toLowerCase().replace(/\s+/g, '-')}.rex.app`
@@ -107,6 +123,15 @@ export function CreativeSuiteStep({
       patch({ bannerUrl: dataUrl, bannerAssets: [dataUrl] });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Banner upload failed');
+    }
+  };
+
+  const handleDexSquare = async (file: File) => {
+    setError(null);
+    try {
+      patchDex({ squareImageUrl: await readImageFile(file) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Dex ad image upload failed');
     }
   };
 
@@ -282,10 +307,134 @@ export function CreativeSuiteStep({
             />
           </section>
 
-          {/* 3. Launch starter bundle */}
+          {/* 3. DexScreener ad pack (Token Ad + Trending Bar) */}
+          <section className="space-y-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.03] p-4">
+            <div className="flex items-start gap-2">
+              <img
+                src="/images/partners/dexscreener.ico"
+                alt=""
+                className="mt-0.5 h-4 w-4 shrink-0 rounded object-contain"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white">3. DexScreener ad pack</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Required for Polessia to place <span className="text-white/70">Token Advertising</span>{' '}
+                  and <span className="text-white/70">Trending Bar</span>. Specs match Dex Marketplace
+                  upload rules.
+                </p>
+              </div>
+              <span
+                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  dexReady
+                    ? 'bg-emerald-400/15 text-emerald-300'
+                    : 'bg-amber-400/15 text-amber-200'
+                }`}
+              >
+                {dexReady ? 'Ready' : 'Needed'}
+              </span>
+            </div>
+
+            <p className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] leading-relaxed text-white/50">
+              {DEX_AD_PACK_BLOCK_COPY}
+            </p>
+
+            <label className="block text-xs font-medium text-muted-foreground">
+              Ad title <span className="text-rose-400">*</span>
+              <input
+                type="text"
+                value={pack.adTitle}
+                onChange={(e) => patchDex({ adTitle: e.target.value })}
+                placeholder="Short title for the Dex ad"
+                className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+              />
+            </label>
+
+            <label className="block text-xs font-medium text-muted-foreground">
+              Ad pitch <span className="text-rose-400">*</span>
+              <span className="ml-1 font-normal text-white/35">(Token Advertising)</span>
+              <textarea
+                value={pack.adPitch}
+                onChange={(e) => patchDex({ adPitch: e.target.value })}
+                rows={3}
+                placeholder="A short description of your project to get people interested"
+                className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+              />
+            </label>
+
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                Square ad image <span className="text-rose-400">*</span>
+              </p>
+              <p className="mt-0.5 text-[11px] text-white/40">{DEX_SQUARE_IMAGE_SPEC.label}</p>
+              <div className="mt-2">
+                <AssetSlot
+                  label="Dex square"
+                  imageUrl={pack.squareImageUrl}
+                  onClear={() => patchDex({ squareImageUrl: null })}
+                  onUploadClick={() => dexSquareRef.current?.click()}
+                />
+              </div>
+              {value.logoUrl && !pack.squareImageUrl ? (
+                <button
+                  type="button"
+                  onClick={() => patchDex({ squareImageUrl: value.logoUrl })}
+                  className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                >
+                  Use logo as Dex square image
+                </button>
+              ) : null}
+              <input
+                ref={dexSquareRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleDexSquare(file);
+                  e.target.value = '';
+                }}
+              />
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-2">
+              {(
+                [
+                  ['websiteUrl', 'Website'],
+                  ['xUrl', 'X / Twitter'],
+                  ['telegramUrl', 'Telegram'],
+                  ['discordUrl', 'Discord'],
+                ] as const
+              ).map(([key, label]) => (
+                <label key={key} className="block text-xs font-medium text-muted-foreground">
+                  {label}
+                  <input
+                    type="url"
+                    value={pack[key]}
+                    onChange={(e) => patchDex({ [key]: e.target.value })}
+                    placeholder="https://"
+                    className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {!dexReady ? (
+              <p className="text-[11px] text-amber-200/90">
+                Still needed: {dexMissing.join(' · ')}. Without these, Dex ad spends stay queued and
+                you get notified.
+              </p>
+            ) : (
+              <p className="text-[11px] text-emerald-300/90">
+                Pack ready — Polessia can complete Token Ad and Trending Bar order forms when the
+                wallet unlocks.
+              </p>
+            )}
+          </section>
+
+          {/* 4. Launch starter bundle */}
           <section className="space-y-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <div>
-              <p className="text-sm font-medium text-white">3. {starter.title}</p>
+              <p className="text-sm font-medium text-white">4. {starter.title}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">{starter.summary}</p>
               <p className="mt-2 text-[11px] text-sky-300/90">
                 {starter.approxSol} from marketing wallet · {starter.priceHint}
@@ -333,8 +482,8 @@ export function CreativeSuiteStep({
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
           <p className="text-[10px] leading-relaxed text-muted-foreground">
-            Later bundles (CoinGecko CTO, DexScreener ads) appear on your dashboard after the coin
-            is live — pick the supplier you want to pay next.
+            DexScreener Token Ad / Trending Bar run from the pack above once the marketing wallet
+            unlocks. Enhanced Token Info (3:1 header) can be added later from the dashboard.
           </p>
         </div>
       </div>

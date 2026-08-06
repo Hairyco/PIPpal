@@ -19,42 +19,57 @@ export type PlatformCollateral = {
   items: CollateralItem[];
 };
 
-/** DexScreener enhanced token info / ads — ratios confirmed from their upload cropper. */
+/** DexScreener enhanced token info / ads — ratios from live Marketplace order forms. */
 export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
   {
     id: 'dexscreener',
     name: 'DexScreener',
     logo: '/images/partners/dexscreener.ico',
     summary:
-      'Paid placements and enhanced info need creative ready before the wallet pays. Header is a wide 3:1 strip — not a square logo.',
+      'Token Ad + Trending Bar need a square creative on file before Polessia can order. Enhanced Token Info also needs a 3:1 header. Missing media = spend queued + founder notified.',
     items: [
       {
+        id: 'ds-ad-title',
+        label: 'Ad title',
+        detail: 'Required for Token Advertising and Trending Bar',
+      },
+      {
+        id: 'ds-ad-pitch',
+        label: 'Ad pitch',
+        detail: 'Short description — Token Advertising form only',
+      },
+      {
+        id: 'ds-ad-square',
+        label: 'Square ad image',
+        detail: 'Same upload for Token Ad and Trending Bar',
+        spec: '1:1 · PNG/JPG/WebP · min 100px · max 4.5 MB',
+      },
+      {
+        id: 'ds-ad-links',
+        label: 'Ad links (Website / X / Telegram / Discord)',
+        detail: 'Token Advertising link fields — recommended for fulfilment',
+      },
+      {
         id: 'ds-icon',
-        label: 'Token icon',
-        detail: 'Square mark for lists and the pair header',
-        spec: '1:1 · PNG/JPG/WebP · max ~4.5 MB',
+        label: 'Enhanced Info icon',
+        detail: 'Square mark for the pair page (ETI product)',
+        spec: '1:1 · PNG/JPG/WebP/GIF · min 100px · max 4.5 MB',
       },
       {
         id: 'ds-header',
-        label: 'Token header / banner',
-        detail: 'Wide strip on the token profile (cropper enforces ratio)',
-        spec: '3:1 · recommend 1200×400',
+        label: 'Enhanced Info header',
+        detail: 'Wide strip on the token profile (ETI product)',
+        spec: '3:1 · min 600px wide · recommend 1500×500',
       },
       {
         id: 'ds-desc',
-        label: 'Short description',
-        detail: 'Plain text under the logo — keep it tight',
-        spec: '~180–200 chars',
+        label: 'Enhanced Info description',
+        detail: 'Plain text on the pair details page',
       },
       {
         id: 'ds-socials',
         label: 'Social + website links',
         detail: 'X, Telegram, Discord, site — validated URLs',
-      },
-      {
-        id: 'ds-pay',
-        label: 'Wallet ready to pay DexScreener',
-        detail: 'Enhanced info / boost / ads are paid on their side — wallet balance alone is not enough without assets above',
       },
     ],
   },

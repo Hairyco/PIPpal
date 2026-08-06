@@ -56,6 +56,17 @@ export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
   },
 ];
 
+/** Spend items that require the Dex ad pack on file before Polessia can fulfil. */
+export const DEX_AD_PACK_REQUIRED_SPEND_IDS: SpendItemId[] = ['dex-trending'];
+
+/**
+ * Token Advertising / socials-style Dex spends also need the square creative + title/pitch.
+ * Map loosely until live product ids wire up.
+ */
+export function spendRequiresDexAdPack(itemId: SpendItemId): boolean {
+  return itemId === 'dex-trending' || itemId === 'dex-socials';
+}
+
 export const POLESSIA_DEFAULT_SELECTED: SpendItemId[] =
   POST_LAUNCH_SPEND_THRESHOLDS.flatMap((t) => t.items.map((i) => i.id));
 
