@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <rect width="48" height="48" rx="10" fill="#3861fb"/>
-  <text x="24" y="30" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="9" font-weight="700">CMC</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- CoinMarketCap mark: blue disc + CMC chart glyph -->
+  <circle cx="16" cy="16" r="16" fill="#3861FB"/>
+  <path
+    fill="#fff"
+    d="M8.5 20.8 12.2 11c.2-.5.9-.5 1.1 0l2.4 6.2 2.1-3.6c.2-.4.7-.4.9 0l4.8 7.2c.3.4 0 1-.5 1H9c-.5 0-.8-.6-.5-1z"
+  />
+  <circle cx="16" cy="9.2" r="1.6" fill="#fff"/>
 </svg>
