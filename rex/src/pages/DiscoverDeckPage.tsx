@@ -7,6 +7,7 @@ import {
   Compass,
   Eye,
   Filter,
+  Globe,
   Pin,
   Rocket,
   Search,
@@ -29,6 +30,31 @@ import { useWatchlist } from '../hooks/useWatchlist';
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'bot';
+type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
+
+const PRELAUNCH_FILTERS: { id: PrelaunchFilter; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'live_soon', label: 'Live soon' },
+  { id: 'with_vault', label: 'With vault' },
+];
+
+/** Demo social links until projects carry live URLs. */
+function projectSocials(project: CtoProject) {
+  const slug = project.ticker.toLowerCase().replace(/[^a-z0-9]/g, '') || 'ctogo';
+  return {
+    x: `https://x.com/${slug}`,
+    telegram: `https://t.me/${slug}`,
+    website: `https://${slug}.fun`,
+  };
+}
+
+function XLogo({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
 
 const CHAINS = [
   { id: 'SOL', label: 'SOL' },
@@ -188,6 +214,8 @@ export function DiscoverDeckPage() {
   const [showTop, setShowTop] = useState(false);
   const [showPinned, setShowPinned] = useState(false);
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
+  const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
+  const isPrelaunchView = bottomTab === 'prelaunch' || topTab === 'prelaunch';
 
   const rows = useMemo(() => {
     let list = [...ctoProjects];
@@ -198,6 +226,15 @@ export function DiscoverDeckPage() {
     } else if (topTab === 'prelaunch') {
       list = list
         .filter((p) => p.stage !== 'Live' && p.launchInHours != null)
+        .filter((p) => {
+          if (prelaunchFilter === 'live_soon') {
+            return (p.launchInHours ?? 999) <= 24;
+          }
+          if (prelaunchFilter === 'with_vault') {
+            return Boolean(p.marketingWallet || p.marketingWalletAddress);
+          }
+          return true;
+        })
         .sort(
           (a, b) =>
             (a.launchInHours ?? Number.POSITIVE_INFINITY) -
@@ -220,7 +257,7 @@ export function DiscoverDeckPage() {
     // SOL-only product — other chains show empty for now
     if (chain !== 'SOL') return [];
     return list;
-  }, [topTab, starred, timeWindow, query, chain, source]);
+  }, [topTab, starred, timeWindow, query, chain, source, prelaunchFilter]);
 
   const growthRows = useMemo(
     () =>
@@ -430,6 +467,30 @@ export function DiscoverDeckPage() {
       </div>
 
       {/* Filter row */}
+      {isPrelaunchView ? (
+        <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
+          <div className="inline-flex w-full gap-0.5 rounded-full border border-white/[0.08] bg-[#1c1c1e] p-0.5">
+            {PRELAUNCH_FILTERS.map((f) => {
+              const active = prelaunchFilter === f.id;
+              return (
+                <button
+                  key={f.id}
+                  type="button"
+                  onClick={() => setPrelaunchFilter(f.id)}
+                  className={`flex-1 rounded-full px-2 py-1.5 text-[12px] font-semibold transition ${
+                    active
+                      ? 'bg-[#c8ff3d] text-[#090b14]'
+                      : 'text-white/55 hover:text-white'
+                  }`}
+                  aria-pressed={active}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
       <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
         <button
           type="button"
@@ -470,11 +531,12 @@ export function DiscoverDeckPage() {
           <Filter className="h-[15px] w-[15px]" />
         </button>
       </div>
+      )}
 
       {/* Column headers */}
       {bottomTab === 'bot' ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">CTOgo Bot</div>
-      ) : showPinned && bottomTab !== 'growth' ? (
+      ) : showPinned && bottomTab !== 'growth' && !isPrelaunchView ? (
         <div className="px-3 pb-1 text-[10px] font-medium text-white/35">
           Pinned Telegram messages
         </div>
@@ -487,6 +549,8 @@ export function DiscoverDeckPage() {
               <div className="text-right">MW / Next</div>
               <div className="text-right">Fill</div>
             </>
+          ) : isPrelaunchView ? (
+            <div className="col-span-2 text-right">X · TG · Web</div>
           ) : (
             <>
               <div className="text-right">Vol / TXs</div>
@@ -706,6 +770,53 @@ export function DiscoverDeckPage() {
                           </p>
                         </div>
                       </>
+                    ) : isPrelaunchView ? (
+                      <div className="col-span-2 flex items-center justify-end gap-1.5">
+                        {(() => {
+                          const socials = projectSocials(project);
+                          return (
+                            <>
+                              <a
+                                href={socials.x}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="X / Twitter"
+                                aria-label={`${project.ticker} on X`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="grid h-8 w-8 place-items-center rounded-full bg-[#1c1c1e] text-white/75 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+                              >
+                                <XLogo className="h-3.5 w-3.5" />
+                              </a>
+                              <a
+                                href={socials.telegram}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Telegram"
+                                aria-label={`${project.ticker} on Telegram`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="grid h-8 w-8 place-items-center rounded-full bg-[#1c1c1e] ring-1 ring-white/10 transition hover:bg-white/10"
+                              >
+                                <img
+                                  src="/images/partners/telegram.svg"
+                                  alt=""
+                                  className="h-4 w-4 object-contain"
+                                />
+                              </a>
+                              <a
+                                href={socials.website}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Website"
+                                aria-label={`${project.ticker} website`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="grid h-8 w-8 place-items-center rounded-full bg-[#1c1c1e] text-white/75 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+                              >
+                                <Globe className="h-4 w-4" strokeWidth={2} />
+                              </a>
+                            </>
+                          );
+                        })()}
+                      </div>
                     ) : (
                       <>
                         <div className="min-w-0 text-right">
