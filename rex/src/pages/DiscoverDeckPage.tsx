@@ -8,6 +8,7 @@ import {
   Eye,
   Filter,
   Pin,
+  Rocket,
   Search,
   Users,
 } from 'lucide-react';
@@ -25,13 +26,58 @@ import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue,
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
 
-type TopTab = 'watchlist' | 'growth' | 'trending' | 'prelaunch';
+type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
+type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'bot';
 
 const CHAINS = [
   { id: 'SOL', label: 'SOL' },
   { id: 'BSC', label: 'BSC' },
 ] as const;
+
+function volumeUsd(project: CtoProject): number {
+  const raw = project.volume24h.replace(/[^0-9.]/g, '');
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 0;
+  if (project.volume24h.includes('M')) return n * 1_000_000;
+  if (project.volume24h.includes('K')) return n * 1_000;
+  return n;
+}
+
+function marketingBalanceUsd(project: CtoProject): number {
+  const raw = (project.marketingBalance || '').replace(/[^0-9.]/g, '');
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** Next Polessia-style supplier for Growth tab (demo until live queue). */
+function nextSupplier(project: CtoProject): {
+  label: string;
+  logo: string;
+  priceUsd: number;
+} {
+  const spend = (project.nextAdSpend || '').toLowerCase();
+  if (spend.includes('telegram') || spend.includes('pin')) {
+    return {
+      label: 'Pinned message · Telegram',
+      logo: '/images/partners/telegram.svg',
+      priceUsd: 150,
+    };
+  }
+  if (spend.includes('trend')) {
+    return {
+      label: 'DexScreener trending bar',
+      logo: '/images/partners/dexscreener.ico',
+      priceUsd: 2000,
+    };
+  }
+  // Default / "Update socials"
+  return {
+    label: 'DexScreener socials update',
+    logo: '/images/partners/dexscreener.ico',
+    priceUsd: 350,
+  };
+}
 
 function salt(str: string, mod = 1000): number {
   let s = 0;
@@ -100,56 +146,30 @@ function ChainDot({ id }: { id: string }) {
   return <span className="h-3.5 w-3.5 rounded-full bg-white/30" />;
 }
 
-function TrackIcon({ className = '' }: { className?: string }) {
+function GrowthIcon({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <circle cx="12" cy="12" r="7.5" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
       <path
-        d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21"
+        d="M4 16.5 9.2 11l3.3 3.2L20 7"
         stroke="currentColor"
-        strokeWidth="1.6"
+        strokeWidth="1.7"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      <path d="M14.5 7H20v5.5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-function CopyTradeIcon({ className = '' }: { className?: string }) {
+function BotIcon({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <circle cx="9" cy="9" r="3.2" stroke="currentColor" strokeWidth="1.6" />
-      <circle cx="15.5" cy="10.5" r="2.6" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d="M4.5 18.5c.8-2.4 2.6-3.6 4.5-3.6s3.7 1.2 4.5 3.6"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M13.2 15.2c.7-.4 1.5-.6 2.3-.6 1.6 0 3 .8 3.7 2.4"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function PortfolioIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <rect
-        x="3.5"
-        y="6.5"
-        width="17"
-        height="12"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-      />
-      <path d="M3.5 10.5h17" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M8 6.5V5.8A2.3 2.3 0 0 1 10.3 3.5h3.4A2.3 2.3 0 0 1 16 5.8v.7" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="5" y="8" width="14" height="11" rx="3" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 4.5v3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12" cy="4.2" r="1.2" fill="currentColor" />
+      <circle cx="9.2" cy="13" r="1.15" fill="currentColor" />
+      <circle cx="14.8" cy="13" r="1.15" fill="currentColor" />
+      <path d="M9 16.2h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
 }
@@ -159,6 +179,7 @@ export function DiscoverDeckPage() {
   const { starred, count: watchCount } = useWatchlist();
   const listRef = useRef<HTMLDivElement>(null);
   const [topTab, setTopTab] = useState<TopTab>('trending');
+  const [bottomTab, setBottomTab] = useState<BottomTab>('discover');
   const [chain, setChain] = useState<string>('SOL');
   const [source, setSource] = useState<SourceVenueFilter>('all');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');
@@ -171,8 +192,8 @@ export function DiscoverDeckPage() {
     let list = [...ctoProjects];
     if (topTab === 'watchlist') {
       list = list.filter((p) => starred[p.ticker]);
-    } else if (topTab === 'growth') {
-      list = [...list].sort((a, b) => b.score - a.score).slice(0, 12);
+    } else if (topTab === 'volume') {
+      list = [...list].sort((a, b) => volumeUsd(b) - volumeUsd(a));
     } else if (topTab === 'prelaunch') {
       list = list
         .filter((p) => p.stage !== 'Live' && p.launchInHours != null)
@@ -199,6 +220,21 @@ export function DiscoverDeckPage() {
     if (chain !== 'SOL') return [];
     return list;
   }, [topTab, starred, timeWindow, query, chain, source]);
+
+  const growthRows = useMemo(
+    () =>
+      [...ctoProjects]
+        .filter((p) => Boolean(p.marketingBalance || p.marketingWallet))
+        .sort((a, b) => marketingBalanceUsd(b) - marketingBalanceUsd(a)),
+    [],
+  );
+
+  const selectBottom = (tab: BottomTab) => {
+    setBottomTab(tab);
+    setShowPinned(false);
+    if (tab === 'prelaunch') setTopTab('prelaunch');
+    if (tab === 'discover' && topTab === 'prelaunch') setTopTab('trending');
+  };
 
   const pinnedFeed = useMemo(
     () =>
@@ -282,17 +318,21 @@ export function DiscoverDeckPage() {
         {(
           [
             { id: 'watchlist' as const, label: 'Watchlist' },
-            { id: 'growth' as const, label: 'Growth' },
+            { id: 'volume' as const, label: 'Volume' },
             { id: 'trending' as const, label: 'Trending' },
             { id: 'prelaunch' as const, label: 'Prelaunch' },
           ] as const
         ).map((tab) => {
-          const active = topTab === tab.id;
+          const active = topTab === tab.id && bottomTab !== 'growth' && bottomTab !== 'bot';
           return (
             <button
               key={tab.id}
               type="button"
-              onClick={() => setTopTab(tab.id)}
+              onClick={() => {
+                setTopTab(tab.id);
+                setBottomTab(tab.id === 'prelaunch' ? 'prelaunch' : 'discover');
+                setShowPinned(false);
+              }}
               className={`relative pb-2.5 text-[15px] font-semibold transition ${
                 active ? 'text-white' : 'text-white/40'
               }`}
@@ -428,7 +468,14 @@ export function DiscoverDeckPage() {
       </div>
 
       {/* Column headers */}
-      {!showPinned ? (
+      {bottomTab === 'growth' ? (
+        <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_5.5rem] items-center gap-x-2 px-3 pb-1 text-[10px] font-medium text-white/35">
+          <div>Marketing wallet</div>
+          <div className="text-right">Balance</div>
+        </div>
+      ) : bottomTab === 'bot' ? (
+        <div className="px-3 pb-1 text-[10px] font-medium text-white/35">CTOgo Bot</div>
+      ) : !showPinned ? (
       <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
         <div className="col-span-2">Age / Holders / Viewing</div>
         <div className="text-center">Chart</div>
@@ -447,7 +494,89 @@ export function DiscoverDeckPage() {
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[5.5rem]"
       >
-        {showPinned ? (
+        {bottomTab === 'growth' ? (
+          growthRows.length === 0 ? (
+            <div className="px-6 py-16 text-center">
+              <p className="text-[15px] font-semibold text-white/70">No marketing wallets yet</p>
+              <p className="mt-1 text-[13px] text-white/35">
+                Coins with a CTOgo marketing wallet show balance and the next ad supplier here.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-white/[0.06]">
+              {growthRows.map((project) => {
+                const supplier = nextSupplier(project);
+                return (
+                  <li key={project.ticker}>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
+                      className="flex w-full flex-col gap-2 px-3 py-3 text-left active:bg-white/[0.03]"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="block h-10 w-10 shrink-0 overflow-hidden rounded-[10px] bg-[#1c1c1e] ring-1 ring-white/10">
+                          <img
+                            src={project.logo}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[15px] font-bold text-white">
+                            ${project.ticker}
+                            <span className="ml-1.5 text-[12px] font-medium text-white/40">
+                              {project.name}
+                            </span>
+                          </p>
+                          <p className="mt-0.5 text-[11px] text-white/40">Marketing wallet</p>
+                        </div>
+                        <p className="shrink-0 text-[15px] font-bold tabular-nums text-[#d5ff69]">
+                          {project.marketingBalance || '$0'}
+                        </p>
+                      </div>
+                      <div className="ml-[3.25rem] flex items-center gap-2 rounded-xl bg-white/[0.03] px-2.5 py-2 ring-1 ring-white/[0.06]">
+                        <img
+                          src={supplier.logo}
+                          alt=""
+                          className="h-5 w-5 shrink-0 rounded object-contain"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-medium uppercase tracking-wide text-white/35">
+                            Next supplier
+                          </p>
+                          <p className="truncate text-[12px] font-semibold text-white/85">
+                            {supplier.label}
+                          </p>
+                        </div>
+                        <p className="shrink-0 text-[12px] font-semibold tabular-nums text-white/55">
+                          ${supplier.priceUsd}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        ) : bottomTab === 'bot' ? (
+          <div className="px-5 py-12 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.06] text-white/80 ring-1 ring-white/10">
+              <BotIcon className="h-7 w-7" />
+            </span>
+            <p className="mt-4 text-[17px] font-bold text-white">CTOgo Bot</p>
+            <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-white/45">
+              Auto-buy, alerts, and raid helpers for CTOgo coins. Connect a wallet when the bot goes
+              live — this tab is the home for it.
+            </p>
+            <Link
+              to="/launch"
+              className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14]"
+            >
+              List or launch a CTO
+            </Link>
+          </div>
+        ) : showPinned ? (
           pinnedFeed.length === 0 ? (
             <div className="px-6 py-16 text-center">
               <p className="text-[15px] font-semibold text-white/70">No pinned messages</p>
@@ -651,63 +780,44 @@ export function DiscoverDeckPage() {
       {/* Bottom nav */}
       <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="pointer-events-auto flex w-full max-w-[22rem] items-center justify-between rounded-[22px] bg-[#1c1c1e]/92 px-2 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
-          <Link
-            to="/"
-            onClick={() => setShowPinned(false)}
-            className="flex w-[18%] flex-col items-center gap-0.5"
-            aria-current={showPinned ? undefined : 'page'}
-          >
-            <span
-              className={`grid h-8 w-8 place-items-center rounded-full ${
-                showPinned ? '' : 'bg-white/15'
-              }`}
-            >
-              <Compass
-                className={`h-[18px] w-[18px] ${showPinned ? 'text-white/45' : 'text-white'}`}
-                strokeWidth={2}
-              />
-            </span>
-            <span
-              className={`text-[10px] ${
-                showPinned ? 'font-medium text-white/45' : 'font-semibold text-white'
-              }`}
-            >
-              Discover
-            </span>
-          </Link>
-          <button
-            type="button"
-            onClick={() => setShowPinned(true)}
-            className={`flex w-[18%] flex-col items-center gap-0.5 ${
-              showPinned ? 'text-white' : 'text-white/45'
-            }`}
-          >
-            <span
-              className={`grid h-8 w-8 place-items-center rounded-full ${
-                showPinned ? 'bg-white/15' : ''
-              }`}
-            >
-              <Pin className="h-[18px] w-[18px]" strokeWidth={2} />
-            </span>
-            <span className={`text-[10px] ${showPinned ? 'font-semibold' : 'font-medium'}`}>
-              Pinned
-            </span>
-          </button>
-          <button type="button" className="flex w-[18%] flex-col items-center gap-0.5 text-white/45">
-            <TrackIcon className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium">Track</span>
-          </button>
-          <button type="button" className="flex w-[18%] flex-col items-center gap-0.5 text-white/45">
-            <CopyTradeIcon className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium">Copy</span>
-          </button>
-          <Link
-            to="/launch?dashboard=1"
-            className="flex w-[18%] flex-col items-center gap-0.5 text-white/45"
-          >
-            <PortfolioIcon className="h-[18px] w-[18px]" />
-            <span className="text-[10px] font-medium">Portfolio</span>
-          </Link>
+          {(
+            [
+              { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
+              { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
+              { id: 'growth' as const, label: 'Growth', kind: 'custom' as const },
+              { id: 'bot' as const, label: 'Bot', kind: 'custom' as const },
+            ] as const
+          ).map((item) => {
+            const active = bottomTab === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => selectBottom(item.id)}
+                className={`flex w-[22%] flex-col items-center gap-0.5 ${
+                  active ? 'text-white' : 'text-white/45'
+                }`}
+                aria-current={active ? 'page' : undefined}
+              >
+                <span
+                  className={`grid h-8 w-8 place-items-center rounded-full ${
+                    active ? 'bg-white/15' : ''
+                  }`}
+                >
+                  {item.kind === 'lucide' ? (
+                    <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
+                  ) : item.id === 'growth' ? (
+                    <GrowthIcon className="h-[18px] w-[18px]" />
+                  ) : (
+                    <BotIcon className="h-[18px] w-[18px]" />
+                  )}
+                </span>
+                <span className={`text-[10px] ${active ? 'font-semibold' : 'font-medium'}`}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>

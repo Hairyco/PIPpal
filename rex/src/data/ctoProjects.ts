@@ -239,7 +239,7 @@ export const ctoProjects: CtoProject[] = [
     marketingWallet: '7xA2…mPeg',
     marketingBalance: '$482',
     nextAdTargetUsd: 500,
-    nextAdSpend: 'Update socials',
+    nextAdSpend: 'DexScreener trending',
     mph: 186,
     raidsActive: 3,
     raidsJoined: '1.2K',
