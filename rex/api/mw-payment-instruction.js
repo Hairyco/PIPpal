@@ -1,10 +1,23 @@
 /**
- * Ops API: attach Helio / Dex payment_instruction to a campaign order.
- * POST { orderId, chargeUrl, amountUsd?, asset?, opsSecret }
+ * Ops API: attach Helio / Dex payment_instruction (+ optional deposit fields) to an order.
+ * POST {
+ *   orderId,
+ *   chargeUrl?,           // Helio charge deeplink from Dex QR
+ *   depositAddress?,      // Solana address shown on QR / transfer UI
+ *   depositAmount?,       // e.g. 299 for USDC
+ *   amountUsd?,
+ *   asset?,               // USDC | SOL
+ *   mint?,
+ *   opsSecret
+ * }
  */
 
 import { mwConfigured, sbFetch, audit } from '../lib/mw/supabase.js';
-import { parseHelioChargeUrl, helioPaymentInstruction } from '../lib/mw/helio.js';
+import {
+  parseHelioChargeUrl,
+  helioPaymentInstruction,
+  withHelioDeposit,
+} from '../lib/mw/helio.js';
 
 function json(res, status, body) {
   return res.status(status).json(body);
@@ -32,35 +45,89 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
     assertOps(body);
 
-    const { orderId, chargeUrl, amountUsd, asset = 'USDC' } = body;
-    if (!orderId || !chargeUrl) {
-      return json(res, 400, { error: 'orderId and chargeUrl required' });
+    const {
+      orderId,
+      chargeUrl,
+      depositAddress,
+      depositAmount,
+      amountUsd,
+      asset = 'USDC',
+      mint,
+    } = body;
+    if (!orderId) {
+      return json(res, 400, { error: 'orderId required' });
+    }
+    if (!chargeUrl && !depositAddress) {
+      return json(res, 400, { error: 'chargeUrl and/or depositAddress required' });
     }
 
-    const parsed = parseHelioChargeUrl(chargeUrl);
-    if (!parsed.ok) {
-      return json(res, 400, { error: parsed.reason });
+    const existingRows = await sbFetch(
+      `mw_campaign_orders?id=eq.${orderId}&select=id,payment_instruction`,
+    );
+    const existing = Array.isArray(existingRows) ? existingRows[0] : null;
+    if (!existing) {
+      return json(res, 404, { error: 'Order not found' });
     }
 
-    const instruction = helioPaymentInstruction({
-      chargeToken: parsed.chargeToken,
-      deeplink: parsed.deeplink,
-      network: parsed.network,
-      amountUsd: amountUsd != null ? Number(amountUsd) : null,
-      asset,
-    });
+    let instruction = existing.payment_instruction || {};
+
+    if (chargeUrl) {
+      const parsed = parseHelioChargeUrl(chargeUrl);
+      if (!parsed.ok) {
+        return json(res, 400, { error: parsed.reason });
+      }
+      instruction = {
+        ...helioPaymentInstruction({
+          chargeToken: parsed.chargeToken,
+          deeplink: parsed.deeplink,
+          network: parsed.network,
+          amountUsd: amountUsd != null ? Number(amountUsd) : instruction.amountUsd,
+          asset,
+          depositAddress,
+          depositAmount:
+            depositAmount != null
+              ? Number(depositAmount)
+              : amountUsd != null
+                ? Number(amountUsd)
+                : null,
+          mint,
+        }),
+        ...instruction,
+        chargeToken: parsed.chargeToken,
+        deeplink: parsed.deeplink,
+        network: parsed.network || instruction.network,
+      };
+    }
+
+    if (depositAddress || depositAmount != null || amountUsd != null) {
+      instruction = withHelioDeposit(instruction, {
+        depositAddress: depositAddress || instruction.depositAddress,
+        depositAmount:
+          depositAmount != null
+            ? Number(depositAmount)
+            : amountUsd != null
+              ? Number(amountUsd)
+              : instruction.depositAmount,
+        asset,
+        mint,
+      });
+    }
 
     await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
       method: 'PATCH',
       body: JSON.stringify({
         payment_instruction: instruction,
-        status: 'queued',
+        status: instruction.depositAddress ? 'queued' : 'awaiting_payment_instruction',
         last_error: null,
         updated_at: new Date().toISOString(),
       }),
     });
 
-    await audit('payment_instruction_captured', { orderId, chargeToken: parsed.chargeToken });
+    await audit('payment_instruction_captured', {
+      orderId,
+      chargeToken: instruction.chargeToken || null,
+      hasDeposit: Boolean(instruction.depositAddress),
+    });
 
     return json(res, 200, { ok: true, paymentInstruction: instruction });
   } catch (err) {

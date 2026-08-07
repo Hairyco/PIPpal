@@ -120,6 +120,14 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 
 - Ad pack schema: `rex/src/data/dexscreenerAdPack.ts`
 - Fulfilment adapter: `rex/lib/mw/adapters.js`
-- Helio helpers: `rex/lib/mw/helio.js`
+- Helio helpers: `rex/lib/mw/helio.js` · settle: `rex/lib/mw/helioSettle.js` · `POST /api/mw-helio-settle`
 - Jupiter JIT: `rex/lib/mw/jupiterSwap.js`
+- Ops wallet pool: `rex/lib/mw/opsWallets.js` · `POST /api/mw-ops-wallets`
 - Keeper: `rex/api/mw-keeper-tick.js`
+
+### Helio settle (ops)
+
+1. From Dex QR screen, copy charge URL **and** the Solana deposit address + amount.
+2. `POST /api/mw-payment-instruction` with `orderId`, `chargeUrl`, `depositAddress`, `depositAmount` (e.g. 299), `opsSecret`.
+3. `POST /api/mw-helio-settle` with `orderId`, `opsSecret` (optional `dryRun: true` first).
+4. Until the 3 contingency wallets are registered, settle uses `KEEPER_SECRET_KEY` as payer fallback (must hold USDC + SOL for fees on Mainnet).
