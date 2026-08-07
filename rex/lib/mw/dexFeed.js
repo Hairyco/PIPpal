@@ -117,6 +117,10 @@ export function buildDexFeedSheet({ order, project, offer, provider }) {
       network: 'Solana',
       asset: 'USDC',
       avoid: ['Pay with Card'],
+      /** Locked from approved offer — not ops-editable */
+      invoiceUsd: priceUsd || null,
+      serviceFeeUsd: priceUsd > 0 ? Math.round(priceUsd * 0.2 * 100) / 100 : null,
+      totalDebitUsd: priceUsd > 0 ? Math.round(priceUsd * 1.2 * 100) / 100 : null,
     },
   };
 }

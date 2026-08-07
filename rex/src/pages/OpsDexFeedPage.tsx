@@ -25,7 +25,6 @@ export function OpsDexFeedPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chargeUrl, setChargeUrl] = useState('');
   const [depositAddress, setDepositAddress] = useState('');
-  const [depositAmount, setDepositAmount] = useState('299');
   const [dexMint, setDexMint] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -86,9 +85,6 @@ export function OpsDexFeedPage() {
       if (body.paymentInstruction?.deeplink) setChargeUrl(body.paymentInstruction.deeplink);
       if (body.paymentInstruction?.depositAddress) {
         setDepositAddress(body.paymentInstruction.depositAddress);
-      }
-      if (body.paymentInstruction?.depositAmount != null) {
-        setDepositAmount(String(body.paymentInstruction.depositAmount));
       }
     } catch (err: any) {
       setMsg(err.message || String(err));
@@ -157,7 +153,6 @@ export function OpsDexFeedPage() {
           orderId: selectedId,
           chargeUrl: chargeUrl || undefined,
           depositAddress: depositAddress || undefined,
-          depositAmount: depositAmount ? Number(depositAmount) : undefined,
           dexMint: dexMint.trim() || undefined,
           opsSecret,
         }),
@@ -166,13 +161,18 @@ export function OpsDexFeedPage() {
       if (!res.ok) throw new Error(body.error || body.hint || res.statusText);
       const pi = body.paymentInstruction || {};
       if (pi.depositAddress) setDepositAddress(pi.depositAddress);
-      if (pi.depositAmount != null) setDepositAmount(String(pi.depositAmount));
       if (pi.deeplink) setChargeUrl(pi.deeplink);
-      setMsg(
-        pi.depositAddress
-          ? `Capture saved ✓  ${pi.depositAddress.slice(0, 8)}… · ${pi.depositAmount ?? '?'} ${pi.asset || 'USDC'} — next: Dry-run settle`
-          : body.next || 'Captured — deposit still missing; paste address or retry after charge resolves',
-      );
+      const inv = body.offerPrice ?? pi.depositAmount;
+      const feeBit = body.fees
+        ? ` · vault $${body.fees.totalDebitUsd} (invoice $${body.fees.invoiceUsd} + 20%)`
+        : '';
+      let line = pi.depositAddress
+        ? `Capture saved ✓  ${pi.depositAddress.slice(0, 8)}… · $${inv ?? '?'} USDC (approved offer)${feeBit}`
+        : body.next || 'Captured — deposit still missing; paste address or retry after charge resolves';
+      if (body.helioAmountMismatch) {
+        line += ` — Warning: Helio showed $${body.helioAmountMismatch.helioAmount} but offer is $${body.helioAmountMismatch.offerPrice}. Use matching Dex package.`;
+      }
+      setMsg(line);
       void loadPending({ quiet: true });
     } catch (err: any) {
       setMsg(err.message || String(err));
@@ -440,14 +440,34 @@ export function OpsDexFeedPage() {
                 placeholder="Solana address from QR / transfer UI"
               />
             </label>
-            <label className="block text-[11px] text-white/45">
-              Deposit amount (USDC)
-              <input
-                value={depositAmount}
-                onChange={(e) => setDepositAmount(e.target.value)}
-                className="mt-1 w-40 rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 text-[12px] text-white"
-              />
-            </label>
+            <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-[12px] text-white/70">
+              <p className="text-[11px] font-medium text-white/40">Amount (from Approve — not editable)</p>
+              <p className="mt-1 tabular-nums text-white/90">
+                Helio / supplier invoice:{' '}
+                <span className="font-semibold">
+                  ${Number(fill?.packagePriceUsd || sheet?.paymentDefaults?.invoiceUsd || 0).toLocaleString()} USDC
+                </span>
+              </p>
+              <p className="mt-0.5 tabular-nums text-white/55">
+                CTOgo 20% on top:{' '}
+                $
+                {Number(
+                  sheet?.paymentDefaults?.serviceFeeUsd ??
+                    (fill?.packagePriceUsd ? fill.packagePriceUsd * 0.2 : 0),
+                ).toLocaleString()}
+              </p>
+              <p className="mt-1 tabular-nums font-semibold text-[#c8ff3d]">
+                Vault debit:{' '}
+                $
+                {Number(
+                  sheet?.paymentDefaults?.totalDebitUsd ??
+                    (fill?.packagePriceUsd ? fill.packagePriceUsd * 1.2 : 0),
+                ).toLocaleString()}
+              </p>
+              <p className="mt-1 text-[10px] text-white/35">
+                Package: {fill?.packageLabel || '—'} · pick this same package on Dex
+              </p>
+            </div>
             <button
               type="button"
               disabled={busy}
@@ -461,8 +481,8 @@ export function OpsDexFeedPage() {
           <div className="space-y-2 border-t border-white/[0.08] pt-4">
             <p className="text-[12px] font-semibold text-white/80">Stage D settle (real Mainnet money)</p>
             <p className="text-[11px] text-white/40">
-              Dry-run checks deposit only. Live pay sends USDC from keeper/ops wallet — cheapest Dex
-              package is typically $299.
+              Dry-run checks deposit + locked offer amount + 20% vault fee. Live pay is held until
+              final PoC.
             </p>
             <div className="flex flex-wrap gap-2">
               <button

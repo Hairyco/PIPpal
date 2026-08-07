@@ -49,14 +49,24 @@ export default async function handler(req, res) {
     if (!orderId) return json(res, 400, { error: 'orderId required' });
 
     const rows = await sbFetch(
-      `mw_campaign_orders?id=eq.${orderId}&select=*,mw_projects(id,mint,ticker)`,
+      `mw_campaign_orders?id=eq.${orderId}&select=*,mw_projects(id,mint,ticker),mw_provider_offers(price_usd,label)`,
     );
     const order = Array.isArray(rows) ? rows[0] : null;
     if (!order) return json(res, 404, { error: 'Order not found' });
 
+    const offerPrice = Number(
+      order.mw_provider_offers?.price_usd || order.creatives?.priceUsd || 0,
+    );
+
     const resolved = await resolveHelioDeposit(order.payment_instruction);
     if (!resolved.ok) {
       return json(res, 400, { ok: false, error: resolved.reason, stage: 'resolve' });
+    }
+
+    // Lock Helio invoice to approved offer price when present (Approve menu source of truth).
+    if (offerPrice > 0) {
+      resolved.depositAmount = offerPrice;
+      resolved.amountLockedFromOffer = true;
     }
 
     if (dryRun) {
@@ -71,12 +81,16 @@ export default async function handler(req, res) {
         ok: true,
         dryRun: true,
         deposit,
+        offer: {
+          label: order.mw_provider_offers?.label || null,
+          priceUsd: offerPrice || null,
+        },
         fees: fees
           ? {
               invoiceUsd: fees.invoiceUsd,
               serviceFeeUsd: fees.serviceFeeUsd,
               totalDebitUsd: fees.totalDebitUsd,
-              note: 'Helio receives invoiceUsd; vault debit should be totalDebitUsd (invoice + 20% on top)',
+              note: 'Helio receives invoiceUsd (approved offer); vault debit is totalDebitUsd (invoice + 20% on top)',
             }
           : null,
         hint: 'Pass dryRun:false to broadcast USDC/SOL transfer from ops/keeper wallet (hold until final PoC)',
@@ -85,6 +99,14 @@ export default async function handler(req, res) {
 
     // Lazy-load Solana settle path — top-level @solana/web3.js breaks this serverless function (ERR_REQUIRE_ESM).
     const { settleHelioDeposit } = await import('../lib/mw/helioSettle.js');
+
+    if (offerPrice > 0) {
+      order.payment_instruction = {
+        ...(order.payment_instruction || {}),
+        depositAmount: offerPrice,
+        amountUsd: offerPrice,
+      };
+    }
 
     await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
       method: 'PATCH',

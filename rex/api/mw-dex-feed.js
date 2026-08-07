@@ -159,15 +159,26 @@ export default async function handler(req, res) {
     }
 
     if (action === 'capture') {
-      const { chargeUrl, depositAddress, depositAmount, amountUsd, asset = 'USDC', dexMint } =
-        body;
+      const { chargeUrl, depositAddress, asset = 'USDC', dexMint } = body;
       if (!chargeUrl && !depositAddress && !dexMint) {
         return json(res, 400, {
           error: 'chargeUrl and/or depositAddress required (or dexMint to update fill sheet)',
         });
       }
 
+      // Invoice locked to approved offer price (Approve menu) — ignore manual body amounts.
+      const offerPrice = Number(
+        order.mw_provider_offers?.price_usd || order.creatives?.priceUsd || 0,
+      );
+      if (!(offerPrice > 0)) {
+        return json(res, 400, {
+          error: 'Order has no offer price_usd — re-Approve with a priced Dex package',
+        });
+      }
+
       let instruction = order.payment_instruction || {};
+      let helioAmountMismatch = null;
+
       if (chargeUrl) {
         const parsed = parseHelioChargeUrl(chargeUrl);
         if (!parsed.ok) return json(res, 400, { error: parsed.reason });
@@ -177,37 +188,61 @@ export default async function handler(req, res) {
             chargeToken: parsed.chargeToken,
             deeplink: parsed.deeplink,
             network: parsed.network,
-            amountUsd: amountUsd != null ? Number(amountUsd) : depositAmount,
+            amountUsd: offerPrice,
             asset,
             depositAddress: depositAddress || instruction.depositAddress,
-            depositAmount: depositAmount ?? amountUsd ?? instruction.depositAmount,
+            depositAmount: offerPrice,
           }),
         };
       }
-      if (depositAddress || depositAmount != null) {
+      if (depositAddress) {
         instruction = withHelioDeposit(instruction, {
           depositAddress,
-          depositAmount: depositAmount ?? amountUsd,
+          depositAmount: offerPrice,
           asset,
         });
       }
 
-      // If ops only pasted the charge URL, resolve deposit from Helio public API.
+      // Resolve deposit wallet from Helio; keep amount = approved offer (not Helio UI drift).
       if (instruction.chargeToken && !instruction.depositAddress) {
-        const resolved = await resolveHelioDeposit(instruction);
+        const resolved = await resolveHelioDeposit({
+          ...instruction,
+          depositAmount: null,
+        });
         if (resolved.ok) {
+          if (
+            resolved.depositAmount != null &&
+            Math.abs(Number(resolved.depositAmount) - offerPrice) > 0.01
+          ) {
+            helioAmountMismatch = {
+              helioAmount: Number(resolved.depositAmount),
+              offerPrice,
+              note: 'Helio charge amount differs from approved offer — CTOgo keeps offer price for vault math; pick the matching Dex package.',
+            };
+          }
           instruction = withHelioDeposit(instruction, {
             depositAddress: resolved.depositAddress,
-            depositAmount: resolved.depositAmount,
+            depositAmount: offerPrice,
             asset: resolved.asset || asset,
           });
         }
+      } else if (instruction.chargeToken) {
+        // Still stamp locked amount even when address already present
+        instruction = withHelioDeposit(instruction, {
+          depositAddress: instruction.depositAddress,
+          depositAmount: offerPrice,
+          asset,
+        });
       }
+
+      instruction.amountUsd = offerPrice;
+      instruction.depositAmount = offerPrice;
 
       const creatives = {
         ...(order.creatives || {}),
         dexFormFedAt: order.creatives?.dexFormFedAt || new Date().toISOString(),
         helioCapturedAt: chargeUrl || depositAddress ? new Date().toISOString() : order.creatives?.helioCapturedAt,
+        priceUsd: offerPrice,
       };
       if (dexMint && String(dexMint).trim()) {
         creatives.dexMint = String(dexMint).trim();
@@ -241,6 +276,8 @@ export default async function handler(req, res) {
           chargeToken: instruction.chargeToken || null,
           hasDeposit: Boolean(instruction.depositAddress),
           dexMint: creatives.dexMint || null,
+          offerPrice,
+          helioAmountMismatch,
         },
         order.project_id,
       );
@@ -248,9 +285,16 @@ export default async function handler(req, res) {
       return json(res, 200, {
         ok: true,
         paymentInstruction: instruction,
+        offerPrice,
+        fees: {
+          invoiceUsd: offerPrice,
+          serviceFeeUsd: Math.round(offerPrice * 0.2 * 100) / 100,
+          totalDebitUsd: Math.round(offerPrice * 1.2 * 100) / 100,
+        },
+        helioAmountMismatch,
         dexMint: creatives.dexMint || null,
         next: instruction.depositAddress
-          ? `Capture OK — ${instruction.depositAddress} · ${instruction.depositAmount ?? '?'} ${instruction.asset || 'USDC'}. Next: Dry-run settle.`
+          ? `Capture OK — ${instruction.depositAddress} · $${offerPrice} USDC (offer) · vault $${Math.round(offerPrice * 1.2 * 100) / 100}. Next: Dry-run settle.`
           : instruction.chargeToken
             ? 'Charge URL saved. Could not auto-resolve deposit yet — paste deposit address or retry.'
             : 'Saved',
