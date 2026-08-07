@@ -40,7 +40,7 @@ pub struct DisburseMarketing<'info> {
     #[account(mut)]
     pub supplier: UncheckedAccount<'info>,
 
-    /// CHECK: receives 5% CTOgo service fee
+    /// CHECK: receives Polessia service fee (sliding %)
     #[account(
         mut,
         constraint = protocol_treasury.key() == config.protocol_treasury @ RexError::Unauthorized,

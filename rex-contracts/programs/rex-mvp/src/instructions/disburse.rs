@@ -10,6 +10,7 @@ pub fn handler(
     ctx: Context<DisburseMarketing>,
     invoice_id: [u8; 32],
     invoice_lamports: u64,
+    service_fee_bps: u64,
 ) -> Result<()> {
     require!(invoice_lamports > 0, RexError::ZeroAmount);
     require!(!ctx.accounts.config.paused, RexError::ProtocolPaused);
@@ -19,7 +20,7 @@ pub fn handler(
         RexError::InvalidMarketingDestination
     );
 
-    let (service_fee, total_debit) = invoice_with_service_fee(invoice_lamports)?;
+    let (service_fee, total_debit) = invoice_with_service_fee(invoice_lamports, service_fee_bps)?;
 
     let marketing_info = ctx.accounts.marketing_vault.to_account_info();
     let rent = Rent::get()?;
@@ -30,7 +31,7 @@ pub fn handler(
         RexError::InsufficientMarketingBalance
     );
 
-    // Supplier gets 100% of invoice; CTOgo gets 5% on top.
+    // Supplier gets 100% of invoice; Polessia gets sliding fee on top.
     transfer_lamports_from_owned_pda(
         &marketing_info,
         &ctx.accounts.supplier.to_account_info(),

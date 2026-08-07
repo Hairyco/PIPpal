@@ -8,7 +8,7 @@ export type SpendItem = {
   id: SpendItemId;
   label: string;
   logo: string;
-  /** Supplier invoice (USD). CTOgo adds 5% on top at disbursement. */
+  /** Supplier invoice (USD). Polessia adds sliding fee on top at disbursement. */
   priceUsd: number;
 };
 
@@ -84,7 +84,7 @@ export function tierTotalUsd(tier: SpendThreshold): number {
   return tier.items.reduce((sum, item) => sum + item.priceUsd, 0);
 }
 
-/** Supplier invoice + 5% CTOgo fee on top for display before Approve. */
+/** Supplier invoice + Polessia sliding fee on top for display before Approve. */
 export function spendItemAllIn(item: SpendItem) {
   return invoiceUsdWithServiceFee(item.priceUsd);
 }

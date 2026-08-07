@@ -165,7 +165,7 @@ export function OpsDexFeedPage() {
       if (pi.deeplink) setChargeUrl(pi.deeplink);
       const inv = body.offerPrice ?? pi.depositAmount;
       const feeBit = body.fees
-        ? ` · vault $${body.fees.totalDebitUsd} (invoice $${body.fees.invoiceUsd} + 5%)`
+        ? ` · vault $${body.fees.totalDebitUsd} (invoice $${body.fees.invoiceUsd} + ${body.fees.feePercent ?? '?'}%)`
         : '';
       let line = pi.depositAddress
         ? `Capture saved ✓  ${pi.depositAddress.slice(0, 8)}… · $${inv ?? '?'} USDC (approved offer)${feeBit}`
@@ -196,7 +196,7 @@ export function OpsDexFeedPage() {
       if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
       if (dryRun) {
         const feeBit = body.fees
-          ? ` · vault ${body.fees.totalDebitUsd} (invoice ${body.fees.invoiceUsd} + 5%)`
+          ? ` · vault ${body.fees.totalDebitUsd} (invoice ${body.fees.invoiceUsd} + ${body.fees.feePercent ?? '?'}%)`
           : '';
         setMsg(
           `Dry-run OK ✓  → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'} (no money sent)${feeBit}`,
@@ -453,7 +453,8 @@ export function OpsDexFeedPage() {
                       <span className="font-semibold">${inv.toLocaleString()} USDC</span>
                     </p>
                     <p className="mt-0.5 tabular-nums text-white/55">
-                      CTOgo 5% on top: ${Number(fees?.serviceFeeUsd ?? 0).toLocaleString()}
+                      Polessia {fees?.feePercent ?? '?'}% on top: $
+                      {Number(fees?.serviceFeeUsd ?? 0).toLocaleString()}
                     </p>
                     <p className="mt-1 tabular-nums font-semibold text-[#c8ff3d]">
                       Vault debit: ${Number(fees?.totalDebitUsd ?? 0).toLocaleString()}
@@ -478,8 +479,8 @@ export function OpsDexFeedPage() {
           <div className="space-y-2 border-t border-white/[0.08] pt-4">
             <p className="text-[12px] font-semibold text-white/80">Stage D settle (real Mainnet money)</p>
             <p className="text-[11px] text-white/40">
-              Dry-run checks deposit + locked offer amount + 5% vault fee. Live pay is held until
-              final PoC.
+              Dry-run checks deposit + locked offer amount + Polessia sliding vault fee. Live pay is
+              held until final PoC.
             </p>
             <div className="flex flex-wrap gap-2">
               <button

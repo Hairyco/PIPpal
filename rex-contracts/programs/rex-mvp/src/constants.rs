@@ -6,8 +6,9 @@ pub const BPS_DENOMINATOR: u64 = 10_000;
 /// Raid / referrer cut on CTOgo-routed trades (0.50%).
 pub const RAID_FEE_BPS: u64 = 50;
 
-/// CTOgo service fee on marketing disbursements — 5% **on top** of supplier invoice.
-/// $100 invoice → $5 fee → $105 total vault debit.
+/// Default / whale-tier Polessia service fee — 5% **on top** of supplier invoice.
+/// Sliding scale is applied off-chain and passed as `service_fee_bps` to disburse:
+/// under $250 → 1000, $250–$1k → 700, $1k+ → 500.
 pub const CTOGO_SERVICE_FEE_BPS: u64 = 500;
 
 /// Engine id locked at project create: Launch path.

@@ -158,9 +158,9 @@ export default async function handler(req, res) {
       const queued = [];
       for (const offer of resolvedOffers) {
         const priceUsd = Number(offer.price_usd);
-        const { serviceFeeUsd, totalDebitUsd } = usdWithServiceFee(priceUsd);
+        const usdFees = usdWithServiceFee(priceUsd);
         const invoiceLamports = BigInt(Math.floor((priceUsd / SOL_USD) * LAMPORTS_PER_SOL));
-        const fees = invoiceWithServiceFee(invoiceLamports);
+        const fees = invoiceWithServiceFee(invoiceLamports, usdFees.feeBps);
         const invoiceId = invoiceIdFromParts(mint, `${planId}:${offer.id}`);
         const orderCreatives =
           creatives && typeof creatives === 'object'
@@ -168,8 +168,15 @@ export default async function handler(req, res) {
                 ...creatives,
                 spendItemId: offer.offer_key,
                 offerKey: offer.offer_key,
+                priceUsd,
+                feeBps: usdFees.feeBps,
               }
-            : { spendItemId: offer.offer_key, offerKey: offer.offer_key };
+            : {
+                spendItemId: offer.offer_key,
+                offerKey: offer.offer_key,
+                priceUsd,
+                feeBps: usdFees.feeBps,
+              };
         try {
           const orderRows = await sbFetch('mw_campaign_orders', {
             method: 'POST',
@@ -188,7 +195,13 @@ export default async function handler(req, res) {
           });
           queued.push({
             order: Array.isArray(orderRows) ? orderRows[0] : orderRows,
-            breakdown: { priceUsd, serviceFeeUsd, totalDebitUsd },
+            breakdown: {
+              priceUsd: usdFees.invoiceUsd,
+              serviceFeeUsd: usdFees.serviceFeeUsd,
+              totalDebitUsd: usdFees.totalDebitUsd,
+              feeBps: usdFees.feeBps,
+              feePercent: usdFees.feePercent,
+            },
           });
         } catch (err) {
           missingOffers.push(`${offer.offer_key || offer.id} queue failed: ${err.message || err}`);
@@ -207,7 +220,8 @@ export default async function handler(req, res) {
         queued: queued.length,
         orders: queued,
         missingOffers,
-        feeNote: 'Supplier receives 100% of invoice; CTOgo adds 5% on top from the marketing vault.',
+        feeNote:
+          'Supplier receives 100% of invoice; Polessia sliding fee on top: under $250 → 10%, $250–$1k → 7%, $1k+ → 5%.',
       });
     }
 

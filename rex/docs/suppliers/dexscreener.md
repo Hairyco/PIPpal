@@ -59,7 +59,7 @@ Founder Approve (creatives hard gates)
   → Ops opens /ops/dex-feed → fill sheet → Google handoff → Dex form
   → Network Solana + Pay with USDC + Pay with QR
   → Capture Helio charge + deposit on /ops/dex-feed (or POST /api/mw-dex-feed)
-  → Keeper: vault SOL disburse (invoice+5%) → JIT USDC → Helio deposit
+  → Keeper: vault SOL disburse (invoice + Polessia sliding fee) → JIT USDC → Helio deposit
   → Confirm via Dex GET /orders/v1/{chain}/{token} and/or Helio status
   → fulfilment fulfilled
 ```

@@ -20,23 +20,26 @@ import {
   TransactionInstruction,
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
+import { serviceFeeBpsForInvoiceUsd } from './fees.js';
 
 function anchorDiscriminator(ixName) {
   return createHash('sha256').update(`global:${ixName}`).digest().subarray(0, 8);
 }
 
 /**
- * Encode disburse_marketing args: invoice_id [u8;32] + invoice_lamports u64 LE.
+ * Encode disburse_marketing args: invoice_id [u8;32] + invoice_lamports u64 LE + service_fee_bps u64 LE.
  * @param {Uint8Array | Buffer} invoiceId32
  * @param {bigint | number} invoiceLamports
+ * @param {number} serviceFeeBps
  */
-export function encodeDisburseData(invoiceId32, invoiceLamports) {
+export function encodeDisburseData(invoiceId32, invoiceLamports, serviceFeeBps = 500) {
   const id = Buffer.from(invoiceId32);
   if (id.length !== 32) throw new Error('invoice_id must be 32 bytes');
-  const data = Buffer.alloc(8 + 32 + 8);
+  const data = Buffer.alloc(8 + 32 + 8 + 8);
   anchorDiscriminator('disburse_marketing').copy(data, 0);
   id.copy(data, 8);
   data.writeBigUInt64LE(BigInt(invoiceLamports), 40);
+  data.writeBigUInt64LE(BigInt(serviceFeeBps), 48);
   return data;
 }
 
@@ -152,7 +155,12 @@ export async function submitDisburse({ order, project, provider }) {
   const mint = new PublicKey(project.mint);
   const supplier = new PublicKey(provider.wallet_address);
   const accounts = deriveDisburseAccounts(programId, mint, supplier, invoiceId32);
-  const data = encodeDisburseData(invoiceId32, order.invoice_lamports);
+  const feeBps =
+    Number(order.creatives?.feeBps) ||
+    (order.creatives?.priceUsd
+      ? serviceFeeBpsForInvoiceUsd(Number(order.creatives.priceUsd))
+      : 500);
+  const data = encodeDisburseData(invoiceId32, order.invoice_lamports, feeBps);
 
   if (process.env.MW_DISBURSE_DRY_RUN === '1') {
     return {

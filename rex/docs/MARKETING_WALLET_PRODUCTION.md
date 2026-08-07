@@ -4,7 +4,7 @@
 
 | Layer | Status |
 |-------|--------|
-| Anchor program dual fees (List 1.25% / Launch 1.30%), raid, attach MW, 5%-on-top disburse + receipt PDA, keeper role, pause, 180-day sweep ix | Code + Rust unit tests in `rex-contracts` |
+| Anchor program dual fees (List 1.25% / Launch 1.30%), raid, attach MW, Polessia sliding-fee disburse + receipt PDA, keeper role, pause, 180-day sweep ix | Code + Rust unit tests in `rex-contracts` |
 | Supabase schema + Vercel APIs (approve, providers, status, keeper cron) | `rex/supabase/migrations`, `rex/api/mw-*`, `rex/lib/mw` |
 | Founder UI fee breakdown + demo badges | `PostLaunchDashboard`, `postLaunchRoadmap`, `chainConfig` |
 
@@ -31,7 +31,7 @@
 
 ## Fee invariant (locked)
 
-Supplier invoice **$100** → vault debit **$105** ($100 supplier + $5 CTOgo). Never take 5% out of the supplier amount.
+Supplier invoice + Polessia sliding fee on top (never from supplier cut): under $250 → 10%, $250–$1k → 7%, $1k+ → 5% (e.g. $100 → $110, $500 → $535, $2,000 → $2,100).
 
 ## Sweep invariant (locked)
 

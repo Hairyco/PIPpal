@@ -1320,8 +1320,8 @@ export function PostLaunchDashboard({
                 </span>
               </p>
               <p className="mt-2 text-[11px] text-white/40">
-                Suppliers receive 100% of their invoice. CTOgo&apos;s 5% is charged on top from the
-                marketing vault.
+                Suppliers receive 100% of their invoice. Polessia&apos;s sliding fee is charged on
+                top from the marketing vault (under $250 → 10%, $250–$1k → 7%, $1k+ → 5%).
               </p>
             </div>
 

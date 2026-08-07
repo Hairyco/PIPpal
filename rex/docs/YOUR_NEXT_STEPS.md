@@ -6,7 +6,7 @@ This is your checklist. I already built the software in the repo. You turn on th
 
 ## Already done for you (no action)
 
-- Smart contract code for fees, marketing wallet payouts (supplier gets 100%, CTOgo adds 5% on top), pause, and 180-day sweep
+- Smart contract code for fees, marketing wallet payouts (supplier gets 100%, Polessia sliding fee on top), pause, and 180-day sweep
 - Database blueprint (Supabase SQL file)
 - Background “robot” (keeper) that tries payments and retries once
 - Website screens: Approve shows the $100 → $105 breakdown, demo badges, ops page
@@ -154,11 +154,13 @@ Do **not** skip these:
 
 ## Money model reminder (locked)
 
-If a supplier charges **$100**:
+If a supplier charges **$100** (under $250 → 10%):
 
 - Supplier receives **$100**
-- CTOgo takes **$5** (5% on top)
-- Marketing wallet is debited **$105**
+- Polessia takes **$10** (sliding fee on top)
+- Marketing wallet is debited **$110**
+
+Larger invoices step down: $500 → 7% ($535 total), $2,000 → 5% ($2,100 total).
 
 If a coin’s marketing wallet sits idle for **180 days**, leftover SOL can sweep to CTOgo treasury (with warnings at 30 and 7 days). Pause or a queued payment blocks that sweep.
 
