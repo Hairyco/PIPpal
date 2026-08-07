@@ -125,7 +125,12 @@ Until then, providers stay off — that’s intentional safety.
 2. Open **`/ops/dex-feed`**, paste ops secret, **Load pending Dex orders**.
 3. Use the fill sheet on Dex marketplace (Google signed in) → **Pay with QR**.
 4. Paste charge URL + deposit address + amount → **Save capture**.
-5. Dry-run settle: `POST /api/mw-helio-settle` with `dryRun: true`, then live when ready.
+5. **Dry-run settle** on that page, then **Live settle** only when ready (≈$299 USDC Mainnet).
+
+### Step 8c — Stage D live proof (required)
+This is the “does payment actually work?” test. Full checklist: `rex/docs/suppliers/dexscreener.md` → **Stage D runbook**.
+
+You need: Mainnet USDC on the keeper/ops payer, Google on Dex, and a deliberate click on **Live settle**. After it works, send the agent the CTOgo order id + Solana tx signature.
 
 Playbook: `rex/docs/suppliers/dexscreener.md`
 

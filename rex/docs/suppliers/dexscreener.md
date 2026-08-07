@@ -125,7 +125,30 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 | A | Devnet vault → disburse | Plumbing |
 | B | Helio **dev** (`moonpay.dev.hel.io`) deposit settle | Settle mechanics |
 | C | Live Dex form + QR capture (no pay / abort) | UI still matches |
-| D | Founder-approved live Dex pay (cheapest package) | **Required** before “Dex auto-pay done” |
+| D | Founder-approved live Dex pay (cheapest package) | **In progress — needs real USDC** |
+
+### Stage D runbook (founder)
+
+**Cost:** ~**$299 USDC** (20k views) + small SOL for fees on the payer wallet. Real Mainnet money.
+
+**Before you start**
+
+1. Payer wallet funded: `KEEPER_SECRET_KEY` (or a registered ops wallet) holds **≥299 USDC** + ~0.05 SOL on **Mainnet**.
+2. Vercel has `SOLANA_RPC_URL` (Mainnet), `MW_OPS_SECRET`, Supabase env.
+3. You can Google-sign into Dex marketplace.
+4. You have a Solana mint + title/pitch/1:1 image ready (or an approved CTOgo Dex order).
+
+**Steps**
+
+1. Approve (or use) a CTOgo Dex order with creatives → appears on `/ops/dex-feed`.
+2. Open Dex → fill from sheet → **Order Now** → Network Solana → Pay with **USDC** → **Pay with QR**.
+3. On `/ops/dex-feed`: paste charge URL + deposit address + **299** → **Save capture**.
+4. Click **Dry-run settle** — must show the same deposit address/amount. Do **not** live-pay if dry-run fails.
+5. Click **Live settle (pay now)** only after you confirm the amount.
+6. Success = Helio shows paid **and** Dex order progresses / `orders/v1/solana/{mint}` looks right.
+7. Tell the agent the **order id** + tx signature so Stage D can be marked **passed**.
+
+**Abort:** Close Dex payment page without paying; do not click Live settle.
 
 ## Code pointers
 

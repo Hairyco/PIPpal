@@ -112,6 +112,35 @@ export function OpsDexFeedPage() {
     }
   }
 
+  async function settle(dryRun: boolean) {
+    if (!selectedId) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/mw-helio-settle', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ orderId: selectedId, opsSecret, dryRun }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
+      if (dryRun) {
+        setMsg(
+          `Dry-run OK → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'}`,
+        );
+      } else {
+        setMsg(
+          `Paid ${body.amount} ${body.asset} · tx ${body.signature || '—'} · status ${body.status}`,
+        );
+      }
+      void loadPending();
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const fill = sheet?.fill;
 
   return (
@@ -265,6 +294,41 @@ export function OpsDexFeedPage() {
             >
               Save capture
             </button>
+          </div>
+
+          <div className="space-y-2 border-t border-white/[0.08] pt-4">
+            <p className="text-[12px] font-semibold text-white/80">Stage D settle (real Mainnet money)</p>
+            <p className="text-[11px] text-white/40">
+              Dry-run checks deposit only. Live pay sends USDC from keeper/ops wallet — cheapest Dex
+              package is typically $299.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy || !selectedId}
+                onClick={() => void settle(true)}
+                className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 disabled:opacity-40"
+              >
+                Dry-run settle
+              </button>
+              <button
+                type="button"
+                disabled={busy || !selectedId}
+                onClick={() => {
+                  if (
+                    !window.confirm(
+                      'Send real Mainnet USDC to the Helio deposit now? This spends real money.',
+                    )
+                  ) {
+                    return;
+                  }
+                  void settle(false);
+                }}
+                className="rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[11px] font-bold text-amber-100 disabled:opacity-40"
+              >
+                Live settle (pay now)
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
