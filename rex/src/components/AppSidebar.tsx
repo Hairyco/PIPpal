@@ -18,7 +18,6 @@ import {
   Menu,
   Star,
   LayoutDashboard,
-  Megaphone,
 } from 'lucide-react';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { AuthButton } from './AuthButton';
@@ -26,7 +25,6 @@ import { AuthButton } from './AuthButton';
 const NAV = [
   { to: '/', label: 'Discover', icon: Home, end: true },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: false },
-  { to: '/dex-ads', label: 'Dex Ads', icon: Megaphone, end: false },
   { to: '/watchlist', label: 'Watchlist', icon: Star, end: false },
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },

@@ -102,9 +102,17 @@ export function FounderDashboardPage() {
                   Track direct SOL orders. Launch a CTO anytime to unlock the full founder toolkit.
                 </p>
               </div>
-              <Link to="/get-started" className="dex-btn-green shrink-0">
-                Launch a CTO
-              </Link>
+              <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <Link
+                  to="/dex-ads"
+                  className="inline-flex items-center rounded-lg border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 px-3 py-2 text-sm font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15"
+                >
+                  Dex Ads
+                </Link>
+                <Link to="/get-started" className="dex-btn-green shrink-0">
+                  Launch a CTO
+                </Link>
+              </div>
             </div>
             <div className="mt-8">
               <ServicesOrdersPanel />
@@ -125,6 +133,12 @@ export function FounderDashboardPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/get-started" className="dex-btn inline-flex">
               Launch for $1
+            </Link>
+            <Link
+              to="/dex-ads"
+              className="inline-flex rounded-full border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 px-4 py-2.5 text-[13px] font-semibold text-[#d5ff69]"
+            >
+              Dex Ads
             </Link>
             <Link
               to="/advertise"
@@ -308,10 +322,18 @@ export function FounderDashboardPage() {
               </p>
             </div>
           </div>
-          <Link to={promoteUrl} className="dex-btn-green shrink-0">
-            <Megaphone className="mr-2 h-4 w-4" />
-            Promote
-          </Link>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Link
+              to="/dex-ads"
+              className="inline-flex items-center rounded-lg border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 px-3 py-2 text-sm font-semibold text-[#d5ff69] transition hover:bg-[#c8ff3d]/15"
+            >
+              Dex Ads
+            </Link>
+            <Link to={promoteUrl} className="dex-btn-green shrink-0">
+              <Megaphone className="mr-2 h-4 w-4" />
+              Promote
+            </Link>
+          </div>
         </div>
 
         <div className="mt-8 border-b border-white/[0.08]">
