@@ -1,0 +1,6 @@
+# Local-only — never upload to Vercel
+scripts/dex-autofill/.auth
+scripts/dex-autofill/.out
+node_modules
+dist
+.vercel
