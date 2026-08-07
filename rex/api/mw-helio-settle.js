@@ -14,11 +14,19 @@ function json(res, status, body) {
   return res.status(status).json(body);
 }
 
-function assertOps(body) {
-  const secret = process.env.MW_OPS_SECRET;
-  if (!secret) return;
-  if (body.opsSecret !== secret) {
-    const err = new Error('Unauthorized');
+function assertOps(body, req) {
+  const secret = String(process.env.MW_OPS_SECRET || '').trim();
+  if (!secret) {
+    const err = new Error('MW_OPS_SECRET not configured on server');
+    err.statusCode = 503;
+    throw err;
+  }
+  const header = req?.headers?.['x-mw-ops-secret'];
+  const provided = String(
+    body?.opsSecret || (Array.isArray(header) ? header[0] : header) || '',
+  ).trim();
+  if (!provided || provided !== secret) {
+    const err = new Error('Unauthorized — ops secret does not match MW_OPS_SECRET');
     err.statusCode = 401;
     throw err;
   }
@@ -34,7 +42,7 @@ export default async function handler(req, res) {
     }
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
-    assertOps(body);
+    assertOps(body, req);
 
     const { orderId, dryRun = false } = body;
     if (!orderId) return json(res, 400, { error: 'orderId required' });

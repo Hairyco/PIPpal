@@ -37,7 +37,8 @@ export function buildDexFeedSheet({ order, project, offer, provider }) {
     .trim()
     .slice(0, 120);
   const squareImageUrl = creatives.squareImageUrl || creatives.imageUrl || null;
-  const mint = project?.mint || creatives.mint || null;
+  const mint =
+    String(creatives.dexMint || creatives.mint || project?.mint || '').trim() || null;
 
   const hardMissing = [];
   if (!mint) hardMissing.push('tokenAddress (project mint)');

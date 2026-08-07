@@ -1,6 +1,18 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+async function readApiJson(res: Response) {
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(
+      text.slice(0, 200).trim() || `Server returned non-JSON (${res.status})`,
+    );
+  }
+}
+
 /**
  * Ops UI: list Dex orders, show fill sheet, capture Helio charge + deposit.
  */
@@ -14,6 +26,7 @@ export function OpsDexFeedPage() {
   const [chargeUrl, setChargeUrl] = useState('');
   const [depositAddress, setDepositAddress] = useState('');
   const [depositAmount, setDepositAmount] = useState('299');
+  const [dexMint, setDexMint] = useState('');
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -34,7 +47,7 @@ export function OpsDexFeedPage() {
         opsSecret: opsSecret.trim(),
       });
       const res = await fetch(`/api/mw-dex-feed?${q}`, { headers: headers() });
-      const body = await res.json();
+      const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || res.statusText);
       setPending(body.pending || []);
       setRecentAny(body.recentAny || []);
@@ -64,9 +77,10 @@ export function OpsDexFeedPage() {
       const res = await fetch(`/api/mw-dex-feed?${q}`, {
         headers: headers(),
       });
-      const body = await res.json();
+      const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || res.statusText);
       setSheet(body.sheet);
+      setDexMint(body.sheet?.fill?.tokenAddress || '');
       if (body.paymentInstruction?.deeplink) setChargeUrl(body.paymentInstruction.deeplink);
       if (body.paymentInstruction?.depositAddress) {
         setDepositAddress(body.paymentInstruction.depositAddress);
@@ -91,10 +105,36 @@ export function OpsDexFeedPage() {
         headers: headers(),
         body: JSON.stringify({ action: 'mark_fed', orderId: selectedId, opsSecret }),
       });
-      const body = await res.json();
+      const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || res.statusText);
       setMsg('Marked Dex form as fed — capture Helio QR next');
       void loadPending();
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveMint() {
+    if (!selectedId || !dexMint.trim()) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/mw-dex-feed', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          action: 'set_mint',
+          orderId: selectedId,
+          dexMint: dexMint.trim(),
+          opsSecret,
+        }),
+      });
+      const body = await readApiJson(res);
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      setMsg('Saved real mint on this CTOgo order (overrides placeholder)');
+      void loadSheet(selectedId);
     } catch (err: any) {
       setMsg(err.message || String(err));
     } finally {
@@ -116,11 +156,12 @@ export function OpsDexFeedPage() {
           chargeUrl: chargeUrl || undefined,
           depositAddress: depositAddress || undefined,
           depositAmount: depositAmount ? Number(depositAmount) : undefined,
+          dexMint: dexMint.trim() || undefined,
           opsSecret,
         }),
       });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || res.statusText);
+      const body = await readApiJson(res);
+      if (!res.ok) throw new Error(body.error || body.hint || res.statusText);
       setMsg(body.next || 'Captured — ready for Helio settle');
       void loadPending();
     } catch (err: any) {
@@ -140,7 +181,7 @@ export function OpsDexFeedPage() {
         headers: headers(),
         body: JSON.stringify({ orderId: selectedId, opsSecret, dryRun }),
       });
-      const body = await res.json();
+      const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
       if (dryRun) {
         setMsg(
@@ -305,7 +346,6 @@ export function OpsDexFeedPage() {
             {(
               [
                 ['Chain', fill?.chain],
-                ['Token', fill?.tokenAddress],
                 ['Package', fill?.packageLabel],
                 ['Title', fill?.title],
                 ['Pitch', fill?.pitch],
@@ -318,6 +358,24 @@ export function OpsDexFeedPage() {
               </div>
             ))}
           </dl>
+
+          <label className="block text-[11px] text-white/45">
+            Token mint used on Dex (paste real mint if CTOgo still shows a placeholder)
+            <input
+              value={dexMint}
+              onChange={(e) => setDexMint(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 font-mono text-[12px] text-white"
+              placeholder="Real Solana mint address"
+            />
+          </label>
+          <button
+            type="button"
+            disabled={busy || !dexMint.trim()}
+            onClick={() => void saveMint()}
+            className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80 disabled:opacity-40"
+          >
+            Save mint on CTOgo order
+          </button>
 
           <div className="flex flex-wrap gap-2">
             <a

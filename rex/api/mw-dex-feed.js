@@ -158,9 +158,12 @@ export default async function handler(req, res) {
     }
 
     if (action === 'capture') {
-      const { chargeUrl, depositAddress, depositAmount, amountUsd, asset = 'USDC' } = body;
-      if (!chargeUrl && !depositAddress) {
-        return json(res, 400, { error: 'chargeUrl and/or depositAddress required' });
+      const { chargeUrl, depositAddress, depositAmount, amountUsd, asset = 'USDC', dexMint } =
+        body;
+      if (!chargeUrl && !depositAddress && !dexMint) {
+        return json(res, 400, {
+          error: 'chargeUrl and/or depositAddress required (or dexMint to update fill sheet)',
+        });
       }
 
       let instruction = order.payment_instruction || {};
@@ -191,25 +194,40 @@ export default async function handler(req, res) {
       const creatives = {
         ...(order.creatives || {}),
         dexFormFedAt: order.creatives?.dexFormFedAt || new Date().toISOString(),
-        helioCapturedAt: new Date().toISOString(),
+        helioCapturedAt: chargeUrl || depositAddress ? new Date().toISOString() : order.creatives?.helioCapturedAt,
       };
+      if (dexMint && String(dexMint).trim()) {
+        creatives.dexMint = String(dexMint).trim();
+      }
 
-      await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          payment_instruction: instruction,
-          creatives,
-          status: instruction.depositAddress ? 'queued' : 'awaiting_payment_instruction',
-          last_error: null,
-          updated_at: new Date().toISOString(),
-        }),
-      });
+      const patch = {
+        creatives,
+        last_error: null,
+        updated_at: new Date().toISOString(),
+      };
+      if (chargeUrl || depositAddress) {
+        patch.payment_instruction = instruction;
+        patch.status = instruction.depositAddress ? 'queued' : 'awaiting_payment_instruction';
+      }
+
+      try {
+        await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(patch),
+        });
+      } catch (err) {
+        return json(res, 502, {
+          error: err.message || String(err),
+          hint: 'If this mentions payment_instruction, re-run 20260807_dex_payment_automation.sql in Supabase',
+        });
+      }
       await audit(
         'dex_helio_captured',
         {
           orderId,
           chargeToken: instruction.chargeToken || null,
           hasDeposit: Boolean(instruction.depositAddress),
+          dexMint: creatives.dexMint || null,
         },
         order.project_id,
       );
@@ -217,13 +235,27 @@ export default async function handler(req, res) {
       return json(res, 200, {
         ok: true,
         paymentInstruction: instruction,
+        dexMint: creatives.dexMint || null,
         next: instruction.depositAddress
           ? 'POST /api/mw-helio-settle with orderId (dryRun:true first)'
-          : 'Add depositAddress from Dex QR / transfer UI',
+          : instruction.chargeToken
+            ? 'Charge URL saved. Deposit address still missing for settle (Helio QR is a link, not a wallet).'
+            : 'Saved',
       });
     }
 
-    return json(res, 400, { error: 'Unknown action — use mark_fed | capture' });
+    if (action === 'set_mint') {
+      const dexMint = String(body.dexMint || '').trim();
+      if (!dexMint) return json(res, 400, { error: 'dexMint required' });
+      const creatives = { ...(order.creatives || {}), dexMint };
+      await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ creatives, updated_at: new Date().toISOString() }),
+      });
+      return json(res, 200, { ok: true, dexMint });
+    }
+
+    return json(res, 400, { error: 'Unknown action — use mark_fed | capture | set_mint' });
   } catch (err) {
     const status = err.statusCode || 500;
     return json(res, status, { error: err.message || String(err) });
