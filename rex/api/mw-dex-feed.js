@@ -61,9 +61,19 @@ export default async function handler(req, res) {
       const pending = req.query?.pending === '1' || req.query?.pending === 'true';
 
       if (pending) {
+        // Dex-adapter orders that still need feed/capture/settle
         const rows = await sbFetch(
-          `mw_campaign_orders?select=id,status,creatives,payment_instruction,created_at,mw_providers!inner(adapter_type,slug,display_name),mw_projects(mint,ticker),mw_provider_offers(label,price_usd)&mw_providers.adapter_type=eq.dexscreener&status=in.(queued,awaiting_payment_instruction,retrying)&order=created_at.asc&limit=50`,
+          `mw_campaign_orders?select=id,status,creatives,payment_instruction,created_at,mw_providers!inner(adapter_type,slug,display_name),mw_projects(mint,ticker),mw_provider_offers(label,price_usd)&mw_providers.adapter_type=eq.dexscreener&status=in.(queued,awaiting_payment_instruction,retrying,paying,paid_unconfirmed)&order=created_at.desc&limit=50`,
         );
+        // Diagnostics: any campaign orders at all (helps when list looks "blank")
+        let anyOrders = [];
+        try {
+          anyOrders = await sbFetch(
+            `mw_campaign_orders?select=id,status,created_at,mw_providers(adapter_type,slug,display_name),mw_projects(ticker)&order=created_at.desc&limit=20`,
+          );
+        } catch {
+          anyOrders = [];
+        }
         const list = (rows || []).map((o) => ({
           orderId: o.id,
           status: o.status,
@@ -75,7 +85,23 @@ export default async function handler(req, res) {
           hasDeposit: Boolean(o.payment_instruction?.depositAddress),
           hasCharge: Boolean(o.payment_instruction?.deeplink),
         }));
-        return json(res, 200, { ok: true, pending: list });
+        return json(res, 200, {
+          ok: true,
+          pending: list,
+          pendingCount: list.length,
+          recentAnyCount: Array.isArray(anyOrders) ? anyOrders.length : 0,
+          recentAny: (anyOrders || []).map((o) => ({
+            orderId: o.id,
+            status: o.status,
+            ticker: o.mw_projects?.ticker,
+            adapter: o.mw_providers?.adapter_type,
+            provider: o.mw_providers?.display_name || o.mw_providers?.slug,
+          })),
+          hint:
+            list.length === 0
+              ? 'No Dex-pending CTOgo orders. A Dex marketplace order number is not enough — Approve a Dex spend on a CTOgo project roadmap first.'
+              : null,
+        });
       }
 
       if (!orderId) {

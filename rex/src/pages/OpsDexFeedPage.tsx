@@ -7,6 +7,8 @@ import { Link } from 'react-router-dom';
 export function OpsDexFeedPage() {
   const [opsSecret, setOpsSecret] = useState('');
   const [pending, setPending] = useState<any[]>([]);
+  const [recentAny, setRecentAny] = useState<any[]>([]);
+  const [manualOrderId, setManualOrderId] = useState('');
   const [sheet, setSheet] = useState<any | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [chargeUrl, setChargeUrl] = useState('');
@@ -35,8 +37,13 @@ export function OpsDexFeedPage() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || res.statusText);
       setPending(body.pending || []);
-      if (!(body.pending || []).length) {
+      setRecentAny(body.recentAny || []);
+      if (body.hint) {
+        setMsg(body.hint);
+      } else if (!(body.pending || []).length) {
         setMsg('No pending Dex orders in CTOgo yet — Approve a Dex roadmap item first.');
+      } else {
+        setMsg(`Loaded ${body.pendingCount ?? body.pending.length} pending Dex order(s).`);
       }
     } catch (err: any) {
       setMsg(err.message || String(err));
@@ -198,7 +205,39 @@ export function OpsDexFeedPage() {
       </button>
       {msg ? <p className="mt-2 text-sm text-amber-200">{msg}</p> : null}
 
+      <div className="mt-4 flex flex-wrap items-end gap-2">
+        <label className="min-w-[16rem] flex-1 text-[11px] font-medium text-white/40">
+          Or paste CTOgo order UUID
+          <input
+            value={manualOrderId}
+            onChange={(e) => setManualOrderId(e.target.value)}
+            className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 font-mono text-[12px] text-white"
+            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+          />
+        </label>
+        <button
+          type="button"
+          disabled={busy || !opsSecret || !manualOrderId.trim()}
+          onClick={() => void loadSheet(manualOrderId.trim())}
+          className="rounded-lg border border-white/15 px-3 py-2 text-[11px] font-semibold text-white/80 disabled:opacity-40"
+        >
+          Load fill sheet
+        </button>
+      </div>
+
+      <p className="mt-3 text-[11px] text-white/35">
+        Dex’s own order # (e.g. 1786…) is not a CTOgo id. CTOgo orders appear only after you{' '}
+        <strong className="font-semibold text-white/55">Approve</strong> a Dex spend on a project
+        roadmap.
+      </p>
+
       <ul className="mt-6 space-y-2">
+        {pending.length === 0 && recentAny.length === 0 && !busy ? (
+          <li className="rounded-xl border border-dashed border-white/15 bg-white/[0.02] px-4 py-5 text-[12px] text-white/45">
+            Nothing queued yet. Open a project → Roadmap → Approve a DexScreener item (with title /
+            pitch / image). Then click Load again.
+          </li>
+        ) : null}
         {pending.map((p) => (
           <li key={p.orderId}>
             <button
@@ -222,6 +261,26 @@ export function OpsDexFeedPage() {
           </li>
         ))}
       </ul>
+
+      {recentAny.length > 0 && pending.length === 0 ? (
+        <div className="mt-6">
+          <p className="text-[11px] font-medium text-white/40">Recent CTOgo orders (any status)</p>
+          <ul className="mt-2 space-y-1">
+            {recentAny.map((o) => (
+              <li key={o.orderId}>
+                <button
+                  type="button"
+                  onClick={() => void loadSheet(o.orderId)}
+                  className="w-full rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-[11px] text-white/70"
+                >
+                  {o.ticker || '—'} · {o.provider || o.adapter || 'provider'} · {o.status}
+                  <span className="mt-0.5 block font-mono text-[10px] text-white/35">{o.orderId}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {sheet ? (
         <div className="mt-8 space-y-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
