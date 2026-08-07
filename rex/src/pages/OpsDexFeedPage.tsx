@@ -18,7 +18,7 @@ export function OpsDexFeedPage() {
   const headers = useCallback(
     () => ({
       'Content-Type': 'application/json',
-      'x-mw-ops-secret': opsSecret,
+      'x-mw-ops-secret': opsSecret.trim(),
     }),
     [opsSecret],
   );
@@ -27,10 +27,17 @@ export function OpsDexFeedPage() {
     setMsg(null);
     setBusy(true);
     try {
-      const res = await fetch(`/api/mw-dex-feed?pending=1`, { headers: headers() });
+      const q = new URLSearchParams({
+        pending: '1',
+        opsSecret: opsSecret.trim(),
+      });
+      const res = await fetch(`/api/mw-dex-feed?${q}`, { headers: headers() });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || res.statusText);
       setPending(body.pending || []);
+      if (!(body.pending || []).length) {
+        setMsg('No pending Dex orders in CTOgo yet — Approve a Dex roadmap item first.');
+      }
     } catch (err: any) {
       setMsg(err.message || String(err));
     } finally {
@@ -43,7 +50,11 @@ export function OpsDexFeedPage() {
     setSelectedId(orderId);
     setBusy(true);
     try {
-      const res = await fetch(`/api/mw-dex-feed?orderId=${encodeURIComponent(orderId)}`, {
+      const q = new URLSearchParams({
+        orderId,
+        opsSecret: opsSecret.trim(),
+      });
+      const res = await fetch(`/api/mw-dex-feed?${q}`, {
         headers: headers(),
       });
       const body = await res.json();

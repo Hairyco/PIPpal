@@ -19,15 +19,24 @@ function json(res, status, body) {
   return res.status(status).json(body);
 }
 
+function headerSecret(req) {
+  const raw = req.headers['x-mw-ops-secret'] ?? req.headers['X-Mw-Ops-Secret'];
+  if (Array.isArray(raw)) return String(raw[0] || '').trim();
+  return raw != null ? String(raw).trim() : '';
+}
+
 function assertOps(bodyOrQuery, req) {
-  const secret = process.env.MW_OPS_SECRET;
-  if (!secret) return;
-  const provided =
-    bodyOrQuery?.opsSecret ||
-    req.headers['x-mw-ops-secret'] ||
-    req.query?.opsSecret;
-  if (provided !== secret) {
-    const err = new Error('Unauthorized');
+  const secret = String(process.env.MW_OPS_SECRET || '').trim();
+  if (!secret) {
+    const err = new Error('MW_OPS_SECRET not configured on server');
+    err.statusCode = 503;
+    throw err;
+  }
+  const provided = String(
+    bodyOrQuery?.opsSecret || headerSecret(req) || req.query?.opsSecret || '',
+  ).trim();
+  if (!provided || provided !== secret) {
+    const err = new Error('Unauthorized — ops secret does not match MW_OPS_SECRET');
     err.statusCode = 401;
     throw err;
   }
