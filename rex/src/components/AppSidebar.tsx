@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
   Percent,
@@ -24,7 +24,8 @@ import { AuthButton } from './AuthButton';
 
 const NAV = [
   { to: '/', label: 'Discover', icon: Home, end: true },
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: false },
+  /** Post-launch CTO dashboard (same as Classic header person icon) */
+  { to: '/launch?dashboard=1', label: 'Dashboard', icon: LayoutDashboard, end: false },
   { to: '/watchlist', label: 'Watchlist', icon: Star, end: false },
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
@@ -34,6 +35,18 @@ const NAV = [
   { to: '/faq', label: 'FAQ', icon: HelpCircle, end: false },
   { to: '/contact', label: 'Contact', icon: Mail, end: false },
 ] as const;
+
+function navItemActive(to: string, pathname: string, search: string, end?: boolean): boolean {
+  if (to.startsWith('/launch?dashboard')) {
+    return pathname === '/launch' && new URLSearchParams(search).get('dashboard') === '1';
+  }
+  if (to === '/launch') {
+    return pathname === '/launch' && new URLSearchParams(search).get('dashboard') !== '1';
+  }
+  if (end) return pathname === to;
+  if (to === '/') return pathname === '/';
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 type SidebarContextValue = {
   open: boolean;
@@ -67,24 +80,24 @@ export function AppSidebarProvider({ children }: { children: ReactNode }) {
 
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
   const { count } = useWatchlist();
+  const { pathname, search } = useLocation();
   return (
     <nav className="flex flex-col gap-1 p-3">
       {NAV.map((item) => {
         const Icon = item.icon;
         const showCount = item.to === '/watchlist' && count > 0;
+        const active = navItemActive(item.to, pathname, search, item.end);
         return (
           <NavLink
             key={`${item.to}-${item.label}`}
             to={item.to}
             end={item.end}
             onClick={onNavigate}
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 rounded-full px-3 py-2.5 text-[13px] font-semibold transition ${
-                isActive
-                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
-                  : 'text-white/55 hover:bg-[#1c1c1e] hover:text-white'
-              }`
-            }
+            className={`flex items-center gap-2.5 rounded-full px-3 py-2.5 text-[13px] font-semibold transition ${
+              active
+                ? 'bg-[#c8ff3d]/15 text-[#d5ff69]'
+                : 'text-white/55 hover:bg-[#1c1c1e] hover:text-white'
+            }`}
           >
             <Icon
               className={`h-4 w-4 shrink-0 ${item.to === '/watchlist' && count > 0 ? 'fill-current' : ''}`}
