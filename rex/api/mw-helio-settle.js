@@ -2,12 +2,12 @@
  * Ops API: settle Helio deposit for a campaign order from ops wallet pool.
  * POST { orderId, opsSecret, dryRun? }
  *
- * Requires payment_instruction.depositAddress + depositAmount (from Dex QR screen).
+ * Requires payment_instruction with chargeToken and/or depositAddress + depositAmount.
+ * Dry-run only resolves deposit (no Solana SDK load). Live settle lazy-loads helioSettle.
  * Until contingency wallets are registered, uses KEEPER_SECRET_KEY as payer fallback.
  */
 
 import { mwConfigured, sbFetch, audit } from '../lib/mw/supabase.js';
-import { settleHelioDeposit } from '../lib/mw/helioSettle.js';
 import { resolveHelioDeposit } from '../lib/mw/helio.js';
 
 function json(res, status, body) {
@@ -59,13 +59,17 @@ export default async function handler(req, res) {
     }
 
     if (dryRun) {
+      const { raw: _raw, ...deposit } = resolved;
       return json(res, 200, {
         ok: true,
         dryRun: true,
-        deposit: resolved,
+        deposit,
         hint: 'Pass dryRun:false to broadcast USDC/SOL transfer from ops/keeper wallet',
       });
     }
+
+    // Lazy-load Solana settle path — top-level @solana/web3.js breaks this serverless function (ERR_REQUIRE_ESM).
+    const { settleHelioDeposit } = await import('../lib/mw/helioSettle.js');
 
     await sbFetch(`mw_campaign_orders?id=eq.${orderId}`, {
       method: 'PATCH',
