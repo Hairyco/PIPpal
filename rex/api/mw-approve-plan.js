@@ -102,6 +102,26 @@ export default async function handler(req, res) {
         });
       }
 
+      // Resolve roadmap keys (tg-pinned, dex-socials, …) → real offer UUID rows first.
+      // mw_spend_plans.selected_offer_ids is uuid[] — never store offer_key strings there.
+      const resolvedOffers = [];
+      const missingOffers = [];
+      for (const offerIdOrKey of selectedOfferIds) {
+        const key = String(offerIdOrKey || '').trim();
+        if (!key) continue;
+        try {
+          const offer = await resolveOffer(key);
+          if (!offer?.id) {
+            missingOffers.push(key);
+            continue;
+          }
+          resolvedOffers.push(offer);
+        } catch (err) {
+          missingOffers.push(`${key} (${err.message || err})`);
+        }
+      }
+      const selectedOfferUuids = resolvedOffers.map((o) => o.id);
+
       if (!Array.isArray(existingPlans) || !existingPlans[0]) {
         await sbFetch('mw_spend_plans', {
           method: 'POST',
@@ -110,7 +130,7 @@ export default async function handler(req, res) {
             project_id: project.id,
             mode,
             status: 'approved',
-            selected_offer_ids: selectedOfferIds,
+            selected_offer_ids: selectedOfferUuids,
             approved_by_wallet: wallet,
             approval_message: message,
             approval_signature: signature,
@@ -124,7 +144,7 @@ export default async function handler(req, res) {
             project_id: project.id,
             mode,
             status: 'approved',
-            selected_offer_ids: selectedOfferIds,
+            selected_offer_ids: selectedOfferUuids,
             approved_by_wallet: wallet,
             approval_message: message,
             approval_signature: signature,
@@ -134,24 +154,9 @@ export default async function handler(req, res) {
         });
       }
 
-      // Queue campaign orders from selected offers (UUID or offer_key from roadmap).
+      // Queue campaign orders from resolved offers.
       const queued = [];
-      const missingOffers = [];
-      for (const offerIdOrKey of selectedOfferIds) {
-        const key = String(offerIdOrKey || '').trim();
-        if (!key) continue;
-        let offer;
-        try {
-          offer = await resolveOffer(key);
-        } catch (err) {
-          missingOffers.push(`${key} (${err.message || err})`);
-          continue;
-        }
-        if (!offer) {
-          missingOffers.push(key);
-          continue;
-        }
-        // Queue even if catalog row is inactive — ops/autofill still need the order row.
+      for (const offer of resolvedOffers) {
         const priceUsd = Number(offer.price_usd);
         const { serviceFeeUsd, totalDebitUsd } = usdWithServiceFee(priceUsd);
         const invoiceLamports = BigInt(Math.floor((priceUsd / SOL_USD) * LAMPORTS_PER_SOL));
@@ -186,7 +191,7 @@ export default async function handler(req, res) {
             breakdown: { priceUsd, serviceFeeUsd, totalDebitUsd },
           });
         } catch (err) {
-          missingOffers.push(`${key} queue failed: ${err.message || err}`);
+          missingOffers.push(`${offer.offer_key || offer.id} queue failed: ${err.message || err}`);
         }
       }
 
