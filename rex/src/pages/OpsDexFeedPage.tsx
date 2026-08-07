@@ -149,13 +149,22 @@ export function OpsDexFeedPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dex feed + Helio capture</h1>
           <p className="mt-2 text-sm text-white/50">
-            Fill Dex marketplace from CTOgo creatives (Google session by hand). Capture Helio QR
-            charge + deposit address. Socials optional.
+            Fill Dex marketplace from CTOgo creatives (by hand or local autofill). Capture Helio QR
+            charge + deposit. Socials optional. Free proof = Dry-run only — do not Live settle
+            unless you want the ad.
           </p>
         </div>
         <Link to="/ops/providers" className="text-[12px] text-white/45 underline">
           Providers
         </Link>
+      </div>
+
+      <div className="mt-4 rounded-xl border border-white/10 bg-black/30 px-3 py-2 font-mono text-[11px] text-white/55">
+        <p className="text-white/40">Local autofill (free — stops before pay)</p>
+        <p className="mt-1 break-all">
+          cd rex → npm run dex:login → npm run dex:autofill -- --orderId=… --api=https://rex-liart.vercel.app
+          --opsSecret=… --headed --post-capture
+        </p>
       </div>
 
       <label className="mt-6 block text-[11px] font-medium text-white/40">

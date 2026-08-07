@@ -128,12 +128,14 @@ Until then, providers stay off — that’s intentional safety.
 5. **Dry-run settle** on that page, then **Live settle** only when ready (≈$299 USDC Mainnet).
 
 ### Step 8c — Prove automation without buying a Dex ad (free)
-1. Run Dex form → payment → QR capture on `/ops/dex-feed`.
-2. Click **Dry-run settle** only (checks deposit; sends **$0**).
-3. Abort the Dex checkout — do **not** Live settle unless you want a real ~$299 ad.
-4. That is enough to call the auto path “proven.” Optional later: Live settle when you want the ad, or a ~$1 self-Helio charge if you have Helio merchant keys.
+1. Local autofill (recommended): `cd rex` → `npm run dex:login` (Google once) → `npm run dex:autofill -- --orderId=… --opsSecret=… --headed --post-capture`
+2. Or manual: Dex form → payment → QR capture on `/ops/dex-feed`.
+3. Click **Dry-run settle** only (checks deposit; sends **$0**).
+4. Abort the Dex checkout — do **not** Live settle unless you want a real ~$299 ad.
+5. That is enough to call the auto path “proven.” Optional later: Live settle when you want the ad.
 
-Full detail: `rex/docs/suppliers/dexscreener.md` → Confirmation test plan.
+Autofill docs: `rex/scripts/dex-autofill/README.md`  
+Playbook: `rex/docs/suppliers/dexscreener.md`
 
 ### Step 9 — Before real money (Mainnet)
 Do **not** skip these:

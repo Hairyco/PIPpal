@@ -135,10 +135,21 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 | Piece | Today | Goal |
 |-------|--------|------|
 | Google sign-in | Human (session handoff) | Same — no OAuth robot every order |
-| Dex order form | Ops fill sheet / manual paste | Browser autofill from CTOgo creatives |
+| Dex order form | Ops fill sheet **or** local Playwright autofill | `npm run dex:autofill` |
 | Payment page | Capture Helio charge + deposit | Same |
 | Pay | CTOgo/ops wallet **sends USDC to Helio deposit** (or dry-run) | Same money as Helio “Pay with Wallet” — different button |
 | Helio “connect wallet → Pay” | Contingency | Also spends real Mainnet USDC on a live Dex invoice |
+
+### Local browser autofill (free)
+
+```bash
+cd rex
+npm install -D playwright && npx playwright install chromium
+npm run dex:login          # Google once; save session
+npm run dex:autofill -- --orderId=UUID --api=https://rex-liart.vercel.app --opsSecret=… --headed --post-capture
+```
+
+Stops at payment capture. **$0 spent.** Then Dry-run settle on `/ops/dex-feed`. Details: `rex/scripts/dex-autofill/README.md`.
 
 Important: on a **live** Dex $299 order, QR deposit **or** wallet Pay both spend ~$299. There is no free Dex checkout. Cheap proof = go through the flow and **stop before pay**, plus dry-run settle.
 
@@ -160,6 +171,7 @@ Only when you deliberately want the cheapest (or any) Dex package live. Same as 
 
 - Ad pack schema: `rex/src/data/dexscreenerAdPack.ts`
 - Fill sheet: `rex/lib/mw/dexFeed.js` · ops UI `/ops/dex-feed` · `GET/POST /api/mw-dex-feed`
+- Browser autofill (local): `rex/scripts/dex-autofill/` · `npm run dex:login` / `npm run dex:autofill`
 - Fulfilment adapter: `rex/lib/mw/adapters.js`
 - Helio helpers: `rex/lib/mw/helio.js` · settle: `rex/lib/mw/helioSettle.js` · `POST /api/mw-helio-settle`
 - Jupiter JIT: `rex/lib/mw/jupiterSwap.js`
