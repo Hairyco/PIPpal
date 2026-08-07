@@ -1,0 +1,273 @@
+import { useCallback, useState } from 'react';
+import { Link } from 'react-router-dom';
+
+/**
+ * Ops UI: list Dex orders, show fill sheet, capture Helio charge + deposit.
+ */
+export function OpsDexFeedPage() {
+  const [opsSecret, setOpsSecret] = useState('');
+  const [pending, setPending] = useState<any[]>([]);
+  const [sheet, setSheet] = useState<any | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [chargeUrl, setChargeUrl] = useState('');
+  const [depositAddress, setDepositAddress] = useState('');
+  const [depositAmount, setDepositAmount] = useState('299');
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const headers = useCallback(
+    () => ({
+      'Content-Type': 'application/json',
+      'x-mw-ops-secret': opsSecret,
+    }),
+    [opsSecret],
+  );
+
+  async function loadPending() {
+    setMsg(null);
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/mw-dex-feed?pending=1`, { headers: headers() });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      setPending(body.pending || []);
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function loadSheet(orderId: string) {
+    setMsg(null);
+    setSelectedId(orderId);
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/mw-dex-feed?orderId=${encodeURIComponent(orderId)}`, {
+        headers: headers(),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      setSheet(body.sheet);
+      if (body.paymentInstruction?.deeplink) setChargeUrl(body.paymentInstruction.deeplink);
+      if (body.paymentInstruction?.depositAddress) {
+        setDepositAddress(body.paymentInstruction.depositAddress);
+      }
+      if (body.paymentInstruction?.depositAmount != null) {
+        setDepositAmount(String(body.paymentInstruction.depositAmount));
+      }
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function markFed() {
+    if (!selectedId) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/mw-dex-feed', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({ action: 'mark_fed', orderId: selectedId, opsSecret }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      setMsg('Marked Dex form as fed — capture Helio QR next');
+      void loadPending();
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function capture() {
+    if (!selectedId) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/mw-dex-feed', {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify({
+          action: 'capture',
+          orderId: selectedId,
+          chargeUrl: chargeUrl || undefined,
+          depositAddress: depositAddress || undefined,
+          depositAmount: depositAmount ? Number(depositAmount) : undefined,
+          opsSecret,
+        }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || res.statusText);
+      setMsg(body.next || 'Captured — ready for Helio settle');
+      void loadPending();
+    } catch (err: any) {
+      setMsg(err.message || String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const fill = sheet?.fill;
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 py-10 text-white">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dex feed + Helio capture</h1>
+          <p className="mt-2 text-sm text-white/50">
+            Fill Dex marketplace from CTOgo creatives (Google session by hand). Capture Helio QR
+            charge + deposit address. Socials optional.
+          </p>
+        </div>
+        <Link to="/ops/providers" className="text-[12px] text-white/45 underline">
+          Providers
+        </Link>
+      </div>
+
+      <label className="mt-6 block text-[11px] font-medium text-white/40">
+        Ops secret (MW_OPS_SECRET)
+        <input
+          type="password"
+          value={opsSecret}
+          onChange={(e) => setOpsSecret(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-white"
+        />
+      </label>
+
+      <button
+        type="button"
+        disabled={busy || !opsSecret}
+        onClick={() => void loadPending()}
+        className="mt-4 rounded-lg bg-[#c8ff3d] px-4 py-2 text-[12px] font-bold text-[#090b14] disabled:opacity-40"
+      >
+        {busy ? 'Loading…' : 'Load pending Dex orders'}
+      </button>
+      {msg ? <p className="mt-2 text-sm text-amber-200">{msg}</p> : null}
+
+      <ul className="mt-6 space-y-2">
+        {pending.map((p) => (
+          <li key={p.orderId}>
+            <button
+              type="button"
+              onClick={() => void loadSheet(p.orderId)}
+              className={`w-full rounded-xl border px-3 py-2 text-left text-[12px] ${
+                selectedId === p.orderId
+                  ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10'
+                  : 'border-white/10 bg-white/[0.03]'
+              }`}
+            >
+              <span className="font-semibold text-white/90">
+                {p.ticker || '—'} · {p.offer || 'Dex'}
+              </span>
+              <span className="mt-0.5 block text-white/40">
+                {p.status}
+                {p.hasCharge ? ' · charge' : ''}
+                {p.hasDeposit ? ' · deposit' : ' · need deposit'}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {sheet ? (
+        <div className="mt-8 space-y-4 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-semibold">Fill sheet</p>
+            <span
+              className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                sheet.ready ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-200'
+              }`}
+            >
+              {sheet.ready ? 'Ready' : 'Incomplete'}
+            </span>
+          </div>
+          {!sheet.ready ? (
+            <p className="text-[12px] text-amber-200">Missing: {sheet.hardMissing?.join(', ')}</p>
+          ) : null}
+          {sheet.softWarnings?.length ? (
+            <p className="text-[11px] text-white/40">{sheet.softWarnings[0]}</p>
+          ) : null}
+
+          <dl className="space-y-2 text-[12px]">
+            {(
+              [
+                ['Chain', fill?.chain],
+                ['Token', fill?.tokenAddress],
+                ['Package', fill?.packageLabel],
+                ['Title', fill?.title],
+                ['Pitch', fill?.pitch],
+                ['Image', fill?.squareImageUrl],
+              ] as const
+            ).map(([k, v]) => (
+              <div key={k} className="flex flex-col gap-0.5 border-b border-white/[0.06] pb-2">
+                <dt className="text-white/40">{k}</dt>
+                <dd className="break-all font-medium text-white/85">{v || '—'}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="https://marketplace.dexscreener.com/product/ad/order"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80"
+            >
+              Open Dex order form
+            </a>
+            <button
+              type="button"
+              onClick={() => void markFed()}
+              className="rounded-lg border border-white/15 px-3 py-1.5 text-[11px] font-semibold text-white/80"
+            >
+              Mark form fed
+            </button>
+          </div>
+
+          <div className="space-y-2 border-t border-white/[0.08] pt-4">
+            <p className="text-[12px] font-semibold text-white/80">Helio capture (after Pay with QR)</p>
+            <label className="block text-[11px] text-white/45">
+              Charge URL
+              <input
+                value={chargeUrl}
+                onChange={(e) => setChargeUrl(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 text-[12px] text-white"
+                placeholder="https://moonpay.hel.io/charge/…"
+              />
+            </label>
+            <label className="block text-[11px] text-white/45">
+              Deposit address
+              <input
+                value={depositAddress}
+                onChange={(e) => setDepositAddress(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 text-[12px] text-white"
+                placeholder="Solana address from QR / transfer UI"
+              />
+            </label>
+            <label className="block text-[11px] text-white/45">
+              Deposit amount (USDC)
+              <input
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                className="mt-1 w-40 rounded-lg border border-white/10 bg-black/40 px-2.5 py-2 text-[12px] text-white"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void capture()}
+              className="rounded-lg bg-[#c8ff3d] px-4 py-2 text-[12px] font-bold text-[#090b14] disabled:opacity-40"
+            >
+              Save capture
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

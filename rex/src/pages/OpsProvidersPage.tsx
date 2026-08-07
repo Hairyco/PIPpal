@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { fetchMwProviders } from '../lib/marketingWalletApi';
 import { MARKETING_SERVICE_FEE_LABEL } from '../data/chainConfig';
 
@@ -42,11 +43,18 @@ export function OpsProvidersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 text-white">
-      <h1 className="text-2xl font-bold tracking-tight">CTOgo provider ops</h1>
-      <p className="mt-2 text-sm text-white/50">
-        Whitelist wallets on-chain first, then activate catalog rows. {MARKETING_SERVICE_FEE_LABEL}{' '}
-        applies at disbursement.
-      </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">CTOgo provider ops</h1>
+          <p className="mt-2 text-sm text-white/50">
+            Whitelist wallets on-chain first, then activate catalog rows.{' '}
+            {MARKETING_SERVICE_FEE_LABEL} applies at disbursement.
+          </p>
+        </div>
+        <Link to="/ops/dex-feed" className="text-[12px] text-white/45 underline">
+          Dex feed + Helio
+        </Link>
+      </div>
       {feeNote ? <p className="mt-2 text-xs text-[#d5ff69]/80">{feeNote}</p> : null}
 
       <label className="mt-6 block text-[11px] font-medium text-white/40">

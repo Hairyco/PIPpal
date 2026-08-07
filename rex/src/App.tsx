@@ -26,6 +26,7 @@ import { CoinPage } from './pages/CoinPage';
 import { WelcomeGate } from './components/WelcomeGate';
 import { DiscoverDeckPage } from './pages/DiscoverDeckPage';
 import { OpsProvidersPage } from './pages/OpsProvidersPage';
+import { OpsDexFeedPage } from './pages/OpsDexFeedPage';
 
 export function App() {
   return (
@@ -48,6 +49,7 @@ export function App() {
             <Route path="/fees" element={<FeesPage />} />
             <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
             <Route path="/ops/providers" element={<OpsProvidersPage />} />
+            <Route path="/ops/dex-feed" element={<OpsDexFeedPage />} />
             <Route path="/faq" element={<FaqPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/category/:categoryId" element={<CategoryPage />} />

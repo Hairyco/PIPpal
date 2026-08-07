@@ -120,6 +120,15 @@ Until then, providers stay off — that’s intentional safety.
 7. Optional: `MW_DISBURSE_DRY_RUN=1` to derive PDAs without broadcasting.
 8. Optional: set `PROTOCOL_TREASURY` if you prefer not to read it from the config account.
 
+### Step 8b — Dex form feed + Helio QR (ops)
+1. Approve a Dex roadmap item with title / pitch / 1:1 image (socials optional).
+2. Open **`/ops/dex-feed`**, paste ops secret, **Load pending Dex orders**.
+3. Use the fill sheet on Dex marketplace (Google signed in) → **Pay with QR**.
+4. Paste charge URL + deposit address + amount → **Save capture**.
+5. Dry-run settle: `POST /api/mw-helio-settle` with `dryRun: true`, then live when ready.
+
+Playbook: `rex/docs/suppliers/dexscreener.md`
+
 ### Step 9 — Before real money (Mainnet)
 Do **not** skip these:
 

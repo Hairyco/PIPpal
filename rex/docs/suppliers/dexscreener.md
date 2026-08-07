@@ -56,15 +56,26 @@ Related UI: Get Started **DexScreener ad pack** + Roadmap Approve gate.
 ```text
 Founder Approve (creatives hard gates)
   → CTOgo queues campaign order + creatives JSON
-  → Ops/session feeds Dex order form (Google handoff)
+  → Ops opens /ops/dex-feed → fill sheet → Google handoff → Dex form
   → Network Solana + Pay with USDC + Pay with QR
-  → Capture Helio charge deeplink → payment_instruction
+  → Capture Helio charge + deposit on /ops/dex-feed (or POST /api/mw-dex-feed)
   → Keeper: vault SOL disburse (invoice+20%) → JIT USDC → Helio deposit
   → Confirm via Dex GET /orders/v1/{chain}/{token} and/or Helio status
   → fulfilment fulfilled
 ```
 
 Public Dex APIs are **read-only** (no purchase API). We do not invent a static Dex treasury wallet.
+
+### Ops: form feed + Helio QR capture
+
+1. Open **`/ops/dex-feed`** (ops secret required).
+2. **Load pending Dex orders** → pick one → copy fields from the fill sheet into Dex (Google signed in).
+3. Submit Dex **Order Now** → payment page → **Pay with QR**.
+4. Paste **charge URL** + **deposit address** + amount → **Save capture**.
+5. Optional: **Mark form fed** after submit if you have not captured yet.
+6. Then `POST /api/mw-helio-settle` (`dryRun: true` first).
+
+API: `GET/POST /api/mw-dex-feed` · sheet builder: `rex/lib/mw/dexFeed.js`
 
 ## Contingency ops wallet pool (3+)
 
@@ -119,6 +130,7 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 ## Code pointers
 
 - Ad pack schema: `rex/src/data/dexscreenerAdPack.ts`
+- Fill sheet: `rex/lib/mw/dexFeed.js` · ops UI `/ops/dex-feed` · `GET/POST /api/mw-dex-feed`
 - Fulfilment adapter: `rex/lib/mw/adapters.js`
 - Helio helpers: `rex/lib/mw/helio.js` · settle: `rex/lib/mw/helioSettle.js` · `POST /api/mw-helio-settle`
 - Jupiter JIT: `rex/lib/mw/jupiterSwap.js`
@@ -127,7 +139,7 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 
 ### Helio settle (ops)
 
-1. From Dex QR screen, copy charge URL **and** the Solana deposit address + amount.
-2. `POST /api/mw-payment-instruction` with `orderId`, `chargeUrl`, `depositAddress`, `depositAmount` (e.g. 299), `opsSecret`.
+1. Prefer **`/ops/dex-feed`** capture (charge URL + deposit address + amount).
+2. Or `POST /api/mw-payment-instruction` / `POST /api/mw-dex-feed` `action=capture`.
 3. `POST /api/mw-helio-settle` with `orderId`, `opsSecret` (optional `dryRun: true` first).
 4. Until the 3 contingency wallets are registered, settle uses `KEEPER_SECRET_KEY` as payer fallback (must hold USDC + SOL for fees on Mainnet).
