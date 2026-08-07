@@ -23,7 +23,7 @@ export const MARKETING_SPEND_FLOW: MarketingSpendNode[] = [
   {
     id: 'dexscreener',
     label: 'Update socials',
-    cost: 500,
+    cost: 99,
     logo: '/images/partners/dexscreener.ico',
     x: 0.38,
     y: 0.48,

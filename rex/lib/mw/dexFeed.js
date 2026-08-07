@@ -383,6 +383,78 @@ function buildBoostSheet({ order, project, offer, provider, creatives, mint, pri
   });
 }
 
+function buildUpdateSocialsSheet({ order, project, offer, provider, creatives, mint, priceUsd }) {
+  const links = {
+    website: String(creatives.websiteUrl || '').trim(),
+    x: String(creatives.xUrl || '').trim(),
+    telegram: String(creatives.telegramUrl || '').trim(),
+    discord: String(creatives.discordUrl || '').trim(),
+  };
+  const hardMissing = [];
+  if (!mint) hardMissing.push('tokenAddress (project mint)');
+  if (!links.website && !links.x && !links.telegram && !links.discord) {
+    hardMissing.push('at least one social / website link');
+  }
+
+  const pairSearchUrl = mint
+    ? `https://dexscreener.com/solana/${mint}`
+    : DEX_PAIR_HOME;
+
+  const steps = [
+    {
+      n: 1,
+      action: 'Founder owns Dex',
+      detail:
+        'Prefer founder Google / wallet on Dex. Polessia Google is checkout-only for paid ads — never claim the token profile under Polessia.',
+    },
+    {
+      n: 2,
+      action: 'Open pair / update form',
+      detail: 'Dex token update / socials (not Marketplace Token Ad)',
+      url: pairSearchUrl,
+    },
+    {
+      n: 3,
+      action: 'Paste links',
+      detail: 'Website / X / Telegram / Discord from creatives',
+      value: links,
+    },
+    {
+      n: 4,
+      action: 'Submit',
+      detail: 'Confirm update. Last writer wins on Dex — founder can edit later with their login.',
+    },
+    {
+      n: 5,
+      action: 'CTOgo fee',
+      detail: `$99 fulfilment (Dex form is free). No Helio capture unless Dex charges.`,
+    },
+  ];
+
+  return baseSheet({
+    order,
+    provider,
+    sheetType: 'update-socials',
+    ready: hardMissing.length === 0,
+    hardMissing,
+    softWarnings: [
+      'Founder-owned Dex login preferred. Do not create/claim profile with Polessia Google.',
+    ],
+    fill: {
+      chain: 'Solana',
+      tokenAddress: mint,
+      pairUrl: pairSearchUrl,
+      packageLabel: 'Update socials · CTOgo fulfilment $99',
+      packagePriceUsd: priceUsd || 99,
+      marketplaceForm: false,
+      links,
+      note: 'founder owns Dex; last writer wins',
+    },
+    steps,
+    priceUsd: priceUsd || 99,
+  });
+}
+
 /**
  * @param {{ order: object, project?: object, offer?: object, provider?: object }} args
  */
@@ -398,20 +470,23 @@ export function buildDexFeedSheet({ order, project, offer, provider }) {
     creatives.spendItemId ||
     order?.spendItemId ||
     order?.offerKey ||
-    'dex-token-ad';
+    'dex-token-ad-20k';
   const offerKey = canonicalOfferKey(rawKey);
 
   const ctx = { order, project, offer, provider, creatives, mint, priceUsd };
 
-  if (offerKey === 'dex-boost-10' || offerKey.startsWith('dex-boost')) {
+  if (offerKey.startsWith('dex-boost')) {
     return buildBoostSheet(ctx);
   }
-  if (offerKey === 'dex-trending') {
+  if (offerKey === 'dex-update-socials') {
+    return buildUpdateSocialsSheet(ctx);
+  }
+  if (offerKey.startsWith('dex-trending')) {
     return buildTrendingSheet(ctx);
   }
   if (offerKey === 'dex-token-info') {
     return buildTokenInfoSheet(ctx);
   }
-  // dex-token-ad, dex-socials (aliased), and unknown → Token Ad form
+  // dex-token-ad-* and legacy short keys → Token Ad form
   return buildTokenAdSheet(ctx);
 }

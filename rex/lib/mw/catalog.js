@@ -1,6 +1,6 @@
 /**
  * Ensure Polessia roadmap catalog rows exist in Supabase.
- * Roadmap spend ids map to offer_key (dex-socials aliases to dex-token-ad).
+ * Dex packs: boost tiers, token-ad view tiers, trending durations, ETI, update-socials.
  */
 
 import { sbFetch } from './supabase.js';
@@ -8,10 +8,12 @@ import { sbFetch } from './supabase.js';
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-/** Legacy / alternate keys → canonical offer_key in ROADMAP_CATALOG. */
+/** Legacy / short keys → canonical offer_key in ROADMAP_CATALOG. */
 export const OFFER_KEY_ALIASES = {
-  'dex-socials': 'dex-token-ad',
-  'dex-token-ad-20k': 'dex-token-ad',
+  'dex-token-ad': 'dex-token-ad-20k',
+  'dex-trending': 'dex-trending-24h',
+  /** Socials is its own SKU (not Token Ad) */
+  'dex-socials': 'dex-update-socials',
 };
 
 export function looksLikeUuid(value) {
@@ -23,6 +25,52 @@ export function canonicalOfferKey(key) {
   return OFFER_KEY_ALIASES[k] || k;
 }
 
+const DEX_PLAYBOOK = 'docs/suppliers/dexscreener.md';
+const DEX_AD_URL = 'https://marketplace.dexscreener.com/product/ad';
+const DEX_TRENDING_URL = 'https://marketplace.dexscreener.com/product/trending-bar-ad';
+const DEX_INFO_URL = 'https://marketplace.dexscreener.com/product/token-info';
+const DEX_HOME = 'https://dexscreener.com';
+
+function dexBoost(offerKey, label, priceUsd, notes) {
+  return {
+    slug: 'dexscreener-boost',
+    displayName: 'DexScreener Boosts',
+    adapterType: 'dexscreener',
+    offerKey,
+    label,
+    priceUsd,
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_HOME,
+    notes: notes || 'Pair-page Boost (web only). No Marketplace form.',
+  };
+}
+
+function dexTokenAd(offerKey, label, priceUsd) {
+  return {
+    slug: 'dexscreener-token-ad',
+    displayName: 'DexScreener Token Advertising',
+    adapterType: 'dexscreener',
+    offerKey,
+    label,
+    priceUsd,
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_AD_URL,
+  };
+}
+
+function dexTrending(offerKey, label, priceUsd) {
+  return {
+    slug: 'dexscreener-trending',
+    displayName: 'DexScreener trending',
+    adapterType: 'dexscreener',
+    offerKey,
+    label,
+    priceUsd,
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_TRENDING_URL,
+  };
+}
+
 export const ROADMAP_CATALOG = [
   {
     slug: 'ctogo-telegram-pin',
@@ -32,27 +80,17 @@ export const ROADMAP_CATALOG = [
     label: 'Pinned message · CTOgo Telegram',
     priceUsd: 150,
   },
-  {
-    slug: 'dexscreener-boost',
-    displayName: 'DexScreener Boosts',
-    adapterType: 'dexscreener',
-    offerKey: 'dex-boost-10',
-    label: 'Boosts · 10× / 12h',
-    priceUsd: 99,
-    playbookPath: 'docs/suppliers/dexscreener.md',
-    checkoutEntryUrl: 'https://dexscreener.com',
-    notes: 'Pair-page Boost button (web only). No Marketplace form / creatives.',
-  },
-  {
-    slug: 'dexscreener-token-ad',
-    displayName: 'DexScreener Token Advertising',
-    adapterType: 'dexscreener',
-    offerKey: 'dex-token-ad',
-    label: 'Token Advertising · 20k views',
-    priceUsd: 299,
-    playbookPath: 'docs/suppliers/dexscreener.md',
-    checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/ad',
-  },
+  dexBoost('dex-boost-10', 'Boosts · 10× / 12h', 99),
+  dexBoost('dex-boost-30', 'Boosts · 30×', 249),
+  dexBoost('dex-boost-50', 'Boosts · 50×', 399),
+  dexBoost('dex-boost-100', 'Boosts · 100×', 899),
+  dexBoost('dex-boost-500', 'Boosts · 500× · Golden Ticker', 3999),
+  dexTokenAd('dex-token-ad-20k', 'Token Advertising · 20k views', 299),
+  dexTokenAd('dex-token-ad-50k', 'Token Advertising · 50k views', 699),
+  dexTokenAd('dex-token-ad-100k', 'Token Advertising · 100k views', 999),
+  dexTokenAd('dex-token-ad-200k', 'Token Advertising · 200k views', 1999),
+  dexTokenAd('dex-token-ad-400k', 'Token Advertising · 400k views', 3999),
+  dexTokenAd('dex-token-ad-800k', 'Token Advertising · 800k views', 6999),
   {
     slug: 'dexscreener-token-info',
     displayName: 'DexScreener Enhanced Token Info',
@@ -60,29 +98,44 @@ export const ROADMAP_CATALOG = [
     offerKey: 'dex-token-info',
     label: 'Enhanced Token Info',
     priceUsd: 299,
-    playbookPath: 'docs/suppliers/dexscreener.md',
-    checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/token-info',
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_INFO_URL,
+  },
+  dexTrending('dex-trending-24h', 'Trending Bar · 24h', 2000),
+  dexTrending('dex-trending-48h', 'Trending Bar · 48h', 4000),
+  dexTrending('dex-trending-7d', 'Trending Bar · 7d', 14000),
+  {
+    slug: 'dexscreener-update-socials',
+    displayName: 'DexScreener Update socials',
+    adapterType: 'dexscreener',
+    offerKey: 'dex-update-socials',
+    label: 'Update socials · CTOgo fulfilment',
+    priceUsd: 99,
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_HOME,
+    notes:
+      'Dex update form is free. CTOgo $99 fulfilment. Founder owns Dex — prefer founder login; never claim profile with Polessia Google.',
+  },
+  /** Legacy short keys kept as DB rows that mirror cheapest packs */
+  {
+    slug: 'dexscreener-token-ad',
+    displayName: 'DexScreener Token Advertising (legacy key)',
+    adapterType: 'dexscreener',
+    offerKey: 'dex-token-ad',
+    label: 'Token Advertising · 20k views (legacy)',
+    priceUsd: 299,
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_AD_URL,
   },
   {
     slug: 'dexscreener-trending',
-    displayName: 'DexScreener trending',
+    displayName: 'DexScreener trending (legacy key)',
     adapterType: 'dexscreener',
     offerKey: 'dex-trending',
-    label: 'Trending Bar · 24h',
+    label: 'Trending Bar · 24h (legacy)',
     priceUsd: 2000,
-    playbookPath: 'docs/suppliers/dexscreener.md',
-    checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/trending-bar-ad',
-  },
-  /** Legacy row — keep slug for existing DB providers; same fulfilment as dex-token-ad */
-  {
-    slug: 'dexscreener-socials',
-    displayName: 'DexScreener Token Advertising (legacy)',
-    adapterType: 'dexscreener',
-    offerKey: 'dex-socials',
-    label: 'Token Advertising · 20k views (legacy key)',
-    priceUsd: 299,
-    playbookPath: 'docs/suppliers/dexscreener.md',
-    checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/ad',
+    playbookPath: DEX_PLAYBOOK,
+    checkoutEntryUrl: DEX_TRENDING_URL,
   },
 ];
 
@@ -163,7 +216,6 @@ export async function ensureRoadmapOffers() {
       );
       offer = Array.isArray(offers) ? offers[0] : createdOffer;
     } else {
-      // Keep price/label in sync with live Dex catalog
       try {
         await sbFetch(`mw_provider_offers?id=eq.${offer.id}`, {
           method: 'PATCH',
@@ -188,11 +240,18 @@ export async function ensureRoadmapOffers() {
     byKey.set(row.offerKey, offer);
   }
 
-  // Alias map so resolveOffer('dex-socials') / dex-token-ad-20k hit canonical rows
-  const tokenAd = byKey.get('dex-token-ad');
-  if (tokenAd) {
-    byKey.set('dex-socials', tokenAd);
-    byKey.set('dex-token-ad-20k', tokenAd);
+  // Alias map for short / legacy keys
+  const ad20 = byKey.get('dex-token-ad-20k');
+  if (ad20) {
+    byKey.set('dex-token-ad', ad20);
+  }
+  const trend24 = byKey.get('dex-trending-24h');
+  if (trend24) {
+    byKey.set('dex-trending', trend24);
+  }
+  const socials = byKey.get('dex-update-socials');
+  if (socials) {
+    byKey.set('dex-socials', socials);
   }
 
   return byKey;

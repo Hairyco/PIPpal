@@ -1,9 +1,18 @@
 # DexScreener supplier playbook
 
-**Slug:** `dexscreener-token-ad` / `dexscreener-trending` / `dexscreener-token-info` / `dexscreener-boost` (legacy `dexscreener-socials` → Token Ad)  
+**Slug:** `dexscreener-token-ad` / `dexscreener-trending` / `dexscreener-token-info` / `dexscreener-boost` / `dexscreener-update-socials`  
 **Adapter:** `dexscreener`  
 **Last probed:** 2026-08-07 (live marketplace + Boost UI)  
 **Probe order:** `#1786094036096` · payment path `/order/032oOrW3EL99IT0sEEXZ/payment`
+
+## Founder owns Dex (policy)
+
+- Polessia Google is **checkout-only** for Marketplace ads / Boost Helio payment.
+- **Never claim** the token profile under Polessia Google.
+- Update socials / banners: prefer the **founder’s** Dex login. If Polessia submits a one-time free update form with founder consent, founders still keep their own login for later edits.
+- Dex is **last writer wins** — CTOgo does not “own” the coin page.
+
+Founders configure exact packs on **`/dex-ads`** (product → pack → creatives).
 
 ## Payment rail
 
@@ -36,22 +45,22 @@
 
 ## Creatives (dynamic — from live Marketplace + Boost UI)
 
-### Token Advertising (`dex-token-ad` · alias `dex-socials`)
+### Token Advertising (`dex-token-ad-20k` … `dex-token-ad-800k`)
 
 | Field | Required on Dex? | Spec | CTOgo behavior |
 |-------|------------------|------|----------------|
 | Chain | Required | Solana for CTOgo | Required |
 | Token address | Required | Mint | Required (from project) |
-| Ad package | Required | 20k $299 … 800k $6,999 | From offer |
+| Ad package | Required | 20k $299 … 800k $6,999 | Exact pack from `/dex-ads` |
 | Title | Required | max **50** chars | Required on Approve / ad pack |
 | Pitch | Required | max **120** chars | Required for Token Ad |
 | Square image | Required | **1:1**, png/jpg/webp, min 100px wide, max **4.5MB** | Required |
 | Website / X / Telegram / Discord | **Optional** | Adders on form | Optional; warn if empty (reject risk) |
 | Policy checkboxes | Required | Verifiable data; Dex may reject/modify | ACK at Approve |
 
-Order URL: `/product/ad/order` · sheet type `token-ad`
+Order URL: `/product/ad/order` · sheet type `token-ad` · alias `dex-token-ad` → `dex-token-ad-20k`
 
-### Trending Bar (`dex-trending`)
+### Trending Bar (`dex-trending-24h` / `48h` / `7d`)
 
 | Field | Required | Spec |
 |-------|----------|------|
@@ -59,7 +68,7 @@ Order URL: `/product/ad/order` · sheet type `token-ad`
 | Square image | Required | Same 1:1 as Token Ad (reuse OK) |
 | Pitch | No | Not on Trending form |
 
-Order URL: `/product/trending-bar-ad/order` · sheet type `trending-bar` · Autofill: fill-sheet first (selectors stub OK)
+Order URL: `/product/trending-bar-ad/order` · sheet type `trending-bar` · alias `dex-trending` → `dex-trending-24h`
 
 ### Enhanced Token Info (`dex-token-info`)
 
@@ -72,18 +81,28 @@ Order URL: `/product/trending-bar-ad/order` · sheet type `trending-bar` · Auto
 
 Order URL: `/product/token-info/order` · sheet type `token-info`
 
-### Boosts (`dex-boost-10`)
+### Boosts (`dex-boost-10` … `dex-boost-500`)
 
 | Field | Required | Spec |
 |-------|----------|------|
 | Mint / pair | Required | Pair-page Boost button |
+| Pack | Required | 10×$99 / 30×$249 / 50×$399 / 100×$899 / 500×$3999 |
 | Creatives | **None** | |
 
-**Not Marketplace** — open `dexscreener.com/solana/{mint}` → Boost → 10× / 12h $99. Web only. Sheet type `boost`.
+**Not Marketplace** — open `dexscreener.com/solana/{mint}` → Boost → selected pack. Web only. Sheet type `boost`.
 
-**Pivot:** Socials are **not** mandatory for Token Ad. Do not block Approve when socials are empty. If Dex later makes a field required, update this table and [`rex/src/data/dexscreenerAdPack.ts`](../../src/data/dexscreenerAdPack.ts) together.
+### Update socials (`dex-update-socials` · alias `dex-socials`)
 
-Related UI: Get Started **DexScreener collateral** (per product) + Roadmap Approve gate.
+| Field | Required | Spec |
+|-------|----------|------|
+| ≥1 link | Required | Website / X / Telegram / Discord |
+| Dex invoice | Free | CTOgo fulfilment **$99** |
+
+Sheet type `update-socials`. Prefer founder Dex login. Not Token Advertising.
+
+**Pivot:** Socials are **not** mandatory for Token Ad. Do not block Approve when Token Ad socials are empty. Update socials SKU requires ≥1 link. If Dex later makes a field required, update this table and [`rex/src/data/dexscreenerAdPack.ts`](../../src/data/dexscreenerAdPack.ts) together.
+
+Related UI: **`/dex-ads`** pack picker + Roadmap Approve gate.
 
 ## Primary auto path
 

@@ -1,14 +1,34 @@
 /** Post-launch marketing spend thresholds — Polessia + Manual roadmap. */
 
 import { invoiceUsdWithServiceFee } from './chainConfig';
+import {
+  POLESSIA_DEFAULT_DEX_PACKS,
+  canonicalDexOfferKey,
+  getDexPack,
+  type SelectedDexPack,
+} from './dexProductCatalog';
 
 export type SpendItemId =
   | 'tg-pinned'
   | 'dex-boost-10'
+  | 'dex-boost-30'
+  | 'dex-boost-50'
+  | 'dex-boost-100'
+  | 'dex-boost-500'
   | 'dex-token-ad'
+  | 'dex-token-ad-20k'
+  | 'dex-token-ad-50k'
+  | 'dex-token-ad-100k'
+  | 'dex-token-ad-200k'
+  | 'dex-token-ad-400k'
+  | 'dex-token-ad-800k'
   | 'dex-token-info'
   | 'dex-trending'
-  /** @deprecated Alias for dex-token-ad — kept for queued orders / localStorage */
+  | 'dex-trending-24h'
+  | 'dex-trending-48h'
+  | 'dex-trending-7d'
+  | 'dex-update-socials'
+  /** @deprecated Alias for dex-update-socials */
   | 'dex-socials';
 
 export type SpendItem = {
@@ -17,6 +37,8 @@ export type SpendItem = {
   logo: string;
   /** Supplier invoice (USD). Polessia adds sliding fee on top at disbursement. */
   priceUsd: number;
+  /** True when exact pack is chosen on /dex-ads */
+  configureOnDexAds?: boolean;
 };
 
 export type SpendThreshold = {
@@ -27,7 +49,12 @@ export type SpendThreshold = {
   items: SpendItem[];
 };
 
-/** Default Polessia / Manual wizard — Dex products match live Marketplace + Boost UI. */
+const DEX_LOGO = '/images/partners/dexscreener.ico';
+
+/**
+ * Roadmap checklist shows family placeholders — exact packs live on /dex-ads.
+ * Prices shown = entry (cheapest) pack for that family.
+ */
 export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
   {
     id: 'tier-500',
@@ -42,15 +69,24 @@ export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
       },
       {
         id: 'dex-boost-10',
-        label: 'DexScreener Boosts · 10× / 12h',
-        logo: '/images/partners/dexscreener.ico',
+        label: 'DexScreener Boosts (pick pack)',
+        logo: DEX_LOGO,
         priceUsd: 99,
+        configureOnDexAds: true,
       },
       {
-        id: 'dex-token-ad',
-        label: 'DexScreener Token Advertising · 20k views',
-        logo: '/images/partners/dexscreener.ico',
+        id: 'dex-token-ad-20k',
+        label: 'DexScreener Token Advertising (pick views)',
+        logo: DEX_LOGO,
         priceUsd: 299,
+        configureOnDexAds: true,
+      },
+      {
+        id: 'dex-update-socials',
+        label: 'DexScreener Update socials',
+        logo: DEX_LOGO,
+        priceUsd: 99,
+        configureOnDexAds: true,
       },
     ],
   },
@@ -62,8 +98,9 @@ export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
       {
         id: 'dex-token-info',
         label: 'DexScreener Enhanced Token Info',
-        logo: '/images/partners/dexscreener.ico',
+        logo: DEX_LOGO,
         priceUsd: 299,
+        configureOnDexAds: true,
       },
     ],
   },
@@ -73,10 +110,11 @@ export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
     thresholdUsd: 2000,
     items: [
       {
-        id: 'dex-trending',
-        label: 'DexScreener Trending Bar · 24h',
-        logo: '/images/partners/dexscreener.ico',
+        id: 'dex-trending-24h',
+        label: 'DexScreener Trending Bar (pick duration)',
+        logo: DEX_LOGO,
         priceUsd: 2000,
+        configureOnDexAds: true,
       },
     ],
   },
@@ -85,21 +123,33 @@ export const POST_LAUNCH_SPEND_THRESHOLDS: SpendThreshold[] = [
 /** Spends that need creative media (not Boosts). */
 export const DEX_AD_PACK_REQUIRED_SPEND_IDS: SpendItemId[] = [
   'dex-token-ad',
+  'dex-token-ad-20k',
+  'dex-token-ad-50k',
+  'dex-token-ad-100k',
+  'dex-token-ad-200k',
+  'dex-token-ad-400k',
+  'dex-token-ad-800k',
   'dex-token-info',
   'dex-trending',
+  'dex-trending-24h',
+  'dex-trending-48h',
+  'dex-trending-7d',
+  'dex-update-socials',
+  'dex-socials',
 ];
 
 export function spendRequiresDexAdPack(itemId: SpendItemId | string): boolean {
+  const key = canonicalDexOfferKey(String(itemId));
   return (
-    itemId === 'dex-trending' ||
-    itemId === 'dex-token-ad' ||
-    itemId === 'dex-socials' ||
-    itemId === 'dex-token-info'
+    key.startsWith('dex-token-ad') ||
+    key.startsWith('dex-trending') ||
+    key === 'dex-token-info' ||
+    key === 'dex-update-socials'
   );
 }
 
 export function spendRequiresMintOnly(itemId: SpendItemId | string): boolean {
-  return itemId === 'dex-boost-10';
+  return canonicalDexOfferKey(String(itemId)).startsWith('dex-boost');
 }
 
 export function isDexSpend(itemId: SpendItemId | string): boolean {
@@ -112,12 +162,17 @@ export function isDexSpend(itemId: SpendItemId | string): boolean {
 
 /** Canonical catalog offer key (aliases resolved). */
 export function canonicalOfferKey(spendId: string): string {
-  if (spendId === 'dex-socials') return 'dex-token-ad';
-  return spendId;
+  return canonicalDexOfferKey(spendId);
 }
 
-export const POLESSIA_DEFAULT_SELECTED: SpendItemId[] =
-  POST_LAUNCH_SPEND_THRESHOLDS.flatMap((t) => t.items.map((i) => i.id));
+/** Polessia defaults: TG pin + cheapest Dex packs (incl. update socials). */
+export const POLESSIA_DEFAULT_SELECTED: SpendItemId[] = [
+  'tg-pinned',
+  ...POLESSIA_DEFAULT_DEX_PACKS.map((p) => p.offerKey as SpendItemId),
+];
+
+export const POLESSIA_DEFAULT_SELECTED_DEX_PACKS: SelectedDexPack[] =
+  POLESSIA_DEFAULT_DEX_PACKS;
 
 export function formatThresholdUsd(amount: number): string {
   return amount >= 1000
@@ -138,13 +193,61 @@ export function spendItemAllIn(item: SpendItem) {
   return invoiceUsdWithServiceFee(item.priceUsd);
 }
 
-export function selectedSpendAllIn(ids: Iterable<SpendItemId>) {
-  const set = new Set(ids);
+/**
+ * Invoice total for selected spend ids.
+ * Prefer exact pack prices from dex catalog when offer keys are pack-level.
+ */
+export function selectedSpendAllIn(ids: Iterable<SpendItemId | string>) {
+  const set = new Set([...ids].map((id) => canonicalDexOfferKey(String(id))));
   let invoiceUsd = 0;
-  for (const tier of POST_LAUNCH_SPEND_THRESHOLDS) {
-    for (const item of tier.items) {
-      if (set.has(item.id)) invoiceUsd += item.priceUsd;
+  const counted = new Set<string>();
+
+  for (const key of set) {
+    if (counted.has(key)) continue;
+    const pack = getDexPack(key);
+    if (pack) {
+      invoiceUsd += pack.priceUsd;
+      counted.add(key);
+      continue;
+    }
+    for (const tier of POST_LAUNCH_SPEND_THRESHOLDS) {
+      for (const item of tier.items) {
+        const itemKey = canonicalDexOfferKey(item.id);
+        if (itemKey === key || set.has(item.id)) {
+          if (!counted.has(itemKey)) {
+            invoiceUsd += item.priceUsd;
+            counted.add(itemKey);
+          }
+        }
+      }
     }
   }
+
   return invoiceUsdWithServiceFee(invoiceUsd);
+}
+
+/** Merge checklist toggles with exact packs from /dex-ads. */
+export function offerIdsForApprove(args: {
+  selectedChecklist: Iterable<string>;
+  selectedDexPacks: SelectedDexPack[];
+}): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+
+  const add = (raw: string) => {
+    const key = canonicalDexOfferKey(raw);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push(key);
+  };
+
+  for (const id of args.selectedChecklist) {
+    if (id === 'tg-pinned') add(id);
+  }
+
+  for (const pack of args.selectedDexPacks) {
+    add(pack.offerKey);
+  }
+
+  return out;
 }

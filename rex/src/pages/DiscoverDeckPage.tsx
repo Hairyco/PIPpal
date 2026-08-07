@@ -588,18 +588,30 @@ export function DiscoverDeckPage() {
           </div>
         </div>
       ) : (
-        <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
+        <div className="flex shrink-0 flex-wrap gap-2 px-3 pb-1 pt-2.5">
           <Link
             to="/launch?mode=list"
-            className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+            className="inline-flex h-9 min-w-[5.5rem] flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
           >
             List CTO
           </Link>
           <Link
             to="/launch"
-            className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
+            className="inline-flex h-9 min-w-[5.5rem] flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
           >
             Launch CTO
+          </Link>
+          <Link
+            to="/dashboard"
+            className="inline-flex h-9 min-w-[5.5rem] flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/dex-ads"
+            className="inline-flex h-9 min-w-[5.5rem] flex-1 items-center justify-center rounded-full border border-[#c8ff3d]/35 bg-[#c8ff3d]/10 text-[13px] font-semibold text-[#d5ff69] transition active:bg-[#c8ff3d]/15"
+          >
+            Dex Ads
           </Link>
         </div>
       )}

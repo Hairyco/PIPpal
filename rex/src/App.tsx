@@ -27,6 +27,7 @@ import { WelcomeGate } from './components/WelcomeGate';
 import { DiscoverDeckPage } from './pages/DiscoverDeckPage';
 import { OpsProvidersPage } from './pages/OpsProvidersPage';
 import { OpsDexFeedPage } from './pages/OpsDexFeedPage';
+import { DexAdsPage } from './pages/DexAdsPage';
 
 export function App() {
   return (
@@ -46,6 +47,7 @@ export function App() {
             <Route path="/trade" element={<TradePage />} />
             <Route path="/advertise" element={<ServicesPage />} />
             <Route path="/services" element={<Navigate to="/advertise" replace />} />
+            <Route path="/dex-ads" element={<DexAdsPage />} />
             <Route path="/fees" element={<FeesPage />} />
             <Route path="/marketing-wallet" element={<MarketingWalletPage />} />
             <Route path="/ops/providers" element={<OpsProvidersPage />} />

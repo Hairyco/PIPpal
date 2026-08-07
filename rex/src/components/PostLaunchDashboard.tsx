@@ -17,13 +17,13 @@ import {
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
 import {
   POLESSIA_DEFAULT_SELECTED,
+  POLESSIA_DEFAULT_SELECTED_DEX_PACKS,
   POST_LAUNCH_SPEND_THRESHOLDS,
   formatActivityPrice,
   formatThresholdUsd,
-  isDexSpend,
+  offerIdsForApprove,
   selectedSpendAllIn,
   spendItemAllIn,
-  spendRequiresDexAdPack,
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
@@ -35,6 +35,12 @@ import {
   normalizeDexAdPack,
   type DexAdPackAssets,
 } from '../data/dexscreenerAdPack';
+import {
+  formatDexPackPrice,
+  getDexFamily,
+  getDexPack,
+  type SelectedDexPack,
+} from '../data/dexProductCatalog';
 import { loadFounderProject, saveFounderProject } from '../utils/founderProject';
 import {
   LAUNCH_FEE_ENGINE,
@@ -136,6 +142,20 @@ export function PostLaunchDashboard({
   const [selected, setSelected] = useState<Set<SpendItemId>>(
     () => new Set(POLESSIA_DEFAULT_SELECTED),
   );
+  const [selectedDexPacks, setSelectedDexPacks] = useState<SelectedDexPack[]>(() => {
+    const stored = loadFounderProject()?.selectedDexPacks;
+    if (Array.isArray(stored) && stored.length) {
+      return stored
+        .map((p) => {
+          const pack = getDexPack(p.offerKey);
+          return pack
+            ? ({ offerKey: pack.offerKey, family: pack.family } as SelectedDexPack)
+            : null;
+        })
+        .filter(Boolean) as SelectedDexPack[];
+    }
+    return [...POLESSIA_DEFAULT_SELECTED_DEX_PACKS];
+  });
   const [copiedMint, setCopiedMint] = useState(false);
   const [copiedMkt, setCopiedMkt] = useState(false);
   const [copiedTelegram, setCopiedTelegram] = useState(false);
@@ -156,53 +176,49 @@ export function PostLaunchDashboard({
   });
 
   const mintForGate = tradedContract || marketingAddress || null;
-  const selectedNeedsDex = useMemo(
-    () => [...selected].some((id) => isDexSpend(id)),
-    [selected],
-  );
-  const selectedNeedsCreatives = useMemo(
-    () => [...selected].some((id) => spendRequiresDexAdPack(id)),
-    [selected],
-  );
-  const selectedNeedsTokenAd = useMemo(
+  const approveOfferIds = useMemo(
     () =>
-      [...selected].some(
-        (id) => id === 'dex-token-ad' || id === 'dex-socials' || id === 'dex-trending',
-      ),
-    [selected],
+      offerIdsForApprove({
+        selectedChecklist: selected,
+        selectedDexPacks,
+      }),
+    [selected, selectedDexPacks],
   );
-  const selectedNeedsPitch = useMemo(
-    () => [...selected].some((id) => id === 'dex-token-ad' || id === 'dex-socials'),
-    [selected],
-  );
-  const selectedNeedsEti = useMemo(
-    () => [...selected].some((id) => id === 'dex-token-info'),
-    [selected],
-  );
-  const selectedNeedsBoost = useMemo(
-    () => [...selected].some((id) => id === 'dex-boost-10'),
-    [selected],
-  );
+  const selectedNeedsDex = approveOfferIds.some((id) => id.startsWith('dex-'));
   const dexReady = useMemo(
-    () => dexPackReadyForSpends(dexPack, selected, mintForGate),
-    [dexPack, selected, mintForGate],
+    () => dexPackReadyForSpends(dexPack, approveOfferIds, mintForGate),
+    [dexPack, approveOfferIds, mintForGate],
   );
   const dexMissing = useMemo(
-    () => dexAdPackMissingForSpends(dexPack, selected, mintForGate),
-    [dexPack, selected, mintForGate],
+    () => dexAdPackMissingForSpends(dexPack, approveOfferIds, mintForGate),
+    [dexPack, approveOfferIds, mintForGate],
   );
   const dexWarnings = useMemo(() => dexAdPackSoftWarnings(dexPack), [dexPack]);
 
-  const patchDexPack = (partial: Partial<DexAdPackAssets>) => {
-    setDexPack((prev) => {
-      const next = { ...prev, ...partial };
-      const project = loadFounderProject();
-      if (project) {
-        saveFounderProject({ ...project, dexAdPack: next });
-      }
-      return next;
-    });
+  const persistDexPacks = (packs: SelectedDexPack[]) => {
+    setSelectedDexPacks(packs);
+    const project = loadFounderProject();
+    if (project) {
+      saveFounderProject({ ...project, selectedDexPacks: packs });
+    }
   };
+
+  useEffect(() => {
+    const stored = loadFounderProject()?.selectedDexPacks;
+    if (!Array.isArray(stored)) return;
+    const next = stored
+      .map((p) => {
+        const pack = getDexPack(p.offerKey);
+        return pack
+          ? ({ offerKey: pack.offerKey, family: pack.family } as SelectedDexPack)
+          : null;
+      })
+      .filter(Boolean) as SelectedDexPack[];
+    if (next.length) setSelectedDexPacks(next);
+    const assets = loadFounderProject()?.dexAdPack;
+    if (assets) setDexPack(normalizeDexAdPack(assets));
+  }, [tab]);
+
   /** Launch path: carousel after pay — once per coin after acknowledged. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(() => {
     if (mode !== 'launch') return false;
@@ -232,7 +248,10 @@ export function PostLaunchDashboard({
     };
   }, [tradedContract, marketingAddress]);
 
-  const selectedAllIn = useMemo(() => selectedSpendAllIn(selected), [selected]);
+  const selectedAllIn = useMemo(
+    () => selectedSpendAllIn(approveOfferIds),
+    [approveOfferIds],
+  );
   const isDemoLedger = !mwStatus || mwStatus.demo !== false;
 
   useEffect(() => {
@@ -294,6 +313,7 @@ export function PostLaunchDashboard({
   const setPolessia = () => {
     setRoadmapMode('polessia');
     setSelected(new Set(POLESSIA_DEFAULT_SELECTED));
+    persistDexPacks([...POLESSIA_DEFAULT_SELECTED_DEX_PACKS]);
     if (spendUnlocked) {
       setModeNotice('Wizard mode on');
       window.setTimeout(() => setModeNotice(null), 1800);
@@ -369,7 +389,7 @@ export function PostLaunchDashboard({
           ticker: symbol,
           engine: mode === 'launch' ? 'launch' : 'list',
           marketingVault: marketingAddress,
-          selectedOfferIds: [...selected],
+          selectedOfferIds: approveOfferIds,
           mode: roadmapMode,
           creatives: selectedNeedsDex
             ? {
@@ -1276,6 +1296,11 @@ export function PostLaunchDashboard({
                               }`}
                             >
                               {item.label}
+                              {item.configureOnDexAds ? (
+                                <span className="mt-0.5 block text-[10px] font-normal text-white/35">
+                                  Exact pack on Dex Ads
+                                </span>
+                              ) : null}
                             </span>
                             <span
                               className={`shrink-0 text-right text-[12px] font-semibold tabular-nums ${
@@ -1358,173 +1383,73 @@ export function PostLaunchDashboard({
               </p>
             </div>
 
-            {selectedNeedsDex ? (
-              <div className="space-y-2.5 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.04] px-3.5 py-3">
-                <div className="flex items-center gap-2">
-                  <img
-                    src="/images/partners/dexscreener.ico"
-                    alt=""
-                    className="h-4 w-4 rounded object-contain"
-                  />
-                  <p className="text-[12px] font-semibold text-white/85">DexScreener collateral</p>
-                  <span
-                    className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                      dexReady
-                        ? 'bg-emerald-400/15 text-emerald-300'
-                        : 'bg-amber-400/15 text-amber-200'
-                    }`}
-                  >
-                    {dexReady ? 'Ready' : 'Needed'}
-                  </span>
-                </div>
-                <p className="text-[11px] text-white/45">
-                  Only fields for your selected Dex spends are required before Approve.
-                </p>
-
-                {selectedNeedsTokenAd ? (
-                  <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-2.5">
-                    <p className="text-[11px] font-semibold text-white/80">
-                      Token Ad / Trending Bar
-                    </p>
-                    <label className="block text-[11px] text-white/50">
-                      Ad title *{' '}
-                      <span className="text-white/30">{dexPack.adTitle.length}/50</span>
-                      <input
-                        type="text"
-                        maxLength={50}
-                        value={dexPack.adTitle}
-                        onChange={(e) => patchDexPack({ adTitle: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="Short title for the Dex ad"
-                      />
-                    </label>
-                    <label className="block text-[11px] text-white/50">
-                      Ad pitch{selectedNeedsPitch ? ' *' : ' (optional if Trending only)'}{' '}
-                      <span className="text-white/30">{dexPack.adPitch.length}/120</span>
-                      <textarea
-                        maxLength={120}
-                        rows={2}
-                        value={dexPack.adPitch}
-                        onChange={(e) => patchDexPack({ adPitch: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="Short description to get people interested"
-                      />
-                    </label>
-                    <label className="block text-[11px] text-white/50">
-                      Square image URL * (1:1)
-                      <input
-                        type="url"
-                        value={dexPack.squareImageUrl || ''}
-                        onChange={(e) =>
-                          patchDexPack({ squareImageUrl: e.target.value.trim() || null })
-                        }
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="https://… or paste from Get Started pack"
-                      />
-                    </label>
-                    {logoUrl && !dexPack.squareImageUrl ? (
-                      <button
-                        type="button"
-                        onClick={() => patchDexPack({ squareImageUrl: logoUrl })}
-                        className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
-                      >
-                        Use project logo as square image
-                      </button>
-                    ) : null}
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {(
-                        [
-                          ['websiteUrl', 'Website (optional)'],
-                          ['xUrl', 'X (optional)'],
-                          ['telegramUrl', 'Telegram (optional)'],
-                          ['discordUrl', 'Discord (optional)'],
-                        ] as const
-                      ).map(([key, label]) => (
-                        <label key={key} className="block text-[11px] text-white/45">
-                          {label}
-                          <input
-                            type="url"
-                            value={dexPack[key]}
-                            onChange={(e) => patchDexPack({ [key]: e.target.value })}
-                            className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:border-white/20 focus:outline-none"
-                          />
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                {selectedNeedsEti ? (
-                  <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-2.5">
-                    <p className="text-[11px] font-semibold text-white/80">Enhanced Token Info</p>
-                    <label className="block text-[11px] text-white/50">
-                      Description *
-                      <textarea
-                        rows={2}
-                        value={dexPack.etiDescription}
-                        onChange={(e) => patchDexPack({ etiDescription: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="Plain text for the Dex pair page"
-                      />
-                    </label>
-                    <label className="block text-[11px] text-white/50">
-                      Icon URL * (1:1)
-                      <input
-                        type="url"
-                        value={dexPack.etiIconUrl || ''}
-                        onChange={(e) =>
-                          patchDexPack({ etiIconUrl: e.target.value.trim() || null })
-                        }
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="https://…"
-                      />
-                    </label>
-                    <label className="block text-[11px] text-white/50">
-                      Header URL * (3:1)
-                      <input
-                        type="url"
-                        value={dexPack.etiHeaderUrl || ''}
-                        onChange={(e) =>
-                          patchDexPack({ etiHeaderUrl: e.target.value.trim() || null })
-                        }
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                        placeholder="https://…"
-                      />
-                    </label>
-                    <label className="block text-[11px] text-white/50">
-                      Locked supply note (optional)
-                      <input
-                        type="text"
-                        value={dexPack.etiSupplyDescription}
-                        onChange={(e) => patchDexPack({ etiSupplyDescription: e.target.value })}
-                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:border-white/20 focus:outline-none"
-                      />
-                    </label>
-                  </div>
-                ) : null}
-
-                {selectedNeedsBoost ? (
-                  <div className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
-                    <p className="text-[11px] font-semibold text-white/80">Boosts · $99</p>
-                    <p className="mt-0.5 text-[11px] text-white/45">
-                      No creatives — Polessia buys from your pair page (web only). Mint required.
-                      {mintForGate ? (
-                        <span className="text-emerald-300/90"> Mint on file.</span>
-                      ) : (
-                        <span className="text-amber-200/90"> Mint missing.</span>
-                      )}
-                    </p>
-                  </div>
-                ) : null}
-
-                {!dexReady && dexMissing.length ? (
-                  <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
-                ) : null}
-                {dexReady && selectedNeedsCreatives && dexWarnings.length ? (
-                  <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
-                ) : null}
+            <div className="space-y-2.5 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.04] px-3.5 py-3">
+              <div className="flex items-center gap-2">
+                <img
+                  src="/images/partners/dexscreener.ico"
+                  alt=""
+                  className="h-4 w-4 rounded object-contain"
+                />
+                <p className="text-[12px] font-semibold text-white/85">Dex Ads packs</p>
+                <span
+                  className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                    selectedNeedsDex && dexReady
+                      ? 'bg-emerald-400/15 text-emerald-300'
+                      : selectedNeedsDex
+                        ? 'bg-amber-400/15 text-amber-200'
+                        : 'bg-white/10 text-white/40'
+                  }`}
+                >
+                  {!selectedNeedsDex
+                    ? 'None'
+                    : dexReady
+                      ? 'Ready'
+                      : 'Needed'}
+                </span>
               </div>
-            ) : null}
+              <p className="text-[11px] text-white/45">
+                Pick exact packs (boost tiers, ad views, trending duration, socials) on Dex Ads —
+                not under this checklist.
+              </p>
+              {selectedDexPacks.length === 0 ? (
+                <p className="text-[11px] text-amber-200/90">No Dex packs selected yet.</p>
+              ) : (
+                <ul className="space-y-1">
+                  {selectedDexPacks.map((s) => {
+                    const p = getDexPack(s.offerKey);
+                    return (
+                      <li
+                        key={s.offerKey}
+                        className="flex justify-between gap-2 text-[12px] text-white/75"
+                      >
+                        <span className="min-w-0 truncate">
+                          {getDexFamily(s.family)?.name}: {p?.label || s.offerKey}
+                        </span>
+                        <span className="shrink-0 tabular-nums text-[#d5ff69]">
+                          {formatDexPackPrice(p?.priceUsd || 0)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <Link
+                to="/dex-ads"
+                className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#c8ff3d] hover:text-[#d5ff69]"
+              >
+                Configure on Dex Ads
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+              {selectedNeedsDex && !dexReady && dexMissing.length ? (
+                <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
+              ) : null}
+              {selectedNeedsDex && dexReady && dexWarnings.length ? (
+                <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
+              ) : null}
+              <p className="text-[10px] text-white/35">
+                Founder owns Dex — Polessia never claims your token profile.
+              </p>
+            </div>
 
             <button
               id="roadmap-approve"

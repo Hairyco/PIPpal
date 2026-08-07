@@ -26,7 +26,7 @@ export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
     name: 'DexScreener',
     logo: '/images/partners/dexscreener.ico',
     summary:
-      'Token Ad, Trending Bar, and Enhanced Token Info need creatives on file before Polessia can order. Boosts need mint only (pair page, web only). Missing media = spend queued + founder notified.',
+      'Pick exact packs on /dex-ads (Boosts, Token Ad views, Trending duration, ETI, Update socials). Founder owns Dex — Polessia never claims the token profile. Missing media = spend queued + founder notified.',
     items: [
       {
         id: 'ds-ad-title',
@@ -69,7 +69,12 @@ export const PLATFORM_COLLATERAL: PlatformCollateral[] = [
       {
         id: 'ds-boost',
         label: 'Boosts (mint only)',
-        detail: 'No creatives — buy from pair page Boost button (web only)',
+        detail: 'Pick pack on /dex-ads (10–500) — buy from pair page Boost button',
+      },
+      {
+        id: 'ds-update-socials',
+        label: 'Update socials',
+        detail: 'Opt-in SKU · ≥1 link · founder Dex login preferred',
       },
       {
         id: 'ds-socials',

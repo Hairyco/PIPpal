@@ -3,7 +3,12 @@
  * Polessia cannot fulfil without required assets on file (Boosts = mint only).
  */
 
-export type DexProductId = 'token-ad' | 'trending-bar' | 'token-info' | 'boost';
+export type DexProductId =
+  | 'token-ad'
+  | 'trending-bar'
+  | 'token-info'
+  | 'boost'
+  | 'update-socials';
 
 export type DexAdPackField = {
   id: string;
@@ -49,15 +54,15 @@ export const DEXSCREENER_AD_PRODUCTS = {
     id: 'token-ad' as const,
     name: 'Token Advertising',
     marketplacePath: '/product/ad',
-    summary: 'In-feed token ads · 20k views from $299.',
-    spendIds: ['dex-token-ad', 'dex-socials'] as const,
+    summary: 'In-feed token ads · from $299 (pick views on /dex-ads).',
+    spendIds: ['dex-token-ad', 'dex-token-ad-20k'] as const,
   },
   'trending-bar': {
     id: 'trending-bar' as const,
     name: 'Trending Bar Advertising',
     marketplacePath: '/product/trending-bar-ad',
-    summary: 'Trending bar rotation · 24h from $2,000.',
-    spendIds: ['dex-trending'] as const,
+    summary: 'Trending bar rotation · from $2,000.',
+    spendIds: ['dex-trending', 'dex-trending-24h'] as const,
   },
   'token-info': {
     id: 'token-info' as const,
@@ -71,17 +76,28 @@ export const DEXSCREENER_AD_PRODUCTS = {
     name: 'Boosts',
     marketplacePath: null,
     pairPagePath: 'https://dexscreener.com',
-    summary: 'Pair-page Boost packs (web only) · 10× / 12h from $99. No creatives.',
+    summary: 'Pair-page Boost packs (web only) · from $99. No creatives.',
     spendIds: ['dex-boost-10'] as const,
+  },
+  'update-socials': {
+    id: 'update-socials' as const,
+    name: 'Update socials',
+    marketplacePath: null,
+    pairPagePath: 'https://dexscreener.com',
+    summary: 'Website / X / TG / Discord · $99 CTOgo fulfilment. Founder owns Dex.',
+    spendIds: ['dex-update-socials', 'dex-socials'] as const,
   },
 } as const;
 
 /** Roadmap spend ids that need creative collateral (not Boost). */
 export const DEX_CREATIVE_SPEND_IDS = [
   'dex-token-ad',
-  'dex-socials',
+  'dex-token-ad-20k',
   'dex-trending',
+  'dex-trending-24h',
   'dex-token-info',
+  'dex-update-socials',
+  'dex-socials',
 ] as const;
 
 export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
@@ -230,12 +246,56 @@ export function boostPackReady(mint?: string | null): boolean {
   return Boolean(mint && String(mint).trim().length >= 32);
 }
 
+/** Update socials — at least one link required. */
+export function socialsUpdatePackReady(pack: DexAdPackAssets): boolean {
+  return Boolean(
+    pack.websiteUrl?.trim() ||
+      pack.xUrl?.trim() ||
+      pack.telegramUrl?.trim() ||
+      pack.discordUrl?.trim(),
+  );
+}
+
 export function dexPaidAdsPackReady(pack: DexAdPackAssets): boolean {
   return tokenAdPackReady(pack) && trendingBarPackReady(pack);
 }
 
+function keyFamily(id: string): string {
+  const k = String(id);
+  if (k.startsWith('dex-boost')) return 'boost';
+  if (k.startsWith('dex-token-ad')) return 'token-ad';
+  if (k.startsWith('dex-trending')) return 'trending';
+  if (k === 'dex-token-info') return 'token-info';
+  if (k === 'dex-update-socials' || k === 'dex-socials') return 'update-socials';
+  return k;
+}
+
 function needsTokenAd(set: Set<string>): boolean {
-  return set.has('dex-token-ad') || set.has('dex-socials');
+  for (const id of set) {
+    if (keyFamily(id) === 'token-ad') return true;
+  }
+  return false;
+}
+
+function needsTrending(set: Set<string>): boolean {
+  for (const id of set) {
+    if (keyFamily(id) === 'trending') return true;
+  }
+  return false;
+}
+
+function needsBoost(set: Set<string>): boolean {
+  for (const id of set) {
+    if (keyFamily(id) === 'boost') return true;
+  }
+  return false;
+}
+
+function needsSocials(set: Set<string>): boolean {
+  for (const id of set) {
+    if (keyFamily(id) === 'update-socials') return true;
+  }
+  return false;
 }
 
 /** Pack ready for the selected roadmap spend ids. */
@@ -246,9 +306,10 @@ export function dexPackReadyForSpends(
 ): boolean {
   const set = new Set(spendIds);
   if (needsTokenAd(set) && !tokenAdPackReady(pack)) return false;
-  if (set.has('dex-trending') && !trendingBarPackReady(pack)) return false;
+  if (needsTrending(set) && !trendingBarPackReady(pack)) return false;
   if (set.has('dex-token-info') && !tokenInfoPackReady(pack)) return false;
-  if (set.has('dex-boost-10') && !boostPackReady(mint)) return false;
+  if (needsBoost(set) && !boostPackReady(mint)) return false;
+  if (needsSocials(set) && !socialsUpdatePackReady(pack)) return false;
   return true;
 }
 
@@ -263,6 +324,7 @@ export function dexAdPackMissing(pack: DexAdPackAssets): string[] {
   if (!pack.etiDescription.trim()) missing.push('ETI description');
   if (!pack.etiIconUrl) missing.push('ETI icon (1:1)');
   if (!pack.etiHeaderUrl) missing.push('ETI header (3:1)');
+  if (!socialsUpdatePackReady(pack)) missing.push('At least one social / website link');
   return missing;
 }
 
@@ -281,7 +343,7 @@ export function dexAdPackMissingForSpends(
     else if (pack.adPitch.trim().length > 120) missing.push('Token Ad: pitch (max 120)');
     if (!pack.squareImageUrl) missing.push('Token Ad: square image');
   }
-  if (set.has('dex-trending')) {
+  if (needsTrending(set)) {
     if (!pack.adTitle.trim()) missing.push('Trending Bar: title');
     else if (pack.adTitle.trim().length > 50) missing.push('Trending Bar: title (max 50)');
     if (!pack.squareImageUrl) missing.push('Trending Bar: square image');
@@ -291,8 +353,11 @@ export function dexAdPackMissingForSpends(
     if (!pack.etiIconUrl) missing.push('Token Info: icon');
     if (!pack.etiHeaderUrl) missing.push('Token Info: header');
   }
-  if (set.has('dex-boost-10') && !boostPackReady(mint)) {
+  if (needsBoost(set) && !boostPackReady(mint)) {
     missing.push('Boosts: token mint required');
+  }
+  if (needsSocials(set) && !socialsUpdatePackReady(pack)) {
+    missing.push('Update socials: at least one link (website / X / TG / Discord)');
   }
   return missing;
 }
@@ -308,4 +373,4 @@ export function dexAdPackSoftWarnings(pack: DexAdPackAssets): string[] {
 }
 
 export const DEX_AD_PACK_BLOCK_COPY =
-  'Polessia cannot place DexScreener Token Ads, Trending Bar, or Enhanced Token Info until required creatives are on file. Boosts only need your mint. Incomplete spends stay queued and you will be notified.';
+  'Polessia cannot place DexScreener ads until required creatives are on file. Pick exact packs on Dex Ads. Boosts need mint only. Update socials needs at least one link. Founder owns Dex — we never claim your token profile.';
