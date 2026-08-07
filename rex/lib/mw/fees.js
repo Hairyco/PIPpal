@@ -1,11 +1,11 @@
 /**
- * CTOgo marketing wallet math — 20% service fee ON TOP of supplier invoice.
+ * CTOgo marketing wallet math — 10% service fee ON TOP of supplier invoice.
  * Keep in sync with rex-contracts fees::invoice_with_service_fee.
  */
 
 import { createHash } from 'crypto';
 
-export const CTOGO_SERVICE_FEE_BPS = 2000;
+export const CTOGO_SERVICE_FEE_BPS = 1000;
 export const BPS_DENOMINATOR = 10_000;
 
 export function invoiceWithServiceFee(invoiceLamports) {

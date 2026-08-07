@@ -98,7 +98,7 @@ export const FAQ_SECTIONS: FaqSection[] = [
       {
         id: 'inactive',
         question: 'What happens if the coin goes quiet?',
-        answer: `After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL (above rent) may sweep to the CTOgo treasury. Ops warns at 30 and 7 days. Spend pause or a queued payment blocks the sweep. Supplier payouts always debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 → $120).`,
+        answer: `After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL (above rent) may sweep to the CTOgo treasury. Ops warns at 30 and 7 days. Spend pause or a queued payment blocks the sweep. Supplier payouts always debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 → $110).`,
       },
       {
         id: 'verify',

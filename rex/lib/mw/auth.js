@@ -41,7 +41,7 @@ export function buildApprovalMessage({ wallet, nonce, planId, purpose }) {
     `Wallet: ${wallet}`,
     `Plan: ${planId}`,
     `Nonce: ${nonce}`,
-    'Signing authorizes automatic supplier payments (invoice + 20% CTOgo fee on top).',
+    'Signing authorizes automatic supplier payments (invoice + 10% CTOgo fee on top).',
   ].join('\n');
 }
 

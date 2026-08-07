@@ -90,7 +90,7 @@ export default async function handler(req, res) {
               invoiceUsd: fees.invoiceUsd,
               serviceFeeUsd: fees.serviceFeeUsd,
               totalDebitUsd: fees.totalDebitUsd,
-              note: 'Helio receives invoiceUsd (approved offer); vault debit is totalDebitUsd (invoice + 20% on top)',
+              note: 'Helio receives invoiceUsd (approved offer); vault debit is totalDebitUsd (invoice + 10% on top)',
             }
           : null,
         hint: 'Pass dryRun:false to broadcast USDC/SOL transfer from ops/keeper wallet (hold until final PoC)',

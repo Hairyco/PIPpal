@@ -6,7 +6,7 @@ This is your checklist. I already built the software in the repo. You turn on th
 
 ## Already done for you (no action)
 
-- Smart contract code for fees, marketing wallet payouts (supplier gets 100%, CTOgo adds 20% on top), pause, and 180-day sweep
+- Smart contract code for fees, marketing wallet payouts (supplier gets 100%, CTOgo adds 10% on top), pause, and 180-day sweep
 - Database blueprint (Supabase SQL file)
 - Background “robot” (keeper) that tries payments and retries once
 - Website screens: Approve shows the $100 → $120 breakdown, demo badges, ops page

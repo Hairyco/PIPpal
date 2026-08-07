@@ -1,7 +1,7 @@
 //! CTOgo MVP — Solana smart contract entry point.
 //!
 //! Dual fee engines: List 1.25% / Launch 1.30% with raid + marketing wallet.
-//! Marketing disbursements charge 20% CTOgo service fee on top of supplier invoice.
+//! Marketing disbursements charge 10% CTOgo service fee on top of supplier invoice.
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
@@ -75,7 +75,7 @@ pub mod rex_mvp {
         instructions::set_whitelist_active(ctx, active)
     }
 
-    /// Authority or keeper pays invoice + 20% CTOgo fee from marketing vault (idempotent).
+    /// Authority or keeper pays invoice + 10% CTOgo fee from marketing vault (idempotent).
     pub fn disburse_marketing(
         ctx: Context<DisburseMarketing>,
         invoice_id: [u8; 32],

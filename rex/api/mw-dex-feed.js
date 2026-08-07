@@ -15,6 +15,7 @@ import {
   withHelioDeposit,
   resolveHelioDeposit,
 } from '../lib/mw/helio.js';
+import { usdWithServiceFee } from '../lib/mw/fees.js';
 
 function json(res, status, body) {
   return res.status(status).json(body);
@@ -286,15 +287,18 @@ export default async function handler(req, res) {
         ok: true,
         paymentInstruction: instruction,
         offerPrice,
-        fees: {
-          invoiceUsd: offerPrice,
-          serviceFeeUsd: Math.round(offerPrice * 0.2 * 100) / 100,
-          totalDebitUsd: Math.round(offerPrice * 1.2 * 100) / 100,
-        },
+        fees: (() => {
+          const f = usdWithServiceFee(offerPrice);
+          return {
+            invoiceUsd: f.invoiceUsd,
+            serviceFeeUsd: f.serviceFeeUsd,
+            totalDebitUsd: f.totalDebitUsd,
+          };
+        })(),
         helioAmountMismatch,
         dexMint: creatives.dexMint || null,
         next: instruction.depositAddress
-          ? `Capture OK — ${instruction.depositAddress} · $${offerPrice} USDC (offer) · vault $${Math.round(offerPrice * 1.2 * 100) / 100}. Next: Dry-run settle.`
+          ? `Capture OK — ${instruction.depositAddress} · $${offerPrice} USDC (offer) · vault $${usdWithServiceFee(offerPrice).totalDebitUsd}. Next: Dry-run settle.`
           : instruction.chargeToken
             ? 'Charge URL saved. Could not auto-resolve deposit yet — paste deposit address or retry.'
             : 'Saved',

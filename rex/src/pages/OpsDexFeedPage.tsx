@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { invoiceUsdWithServiceFee } from '../data/chainConfig';
 
 async function readApiJson(res: Response) {
   const text = await res.text();
@@ -164,7 +165,7 @@ export function OpsDexFeedPage() {
       if (pi.deeplink) setChargeUrl(pi.deeplink);
       const inv = body.offerPrice ?? pi.depositAmount;
       const feeBit = body.fees
-        ? ` · vault $${body.fees.totalDebitUsd} (invoice $${body.fees.invoiceUsd} + 20%)`
+        ? ` · vault $${body.fees.totalDebitUsd} (invoice $${body.fees.invoiceUsd} + 10%)`
         : '';
       let line = pi.depositAddress
         ? `Capture saved ✓  ${pi.depositAddress.slice(0, 8)}… · $${inv ?? '?'} USDC (approved offer)${feeBit}`
@@ -195,7 +196,7 @@ export function OpsDexFeedPage() {
       if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
       if (dryRun) {
         const feeBit = body.fees
-          ? ` · vault ${body.fees.totalDebitUsd} (invoice ${body.fees.invoiceUsd} + 20%)`
+          ? ` · vault ${body.fees.totalDebitUsd} (invoice ${body.fees.invoiceUsd} + 10%)`
           : '';
         setMsg(
           `Dry-run OK ✓  → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'} (no money sent)${feeBit}`,
@@ -442,28 +443,24 @@ export function OpsDexFeedPage() {
             </label>
             <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-[12px] text-white/70">
               <p className="text-[11px] font-medium text-white/40">Amount (from Approve — not editable)</p>
-              <p className="mt-1 tabular-nums text-white/90">
-                Helio / supplier invoice:{' '}
-                <span className="font-semibold">
-                  ${Number(fill?.packagePriceUsd || sheet?.paymentDefaults?.invoiceUsd || 0).toLocaleString()} USDC
-                </span>
-              </p>
-              <p className="mt-0.5 tabular-nums text-white/55">
-                CTOgo 20% on top:{' '}
-                $
-                {Number(
-                  sheet?.paymentDefaults?.serviceFeeUsd ??
-                    (fill?.packagePriceUsd ? fill.packagePriceUsd * 0.2 : 0),
-                ).toLocaleString()}
-              </p>
-              <p className="mt-1 tabular-nums font-semibold text-[#c8ff3d]">
-                Vault debit:{' '}
-                $
-                {Number(
-                  sheet?.paymentDefaults?.totalDebitUsd ??
-                    (fill?.packagePriceUsd ? fill.packagePriceUsd * 1.2 : 0),
-                ).toLocaleString()}
-              </p>
+              {(() => {
+                const inv = Number(fill?.packagePriceUsd || sheet?.paymentDefaults?.invoiceUsd || 0);
+                const fees = inv > 0 ? invoiceUsdWithServiceFee(inv) : null;
+                return (
+                  <>
+                    <p className="mt-1 tabular-nums text-white/90">
+                      Helio / supplier invoice:{' '}
+                      <span className="font-semibold">${inv.toLocaleString()} USDC</span>
+                    </p>
+                    <p className="mt-0.5 tabular-nums text-white/55">
+                      CTOgo 10% on top: ${Number(fees?.serviceFeeUsd ?? 0).toLocaleString()}
+                    </p>
+                    <p className="mt-1 tabular-nums font-semibold text-[#c8ff3d]">
+                      Vault debit: ${Number(fees?.totalDebitUsd ?? 0).toLocaleString()}
+                    </p>
+                  </>
+                );
+              })()}
               <p className="mt-1 text-[10px] text-white/35">
                 Package: {fill?.packageLabel || '—'} · pick this same package on Dex
               </p>
@@ -481,7 +478,7 @@ export function OpsDexFeedPage() {
           <div className="space-y-2 border-t border-white/[0.08] pt-4">
             <p className="text-[12px] font-semibold text-white/80">Stage D settle (real Mainnet money)</p>
             <p className="text-[11px] text-white/40">
-              Dry-run checks deposit + locked offer amount + 20% vault fee. Live pay is held until
+              Dry-run checks deposit + locked offer amount + 10% vault fee. Live pay is held until
               final PoC.
             </p>
             <div className="flex flex-wrap gap-2">

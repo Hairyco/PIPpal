@@ -6,9 +6,9 @@ pub const BPS_DENOMINATOR: u64 = 10_000;
 /// Raid / referrer cut on CTOgo-routed trades (0.50%).
 pub const RAID_FEE_BPS: u64 = 50;
 
-/// CTOgo service fee on marketing disbursements — 20% **on top** of supplier invoice.
-/// $100 invoice → $20 fee → $120 total vault debit.
-pub const CTOGO_SERVICE_FEE_BPS: u64 = 2_000;
+/// CTOgo service fee on marketing disbursements — 10% **on top** of supplier invoice.
+/// $100 invoice → $10 fee → $110 total vault debit.
+pub const CTOGO_SERVICE_FEE_BPS: u64 = 1_000;
 
 /// Engine id locked at project create: Launch path.
 pub const ENGINE_LAUNCH: u8 = 0;

@@ -49,7 +49,7 @@ pub struct MarketingAttached {
     pub founder: Pubkey,
 }
 
-/// Emitted when marketing wallet SOL is paid (invoice + 20% on top).
+/// Emitted when marketing wallet SOL is paid (invoice + 10% on top).
 #[event]
 pub struct MarketingDisbursed {
     pub project: Pubkey,

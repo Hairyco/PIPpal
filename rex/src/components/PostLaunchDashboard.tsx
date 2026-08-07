@@ -1320,7 +1320,7 @@ export function PostLaunchDashboard({
                 </span>
               </p>
               <p className="mt-2 text-[11px] text-white/40">
-                Suppliers receive 100% of their invoice. CTOgo&apos;s 20% is charged on top from the
+                Suppliers receive 100% of their invoice. CTOgo&apos;s 10% is charged on top from the
                 marketing vault.
               </p>
             </div>

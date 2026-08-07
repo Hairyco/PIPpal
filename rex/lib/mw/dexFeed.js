@@ -4,6 +4,8 @@
  * automate Google login per order.
  */
 
+import { usdWithServiceFee } from './fees.js';
+
 export const DEX_TOKEN_AD_ORDER_URL = 'https://marketplace.dexscreener.com/product/ad/order';
 export const DEX_SIGN_IN_URL =
   'https://marketplace.dexscreener.com/sign-in?callbackUrl=https%3A%2F%2Fmarketplace.dexscreener.com%2Fproduct%2Fad%2Forder';
@@ -118,9 +120,16 @@ export function buildDexFeedSheet({ order, project, offer, provider }) {
       asset: 'USDC',
       avoid: ['Pay with Card'],
       /** Locked from approved offer — not ops-editable */
-      invoiceUsd: priceUsd || null,
-      serviceFeeUsd: priceUsd > 0 ? Math.round(priceUsd * 0.2 * 100) / 100 : null,
-      totalDebitUsd: priceUsd > 0 ? Math.round(priceUsd * 1.2 * 100) / 100 : null,
+      ...(priceUsd > 0
+        ? (() => {
+            const f = usdWithServiceFee(priceUsd);
+            return {
+              invoiceUsd: f.invoiceUsd,
+              serviceFeeUsd: f.serviceFeeUsd,
+              totalDebitUsd: f.totalDebitUsd,
+            };
+          })()
+        : { invoiceUsd: null, serviceFeeUsd: null, totalDebitUsd: null }),
     },
   };
 }
