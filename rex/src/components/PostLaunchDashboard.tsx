@@ -20,6 +20,7 @@ import {
   POST_LAUNCH_SPEND_THRESHOLDS,
   formatActivityPrice,
   formatThresholdUsd,
+  isDexSpend,
   selectedSpendAllIn,
   spendItemAllIn,
   spendRequiresDexAdPack,
@@ -28,9 +29,10 @@ import {
 } from '../data/postLaunchRoadmap';
 import {
   EMPTY_DEX_AD_PACK,
-  dexAdPackMissing,
+  dexAdPackMissingForSpends,
   dexAdPackSoftWarnings,
   dexPackReadyForSpends,
+  normalizeDexAdPack,
   type DexAdPackAssets,
 } from '../data/dexscreenerAdPack';
 import { loadFounderProject, saveFounderProject } from '../utils/founderProject';
@@ -150,18 +152,45 @@ export function PostLaunchDashboard({
   const [approveNotice, setApproveNotice] = useState<string | null>(null);
   const [dexPack, setDexPack] = useState<DexAdPackAssets>(() => {
     const stored = loadFounderProject()?.dexAdPack;
-    return stored ? { ...EMPTY_DEX_AD_PACK, ...stored } : { ...EMPTY_DEX_AD_PACK };
+    return normalizeDexAdPack(stored || EMPTY_DEX_AD_PACK);
   });
 
+  const mintForGate = tradedContract || marketingAddress || null;
   const selectedNeedsDex = useMemo(
+    () => [...selected].some((id) => isDexSpend(id)),
+    [selected],
+  );
+  const selectedNeedsCreatives = useMemo(
     () => [...selected].some((id) => spendRequiresDexAdPack(id)),
     [selected],
   );
-  const dexReady = useMemo(
-    () => dexPackReadyForSpends(dexPack, selected),
-    [dexPack, selected],
+  const selectedNeedsTokenAd = useMemo(
+    () =>
+      [...selected].some(
+        (id) => id === 'dex-token-ad' || id === 'dex-socials' || id === 'dex-trending',
+      ),
+    [selected],
   );
-  const dexMissing = useMemo(() => dexAdPackMissing(dexPack), [dexPack]);
+  const selectedNeedsPitch = useMemo(
+    () => [...selected].some((id) => id === 'dex-token-ad' || id === 'dex-socials'),
+    [selected],
+  );
+  const selectedNeedsEti = useMemo(
+    () => [...selected].some((id) => id === 'dex-token-info'),
+    [selected],
+  );
+  const selectedNeedsBoost = useMemo(
+    () => [...selected].some((id) => id === 'dex-boost-10'),
+    [selected],
+  );
+  const dexReady = useMemo(
+    () => dexPackReadyForSpends(dexPack, selected, mintForGate),
+    [dexPack, selected, mintForGate],
+  );
+  const dexMissing = useMemo(
+    () => dexAdPackMissingForSpends(dexPack, selected, mintForGate),
+    [dexPack, selected, mintForGate],
+  );
   const dexWarnings = useMemo(() => dexAdPackSoftWarnings(dexPack), [dexPack]);
 
   const patchDexPack = (partial: Partial<DexAdPackAssets>) => {
@@ -283,7 +312,7 @@ export function PostLaunchDashboard({
     setApproveNotice(null);
     if (selectedNeedsDex && !dexReady) {
       setApproveNotice(
-        `Complete Dex creatives before Approve: ${dexMissing.join(', ') || 'required fields'}`,
+        `Complete Dex collateral before Approve: ${dexMissing.join(', ') || 'required fields'}`,
       );
       return;
     }
@@ -352,6 +381,10 @@ export function PostLaunchDashboard({
                 xUrl: dexPack.xUrl.trim(),
                 telegramUrl: dexPack.telegramUrl.trim(),
                 discordUrl: dexPack.discordUrl.trim(),
+                etiDescription: dexPack.etiDescription.trim(),
+                etiIconUrl: dexPack.etiIconUrl,
+                etiHeaderUrl: dexPack.etiHeaderUrl,
+                etiSupplyDescription: dexPack.etiSupplyDescription.trim(),
                 socialsOptional: true,
               }
             : null,
@@ -1333,7 +1366,7 @@ export function PostLaunchDashboard({
                     alt=""
                     className="h-4 w-4 rounded object-contain"
                   />
-                  <p className="text-[12px] font-semibold text-white/85">DexScreener creatives</p>
+                  <p className="text-[12px] font-semibold text-white/85">DexScreener collateral</p>
                   <span
                     className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
                       dexReady
@@ -1345,77 +1378,149 @@ export function PostLaunchDashboard({
                   </span>
                 </div>
                 <p className="text-[11px] text-white/45">
-                  Title, pitch, and 1:1 image are required. Socials are optional on Dex.
+                  Only fields for your selected Dex spends are required before Approve.
                 </p>
-                <label className="block text-[11px] text-white/50">
-                  Ad title *{' '}
-                  <span className="text-white/30">{dexPack.adTitle.length}/50</span>
-                  <input
-                    type="text"
-                    maxLength={50}
-                    value={dexPack.adTitle}
-                    onChange={(e) => patchDexPack({ adTitle: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                    placeholder="Short title for the Dex ad"
-                  />
-                </label>
-                <label className="block text-[11px] text-white/50">
-                  Ad pitch *{' '}
-                  <span className="text-white/30">{dexPack.adPitch.length}/120</span>
-                  <textarea
-                    maxLength={120}
-                    rows={2}
-                    value={dexPack.adPitch}
-                    onChange={(e) => patchDexPack({ adPitch: e.target.value })}
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                    placeholder="Short description to get people interested"
-                  />
-                </label>
-                <label className="block text-[11px] text-white/50">
-                  Square image URL * (1:1)
-                  <input
-                    type="url"
-                    value={dexPack.squareImageUrl || ''}
-                    onChange={(e) =>
-                      patchDexPack({ squareImageUrl: e.target.value.trim() || null })
-                    }
-                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
-                    placeholder="https://… or paste from Get Started pack"
-                  />
-                </label>
-                {logoUrl && !dexPack.squareImageUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => patchDexPack({ squareImageUrl: logoUrl })}
-                    className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
-                  >
-                    Use project logo as square image
-                  </button>
-                ) : null}
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {(
-                    [
-                      ['websiteUrl', 'Website (optional)'],
-                      ['xUrl', 'X (optional)'],
-                      ['telegramUrl', 'Telegram (optional)'],
-                      ['discordUrl', 'Discord (optional)'],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <label key={key} className="block text-[11px] text-white/45">
-                      {label}
+
+                {selectedNeedsTokenAd ? (
+                  <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-2.5">
+                    <p className="text-[11px] font-semibold text-white/80">
+                      Token Ad / Trending Bar
+                    </p>
+                    <label className="block text-[11px] text-white/50">
+                      Ad title *{' '}
+                      <span className="text-white/30">{dexPack.adTitle.length}/50</span>
+                      <input
+                        type="text"
+                        maxLength={50}
+                        value={dexPack.adTitle}
+                        onChange={(e) => patchDexPack({ adTitle: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="Short title for the Dex ad"
+                      />
+                    </label>
+                    <label className="block text-[11px] text-white/50">
+                      Ad pitch{selectedNeedsPitch ? ' *' : ' (optional if Trending only)'}{' '}
+                      <span className="text-white/30">{dexPack.adPitch.length}/120</span>
+                      <textarea
+                        maxLength={120}
+                        rows={2}
+                        value={dexPack.adPitch}
+                        onChange={(e) => patchDexPack({ adPitch: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="Short description to get people interested"
+                      />
+                    </label>
+                    <label className="block text-[11px] text-white/50">
+                      Square image URL * (1:1)
                       <input
                         type="url"
-                        value={dexPack[key]}
-                        onChange={(e) => patchDexPack({ [key]: e.target.value })}
+                        value={dexPack.squareImageUrl || ''}
+                        onChange={(e) =>
+                          patchDexPack({ squareImageUrl: e.target.value.trim() || null })
+                        }
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="https://… or paste from Get Started pack"
+                      />
+                    </label>
+                    {logoUrl && !dexPack.squareImageUrl ? (
+                      <button
+                        type="button"
+                        onClick={() => patchDexPack({ squareImageUrl: logoUrl })}
+                        className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                      >
+                        Use project logo as square image
+                      </button>
+                    ) : null}
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {(
+                        [
+                          ['websiteUrl', 'Website (optional)'],
+                          ['xUrl', 'X (optional)'],
+                          ['telegramUrl', 'Telegram (optional)'],
+                          ['discordUrl', 'Discord (optional)'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <label key={key} className="block text-[11px] text-white/45">
+                          {label}
+                          <input
+                            type="url"
+                            value={dexPack[key]}
+                            onChange={(e) => patchDexPack({ [key]: e.target.value })}
+                            className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:border-white/20 focus:outline-none"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {selectedNeedsEti ? (
+                  <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-2.5">
+                    <p className="text-[11px] font-semibold text-white/80">Enhanced Token Info</p>
+                    <label className="block text-[11px] text-white/50">
+                      Description *
+                      <textarea
+                        rows={2}
+                        value={dexPack.etiDescription}
+                        onChange={(e) => patchDexPack({ etiDescription: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="Plain text for the Dex pair page"
+                      />
+                    </label>
+                    <label className="block text-[11px] text-white/50">
+                      Icon URL * (1:1)
+                      <input
+                        type="url"
+                        value={dexPack.etiIconUrl || ''}
+                        onChange={(e) =>
+                          patchDexPack({ etiIconUrl: e.target.value.trim() || null })
+                        }
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="https://…"
+                      />
+                    </label>
+                    <label className="block text-[11px] text-white/50">
+                      Header URL * (3:1)
+                      <input
+                        type="url"
+                        value={dexPack.etiHeaderUrl || ''}
+                        onChange={(e) =>
+                          patchDexPack({ etiHeaderUrl: e.target.value.trim() || null })
+                        }
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                        placeholder="https://…"
+                      />
+                    </label>
+                    <label className="block text-[11px] text-white/50">
+                      Locked supply note (optional)
+                      <input
+                        type="text"
+                        value={dexPack.etiSupplyDescription}
+                        onChange={(e) => patchDexPack({ etiSupplyDescription: e.target.value })}
                         className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:border-white/20 focus:outline-none"
                       />
                     </label>
-                  ))}
-                </div>
+                  </div>
+                ) : null}
+
+                {selectedNeedsBoost ? (
+                  <div className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-2">
+                    <p className="text-[11px] font-semibold text-white/80">Boosts · $99</p>
+                    <p className="mt-0.5 text-[11px] text-white/45">
+                      No creatives — Polessia buys from your pair page (web only). Mint required.
+                      {mintForGate ? (
+                        <span className="text-emerald-300/90"> Mint on file.</span>
+                      ) : (
+                        <span className="text-amber-200/90"> Mint missing.</span>
+                      )}
+                    </p>
+                  </div>
+                ) : null}
+
                 {!dexReady && dexMissing.length ? (
                   <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
                 ) : null}
-                {dexReady && dexWarnings.length ? (
+                {dexReady && selectedNeedsCreatives && dexWarnings.length ? (
                   <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
                 ) : null}
               </div>

@@ -28,7 +28,11 @@ import {
   CreativeSuiteStep,
   type CreativeSuiteState,
 } from '../components/get-started/CreativeSuiteStep';
-import { dexPaidAdsPackReady } from '../data/dexscreenerAdPack';
+import {
+  tokenAdPackReady,
+  tokenInfoPackReady,
+  trendingBarPackReady,
+} from '../data/dexscreenerAdPack';
 import { saveFounderProject } from '../utils/founderProject';
 import { hasRequiredTelegram, normalizeCommunityLinks } from '../utils/projectCommunity';
 import type { ProjectOrigin } from '../utils/projectOrigin';
@@ -76,6 +80,10 @@ const EMPTY_CREATIVE: CreativeSuiteState = {
     xUrl: '',
     telegramUrl: '',
     discordUrl: '',
+    etiDescription: '',
+    etiIconUrl: null,
+    etiHeaderUrl: null,
+    etiSupplyDescription: '',
   },
 };
 
@@ -720,9 +728,15 @@ export function GetStartedPage() {
                         creativeSuite.bannerUrl || creativeSuite.bannerAssets.length
                           ? 'Banner ready'
                           : 'No banner',
-                        dexPaidAdsPackReady(creativeSuite.dexAdPack)
-                          ? 'Dex ad pack ready'
-                          : 'Dex ad pack incomplete — Token Ad / Trending Bar stay queued',
+                        tokenAdPackReady(creativeSuite.dexAdPack)
+                          ? 'Token Ad ready'
+                          : 'Token Ad incomplete',
+                        trendingBarPackReady(creativeSuite.dexAdPack)
+                          ? 'Trending ready'
+                          : 'Trending incomplete',
+                        tokenInfoPackReady(creativeSuite.dexAdPack)
+                          ? 'ETI ready'
+                          : 'ETI incomplete',
                       ].join(' · ')}
                     </p>
                     {creativeSuite.starterBundleSelected ? (

@@ -1,17 +1,16 @@
 /**
- * DexScreener Marketplace creative requirements — verified from live order forms
- * (Token Advertising + Trending Bar Advertising), Aug 2026.
- *
- * Polessia cannot place these ads without the pack on file.
+ * DexScreener product collateral — verified from live Marketplace + Boost UI (Aug 2026).
+ * Polessia cannot fulfil without required assets on file (Boosts = mint only).
  */
+
+export type DexProductId = 'token-ad' | 'trending-bar' | 'token-info' | 'boost';
 
 export type DexAdPackField = {
   id: string;
   label: string;
   detail: string;
   required: boolean;
-  /** Applies to which Dex products */
-  products: Array<'token-ad' | 'trending-bar' | 'token-info'>;
+  products: DexProductId[];
   spec?: string;
 };
 
@@ -25,7 +24,7 @@ export const DEX_SQUARE_IMAGE_SPEC = {
   label: '1:1 · PNG/JPG/WebP · min 100px wide · max 4.5 MB',
 } as const;
 
-/** Enhanced Token Info only (not Token Ad / Trending Bar). */
+/** Enhanced Token Info header (not Token Ad / Trending Bar). */
 export const DEX_HEADER_IMAGE_SPEC = {
   ratio: '3:1',
   example: '1500×500px',
@@ -35,36 +34,61 @@ export const DEX_HEADER_IMAGE_SPEC = {
   label: '3:1 · PNG/JPG/WebP/GIF · min 600px wide · max 4.5 MB',
 } as const;
 
+/** ETI icon (allows GIF). */
+export const DEX_ICON_IMAGE_SPEC = {
+  ratio: '1:1',
+  example: '500×500px',
+  minWidthPx: 100,
+  formats: ['png', 'jpg', 'webp', 'gif'] as const,
+  maxMb: 4.5,
+  label: '1:1 · PNG/JPG/WebP/GIF · min 100px wide · max 4.5 MB',
+} as const;
+
 export const DEXSCREENER_AD_PRODUCTS = {
   'token-ad': {
     id: 'token-ad' as const,
     name: 'Token Advertising',
     marketplacePath: '/product/ad',
-    summary: 'In-feed token ads (views packages from $299).',
+    summary: 'In-feed token ads · 20k views from $299.',
+    spendIds: ['dex-token-ad', 'dex-socials'] as const,
   },
   'trending-bar': {
     id: 'trending-bar' as const,
     name: 'Trending Bar Advertising',
     marketplacePath: '/product/trending-bar-ad',
-    summary: 'Trending bar rotation ($2,000 / 24h and up).',
+    summary: 'Trending bar rotation · 24h from $2,000.',
+    spendIds: ['dex-trending'] as const,
   },
   'token-info': {
     id: 'token-info' as const,
     name: 'Enhanced Token Info',
     marketplacePath: '/product/token-info',
-    summary: 'Profile icon + 3:1 header + description on the pair page.',
+    summary: 'Pair-page icon + 3:1 header + description · $299.',
+    spendIds: ['dex-token-info'] as const,
+  },
+  boost: {
+    id: 'boost' as const,
+    name: 'Boosts',
+    marketplacePath: null,
+    pairPagePath: 'https://dexscreener.com',
+    summary: 'Pair-page Boost packs (web only) · 10× / 12h from $99. No creatives.',
+    spendIds: ['dex-boost-10'] as const,
   },
 } as const;
 
-/**
- * Fields founders must provide so Polessia can complete Dex order forms.
- * Token Ad + Trending Bar share the square image; Token Ad also needs pitch + links.
- */
+/** Roadmap spend ids that need creative collateral (not Boost). */
+export const DEX_CREATIVE_SPEND_IDS = [
+  'dex-token-ad',
+  'dex-socials',
+  'dex-trending',
+  'dex-token-info',
+] as const;
+
 export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
   {
     id: 'ad-title',
     label: 'Ad title',
-    detail: 'Short title shown on the Dex ad / trending chip (max 50)',
+    detail: 'Short title on Token Ad / Trending Bar (max 50)',
     required: true,
     products: ['token-ad', 'trending-bar'],
     spec: 'max 50 characters',
@@ -72,7 +96,7 @@ export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
   {
     id: 'ad-pitch',
     label: 'Ad pitch',
-    detail: 'Short description to get people interested (Token Advertising only, max 120)',
+    detail: 'Short description for Token Advertising only (max 120)',
     required: true,
     products: ['token-ad'],
     spec: 'max 120 characters',
@@ -80,7 +104,7 @@ export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
   {
     id: 'ad-square-image',
     label: 'Square ad image',
-    detail: 'Used for Token Advertising and Trending Bar uploads',
+    detail: 'Token Advertising and Trending Bar uploads',
     required: true,
     products: ['token-ad', 'trending-bar'],
     spec: DEX_SQUARE_IMAGE_SPEC.label,
@@ -88,46 +112,30 @@ export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
   {
     id: 'link-website',
     label: 'Website',
-    detail: 'Optional on Dex form — strongly recommended for Polessia fulfilment',
+    detail: 'Optional on Dex — recommended for fulfilment',
     required: false,
     products: ['token-ad'],
   },
   {
     id: 'link-x',
     label: 'X / Twitter',
-    detail: 'Add X link on the Token Advertising form',
+    detail: 'Optional Token Advertising link',
     required: false,
     products: ['token-ad'],
   },
   {
     id: 'link-telegram',
     label: 'Telegram',
-    detail: 'Add Telegram link on the Token Advertising form',
+    detail: 'Optional Token Advertising link',
     required: false,
     products: ['token-ad'],
   },
   {
     id: 'link-discord',
     label: 'Discord',
-    detail: 'Add Discord link on the Token Advertising form',
+    detail: 'Optional Token Advertising link',
     required: false,
     products: ['token-ad'],
-  },
-  {
-    id: 'eti-icon',
-    label: 'Token icon (Enhanced Info)',
-    detail: 'Square icon for the Dex pair page',
-    required: true,
-    products: ['token-info'],
-    spec: '1:1 · PNG/JPG/WebP/GIF · min 100px · max 4.5 MB',
-  },
-  {
-    id: 'eti-header',
-    label: 'Token header (Enhanced Info)',
-    detail: 'Wide strip on the Dex pair page',
-    required: true,
-    products: ['token-info'],
-    spec: DEX_HEADER_IMAGE_SPEC.label,
   },
   {
     id: 'eti-description',
@@ -135,6 +143,22 @@ export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
     detail: 'Plain text on the pair details page',
     required: true,
     products: ['token-info'],
+  },
+  {
+    id: 'eti-icon',
+    label: 'Token icon (Enhanced Info)',
+    detail: 'Square icon for the pair page',
+    required: true,
+    products: ['token-info'],
+    spec: DEX_ICON_IMAGE_SPEC.label,
+  },
+  {
+    id: 'eti-header',
+    label: 'Token header (Enhanced Info)',
+    detail: 'Wide strip on the token profile',
+    required: true,
+    products: ['token-info'],
+    spec: DEX_HEADER_IMAGE_SPEC.label,
   },
 ];
 
@@ -147,6 +171,11 @@ export type DexAdPackAssets = {
   xUrl: string;
   telegramUrl: string;
   discordUrl: string;
+  /** Enhanced Token Info */
+  etiDescription: string;
+  etiIconUrl: string | null;
+  etiHeaderUrl: string | null;
+  etiSupplyDescription: string;
 };
 
 export const EMPTY_DEX_AD_PACK: DexAdPackAssets = {
@@ -157,9 +186,19 @@ export const EMPTY_DEX_AD_PACK: DexAdPackAssets = {
   xUrl: '',
   telegramUrl: '',
   discordUrl: '',
+  etiDescription: '',
+  etiIconUrl: null,
+  etiHeaderUrl: null,
+  etiSupplyDescription: '',
 };
 
-/** Required to run Token Advertising via Polessia (socials optional on Dex). */
+/** Normalize partial / legacy stored packs. */
+export function normalizeDexAdPack(
+  partial?: Partial<DexAdPackAssets> | null,
+): DexAdPackAssets {
+  return { ...EMPTY_DEX_AD_PACK, ...(partial || {}) };
+}
+
 export function tokenAdPackReady(pack: DexAdPackAssets): boolean {
   return Boolean(
     pack.adTitle.trim().length > 0 &&
@@ -170,7 +209,6 @@ export function tokenAdPackReady(pack: DexAdPackAssets): boolean {
   );
 }
 
-/** Required to run Trending Bar via Polessia (pitch optional for trending-only). */
 export function trendingBarPackReady(pack: DexAdPackAssets): boolean {
   return Boolean(
     pack.adTitle.trim().length > 0 &&
@@ -179,24 +217,42 @@ export function trendingBarPackReady(pack: DexAdPackAssets): boolean {
   );
 }
 
+export function tokenInfoPackReady(pack: DexAdPackAssets): boolean {
+  return Boolean(
+    pack.etiDescription.trim().length > 0 &&
+      pack.etiIconUrl &&
+      pack.etiHeaderUrl,
+  );
+}
+
+/** Boosts need only a mint (provided by the project at Approve). */
+export function boostPackReady(mint?: string | null): boolean {
+  return Boolean(mint && String(mint).trim().length >= 32);
+}
+
 export function dexPaidAdsPackReady(pack: DexAdPackAssets): boolean {
   return tokenAdPackReady(pack) && trendingBarPackReady(pack);
 }
 
-/** Pack ready for the selected roadmap spend ids (dynamic). */
+function needsTokenAd(set: Set<string>): boolean {
+  return set.has('dex-token-ad') || set.has('dex-socials');
+}
+
+/** Pack ready for the selected roadmap spend ids. */
 export function dexPackReadyForSpends(
   pack: DexAdPackAssets,
   spendIds: Iterable<string>,
+  mint?: string | null,
 ): boolean {
   const set = new Set(spendIds);
-  const needsTokenAd = set.has('dex-socials');
-  const needsTrending = set.has('dex-trending');
-  if (!needsTokenAd && !needsTrending) return true;
-  if (needsTokenAd && !tokenAdPackReady(pack)) return false;
-  if (needsTrending && !trendingBarPackReady(pack)) return false;
+  if (needsTokenAd(set) && !tokenAdPackReady(pack)) return false;
+  if (set.has('dex-trending') && !trendingBarPackReady(pack)) return false;
+  if (set.has('dex-token-info') && !tokenInfoPackReady(pack)) return false;
+  if (set.has('dex-boost-10') && !boostPackReady(mint)) return false;
   return true;
 }
 
+/** Missing items across all creative products (wizard summary). */
 export function dexAdPackMissing(pack: DexAdPackAssets): string[] {
   const missing: string[] = [];
   if (!pack.adTitle.trim()) missing.push('Ad title');
@@ -204,6 +260,40 @@ export function dexAdPackMissing(pack: DexAdPackAssets): string[] {
   if (!pack.adPitch.trim()) missing.push('Ad pitch (Token Advertising)');
   else if (pack.adPitch.trim().length > 120) missing.push('Ad pitch (max 120 chars)');
   if (!pack.squareImageUrl) missing.push('Square ad image (1:1)');
+  if (!pack.etiDescription.trim()) missing.push('ETI description');
+  if (!pack.etiIconUrl) missing.push('ETI icon (1:1)');
+  if (!pack.etiHeaderUrl) missing.push('ETI header (3:1)');
+  return missing;
+}
+
+/** Missing items only for selected spends (Approve gate). */
+export function dexAdPackMissingForSpends(
+  pack: DexAdPackAssets,
+  spendIds: Iterable<string>,
+  mint?: string | null,
+): string[] {
+  const set = new Set(spendIds);
+  const missing: string[] = [];
+  if (needsTokenAd(set)) {
+    if (!pack.adTitle.trim()) missing.push('Token Ad: title');
+    else if (pack.adTitle.trim().length > 50) missing.push('Token Ad: title (max 50)');
+    if (!pack.adPitch.trim()) missing.push('Token Ad: pitch');
+    else if (pack.adPitch.trim().length > 120) missing.push('Token Ad: pitch (max 120)');
+    if (!pack.squareImageUrl) missing.push('Token Ad: square image');
+  }
+  if (set.has('dex-trending')) {
+    if (!pack.adTitle.trim()) missing.push('Trending Bar: title');
+    else if (pack.adTitle.trim().length > 50) missing.push('Trending Bar: title (max 50)');
+    if (!pack.squareImageUrl) missing.push('Trending Bar: square image');
+  }
+  if (set.has('dex-token-info')) {
+    if (!pack.etiDescription.trim()) missing.push('Token Info: description');
+    if (!pack.etiIconUrl) missing.push('Token Info: icon');
+    if (!pack.etiHeaderUrl) missing.push('Token Info: header');
+  }
+  if (set.has('dex-boost-10') && !boostPackReady(mint)) {
+    missing.push('Boosts: token mint required');
+  }
   return missing;
 }
 
@@ -211,11 +301,11 @@ export function dexAdPackSoftWarnings(pack: DexAdPackAssets): string[] {
   const warnings: string[] = [];
   if (!pack.websiteUrl?.trim() && !pack.xUrl?.trim() && !pack.telegramUrl?.trim()) {
     warnings.push(
-      'No website or socials — optional on Dex, but raises reject/modify risk',
+      'No website or socials — optional on Token Ad, but raises reject/modify risk',
     );
   }
   return warnings;
 }
 
 export const DEX_AD_PACK_BLOCK_COPY =
-  'Polessia cannot place DexScreener Token Ads or Trending Bar until this pack is on file. If the marketing wallet unlocks those spends without media, the spend stays queued and you will be notified.';
+  'Polessia cannot place DexScreener Token Ads, Trending Bar, or Enhanced Token Info until required creatives are on file. Boosts only need your mint. Incomplete spends stay queued and you will be notified.';

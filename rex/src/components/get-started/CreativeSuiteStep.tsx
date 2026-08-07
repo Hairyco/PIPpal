@@ -18,10 +18,13 @@ import {
 } from '../../data/marketingBundles';
 import {
   DEX_AD_PACK_BLOCK_COPY,
+  DEX_HEADER_IMAGE_SPEC,
+  DEX_ICON_IMAGE_SPEC,
   DEX_SQUARE_IMAGE_SPEC,
-  EMPTY_DEX_AD_PACK,
-  dexAdPackMissing,
-  dexPaidAdsPackReady,
+  normalizeDexAdPack,
+  tokenAdPackReady,
+  tokenInfoPackReady,
+  trendingBarPackReady,
   type DexAdPackAssets,
 } from '../../data/dexscreenerAdPack';
 import { generateProjectImageDataUrl, readImageFile } from '../../utils/projectImageGenerate';
@@ -41,7 +44,7 @@ export type CreativeSuiteState = {
   queuedBannerCount: number;
   starterBundleSelected: boolean;
   starterBundleFunding: BundleFunding | null;
-  /** DexScreener Token Ad + Trending Bar pack for Polessia fulfilment */
+  /** DexScreener collateral for Polessia (Token Ad / Trending / ETI; Boosts = mint only) */
   dexAdPack: DexAdPackAssets;
 };
 
@@ -70,14 +73,17 @@ export function CreativeSuiteStep({
   const logoRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
   const dexSquareRef = useRef<HTMLInputElement>(null);
+  const etiIconRef = useRef<HTMLInputElement>(null);
+  const etiHeaderRef = useRef<HTMLInputElement>(null);
   const [cloning, setCloning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const starter = getMarketingBundle('launch-starter')!;
   const patch = (partial: Partial<CreativeSuiteState>) => onChange({ ...value, ...partial });
-  const pack = value.dexAdPack ?? EMPTY_DEX_AD_PACK;
-  const dexMissing = dexAdPackMissing(pack);
-  const dexReady = dexPaidAdsPackReady(pack);
+  const pack = normalizeDexAdPack(value.dexAdPack);
+  const tokenAdReady = tokenAdPackReady(pack);
+  const trendingReady = trendingBarPackReady(pack);
+  const etiReady = tokenInfoPackReady(pack);
   const patchDex = (partial: Partial<DexAdPackAssets>) =>
     patch({ dexAdPack: { ...pack, ...partial } });
   const complexity = assessWebsiteCloneComplexity(value.sourceWebsiteUrl);
@@ -132,6 +138,24 @@ export function CreativeSuiteStep({
       patchDex({ squareImageUrl: await readImageFile(file) });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Dex ad image upload failed');
+    }
+  };
+
+  const handleEtiIcon = async (file: File) => {
+    setError(null);
+    try {
+      patchDex({ etiIconUrl: await readImageFile(file) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ETI icon upload failed');
+    }
+  };
+
+  const handleEtiHeader = async (file: File) => {
+    setError(null);
+    try {
+      patchDex({ etiHeaderUrl: await readImageFile(file) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ETI header upload failed');
     }
   };
 
@@ -307,8 +331,8 @@ export function CreativeSuiteStep({
             />
           </section>
 
-          {/* 3. DexScreener ad pack (Token Ad + Trending Bar) */}
-          <section className="space-y-3 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.03] p-4">
+          {/* 3. DexScreener collateral — one section per product */}
+          <section className="space-y-4 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.03] p-4">
             <div className="flex items-start gap-2">
               <img
                 src="/images/partners/dexscreener.ico"
@@ -316,122 +340,246 @@ export function CreativeSuiteStep({
                 className="mt-0.5 h-4 w-4 shrink-0 rounded object-contain"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-white">3. DexScreener ad pack</p>
+                <p className="text-sm font-medium text-white">3. DexScreener collateral</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Required for Polessia to place <span className="text-white/70">Token Advertising</span>{' '}
-                  and <span className="text-white/70">Trending Bar</span>. Specs match Dex Marketplace
-                  upload rules.
+                  Provide assets for each product you may Approve. Polessia fills Dex forms from this
+                  pack.
                 </p>
               </div>
-              <span
-                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                  dexReady
-                    ? 'bg-emerald-400/15 text-emerald-300'
-                    : 'bg-amber-400/15 text-amber-200'
-                }`}
-              >
-                {dexReady ? 'Ready' : 'Needed'}
-              </span>
             </div>
-
             <p className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-[11px] leading-relaxed text-white/50">
               {DEX_AD_PACK_BLOCK_COPY}
             </p>
 
-            <label className="block text-xs font-medium text-muted-foreground">
-              Ad title <span className="text-rose-400">*</span>
-              <span className="ml-1 font-normal text-white/35">{pack.adTitle.length}/50</span>
-              <input
-                type="text"
-                maxLength={50}
-                value={pack.adTitle}
-                onChange={(e) => patchDex({ adTitle: e.target.value })}
-                placeholder="Short title for the Dex ad"
-                className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
-              />
-            </label>
-
-            <label className="block text-xs font-medium text-muted-foreground">
-              Ad pitch <span className="text-rose-400">*</span>
-              <span className="ml-1 font-normal text-white/35">(Token Advertising · {pack.adPitch.length}/120)</span>
-              <textarea
-                value={pack.adPitch}
-                maxLength={120}
-                onChange={(e) => patchDex({ adPitch: e.target.value })}
-                rows={3}
-                placeholder="A short description of your project to get people interested"
-                className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
-              />
-            </label>
-
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">
-                Square ad image <span className="text-rose-400">*</span>
-              </p>
-              <p className="mt-0.5 text-[11px] text-white/40">{DEX_SQUARE_IMAGE_SPEC.label}</p>
-              <div className="mt-2">
-                <AssetSlot
-                  label="Dex square"
-                  imageUrl={pack.squareImageUrl}
-                  onClear={() => patchDex({ squareImageUrl: null })}
-                  onUploadClick={() => dexSquareRef.current?.click()}
+            {/* Token Advertising */}
+            <div className="space-y-3 rounded-lg border border-white/10 bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-white">Token Advertising · from $299</p>
+                  <p className="text-[11px] text-white/45">Title, pitch, 1:1 square · optional socials</p>
+                </div>
+                <ReadyChip ready={tokenAdReady} />
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Ad title <span className="text-rose-400">*</span>
+                <span className="ml-1 font-normal text-white/35">{pack.adTitle.length}/50</span>
+                <input
+                  type="text"
+                  maxLength={50}
+                  value={pack.adTitle}
+                  onChange={(e) => patchDex({ adTitle: e.target.value })}
+                  placeholder="Short title for the Dex ad"
+                  className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                />
+              </label>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Ad pitch <span className="text-rose-400">*</span>
+                <span className="ml-1 font-normal text-white/35">{pack.adPitch.length}/120</span>
+                <textarea
+                  value={pack.adPitch}
+                  maxLength={120}
+                  onChange={(e) => patchDex({ adPitch: e.target.value })}
+                  rows={3}
+                  placeholder="A short description of your project to get people interested"
+                  className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                />
+              </label>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Square ad image <span className="text-rose-400">*</span>
+                </p>
+                <p className="mt-0.5 text-[11px] text-white/40">{DEX_SQUARE_IMAGE_SPEC.label}</p>
+                <div className="mt-2">
+                  <AssetSlot
+                    label="Dex square"
+                    imageUrl={pack.squareImageUrl}
+                    onClear={() => patchDex({ squareImageUrl: null })}
+                    onUploadClick={() => dexSquareRef.current?.click()}
+                  />
+                </div>
+                {value.logoUrl && !pack.squareImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => patchDex({ squareImageUrl: value.logoUrl })}
+                    className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                  >
+                    Use logo as Dex square image
+                  </button>
+                ) : null}
+                <input
+                  ref={dexSquareRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleDexSquare(file);
+                    e.target.value = '';
+                  }}
                 />
               </div>
-              {value.logoUrl && !pack.squareImageUrl ? (
-                <button
-                  type="button"
-                  onClick={() => patchDex({ squareImageUrl: value.logoUrl })}
-                  className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
-                >
-                  Use logo as Dex square image
-                </button>
-              ) : null}
-              <input
-                ref={dexSquareRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void handleDexSquare(file);
-                  e.target.value = '';
-                }}
-              />
+              <div className="grid gap-2 sm:grid-cols-2">
+                {(
+                  [
+                    ['websiteUrl', 'Website'],
+                    ['xUrl', 'X / Twitter'],
+                    ['telegramUrl', 'Telegram'],
+                    ['discordUrl', 'Discord'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="block text-xs font-medium text-muted-foreground">
+                    {label}
+                    <input
+                      type="url"
+                      value={pack[key]}
+                      onChange={(e) => patchDex({ [key]: e.target.value })}
+                      placeholder="https://"
+                      className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                    />
+                  </label>
+                ))}
+              </div>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
-              {(
-                [
-                  ['websiteUrl', 'Website'],
-                  ['xUrl', 'X / Twitter'],
-                  ['telegramUrl', 'Telegram'],
-                  ['discordUrl', 'Discord'],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="block text-xs font-medium text-muted-foreground">
-                  {label}
+            {/* Trending Bar */}
+            <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-white">Trending Bar · from $2,000</p>
+                  <p className="text-[11px] text-white/45">
+                    Uses the same title + square image as Token Advertising
+                  </p>
+                </div>
+                <ReadyChip ready={trendingReady} />
+              </div>
+              {!trendingReady ? (
+                <p className="text-[11px] text-amber-200/90">
+                  Fill Token Advertising title + square image above to unlock Trending Bar.
+                </p>
+              ) : (
+                <p className="text-[11px] text-emerald-300/90">
+                  Ready — same creatives work for the Trending Bar form.
+                </p>
+              )}
+            </div>
+
+            {/* Enhanced Token Info */}
+            <div className="space-y-3 rounded-lg border border-white/10 bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-white">Enhanced Token Info · $299</p>
+                  <p className="text-[11px] text-white/45">Description + icon + 3:1 header</p>
+                </div>
+                <ReadyChip ready={etiReady} />
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Project description <span className="text-rose-400">*</span>
+                <textarea
+                  value={pack.etiDescription}
+                  onChange={(e) => patchDex({ etiDescription: e.target.value })}
+                  rows={3}
+                  placeholder="Plain text for the Dex pair page (emojis OK)"
+                  className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Icon <span className="text-rose-400">*</span>
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-white/40">{DEX_ICON_IMAGE_SPEC.label}</p>
+                  <div className="mt-2">
+                    <AssetSlot
+                      label="ETI icon"
+                      imageUrl={pack.etiIconUrl}
+                      onClear={() => patchDex({ etiIconUrl: null })}
+                      onUploadClick={() => etiIconRef.current?.click()}
+                    />
+                  </div>
+                  {value.logoUrl && !pack.etiIconUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => patchDex({ etiIconUrl: value.logoUrl })}
+                      className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                    >
+                      Use logo as icon
+                    </button>
+                  ) : null}
                   <input
-                    type="url"
-                    value={pack[key]}
-                    onChange={(e) => patchDex({ [key]: e.target.value })}
-                    placeholder="https://"
-                    className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                    ref={etiIconRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleEtiIcon(file);
+                      e.target.value = '';
+                    }}
                   />
-                </label>
-              ))}
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Header <span className="text-rose-400">*</span>
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-white/40">{DEX_HEADER_IMAGE_SPEC.label}</p>
+                  <div className="mt-2">
+                    <AssetSlot
+                      label="ETI header"
+                      imageUrl={pack.etiHeaderUrl}
+                      wide
+                      onClear={() => patchDex({ etiHeaderUrl: null })}
+                      onUploadClick={() => etiHeaderRef.current?.click()}
+                    />
+                  </div>
+                  {value.bannerUrl && !pack.etiHeaderUrl ? (
+                    <button
+                      type="button"
+                      onClick={() => patchDex({ etiHeaderUrl: value.bannerUrl })}
+                      className="mt-2 text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                    >
+                      Use banner as header
+                    </button>
+                  ) : null}
+                  <input
+                    ref={etiHeaderRef}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void handleEtiHeader(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
+              </div>
+              <label className="block text-xs font-medium text-muted-foreground">
+                Locked supply note (optional)
+                <input
+                  type="text"
+                  value={pack.etiSupplyDescription}
+                  onChange={(e) => patchDex({ etiSupplyDescription: e.target.value })}
+                  placeholder="Why / how supply is locked"
+                  className="mt-1.5 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-sky-500/40 focus:outline-none focus:ring-1 focus:ring-sky-500/30"
+                />
+              </label>
             </div>
 
-            {!dexReady ? (
-              <p className="text-[11px] text-amber-200/90">
-                Still needed: {dexMissing.join(' · ')}. Without these, Dex ad spends stay queued and
-                you get notified.
+            {/* Boosts */}
+            <div className="space-y-2 rounded-lg border border-white/10 bg-black/20 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-white">Boosts · from $99</p>
+                  <p className="text-[11px] text-white/45">
+                    No creatives — Polessia buys from your pair page (web only)
+                  </p>
+                </div>
+                <ReadyChip ready label="Mint only" />
+              </div>
+              <p className="text-[11px] text-white/50">
+                Entry pack: 10 boosts / 12 hours. Golden Ticker unlocks at 500 active boosts.
               </p>
-            ) : (
-              <p className="text-[11px] text-emerald-300/90">
-                Pack ready — Polessia can complete Token Ad and Trending Bar order forms when the
-                wallet unlocks.
-              </p>
-            )}
+            </div>
           </section>
 
           {/* 4. Launch starter bundle */}
@@ -452,7 +600,7 @@ export function CreativeSuiteStep({
                   ))}
                 </ul>
                 <p className="text-[11px] text-white/40">
-                  DexScreener is not in this pack — buy it separately from Services or after launch.
+                  DexScreener products are separate — collateral is section 3 above.
                 </p>
 
                 <div className="grid gap-2 sm:grid-cols-2">
@@ -485,8 +633,8 @@ export function CreativeSuiteStep({
           {error && <p className="text-xs text-rose-400">{error}</p>}
 
           <p className="text-[10px] leading-relaxed text-muted-foreground">
-            DexScreener Token Ad / Trending Bar run from the pack above once the marketing wallet
-            unlocks. Enhanced Token Info (3:1 header) can be added later from the dashboard.
+            Approve only runs Dex products you select on the post-launch roadmap. Missing collateral
+            blocks that spend until you upload it.
           </p>
         </div>
       </div>
@@ -506,6 +654,18 @@ export function CreativeSuiteStep({
         </button>
       </div>
     </div>
+  );
+}
+
+function ReadyChip({ ready, label }: { ready: boolean; label?: string }) {
+  return (
+    <span
+      className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+        ready ? 'bg-emerald-400/15 text-emerald-300' : 'bg-amber-400/15 text-amber-200'
+      }`}
+    >
+      {label || (ready ? 'Ready' : 'Needed')}
+    </span>
   );
 }
 

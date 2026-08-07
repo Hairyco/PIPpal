@@ -50,7 +50,7 @@ export type FounderProject = {
   queuedBannerCount?: number;
   starterBundleSelected?: boolean;
   starterBundleFunding?: 'pay-now' | 'wait-wallet' | null;
-  /** DexScreener Token Ad + Trending Bar creative pack for Polessia */
+  /** DexScreener collateral pack for Polessia (Token Ad / Trending / ETI; Boosts = mint only) */
   dexAdPack?: {
     adTitle: string;
     adPitch: string;
@@ -59,6 +59,10 @@ export type FounderProject = {
     xUrl: string;
     telegramUrl: string;
     discordUrl: string;
+    etiDescription?: string;
+    etiIconUrl?: string | null;
+    etiHeaderUrl?: string | null;
+    etiSupplyDescription?: string;
   };
   telegramGroup: string;
   discordUrl?: string;

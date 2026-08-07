@@ -1,8 +1,8 @@
 # DexScreener supplier playbook
 
-**Slug:** `dexscreener-socials` / `dexscreener-trending`  
+**Slug:** `dexscreener-token-ad` / `dexscreener-trending` / `dexscreener-token-info` / `dexscreener-boost` (legacy `dexscreener-socials` → Token Ad)  
 **Adapter:** `dexscreener`  
-**Last probed:** 2026-08-07 (live marketplace, Kalim D session)  
+**Last probed:** 2026-08-07 (live marketplace + Boost UI)  
 **Probe order:** `#1786094036096` · payment path `/order/032oOrW3EL99IT0sEEXZ/payment`
 
 ## Payment rail
@@ -34,7 +34,9 @@
 5. Helio billing fields (name, email, country, address)
 6. **Pay with QR** → Helio charge deeplink (or **Pay with Wallet** contingency)
 
-## Creatives (dynamic — from live Token Ad form)
+## Creatives (dynamic — from live Marketplace + Boost UI)
+
+### Token Advertising (`dex-token-ad` · alias `dex-socials`)
 
 | Field | Required on Dex? | Spec | CTOgo behavior |
 |-------|------------------|------|----------------|
@@ -47,9 +49,41 @@
 | Website / X / Telegram / Discord | **Optional** | Adders on form | Optional; warn if empty (reject risk) |
 | Policy checkboxes | Required | Verifiable data; Dex may reject/modify | ACK at Approve |
 
-**Pivot:** Socials are **not** mandatory. Do not block Approve when socials are empty. If Dex later makes a field required, update this table and [`rex/src/data/dexscreenerAdPack.ts`](../../src/data/dexscreenerAdPack.ts) together.
+Order URL: `/product/ad/order` · sheet type `token-ad`
 
-Related UI: Get Started **DexScreener ad pack** + Roadmap Approve gate.
+### Trending Bar (`dex-trending`)
+
+| Field | Required | Spec |
+|-------|----------|------|
+| Title | Required | max 50 |
+| Square image | Required | Same 1:1 as Token Ad (reuse OK) |
+| Pitch | No | Not on Trending form |
+
+Order URL: `/product/trending-bar-ad/order` · sheet type `trending-bar` · Autofill: fill-sheet first (selectors stub OK)
+
+### Enhanced Token Info (`dex-token-info`)
+
+| Field | Required | Spec |
+|-------|----------|------|
+| Description | Required | Plain text |
+| Icon | Required | 1:1 · png/jpg/webp/gif |
+| Header | Required | **3:1** · min 600px wide |
+| Extra links / locked supply | Optional | |
+
+Order URL: `/product/token-info/order` · sheet type `token-info`
+
+### Boosts (`dex-boost-10`)
+
+| Field | Required | Spec |
+|-------|----------|------|
+| Mint / pair | Required | Pair-page Boost button |
+| Creatives | **None** | |
+
+**Not Marketplace** — open `dexscreener.com/solana/{mint}` → Boost → 10× / 12h $99. Web only. Sheet type `boost`.
+
+**Pivot:** Socials are **not** mandatory for Token Ad. Do not block Approve when socials are empty. If Dex later makes a field required, update this table and [`rex/src/data/dexscreenerAdPack.ts`](../../src/data/dexscreenerAdPack.ts) together.
+
+Related UI: Get Started **DexScreener collateral** (per product) + Roadmap Approve gate.
 
 ## Primary auto path
 

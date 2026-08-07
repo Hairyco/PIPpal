@@ -1,6 +1,6 @@
 /**
  * Ensure Polessia roadmap catalog rows exist in Supabase.
- * Roadmap spend ids (tg-pinned, dex-socials, dex-trending) map to offer_key.
+ * Roadmap spend ids map to offer_key (dex-socials aliases to dex-token-ad).
  */
 
 import { sbFetch } from './supabase.js';
@@ -8,8 +8,19 @@ import { sbFetch } from './supabase.js';
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/** Legacy / alternate keys → canonical offer_key in ROADMAP_CATALOG. */
+export const OFFER_KEY_ALIASES = {
+  'dex-socials': 'dex-token-ad',
+  'dex-token-ad-20k': 'dex-token-ad',
+};
+
 export function looksLikeUuid(value) {
   return UUID_RE.test(String(value || '').trim());
+}
+
+export function canonicalOfferKey(key) {
+  const k = String(key || '').trim();
+  return OFFER_KEY_ALIASES[k] || k;
 }
 
 export const ROADMAP_CATALOG = [
@@ -22,31 +33,53 @@ export const ROADMAP_CATALOG = [
     priceUsd: 150,
   },
   {
-    slug: 'dexscreener-socials',
-    displayName: 'DexScreener socials',
+    slug: 'dexscreener-boost',
+    displayName: 'DexScreener Boosts',
     adapterType: 'dexscreener',
-    offerKey: 'dex-socials',
-    label: 'DexScreener socials update',
-    priceUsd: 350,
+    offerKey: 'dex-boost-10',
+    label: 'Boosts · 10× / 12h',
+    priceUsd: 99,
+    playbookPath: 'docs/suppliers/dexscreener.md',
+    checkoutEntryUrl: 'https://dexscreener.com',
+    notes: 'Pair-page Boost button (web only). No Marketplace form / creatives.',
+  },
+  {
+    slug: 'dexscreener-token-ad',
+    displayName: 'DexScreener Token Advertising',
+    adapterType: 'dexscreener',
+    offerKey: 'dex-token-ad',
+    label: 'Token Advertising · 20k views',
+    priceUsd: 299,
     playbookPath: 'docs/suppliers/dexscreener.md',
     checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/ad',
+  },
+  {
+    slug: 'dexscreener-token-info',
+    displayName: 'DexScreener Enhanced Token Info',
+    adapterType: 'dexscreener',
+    offerKey: 'dex-token-info',
+    label: 'Enhanced Token Info',
+    priceUsd: 299,
+    playbookPath: 'docs/suppliers/dexscreener.md',
+    checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/token-info',
   },
   {
     slug: 'dexscreener-trending',
     displayName: 'DexScreener trending',
     adapterType: 'dexscreener',
     offerKey: 'dex-trending',
-    label: 'DexScreener trending bar',
+    label: 'Trending Bar · 24h',
     priceUsd: 2000,
     playbookPath: 'docs/suppliers/dexscreener.md',
     checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/trending-bar-ad',
   },
+  /** Legacy row — keep slug for existing DB providers; same fulfilment as dex-token-ad */
   {
-    slug: 'dexscreener-token-ad',
-    displayName: 'DexScreener Token Advertising',
+    slug: 'dexscreener-socials',
+    displayName: 'DexScreener Token Advertising (legacy)',
     adapterType: 'dexscreener',
-    offerKey: 'dex-token-ad-20k',
-    label: 'Token Advertising · 20k views',
+    offerKey: 'dex-socials',
+    label: 'Token Advertising · 20k views (legacy key)',
     priceUsd: 299,
     playbookPath: 'docs/suppliers/dexscreener.md',
     checkoutEntryUrl: 'https://marketplace.dexscreener.com/product/ad',
@@ -75,7 +108,7 @@ export async function ensureRoadmapOffers() {
             wallet_address: 'PENDING_WHITELIST',
             adapter_type: row.adapterType,
             active: false,
-            notes: 'Auto-seeded from roadmap catalog',
+            notes: row.notes || 'Auto-seeded from roadmap catalog',
             playbook_path: row.playbookPath || null,
             checkout_entry_url: row.checkoutEntryUrl || null,
           }),
@@ -90,7 +123,7 @@ export async function ensureRoadmapOffers() {
             wallet_address: 'PENDING_WHITELIST',
             adapter_type: row.adapterType,
             active: false,
-            notes: 'Auto-seeded from roadmap catalog',
+            notes: row.notes || 'Auto-seeded from roadmap catalog',
           }),
         });
         provider = Array.isArray(created) ? created[0] : created;
@@ -102,7 +135,6 @@ export async function ensureRoadmapOffers() {
           body: JSON.stringify({
             playbook_path: row.playbookPath || provider.playbook_path,
             checkout_entry_url: row.checkoutEntryUrl || provider.checkout_entry_url,
-            updated_at: new Date().toISOString(),
           }),
         });
       } catch {
@@ -130,15 +162,37 @@ export async function ensureRoadmapOffers() {
         `mw_provider_offers?id=eq.${createdOffer.id}&select=*,mw_providers(*)`,
       );
       offer = Array.isArray(offers) ? offers[0] : createdOffer;
-    } else if (!offer.active) {
-      await sbFetch(`mw_provider_offers?id=eq.${offer.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ active: true }),
-      });
-      offer = { ...offer, active: true };
+    } else {
+      // Keep price/label in sync with live Dex catalog
+      try {
+        await sbFetch(`mw_provider_offers?id=eq.${offer.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            active: true,
+            label: row.label,
+            price_usd: row.priceUsd,
+          }),
+        });
+        offer = { ...offer, active: true, label: row.label, price_usd: row.priceUsd };
+      } catch {
+        if (!offer.active) {
+          await sbFetch(`mw_provider_offers?id=eq.${offer.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ active: true }),
+          });
+          offer = { ...offer, active: true };
+        }
+      }
     }
 
     byKey.set(row.offerKey, offer);
+  }
+
+  // Alias map so resolveOffer('dex-socials') / dex-token-ad-20k hit canonical rows
+  const tokenAd = byKey.get('dex-token-ad');
+  if (tokenAd) {
+    byKey.set('dex-socials', tokenAd);
+    byKey.set('dex-token-ad-20k', tokenAd);
   }
 
   return byKey;
@@ -151,19 +205,22 @@ export async function ensureRoadmapOffers() {
 export async function resolveOffer(offerIdOrKey) {
   const key = String(offerIdOrKey || '').trim();
   if (!key) return null;
+  const canonical = canonicalOfferKey(key);
 
   try {
     const catalog = await ensureRoadmapOffers();
     if (catalog.has(key)) return catalog.get(key);
+    if (catalog.has(canonical)) return catalog.get(canonical);
   } catch {
     /* fall through to direct lookup */
   }
 
-  // Roadmap keys are offer_key strings — not UUIDs.
-  const byKey = await sbFetch(
-    `mw_provider_offers?offer_key=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
-  );
-  if (Array.isArray(byKey) && byKey[0]) return byKey[0];
+  for (const tryKey of [canonical, key]) {
+    const byKey = await sbFetch(
+      `mw_provider_offers?offer_key=eq.${encodeURIComponent(tryKey)}&select=*,mw_providers(*)`,
+    );
+    if (Array.isArray(byKey) && byKey[0]) return byKey[0];
+  }
 
   if (looksLikeUuid(key)) {
     const byId = await sbFetch(
