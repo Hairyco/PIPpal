@@ -195,6 +195,70 @@ const PEAK_GLINTS = [
   { x: '88%', y: '62%', size: '8px', delay: '240ms' },
 ];
 
+/** GMGN-style risk/holder chips — demo values until live indexer. */
+function coinTrackerMetrics(project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>) {
+  const seed = hashSeed(project.ticker);
+  const holdersRaw = String(project.holders || '').replace(/,/g, '');
+  const holdersNum = Number(holdersRaw);
+  const holdersLabel =
+    Number.isFinite(holdersNum) && holdersNum > 0
+      ? holdersNum >= 1000
+        ? `${(holdersNum / 1000).toFixed(holdersNum >= 10_000 ? 0 : 1)}K`
+        : String(Math.round(holdersNum))
+      : project.holders && project.holders !== '—'
+        ? project.holders
+        : String(80 + (seed % 420));
+
+  const rug =
+    typeof project.devDumpedPct === 'number'
+      ? Math.max(0, Math.min(99, Math.round(project.devDumpedPct)))
+      : seed % 12;
+
+  return [
+    { id: 'dev-holdings', label: 'Dev holdings', value: `${seed % 8}%` },
+    { id: 'dev-migrated', label: 'Dev Migrated', value: String(1 + (seed % 24)) },
+    { id: 'rug', label: 'Rug', value: `${rug}%` },
+    { id: 'top-10', label: 'Top 10', value: `${12 + (seed % 38)}%` },
+    { id: 'bundlers', label: 'Bundlers', value: `${seed % 15}%` },
+    { id: 'holders', label: 'Holders', value: holdersLabel },
+  ] as const;
+}
+
+function CoinTrackerRow({
+  project,
+}: {
+  project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>;
+}) {
+  const trackers = useMemo(
+    () => coinTrackerMetrics(project),
+    [project.ticker, project.holders, project.devDumpedPct],
+  );
+
+  return (
+    <div
+      className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+      role="list"
+      aria-label="Token trackers"
+    >
+      {trackers.map((t) => (
+        <div
+          key={t.id}
+          role="listitem"
+          className="flex min-w-[4.75rem] shrink-0 flex-col gap-0.5 border-r border-white/[0.08] px-3 first:pl-1 last:border-r-0"
+        >
+          <span className="whitespace-nowrap text-[10px] font-medium leading-none text-white/40">
+            {t.label}
+          </span>
+          <span className="whitespace-nowrap text-[13px] font-semibold leading-none tabular-nums text-white">
+            {t.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PeakFlashValue({ value }: { value: string }) {
   const [phase, setPhase] = useState<'idle' | 'active' | 'fading'>('idle');
 
@@ -759,6 +823,7 @@ export function CtoTradeView({
             change24h={change ?? project.change24h}
             ticker={project.ticker}
           />
+          <CoinTrackerRow project={project} />
         </div>
       </div>
 
