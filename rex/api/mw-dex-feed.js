@@ -13,6 +13,7 @@ import {
   parseHelioChargeUrl,
   helioPaymentInstruction,
   withHelioDeposit,
+  resolveHelioDeposit,
 } from '../lib/mw/helio.js';
 
 function json(res, status, body) {
@@ -191,6 +192,18 @@ export default async function handler(req, res) {
         });
       }
 
+      // If ops only pasted the charge URL, resolve deposit from Helio public API.
+      if (instruction.chargeToken && !instruction.depositAddress) {
+        const resolved = await resolveHelioDeposit(instruction);
+        if (resolved.ok) {
+          instruction = withHelioDeposit(instruction, {
+            depositAddress: resolved.depositAddress,
+            depositAmount: resolved.depositAmount,
+            asset: resolved.asset || asset,
+          });
+        }
+      }
+
       const creatives = {
         ...(order.creatives || {}),
         dexFormFedAt: order.creatives?.dexFormFedAt || new Date().toISOString(),
@@ -237,9 +250,9 @@ export default async function handler(req, res) {
         paymentInstruction: instruction,
         dexMint: creatives.dexMint || null,
         next: instruction.depositAddress
-          ? 'POST /api/mw-helio-settle with orderId (dryRun:true first)'
+          ? `Capture OK — ${instruction.depositAddress} · ${instruction.depositAmount ?? '?'} ${instruction.asset || 'USDC'}. Next: Dry-run settle.`
           : instruction.chargeToken
-            ? 'Charge URL saved. Deposit address still missing for settle (Helio QR is a link, not a wallet).'
+            ? 'Charge URL saved. Could not auto-resolve deposit yet — paste deposit address or retry.'
             : 'Saved',
       });
     }

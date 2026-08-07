@@ -38,8 +38,8 @@ export function OpsDexFeedPage() {
     [opsSecret],
   );
 
-  async function loadPending() {
-    setMsg(null);
+  async function loadPending(opts?: { quiet?: boolean }) {
+    if (!opts?.quiet) setMsg(null);
     setBusy(true);
     try {
       const q = new URLSearchParams({
@@ -51,12 +51,14 @@ export function OpsDexFeedPage() {
       if (!res.ok) throw new Error(body.error || res.statusText);
       setPending(body.pending || []);
       setRecentAny(body.recentAny || []);
-      if (body.hint) {
-        setMsg(body.hint);
-      } else if (!(body.pending || []).length) {
-        setMsg('No pending Dex orders in CTOgo yet — Approve a Dex roadmap item first.');
-      } else {
-        setMsg(`Loaded ${body.pendingCount ?? body.pending.length} pending Dex order(s).`);
+      if (!opts?.quiet) {
+        if (body.hint) {
+          setMsg(body.hint);
+        } else if (!(body.pending || []).length) {
+          setMsg('No pending Dex orders in CTOgo yet — Approve a Dex roadmap item first.');
+        } else {
+          setMsg(`Loaded ${body.pendingCount ?? body.pending.length} pending Dex order(s).`);
+        }
       }
     } catch (err: any) {
       setMsg(err.message || String(err));
@@ -108,7 +110,7 @@ export function OpsDexFeedPage() {
       const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || res.statusText);
       setMsg('Marked Dex form as fed — capture Helio QR next');
-      void loadPending();
+      void loadPending({ quiet: true });
     } catch (err: any) {
       setMsg(err.message || String(err));
     } finally {
@@ -162,8 +164,16 @@ export function OpsDexFeedPage() {
       });
       const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || body.hint || res.statusText);
-      setMsg(body.next || 'Captured — ready for Helio settle');
-      void loadPending();
+      const pi = body.paymentInstruction || {};
+      if (pi.depositAddress) setDepositAddress(pi.depositAddress);
+      if (pi.depositAmount != null) setDepositAmount(String(pi.depositAmount));
+      if (pi.deeplink) setChargeUrl(pi.deeplink);
+      setMsg(
+        pi.depositAddress
+          ? `Capture saved ✓  ${pi.depositAddress.slice(0, 8)}… · ${pi.depositAmount ?? '?'} ${pi.asset || 'USDC'} — next: Dry-run settle`
+          : body.next || 'Captured — deposit still missing; paste address or retry after charge resolves',
+      );
+      void loadPending({ quiet: true });
     } catch (err: any) {
       setMsg(err.message || String(err));
     } finally {
@@ -185,14 +195,14 @@ export function OpsDexFeedPage() {
       if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
       if (dryRun) {
         setMsg(
-          `Dry-run OK → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'}`,
+          `Dry-run OK ✓  → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'} (no money sent)`,
         );
       } else {
         setMsg(
           `Paid ${body.amount} ${body.asset} · tx ${body.signature || '—'} · status ${body.status}`,
         );
       }
-      void loadPending();
+      void loadPending({ quiet: true });
     } catch (err: any) {
       setMsg(err.message || String(err));
     } finally {
@@ -244,7 +254,19 @@ export function OpsDexFeedPage() {
       >
         {busy ? 'Loading…' : 'Load pending Dex orders'}
       </button>
-      {msg ? <p className="mt-2 text-sm text-amber-200">{msg}</p> : null}
+      {msg ? (
+        <p
+          className={`mt-2 rounded-lg border px-3 py-2 text-sm ${
+            /OK|saved|✓|Paid/i.test(msg)
+              ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100'
+              : /error|fail|unauthorized|missing|required/i.test(msg)
+                ? 'border-rose-400/30 bg-rose-400/10 text-rose-100'
+                : 'border-amber-400/20 bg-amber-400/10 text-amber-100'
+          }`}
+        >
+          {msg}
+        </p>
+      ) : null}
 
       <div className="mt-4 flex flex-wrap items-end gap-2">
         <label className="min-w-[16rem] flex-1 text-[11px] font-medium text-white/40">
