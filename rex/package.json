@@ -12,7 +12,12 @@
     "dex:autofill": "node scripts/dex-autofill/run.mjs",
     "dex:capture-charge": "node scripts/dex-autofill/capture-charge.mjs",
     "dex:worker": "node scripts/dex-autofill/worker.mjs",
-    "ops:wallets:generate": "node scripts/ops-wallets/generate.mjs"
+    "ops:wallets:generate": "node scripts/ops-wallets/generate.mjs",
+    "ops:wallets:bootstrap": "node scripts/ops-wallets/bootstrap-vercel-env.mjs",
+    "ops:wallets:register": "node scripts/ops-wallets/register.mjs",
+    "ops:wallets:status": "node scripts/ops-wallets/check-status.mjs",
+    "ops:wallets:fund-check": "node scripts/ops-wallets/fund-check.mjs",
+    "ops:seed-dex": "node scripts/ops-wallets/seed-dex-order.mjs"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.15",

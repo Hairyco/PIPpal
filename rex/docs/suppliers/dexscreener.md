@@ -123,9 +123,9 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 | Stage | What | Cost | Status |
 |-------|------|------|--------|
 | A | Devnet vault → disburse | Free | Plumbing |
-| B | Helio settle dry-run (resolve deposit, no broadcast) | Free | Required for “automation works” |
-| C | Live Dex: Google → fill form → payment page → capture QR/deposit → **abort** (no Live settle) | Free | Required for “automation works” |
-| D | Optional: real Dex package purchase when you want a live ad | ~$299+ | **Not** required to call auto-path proven |
+| B | Helio settle dry-run (resolve deposit, no broadcast) | Free | **Done** |
+| C | Live Dex: Google → fill form → payment page → capture QR/deposit → **abort** (no Live settle) | Free | **Done** (autofill + capture + dry-run; $0 spent) |
+| D | Optional: real Dex package purchase when you want a live ad | ~$299+ | **Gated** — fund payer + `FUND_OK=1` |
 | E | Optional: tiny self-created Helio charge settle (~$1) if you have Helio merchant keys | ~$1 | Extra pay-rail proof without buying Dex |
 
 **Locked pivot:** End-to-end automation proof = **Stages B + C**. Do **not** require a $299 Dex buy to say “the path works.” A live Dex buy is only when you intentionally want that ad.

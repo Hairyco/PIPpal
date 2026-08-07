@@ -17,6 +17,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   OUT_DIR,
   DEX_ORDER_URL,
@@ -29,6 +30,25 @@ import {
 import { fillTokenAdForm } from './lib/fillOrderForm.mjs';
 import { capturePaymentPage } from './lib/capturePayment.mjs';
 import { checkDexSession, writeReloginAlert } from './lib/sessionHealth.mjs';
+
+function loadEnvLocal() {
+  const p = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.env.local');
+  if (!fs.existsSync(p)) return;
+  for (const line of fs.readFileSync(p, 'utf8').split(/\r?\n/)) {
+    if (!line || line.startsWith('#') || !line.includes('=')) continue;
+    const i = line.indexOf('=');
+    const k = line.slice(0, i);
+    let v = line.slice(i + 1);
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
+      v = v.slice(1, -1);
+    }
+    if (!process.env[k]) process.env[k] = v;
+  }
+}
+loadEnvLocal();
 
 const args = parseArgs();
 ensureDirs();

@@ -33,11 +33,19 @@ async function fillLabeled(page, labelPattern, value) {
 
 /**
  * Download creative image to a temp file for input[type=file].
+ * Relative paths (e.g. /meme-logos/x.png) resolve against CTOGO_API / site origin.
  */
 async function downloadImage(url, orderId) {
   if (!url) return null;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Image download failed: ${res.status} ${url}`);
+  let absolute = String(url).trim();
+  if (absolute.startsWith('/')) {
+    const base = String(
+      process.env.CTOGO_API || process.env.CTOGO_API_BASE || 'https://rex-liart.vercel.app',
+    ).replace(/\/$/, '');
+    absolute = `${base}${absolute}`;
+  }
+  const res = await fetch(absolute);
+  if (!res.ok) throw new Error(`Image download failed: ${res.status} ${absolute}`);
   const buf = Buffer.from(await res.arrayBuffer());
   const ct = res.headers.get('content-type') || '';
   const ext = ct.includes('png')
@@ -65,18 +73,22 @@ export async function fillTokenAdForm(page, sheet, opts = {}) {
   await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(800);
 
-  // Chain → Solana
-  const chainOk =
-    (await tryClick(page, page.getByRole('combobox').filter({ hasText: /chain|solana/i }))) ||
-    (await tryClick(page, page.getByText(/^Solana$/i))) ||
-    (await tryClick(page, page.locator('button, [role="option"]').filter({ hasText: /^Solana$/i })));
+  // Chain → Solana (Order Now stays disabled if still "Select a chain")
+  let chainOk = false;
+  await tryClick(page, page.locator('label:has-text("Chain"), text=Chain').first());
+  await page.waitForTimeout(400);
+  chainOk =
+    (await tryClick(page, page.getByRole('option', { name: /^Solana$/i }))) ||
+    (await tryClick(page, page.locator('[role="listbox"] [role="option"]').filter({ hasText: /^Solana$/i }))) ||
+    (await tryClick(page, page.getByText(/^Solana$/i)));
   if (!chainOk) {
-    // Try opening a Chain dropdown then picking Solana
-    await tryClick(page, page.getByText(/^Chain$/i));
-    await tryClick(page, page.getByRole('option', { name: /Solana/i }));
-    await tryClick(page, page.getByText(/^Solana$/i));
+    await tryClick(page, page.getByRole('combobox').first());
+    await page.waitForTimeout(400);
+    chainOk =
+      (await tryClick(page, page.getByRole('option', { name: /^Solana$/i }))) ||
+      (await tryClick(page, page.getByText(/^Solana$/i)));
   }
-  notes.push('chain: attempted Solana');
+  notes.push(chainOk ? 'chain: Solana selected' : 'chain: FAILED');
 
   // Token address
   const mint = fill.tokenAddress;
@@ -153,26 +165,69 @@ export async function fillTokenAdForm(page, sheet, opts = {}) {
     await fillLabeled(page, re, links[key]);
   }
 
-  // Policy checkboxes
+  // Policy checkboxes (must be checked or Order Now stays disabled)
   const boxes = page.locator('input[type="checkbox"]');
   const n = await boxes.count();
+  let checked = 0;
   for (let i = 0; i < n; i++) {
     const box = boxes.nth(i);
-    if (!(await box.isChecked())) {
-      try {
-        await box.check({ timeout: 2000 });
-      } catch {
-        await box.click({ force: true }).catch(() => {});
+    try {
+      await box.scrollIntoViewIfNeeded();
+      const already = await box.isChecked().catch(() => false);
+      if (!already) {
+        await box.check({ timeout: 3000, force: true }).catch(async () => {
+          await box.click({ force: true });
+        });
       }
+      if (await box.isChecked().catch(() => false)) checked += 1;
+    } catch {
+      /* ignore */
     }
   }
-  notes.push(`checkboxes: toggled ${n}`);
+  // Also click label text for Dex custom checkbox widgets
+  const agreeLabels = page.getByText(/I agree|verifiable|reject or modify/i);
+  const labelCount = await agreeLabels.count();
+  for (let i = 0; i < Math.min(labelCount, 4); i++) {
+    await agreeLabels.nth(i).click({ force: true }).catch(() => {});
+  }
+  notes.push(`checkboxes: ${checked}/${n} checked`);
 
   if (submit) {
-    const ordered =
-      (await tryClick(page, page.getByRole('button', { name: /order now/i }), { timeout: 8000 })) ||
-      (await tryClick(page, page.getByText(/^Order Now$/i), { timeout: 8000 }));
-    notes.push(ordered ? 'submit: Order Now clicked' : 'submit: FAILED');
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight)).catch(() => {});
+    await page.waitForTimeout(500);
+    const candidates = [
+      page.getByRole('button', { name: /order now/i }),
+      page.locator('button').filter({ hasText: /order now/i }),
+      page.getByText(/order now/i),
+      page.locator('[type="submit"]').filter({ hasText: /order/i }),
+    ];
+    let ordered = false;
+    let submitNote = 'submit: FAILED';
+    for (const loc of candidates) {
+      try {
+        const el = loc.first();
+        if ((await el.count()) === 0) continue;
+        const disabled = await el.isDisabled().catch(() => false);
+        if (disabled) {
+          submitNote = 'submit: Order Now disabled (form invalid?)';
+          continue;
+        }
+        await el.scrollIntoViewIfNeeded().catch(() => {});
+        await el.click({ timeout: 8000 });
+        ordered = true;
+        submitNote = 'submit: Order Now clicked';
+        break;
+      } catch {
+        /* try next */
+      }
+    }
+    if (!ordered) {
+      ordered = await tryClick(page, page.getByRole('button', { name: /order now/i }), {
+        timeout: 3000,
+      });
+      if (ordered) submitNote = 'submit: Order Now clicked';
+    }
+    notes.push(submitNote);
     if (ordered) {
       await page.waitForURL(/\/order\/.+\/payment|\/payment/, { timeout: 60000 }).catch(() => {});
       await page.waitForTimeout(1500);

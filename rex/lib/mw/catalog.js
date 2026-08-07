@@ -133,7 +133,7 @@ export async function ensureRoadmapOffers() {
     } else if (!offer.active) {
       await sbFetch(`mw_provider_offers?id=eq.${offer.id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ active: true, updated_at: new Date().toISOString() }),
+        body: JSON.stringify({ active: true }),
       });
       offer = { ...offer, active: true };
     }

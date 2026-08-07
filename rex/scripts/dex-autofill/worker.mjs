@@ -16,6 +16,26 @@ import { fileURLToPath } from 'node:url';
 import { OUT_DIR, ensureDirs, parseArgs } from './lib/common.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function loadEnvLocal() {
+  const p = path.resolve(__dirname, '../../.env.local');
+  if (!fs.existsSync(p)) return;
+  for (const line of fs.readFileSync(p, 'utf8').split(/\r?\n/)) {
+    if (!line || line.startsWith('#') || !line.includes('=')) continue;
+    const i = line.indexOf('=');
+    const k = line.slice(0, i);
+    let v = line.slice(i + 1);
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
+      v = v.slice(1, -1);
+    }
+    if (!process.env[k]) process.env[k] = v;
+  }
+}
+loadEnvLocal();
+
 const args = parseArgs();
 ensureDirs();
 

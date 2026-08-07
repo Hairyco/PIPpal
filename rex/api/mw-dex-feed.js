@@ -7,6 +7,7 @@
  * POST action=capture             → { orderId, chargeUrl, depositAddress, depositAmount, opsSecret }
  */
 
+import { randomUUID } from 'crypto';
 import { mwConfigured, sbFetch, audit } from '../lib/mw/supabase.js';
 import { buildDexFeedSheet } from '../lib/mw/dexFeed.js';
 import {
@@ -15,7 +16,15 @@ import {
   withHelioDeposit,
   resolveHelioDeposit,
 } from '../lib/mw/helio.js';
-import { usdWithServiceFee } from '../lib/mw/fees.js';
+import { invoiceWithServiceFee, usdWithServiceFee } from '../lib/mw/fees.js';
+import { ensureRoadmapOffers, resolveOffer } from '../lib/mw/catalog.js';
+import { invoiceIdFromParts } from '../lib/mw/auth.js';
+
+const LAMPORTS_PER_SOL = 1_000_000_000;
+const SOL_USD = Number(process.env.SOL_USD_RATE || 150);
+/** Placeholder mint for ops dry-run seed — override via set_mint / autofill. */
+const SEED_PLACEHOLDER_MINT =
+  process.env.MW_SEED_MINT || 'So11111111111111111111111111111111111111112';
 
 function json(res, status, body) {
   return res.status(status).json(body);
@@ -134,6 +143,110 @@ export default async function handler(req, res) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
     assertOps(body, req);
     const { action, orderId } = body;
+
+    /** Ops-only: queue a Dex Token Ad order for autofill / dry-run (no founder signature). */
+    if (action === 'seed_dex_order') {
+      try {
+        await ensureRoadmapOffers();
+      } catch (err) {
+        console.warn('ensureRoadmapOffers:', err.message || err);
+      }
+      const offerKey = body.offerKey || 'dex-token-ad-20k';
+      const offer = await resolveOffer(offerKey);
+      if (!offer?.id) {
+        return json(res, 400, { error: `Offer not found: ${offerKey}` });
+      }
+      const mint = String(body.mint || SEED_PLACEHOLDER_MINT).trim();
+      const ticker = String(body.ticker || 'CTOGO').trim().slice(0, 12);
+      let projects = await sbFetch(
+        `mw_projects?mint=eq.${encodeURIComponent(mint)}&select=*&limit=1`,
+      );
+      let project = Array.isArray(projects) ? projects[0] : null;
+      if (!project) {
+        const created = await sbFetch('mw_projects', {
+          method: 'POST',
+          body: JSON.stringify({
+            mint,
+            ticker,
+            engine: 'launch',
+            founder_wallet: body.founderWallet || 'OPS_SEED',
+            marketing_attached: true,
+            spend_paused: false,
+            spend_unlocked: true,
+            last_marketing_activity_at: new Date().toISOString(),
+          }),
+        });
+        project = Array.isArray(created) ? created[0] : created;
+      }
+      const planId = body.planId || randomUUID();
+      const existingPlans = await sbFetch(`mw_spend_plans?id=eq.${planId}&select=id`);
+      if (!Array.isArray(existingPlans) || !existingPlans[0]) {
+        await sbFetch('mw_spend_plans', {
+          method: 'POST',
+          body: JSON.stringify({
+            id: planId,
+            project_id: project.id,
+            mode: 'polessia',
+            status: 'approved',
+            selected_offer_ids: [offer.id],
+            approved_by_wallet: 'OPS_SEED',
+            approved_at: new Date().toISOString(),
+          }),
+        });
+      }
+      const priceUsd = Number(offer.price_usd);
+      const usdFees = usdWithServiceFee(priceUsd);
+      const invoiceLamports = BigInt(Math.floor((priceUsd / SOL_USD) * LAMPORTS_PER_SOL));
+      const fees = invoiceWithServiceFee(invoiceLamports, usdFees.feeBps);
+      const invoiceId = invoiceIdFromParts(mint, `${planId}:${offer.id}:${Date.now()}`);
+      const creatives = {
+        spendItemId: offer.offer_key,
+        offerKey: offer.offer_key,
+        packageLabel: offer.label,
+        priceUsd,
+        feeBps: usdFees.feeBps,
+        feePercent: usdFees.feePercent,
+        dexMint: body.dexMint || mint,
+        title: body.title || `${ticker} Token Ad`,
+        pitch: body.pitch || 'CTOgo ops dry-run seed — replace creatives before live buy.',
+        squareImageUrl: body.squareImageUrl || '/meme-logos/batcat.png',
+        seededByOps: true,
+        seededAt: new Date().toISOString(),
+      };
+      const orderRows = await sbFetch('mw_campaign_orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          project_id: project.id,
+          plan_id: planId,
+          provider_id: offer.provider_id,
+          offer_id: offer.id,
+          invoice_id: invoiceId,
+          invoice_lamports: Number(fees.invoiceLamports),
+          service_fee_lamports: Number(fees.serviceFeeLamports),
+          total_debit_lamports: Number(fees.totalDebitLamports),
+          status: 'queued',
+          creatives,
+        }),
+      });
+      const order = Array.isArray(orderRows) ? orderRows[0] : orderRows;
+      await audit('ops_seed_dex_order', { orderId: order?.id, offerKey, mint }, project.id);
+      return json(res, 200, {
+        ok: true,
+        orderId: order?.id,
+        planId,
+        mint,
+        offer: { id: offer.id, key: offer.offer_key, label: offer.label, priceUsd },
+        fees: {
+          invoiceUsd: usdFees.invoiceUsd,
+          serviceFeeUsd: usdFees.serviceFeeUsd,
+          totalDebitUsd: usdFees.totalDebitUsd,
+          feeBps: usdFees.feeBps,
+          feePercent: usdFees.feePercent,
+        },
+        hint: 'Pending Dex order queued. Run dex:autofill dry-run (no --live-settle). Override mint via set_mint if needed.',
+      });
+    }
+
     if (!orderId) return json(res, 400, { error: 'orderId required' });
 
     const order = await loadOrderBundle(orderId);
