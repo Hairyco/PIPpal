@@ -64,16 +64,18 @@ export const DEXSCREENER_AD_PACK_FIELDS: DexAdPackField[] = [
   {
     id: 'ad-title',
     label: 'Ad title',
-    detail: 'Short title shown on the Dex ad / trending chip',
+    detail: 'Short title shown on the Dex ad / trending chip (max 50)',
     required: true,
     products: ['token-ad', 'trending-bar'],
+    spec: 'max 50 characters',
   },
   {
     id: 'ad-pitch',
     label: 'Ad pitch',
-    detail: 'Short description to get people interested (Token Advertising only)',
+    detail: 'Short description to get people interested (Token Advertising only, max 120)',
     required: true,
     products: ['token-ad'],
+    spec: 'max 120 characters',
   },
   {
     id: 'ad-square-image',
@@ -157,26 +159,62 @@ export const EMPTY_DEX_AD_PACK: DexAdPackAssets = {
   discordUrl: '',
 };
 
-/** Required to run Token Advertising via Polessia. */
+/** Required to run Token Advertising via Polessia (socials optional on Dex). */
 export function tokenAdPackReady(pack: DexAdPackAssets): boolean {
-  return Boolean(pack.adTitle.trim() && pack.adPitch.trim() && pack.squareImageUrl);
+  return Boolean(
+    pack.adTitle.trim().length > 0 &&
+      pack.adTitle.trim().length <= 50 &&
+      pack.adPitch.trim().length > 0 &&
+      pack.adPitch.trim().length <= 120 &&
+      pack.squareImageUrl,
+  );
 }
 
-/** Required to run Trending Bar via Polessia. */
+/** Required to run Trending Bar via Polessia (pitch optional for trending-only). */
 export function trendingBarPackReady(pack: DexAdPackAssets): boolean {
-  return Boolean(pack.adTitle.trim() && pack.squareImageUrl);
+  return Boolean(
+    pack.adTitle.trim().length > 0 &&
+      pack.adTitle.trim().length <= 50 &&
+      pack.squareImageUrl,
+  );
 }
 
 export function dexPaidAdsPackReady(pack: DexAdPackAssets): boolean {
   return tokenAdPackReady(pack) && trendingBarPackReady(pack);
 }
 
+/** Pack ready for the selected roadmap spend ids (dynamic). */
+export function dexPackReadyForSpends(
+  pack: DexAdPackAssets,
+  spendIds: Iterable<string>,
+): boolean {
+  const set = new Set(spendIds);
+  const needsTokenAd = set.has('dex-socials');
+  const needsTrending = set.has('dex-trending');
+  if (!needsTokenAd && !needsTrending) return true;
+  if (needsTokenAd && !tokenAdPackReady(pack)) return false;
+  if (needsTrending && !trendingBarPackReady(pack)) return false;
+  return true;
+}
+
 export function dexAdPackMissing(pack: DexAdPackAssets): string[] {
   const missing: string[] = [];
   if (!pack.adTitle.trim()) missing.push('Ad title');
+  else if (pack.adTitle.trim().length > 50) missing.push('Ad title (max 50 chars)');
   if (!pack.adPitch.trim()) missing.push('Ad pitch (Token Advertising)');
+  else if (pack.adPitch.trim().length > 120) missing.push('Ad pitch (max 120 chars)');
   if (!pack.squareImageUrl) missing.push('Square ad image (1:1)');
   return missing;
+}
+
+export function dexAdPackSoftWarnings(pack: DexAdPackAssets): string[] {
+  const warnings: string[] = [];
+  if (!pack.websiteUrl?.trim() && !pack.xUrl?.trim() && !pack.telegramUrl?.trim()) {
+    warnings.push(
+      'No website or socials — optional on Dex, but raises reject/modify risk',
+    );
+  }
+  return warnings;
 }
 
 export const DEX_AD_PACK_BLOCK_COPY =

@@ -9,6 +9,7 @@
 import { audit, mwConfigured, sbFetch } from '../lib/mw/supabase.js';
 import { invoiceWithServiceFee } from '../lib/mw/fees.js';
 import { fulfilOrder } from '../lib/mw/adapters.js';
+import { submitDisburse } from '../lib/mw/disburseClient.js';
 
 function assertCron(req) {
   const secret = process.env.CRON_SECRET;
@@ -36,27 +37,6 @@ async function markOrder(id, patch) {
     method: 'PATCH',
     body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
   });
-}
-
-/**
- * Placeholder on-chain submit. When KEEPER_SECRET_KEY is unset, records a dry-run failure
- * so ops can use manual_review — never pretends a mainnet payment succeeded.
- */
-async function submitDisburse({ order, project, provider }) {
-  if (!process.env.KEEPER_SECRET_KEY || !process.env.SOLANA_RPC_URL) {
-    return {
-      ok: false,
-      dryRun: true,
-      error:
-        'Keeper wallet / RPC not configured — payment left for manual_review (free to configure locally; RPC is paid for production).',
-    };
-  }
-  // Live Anchor CPI wiring lands with deployed program id + IDL; keep fail-closed.
-  return {
-    ok: false,
-    dryRun: false,
-    error: `On-chain disburse client not bound yet for program ${process.env.REX_MVP_PROGRAM_ID || 'unset'}; order ${order.id} / vault ${project.marketing_vault} / supplier ${provider.wallet_address}.`,
-  };
 }
 
 export default async function handler(req, res) {

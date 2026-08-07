@@ -72,6 +72,16 @@ Public free Solana links are too flaky for automatic payments.
 
 **Cost:** Devnet SOL is free from faucets; mainnet SOL is real money.
 
+## Step 6b — Dex payment automation SQL (after Step 2)
+
+In Supabase SQL Editor, also run:
+
+`rex/supabase/migrations/20260807_dex_payment_automation.sql`
+
+This adds creatives + Helio `payment_instruction` fields and Dex playbook metadata on providers.
+
+Dex playbook: `rex/docs/suppliers/dexscreener.md`
+
 ### Step 6 — Deploy the smart contract to Devnet (or ask a Solana-savvy friend)
 This step needs the Solana developer tools on a computer.
 

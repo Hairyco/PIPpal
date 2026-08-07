@@ -22,9 +22,18 @@ import {
   formatThresholdUsd,
   selectedSpendAllIn,
   spendItemAllIn,
+  spendRequiresDexAdPack,
   tierTotalUsd,
   type SpendItemId,
 } from '../data/postLaunchRoadmap';
+import {
+  EMPTY_DEX_AD_PACK,
+  dexAdPackMissing,
+  dexAdPackSoftWarnings,
+  dexPackReadyForSpends,
+  type DexAdPackAssets,
+} from '../data/dexscreenerAdPack';
+import { loadFounderProject, saveFounderProject } from '../utils/founderProject';
 import {
   LAUNCH_FEE_ENGINE,
   MARKETING_SERVICE_FEE_LABEL,
@@ -139,6 +148,32 @@ export function PostLaunchDashboard({
     useConnectedWallet();
   const [approveBusy, setApproveBusy] = useState(false);
   const [approveNotice, setApproveNotice] = useState<string | null>(null);
+  const [dexPack, setDexPack] = useState<DexAdPackAssets>(() => {
+    const stored = loadFounderProject()?.dexAdPack;
+    return stored ? { ...EMPTY_DEX_AD_PACK, ...stored } : { ...EMPTY_DEX_AD_PACK };
+  });
+
+  const selectedNeedsDex = useMemo(
+    () => [...selected].some((id) => spendRequiresDexAdPack(id)),
+    [selected],
+  );
+  const dexReady = useMemo(
+    () => dexPackReadyForSpends(dexPack, selected),
+    [dexPack, selected],
+  );
+  const dexMissing = useMemo(() => dexAdPackMissing(dexPack), [dexPack]);
+  const dexWarnings = useMemo(() => dexAdPackSoftWarnings(dexPack), [dexPack]);
+
+  const patchDexPack = (partial: Partial<DexAdPackAssets>) => {
+    setDexPack((prev) => {
+      const next = { ...prev, ...partial };
+      const project = loadFounderProject();
+      if (project) {
+        saveFounderProject({ ...project, dexAdPack: next });
+      }
+      return next;
+    });
+  };
   /** Launch path: carousel after pay — once per coin after acknowledged. */
   const [showLaunchCarousel, setShowLaunchCarousel] = useState(() => {
     if (mode !== 'launch') return false;
@@ -246,6 +281,12 @@ export function PostLaunchDashboard({
 
   const approveRoadmap = async () => {
     setApproveNotice(null);
+    if (selectedNeedsDex && !dexReady) {
+      setApproveNotice(
+        `Complete Dex creatives before Approve: ${dexMissing.join(', ') || 'required fields'}`,
+      );
+      return;
+    }
     setApproveBusy(true);
     try {
       if (!walletConnected || !walletAddress) {
@@ -301,6 +342,19 @@ export function PostLaunchDashboard({
           marketingVault: marketingAddress,
           selectedOfferIds: [],
           mode: roadmapMode,
+          creatives: selectedNeedsDex
+            ? {
+                source: 'dexscreener-ad-pack',
+                adTitle: dexPack.adTitle.trim(),
+                adPitch: dexPack.adPitch.trim(),
+                squareImageUrl: dexPack.squareImageUrl,
+                websiteUrl: dexPack.websiteUrl.trim(),
+                xUrl: dexPack.xUrl.trim(),
+                telegramUrl: dexPack.telegramUrl.trim(),
+                discordUrl: dexPack.discordUrl.trim(),
+                socialsOptional: true,
+              }
+            : null,
         }),
       });
       if (!approveRes.ok) {
@@ -310,11 +364,15 @@ export function PostLaunchDashboard({
       }
       setSpendUnlocked(true);
       setMarketingSpendOn(true);
-      setApproveNotice('Spend roadmap approved with wallet signature.');
+      setApproveNotice(
+        dexWarnings.length
+          ? `Spend approved. Note: ${dexWarnings[0]}`
+          : 'Spend roadmap approved with wallet signature.',
+      );
       void fetchMwProjectStatus(tradedContract || marketingAddress).then(setMwStatus);
     } finally {
       setApproveBusy(false);
-      window.setTimeout(() => setApproveNotice(null), 5000);
+      window.setTimeout(() => setApproveNotice(null), 6000);
     }
   };
 
@@ -1268,11 +1326,108 @@ export function PostLaunchDashboard({
                 marketing vault.
               </p>
             </div>
+
+            {selectedNeedsDex ? (
+              <div className="space-y-2.5 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.04] px-3.5 py-3">
+                <div className="flex items-center gap-2">
+                  <img
+                    src="/images/partners/dexscreener.ico"
+                    alt=""
+                    className="h-4 w-4 rounded object-contain"
+                  />
+                  <p className="text-[12px] font-semibold text-white/85">DexScreener creatives</p>
+                  <span
+                    className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                      dexReady
+                        ? 'bg-emerald-400/15 text-emerald-300'
+                        : 'bg-amber-400/15 text-amber-200'
+                    }`}
+                  >
+                    {dexReady ? 'Ready' : 'Needed'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-white/45">
+                  Title, pitch, and 1:1 image are required. Socials are optional on Dex.
+                </p>
+                <label className="block text-[11px] text-white/50">
+                  Ad title *{' '}
+                  <span className="text-white/30">{dexPack.adTitle.length}/50</span>
+                  <input
+                    type="text"
+                    maxLength={50}
+                    value={dexPack.adTitle}
+                    onChange={(e) => patchDexPack({ adTitle: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                    placeholder="Short title for the Dex ad"
+                  />
+                </label>
+                <label className="block text-[11px] text-white/50">
+                  Ad pitch *{' '}
+                  <span className="text-white/30">{dexPack.adPitch.length}/120</span>
+                  <textarea
+                    maxLength={120}
+                    rows={2}
+                    value={dexPack.adPitch}
+                    onChange={(e) => patchDexPack({ adPitch: e.target.value })}
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                    placeholder="Short description to get people interested"
+                  />
+                </label>
+                <label className="block text-[11px] text-white/50">
+                  Square image URL * (1:1)
+                  <input
+                    type="url"
+                    value={dexPack.squareImageUrl || ''}
+                    onChange={(e) =>
+                      patchDexPack({ squareImageUrl: e.target.value.trim() || null })
+                    }
+                    className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-2 text-[13px] text-white placeholder:text-white/25 focus:border-[#c8ff3d]/40 focus:outline-none"
+                    placeholder="https://… or paste from Get Started pack"
+                  />
+                </label>
+                {logoUrl && !dexPack.squareImageUrl ? (
+                  <button
+                    type="button"
+                    onClick={() => patchDexPack({ squareImageUrl: logoUrl })}
+                    className="text-[11px] font-medium text-sky-300 hover:text-sky-200"
+                  >
+                    Use project logo as square image
+                  </button>
+                ) : null}
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {(
+                    [
+                      ['websiteUrl', 'Website (optional)'],
+                      ['xUrl', 'X (optional)'],
+                      ['telegramUrl', 'Telegram (optional)'],
+                      ['discordUrl', 'Discord (optional)'],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <label key={key} className="block text-[11px] text-white/45">
+                      {label}
+                      <input
+                        type="url"
+                        value={dexPack[key]}
+                        onChange={(e) => patchDexPack({ [key]: e.target.value })}
+                        className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 px-2.5 py-1.5 text-[12px] text-white placeholder:text-white/25 focus:border-white/20 focus:outline-none"
+                      />
+                    </label>
+                  ))}
+                </div>
+                {!dexReady && dexMissing.length ? (
+                  <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
+                ) : null}
+                {dexReady && dexWarnings.length ? (
+                  <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
+                ) : null}
+              </div>
+            ) : null}
+
             <button
               id="roadmap-approve"
               type="button"
               onClick={() => void approveRoadmap()}
-              disabled={approveBusy}
+              disabled={approveBusy || (selectedNeedsDex && !dexReady)}
               className={`${primaryBtnClass} scroll-mt-4`}
             >
               {approveBusy ? 'Approving…' : 'Approve'}

@@ -340,8 +340,10 @@ export function CreativeSuiteStep({
 
             <label className="block text-xs font-medium text-muted-foreground">
               Ad title <span className="text-rose-400">*</span>
+              <span className="ml-1 font-normal text-white/35">{pack.adTitle.length}/50</span>
               <input
                 type="text"
+                maxLength={50}
                 value={pack.adTitle}
                 onChange={(e) => patchDex({ adTitle: e.target.value })}
                 placeholder="Short title for the Dex ad"
@@ -351,9 +353,10 @@ export function CreativeSuiteStep({
 
             <label className="block text-xs font-medium text-muted-foreground">
               Ad pitch <span className="text-rose-400">*</span>
-              <span className="ml-1 font-normal text-white/35">(Token Advertising)</span>
+              <span className="ml-1 font-normal text-white/35">(Token Advertising · {pack.adPitch.length}/120)</span>
               <textarea
                 value={pack.adPitch}
+                maxLength={120}
                 onChange={(e) => patchDex({ adPitch: e.target.value })}
                 rows={3}
                 placeholder="A short description of your project to get people interested"

@@ -51,6 +51,7 @@ export default async function handler(req, res) {
         marketingVault = null,
         selectedOfferIds = [],
         mode = 'polessia',
+        creatives = null,
       } = body;
 
       if (!wallet || !planId || !nonce || !signature || !message || !mint) {
@@ -155,6 +156,10 @@ export default async function handler(req, res) {
             service_fee_lamports: Number(fees.serviceFeeLamports),
             total_debit_lamports: Number(fees.totalDebitLamports),
             status: 'queued',
+            creatives:
+              creatives && typeof creatives === 'object'
+                ? creatives
+                : {},
           }),
         });
         queued.push({
