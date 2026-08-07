@@ -25,6 +25,7 @@ export function coinPath(ticker: string): string {
   return `/coin/${encodeURIComponent(t)}`;
 }
 
+/** Coin-page raid link — opens that coin; ?ref= attributes trades as usual (24h last-click). */
 export function buildScoutLink(origin: string, ticker: string, wallet: string): string {
   const base = origin.replace(/\/$/, '');
   const ref = wallet.trim();
@@ -105,7 +106,7 @@ export const RAID_EARNINGS_PERIODS: { id: RaidEarningsPeriod; label: string }[] 
   { id: 'all', label: 'All' },
 ];
 
-/** Universal raid link — ref sticks for 24h last-click across CTOgo. */
+/** Dashboard / wallet widget raid link — CTOgo home; ref attributes any CTOgo trade. */
 export function buildRaidLink(origin: string, wallet: string): string {
   const base = origin.replace(/\/$/, '');
   return `${base}/?ref=${encodeURIComponent(wallet.trim())}`;

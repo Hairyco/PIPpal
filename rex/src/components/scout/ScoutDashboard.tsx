@@ -7,7 +7,7 @@ import { SolWalletPanel } from '../SolWalletPanel';
 import { LAUNCH_FEE_ENGINE, LIST_FEE_ENGINE, formatBpsPercent } from '../../data/chainConfig';
 import { formatSolAmount } from '../../hooks/useSolBalance';
 import {
-  buildScoutLink,
+  buildRaidLink,
   bumpScoutClickDemo,
   readScoutEarningsDemo,
 } from '../../utils/scoutReferral';
@@ -19,12 +19,13 @@ type ScoutDashboardProps = {
   className?: string;
 };
 
-export function ScoutDashboard({ symbol, compact = false, className = '' }: ScoutDashboardProps) {
+export function ScoutDashboard({ symbol: _symbol, compact = false, className = '' }: ScoutDashboardProps) {
   const { address, connected, connect, busy } = useConnectedWallet();
   const [copied, setCopied] = useState(false);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
-  const scoutLink = address ? buildScoutLink(origin, symbol, address) : null;
+  /** Dashboard / Affiliate = general raid link (any CTOgo trade). Coin page uses /coin/TICKER?ref=. */
+  const raidLink = address ? buildRaidLink(origin, address) : null;
   const earnings = useMemo(
     () => (address ? readScoutEarningsDemo(address) : { earnedSol: 0, volumeUsd: 0, clicks: 0 }),
     [address, copied],
@@ -33,9 +34,9 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
   const scoutPct = formatBpsPercent(LIST_FEE_ENGINE.raidBps);
 
   const copyLink = async () => {
-    if (!scoutLink || !address) return;
+    if (!raidLink || !address) return;
     try {
-      await navigator.clipboard.writeText(scoutLink);
+      await navigator.clipboard.writeText(raidLink);
       bumpScoutClickDemo(address);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
@@ -50,7 +51,8 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
         <div>
           <p className="font-serif text-xl font-bold tracking-tight text-white">Raid</p>
           <p className="mt-1.5 text-sm text-white/45">
-            Share your link. Earn {scoutPct} instant SOL on CTOgo swaps attributed to you.
+            Share your general CTOgo link. Earn {scoutPct} instant SOL on attributed swaps site-wide.
+            On a coin page, share from there to open that coin first.
           </p>
         </div>
       ) : (
@@ -92,8 +94,8 @@ export function ScoutDashboard({ symbol, compact = false, className = '' }: Scou
           ) : null}
 
           <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
-            <p className="text-[11px] font-medium text-white/40">Your raid link</p>
-            <p className="mt-1 break-all font-mono text-[12px] text-white/70">{scoutLink}</p>
+            <p className="text-[11px] font-medium text-white/40">Your raid link (CTOgo home)</p>
+            <p className="mt-1 break-all font-mono text-[12px] text-white/70">{raidLink}</p>
             <button
               type="button"
               onClick={() => void copyLink()}

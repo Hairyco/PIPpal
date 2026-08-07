@@ -22,7 +22,8 @@ export function AffiliatesCataloguePage() {
           </div>
           <h1 className="mt-2 font-serif text-3xl text-white md:text-4xl">Share & earn</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Open any coin page, connect your wallet, and copy your raid link. Earn {SCOUT_PCT}{' '}
+            Open any coin page for a coin-specific link, or copy your general raid link from the
+            wallet menu / dashboard Affiliate tab. Earn {SCOUT_PCT}{' '}
             instant SOL on CTOgo swaps attributed to you ({SCOUT_FEE_ENGINE.attributionHours}h
             last-click). Commissions fill your wallet — not the project marketing wallet. No link →
             CTOgo keeps {SCOUT_PCT}.

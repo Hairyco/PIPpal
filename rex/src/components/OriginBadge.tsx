@@ -128,8 +128,8 @@ export function MigrateToV2Banner({
           </div>
           <p className="mt-1.5 max-w-md text-[12px] leading-relaxed text-white/45">
             Earn{' '}
-            <span className="font-semibold tabular-nums text-white/75">0.4–0.5% SOL</span> on every
-            trade from anyone who uses your link.
+            <span className="font-semibold tabular-nums text-white/75">0.4–0.5% SOL</span> on trades
+            from your link. This share opens <span className="text-white/70">${ticker}</span> first.
           </p>
         </div>
 
@@ -151,7 +151,7 @@ export function MigrateToV2Banner({
               className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
             >
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? 'Copied' : 'Copy share link'}
+              {copied ? 'Copied' : `Copy $${ticker} link`}
             </button>
           )}
           <button
