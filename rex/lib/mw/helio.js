@@ -57,11 +57,14 @@ export function helioPaymentInstruction(p) {
  * Placeholder: resolve deposit destination for auto-transfer.
  * Live Dex charges are merchant-owned; v1 may require ops paste of deposit address
  * or wallet-connect pay until Helio deposit fields are scraped/resolved reliably.
+ *
+ * Payer identity: use pickActiveOpsWallet() / failoverOpsWallet() from opsWallets.js
+ * so a blocked Helio payer rotates to the next of ≥3 contingency wallets.
  */
 export async function resolveHelioDeposit(_instruction) {
   return {
     ok: false,
     reason:
-      'Helio deposit resolve not wired — capture deeplink, then ops/hot wallet pays deposit or Pay with Wallet contingency.',
+      'Helio deposit resolve not wired — capture deeplink, pay from active ops wallet pool (failover on block).',
   };
 }

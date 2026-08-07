@@ -82,6 +82,14 @@ This adds creatives + Helio `payment_instruction` fields and Dex playbook metada
 
 Dex playbook: `rex/docs/suppliers/dexscreener.md`
 
+### Step 6c — Ops payer wallet pool SQL + 3 wallets
+
+1. Run `rex/supabase/migrations/20260807_ops_wallet_pool.sql` in Supabase.
+2. Create **3** empty Phantom (or CLI) wallets used only for Helio/Dex pays.
+3. Put each secret in Vercel as JSON byte arrays: `MW_OPS_WALLET_1_SECRET`, `MW_OPS_WALLET_2_SECRET`, `MW_OPS_WALLET_3_SECRET`.
+4. Register each public key via `POST /api/mw-ops-wallets` `{ "action":"register", "label":"payer-1", "publicKey":"…", "secretEnvKey":"MW_OPS_WALLET_1_SECRET", "priority":1, "opsSecret":"…" }`.
+5. Keep ≥3 **active**. If one is blocked, the system fails over and alerts when the pool is low.
+
 ### Step 6 — Deploy the smart contract to Devnet (or ask a Solana-savvy friend)
 This step needs the Solana developer tools on a computer.
 
