@@ -537,4 +537,4 @@ export function splitTradeFeesLamports(
 }
 
 /** Placeholder — replace after `anchor deploy` */
-export const REX_MVP_PROGRAM_ID = 'Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS';
+export const REX_MVP_PROGRAM_ID = '6jyy1kbGo7W8jDwkMKxKLpNa4TbjnKZWrmjCGdxwSqQ3';

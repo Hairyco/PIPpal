@@ -32,7 +32,7 @@ pub use constants::*;
 pub use events::*;
 pub use state::*;
 
-declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+declare_id!("6jyy1kbGo7W8jDwkMKxKLpNa4TbjnKZWrmjCGdxwSqQ3");
 
 #[program]
 pub mod rex_mvp {

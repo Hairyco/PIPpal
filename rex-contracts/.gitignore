@@ -1,4 +1,5 @@
-rex-contracts/target/
-rex-contracts/node_modules/
-rex-contracts/.anchor/
-rex-contracts/test-ledger/
+target/
+node_modules/
+.anchor/
+test-ledger/
+**/*-keypair.json
