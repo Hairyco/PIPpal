@@ -111,11 +111,14 @@ I could not finish a live **devnet deploy** from this environment (Solana instal
 Until then, providers stay off — that’s intentional safety.
 
 ### Step 8 — Test one fake payment on Devnet
-1. Launch or list a test coin on CTOgo (devnet).
-2. Fill a little marketing wallet with test SOL (via a test buy).
-3. Connect Phantom as the founder → open Spend roadmap → check the **$X + 20% = all-in** numbers → **Approve** (Phantom will ask you to sign a message).
-4. Wait a few minutes for the keeper cron, or hit the keeper URL once with your `CRON_SECRET`.
-5. Expect either a successful test payment **or** `manual_review` until live on-chain submit is fully bound — both are safer than silent wrong pays.
+1. Launch or list a test coin on CTOgo (devnet) with marketing vault attached on-chain.
+2. Whitelist a test supplier wallet (ops wallet / yourself) on-chain.
+3. Fill marketing vault with test SOL.
+4. Founder Approves roadmap (with Dex creatives if those items selected).
+5. Hit keeper: `GET/POST /api/mw-keeper-tick` with `Authorization: Bearer CRON_SECRET`.
+6. Expect on-chain `disburse_marketing` (live PDA client) **or** clear error if project/whitelist PDAs missing.
+7. Optional: `MW_DISBURSE_DRY_RUN=1` to derive PDAs without broadcasting.
+8. Optional: set `PROTOCOL_TREASURY` if you prefer not to read it from the config account.
 
 ### Step 9 — Before real money (Mainnet)
 Do **not** skip these:
