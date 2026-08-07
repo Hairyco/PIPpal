@@ -79,9 +79,55 @@ export function withHelioDeposit(instruction, deposit) {
 }
 
 /**
+ * Parse human USDC/SOL amount from Helio charge fields (often 6-decimal base units).
+ * @param {unknown} raw
+ * @param {number | null} fallback
+ */
+function helioAmountToUnits(raw, fallback = null) {
+  if (raw == null || raw === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  // Typical USDC: 299 USDC → 299000000 base units
+  if (n >= 1_000_000) return n / 1_000_000;
+  return n;
+}
+
+/**
+ * Extract deposit wallet + amount from a Helio charge JSON body (public GET /v1/charge/:token).
+ * @param {any} data
+ */
+export function extractDepositFromHelioCharge(data) {
+  if (!data || typeof data !== 'object') return null;
+
+  const candidates = [
+    data.prepareRequestBody?.recipientPK,
+    data.recipientPK,
+    data.depositAddress,
+    data.paylink?.wallet?.publicKey,
+    data.paylink?.recipients?.[0]?.wallet?.publicKey,
+    data.wallet?.publicKey,
+    data.recipientWallet,
+    data.meta?.depositAddress,
+  ].filter(Boolean);
+
+  const addr = candidates.find((a) => typeof a === 'string' && a.length >= 32);
+  if (!addr) return null;
+
+  const amount = helioAmountToUnits(
+    data.requestAmount ?? data.usdcAmount ?? data.amount ?? data.meta?.amount,
+    null,
+  );
+
+  return {
+    depositAddress: String(addr).trim(),
+    depositAmount: amount,
+  };
+}
+
+/**
  * Resolve deposit destination for auto-transfer.
- * Dex charges are merchant-owned — usually ops pastes depositAddress from the QR screen.
- * Optional: HELIO_PUBLIC_KEY + HELIO_SECRET_KEY may retrieve charges we created (not Dex's).
+ * Prefer pasted instruction fields; else public Helio charge GET (works for Dex-owned charges);
+ * then authenticated Helio merchant API for charges we created.
  *
  * Payer: pickActiveOpsWallet() / failoverOpsWallet(); until pool registered, keeper fallback.
  */
@@ -110,6 +156,36 @@ export async function resolveHelioDeposit(instruction) {
       ? 'https://api.dev.hel.io/v1'
       : 'https://api.hel.io/v1');
 
+  // Public charge lookup — Dex/Moon Eagle charges are readable without our merchant keys.
+  if (token) {
+    try {
+      const res = await fetch(`${base}/charge/${encodeURIComponent(token)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const extracted = extractDepositFromHelioCharge(data);
+        const depositAmount =
+          extracted?.depositAmount ??
+          helioAmountToUnits(instruction.amountUsd ?? instruction.depositAmount, null);
+        if (extracted?.depositAddress && depositAmount != null) {
+          return {
+            ok: true,
+            depositAddress: extracted.depositAddress,
+            depositAmount: Number(depositAmount),
+            asset: instruction.asset || data.currencySymbol || 'USDC',
+            mint: instruction.mint || USDC_MINT_MAINNET,
+            source: 'helio_public_charge',
+            raw: data,
+          };
+        }
+      }
+    } catch (err) {
+      // Fall through to authenticated / error
+      if (!pub || !secret) {
+        return { ok: false, reason: `Helio public charge resolve failed: ${err.message || err}` };
+      }
+    }
+  }
+
   if (token && pub && secret) {
     try {
       const res = await fetch(
@@ -118,17 +194,17 @@ export async function resolveHelioDeposit(instruction) {
       );
       if (res.ok) {
         const data = await res.json();
-        const addr =
-          data.depositAddress ||
-          data.wallet?.publicKey ||
-          data.recipientWallet ||
-          data.meta?.depositAddress;
+        const extracted = extractDepositFromHelioCharge(data);
         const amount =
-          data.requestAmount ?? data.amount ?? data.meta?.amount ?? instruction.amountUsd;
-        if (addr && amount != null) {
+          extracted?.depositAmount ??
+          helioAmountToUnits(
+            data.requestAmount ?? data.amount ?? data.meta?.amount ?? instruction.amountUsd,
+            null,
+          );
+        if (extracted?.depositAddress && amount != null) {
           return {
             ok: true,
-            depositAddress: String(addr),
+            depositAddress: extracted.depositAddress,
             depositAmount: Number(amount),
             asset: instruction.asset || 'USDC',
             mint: instruction.mint || USDC_MINT_MAINNET,
@@ -145,6 +221,6 @@ export async function resolveHelioDeposit(instruction) {
   return {
     ok: false,
     reason:
-      'Deposit address missing — on Dex QR screen copy the Solana pay address/amount, then POST /api/mw-payment-instruction with depositAddress + depositAmount (Dex charges are not readable with our Helio API keys).',
+      'Deposit address missing — open the Helio charge URL (or run npm run dex:capture-charge), then POST depositAddress + depositAmount. Public GET /v1/charge/{token} usually returns paylink.wallet.publicKey.',
   };
 }

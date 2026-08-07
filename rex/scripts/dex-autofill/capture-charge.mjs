@@ -18,7 +18,11 @@ import {
   launchDexBrowser,
 } from './lib/common.mjs';
 import { parseHelioChargeUrl } from '../../lib/mw/helio.js';
-import { installHelioDepositSniffer, waitForHelioDeposit } from './lib/helioIntercept.mjs';
+import {
+  installHelioDepositSniffer,
+  installHelioFetchHook,
+  waitForHelioDeposit,
+} from './lib/helioIntercept.mjs';
 
 const args = parseArgs();
 ensureDirs();
@@ -38,6 +42,7 @@ if (!parsed.ok) {
 const playwright = await requirePlaywright();
 const headed = Boolean(args.headed) || args.headless === 'false' || true;
 const browser = await launchDexBrowser(playwright, { headless: !headed });
+await installHelioFetchHook(browser.context);
 const page = browser.context.pages()[0] || (await browser.context.newPage());
 const sniffer = installHelioDepositSniffer(page);
 
@@ -58,6 +63,7 @@ const out = {
   notes: result.notes,
   hits: result.hits,
   sniffedUrls: result.sniffedUrls,
+  jsonSamples: result.jsonSamples || [],
 };
 
 const outPath = path.join(OUT_DIR, `helio-capture-${Date.now()}.json`);

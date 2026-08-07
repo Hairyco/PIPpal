@@ -151,7 +151,7 @@ npm run dex:autofill -- --orderId=UUID --api=https://rex-liart.vercel.app --opsS
 
 Stops at payment capture. **$0 spent.** Then Dry-run settle on `/ops/dex-feed`. Details: `rex/scripts/dex-autofill/README.md`.
 
-Important: Helio QR encodes a **charge URL**, not a Solana deposit address. Auto-pay needs that address from Helio network traffic (`npm run dex:capture-charge`) or partner API. Charge URL alone cannot settle.
+Important: Helio QR encodes a **charge URL**, not a Solana deposit address. Auto-pay resolves the address via public `GET https://api.hel.io/v1/charge/{token}` (or `npm run dex:capture-charge`). Charge URL alone is not enough to settle until that resolve succeeds.
 
 ### Stage C runbook (free automation proof)
 

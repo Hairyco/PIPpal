@@ -49,7 +49,7 @@ Optional — push into CTOgo:
 npm run dex:capture-charge -- --headed --chargeUrl="..." --orderId=CTOGO_ORDER_UUID --opsSecret=... --post-capture
 ```
 
-The script sniffs Helio network/websocket traffic for a Solana deposit address. It never pays.
+The script sniffs Helio **API/JSON** traffic (and a page fetch hook) for a Solana deposit address. It never pays. Static JS bundles are ignored (they produced false positives).
 
-If it exits with no address, Helio is hiding the destination until a wallet session — tell the agent; we may need a deeper wallet-attach intercept.
+If it exits with no address, open the charge in a normal browser, copy the deposit address shown under the QR, and paste it on `/ops/dex-feed` — or tell the agent so we can deepen the intercept.
 
