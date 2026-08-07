@@ -12,7 +12,7 @@ pub enum RexError {
     ProviderNotWhitelisted,
     #[msg("Curve vault has insufficient SOL for this sell")]
     InsufficientCurveLiquidity,
-    #[msg("Marketing wallet has insufficient SOL for invoice + 10% service fee")]
+    #[msg("Marketing wallet has insufficient SOL for invoice + 5% service fee")]
     InsufficientMarketingBalance,
     #[msg("Creator vault has insufficient SOL")]
     InsufficientCreatorBalance,

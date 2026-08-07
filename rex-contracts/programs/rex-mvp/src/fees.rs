@@ -61,7 +61,7 @@ pub fn apply_trade_fees(
     Ok((raid_out, marketing, creator, platform, net))
 }
 
-/// Invoice + 10% CTOgo service fee on top.
+/// Invoice + 5% CTOgo service fee on top.
 /// Returns `(service_fee, total_debit)`.
 pub fn invoice_with_service_fee(invoice_lamports: u64) -> Result<(u64, u64)> {
     let service_fee = bps(invoice_lamports, CTOGO_SERVICE_FEE_BPS)?;
@@ -125,10 +125,10 @@ mod tests {
     }
 
     #[test]
-    fn service_fee_ten_percent_on_top() {
+    fn service_fee_five_percent_on_top() {
         let invoice = 100_000_000u64; // 0.1 SOL
         let (fee, total) = invoice_with_service_fee(invoice).unwrap();
-        assert_eq!(fee, 10_000_000);
-        assert_eq!(total, 110_000_000);
+        assert_eq!(fee, 5_000_000);
+        assert_eq!(total, 105_000_000);
     }
 }

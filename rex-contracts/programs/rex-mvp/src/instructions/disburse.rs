@@ -30,7 +30,7 @@ pub fn handler(
         RexError::InsufficientMarketingBalance
     );
 
-    // Supplier gets 100% of invoice; CTOgo gets 10% on top.
+    // Supplier gets 100% of invoice; CTOgo gets 5% on top.
     transfer_lamports_from_owned_pda(
         &marketing_info,
         &ctx.accounts.supplier.to_account_info(),

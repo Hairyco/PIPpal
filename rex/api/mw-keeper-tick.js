@@ -93,7 +93,7 @@ export default async function handler(req, res) {
 
       await markOrder(order.id, { status: 'paying', attempt_count: attemptNo });
 
-      // Recompute fee math on-chain args (10% on top).
+      // Recompute fee math on-chain args (5% on top).
       const fees = invoiceWithServiceFee(order.invoice_lamports);
       if (fees.totalDebitLamports !== BigInt(order.total_debit_lamports)) {
         await markOrder(order.id, {

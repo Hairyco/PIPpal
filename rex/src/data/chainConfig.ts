@@ -232,9 +232,9 @@ export const ABANDONMENT_RULE = {
 /** Marketing wallet auto-spend threshold (USD) — only after settings are on. */
 export const MARKETING_AUTO_SPEND_USD = 500;
 
-/** CTOgo service fee on supplier invoices — 10% ON TOP (not taken from supplier). */
-export const MARKETING_SERVICE_FEE_BPS = 1000;
-export const MARKETING_SERVICE_FEE_LABEL = '10% CTOgo automation fee on top';
+/** CTOgo service fee on supplier invoices — 5% ON TOP (not taken from supplier). */
+export const MARKETING_SERVICE_FEE_BPS = 500;
+export const MARKETING_SERVICE_FEE_LABEL = '5% CTOgo automation fee on top';
 
 /** Days of no marketing activity before inactive vault SOL may sweep to CTOgo treasury. */
 export const MARKETING_INACTIVITY_DAYS = 180;
@@ -293,7 +293,7 @@ export const FEE_GUIDELINES = [
   `Abandonment: if the creator dumps ${CREATOR_DUMP_TRIGGER_PCT}%+ of holdings, only their fee cut is revoked — platform and marketing fees continue.`,
   'After Raydium graduation, the same fee engine for that coin type still applies — migration does not turn off tax.',
   'Graduation is Raydium-first. A 2 SOL Rex migration protocol fee plus ~0.20 SOL Raydium pool creation come out of curve SOL; remaining curve SOL + tokens seed the Raydium pool and LP is burned/locked (Pump-style locked liquidity — required).',
-  `Marketing wallet: fills always at the path rate; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Supplier invoices debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 service → $110 vault debit). Auto pay: one retry on fail, second fail → referred to you for manual payment. After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL may sweep to the CTOgo treasury (warnings at 30 and 7 days; no sweep while spend is paused or a payment is queued).`,
+  `Marketing wallet: fills always at the path rate; auto spend stays off until the spend roadmap is approved, then unlocks from $${MARKETING_AUTO_SPEND_USD}. Supplier invoices debit invoice + ${MARKETING_SERVICE_FEE_LABEL} (e.g. $100 service → $105 vault debit). Auto pay: one retry on fail, second fail → referred to you for manual payment. After ${MARKETING_INACTIVITY_DAYS} days with no marketing activity, unspent vault SOL may sweep to the CTOgo treasury (warnings at 30 and 7 days; no sweep while spend is paused or a payment is queued).`,
 ] as const;
 
 /**
@@ -309,7 +309,7 @@ export const MARKETING_VAULT_SWEEP_RULE = {
     `After the spend roadmap is approved, when a wallet accumulates $${MARKETING_AUTO_SPEND_USD}, programmatic spending (ads / trending) can unlock — even if trading volume starts to slow. Nothing spends while the roadmap is unapproved. ${MARKETING_AUTO_PAY_FAILURE_RULE.summary}`,
   serviceFeeLabel: MARKETING_SERVICE_FEE_LABEL,
   serviceFee:
-    'Supplier receives 100% of the quoted invoice. CTOgo adds 10% on top from the marketing vault ($100 → $110 total debit).',
+    'Supplier receives 100% of the quoted invoice. CTOgo adds 5% on top from the marketing vault ($100 → $105 total debit).',
   inactivityLabel: `${MARKETING_INACTIVITY_DAYS}-day inactivity sweep`,
   inactivity:
     `If a marketing vault records no CTOgo marketing activity for ${MARKETING_INACTIVITY_DAYS} consecutive days, unspent SOL (above rent) may be swept to the CTOgo protocol treasury. Ops warns at 30 and 7 days. Spend pause or a queued/approved payment blocks the sweep.`,

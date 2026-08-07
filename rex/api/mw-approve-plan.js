@@ -207,7 +207,7 @@ export default async function handler(req, res) {
         queued: queued.length,
         orders: queued,
         missingOffers,
-        feeNote: 'Supplier receives 100% of invoice; CTOgo adds 10% on top from the marketing vault.',
+        feeNote: 'Supplier receives 100% of invoice; CTOgo adds 5% on top from the marketing vault.',
       });
     }
 
