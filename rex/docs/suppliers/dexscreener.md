@@ -120,35 +120,41 @@ Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** with
 
 ## Confirmation test plan
 
-| Stage | What | Status |
-|-------|------|--------|
-| A | Devnet vault → disburse | Plumbing |
-| B | Helio **dev** (`moonpay.dev.hel.io`) deposit settle | Settle mechanics |
-| C | Live Dex form + QR capture (no pay / abort) | UI still matches |
-| D | Founder-approved live Dex pay (cheapest package) | **In progress — needs real USDC** |
+| Stage | What | Cost | Status |
+|-------|------|------|--------|
+| A | Devnet vault → disburse | Free | Plumbing |
+| B | Helio settle dry-run (resolve deposit, no broadcast) | Free | Required for “automation works” |
+| C | Live Dex: Google → fill form → payment page → capture QR/deposit → **abort** (no Live settle) | Free | Required for “automation works” |
+| D | Optional: real Dex package purchase when you want a live ad | ~$299+ | **Not** required to call auto-path proven |
+| E | Optional: tiny self-created Helio charge settle (~$1) if you have Helio merchant keys | ~$1 | Extra pay-rail proof without buying Dex |
 
-### Stage D runbook (founder)
+**Locked pivot:** End-to-end automation proof = **Stages B + C**. Do **not** require a $299 Dex buy to say “the path works.” A live Dex buy is only when you intentionally want that ad.
 
-**Cost:** ~**$299 USDC** (20k views) + small SOL for fees on the payer wallet. Real Mainnet money.
+### What “automation” means today vs wallet “Pay now”
 
-**Before you start**
+| Piece | Today | Goal |
+|-------|--------|------|
+| Google sign-in | Human (session handoff) | Same — no OAuth robot every order |
+| Dex order form | Ops fill sheet / manual paste | Browser autofill from CTOgo creatives |
+| Payment page | Capture Helio charge + deposit | Same |
+| Pay | CTOgo/ops wallet **sends USDC to Helio deposit** (or dry-run) | Same money as Helio “Pay with Wallet” — different button |
+| Helio “connect wallet → Pay” | Contingency | Also spends real Mainnet USDC on a live Dex invoice |
 
-1. Payer wallet funded: `KEEPER_SECRET_KEY` (or a registered ops wallet) holds **≥299 USDC** + ~0.05 SOL on **Mainnet**.
-2. Vercel has `SOLANA_RPC_URL` (Mainnet), `MW_OPS_SECRET`, Supabase env.
-3. You can Google-sign into Dex marketplace.
-4. You have a Solana mint + title/pitch/1:1 image ready (or an approved CTOgo Dex order).
+Important: on a **live** Dex $299 order, QR deposit **or** wallet Pay both spend ~$299. There is no free Dex checkout. Cheap proof = go through the flow and **stop before pay**, plus dry-run settle.
 
-**Steps**
+### Stage C runbook (free automation proof)
 
-1. Approve (or use) a CTOgo Dex order with creatives → appears on `/ops/dex-feed`.
-2. Open Dex → fill from sheet → **Order Now** → Network Solana → Pay with **USDC** → **Pay with QR**.
-3. On `/ops/dex-feed`: paste charge URL + deposit address + **299** → **Save capture**.
-4. Click **Dry-run settle** — must show the same deposit address/amount. Do **not** live-pay if dry-run fails.
-5. Click **Live settle (pay now)** only after you confirm the amount.
-6. Success = Helio shows paid **and** Dex order progresses / `orders/v1/solana/{mint}` looks right.
-7. Tell the agent the **order id** + tx signature so Stage D can be marked **passed**.
+1. Approve / queue a Dex order with creatives on CTOgo.
+2. Google into Dex → fill from `/ops/dex-feed` (or autofill when built).
+3. Order Now → Solana → USDC → Pay with QR (do **not** complete payment on Dex).
+4. Paste charge URL + deposit address + amount → **Save capture**.
+5. **Dry-run settle** only — must show same address/amount.
+6. Close Dex payment / let charge expire. **Do not** Live settle unless you want to buy the ad.
+7. Pass = capture stored + dry-run OK → mark Stages B+C done.
 
-**Abort:** Close Dex payment page without paying; do not click Live settle.
+### Stage D (optional paid ad)
+
+Only when you deliberately want the cheapest (or any) Dex package live. Same as C, then **Live settle**.
 
 ## Code pointers
 

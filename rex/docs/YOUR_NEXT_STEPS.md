@@ -127,12 +127,13 @@ Until then, providers stay off — that’s intentional safety.
 4. Paste charge URL + deposit address + amount → **Save capture**.
 5. **Dry-run settle** on that page, then **Live settle** only when ready (≈$299 USDC Mainnet).
 
-### Step 8c — Stage D live proof (required)
-This is the “does payment actually work?” test. Full checklist: `rex/docs/suppliers/dexscreener.md` → **Stage D runbook**.
+### Step 8c — Prove automation without buying a Dex ad (free)
+1. Run Dex form → payment → QR capture on `/ops/dex-feed`.
+2. Click **Dry-run settle** only (checks deposit; sends **$0**).
+3. Abort the Dex checkout — do **not** Live settle unless you want a real ~$299 ad.
+4. That is enough to call the auto path “proven.” Optional later: Live settle when you want the ad, or a ~$1 self-Helio charge if you have Helio merchant keys.
 
-You need: Mainnet USDC on the keeper/ops payer, Google on Dex, and a deliberate click on **Live settle**. After it works, send the agent the CTOgo order id + Solana tx signature.
-
-Playbook: `rex/docs/suppliers/dexscreener.md`
+Full detail: `rex/docs/suppliers/dexscreener.md` → Confirmation test plan.
 
 ### Step 9 — Before real money (Mainnet)
 Do **not** skip these:
