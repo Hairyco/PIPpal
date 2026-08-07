@@ -1296,18 +1296,11 @@ export function PostLaunchDashboard({
       ) : null}
 
       {tab === 'roadmap' ? (
-        spendUnlocked ? (
-          <button
-            type="button"
-            onClick={() => void toggleMarketingSpend()}
-            className={`${primaryBtnClass} scroll-mt-4`}
-          >
-            {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
-          </button>
-        ) : (
           <div className="space-y-3">
             <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] text-white/55">
-              <p className="font-semibold text-white/80">Before Approve — vault debit</p>
+              <p className="font-semibold text-white/80">
+                {spendUnlocked ? 'Selected spends — vault debit' : 'Before Approve — vault debit'}
+              </p>
               <p className="mt-1.5 flex justify-between gap-2">
                 <span>Supplier invoices</span>
                 <span className="tabular-nums text-white">
@@ -1435,13 +1428,27 @@ export function PostLaunchDashboard({
               disabled={approveBusy || (selectedNeedsDex && !dexReady)}
               className={`${primaryBtnClass} scroll-mt-4`}
             >
-              {approveBusy ? 'Approving…' : 'Approve'}
+              {approveBusy
+                ? spendUnlocked
+                  ? 'Queuing…'
+                  : 'Approving…'
+                : spendUnlocked
+                  ? 'Queue selected spends again'
+                  : 'Approve'}
             </button>
+            {spendUnlocked ? (
+              <button
+                type="button"
+                onClick={() => void toggleMarketingSpend()}
+                className={`${backBtnClass} w-full justify-center`}
+              >
+                {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+              </button>
+            ) : null}
             {approveNotice ? (
               <p className="text-center text-[12px] text-amber-200/90">{approveNotice}</p>
             ) : null}
           </div>
-        )
       ) : null}
     </div>
   );
