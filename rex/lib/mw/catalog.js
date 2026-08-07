@@ -5,6 +5,13 @@
 
 import { sbFetch } from './supabase.js';
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function looksLikeUuid(value) {
+  return UUID_RE.test(String(value || '').trim());
+}
+
 export const ROADMAP_CATALOG = [
   {
     slug: 'ctogo-telegram-pin',
@@ -139,20 +146,31 @@ export async function ensureRoadmapOffers() {
 
 /**
  * Resolve offer by UUID or offer_key, ensuring catalog first.
+ * Never query uuid columns with roadmap keys like "tg-pinned".
  */
 export async function resolveOffer(offerIdOrKey) {
   const key = String(offerIdOrKey || '').trim();
   if (!key) return null;
-  const catalog = await ensureRoadmapOffers();
-  if (catalog.has(key)) return catalog.get(key);
 
-  let offers = await sbFetch(
-    `mw_provider_offers?id=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
-  );
-  if (Array.isArray(offers) && offers[0]) return offers[0];
+  try {
+    const catalog = await ensureRoadmapOffers();
+    if (catalog.has(key)) return catalog.get(key);
+  } catch {
+    /* fall through to direct lookup */
+  }
 
-  offers = await sbFetch(
+  // Roadmap keys are offer_key strings — not UUIDs.
+  const byKey = await sbFetch(
     `mw_provider_offers?offer_key=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
   );
-  return Array.isArray(offers) ? offers[0] : null;
+  if (Array.isArray(byKey) && byKey[0]) return byKey[0];
+
+  if (looksLikeUuid(key)) {
+    const byId = await sbFetch(
+      `mw_provider_offers?id=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
+    );
+    if (Array.isArray(byId) && byId[0]) return byId[0];
+  }
+
+  return null;
 }
