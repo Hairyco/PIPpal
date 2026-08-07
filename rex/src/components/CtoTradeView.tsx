@@ -9,7 +9,6 @@ import {
   ExternalLink,
   Flame,
   Globe,
-  Info,
   Settings2,
   Star,
   X,
@@ -25,7 +24,6 @@ import {
   launchCtoHref,
   resolveMarketingWalletAddress,
   resolveTradeMint,
-  resolveV1Liquidity,
   resolveV1Mint,
   shortMint,
   solscanAccountUrl,
@@ -236,7 +234,7 @@ function CoinTrackerRow({
 
   return (
     <div
-      className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="hide-scrollbar mt-2 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ WebkitOverflowScrolling: 'touch' }}
       role="list"
       aria-label="Token trackers"
@@ -361,7 +359,7 @@ function MarketCapPeakRow({
   }, [metrics.athPct, change24h]);
 
   return (
-    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
+    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 rounded-lg border border-white/[0.1] px-3 py-2.5">
       <p className="flex h-5 items-center text-[11px] font-medium text-white/45">Market Cap</p>
       <div className="flex h-5 items-center justify-end gap-1">
         <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
@@ -582,7 +580,6 @@ export function CtoTradeView({
   const [chartOffscreen, setChartOffscreen] = useState(false);
   const [stickyChartPinned, setStickyChartPinned] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [tokenInfoOpen, setTokenInfoOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
   const tradePanelRef = useRef<HTMLDivElement>(null);
@@ -632,15 +629,12 @@ export function CtoTradeView({
   const tradeMint = resolveTradeMint(project);
   const linkedV1 = hasLinkedV1(project);
   const chartOnV1 = linkedV1 && chartVersion === 'v1';
-  const chartMint = chartOnV1 ? v1Mint : tradeMint;
-  const v1Liquidity = resolveV1Liquidity(project);
   const launchHref = launchCtoHref(project);
   const marketingAddress = resolveMarketingWalletAddress(project);
   const marketingSolscan = marketingAddress ? solscanAccountUrl(marketingAddress) : null;
   const marketingShort =
     project.marketingWallet ?? (marketingAddress ? shortMint(marketingAddress) : null);
   const isExternal = project.origin === 'external_cto';
-  const isNativeV2 = project.origin === 'native_cto';
 
   const mktBalance = parseUsdAmount(project.marketingBalance);
   const mktTarget = project.nextAdTargetUsd ?? 0;
@@ -723,8 +717,8 @@ export function CtoTradeView({
 
   return (
     <div ref={topRef} id="cto-trade-top" className="relative w-full min-w-0 scroll-mt-2">
-      <div className="border-y border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto w-full max-w-7xl min-w-0 px-3 py-3 sm:px-5">
+      <div className="border-t border-white/[0.08] bg-[#05070d]">
+        <div className="mx-auto w-full max-w-7xl min-w-0 px-3 pb-2 pt-3 sm:px-5">
           <div className="flex min-w-0 items-start gap-3">
             <div
               className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
@@ -827,7 +821,7 @@ export function CtoTradeView({
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl border-b border-white/[0.08] px-3 py-3 sm:px-5 lg:border-0 lg:px-5 lg:pt-3">
+      <div className="mx-auto max-w-7xl px-3 py-2 empty:hidden sm:px-5 lg:px-5">
         <MigrateToV2Banner
           ticker={project.ticker}
           sourceVenue={project.sourceVenue}
@@ -836,10 +830,10 @@ export function CtoTradeView({
         />
       </div>
 
-      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)] lg:gap-3 lg:px-5 lg:py-3">
+      <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)] lg:gap-3 lg:px-5 lg:pb-3 lg:pt-0">
         <div
           ref={chartRef}
-          className="relative z-20 min-w-0 overflow-hidden border-b border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border"
+          className="relative z-20 min-w-0 overflow-hidden border-b border-t border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border"
         >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
@@ -883,25 +877,9 @@ export function CtoTradeView({
                   </button>
                 ))}
               </div>
-              <div className="flex shrink-0 items-center gap-1.5">
-                <p className="hidden text-[10px] text-white/30 sm:inline">
-                  {chartOnV1 ? 'Previous mint' : 'Price chart'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setTokenInfoOpen((open) => !open)}
-                  className={`grid h-7 w-7 place-items-center rounded-md border transition ${
-                    tokenInfoOpen
-                      ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
-                      : 'border-white/[0.08] text-white/40 hover:text-white'
-                  }`}
-                  aria-expanded={tokenInfoOpen}
-                  aria-label="Contract details"
-                  title="Contract details"
-                >
-                  <Info className="h-3.5 w-3.5" />
-                </button>
-              </div>
+              {chartOnV1 ? (
+                <p className="shrink-0 text-[10px] text-white/30">Previous mint</p>
+              ) : null}
             </div>
             {chartOnV1 ? (
               <div className="border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-1.5">
@@ -914,70 +892,6 @@ export function CtoTradeView({
             <div className="h-[220px] px-1 py-2 sm:h-[300px] lg:h-[380px]">
               <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
             </div>
-            {tokenInfoOpen ? (
-              <div className="border-t border-white/[0.06] bg-[#05070d] px-3 py-3">
-                <div className="grid gap-2 sm:grid-cols-3">
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      {chartOnV1 ? 'Previous mint' : 'Contract'}
-                    </p>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <p
-                        className="truncate font-mono text-xs font-semibold text-white/85"
-                        title={chartMint}
-                      >
-                        {shortMint(chartMint)}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await navigator.clipboard.writeText(chartOnV1 ? v1Mint : tradeMint);
-                            setCopied(true);
-                            window.setTimeout(() => setCopied(false), 1600);
-                          } catch {
-                            /* ignore */
-                          }
-                        }}
-                        className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-white/40 hover:bg-white/[0.06] hover:text-white"
-                        aria-label="Copy contract"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    </div>
-                    {linkedV1 && !chartOnV1 ? (
-                      <p className="mt-1.5 text-[10px] text-white/35">
-                        V1 {shortMint(v1Mint)}
-                      </p>
-                    ) : null}
-                    {chartOnV1 ? (
-                      <p className="mt-1.5 text-[10px] text-white/35">
-                        Trade CA {shortMint(tradeMint)}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      Venue
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">
-                      {chartOnV1 ? 'Previous venue' : project.sourceVenue}
-                    </p>
-                  </div>
-                  <div className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
-                    <p className="text-[10px] font-medium uppercase tracking-wide text-white/30">
-                      {isNativeV2 && !chartOnV1 ? 'Status' : 'Liquidity'}
-                    </p>
-                    <p className="mt-1 text-xs font-semibold text-white/85">
-                      {chartOnV1 ? v1Liquidity : isNativeV2 ? 'Live on CTOgo' : v1Liquidity}
-                    </p>
-                  </div>
-                </div>
-                {copied ? (
-                  <p className="mt-2 text-[11px] text-[#d5ff69]">Copied</p>
-                ) : null}
-              </div>
-            ) : null}
         </div>
 
         <aside className="flex min-w-0 flex-col gap-0 lg:gap-3">
