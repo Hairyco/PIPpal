@@ -340,7 +340,7 @@ export function PostLaunchDashboard({
           ticker: symbol,
           engine: mode === 'launch' ? 'launch' : 'list',
           marketingVault: marketingAddress,
-          selectedOfferIds: [],
+          selectedOfferIds: [...selected],
           mode: roadmapMode,
           creatives: selectedNeedsDex
             ? {
@@ -362,12 +362,16 @@ export function PostLaunchDashboard({
         setApproveNotice(err.error || 'Approval failed');
         return;
       }
+      const approved = await approveRes.json().catch(() => ({}));
       setSpendUnlocked(true);
       setMarketingSpendOn(true);
+      const queuedN = Number(approved.queued || 0);
       setApproveNotice(
-        dexWarnings.length
-          ? `Spend approved. Note: ${dexWarnings[0]}`
-          : 'Spend roadmap approved with wallet signature.',
+        queuedN === 0
+          ? 'Signed, but 0 orders queued — check provider offers in Supabase / ops catalog.'
+          : dexWarnings.length
+            ? `${queuedN} order(s) queued. Note: ${dexWarnings[0]}`
+            : `${queuedN} order(s) queued — check /ops/dex-feed for Dex items.`,
       );
       void fetchMwProjectStatus(tradedContract || marketingAddress).then(setMwStatus);
     } finally {

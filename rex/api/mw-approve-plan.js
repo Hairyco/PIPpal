@@ -133,17 +133,39 @@ export default async function handler(req, res) {
         });
       }
 
-      // Queue campaign orders from selected offers (USD → lamports estimate).
+      // Queue campaign orders from selected offers (UUID or offer_key from roadmap).
       const queued = [];
-      for (const offerId of selectedOfferIds) {
-        const offers = await sbFetch(`mw_provider_offers?id=eq.${offerId}&select=*,mw_providers(*)`);
+      const missingOffers = [];
+      for (const offerIdOrKey of selectedOfferIds) {
+        const key = String(offerIdOrKey || '').trim();
+        if (!key) continue;
+        let offers = await sbFetch(
+          `mw_provider_offers?id=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
+        );
+        if (!Array.isArray(offers) || !offers[0]) {
+          offers = await sbFetch(
+            `mw_provider_offers?offer_key=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
+          );
+        }
         const offer = Array.isArray(offers) ? offers[0] : null;
-        if (!offer || !offer.active) continue;
+        if (!offer) {
+          missingOffers.push(key);
+          continue;
+        }
+        // Queue even if catalog row is inactive — ops/autofill still need the order row.
         const priceUsd = Number(offer.price_usd);
         const { serviceFeeUsd, totalDebitUsd } = usdWithServiceFee(priceUsd);
         const invoiceLamports = BigInt(Math.floor((priceUsd / SOL_USD) * LAMPORTS_PER_SOL));
         const fees = invoiceWithServiceFee(invoiceLamports);
-        const invoiceId = invoiceIdFromParts(mint, `${planId}:${offerId}`);
+        const invoiceId = invoiceIdFromParts(mint, `${planId}:${offer.id}`);
+        const orderCreatives =
+          creatives && typeof creatives === 'object'
+            ? {
+                ...creatives,
+                spendItemId: offer.offer_key,
+                offerKey: offer.offer_key,
+              }
+            : { spendItemId: offer.offer_key, offerKey: offer.offer_key };
         const orderRows = await sbFetch('mw_campaign_orders', {
           method: 'POST',
           body: JSON.stringify({
@@ -156,10 +178,7 @@ export default async function handler(req, res) {
             service_fee_lamports: Number(fees.serviceFeeLamports),
             total_debit_lamports: Number(fees.totalDebitLamports),
             status: 'queued',
-            creatives:
-              creatives && typeof creatives === 'object'
-                ? creatives
-                : {},
+            creatives: orderCreatives,
           }),
         });
         queued.push({
@@ -168,12 +187,18 @@ export default async function handler(req, res) {
         });
       }
 
-      await audit('spend_plan_approved', { planId, queued: queued.length }, project.id, wallet);
+      await audit(
+        'spend_plan_approved',
+        { planId, queued: queued.length, missingOffers },
+        project.id,
+        wallet,
+      );
       return json(res, 200, {
         ok: true,
         projectId: project.id,
         queued: queued.length,
         orders: queued,
+        missingOffers,
         feeNote: 'Supplier receives 100% of invoice; CTOgo adds 20% on top from the marketing vault.',
       });
     }
