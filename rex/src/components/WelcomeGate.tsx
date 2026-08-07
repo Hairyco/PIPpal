@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { CtoGoLogo } from './CtoGoLogo';
 
@@ -189,6 +190,7 @@ function TelegramBotVisual() {
 }
 
 export function WelcomeGate() {
+  const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [dragX, setDragX] = useState(0);
@@ -200,14 +202,20 @@ export function WelcomeGate() {
   const indexRef = useRef(index);
   indexRef.current = index;
 
+  const skipWelcome = pathname.startsWith('/ops');
+
   useEffect(() => {
+    if (skipWelcome) {
+      setOpen(false);
+      return;
+    }
     try {
       if (localStorage.getItem(SEEN_KEY) === '1') return;
     } catch {
       // show anyway
     }
     setOpen(true);
-  }, []);
+  }, [skipWelcome]);
 
   useEffect(() => {
     if (!open) return;
