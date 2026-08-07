@@ -66,6 +66,22 @@ Founder Approve (creatives hard gates)
 
 Public Dex APIs are **read-only** (no purchase API). We do not invent a static Dex treasury wallet.
 
+## Contingency ops wallet pool (3+)
+
+Dex/Helio may flag a **payer wallet**, **Google session**, or **IP/egress** without killing crypto checkout entirely.
+
+| Layer | What rotates | How |
+|-------|----------------|-----|
+| Helio payer | Solana hot wallets (pool ≥3) | `mw_ops_wallets` — auto failover on block; funds to next active wallet |
+| Dex session | Google accounts | Human / saved session (separate from SOL keys) |
+| Capture browser | IP / proxy | If marketplace/Helio shows IP friction, rotate egress for form+QR only |
+
+**Block reasons tracked:** `wallet_flag` · `helio_reject` · `dex_session` · `ip_session` · `unknown`
+
+**API:** `GET/POST /api/mw-ops-wallets` (ops secret). Register public keys only; secrets in Vercel `MW_OPS_WALLET_1_SECRET`, etc.
+
+**Rule:** When active payers < 3 → audit `ops_wallet_pool_low` — create and register new wallets.
+
 ## Contingency
 
 | Failure | Action |
@@ -73,6 +89,9 @@ Public Dex APIs are **read-only** (no purchase API). We do not invent a static D
 | Hard creatives missing (title/pitch/image) | Block Approve |
 | Socials empty | Allow + soft warning |
 | No Helio charge / QR | `awaiting_payment_instruction`; do not settle |
+| Helio / payer wallet blocked | Mark wallet blocked; **failover to next ops wallet**; auto-fund settle amount |
+| Ops pool < 3 active | Alert; create & register new wallets |
+| IP / session friction on marketplace | Rotate Google session and/or browser egress; keep paying from wallet pool |
 | Helio resolve / deposit destination unknown | Pay with Wallet contingency; ops; prefer fix resolve |
 | USDC path unhealthy | Retry with Pay with = SOL (Mainnet) |
 | Charge expired / underpay | New charge; top-up per Helio rules; never pay stale id |
