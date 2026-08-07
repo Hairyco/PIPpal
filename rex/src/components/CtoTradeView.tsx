@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
   ArrowUpDown,
@@ -193,8 +194,20 @@ const PEAK_GLINTS = [
   { x: '88%', y: '62%', size: '8px', delay: '240ms' },
 ];
 
+type TrackerTone = 'default' | 'good' | 'bad';
+
+type CoinTrackerMetric = {
+  id: string;
+  label: string;
+  value: string;
+  tone: TrackerTone;
+  detail: string;
+};
+
 /** GMGN-style risk/holder chips — demo values until live indexer. */
-function coinTrackerMetrics(project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>) {
+function coinTrackerMetrics(
+  project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>,
+): CoinTrackerMetric[] {
   const seed = hashSeed(project.ticker);
   const holdersRaw = String(project.holders || '').replace(/,/g, '');
   const holdersNum = Number(holdersRaw);
@@ -213,13 +226,176 @@ function coinTrackerMetrics(project: Pick<TradeViewProject, 'ticker' | 'holders'
       : seed % 12;
 
   return [
-    { id: 'dev-holdings', label: 'Dev holdings', value: `${seed % 8}%` },
-    { id: 'dev-migrated', label: 'Dev Migrated', value: String(1 + (seed % 24)) },
-    { id: 'rug', label: 'Rug', value: `${rug}%` },
-    { id: 'top-10', label: 'Top 10', value: `${12 + (seed % 38)}%` },
-    { id: 'bundlers', label: 'Bundlers', value: `${seed % 15}%` },
-    { id: 'holders', label: 'Holders', value: holdersLabel },
-  ] as const;
+    {
+      id: 'dev-holdings',
+      label: 'Dev holdings',
+      value: `${seed % 8}%`,
+      tone: 'default',
+      detail:
+        'Share of supply still held by the deployer / creator wallet. Higher can mean more dump risk if they sell.',
+    },
+    {
+      id: 'dev-migrated',
+      label: 'Dev Migrated',
+      value: String(1 + (seed % 24)),
+      tone: 'default',
+      detail:
+        'Count of other tokens this same deployer has launched or migrated. Useful for spotting serial launchers.',
+    },
+    {
+      id: 'rug',
+      label: 'Rug',
+      value: `${rug}%`,
+      tone: 'default',
+      detail:
+        'Estimated sell pressure from the deployer (tokens sold vs peak holdings). Higher = more of the supply already dumped.',
+    },
+    {
+      id: 'top-10',
+      label: 'Top 10',
+      value: `${12 + (seed % 38)}%`,
+      tone: 'good',
+      detail:
+        'Combined % of supply held by the top 10 wallets (ex-pool where known). Lower concentration is generally healthier.',
+    },
+    {
+      id: 'bundlers',
+      label: 'Bundlers',
+      value: `${seed % 15}%`,
+      tone: 'bad',
+      detail:
+        'Estimated % of supply bought in coordinated / bundled sniper wallets at launch. Higher can mean tighter float and dump risk.',
+    },
+    {
+      id: 'holders',
+      label: 'Holders',
+      value: holdersLabel,
+      tone: 'default',
+      detail: 'Unique wallets holding this token. Growing holders usually track broader distribution.',
+    },
+  ];
+}
+
+const TRACKER_TONE_CLASS: Record<TrackerTone, string> = {
+  default: 'text-white',
+  good: 'text-emerald-400',
+  bad: 'text-rose-400',
+};
+
+const TRACKER_TIP_MAX_WIDTH = 260;
+const TRACKER_TIP_GAP = 8;
+const TRACKER_TIP_MARGIN = 12;
+
+function CoinTrackerItem({
+  metric,
+  open,
+  onToggle,
+}: {
+  metric: CoinTrackerMetric;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const tooltipId = useId();
+  const [tipStyle, setTipStyle] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const width = Math.min(TRACKER_TIP_MAX_WIDTH, window.innerWidth - TRACKER_TIP_MARGIN * 2);
+      const half = width / 2;
+      let left = rect.left + rect.width / 2;
+      left = Math.max(
+        TRACKER_TIP_MARGIN + half,
+        Math.min(left, window.innerWidth - TRACKER_TIP_MARGIN - half),
+      );
+      let top = rect.bottom + TRACKER_TIP_GAP;
+      const estimatedHeight = 110;
+      if (top + estimatedHeight > window.innerHeight - TRACKER_TIP_MARGIN) {
+        top = Math.max(TRACKER_TIP_MARGIN, rect.top - TRACKER_TIP_GAP - estimatedHeight);
+      }
+      setTipStyle({
+        position: 'fixed',
+        top,
+        left,
+        width,
+        transform: 'translateX(-50%)',
+        zIndex: 70,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onToggle();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onToggle]);
+
+  const tip =
+    open &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <>
+        <button
+          type="button"
+          aria-label={`Close ${metric.label} details`}
+          className="fixed inset-0 z-[60] cursor-default bg-transparent"
+          onClick={onToggle}
+        />
+        <div
+          id={tooltipId}
+          role="tooltip"
+          style={tipStyle}
+          className="rounded-lg border border-white/12 bg-[#0c1018] px-3 py-2.5 text-left shadow-xl shadow-black/50"
+        >
+          <p className="text-[11px] font-semibold text-white">{metric.label}</p>
+          <p className="mt-1 text-[11px] leading-relaxed text-white/55">{metric.detail}</p>
+          <p className={`mt-2 text-[12px] font-semibold tabular-nums ${TRACKER_TONE_CLASS[metric.tone]}`}>
+            {metric.value}
+          </p>
+        </div>
+      </>,
+      document.body,
+    );
+
+  return (
+    <div role="listitem" className="relative shrink-0">
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-describedby={open ? tooltipId : undefined}
+        title={metric.detail}
+        className="flex min-w-[4.75rem] flex-col gap-1 border-r border-white/[0.08] px-3 py-0.5 text-left transition hover:bg-white/[0.03] first:pl-1 last:border-r-0"
+      >
+        <span className="whitespace-nowrap text-[10px] font-medium leading-none text-white/45 underline decoration-white/25 underline-offset-[3px]">
+          {metric.label}
+        </span>
+        <span
+          className={`whitespace-nowrap text-[13px] font-semibold leading-none tabular-nums ${TRACKER_TONE_CLASS[metric.tone]}`}
+        >
+          {metric.value}
+        </span>
+      </button>
+      {tip}
+    </div>
+  );
 }
 
 function CoinTrackerRow({
@@ -227,6 +403,7 @@ function CoinTrackerRow({
 }: {
   project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>;
 }) {
+  const [openId, setOpenId] = useState<string | null>(null);
   const trackers = useMemo(
     () => coinTrackerMetrics(project),
     [project.ticker, project.holders, project.devDumpedPct],
@@ -234,24 +411,18 @@ function CoinTrackerRow({
 
   return (
     <div
-      className="hide-scrollbar mt-2 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="hide-scrollbar mt-2 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x rounded-lg border border-white/[0.1] py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ WebkitOverflowScrolling: 'touch' }}
       role="list"
       aria-label="Token trackers"
     >
       {trackers.map((t) => (
-        <div
+        <CoinTrackerItem
           key={t.id}
-          role="listitem"
-          className="flex min-w-[4.75rem] shrink-0 flex-col gap-0.5 border-r border-white/[0.08] px-3 first:pl-1 last:border-r-0"
-        >
-          <span className="whitespace-nowrap text-[10px] font-medium leading-none text-white/40">
-            {t.label}
-          </span>
-          <span className="whitespace-nowrap text-[13px] font-semibold leading-none tabular-nums text-white">
-            {t.value}
-          </span>
-        </div>
+          metric={t}
+          open={openId === t.id}
+          onToggle={() => setOpenId((cur) => (cur === t.id ? null : t.id))}
+        />
       ))}
     </div>
   );
