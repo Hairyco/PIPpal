@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  ArrowLeft,
   Check,
   ChevronDown,
   Copy,
@@ -139,6 +140,8 @@ export function PostLaunchDashboard({
   const tabs = mode === 'add' ? LIST_TABS : LAUNCH_TABS;
   const [tab, setTab] = useState<DashTab>(initialTab);
   const [roadmapMode, setRoadmapMode] = useState<'polessia' | 'manual'>('polessia');
+  /** Plan = pick checklist; Review = confirm spends + Dex packs then Approve */
+  const [roadmapStep, setRoadmapStep] = useState<'plan' | 'review'>('plan');
   const [selected, setSelected] = useState<Set<SpendItemId>>(
     () => new Set(POLESSIA_DEFAULT_SELECTED),
   );
@@ -248,6 +251,25 @@ export function PostLaunchDashboard({
     };
   }, [tradedContract, marketingAddress]);
 
+  const selectedChecklistItems = useMemo(() => {
+    const items: { id: string; label: string; logo: string; priceUsd: number }[] = [];
+    for (const tier of POST_LAUNCH_SPEND_THRESHOLDS) {
+      for (const item of tier.items) {
+        if (!selected.has(item.id)) continue;
+        if (item.configureOnDexAds) continue; // shown in Dex packs block
+        items.push(item);
+      }
+    }
+    return items;
+  }, [selected]);
+
+  const confirmRoadmapPlan = () => {
+    setRoadmapStep('review');
+    window.requestAnimationFrame(() => {
+      document.getElementById('roadmap-review')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
   const selectedAllIn = useMemo(
     () => selectedSpendAllIn(approveOfferIds),
     [approveOfferIds],
@@ -314,6 +336,7 @@ export function PostLaunchDashboard({
     setRoadmapMode('polessia');
     setSelected(new Set(POLESSIA_DEFAULT_SELECTED));
     persistDexPacks([...POLESSIA_DEFAULT_SELECTED_DEX_PACKS]);
+    setRoadmapStep('plan');
     if (spendUnlocked) {
       setModeNotice('Wizard mode on');
       window.setTimeout(() => setModeNotice(null), 1800);
@@ -322,6 +345,7 @@ export function PostLaunchDashboard({
 
   const setManual = () => {
     setRoadmapMode('manual');
+    setRoadmapStep('plan');
     if (spendUnlocked) {
       setModeNotice('Manual mode on');
       window.setTimeout(() => setModeNotice(null), 1800);
@@ -1151,7 +1175,7 @@ export function PostLaunchDashboard({
         </div>
       ) : null}
 
-      {tab === 'roadmap' ? (
+      {tab === 'roadmap' && roadmapStep === 'plan' ? (
         <div className="space-y-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <p className="text-xl font-bold tracking-tight text-white">
@@ -1228,9 +1252,13 @@ export function PostLaunchDashboard({
               </p>
             ) : roadmapMode === 'manual' ? (
               <p className="mt-2 text-[12px] leading-relaxed text-white/40">
-                Toggle individual activities. Spend still waits for Approve and wallet balance.
+                Toggle individual activities. Confirm to review, then Approve.
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-2 text-[12px] leading-relaxed text-white/40">
+                Confirm your plan, review Dex packs, then Approve.
+              </p>
+            )}
           </div>
 
           <div className="space-y-5">
@@ -1298,7 +1326,7 @@ export function PostLaunchDashboard({
                               {item.label}
                               {item.configureOnDexAds ? (
                                 <span className="mt-0.5 block text-[10px] font-normal text-white/35">
-                                  Exact pack on Dex Ads
+                                  Exact pack on next step
                                 </span>
                               ) : null}
                             </span>
@@ -1321,6 +1349,181 @@ export function PostLaunchDashboard({
               );
             })}
           </div>
+
+          <button
+            type="button"
+            onClick={confirmRoadmapPlan}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            Confirm
+          </button>
+        </div>
+      ) : null}
+
+      {tab === 'roadmap' && roadmapStep === 'review' ? (
+        <div id="roadmap-review" className="space-y-5 scroll-mt-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <button
+                type="button"
+                onClick={() => setRoadmapStep('plan')}
+                className="mb-2 inline-flex items-center gap-1 text-[12px] text-white/50 hover:text-white"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back to plan
+              </button>
+              <p className="text-xl font-bold tracking-tight text-white">Review &amp; Approve</p>
+              <p className="mt-1 text-[12px] text-white/45">
+                Check selected spends and Dex packs, then Approve.
+              </p>
+            </div>
+            <PolessiaLogo variant="powered" size="xs" />
+          </div>
+
+          <div className="space-y-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
+            <p className="text-[12px] font-semibold text-white/85">Selected spends</p>
+            {selectedChecklistItems.length === 0 && selectedDexPacks.length === 0 ? (
+              <p className="text-[11px] text-amber-200/90">Nothing selected — go back and pick spends.</p>
+            ) : selectedChecklistItems.length === 0 ? (
+              <p className="text-[11px] text-white/45">
+                No non-Dex spends. Dex packs are listed below.
+              </p>
+            ) : (
+              <ul className="divide-y divide-white/[0.05]">
+                {selectedChecklistItems.map((item) => (
+                  <li key={item.id} className="flex items-center gap-3 py-2.5">
+                    <img
+                      src={item.logo}
+                      alt=""
+                      className="h-5 w-5 shrink-0 rounded object-contain"
+                    />
+                    <span className="min-w-0 flex-1 text-[13px] font-medium text-white">
+                      {item.label}
+                    </span>
+                    <span className="shrink-0 text-[12px] font-semibold tabular-nums text-[#d5ff69]">
+                      {formatActivityPrice(item.priceUsd)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="space-y-2.5 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.04] px-3.5 py-3">
+            <div className="flex items-center gap-2">
+              <img
+                src="/images/partners/dexscreener.ico"
+                alt=""
+                className="h-4 w-4 rounded object-contain"
+              />
+              <p className="text-[12px] font-semibold text-white/85">Dex ad picks</p>
+              <span
+                className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
+                  selectedNeedsDex && dexReady
+                    ? 'bg-emerald-400/15 text-emerald-300'
+                    : selectedNeedsDex
+                      ? 'bg-amber-400/15 text-amber-200'
+                      : 'bg-white/10 text-white/40'
+                }`}
+              >
+                {!selectedNeedsDex ? 'None' : dexReady ? 'Ready' : 'Needed'}
+              </span>
+            </div>
+            {selectedDexPacks.length === 0 ? (
+              <p className="text-[11px] text-amber-200/90">No Dex packs selected yet.</p>
+            ) : (
+              <ul className="space-y-1">
+                {selectedDexPacks.map((s) => {
+                  const p = getDexPack(s.offerKey);
+                  return (
+                    <li
+                      key={s.offerKey}
+                      className="flex justify-between gap-2 text-[12px] text-white/75"
+                    >
+                      <span className="min-w-0 truncate">
+                        {getDexFamily(s.family)?.name}: {p?.label || s.offerKey}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-[#d5ff69]">
+                        {formatDexPackPrice(p?.priceUsd || 0)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <Link
+              to="/dex-ads"
+              className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#c8ff3d] hover:text-[#d5ff69]"
+            >
+              Configure on Dex Ads
+              <ExternalLink className="h-3 w-3" />
+            </Link>
+            {selectedNeedsDex && !dexReady && dexMissing.length ? (
+              <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
+            ) : null}
+            {selectedNeedsDex && dexReady && dexWarnings.length ? (
+              <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
+            ) : null}
+            <p className="text-[10px] text-white/35">
+              Founder owns Dex — Polessia never claims your token profile.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] text-white/55">
+            <p className="font-semibold text-white/80">
+              {spendUnlocked ? 'Selected spends — vault debit' : 'Before Approve — vault debit'}
+            </p>
+            <p className="mt-1.5 flex justify-between gap-2">
+              <span>Supplier invoices</span>
+              <span className="tabular-nums text-white">
+                {formatActivityPrice(selectedAllIn.invoiceUsd)}
+              </span>
+            </p>
+            <p className="mt-1 flex justify-between gap-2">
+              <span>{MARKETING_SERVICE_FEE_LABEL}</span>
+              <span className="tabular-nums text-white">
+                {formatActivityPrice(selectedAllIn.serviceFeeUsd)}
+              </span>
+            </p>
+            <p className="mt-2 flex justify-between gap-2 border-t border-white/[0.08] pt-2 font-semibold text-[#d5ff69]">
+              <span>Total debit</span>
+              <span className="tabular-nums">
+                {formatActivityPrice(selectedAllIn.totalDebitUsd)}
+              </span>
+            </p>
+            <p className="mt-2 text-[11px] text-white/40">
+              Suppliers receive 100% of their invoice. Polessia&apos;s sliding fee is charged on
+              top from the marketing vault (under $250 → 10%, $250–$1k → 7%, $1k+ → 5%).
+            </p>
+          </div>
+
+          <button
+            id="roadmap-approve"
+            type="button"
+            onClick={() => void approveRoadmap()}
+            disabled={approveBusy || (selectedNeedsDex && !dexReady)}
+            className={`${primaryBtnClass} scroll-mt-4`}
+          >
+            {approveBusy
+              ? spendUnlocked
+                ? 'Queuing…'
+                : 'Approving…'
+              : spendUnlocked
+                ? 'Queue selected spends again'
+                : 'Approve'}
+          </button>
+          {spendUnlocked ? (
+            <button
+              type="button"
+              onClick={() => void toggleMarketingSpend()}
+              className={`${backBtnClass} w-full justify-center`}
+            >
+              {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
+            </button>
+          ) : null}
+          {approveNotice ? (
+            <p className="text-center text-[12px] text-amber-200/90">{approveNotice}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -1351,134 +1554,6 @@ export function PostLaunchDashboard({
           Create free account to claim
           <Check className="h-4 w-4" />
         </button>
-      ) : null}
-
-      {tab === 'roadmap' ? (
-          <div className="space-y-3">
-            <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3 text-[12px] text-white/55">
-              <p className="font-semibold text-white/80">
-                {spendUnlocked ? 'Selected spends — vault debit' : 'Before Approve — vault debit'}
-              </p>
-              <p className="mt-1.5 flex justify-between gap-2">
-                <span>Supplier invoices</span>
-                <span className="tabular-nums text-white">
-                  {formatActivityPrice(selectedAllIn.invoiceUsd)}
-                </span>
-              </p>
-              <p className="mt-1 flex justify-between gap-2">
-                <span>{MARKETING_SERVICE_FEE_LABEL}</span>
-                <span className="tabular-nums text-white">
-                  {formatActivityPrice(selectedAllIn.serviceFeeUsd)}
-                </span>
-              </p>
-              <p className="mt-2 flex justify-between gap-2 border-t border-white/[0.08] pt-2 font-semibold text-[#d5ff69]">
-                <span>Total debit</span>
-                <span className="tabular-nums">
-                  {formatActivityPrice(selectedAllIn.totalDebitUsd)}
-                </span>
-              </p>
-              <p className="mt-2 text-[11px] text-white/40">
-                Suppliers receive 100% of their invoice. Polessia&apos;s sliding fee is charged on
-                top from the marketing vault (under $250 → 10%, $250–$1k → 7%, $1k+ → 5%).
-              </p>
-            </div>
-
-            <div className="space-y-2.5 rounded-xl border border-[#c8ff3d]/20 bg-[#c8ff3d]/[0.04] px-3.5 py-3">
-              <div className="flex items-center gap-2">
-                <img
-                  src="/images/partners/dexscreener.ico"
-                  alt=""
-                  className="h-4 w-4 rounded object-contain"
-                />
-                <p className="text-[12px] font-semibold text-white/85">Dex Ads packs</p>
-                <span
-                  className={`ml-auto rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ${
-                    selectedNeedsDex && dexReady
-                      ? 'bg-emerald-400/15 text-emerald-300'
-                      : selectedNeedsDex
-                        ? 'bg-amber-400/15 text-amber-200'
-                        : 'bg-white/10 text-white/40'
-                  }`}
-                >
-                  {!selectedNeedsDex
-                    ? 'None'
-                    : dexReady
-                      ? 'Ready'
-                      : 'Needed'}
-                </span>
-              </div>
-              <p className="text-[11px] text-white/45">
-                Pick exact packs (boost tiers, ad views, trending duration, socials) on Dex Ads —
-                not under this checklist.
-              </p>
-              {selectedDexPacks.length === 0 ? (
-                <p className="text-[11px] text-amber-200/90">No Dex packs selected yet.</p>
-              ) : (
-                <ul className="space-y-1">
-                  {selectedDexPacks.map((s) => {
-                    const p = getDexPack(s.offerKey);
-                    return (
-                      <li
-                        key={s.offerKey}
-                        className="flex justify-between gap-2 text-[12px] text-white/75"
-                      >
-                        <span className="min-w-0 truncate">
-                          {getDexFamily(s.family)?.name}: {p?.label || s.offerKey}
-                        </span>
-                        <span className="shrink-0 tabular-nums text-[#d5ff69]">
-                          {formatDexPackPrice(p?.priceUsd || 0)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              <Link
-                to="/dex-ads"
-                className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#c8ff3d] hover:text-[#d5ff69]"
-              >
-                Configure on Dex Ads
-                <ExternalLink className="h-3 w-3" />
-              </Link>
-              {selectedNeedsDex && !dexReady && dexMissing.length ? (
-                <p className="text-[11px] text-amber-200/90">Missing: {dexMissing.join(', ')}</p>
-              ) : null}
-              {selectedNeedsDex && dexReady && dexWarnings.length ? (
-                <p className="text-[11px] text-white/40">{dexWarnings[0]}</p>
-              ) : null}
-              <p className="text-[10px] text-white/35">
-                Founder owns Dex — Polessia never claims your token profile.
-              </p>
-            </div>
-
-            <button
-              id="roadmap-approve"
-              type="button"
-              onClick={() => void approveRoadmap()}
-              disabled={approveBusy || (selectedNeedsDex && !dexReady)}
-              className={`${primaryBtnClass} scroll-mt-4`}
-            >
-              {approveBusy
-                ? spendUnlocked
-                  ? 'Queuing…'
-                  : 'Approving…'
-                : spendUnlocked
-                  ? 'Queue selected spends again'
-                  : 'Approve'}
-            </button>
-            {spendUnlocked ? (
-              <button
-                type="button"
-                onClick={() => void toggleMarketingSpend()}
-                className={`${backBtnClass} w-full justify-center`}
-              >
-                {marketingSpendOn ? 'Pause wallet spend' : 'Unpause wallet spend'}
-              </button>
-            ) : null}
-            {approveNotice ? (
-              <p className="text-center text-[12px] text-amber-200/90">{approveNotice}</p>
-            ) : null}
-          </div>
       ) : null}
     </div>
   );
