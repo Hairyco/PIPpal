@@ -194,8 +194,11 @@ export function OpsDexFeedPage() {
       const body = await readApiJson(res);
       if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
       if (dryRun) {
+        const feeBit = body.fees
+          ? ` · vault ${body.fees.totalDebitUsd} (invoice ${body.fees.invoiceUsd} + 20%)`
+          : '';
         setMsg(
-          `Dry-run OK ✓  → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'} (no money sent)`,
+          `Dry-run OK ✓  → ${body.deposit?.depositAddress || '?'} · ${body.deposit?.depositAmount ?? '?'} ${body.deposit?.asset || 'USDC'} (no money sent)${feeBit}`,
         );
       } else {
         setMsg(

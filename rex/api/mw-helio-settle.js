@@ -9,6 +9,7 @@
 
 import { mwConfigured, sbFetch, audit } from '../lib/mw/supabase.js';
 import { resolveHelioDeposit } from '../lib/mw/helio.js';
+import { usdWithServiceFee } from '../lib/mw/fees.js';
 
 function json(res, status, body) {
   return res.status(status).json(body);
@@ -60,11 +61,25 @@ export default async function handler(req, res) {
 
     if (dryRun) {
       const { raw: _raw, ...deposit } = resolved;
+      let fees = null;
+      try {
+        fees = usdWithServiceFee(deposit.depositAmount);
+      } catch {
+        fees = null;
+      }
       return json(res, 200, {
         ok: true,
         dryRun: true,
         deposit,
-        hint: 'Pass dryRun:false to broadcast USDC/SOL transfer from ops/keeper wallet',
+        fees: fees
+          ? {
+              invoiceUsd: fees.invoiceUsd,
+              serviceFeeUsd: fees.serviceFeeUsd,
+              totalDebitUsd: fees.totalDebitUsd,
+              note: 'Helio receives invoiceUsd; vault debit should be totalDebitUsd (invoice + 20% on top)',
+            }
+          : null,
+        hint: 'Pass dryRun:false to broadcast USDC/SOL transfer from ops/keeper wallet (hold until final PoC)',
       });
     }
 

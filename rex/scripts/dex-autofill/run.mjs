@@ -1,20 +1,18 @@
 #!/usr/bin/env node
 /**
- * Dex Token Ad autofill — free automation proof.
+ * Dex Token Ad autofill — unattended path (dry-run by default).
  *
  * Loads a saved Google session, fills the order form from a CTOgo sheet,
- * submits to the payment page, captures Helio QR/charge when possible,
- * and STOPS. Never Live settles / never spends Mainnet USDC.
+ * submits to the payment page, captures Helio charge/deposit, POSTs capture,
+ * then dry-run settles. Never Live settles unless --live-settle (hold until final PoC).
  *
  * Usage:
  *   cd rex
  *   npm run dex:login
  *   npm run dex:autofill -- --orderId=UUID --api=https://rex-liart.vercel.app --opsSecret=SECRET
- *   npm run dex:autofill -- --fill-json=./scripts/dex-autofill/.out/sheet.json
- *   npm run dex:autofill -- --orderId=UUID ... --no-submit   # fill only
- *   npm run dex:autofill -- --orderId=UUID ... --headed      # watch the browser
- *
- * Optional: POST capture back to CTOgo with --post-capture
+ *   npm run dex:autofill -- --orderId=UUID ... --no-submit
+ *   npm run dex:autofill -- --orderId=UUID ... --headed
+ *   npm run dex:worker -- --opsSecret=… --once
  */
 
 import fs from 'node:fs';
@@ -30,13 +28,27 @@ import {
 } from './lib/common.mjs';
 import { fillTokenAdForm } from './lib/fillOrderForm.mjs';
 import { capturePaymentPage } from './lib/capturePayment.mjs';
+import { checkDexSession, writeReloginAlert } from './lib/sessionHealth.mjs';
 
 const args = parseArgs();
 ensureDirs();
 
 if (!sessionReady()) {
-  console.error('No saved Dex session. Run: npm run dex:login');
-  process.exit(1);
+  writeReloginAlert({ reason: 'no_saved_profile', orderId: args.orderId || null });
+  process.exit(2);
+}
+
+const api = String(args.api || process.env.CTOGO_API_BASE || 'https://rex-liart.vercel.app').replace(
+  /\/$/,
+  '',
+);
+const opsSecret = args.opsSecret || process.env.MW_OPS_SECRET;
+const wantPostCapture = args['post-capture'] !== false && args['no-post-capture'] !== true;
+const wantDryRun = args['dry-run'] !== false && args['no-dry-run'] !== true;
+const wantLiveSettle = Boolean(args['live-settle']);
+
+if (wantLiveSettle) {
+  console.warn('WARNING: --live-settle spends real Mainnet USDC. Plan holds this until the very end.');
 }
 
 async function loadSheet() {
@@ -46,11 +58,6 @@ async function loadSheet() {
     return data.sheet || data;
   }
   const orderId = args.orderId;
-  const api = String(args.api || process.env.CTOGO_API_BASE || 'https://rex-liart.vercel.app').replace(
-    /\/$/,
-    '',
-  );
-  const opsSecret = args.opsSecret || process.env.MW_OPS_SECRET;
   if (!orderId) {
     console.error('Need --orderId=… or --fill-json=…');
     process.exit(1);
@@ -70,7 +77,7 @@ async function loadSheet() {
   return body.sheet;
 }
 
-async function postCapture(api, opsSecret, orderId, capture) {
+async function postCapture(orderId, capture) {
   const res = await fetch(`${api}/api/mw-dex-feed`, {
     method: 'POST',
     headers: {
@@ -91,6 +98,20 @@ async function postCapture(api, opsSecret, orderId, capture) {
   return body;
 }
 
+async function callSettle(orderId, dryRun) {
+  const res = await fetch(`${api}/api/mw-helio-settle`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-mw-ops-secret': String(opsSecret),
+    },
+    body: JSON.stringify({ orderId, opsSecret, dryRun }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || body.reason || res.statusText);
+  return body;
+}
+
 const sheet = await loadSheet();
 if (!sheet?.ready && sheet?.hardMissing?.length) {
   console.warn('Sheet incomplete:', sheet.hardMissing.join(', '));
@@ -98,7 +119,7 @@ if (!sheet?.ready && sheet?.hardMissing?.length) {
 }
 
 const playwright = await requirePlaywright();
-const headed = Boolean(args.headed) || args.headless === 'false';
+const headed = Boolean(args.headed) || args.headless === 'false' || !args.headless;
 const browser = await launchDexBrowser(playwright, { headless: !headed });
 const page = browser.context.pages()[0] || (await browser.context.newPage());
 
@@ -107,20 +128,32 @@ const result = {
   orderId: sheet.orderId || args.orderId || null,
   fillNotes: [],
   capture: null,
+  dryRun: null,
+  liveSettle: null,
   paid: false,
   stopReason: 'capture_complete_no_pay',
   channel: browser.channel,
 };
 
 try {
-  await page.goto(DEX_ORDER_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-
-  if (/sign-in|login/i.test(page.url())) {
+  const session = await checkDexSession(page);
+  if (!session.ok) {
     result.stopReason = 'session_expired';
-    console.error('Session expired — run npm run dex:login again.');
+    result.session = session;
+    writeReloginAlert({ reason: session.reason || 'session_expired', orderId: result.orderId });
     await page.screenshot({ path: path.join(OUT_DIR, 'session-expired.png'), fullPage: true });
     process.exitCode = 2;
   } else {
+    // Clear stale re-login alert on healthy session
+    const alertPath = path.join(OUT_DIR, 'NEED_RELOGIN.json');
+    if (fs.existsSync(alertPath)) {
+      try {
+        fs.unlinkSync(alertPath);
+      } catch {
+        /* ignore */
+      }
+    }
+
     const submit = !args['no-submit'];
     const fillResult = await fillTokenAdForm(page, sheet, { submit });
     result.fillNotes = fillResult.notes;
@@ -140,15 +173,42 @@ try {
       console.log('chargeUrl:', capture.chargeUrl || '(paste manually)');
       console.log('depositAddress:', capture.depositAddress || '(paste manually)');
 
-      if (args['post-capture'] && result.orderId && (capture.chargeUrl || capture.depositAddress)) {
-        const api = String(args.api || process.env.CTOGO_API_BASE || 'https://rex-liart.vercel.app').replace(
-          /\/$/,
-          '',
-        );
-        const opsSecret = args.opsSecret || process.env.MW_OPS_SECRET;
-        const posted = await postCapture(api, opsSecret, result.orderId, capture);
+      if (wantPostCapture && result.orderId && opsSecret && (capture.chargeUrl || capture.depositAddress)) {
+        const posted = await postCapture(result.orderId, capture);
         result.posted = posted;
         console.log('Posted capture to CTOgo:', posted.next || 'ok');
+      }
+
+      if (result.orderId && opsSecret && (wantDryRun || wantLiveSettle)) {
+        if (wantDryRun) {
+          const dry = await callSettle(result.orderId, true);
+          result.dryRun = dry;
+          result.stopReason = 'dry_run_ok';
+          console.log(
+            'Dry-run OK →',
+            dry.deposit?.depositAddress,
+            '·',
+            dry.deposit?.depositAmount,
+            dry.deposit?.asset || 'USDC',
+          );
+          if (dry.fees) {
+            console.log(
+              'Fees → invoice',
+              dry.fees.invoiceUsd,
+              '+ service',
+              dry.fees.serviceFeeUsd,
+              '= vault debit',
+              dry.fees.totalDebitUsd,
+            );
+          }
+        }
+        if (wantLiveSettle) {
+          const live = await callSettle(result.orderId, false);
+          result.liveSettle = live;
+          result.paid = Boolean(live.ok);
+          result.stopReason = 'live_settle_attempted';
+          console.log('Live settle:', live);
+        }
       }
     } else if (submit) {
       result.stopReason = 'payment_page_not_reached';
@@ -167,7 +227,8 @@ try {
   const outPath = path.join(OUT_DIR, `run-${Date.now()}.json`);
   fs.writeFileSync(outPath, JSON.stringify(result, null, 2));
   console.log(`\nResult → ${outPath}`);
-  console.log('Money spent: $0 (script never Live settles).');
-  console.log('Next free proof: Dry-run settle on /ops/dex-feed');
+  if (!wantLiveSettle) {
+    console.log('Money spent: $0 (dry-run only; no Live settle).');
+  }
   await browser.close();
 }

@@ -1,16 +1,8 @@
 /**
  * Pay a resolved Helio deposit from the ops wallet pool (or keeper fallback).
+ * Solana SDK is loaded lazily to reduce serverless ESM issues.
  */
 
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  LAMPORTS_PER_SOL,
-  sendAndConfirmTransaction,
-} from '@solana/web3.js';
 import {
   failoverOpsWallet,
   loadOpsWalletSecret,
@@ -26,10 +18,15 @@ function rpcUrl() {
   return process.env.SOLANA_RPC_URL || '';
 }
 
+async function loadWeb3() {
+  return import('@solana/web3.js');
+}
+
 /**
  * Prefer ops pool; until 3 wallets registered, allow KEEPER_SECRET_KEY as sole payer.
  */
 async function resolvePayerKeypair() {
+  const { Keypair } = await loadWeb3();
   const picked = await pickActiveOpsWallet();
   if (picked.ok) {
     const secret = loadOpsWalletSecret(picked.wallet);
@@ -68,11 +65,20 @@ async function resolvePayerKeypair() {
 
 /**
  * @param {{ depositAddress: string, depositAmount: number, asset?: string, mint?: string }} deposit
- * @param {Keypair} payer
+ * @param {import('@solana/web3.js').Keypair} payer
  */
 async function sendDepositPayment(deposit, payer) {
   const rpc = rpcUrl();
   if (!rpc) return { ok: false, reason: 'SOLANA_RPC_URL unset' };
+
+  const {
+    Connection,
+    PublicKey,
+    SystemProgram,
+    Transaction,
+    LAMPORTS_PER_SOL,
+    sendAndConfirmTransaction,
+  } = await loadWeb3();
 
   const connection = new Connection(rpc, 'confirmed');
   const to = new PublicKey(deposit.depositAddress);
@@ -92,7 +98,6 @@ async function sendDepositPayment(deposit, payer) {
     return { ok: true, signature, asset: 'SOL', amount: deposit.depositAmount };
   }
 
-  // USDC (or other SPL) — dynamic import so build still works if spl-token missing briefly
   let spl;
   try {
     spl = await import('@solana/spl-token');
@@ -104,9 +109,7 @@ async function sendDepositPayment(deposit, payer) {
   }
 
   const mint = new PublicKey(deposit.mint || USDC_MINT_MAINNET);
-  const amountRaw = BigInt(
-    Math.round(Number(deposit.depositAmount) * 10 ** USDC_DECIMALS),
-  );
+  const amountRaw = BigInt(Math.round(Number(deposit.depositAmount) * 10 ** USDC_DECIMALS));
   if (amountRaw <= 0n) return { ok: false, reason: 'Invalid USDC depositAmount' };
 
   const fromAta = await spl.getAssociatedTokenAddress(mint, payer.publicKey);
@@ -115,18 +118,9 @@ async function sendDepositPayment(deposit, payer) {
   const tx = new Transaction();
   const toInfo = await connection.getAccountInfo(toAta);
   if (!toInfo) {
-    tx.add(
-      spl.createAssociatedTokenAccountInstruction(
-        payer.publicKey,
-        toAta,
-        to,
-        mint,
-      ),
-    );
+    tx.add(spl.createAssociatedTokenAccountInstruction(payer.publicKey, toAta, to, mint));
   }
-  tx.add(
-    spl.createTransferInstruction(fromAta, toAta, payer.publicKey, amountRaw),
-  );
+  tx.add(spl.createTransferInstruction(fromAta, toAta, payer.publicKey, amountRaw));
 
   const signature = await sendAndConfirmTransaction(connection, tx, [payer]);
   return {
@@ -145,6 +139,7 @@ async function sendDepositPayment(deposit, payer) {
  * @param {{ order: object, instruction?: object }} args
  */
 export async function settleHelioDeposit({ order, instruction }) {
+  const { Keypair } = await loadWeb3();
   const instr = instruction || order?.payment_instruction;
   const resolved = await resolveHelioDeposit(instr);
   if (!resolved.ok) {
@@ -192,7 +187,6 @@ export async function settleHelioDeposit({ order, instruction }) {
   let result = await attemptPay(payer);
   if (result.ok) return result;
 
-  // Failover once if we have a pool wallet
   if (payer.walletRow?.id) {
     const fromId = payer.walletRow.id;
     const fail = await failoverOpsWallet(fromId, result.reason);
@@ -218,11 +212,11 @@ export async function settleHelioDeposit({ order, instruction }) {
       return {
         ok: false,
         reason: result.reason,
-        failover: fail,
         stage: 'pay',
+        failover: fail,
       };
     }
   }
 
-  return { ok: false, reason: result.reason, stage: 'pay' };
+  return { ok: false, reason: result.reason || 'Pay failed', stage: 'pay', detail: result };
 }
