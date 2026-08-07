@@ -366,12 +366,13 @@ export function PostLaunchDashboard({
       setSpendUnlocked(true);
       setMarketingSpendOn(true);
       const queuedN = Number(approved.queued || 0);
+      const missing = Array.isArray(approved.missingOffers) ? approved.missingOffers : [];
       setApproveNotice(
         queuedN === 0
-          ? 'Signed, but 0 orders queued — check provider offers in Supabase / ops catalog.'
+          ? `Signed, but 0 orders queued${missing.length ? `: ${missing.slice(0, 3).join(', ')}` : ' — catalog/offers missing'}.`
           : dexWarnings.length
             ? `${queuedN} order(s) queued. Note: ${dexWarnings[0]}`
-            : `${queuedN} order(s) queued — check /ops/dex-feed for Dex items.`,
+            : `${queuedN} order(s) queued — open /ops/dex-feed and Load pending.`,
       );
       void fetchMwProjectStatus(tradedContract || marketingAddress).then(setMwStatus);
     } finally {

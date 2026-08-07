@@ -11,6 +11,7 @@ import {
   verifyEd25519Signature,
 } from '../lib/mw/auth.js';
 import { invoiceWithServiceFee, usdWithServiceFee } from '../lib/mw/fees.js';
+import { resolveOffer } from '../lib/mw/catalog.js';
 
 const LAMPORTS_PER_SOL = 1_000_000_000;
 /** Demo SOL/USD until price oracle wired — ops can override via SOL_USD_RATE. */
@@ -139,15 +140,13 @@ export default async function handler(req, res) {
       for (const offerIdOrKey of selectedOfferIds) {
         const key = String(offerIdOrKey || '').trim();
         if (!key) continue;
-        let offers = await sbFetch(
-          `mw_provider_offers?id=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
-        );
-        if (!Array.isArray(offers) || !offers[0]) {
-          offers = await sbFetch(
-            `mw_provider_offers?offer_key=eq.${encodeURIComponent(key)}&select=*,mw_providers(*)`,
-          );
+        let offer;
+        try {
+          offer = await resolveOffer(key);
+        } catch (err) {
+          missingOffers.push(`${key} (${err.message || err})`);
+          continue;
         }
-        const offer = Array.isArray(offers) ? offers[0] : null;
         if (!offer) {
           missingOffers.push(key);
           continue;
@@ -166,25 +165,29 @@ export default async function handler(req, res) {
                 offerKey: offer.offer_key,
               }
             : { spendItemId: offer.offer_key, offerKey: offer.offer_key };
-        const orderRows = await sbFetch('mw_campaign_orders', {
-          method: 'POST',
-          body: JSON.stringify({
-            project_id: project.id,
-            plan_id: planId,
-            provider_id: offer.provider_id,
-            offer_id: offer.id,
-            invoice_id: invoiceId,
-            invoice_lamports: Number(fees.invoiceLamports),
-            service_fee_lamports: Number(fees.serviceFeeLamports),
-            total_debit_lamports: Number(fees.totalDebitLamports),
-            status: 'queued',
-            creatives: orderCreatives,
-          }),
-        });
-        queued.push({
-          order: Array.isArray(orderRows) ? orderRows[0] : orderRows,
-          breakdown: { priceUsd, serviceFeeUsd, totalDebitUsd },
-        });
+        try {
+          const orderRows = await sbFetch('mw_campaign_orders', {
+            method: 'POST',
+            body: JSON.stringify({
+              project_id: project.id,
+              plan_id: planId,
+              provider_id: offer.provider_id,
+              offer_id: offer.id,
+              invoice_id: invoiceId,
+              invoice_lamports: Number(fees.invoiceLamports),
+              service_fee_lamports: Number(fees.serviceFeeLamports),
+              total_debit_lamports: Number(fees.totalDebitLamports),
+              status: 'queued',
+              creatives: orderCreatives,
+            }),
+          });
+          queued.push({
+            order: Array.isArray(orderRows) ? orderRows[0] : orderRows,
+            breakdown: { priceUsd, serviceFeeUsd, totalDebitUsd },
+          });
+        } catch (err) {
+          missingOffers.push(`${key} queue failed: ${err.message || err}`);
+        }
       }
 
       await audit(

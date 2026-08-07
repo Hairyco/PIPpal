@@ -99,7 +99,9 @@ export default async function handler(req, res) {
           })),
           hint:
             list.length === 0
-              ? 'No Dex-pending CTOgo orders. A Dex marketplace order number is not enough — Approve a Dex spend on a CTOgo project roadmap first.'
+              ? Array.isArray(anyOrders) && anyOrders.length
+                ? `No Dex-adapter pending orders (${anyOrders.length} other CTOgo order(s) exist — open one below or Approve with Dex items selected).`
+                : 'No CTOgo campaign orders yet. Hard-refresh the site, Approve the roadmap again (keep Dex items checked), and watch for “N order(s) queued”.'
               : null,
         });
       }
