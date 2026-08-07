@@ -34,10 +34,22 @@ Useful flags:
 
 Screenshots + JSON land in `scripts/dex-autofill/.out/`.
 
-## After a good run
+## Capture Helio deposit address (required for auto-pay)
 
-1. Open `/ops/dex-feed` → confirm capture (or paste anything the bot missed).
-2. Click **Dry-run settle** only.
-3. Do **not** Live settle unless you want to buy the ad (~$299+).
+Helio’s QR is a **charge link**, not a Solana address. Run this against the charge URL:
 
-If Google session dies: `npm run dex:login` again.
+```bash
+cd rex
+npm run dex:capture-charge -- --headed --chargeUrl="https://moonpay.hel.io/charge/YOUR-UUID?network=SOL&deeplink=true"
+```
+
+Optional — push into CTOgo:
+
+```bash
+npm run dex:capture-charge -- --headed --chargeUrl="..." --orderId=CTOGO_ORDER_UUID --opsSecret=... --post-capture
+```
+
+The script sniffs Helio network/websocket traffic for a Solana deposit address. It never pays.
+
+If it exits with no address, Helio is hiding the destination until a wallet session — tell the agent; we may need a deeper wallet-attach intercept.
+

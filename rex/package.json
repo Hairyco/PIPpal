@@ -9,7 +9,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "dex:login": "node scripts/dex-autofill/login.mjs",
-    "dex:autofill": "node scripts/dex-autofill/run.mjs"
+    "dex:autofill": "node scripts/dex-autofill/run.mjs",
+    "dex:capture-charge": "node scripts/dex-autofill/capture-charge.mjs"
   },
   "dependencies": {
     "@solana/spl-token": "^0.4.15",
