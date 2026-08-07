@@ -20,12 +20,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  STORAGE_STATE,
   OUT_DIR,
   DEX_ORDER_URL,
   ensureDirs,
   parseArgs,
   requirePlaywright,
+  launchDexBrowser,
+  sessionReady,
 } from './lib/common.mjs';
 import { fillTokenAdForm } from './lib/fillOrderForm.mjs';
 import { capturePaymentPage } from './lib/capturePayment.mjs';
@@ -33,7 +34,7 @@ import { capturePaymentPage } from './lib/capturePayment.mjs';
 const args = parseArgs();
 ensureDirs();
 
-if (!fs.existsSync(STORAGE_STATE)) {
+if (!sessionReady()) {
   console.error('No saved Dex session. Run: npm run dex:login');
   process.exit(1);
 }
@@ -96,11 +97,10 @@ if (!sheet?.ready && sheet?.hardMissing?.length) {
   console.warn('Continuing anyway — fill may fail on missing fields.');
 }
 
-const { chromium } = await requirePlaywright();
+const playwright = await requirePlaywright();
 const headed = Boolean(args.headed) || args.headless === 'false';
-const browser = await chromium.launch({ headless: !headed });
-const context = await browser.newContext({ storageState: STORAGE_STATE });
-const page = await context.newPage();
+const browser = await launchDexBrowser(playwright, { headless: !headed });
+const page = browser.context.pages()[0] || (await browser.context.newPage());
 
 const result = {
   startedAt: new Date().toISOString(),
@@ -109,6 +109,7 @@ const result = {
   capture: null,
   paid: false,
   stopReason: 'capture_complete_no_pay',
+  channel: browser.channel,
 };
 
 try {

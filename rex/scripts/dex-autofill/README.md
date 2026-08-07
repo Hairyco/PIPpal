@@ -11,9 +11,11 @@ npx playwright install chromium
 npm run dex:login
 ```
 
-In the browser window: **Sign in with Google**, wait until you’re in the marketplace, then press **Enter** in the terminal.
+Login opens **your real Chrome or Edge** (Google blocks Playwright’s fake Chromium). Sign in with Google, wait until you’re in the marketplace, then press **Enter** in the terminal.
 
-Session is saved to `scripts/dex-autofill/.auth/` (gitignored).
+Session/profile: `scripts/dex-autofill/.auth/` (gitignored).
+
+If Google still says the browser is not secure: close other Chrome windows, then retry — or sign into https://marketplace.dexscreener.com once in normal Chrome first.
 
 ## Run (free proof)
 
