@@ -1,4 +1,4 @@
-/** Demo trending news for Growth — tags drive the bar and /news page. */
+/** Demo trending news — tags drive the Trenches bar and /news page. */
 
 export type NewsTagId =
   | 'trump'
@@ -20,7 +20,9 @@ export type TrendingNewsStory = {
   context: string;
   when: string;
   source: string;
-  /** Optional related CTOgo tickers for deep links. */
+  /** How many coins launched off this narrative (may exceed linked tickers). */
+  coinsLaunched: number;
+  /** Optional related CTOgo tickers for deep links + logos. */
   tickers?: string[];
 };
 
@@ -41,6 +43,7 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'A short Truth Social post is circulating in Solana group chats. Traders are rotating into political tickers with active marketing wallets while volume stays thin outside CTOgo rails.',
     when: '12m',
     source: 'CTOgo Desk',
+    coinsLaunched: 14,
     tickers: ['MPEG', 'DUMP'],
   },
   {
@@ -51,7 +54,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Raid links spiked after a rally mention hit X. External Pump.fun clones are noisy — CTOs with verified socials are holding better than fresh mints.',
     when: '48m',
     source: 'X / CTOgo',
-    tickers: ['GHOST'],
+    coinsLaunched: 9,
+    tickers: ['GHOST', 'CALL'],
   },
   {
     id: 'fed-hold',
@@ -61,7 +65,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Fed funds futures lean hold. Meme desks usually see a 1–2h liquidity bump after the statement; Growth wallets with DexScreener spend queued may catch the first wave.',
     when: '1h',
     source: 'Macro brief',
-    tickers: ['NITE'],
+    coinsLaunched: 6,
+    tickers: ['NITE', 'SURV'],
   },
   {
     id: 'fed-speak',
@@ -71,6 +76,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Headline bots faded the first candle. Watch for a second-leg bounce into SOL memes if DXY cools into the US afternoon.',
     when: '3h',
     source: 'Desk note',
+    coinsLaunched: 4,
+    tickers: ['MODA'],
   },
   {
     id: 'sol-etf-filing',
@@ -80,6 +87,7 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Another spot SOL ETF rumor lap. Native launches with clean bundler rings are seeing early sniper flow; graduated Raydium names lag until confirmation.',
     when: '26m',
     source: 'Market wire',
+    coinsLaunched: 22,
     tickers: ['CBACK', 'GOB'],
   },
   {
@@ -90,6 +98,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Prelaunch boards filled with “ETF” tickers overnight. Most are vapor — Growth stage coins with real MW balance are the cleaner expression.',
     when: '2h',
     source: 'CTOgo Growth',
+    coinsLaunched: 31,
+    tickers: ['MPEG', 'LMARS'],
   },
   {
     id: 'elon-post',
@@ -99,7 +109,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'A short reply on X lit doge-adjacent tickers. Expect copycat mints for ~30m; prefer CTOs where the original dev already sold.',
     when: '9m',
     source: 'X radar',
-    tickers: ['PEPE'],
+    coinsLaunched: 18,
+    tickers: ['DUMP', 'TFROG'],
   },
   {
     id: 'elon-space',
@@ -109,6 +120,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Mention of AI agents trading on-chain. AI Bill and Elon tags are overlapping — AAI-style tickers may see both narratives.',
     when: '5h',
     source: 'Spaces clip',
+    coinsLaunched: 7,
+    tickers: ['AAI', 'GOB'],
   },
   {
     id: 'ai-bill-vote',
@@ -118,7 +131,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Draft bill language leaked into crypto Twitter. Thin books: size down, use quick-buy only on coins with green bundle rings.',
     when: '34m',
     source: 'Policy watch',
-    tickers: ['AAI'],
+    coinsLaunched: 11,
+    tickers: ['AAI', 'EXIT'],
   },
   {
     id: 'ai-bill-lobby',
@@ -128,6 +142,8 @@ export const TRENDING_NEWS_STORIES: TrendingNewsStory[] = [
       'Analysts say any vote is months out. Narrative still prints volume — treat as a short narrative trade, not a hold.',
     when: '6h',
     source: 'Briefing',
+    coinsLaunched: 5,
+    tickers: ['CABAL'],
   },
 ];
 
@@ -143,4 +159,8 @@ export function storiesForTag(tagId: NewsTagId | 'all'): TrendingNewsStory[] {
 
 export function newsTagLabel(tagId: NewsTagId): string {
   return TRENDING_NEWS_TAGS.find((t) => t.id === tagId)?.label ?? tagId;
+}
+
+export function totalCoinsLaunched(stories: TrendingNewsStory[]): number {
+  return stories.reduce((sum, s) => sum + s.coinsLaunched, 0);
 }
