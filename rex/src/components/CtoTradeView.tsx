@@ -2,7 +2,6 @@ import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type R
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
-  ArrowUpDown,
   Check,
   ChevronDown,
   ChevronUp,
@@ -177,14 +176,12 @@ function formatChange24hLabel(change: number) {
 function peakMetricsFor(ticker: string, change24h: number, marketCap: string) {
   const seed = hashSeed(ticker);
   const mcap = parseMarketCapUsd(marketCap);
-  const peakX = Math.max(
-    1.2,
-    Math.min(99, Math.abs(change24h) / 14 + 1.4 + ((seed % 90) + 1) / 10),
-  );
   const athPct = Math.min(92, Math.max(18, 28 + (seed % 55)));
-  const athMcap = mcap > 0 ? mcap / (athPct / 100) : peakX * 50_000;
+  const athMcap =
+    mcap > 0
+      ? mcap / (athPct / 100)
+      : Math.max(1.2, Math.abs(change24h) / 14 + 1.4 + ((seed % 90) + 1) / 10) * 50_000;
   return {
-    peakLabel: `${peakX.toFixed(1)}x`,
     athLabel: formatCompactUsd(athMcap),
     athPct,
   };
@@ -728,14 +725,12 @@ function MarketCapPeakRow({
   change24h: number;
   ticker: string;
 }) {
-  const [mode, setMode] = useState<'peak' | 'ath'>('ath');
   const metrics = useMemo(
     () => peakMetricsFor(ticker, change24h, marketCap),
     [ticker, change24h, marketCap],
   );
   const [athPct, setAthPct] = useState(metrics.athPct);
   const positive = change24h >= 0;
-  const display = mode === 'peak' ? metrics.peakLabel : metrics.athLabel;
 
   useEffect(() => {
     setAthPct(metrics.athPct);
@@ -763,18 +758,7 @@ function MarketCapPeakRow({
   return (
     <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
       <p className="flex h-5 items-center text-[11px] font-medium text-white/45">Market Cap</p>
-      <div className="flex h-5 items-center justify-end gap-1">
-        <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
-        <button
-          type="button"
-          onClick={() => setMode((m) => (m === 'peak' ? 'ath' : 'peak'))}
-          className="grid h-5 w-5 place-items-center rounded-full bg-white/[0.06] text-white/50 transition hover:bg-white/[0.1] hover:text-white"
-          aria-label="Cycle peak metric"
-          title={mode === 'peak' ? 'Show ATH' : 'Show Peak'}
-        >
-          <ArrowUpDown className="h-3 w-3" />
-        </button>
-      </div>
+      <p className="flex h-5 items-center justify-end text-[11px] font-medium text-white/45">ATH</p>
 
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <p className="text-[22px] font-bold leading-none tracking-tight tabular-nums text-white sm:text-[26px]">
@@ -791,7 +775,7 @@ function MarketCapPeakRow({
       </div>
 
       <div className="flex flex-col items-end self-baseline">
-        <PeakFlashValue value={display} />
+        <PeakFlashValue value={metrics.athLabel} />
         <div
           className="peak-ath-track mt-1.5"
           role="img"
