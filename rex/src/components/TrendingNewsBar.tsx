@@ -12,6 +12,7 @@ type TrendingNewsBarProps = {
 };
 
 const RESUME_MS = 900;
+const SPEED_PX = 0.55;
 
 function TagPill({
   tagId,
@@ -43,104 +44,106 @@ export function TrendingNewsBar({
   showBack = false,
   backTo = '/?tab=trenches',
 }: TrendingNewsBarProps) {
-  /** Two identical runs for a seamless loop while auto-scrolling left. */
+  /** Two identical runs for a seamless -50% loop. */
   const marqueeTags = [...TRENDING_NEWS_TAGS, ...TRENDING_NEWS_TAGS];
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const pausedRef = useRef(false);
-  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** Ignore scroll events caused by our own auto-scroll writes. */
-  const autoScrollingRef = useRef(false);
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = scrollerRef.current;
-    if (!el) return;
+    const viewport = viewportRef.current;
+    const track = trackRef.current;
+    if (!viewport || !track) return;
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (reduceMotion) return;
 
+    let offset = 0;
+    let paused = false;
     let frame = 0;
-    const speed = 0.5;
+    let resumeTimer: ReturnType<typeof setTimeout> | null = null;
+    let dragging = false;
+    let dragStartX = 0;
+    let dragStartOffset = 0;
 
-    const wrapScroll = () => {
-      const half = el.scrollWidth / 2;
-      if (half <= 0) return;
-      if (el.scrollLeft >= half) {
-        autoScrollingRef.current = true;
-        el.scrollLeft -= half;
-        autoScrollingRef.current = false;
-      } else if (el.scrollLeft < 0) {
-        autoScrollingRef.current = true;
-        el.scrollLeft += half;
-        autoScrollingRef.current = false;
+    const loopWidth = () => track.scrollWidth / 2;
+
+    const apply = () => {
+      const half = loopWidth();
+      if (half > 0) {
+        offset = ((offset % half) + half) % half;
       }
+      track.style.transform = `translate3d(${-offset}px, 0, 0)`;
     };
 
-    const tick = () => {
-      if (!pausedRef.current) {
-        const half = el.scrollWidth / 2;
-        if (half > 0) {
-          autoScrollingRef.current = true;
-          el.scrollLeft += speed;
-          if (el.scrollLeft >= half) el.scrollLeft -= half;
-          autoScrollingRef.current = false;
-        }
-      }
-      frame = window.requestAnimationFrame(tick);
-    };
-
-    const pauseFromUser = () => {
-      pausedRef.current = true;
-      if (resumeTimerRef.current) {
-        clearTimeout(resumeTimerRef.current);
-        resumeTimerRef.current = null;
+    const pause = () => {
+      paused = true;
+      if (resumeTimer) {
+        clearTimeout(resumeTimer);
+        resumeTimer = null;
       }
     };
 
     const resumeSoon = () => {
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      resumeTimerRef.current = setTimeout(() => {
-        pausedRef.current = false;
-        resumeTimerRef.current = null;
-        wrapScroll();
+      if (resumeTimer) clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        paused = false;
+        resumeTimer = null;
       }, RESUME_MS);
     };
 
-    const onPointerDown = () => pauseFromUser();
-    const onPointerUp = () => resumeSoon();
-    const onTouchStart = () => pauseFromUser();
-    const onTouchEnd = () => resumeSoon();
-    const onWheel = () => {
-      pauseFromUser();
-      resumeSoon();
+    const tick = () => {
+      if (!paused) {
+        offset += SPEED_PX;
+        apply();
+      }
+      frame = window.requestAnimationFrame(tick);
     };
-    const onScroll = () => {
-      if (autoScrollingRef.current) return;
-      pauseFromUser();
+
+    const onPointerDown = (event: PointerEvent) => {
+      // Only treat primary touch/mouse as a drag pause
+      if (event.button !== 0 && event.pointerType === 'mouse') return;
+      dragging = true;
+      dragStartX = event.clientX;
+      dragStartOffset = offset;
+      pause();
+      viewport.setPointerCapture?.(event.pointerId);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = event.clientX - dragStartX;
+      offset = dragStartOffset - dx;
+      apply();
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      try {
+        viewport.releasePointerCapture?.(event.pointerId);
+      } catch {
+        // ignore
+      }
       resumeSoon();
     };
 
-    el.addEventListener('pointerdown', onPointerDown, { passive: true });
-    el.addEventListener('pointerup', onPointerUp, { passive: true });
-    el.addEventListener('pointercancel', onPointerUp, { passive: true });
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchend', onTouchEnd, { passive: true });
-    el.addEventListener('touchcancel', onTouchEnd, { passive: true });
-    el.addEventListener('wheel', onWheel, { passive: true });
-    el.addEventListener('scroll', onScroll, { passive: true });
+    viewport.addEventListener('pointerdown', onPointerDown);
+    viewport.addEventListener('pointermove', onPointerMove);
+    viewport.addEventListener('pointerup', onPointerUp);
+    viewport.addEventListener('pointercancel', onPointerUp);
+    viewport.addEventListener('lostpointercapture', onPointerUp);
 
     frame = window.requestAnimationFrame(tick);
+    apply();
 
     return () => {
       window.cancelAnimationFrame(frame);
-      if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
-      el.removeEventListener('pointerdown', onPointerDown);
-      el.removeEventListener('pointerup', onPointerUp);
-      el.removeEventListener('pointercancel', onPointerUp);
-      el.removeEventListener('touchstart', onTouchStart);
-      el.removeEventListener('touchend', onTouchEnd);
-      el.removeEventListener('touchcancel', onTouchEnd);
-      el.removeEventListener('wheel', onWheel);
-      el.removeEventListener('scroll', onScroll);
+      if (resumeTimer) clearTimeout(resumeTimer);
+      viewport.removeEventListener('pointerdown', onPointerDown);
+      viewport.removeEventListener('pointermove', onPointerMove);
+      viewport.removeEventListener('pointerup', onPointerUp);
+      viewport.removeEventListener('pointercancel', onPointerUp);
+      viewport.removeEventListener('lostpointercapture', onPointerUp);
     };
   }, []);
 
@@ -164,12 +167,15 @@ export function TrendingNewsBar({
       </Link>
 
       <div
-        ref={scrollerRef}
-        className="min-w-0 flex-1 touch-pan-x overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+        ref={viewportRef}
+        className="relative min-w-0 flex-1 touch-pan-x overflow-hidden"
         aria-label="Trending news tags"
+        style={{ touchAction: 'pan-x' }}
       >
-        <div className="flex w-max items-center gap-1.5 pr-1">
+        <div
+          ref={trackRef}
+          className="flex w-max items-center gap-1.5 pr-1 will-change-transform"
+        >
           {marqueeTags.map((tag, index) => (
             <TagPill
               key={`${tag.id}-${index}`}
