@@ -1719,13 +1719,6 @@ export function CtoTradeView({
                 <p className="shrink-0 text-[10px] text-white/30">Old CA</p>
               ) : null}
             </div>
-            {chartOnV1 ? (
-              <div className="border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-1.5">
-                <p className="text-[11px] text-amber-100/80">
-                  Viewing Old CA ({shortMint(v1Mint)}). Buys &amp; sells still use the CTOgo mint.
-                </p>
-              </div>
-            ) : null}
             <div className="h-[220px] px-1 py-2 sm:h-[300px] lg:h-[380px]">
               <CandleChart
                 positive={positive}
