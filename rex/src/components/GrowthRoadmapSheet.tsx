@@ -254,14 +254,9 @@ function HistoryTip({
         <p className="text-[11px] font-semibold text-white">{node.label} history</p>
         <ul className="mt-2 space-y-2">
           {[...node.history].reverse().map((item) => (
-            <li key={item.id} className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-[11px] font-medium text-white/80">{item.label}</p>
-                <p className="mt-0.5 text-[10px] text-white/40">{item.ago}</p>
-              </div>
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-[#d5ff69]">
-                ${item.priceUsd}
-              </span>
+            <li key={item.id} className="min-w-0">
+              <p className="truncate text-[11px] font-medium text-white/80">{item.label}</p>
+              <p className="mt-0.5 text-[10px] text-white/40">{item.ago}</p>
             </li>
           ))}
         </ul>
