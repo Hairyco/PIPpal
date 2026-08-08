@@ -939,7 +939,7 @@ export function LaunchCtoPage() {
                       [
                         {
                           icon: TrendingUp,
-                          title: 'Auto Marketing Wallet',
+                          title: 'Marketing Wallet',
                           detail: `${formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} of every CTOgo-routed trade goes straight to marketing funds (List).`,
                         },
                         {
