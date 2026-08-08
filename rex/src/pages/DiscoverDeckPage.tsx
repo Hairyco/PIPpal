@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowDownUp,
   Briefcase,
@@ -523,11 +523,39 @@ function TokenSortControl({
 
 export function DiscoverDeckPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { address, connected, connect, busy: walletBusy } = useConnectedWallet();
   const { starred, count: watchCount } = useWatchlist();
   const listRef = useRef<HTMLDivElement>(null);
   const [topTab, setTopTab] = useState<TopTab>('trending');
-  const [bottomTab, setBottomTab] = useState<BottomTab>('growth');
+  const initialTab = (() => {
+    const q = searchParams.get('tab')?.trim().toLowerCase();
+    if (
+      q === 'trenches' ||
+      q === 'discover' ||
+      q === 'prelaunch' ||
+      q === 'growth' ||
+      q === 'portfolio'
+    ) {
+      return q as BottomTab;
+    }
+    return 'growth' as BottomTab;
+  })();
+  const [bottomTab, setBottomTab] = useState<BottomTab>(initialTab);
+
+  useEffect(() => {
+    const q = searchParams.get('tab')?.trim().toLowerCase();
+    if (
+      q === 'trenches' ||
+      q === 'discover' ||
+      q === 'prelaunch' ||
+      q === 'growth' ||
+      q === 'portfolio'
+    ) {
+      setBottomTab(q);
+    }
+  }, [searchParams]);
+
   const [chain, setChain] = useState<string>('SOL');
   const [source, setSource] = useState<SourceVenueFilter>('all');
   const [timeWindow, setTimeWindow] = useState<TimeWindow>('1h');

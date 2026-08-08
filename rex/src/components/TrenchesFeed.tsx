@@ -19,6 +19,7 @@ import {
   type CtoProject,
   type SourceVenue,
 } from '../data/ctoProjects';
+import { TrendingNewsBar } from './TrendingNewsBar';
 
 export type TrenchesTab = 'new' | 'almost' | 'migrated';
 
@@ -388,6 +389,8 @@ export function TrenchesFeed({
           </button>
         </div>
       </div>
+
+      <TrendingNewsBar />
 
       <TrenchesToolbar />
 

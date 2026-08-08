@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Flame, Newspaper } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Flame, Newspaper } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { TrendingNewsBar } from '../components/TrendingNewsBar';
@@ -12,7 +12,6 @@ import {
 } from '../data/trendingNews';
 
 export function NewsPage() {
-  const navigate = useNavigate();
   const [params] = useSearchParams();
   const rawTag = params.get('tag');
   const matched = newsTagById(rawTag);
@@ -24,27 +23,19 @@ export function NewsPage() {
     <AppSidebarProvider>
       <AppSidebar />
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col bg-black text-white">
-        <header className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <header className="flex shrink-0 items-center gap-2 px-3 pb-1 pt-[max(0.75rem,env(safe-area-inset-top))]">
           <AppSidebarMenuButton />
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="grid h-9 w-9 place-items-center rounded-full bg-[#1c1c1e] text-white/70 ring-1 ring-white/10"
-            aria-label="Back"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
               <Flame className="h-3 w-3" fill="currentColor" strokeWidth={0} />
               News
             </p>
             <h1 className="truncate text-[17px] font-bold tracking-tight">
-              {activeTag === 'all' ? 'Trending from News' : newsTagLabel(activeTag)}
+              {activeTag === 'all' ? 'Trending News' : newsTagLabel(activeTag)}
             </h1>
           </div>
           <Link
-            to="/"
+            to="/?tab=trenches"
             className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-[#1c1c1e] ring-1 ring-white/10"
             aria-label="Home"
           >
@@ -52,9 +43,9 @@ export function NewsPage() {
           </Link>
         </header>
 
-        <TrendingNewsBar activeTagId={activeTag} />
+        <TrendingNewsBar activeTagId={activeTag} showBack backTo="/?tab=trenches" />
 
-        <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.06] px-3 pb-2">
+        <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.06] px-3 pb-2 pt-2">
           <Link
             to="/news"
             className={`inline-flex h-8 items-center rounded-full px-3 text-[12px] font-semibold ${
