@@ -37,7 +37,7 @@ const GROWTH_TIP_MAX_WIDTH = 280;
 const GROWTH_TIP_MARGIN = 12;
 const GROWTH_TIP_GAP = 8;
 const GROWTH_STATUS_TIP =
-  'Trades fund each coin’s marketing wallet. Spend rolls out in order — Telegram, X, Dex, then ads. Tap a logo to filter.';
+  'Trading volume funds each coin’s marketing wallet. Every project sets its own roadmap — tap a logo to filter by stage.';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
