@@ -164,3 +164,38 @@ export function newsTagLabel(tagId: NewsTagId): string {
 export function totalCoinsLaunched(stories: TrendingNewsStory[]): number {
   return stories.reduce((sum, s) => sum + s.coinsLaunched, 0);
 }
+
+export function storyById(id: string | null | undefined): TrendingNewsStory | undefined {
+  if (!id) return undefined;
+  return TRENDING_NEWS_STORIES.find((s) => s.id === id);
+}
+
+function salt(str: string, mod = 1000): number {
+  let s = 0;
+  for (let i = 0; i < str.length; i += 1) s = (s * 31 + str.charCodeAt(i)) % mod;
+  return s;
+}
+
+/**
+ * Featured + extra catalog coins so the story’s “coins launched” count
+ * has a full list for the portfolio-style page (demo until live feeds).
+ */
+export function tickersForStory(
+  story: TrendingNewsStory,
+  catalogTickers: string[],
+): string[] {
+  const featured = (story.tickers ?? []).map((t) => t.toUpperCase());
+  const seen = new Set(featured);
+  const out = [...featured];
+  const need = Math.max(story.coinsLaunched, featured.length);
+  if (out.length >= need || catalogTickers.length === 0) return out.slice(0, need);
+
+  const start = salt(story.id, catalogTickers.length);
+  for (let i = 0; out.length < need && i < catalogTickers.length * 2; i += 1) {
+    const t = catalogTickers[(start + i) % catalogTickers.length]?.toUpperCase();
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
+}

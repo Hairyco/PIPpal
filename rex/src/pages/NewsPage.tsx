@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Flame, Newspaper, Rocket } from 'lucide-react';
+import { Flame, Newspaper, Plus, Rocket } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AppSidebar, AppSidebarProvider } from '../components/AppSidebar';
 import { TrendingNewsBar } from '../components/TrendingNewsBar';
@@ -9,15 +9,11 @@ import {
   newsTagById,
   newsTagLabel,
   storiesForTag,
+  tickersForStory,
   totalCoinsLaunched,
   type NewsTagId,
   type TrendingNewsStory,
 } from '../data/trendingNews';
-
-function logoForTicker(ticker: string): string | null {
-  const hit = ctoProjects.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase());
-  return hit?.logo ?? null;
-}
 
 function projectForTicker(ticker: string) {
   return ctoProjects.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase()) ?? null;
@@ -38,9 +34,16 @@ function createLaunchHref(story: TrendingNewsStory): string {
   return `/launch?${params.toString()}`;
 }
 
+const CATALOG_TICKERS = ctoProjects.map((p) => p.ticker);
+const PREVIEW_COUNT = 4;
+
 function StoryCard({ story }: { story: TrendingNewsStory }) {
-  const tickers = story.tickers ?? [];
+  const allTickers = tickersForStory(story, CATALOG_TICKERS);
+  const preview = allTickers.slice(0, PREVIEW_COUNT);
+  const extra = Math.max(0, allTickers.length - PREVIEW_COUNT);
   const launchHref = createLaunchHref(story);
+  const coinsHref = `/news/${encodeURIComponent(story.id)}/coins`;
+
   return (
     <article className="overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#161618] to-[#0e0e10]">
       <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-3.5 py-3">
@@ -76,49 +79,54 @@ function StoryCard({ story }: { story: TrendingNewsStory }) {
       <div className="px-3.5 py-3">
         <p className="text-[13px] leading-relaxed text-white/55">{story.context}</p>
 
-        <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-white/40">
-          <Rocket className="h-3 w-3 text-[#c8ff3d]/80" strokeWidth={2} />
-          <span>
-            {story.coinsLaunched} coin{story.coinsLaunched === 1 ? '' : 's'} launched
-            {tickers.length > 0 ? ' · featured' : ''}
-          </span>
-        </div>
-
-        {tickers.length > 0 ? (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {tickers.map((ticker) => {
-              const logo = logoForTicker(ticker);
-              return (
-                <Link
-                  key={ticker}
-                  to={`/coin/${encodeURIComponent(ticker)}`}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#1c1c1e] pl-1 pr-2.5 text-[12px] font-semibold text-white/85 ring-1 ring-white/10 transition hover:bg-[#2a2a2c] hover:text-[#d5ff69]"
-                >
-                  {logo ? (
-                    <span className="h-6 w-6 overflow-hidden rounded-full ring-1 ring-white/15">
+        <div className="mt-3.5 flex items-center gap-2 border-t border-white/[0.06] pt-3">
+          <div className="flex min-w-0 flex-1 items-center">
+            <div className="flex items-center">
+              {preview.map((ticker, i) => {
+                const project = projectForTicker(ticker);
+                return (
+                  <Link
+                    key={ticker}
+                    to={`/coin/${encodeURIComponent(ticker)}`}
+                    className="relative h-9 w-9 overflow-hidden rounded-full bg-[#1c1c1e] ring-2 ring-[#121214] transition hover:ring-[#c8ff3d]/50"
+                    style={{ marginLeft: i === 0 ? 0 : -10, zIndex: preview.length - i }}
+                    title={project ? `${project.name} ($${ticker})` : `$${ticker}`}
+                    aria-label={`Open $${ticker}`}
+                  >
+                    {project?.logo ? (
                       <img
-                        src={logo}
+                        src={project.logo}
                         alt=""
                         className="h-full w-full object-cover"
                         loading="lazy"
                       />
-                    </span>
-                  ) : (
-                    <span className="grid h-6 w-6 place-items-center rounded-full bg-white/10 text-[9px] font-bold text-white/50">
-                      $
-                    </span>
-                  )}
-                  ${ticker}
-                </Link>
-              );
-            })}
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-[9px] font-bold text-white/40">
+                        $
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+            <Link
+              to={coinsHref}
+              className="relative z-[20] ml-1.5 grid h-9 w-9 place-items-center rounded-full bg-[#1c1c1e] text-[#d5ff69] ring-2 ring-[#121214] transition hover:bg-[#2a2a2c] hover:text-white"
+              aria-label={`See all ${allTickers.length} coins`}
+              title={extra > 0 ? `+${extra} more` : 'See all coins'}
+            >
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+            </Link>
+            {allTickers.length > 0 ? (
+              <span className="ml-2 truncate text-[11px] font-medium tabular-nums text-white/40">
+                {allTickers.length} coin{allTickers.length === 1 ? '' : 's'}
+              </span>
+            ) : null}
           </div>
-        ) : null}
 
-        <div className="mt-3.5 flex items-center justify-end border-t border-white/[0.06] pt-3">
           <Link
             to={launchHref}
-            className="news-launch-fade inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14]"
+            className="news-launch-fade inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14]"
           >
             <Rocket className="h-3.5 w-3.5" strokeWidth={2.5} />
             Launch
