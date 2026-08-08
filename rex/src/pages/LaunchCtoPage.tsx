@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -70,6 +70,7 @@ import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils
 import {
   demoMarketingWalletAddress,
   projectsWithWebsites,
+  similarProjectsWithWebsites,
   websiteForProject,
 } from '../data/ctoProjects';
 
@@ -984,6 +985,11 @@ export function LaunchCtoPage() {
 
   const canGenerateSite = Boolean(cloneUrl.trim() || website.trim());
   const canPublishSite = websiteKind === 'none' || siteGenerated;
+
+  const similarCloneSources = useMemo(
+    () => similarProjectsWithWebsites(name, ticker),
+    [name, ticker],
+  );
 
   const goToStep = (id: FlowStep) => {
     const idx = steps.findIndex((s) => s.id === id);
@@ -2144,62 +2150,81 @@ export function LaunchCtoPage() {
                 <div className="space-y-3">
                   <div>
                     <p className="text-[11px] font-semibold text-white/45">
-                      Coins with websites
+                      Similar coins with websites
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-white/35">
-                      Tap a coin to preview its site · {CLONE_HOSTING_FEE_SOL} SOL to clone from
-                      marketing wallet
+                      Based on {name.trim() || ticker.trim() ? (
+                        <>
+                          <span className="text-white/55">
+                            {name.trim() || 'your coin'}
+                            {ticker.trim() ? ` ($${ticker.trim().toUpperCase()})` : ''}
+                          </span>
+                          {' · '}
+                        </>
+                      ) : null}
+                      tap to preview · {CLONE_HOSTING_FEE_SOL} SOL to clone from marketing wallet
                     </p>
                   </div>
 
-                  <ul className="max-h-[min(52vh,22rem)] space-y-1.5 overflow-y-auto overscroll-contain pr-0.5">
-                    {projectsWithWebsites().map((project) => {
-                      const url = websiteForProject(project) ?? '';
-                      const selected =
-                        clonePickerTicker === project.ticker ||
-                        (cloneUrl.trim().toLowerCase() === url.toLowerCase() && Boolean(url));
-                      return (
-                        <li key={project.ticker}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setClonePickerTicker(project.ticker);
-                              setCloneUrl(url);
-                              setSiteGenerated(false);
-                            }}
-                            className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition ${
-                              selected
-                                ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
-                                : 'border-white/[0.08] bg-[#121214] hover:border-white/20'
-                            }`}
-                          >
-                            <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-[#1c1c1e] ring-1 ring-white/10">
-                              <img
-                                src={project.logo}
-                                alt=""
-                                className="h-full w-full object-cover"
-                                loading="lazy"
-                              />
-                            </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="flex items-center gap-1.5">
-                                <span className="truncate text-[13px] font-semibold text-white">
-                                  {project.name}
+                  {similarCloneSources.length === 0 ? (
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#121214] px-3.5 py-4 text-center">
+                      <p className="text-[13px] font-semibold text-white/70">
+                        No similar sites found
+                      </p>
+                      <p className="mt-1 text-[11px] leading-relaxed text-white/40">
+                        Try a closer name/ticker, or paste any website URL below to clone.
+                      </p>
+                    </div>
+                  ) : (
+                    <ul className="max-h-[min(52vh,22rem)] space-y-1.5 overflow-y-auto overscroll-contain pr-0.5">
+                      {similarCloneSources.map((project) => {
+                        const url = websiteForProject(project) ?? '';
+                        const selected =
+                          clonePickerTicker === project.ticker ||
+                          (cloneUrl.trim().toLowerCase() === url.toLowerCase() && Boolean(url));
+                        return (
+                          <li key={project.ticker}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setClonePickerTicker(project.ticker);
+                                setCloneUrl(url);
+                                setSiteGenerated(false);
+                              }}
+                              className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition ${
+                                selected
+                                  ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                                  : 'border-white/[0.08] bg-[#121214] hover:border-white/20'
+                              }`}
+                            >
+                              <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-[#1c1c1e] ring-1 ring-white/10">
+                                <img
+                                  src={project.logo}
+                                  alt=""
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="flex items-center gap-1.5">
+                                  <span className="truncate text-[13px] font-semibold text-white">
+                                    {project.name}
+                                  </span>
+                                  <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-white/50">
+                                    ${project.ticker}
+                                  </span>
                                 </span>
-                                <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-white/50">
-                                  ${project.ticker}
+                                <span className="mt-0.5 block truncate text-[10px] text-white/35">
+                                  {url}
                                 </span>
                               </span>
-                              <span className="mt-0.5 block truncate text-[10px] text-white/35">
-                                {url}
-                              </span>
-                            </span>
-                            <Globe className="h-3.5 w-3.5 shrink-0 text-white/30" />
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                              <Globe className="h-3.5 w-3.5 shrink-0 text-white/30" />
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
 
                   <label className="block">
                     <span className="text-[11px] font-semibold text-white/45">
@@ -2537,7 +2562,8 @@ export function LaunchCtoPage() {
 
       {(() => {
         const viewing = clonePickerTicker
-          ? projectsWithWebsites().find((p) => p.ticker === clonePickerTicker)
+          ? similarCloneSources.find((p) => p.ticker === clonePickerTicker) ??
+            projectsWithWebsites().find((p) => p.ticker === clonePickerTicker)
           : null;
         const viewUrl = viewing ? websiteForProject(viewing) ?? '' : '';
         if (!viewing || !viewUrl || step !== 'website' || websiteKind !== 'clone') return null;

@@ -235,6 +235,92 @@ export function projectsWithWebsites(): CtoProject[] {
   return ctoProjects.filter((p) => Boolean(websiteForProject(p)));
 }
 
+function normalizeKey(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+}
+
+function wordTokens(value: string): string[] {
+  return value
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length >= 2);
+}
+
+/** Loose similarity for clone suggestions from a create-flow name/ticker. */
+export function cloneSourceSimilarity(
+  queryName: string,
+  queryTicker: string,
+  project: CtoProject,
+): number {
+  const qName = normalizeKey(queryName);
+  const qTicker = normalizeKey(queryTicker.replace(/^\$/, ''));
+  const pName = normalizeKey(project.name);
+  const pTicker = normalizeKey(project.ticker);
+  if (!qName && !qTicker) return 0;
+
+  let score = 0;
+
+  if (qTicker && pTicker === qTicker) score += 120;
+  else if (qTicker.length >= 2 && pTicker.includes(qTicker)) score += 55;
+  else if (qTicker.length >= 2 && qTicker.includes(pTicker) && pTicker.length >= 2) score += 40;
+
+  if (qName && pName === qName) score += 100;
+  else if (qName.length >= 3 && (pName.includes(qName) || qName.includes(pName))) score += 60;
+
+  const qTokens = new Set([...wordTokens(queryName), ...wordTokens(queryTicker)]);
+  const pTokens = [...wordTokens(project.name), ...wordTokens(project.ticker)];
+  for (const token of qTokens) {
+    for (const pt of pTokens) {
+      if (pt === token) score += 28;
+      else if (pt.includes(token) || token.includes(pt)) score += 14;
+    }
+  }
+
+  // Shared leading characters (e.g. RAID ↔ RRBT / Raid Rabbit)
+  if (qTicker.length >= 2 && pTicker.length >= 2) {
+    let prefix = 0;
+    const n = Math.min(qTicker.length, pTicker.length, 4);
+    for (let i = 0; i < n; i += 1) {
+      if (qTicker[i] !== pTicker[i]) break;
+      prefix += 1;
+    }
+    score += prefix * 8;
+  }
+  if (qName.length >= 3 && pName.length >= 3) {
+    let prefix = 0;
+    const n = Math.min(qName.length, pName.length, 6);
+    for (let i = 0; i < n; i += 1) {
+      if (qName[i] !== pName[i]) break;
+      prefix += 1;
+    }
+    score += prefix * 5;
+  }
+
+  return score;
+}
+
+const MIN_CLONE_SIMILARITY = 28;
+
+/**
+ * Catalog coins with websites that resemble the create-flow name/ticker.
+ * Falls back to an empty list when nothing is close enough.
+ */
+export function similarProjectsWithWebsites(
+  queryName: string,
+  queryTicker: string,
+  limit = 12,
+): CtoProject[] {
+  const ranked = projectsWithWebsites()
+    .map((project) => ({
+      project,
+      score: cloneSourceSimilarity(queryName, queryTicker, project),
+    }))
+    .filter((row) => row.score >= MIN_CLONE_SIMILARITY)
+    .sort((a, b) => b.score - a.score || a.project.rank - b.project.rank);
+
+  return ranked.slice(0, limit).map((row) => row.project);
+}
+
 /** Day-one hybrid catalog — fills the board with native + tracked external CTOs. */
 export const ctoProjects: CtoProject[] = [
   {
