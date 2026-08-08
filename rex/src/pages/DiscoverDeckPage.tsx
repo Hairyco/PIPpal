@@ -25,6 +25,7 @@ import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWa
 import { NotificationsButton } from '../components/NotificationsButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { GrowthRoadmapSheet } from '../components/GrowthRoadmapSheet';
+import { TrendingNewsBar } from '../components/TrendingNewsBar';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -1058,8 +1059,9 @@ export function DiscoverDeckPage() {
           </div>
         </div>
       ) : isGrowthView ? (
-        <div className="sticky top-0 z-[5] shrink-0 space-y-2 border-b border-white/[0.06] bg-black px-3 pb-3 pt-1">
-          <div className="flex items-center gap-2">
+        <div className="sticky top-0 z-[5] shrink-0 space-y-2 border-b border-white/[0.06] bg-black pb-3 pt-1">
+          <TrendingNewsBar />
+          <div className="flex items-center gap-2 px-3">
             <button
               type="button"
               onClick={() =>
@@ -1096,7 +1098,7 @@ export function DiscoverDeckPage() {
               <PolessiaLogo variant="powered" size="xs" />
             </button>
           </div>
-          <div className="overflow-x-auto px-0.5 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="overflow-x-auto px-3 py-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-max items-center gap-2 pr-1">
               <button
                 type="button"

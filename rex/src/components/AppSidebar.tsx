@@ -18,6 +18,7 @@ import {
   Menu,
   Star,
   LayoutDashboard,
+  Newspaper,
 } from 'lucide-react';
 import { useWatchlist } from '../hooks/useWatchlist';
 import { AuthButton } from './AuthButton';
@@ -27,6 +28,7 @@ const NAV = [
   /** Post-launch CTO dashboard (same as Classic header person icon) */
   { to: '/launch?dashboard=1', label: 'Dashboard', icon: LayoutDashboard, end: false },
   { to: '/watchlist', label: 'Watchlist', icon: Star, end: false },
+  { to: '/news', label: 'News', icon: Newspaper, end: false },
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
   { to: '/advertise', label: 'Advertise', icon: Zap, end: false },

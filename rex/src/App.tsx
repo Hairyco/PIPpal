@@ -25,6 +25,7 @@ import { WatchlistPage } from './pages/WatchlistPage';
 import { CoinPage } from './pages/CoinPage';
 import { WelcomeGate } from './components/WelcomeGate';
 import { DiscoverDeckPage } from './pages/DiscoverDeckPage';
+import { NewsPage } from './pages/NewsPage';
 import { OpsProvidersPage } from './pages/OpsProvidersPage';
 import { OpsDexFeedPage } from './pages/OpsDexFeedPage';
 import { DexAdsPage } from './pages/DexAdsPage';
@@ -40,6 +41,7 @@ export function App() {
           <Routes>
             <Route path="/" element={<DiscoverDeckPage />} />
             <Route path="/discover" element={<Navigate to="/" replace />} />
+            <Route path="/news" element={<NewsPage />} />
             <Route path="/home" element={<HomePage />} />
             <Route path="/coin/:ticker" element={<CoinPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
