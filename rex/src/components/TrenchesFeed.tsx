@@ -421,7 +421,7 @@ export function TrenchesFeed({
                     }`}
                   >
                     <span
-                      className={`block h-[52px] w-[52px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ${bundleRingClass(
+                      className={`relative block h-[52px] w-[52px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ${bundleRingClass(
                         bundled,
                       )}`}
                     >
@@ -431,26 +431,18 @@ export function TrenchesFeed({
                         className="h-full w-full object-cover"
                         loading="lazy"
                       />
-                    </span>
-                    {showCto ? (
                       <span
-                        className="absolute -left-1 -top-1 rounded-[4px] bg-[#c8ff3d] px-1 py-px text-[8px] font-black uppercase leading-none tracking-wide text-[#090b14] ring-2 ring-black"
-                        title="CTO — original dev sold all holdings"
+                        className="absolute bottom-0.5 right-0.5 grid h-[16px] w-[16px] place-items-center overflow-hidden rounded-[4px] bg-black/85 ring-1 ring-white/30"
+                        title={project.sourceVenue}
+                        aria-label={project.sourceVenue}
                       >
-                        CTO
+                        <img
+                          src={venueLogo}
+                          alt=""
+                          className="h-[12px] w-[12px] object-contain"
+                          loading="lazy"
+                        />
                       </span>
-                    ) : null}
-                    <span
-                      className="absolute -bottom-1 -right-1 grid h-[18px] w-[18px] place-items-center overflow-hidden rounded-[5px] bg-[#0a0a0a] ring-1 ring-white/25"
-                      title={project.sourceVenue}
-                      aria-label={project.sourceVenue}
-                    >
-                      <img
-                        src={venueLogo}
-                        alt=""
-                        className="h-[14px] w-[14px] object-contain"
-                        loading="lazy"
-                      />
                     </span>
                   </button>
 
