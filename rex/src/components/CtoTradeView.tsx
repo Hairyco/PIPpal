@@ -421,15 +421,6 @@ function BundlerDetailSheet({
               <span className="text-[13px] font-medium text-white">{row.value}</span>
             </div>
           ))}
-          <div className="flex items-center justify-between gap-3 py-3.5">
-            <span className="text-[13px] text-white/45">Bubble</span>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 py-1.5 text-[12px] font-medium text-white/80">
-              <span className="grid h-4 w-4 place-items-center rounded-full bg-white/10 text-[9px]" aria-hidden>
-                ●●
-              </span>
-              View Info
-            </span>
-          </div>
         </div>
 
         <button
