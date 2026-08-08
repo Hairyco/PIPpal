@@ -191,3 +191,9 @@ Cross-reference **all** marketing options (`dexProductCatalog`, Dex Ads packs, `
 - Telegram / X / other suppliers: correct spend label on the tip
 
 Today markers use demo `supplier_payout` rows + supplier logos. Before go-live, map live payout product ids → tags/titles and verify every option. Code TODO: `SUPPLIER_CHART_META` in `CtoTradeView.tsx`.
+
+---
+
+## Reminder — discovery viewing counts (later)
+
+Keep **Viewing** on discovery cards. Later, study how GMGN uses multipliers / jitter so viewer numbers feel live and realistic (not a flat demo salt). Hook: `viewingCount` in `DiscoverDeckPage.tsx`.
