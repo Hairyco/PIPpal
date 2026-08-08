@@ -48,6 +48,7 @@ export default {
         'scroll-right-slow': 'scroll-right 96s linear infinite',
         'scroll-right': 'scroll-right 76s linear infinite',
         'scroll-right-news': 'scroll-right 32s linear infinite',
+        'scroll-left-news': 'scroll-left 32s linear infinite',
         'float-a': 'float-y 4.2s ease-in-out infinite',
         'float-b': 'float-y 5.1s ease-in-out infinite reverse',
         'float-c': 'float-y 3.6s ease-in-out infinite',

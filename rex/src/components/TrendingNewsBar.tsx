@@ -38,7 +38,7 @@ export function TrendingNewsBar({
   showBack = false,
   backTo = '/?tab=trenches',
 }: TrendingNewsBarProps) {
-  /** Two identical runs so scroll-right’s -50% → 0% loop is seamless. */
+  /** Two identical runs so scroll-left’s 0 → -50% loop is seamless. */
   const marqueeTags = [...TRENDING_NEWS_TAGS, ...TRENDING_NEWS_TAGS];
 
   return (
@@ -62,7 +62,7 @@ export function TrendingNewsBar({
 
       <div className="relative min-w-0 flex-1 overflow-hidden">
         <div
-          className="flex w-max items-center gap-1.5 pr-1 motion-reduce:animate-none animate-scroll-right-news hover:[animation-play-state:paused]"
+          className="flex w-max items-center gap-1.5 pr-1 motion-reduce:animate-none animate-scroll-left-news hover:[animation-play-state:paused]"
           aria-label="Trending news tags"
         >
           {marqueeTags.map((tag, index) => (
