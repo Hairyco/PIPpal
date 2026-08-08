@@ -24,6 +24,7 @@ import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { NotificationsButton } from '../components/NotificationsButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
+import { GrowthRoadmapSheet } from '../components/GrowthRoadmapSheet';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -345,6 +346,7 @@ export function DiscoverDeckPage() {
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
   const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
   const [growthTipOpen, setGrowthTipOpen] = useState(false);
+  const [roadmapTicker, setRoadmapTicker] = useState<string | null>(null);
   const growthStatusRef = useRef<HTMLButtonElement>(null);
   const growthHScrollRef = useRef<HTMLDivElement>(null);
   const growthTipId = useId();
@@ -464,6 +466,7 @@ export function DiscoverDeckPage() {
     if (tab !== 'growth') {
       setGrowthStageFilter('all');
       setGrowthTipOpen(false);
+      setRoadmapTicker(null);
     }
   };
 
@@ -1287,10 +1290,17 @@ export function DiscoverDeckPage() {
               const supplier = bottomTab === 'growth' ? nextSupplier(project) : null;
               return (
                 <li key={project.ticker}>
-                  <button
-                    type="button"
+                  <div
+                    role="link"
+                    tabIndex={0}
                     onClick={() => navigate(`/coin/${encodeURIComponent(project.ticker)}`)}
-                    className={`grid w-full items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03] ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        navigate(`/coin/${encodeURIComponent(project.ticker)}`);
+                      }
+                    }}
+                    className={`grid w-full cursor-pointer items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03] ${
                       isPrelaunchView
                         ? 'grid-cols-[42px_minmax(0,1fr)_minmax(6.5rem,8rem)]'
                         : isGrowthView
@@ -1393,13 +1403,18 @@ export function DiscoverDeckPage() {
                             {fill.pct}%
                           </p>
                         </div>
-                        <div className="min-w-0 text-right">
-                          <p className="truncate text-[12px] font-semibold tabular-nums leading-none text-white">
-                            {project.roadmapDone}/{project.roadmapTotal}
-                          </p>
-                          <p className="mt-1 truncate text-[10px] font-medium leading-none text-white/40">
-                            {project.roadmapMilestone}
-                          </p>
+                        <div className="flex min-w-0 justify-end">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRoadmapTicker(project.ticker);
+                            }}
+                            className="inline-flex h-8 max-w-full items-center justify-center rounded-full bg-[#1c1c1e] px-2.5 text-[11px] font-semibold text-[#d5ff69] ring-1 ring-[#c8ff3d]/35 transition hover:bg-[#c8ff3d]/10 hover:ring-[#c8ff3d]/55"
+                            aria-label={`Open $${project.ticker} roadmap`}
+                          >
+                            Roadmap
+                          </button>
                         </div>
                       </>
                     ) : isPrelaunchView ? (
@@ -1487,7 +1502,7 @@ export function DiscoverDeckPage() {
                         </div>
                       </>
                     )}
-                  </button>
+                  </div>
                 </li>
               );
             })}
@@ -1551,6 +1566,20 @@ export function DiscoverDeckPage() {
           })}
         </div>
       </nav>
+      {roadmapTicker
+        ? (() => {
+            const project =
+              growthRows.find((p) => p.ticker === roadmapTicker) ??
+              ctoProjects.find((p) => p.ticker === roadmapTicker) ??
+              null;
+            return project ? (
+              <GrowthRoadmapSheet
+                project={project}
+                onClose={() => setRoadmapTicker(null)}
+              />
+            ) : null;
+          })()
+        : null}
     </div>
     </AppSidebarProvider>
   );
