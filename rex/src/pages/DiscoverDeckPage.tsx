@@ -16,7 +16,7 @@ import {
   Rocket,
   Search,
   Users,
-  Vault,
+  Wallet,
 } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { SolanaLogo } from '../components/SolanaLogo';
@@ -109,7 +109,7 @@ const PRELAUNCH_FILTERS: {
 }[] = [
   { id: 'all', label: 'All', Icon: Layers },
   { id: 'live_soon', label: 'Live soon', Icon: Clock },
-  { id: 'with_vault', label: 'With vault', Icon: Vault },
+  { id: 'with_vault', label: 'With vault', Icon: Wallet },
 ];
 
 /** Marketing ladder shown on Growth — current stage per coin. */
