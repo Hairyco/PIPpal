@@ -8,7 +8,6 @@ import {
   ChevronUp,
   Clock,
   Compass,
-  Eye,
   Filter,
   Globe,
   Layers,
@@ -291,12 +290,6 @@ function ageLabel(project: CtoProject): string {
   if (hours < 1) return '<1h';
   if (hours < 24) return `${Math.max(1, Math.round(hours))}h`;
   return `${Math.round(hours / 24)}d`;
-}
-
-function viewingCount(project: CtoProject): string {
-  const n = 40 + salt(project.ticker + 'view', 900);
-  if (n >= 1000) return `${(n / 1000).toFixed(2)}K`;
-  return String(n);
 }
 
 function holdersNum(project: CtoProject): string {
@@ -1222,12 +1215,12 @@ export function DiscoverDeckPage() {
         </div>
       ) : isPrelaunchView ? (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_minmax(6.5rem,8rem)] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
-          <div className="col-span-2">Age / Holders / Viewing</div>
+          <div className="col-span-2">Age / Holders</div>
           <div className="text-right">X · TG · Web</div>
         </div>
       ) : isGrowthView ? null : (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
-          <div className="col-span-2">Age / Holders / Viewing</div>
+          <div className="col-span-2">Age / Holders</div>
           <div className="text-center">Chart</div>
           <div className="text-right">Vol / TXs</div>
           <div className="text-right">MC / {timeWindow}%</div>
@@ -1482,7 +1475,7 @@ export function DiscoverDeckPage() {
                 <div
                   className={`grid ${GROWTH_ROW_COLS} items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35`}
                 >
-                  <div className="col-span-2">Age / Holders / Viewing</div>
+                  <div className="col-span-2">Age / Holders</div>
                   <div className="text-center">Chart</div>
                   <div className="text-right">MW / Next</div>
                   <div className="text-right">Fill</div>
@@ -1557,10 +1550,6 @@ export function DiscoverDeckPage() {
                         <span className="inline-flex items-center gap-0.5">
                           <Users className="h-3 w-3" strokeWidth={2} />
                           {holdersNum(project)}
-                        </span>
-                        <span className="inline-flex items-center gap-0.5">
-                          <Eye className="h-3 w-3" strokeWidth={2} />
-                          {viewingCount(project)}
                         </span>
                       </div>
                     </div>
