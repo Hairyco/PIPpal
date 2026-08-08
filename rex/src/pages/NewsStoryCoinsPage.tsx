@@ -4,6 +4,7 @@ import { ArrowLeft, Flame, Rocket } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AppSidebar, AppSidebarProvider } from '../components/AppSidebar';
 import { Sparkline } from '../components/Sparkline';
+import { TrenchesToolbar } from '../components/TrenchesToolbar';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import {
   newsTagLabel,
@@ -100,7 +101,9 @@ export function NewsStoryCoinsPage() {
           </Link>
         </div>
 
-        <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 px-3 pb-1 pt-2 text-[10px] font-medium text-white/35">
+        <TrenchesToolbar />
+
+        <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 px-3 pb-1 pt-1 text-[10px] font-medium text-white/35">
           <div className="col-span-2">Coin / Ticker</div>
           <div className="text-center">Chart</div>
           <div className="text-right">MC / 24h</div>
