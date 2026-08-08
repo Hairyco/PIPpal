@@ -331,14 +331,14 @@ export function TrenchesFeed({
                         loading="lazy"
                       />
                       <span
-                        className="absolute bottom-0.5 right-0.5 grid h-[16px] w-[16px] place-items-center overflow-hidden rounded-[4px] bg-black/85 ring-1 ring-white/30"
+                        className="absolute bottom-0 left-0 grid h-[22px] w-[22px] place-items-center overflow-hidden rounded-[5px] bg-black/90 ring-1 ring-white/35"
                         title={project.sourceVenue}
                         aria-label={project.sourceVenue}
                       >
                         <img
                           src={venueLogo}
                           alt=""
-                          className="h-[12px] w-[12px] object-contain"
+                          className="h-full w-full object-cover"
                           loading="lazy"
                         />
                       </span>
