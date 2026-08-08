@@ -872,6 +872,172 @@ function buildChartMarkers(
   return markers.sort((a, b) => a.candleIndex - b.candleIndex);
 }
 
+const CHART_TIP_MAX_WIDTH = 240;
+const CHART_TIP_GAP = 8;
+const CHART_TIP_MARGIN = 12;
+
+function ChartMarkerPin({
+  marker,
+  leftPct,
+  topPct,
+  size,
+  showMigrateCaption,
+  open,
+  onToggle,
+}: {
+  marker: ChartMarker;
+  leftPct: number;
+  topPct: number;
+  size: number;
+  showMigrateCaption: boolean;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const tipId = useId();
+  const [tipStyle, setTipStyle] = useState<CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      const button = buttonRef.current;
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const width = Math.min(CHART_TIP_MAX_WIDTH, window.innerWidth - CHART_TIP_MARGIN * 2);
+      const half = width / 2;
+      let left = rect.left + rect.width / 2;
+      left = Math.max(
+        CHART_TIP_MARGIN + half,
+        Math.min(left, window.innerWidth - CHART_TIP_MARGIN - half),
+      );
+      let top = rect.bottom + CHART_TIP_GAP;
+      const estimatedHeight = 96;
+      if (top + estimatedHeight > window.innerHeight - CHART_TIP_MARGIN) {
+        top = Math.max(CHART_TIP_MARGIN, rect.top - CHART_TIP_GAP - estimatedHeight);
+      }
+      setTipStyle({
+        position: 'fixed',
+        top,
+        left,
+        width,
+        transform: 'translateX(-50%)',
+        zIndex: 80,
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onToggle();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onToggle]);
+
+  const tip =
+    open &&
+    typeof document !== 'undefined' &&
+    createPortal(
+      <>
+        <button
+          type="button"
+          aria-label="Close marker details"
+          className="fixed inset-0 z-[70] cursor-default bg-transparent"
+          onClick={onToggle}
+        />
+        <div
+          id={tipId}
+          role="tooltip"
+          style={tipStyle}
+          className="rounded-lg border border-white/12 bg-[#0c1018] px-3 py-2.5 text-left shadow-xl shadow-black/50"
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12]"
+              style={{ borderColor: marker.ring }}
+            >
+              {marker.logoSrc ? (
+                <img src={marker.logoSrc} alt="" className="h-[70%] w-[70%] object-contain" />
+              ) : (
+                <span className="text-[10px] font-bold" style={{ color: marker.ring }}>
+                  {marker.label}
+                </span>
+              )}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[12px] font-semibold text-white">
+                {marker.kind === 'migrate' ? 'Migration' : marker.label}
+              </p>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-white/55">{marker.title}</p>
+            </div>
+          </div>
+        </div>
+      </>,
+      document.body,
+    );
+
+  return (
+    <div
+      className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: `${leftPct}%`, top: `${topPct}%` }}
+    >
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggle();
+        }}
+        aria-expanded={open}
+        aria-describedby={open ? tipId : undefined}
+        aria-label={marker.title}
+        className="flex flex-col items-center outline-none"
+      >
+        <span
+          className="grid place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12] shadow-[0_2px_8px_rgba(0,0,0,0.55)] transition hover:brightness-110 active:scale-95"
+          style={{
+            width: size,
+            height: size,
+            borderColor: marker.ring,
+          }}
+        >
+          {marker.logoSrc ? (
+            <img
+              src={marker.logoSrc}
+              alt=""
+              className="h-[70%] w-[70%] object-contain"
+              draggable={false}
+            />
+          ) : (
+            <span
+              className="font-bold leading-none"
+              style={{ color: marker.ring, fontSize: size <= 16 ? 8 : 9 }}
+            >
+              {marker.label}
+            </span>
+          )}
+        </span>
+        {showMigrateCaption && marker.kind === 'migrate' ? (
+          <span className="mt-0.5 block text-center text-[8px] font-semibold uppercase tracking-wide text-sky-300/90">
+            Migrate
+          </span>
+        ) : null}
+      </button>
+      {tip}
+    </div>
+  );
+}
+
 function CandleChart({
   positive,
   variant = 'v2',
@@ -885,6 +1051,7 @@ function CandleChart({
 }) {
   const uid = useId().replace(/:/g, '');
   const gradientId = `ctoChartFade-${uid}`;
+  const [openMarkerId, setOpenMarkerId] = useState<string | null>(null);
   const candles = useMemo(() => {
     const out: { x: number; o: number; h: number; l: number; c: number; up: boolean }[] = [];
     const isV1 = variant === 'v1';
@@ -902,6 +1069,10 @@ function CandleChart({
     return out;
   }, [positive, variant]);
 
+  useEffect(() => {
+    setOpenMarkerId(null);
+  }, [markers, variant]);
+
   const min = Math.min(...candles.map((c) => c.l));
   const max = Math.max(...candles.map((c) => c.h));
   const span = Math.max(max - min, 1);
@@ -912,7 +1083,7 @@ function CandleChart({
 
   const y = (v: number) => pad + ((max - v) / span) * (h - pad * 2);
 
-  const markerSize = compact ? 16 : 20;
+  const markerSize = compact ? 16 : 22;
 
   return (
     <div className="relative h-full w-full">
@@ -961,50 +1132,61 @@ function CandleChart({
         })}
       </svg>
 
-      <div className="pointer-events-none absolute inset-0" aria-hidden={!markers.length}>
+      <div className={`absolute inset-0 ${compact ? 'pointer-events-none' : 'pointer-events-none'}`}>
         {markers.map((m) => {
           const candle = candles[Math.min(candles.length - 1, Math.max(0, m.candleIndex))];
           const cx = pad + m.candleIndex * slot + slot / 2;
           const cy = Math.max(markerSize / 2 + 2, y(candle.h) - (compact ? 6 : 10));
           const leftPct = (cx / w) * 100;
           const topPct = (cy / h) * 100;
-          return (
-            <div
-              key={m.id}
-              className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `${leftPct}%`, top: `${topPct}%` }}
-              title={m.title}
-            >
-              <span
-                className="grid place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12] shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
-                style={{
-                  width: markerSize,
-                  height: markerSize,
-                  borderColor: m.ring,
-                }}
+
+          if (compact) {
+            return (
+              <div
+                key={m.id}
+                className="absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${leftPct}%`, top: `${topPct}%` }}
+                title={m.title}
               >
-                {m.logoSrc ? (
-                  <img
-                    src={m.logoSrc}
-                    alt=""
-                    className="h-[70%] w-[70%] object-contain"
-                    draggable={false}
-                  />
-                ) : (
-                  <span
-                    className="text-[9px] font-bold leading-none"
-                    style={{ color: m.ring, fontSize: compact ? 8 : 9 }}
-                  >
-                    {m.label}
-                  </span>
-                )}
-              </span>
-              {!compact && m.kind === 'migrate' ? (
-                <span className="mt-0.5 block text-center text-[8px] font-semibold uppercase tracking-wide text-sky-300/90">
-                  Migrate
+                <span
+                  className="grid place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12] shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
+                  style={{
+                    width: markerSize,
+                    height: markerSize,
+                    borderColor: m.ring,
+                  }}
+                >
+                  {m.logoSrc ? (
+                    <img
+                      src={m.logoSrc}
+                      alt=""
+                      className="h-[70%] w-[70%] object-contain"
+                      draggable={false}
+                    />
+                  ) : (
+                    <span
+                      className="font-bold leading-none"
+                      style={{ color: m.ring, fontSize: 8 }}
+                    >
+                      {m.label}
+                    </span>
+                  )}
                 </span>
-              ) : null}
-            </div>
+              </div>
+            );
+          }
+
+          return (
+            <ChartMarkerPin
+              key={m.id}
+              marker={m}
+              leftPct={leftPct}
+              topPct={topPct}
+              size={markerSize}
+              showMigrateCaption={m.kind === 'migrate'}
+              open={openMarkerId === m.id}
+              onToggle={() => setOpenMarkerId((cur) => (cur === m.id ? null : m.id))}
+            />
           );
         })}
       </div>
