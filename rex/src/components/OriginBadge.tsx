@@ -105,33 +105,43 @@ export function RaidShareCaButton({ ticker }: { ticker: string }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={() => void onClick()}
-      disabled={busy}
-      className="raid-share-ca relative grid h-6 w-6 shrink-0 place-items-center rounded-md text-[#c8ff3d] transition hover:bg-[#c8ff3d]/10 disabled:opacity-60"
-      aria-label={
-        connected
-          ? copied
-            ? 'Raid link copied'
-            : `Share $${ticker} raid link`
-          : 'Connect wallet to share raid link'
-      }
-      title={
-        connected
-          ? copied
-            ? 'Copied earn link'
-            : `Share $${ticker} · earn on trades`
-          : 'Connect to share earn link'
-      }
-    >
-      <span className="raid-share-ca-glow pointer-events-none absolute inset-0 rounded-md" aria-hidden />
+    <span className="relative inline-flex shrink-0 items-center">
+      <button
+        type="button"
+        onClick={() => void onClick()}
+        disabled={busy}
+        className="raid-share-ca relative grid h-6 w-6 shrink-0 place-items-center rounded-md text-[#c8ff3d] transition hover:bg-[#c8ff3d]/10 disabled:opacity-60"
+        aria-label={
+          connected
+            ? copied
+              ? 'Raid link copied'
+              : `Share $${ticker} raid link`
+            : 'Connect wallet to share raid link'
+        }
+        title={
+          connected
+            ? copied
+              ? 'Raid link copied'
+              : `Share $${ticker} · earn on trades`
+            : 'Connect to share earn link'
+        }
+      >
+        <span className="raid-share-ca-glow pointer-events-none absolute inset-0 rounded-md" aria-hidden />
+        {copied ? (
+          <Check className="relative z-[1] h-3 w-3 text-[#d5ff69]" />
+        ) : (
+          <Share2 className="relative z-[1] h-3 w-3" />
+        )}
+      </button>
       {copied ? (
-        <Check className="relative z-[1] h-3 w-3 text-[#d5ff69]" />
-      ) : (
-        <Share2 className="relative z-[1] h-3 w-3" />
-      )}
-    </button>
+        <span
+          className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-20 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#c8ff3d] px-2 py-1 text-[10px] font-bold text-[#090b14] shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+          role="status"
+        >
+          Raid link copied
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -251,7 +261,7 @@ export function MigrateToV2Banner({
               className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#c8ff3d] px-3.5 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] sm:flex-none"
             >
               {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? 'Copied' : `Copy $${ticker} link`}
+              {copied ? 'Raid link copied' : `Copy $${ticker} link`}
             </button>
           )}
           <button
