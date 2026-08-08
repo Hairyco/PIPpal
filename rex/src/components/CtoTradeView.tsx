@@ -888,7 +888,7 @@ export function CtoTradeView({
 
   return (
     <div ref={topRef} id="cto-trade-top" className="relative w-full min-w-0 scroll-mt-2">
-      <div className="border-t border-white/[0.08] bg-[#05070d]">
+      <div className="border-y border-white/[0.08] bg-[#05070d]">
         <div className="mx-auto w-full max-w-7xl min-w-0 px-3 py-3 sm:px-5">
           <div className="flex min-w-0 items-start gap-3">
             <div
