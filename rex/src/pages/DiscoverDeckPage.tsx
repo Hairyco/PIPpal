@@ -799,7 +799,7 @@ export function DiscoverDeckPage() {
             </button>
           </div>
           <div className="overflow-x-auto overflow-y-visible py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max items-center gap-2 pr-1">
+            <div className="flex w-max items-center gap-2 px-0.5 py-0.5 pr-1.5">
               <button
                 type="button"
                 onClick={() => setGrowthStageFilter('all')}
