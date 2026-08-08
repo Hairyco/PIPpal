@@ -10,13 +10,39 @@ type TrendingNewsBarProps = {
   backTo?: string;
 };
 
+function TagPill({
+  tagId,
+  label,
+  active,
+}: {
+  tagId: NewsTagId;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <Link
+      to={`/news?tag=${encodeURIComponent(tagId)}`}
+      className={`inline-flex h-7 shrink-0 items-center rounded-full px-2.5 text-[11px] font-semibold transition ${
+        active
+          ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+          : 'bg-[#1c1c1e] text-white/65 ring-1 ring-white/10 hover:text-white'
+      }`}
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function TrendingNewsBar({
   activeTagId = null,
   showBack = false,
   backTo = '/?tab=trenches',
 }: TrendingNewsBarProps) {
+  /** Two identical runs so scroll-right’s -50% → 0% loop is seamless. */
+  const marqueeTags = [...TRENDING_NEWS_TAGS, ...TRENDING_NEWS_TAGS];
+
   return (
-    <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-white/[0.06] px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex shrink-0 items-center gap-2 border-b border-white/[0.06] px-3 py-2">
       {showBack ? (
         <Link
           to={backTo}
@@ -33,23 +59,21 @@ export function TrendingNewsBar({
         <Flame className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
         Trending News
       </Link>
-      <div className="flex w-max items-center gap-1.5 pr-1">
-        {TRENDING_NEWS_TAGS.map((tag) => {
-          const active = activeTagId === tag.id;
-          return (
-            <Link
-              key={tag.id}
-              to={`/news?tag=${encodeURIComponent(tag.id)}`}
-              className={`inline-flex h-7 shrink-0 items-center rounded-full px-2.5 text-[11px] font-semibold transition ${
-                active
-                  ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
-                  : 'bg-[#1c1c1e] text-white/65 ring-1 ring-white/10 hover:text-white'
-              }`}
-            >
-              {tag.label}
-            </Link>
-          );
-        })}
+
+      <div className="relative min-w-0 flex-1 overflow-hidden">
+        <div
+          className="flex w-max items-center gap-1.5 pr-1 motion-reduce:animate-none animate-scroll-right-news hover:[animation-play-state:paused]"
+          aria-label="Trending news tags"
+        >
+          {marqueeTags.map((tag, index) => (
+            <TagPill
+              key={`${tag.id}-${index}`}
+              tagId={tag.id}
+              label={tag.label}
+              active={activeTagId === tag.id}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
