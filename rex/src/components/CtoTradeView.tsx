@@ -1254,13 +1254,13 @@ export function CtoTradeView({
           <div
             id="trade-panel"
             ref={tradePanelRef}
-            className="scroll-mt-4 border-b border-white/[0.1] bg-[#05070d] p-3 lg:rounded-xl lg:border"
+            className="scroll-mt-4 border-b border-white/[0.1] bg-[#05070d] px-3 py-2 lg:rounded-xl lg:border"
           >
-            <div className="grid grid-cols-2 gap-1 rounded-lg bg-white/[0.03] p-1">
+            <div className="grid grid-cols-2 gap-1 rounded-md bg-white/[0.03] p-0.5">
               <button
                 type="button"
                 onClick={() => setSide('buy')}
-                className={`rounded-md py-2 text-xs font-bold ${
+                className={`rounded-md py-1.5 text-[11px] font-bold ${
                   side === 'buy' ? 'bg-emerald-400 text-black' : 'text-white/45'
                 }`}
               >
@@ -1269,7 +1269,7 @@ export function CtoTradeView({
               <button
                 type="button"
                 onClick={() => setSide('sell')}
-                className={`rounded-md py-2 text-xs font-bold ${
+                className={`rounded-md py-1.5 text-[11px] font-bold ${
                   side === 'sell' ? 'bg-rose-400 text-black' : 'text-white/45'
                 }`}
               >
@@ -1277,11 +1277,11 @@ export function CtoTradeView({
               </button>
             </div>
 
-            <div className="mt-3 flex items-center justify-between gap-2">
+            <div className="mt-2 flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => setSettingsOpen((open) => !open)}
-                className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold ${
+                className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[10px] font-semibold ${
                   settingsOpen
                     ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                     : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1295,17 +1295,17 @@ export function CtoTradeView({
             </div>
 
             {settingsOpen ? (
-              <div className="mt-2 rounded-lg border border-white/[0.08] bg-white/[0.03] p-2.5">
+              <div className="mt-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] p-2">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
                   Set max. slippage (%)
                 </p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <div className="mt-1 flex flex-wrap gap-1">
                   {SLIPPAGE_PRESETS.map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setSlippage(String(preset))}
-                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                      className={`rounded-md border px-2 py-1 text-[10px] font-semibold ${
                         Number(slippage) === preset
                           ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                           : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1315,14 +1315,14 @@ export function CtoTradeView({
                     </button>
                   ))}
                 </div>
-                <label className="mt-2 block">
+                <label className="mt-1.5 block">
                   <span className="sr-only">Custom slippage percent</span>
                   <div className="relative">
                     <input
                       value={slippage}
                       onChange={(event) => setSlippageSafe(event.target.value)}
                       inputMode="decimal"
-                      className="h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 pr-8 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
+                      className="h-8 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 pr-8 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
                       placeholder="5"
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/35">
@@ -1331,16 +1331,16 @@ export function CtoTradeView({
                   </div>
                 </label>
                 {highSlippage ? (
-                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                  <p className="mt-1 text-[10px] text-amber-300/90">
                     High slippage — you may get a worse fill on volatile coins.
                   </p>
                 ) : (
-                  <p className="mt-1.5 text-[10px] text-white/35">
+                  <p className="mt-1 text-[10px] text-white/35">
                     Trade fails if price moves more than this before confirmation.
                   </p>
                 )}
 
-                <label className="mt-3 block">
+                <label className="mt-2 block">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-white/35">
                     Priority fee (SOL)
                   </span>
@@ -1348,7 +1348,7 @@ export function CtoTradeView({
                     value={priorityFee}
                     onChange={(event) => setPriorityFee(event.target.value.replace(/[^\d.]/g, ''))}
                     inputMode="decimal"
-                    className="mt-1.5 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
+                    className="mt-1 h-8 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
                     placeholder="0.0005"
                   />
                 </label>
@@ -1357,7 +1357,7 @@ export function CtoTradeView({
 
             {side === 'buy' ? (
               <>
-                <label className="mt-3 block">
+                <label className="mt-2 block">
                   <span className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
                     <span>Amount (SOL)</span>
                     <span className="normal-case tracking-normal text-white/45">
@@ -1368,16 +1368,16 @@ export function CtoTradeView({
                   <input
                     value={amount}
                     onChange={(event) => setAmount(event.target.value.replace(/[^\d.]/g, ''))}
-                    className="mt-1.5 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base font-semibold outline-none focus:border-[#c8ff3d]/40"
+                    className="mt-1 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
                   />
                 </label>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   {BUY_PRESETS.map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setAmount(String(preset))}
-                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                      className={`rounded-md border px-2 py-1 text-[10px] font-semibold ${
                         amount === String(preset)
                           ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                           : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1390,7 +1390,7 @@ export function CtoTradeView({
                     type="button"
                     onClick={applyMaxBuy}
                     disabled={connected && maxBuySol <= 0}
-                    className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                    className={`rounded-md border px-2 py-1 text-[10px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
                       amount === formatTradeSolInput(maxBuySol) && maxBuySol > 0
                         ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                         : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1405,14 +1405,14 @@ export function CtoTradeView({
                   </button>
                 </div>
                 {connected && solBalance != null && !hasGasForTrade ? (
-                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                  <p className="mt-1 text-[10px] text-amber-300/90">
                     Need a little SOL left for gas — top up or lower the tip.
                   </p>
                 ) : null}
               </>
             ) : (
               <>
-                <label className="mt-3 block">
+                <label className="mt-2 block">
                   <span className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-white/35">
                     <span>Sell amount (%)</span>
                     <span className="normal-case tracking-normal text-white/45">
@@ -1425,16 +1425,16 @@ export function CtoTradeView({
                     onChange={(event) =>
                       setSellPct(event.target.value.replace(/[^\d.]/g, '').slice(0, 5))
                     }
-                    className="mt-1.5 h-11 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-base font-semibold outline-none focus:border-[#c8ff3d]/40"
+                    className="mt-1 h-9 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-semibold outline-none focus:border-[#c8ff3d]/40"
                   />
                 </label>
-                <div className="mt-2 flex flex-wrap gap-1.5">
+                <div className="mt-1.5 flex flex-wrap gap-1">
                   {SELL_PRESETS.filter((preset) => preset !== 100).map((preset) => (
                     <button
                       key={preset}
                       type="button"
                       onClick={() => setSellPct(String(preset))}
-                      className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold ${
+                      className={`rounded-md border px-2 py-1 text-[10px] font-semibold ${
                         sellPct === String(preset)
                           ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                           : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1447,7 +1447,7 @@ export function CtoTradeView({
                     type="button"
                     onClick={applyMaxSell}
                     disabled={connected && !hasGasForTrade}
-                    className={`rounded-md border px-2.5 py-1.5 text-[11px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+                    className={`rounded-md border px-2 py-1 text-[10px] font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
                       sellPct === '100'
                         ? 'border-[#c8ff3d]/40 bg-[#c8ff3d]/10 text-[#d5ff69]'
                         : 'border-white/[0.08] text-white/45 hover:text-white'
@@ -1464,7 +1464,7 @@ export function CtoTradeView({
                   </button>
                 </div>
                 {connected && solBalance != null && !hasGasForTrade ? (
-                  <p className="mt-1.5 text-[10px] text-amber-300/90">
+                  <p className="mt-1 text-[10px] text-amber-300/90">
                     Keep some SOL for gas — sells still need a fee to land.
                   </p>
                 ) : null}
@@ -1479,7 +1479,7 @@ export function CtoTradeView({
                   onClick={() => {
                     if (!connected) void connect();
                   }}
-                  className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
+                  className={`mt-2 flex h-9 w-full items-center justify-center rounded-lg text-[13px] font-bold disabled:opacity-60 ${
                     !connected || side === 'buy'
                       ? 'bg-emerald-400 text-black hover:bg-emerald-300'
                       : 'bg-rose-400 text-black hover:bg-rose-300'
@@ -1495,7 +1495,7 @@ export function CtoTradeView({
                 </button>
                 <Link
                   to={launchHref}
-                  className="mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] text-xs font-semibold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
+                  className="mt-1.5 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg border border-white/[0.1] text-[11px] font-semibold text-white/70 hover:border-[#c8ff3d]/35 hover:text-[#d5ff69]"
                 >
                   <Flame className="h-3.5 w-3.5" />
                   Or launch ${project.ticker} on CTOgo
@@ -1508,7 +1508,7 @@ export function CtoTradeView({
                 onClick={() => {
                   if (!connected) void connect();
                 }}
-                className={`mt-3 flex h-11 w-full items-center justify-center rounded-lg text-sm font-bold disabled:opacity-60 ${
+                className={`mt-2 flex h-9 w-full items-center justify-center rounded-lg text-[13px] font-bold disabled:opacity-60 ${
                   !connected || side === 'buy'
                     ? 'bg-emerald-400 text-black hover:bg-emerald-300'
                     : 'bg-rose-400 text-black hover:bg-rose-300'
@@ -1523,7 +1523,7 @@ export function CtoTradeView({
                     : `Sell $${project.ticker}`}
               </button>
             )}
-            <p className="mt-2 text-center text-[10px] text-white/30">
+            <p className="mt-1.5 text-center text-[10px] text-white/30">
               {isExternal
                 ? `CTOgo takes a platform fee on every trade${
                     marketingAddress ? ' · marketing cut fills the wallet' : ''
