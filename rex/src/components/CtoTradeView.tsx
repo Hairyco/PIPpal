@@ -25,6 +25,7 @@ import {
   launchCtoHref,
   resolveMarketingWalletAddress,
   resolveTradeMint,
+  resolveV1Liquidity,
   resolveV1Mint,
   shortMint,
   solscanAccountUrl,
@@ -204,10 +205,45 @@ type CoinTrackerMetric = {
   detail: string;
 };
 
+type TrackerProject = Pick<
+  TradeViewProject,
+  'ticker' | 'holders' | 'origin' | 'sourceVenue' | 'v1Mint' | 'v1Liquidity' | 'volume24h' | 'launchInHours'
+>;
+
+/** Still on bonding curve vs graduated to AMM liquidity. */
+function isOnBondingCurve(project: TrackerProject): boolean {
+  if (project.sourceVenue === 'Pump.fun') return true;
+  if (project.sourceVenue === 'Raydium' || project.sourceVenue === 'PumpSwap') return false;
+  if (hasLinkedV1(project)) return false;
+  if (project.sourceVenue === 'CTOgo') return !project.v1Mint;
+  // Moonshot / LetsBonk — treat older live listings as migrated
+  if (project.launchInHours == null) return false;
+  return true;
+}
+
+function bondingProgressPct(project: TrackerProject): number {
+  const seed = hashSeed(project.ticker);
+  // Younger coins start lower on the curve; seed keeps demos stable per ticker
+  const ageBias =
+    project.launchInHours == null
+      ? 90
+      : Math.max(8, Math.min(92, 100 - Math.round(project.launchInHours * 1.4)));
+  return Math.max(1, Math.min(99, Math.round(ageBias * 0.55 + (seed % 40))));
+}
+
+function formatLiquidityLabel(project: TrackerProject): string {
+  const raw = resolveV1Liquidity(project);
+  if (raw === 'Burned') {
+    // Graduated CTOgo — demo pool depth from volume
+    const seed = hashSeed(project.ticker);
+    const k = 20 + (seed % 180);
+    return `$${k}K`;
+  }
+  return raw.startsWith('$') ? raw : `$${raw}`;
+}
+
 /** GMGN-style risk/holder chips — demo values until live indexer. */
-function coinTrackerMetrics(
-  project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>,
-): CoinTrackerMetric[] {
+function coinTrackerMetrics(project: TrackerProject): CoinTrackerMetric[] {
   const seed = hashSeed(project.ticker);
   const holdersRaw = String(project.holders || '').replace(/,/g, '');
   const holdersNum = Number(holdersRaw);
@@ -220,10 +256,25 @@ function coinTrackerMetrics(
         ? project.holders
         : String(80 + (seed % 420));
 
-  const rug =
-    typeof project.devDumpedPct === 'number'
-      ? Math.max(0, Math.min(99, Math.round(project.devDumpedPct)))
-      : seed % 12;
+  const onCurve = isOnBondingCurve(project);
+  const progressPct = bondingProgressPct(project);
+  const progressOrLiquidity: CoinTrackerMetric = onCurve
+    ? {
+        id: 'progress',
+        label: 'Progress',
+        value: `${progressPct}%`,
+        tone: progressPct >= 70 ? 'good' : 'default',
+        detail:
+          'Bonding-curve fill toward graduation. At 100% the coin migrates and this switches to pool liquidity.',
+      }
+    : {
+        id: 'liquidity',
+        label: 'Liquidity',
+        value: formatLiquidityLabel(project),
+        tone: 'default',
+        detail:
+          'Locked / pool liquidity after bonding-curve migration. Depth available for buys and sells on the AMM.',
+      };
 
   return [
     {
@@ -234,22 +285,7 @@ function coinTrackerMetrics(
       detail:
         'Share of supply still held by the deployer / creator wallet. Higher can mean more dump risk if they sell.',
     },
-    {
-      id: 'dev-migrated',
-      label: 'Dev Migrated',
-      value: String(1 + (seed % 24)),
-      tone: 'default',
-      detail:
-        'Count of other tokens this same deployer has launched or migrated. Useful for spotting serial launchers.',
-    },
-    {
-      id: 'rug',
-      label: 'Rug',
-      value: `${rug}%`,
-      tone: 'default',
-      detail:
-        'Estimated sell pressure from the deployer (tokens sold vs peak holdings). Higher = more of the supply already dumped.',
-    },
+    progressOrLiquidity,
     {
       id: 'top-10',
       label: 'Top 10',
@@ -401,12 +437,21 @@ function CoinTrackerItem({
 function CoinTrackerRow({
   project,
 }: {
-  project: Pick<TradeViewProject, 'ticker' | 'holders' | 'devDumpedPct'>;
+  project: TrackerProject;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const trackers = useMemo(
     () => coinTrackerMetrics(project),
-    [project.ticker, project.holders, project.devDumpedPct],
+    [
+      project.ticker,
+      project.holders,
+      project.origin,
+      project.sourceVenue,
+      project.v1Mint,
+      project.v1Liquidity,
+      project.volume24h,
+      project.launchInHours,
+    ],
   );
 
   return (
