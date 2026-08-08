@@ -37,7 +37,7 @@ const GROWTH_TIP_MAX_WIDTH = 280;
 const GROWTH_TIP_MARGIN = 12;
 const GROWTH_TIP_GAP = 8;
 const GROWTH_STATUS_TIP =
-  'Each coin sits on a marketing stage. Trade fees fill the marketing wallet; Polessia spends in order — Telegram, X, DexScreener, DexTools, then broader ads. Tap a logo to filter.';
+  'Trades fund each coin’s marketing wallet. Spend rolls out in order — Telegram, X, Dex, then ads. Tap a logo to filter.';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
