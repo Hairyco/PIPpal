@@ -611,3 +611,17 @@ button:hover .growth-spark {
     raid-share-glow-subtle 3.8s ease-in-out 3s infinite;
 }
 
+@keyframes news-launch-fade {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.news-launch-fade {
+  animation: news-launch-fade 3.2s ease-in-out infinite;
+}
+

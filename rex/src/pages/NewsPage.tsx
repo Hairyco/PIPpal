@@ -19,8 +19,28 @@ function logoForTicker(ticker: string): string | null {
   return hit?.logo ?? null;
 }
 
+function projectForTicker(ticker: string) {
+  return ctoProjects.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase()) ?? null;
+}
+
+function createLaunchHref(story: TrendingNewsStory): string {
+  const params = new URLSearchParams({ mode: 'create' });
+  const first = story.tickers?.[0];
+  if (first) {
+    const project = projectForTicker(first);
+    params.set('ticker', first);
+    params.set('name', project?.name ?? first);
+  } else {
+    const label = newsTagLabel(story.tagId);
+    params.set('name', label);
+    params.set('ticker', label.replace(/[^A-Za-z0-9]/g, '').slice(0, 8).toUpperCase() || 'CTO');
+  }
+  return `/launch?${params.toString()}`;
+}
+
 function StoryCard({ story }: { story: TrendingNewsStory }) {
   const tickers = story.tickers ?? [];
+  const launchHref = createLaunchHref(story);
   return (
     <article className="overflow-hidden rounded-2xl border border-white/[0.08] bg-gradient-to-b from-[#161618] to-[#0e0e10]">
       <div className="flex items-start justify-between gap-3 border-b border-white/[0.06] px-3.5 py-3">
@@ -76,7 +96,12 @@ function StoryCard({ story }: { story: TrendingNewsStory }) {
                 >
                   {logo ? (
                     <span className="h-6 w-6 overflow-hidden rounded-full ring-1 ring-white/15">
-                      <img src={logo} alt="" className="h-full w-full object-cover" loading="lazy" />
+                      <img
+                        src={logo}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
                     </span>
                   ) : (
                     <span className="grid h-6 w-6 place-items-center rounded-full bg-white/10 text-[9px] font-bold text-white/50">
@@ -92,8 +117,8 @@ function StoryCard({ story }: { story: TrendingNewsStory }) {
 
         <div className="mt-3.5 flex items-center justify-end border-t border-white/[0.06] pt-3">
           <Link
-            to="/launch?mode=create"
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+            to={launchHref}
+            className="news-launch-fade inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14]"
           >
             <Rocket className="h-3.5 w-3.5" strokeWidth={2.5} />
             Launch
