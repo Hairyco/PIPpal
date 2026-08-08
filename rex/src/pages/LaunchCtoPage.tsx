@@ -950,7 +950,7 @@ export function LaunchCtoPage() {
                         {
                           icon: ShieldCheck,
                           title: 'Verified CTO Status',
-                          detail: 'Secure your canonical social links and holder dashboard.',
+                          detail: 'Secure your social links and holder dashboard.',
                         },
                       ] as const
                     ).map(({ icon: Icon, title, detail }) => (
