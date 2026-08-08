@@ -51,7 +51,7 @@ const GROWTH_ROW_COLS =
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
-type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'trenches';
+type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'trenches' | 'bot';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
 type SortDir = 'asc' | 'desc';
 type TokenSortId =
@@ -401,6 +401,19 @@ function GrowthIcon({ className = '' }: { className?: string }) {
   );
 }
 
+function BotIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <rect x="5" y="8" width="14" height="11" rx="3" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 4.5v3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <circle cx="12" cy="4.2" r="1.2" fill="currentColor" />
+      <circle cx="9.2" cy="13" r="1.15" fill="currentColor" />
+      <circle cx="14.8" cy="13" r="1.15" fill="currentColor" />
+      <path d="M9 16.2h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function AliveNavGlyph({
   alive,
   children,
@@ -534,7 +547,8 @@ export function DiscoverDeckPage() {
       q === 'discover' ||
       q === 'prelaunch' ||
       q === 'growth' ||
-      q === 'portfolio'
+      q === 'portfolio' ||
+      q === 'bot'
     ) {
       return q as BottomTab;
     }
@@ -549,7 +563,8 @@ export function DiscoverDeckPage() {
       q === 'discover' ||
       q === 'prelaunch' ||
       q === 'growth' ||
-      q === 'portfolio'
+      q === 'portfolio' ||
+      q === 'bot'
     ) {
       setBottomTab(q);
     }
@@ -577,10 +592,12 @@ export function DiscoverDeckPage() {
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
   const isTrenchesView = bottomTab === 'trenches';
+  const isBotView = bottomTab === 'bot';
   const hideDiscoverChrome =
     bottomTab === 'growth' ||
     bottomTab === 'trenches' ||
     bottomTab === 'prelaunch' ||
+    bottomTab === 'bot' ||
     isPortfolioView;
 
   const sortOptions = isGrowthView
@@ -957,6 +974,24 @@ export function DiscoverDeckPage() {
             Launch CTO
           </Link>
         </div>
+      ) : isBotView ? (
+        <div className="flex shrink-0 items-center justify-between gap-2 px-3 pb-1 pt-2.5">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-wide text-white/35">
+              CTOgo Bot
+            </p>
+            <p className="mt-0.5 text-[13px] font-semibold text-white/70">Trade · alerts · raids</p>
+          </div>
+          <a
+            href="https://t.me/"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+          >
+            <img src="/images/partners/telegram.svg" alt="" className="h-3.5 w-3.5" />
+            Open bot
+          </a>
+        </div>
       ) : (
         <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
           <Link
@@ -975,7 +1010,7 @@ export function DiscoverDeckPage() {
       )}
 
       {/* Chain chips + sources */}
-      {!isPortfolioView && !isTrenchesView ? (
+      {!isPortfolioView && !isTrenchesView && !isBotView ? (
       <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
         <div className="flex shrink-0 gap-2">
           {CHAINS.map((c) => {
@@ -1037,7 +1072,7 @@ export function DiscoverDeckPage() {
       ) : null}
 
       {/* Filter row */}
-      {isTrenchesView ? null : isPortfolioView ? (
+      {isTrenchesView || isBotView ? null : isPortfolioView ? (
         <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-1">
           <TokenSortControl
             options={sortOptions}
@@ -1265,7 +1300,7 @@ export function DiscoverDeckPage() {
       )}
 
       {/* Column headers */}
-      {isTrenchesView ? null : isPortfolioView ? (
+      {isTrenchesView || isBotView ? null : isPortfolioView ? (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
           <div className="col-span-2">Holding / Qty</div>
           <div className="text-center">Chart</div>
@@ -1304,6 +1339,34 @@ export function DiscoverDeckPage() {
             onOpenCoin={(ticker) => navigate(`/coin/${encodeURIComponent(ticker)}`)}
             onBuy={(ticker) => navigate(`/coin/${encodeURIComponent(ticker)}`)}
           />
+        ) : isBotView ? (
+          <div className="px-5 py-12 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.06] text-white/80 ring-1 ring-white/10">
+              <BotIcon className="h-7 w-7" />
+            </span>
+            <p className="mt-4 text-[17px] font-bold text-white">CTOgo Bot</p>
+            <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-white/45">
+              Auto-buy, alerts, and raid helpers for CTOgo coins. Connect a wallet when the bot goes
+              live — this tab is the home for it.
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-2.5">
+              <a
+                href="https://t.me/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14]"
+              >
+                <img src="/images/partners/telegram.svg" alt="" className="h-4 w-4" />
+                Open in Telegram
+              </a>
+              <Link
+                to="/launch?mode=create"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] px-5 text-[13px] font-semibold text-white/85"
+              >
+                Create a coin first
+              </Link>
+            </div>
+          </div>
         ) : isPortfolioView ? (
           !connected ? (
             <div className="px-5 py-12 text-center">
@@ -1781,12 +1844,13 @@ export function DiscoverDeckPage() {
 
       {/* Bottom nav — Growth centered */}
       <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="pointer-events-auto flex w-full max-w-[26rem] items-end justify-between rounded-[22px] bg-[#1c1c1e]/92 px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
+        <div className="pointer-events-auto flex w-full max-w-[28rem] items-end justify-between rounded-[22px] bg-[#1c1c1e]/92 px-1.5 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
               { id: 'trenches' as const, label: 'Trenches', kind: 'trenches' as const },
               { id: 'growth' as const, label: 'Growth', kind: 'growth' as const },
+              { id: 'bot' as const, label: 'Bot', kind: 'bot' as const },
               { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
               { id: 'portfolio' as const, label: 'Portfolio', kind: 'lucide' as const, Lucide: Briefcase },
             ] as const
@@ -1797,7 +1861,7 @@ export function DiscoverDeckPage() {
                 key={item.id}
                 type="button"
                 onClick={() => selectBottom(item.id)}
-                className={`flex w-[19%] flex-col items-center gap-0.5 transition ${
+                className={`flex w-[16%] flex-col items-center gap-0.5 transition ${
                   active ? 'text-[#c8ff3d]' : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
@@ -1807,6 +1871,8 @@ export function DiscoverDeckPage() {
                     <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
                   ) : item.kind === 'growth' ? (
                     <GrowthIcon className="h-[18px] w-[18px]" />
+                  ) : item.kind === 'bot' ? (
+                    <BotIcon className="h-[18px] w-[18px]" />
                   ) : (
                     <TrenchesHelmetIcon className="h-[18px] w-[18px]" />
                   )}
