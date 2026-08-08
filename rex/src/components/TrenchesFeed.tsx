@@ -13,7 +13,11 @@ import {
   Users,
   Zap,
 } from 'lucide-react';
-import type { CtoProject } from '../data/ctoProjects';
+import {
+  SOURCE_VENUE_FILTERS,
+  type CtoProject,
+  type SourceVenue,
+} from '../data/ctoProjects';
 
 export type TrenchesTab = 'new' | 'almost' | 'migrated';
 
@@ -35,6 +39,51 @@ const toolBtn =
   'inline-flex h-8 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-white/55 ring-1 ring-white/10';
 const toolPill =
   'inline-flex h-8 shrink-0 items-center rounded-full bg-[#1c1c1e] text-white/55 ring-1 ring-white/10';
+
+const VENUE_LOGO: Record<SourceVenue, string> = Object.fromEntries(
+  SOURCE_VENUE_FILTERS.filter((v) => v.id !== 'all' && v.logoSrc).map((v) => [
+    v.id,
+    v.logoSrc as string,
+  ]),
+) as Record<SourceVenue, string>;
+
+/** Bundler % — demo until live sniper/bundle feeds. */
+function bundlePct(project: CtoProject): number {
+  return salt(project.ticker + 'bundle', 55);
+}
+
+/**
+ * Dev holdings left. CTOs / fully dumped = 0 (sold all).
+ * External dump % maps to leftover; otherwise demo salt.
+ */
+function devHoldPct(project: CtoProject): number {
+  if (project.origin === 'native_cto' || project.origin === 'external_cto') {
+    if (project.devDumpedPct != null) {
+      return Math.max(0, Math.min(100, 100 - project.devDumpedPct));
+    }
+    return 0;
+  }
+  if (project.devDumpedPct != null && project.devDumpedPct >= 99) return 0;
+  return salt(project.ticker + 'devhold', 18);
+}
+
+function isDevSoldAll(project: CtoProject): boolean {
+  if (project.origin === 'native_cto') return true;
+  if (project.devDumpedPct != null && project.devDumpedPct >= 95) return true;
+  return devHoldPct(project) <= 0;
+}
+
+/** GMGN-style avatar ring: green clean → amber mid → rose heavy bundle. */
+function bundleRingClass(pct: number): string {
+  if (pct >= 35) return 'ring-[2.5px] ring-rose-500';
+  if (pct >= 18) return 'ring-[2.5px] ring-amber-400';
+  if (pct >= 8) return 'ring-[2.5px] ring-yellow-300/90';
+  return 'ring-[2.5px] ring-emerald-400';
+}
+
+function venueLogoSrc(project: CtoProject): string {
+  return VENUE_LOGO[project.sourceVenue] ?? '/images/exchanges/ctogo.svg';
+}
 
 function salt(str: string, mod = 1000): number {
   let s = 0;
@@ -144,10 +193,11 @@ function XLogo({ className = '' }: { className?: string }) {
 
 function MetricPills({ project }: { project: CtoProject }) {
   const top10 = 4 + salt(project.ticker + 'a', 20);
-  const devHold = salt(project.ticker + 'b', 12);
+  const hold = devHoldPct(project);
   const insider = salt(project.ticker + 'c', 18);
   const buyPct = 2 + salt(project.ticker + 'd', 9);
   const sellPct = 3 + salt(project.ticker + 'e', 14);
+  const bundled = bundlePct(project);
   const pill =
     'inline-flex items-center gap-0.5 rounded-[4px] px-1 py-px text-[9px] font-bold tabular-nums leading-none';
   return (
@@ -168,18 +218,25 @@ function MetricPills({ project }: { project: CtoProject }) {
         DS
       </span>
       <span className="relative inline-flex">
+        {hold > 0 ? (
+          <span
+            className="absolute left-1/2 top-[-3px] h-1 w-1 -translate-x-1/2 rounded-full bg-rose-500"
+            aria-hidden
+          />
+        ) : null}
         <span
-          className="absolute left-1/2 top-[-3px] h-1 w-1 -translate-x-1/2 rounded-full bg-rose-500"
-          aria-hidden
-        />
-        <span className={`${pill} bg-rose-500/20 text-rose-400`} title="Dev holding">
+          className={`${pill} ${
+            hold <= 0 ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
+          }`}
+          title={hold <= 0 ? 'Dev sold all' : 'Dev holding'}
+        >
           <Ghost className="h-2.5 w-2.5 shrink-0" strokeWidth={2.5} />
-          {devHold}%
+          {hold}%
         </span>
       </span>
       <span
         className={`${pill} bg-white/[0.06] text-white/55`}
-        title="Insiders"
+        title={`Bundlers ${bundled}%`}
       >
         <Crosshair className="h-2.5 w-2.5 shrink-0" strokeWidth={2.5} />
         {insider}%
@@ -331,6 +388,9 @@ export function TrenchesFeed({
             const age = trenchesAgeLabel(project);
             const trophy = salt(project.ticker + 'cup', 4);
             const bags = `${salt(project.ticker + 'bag', 3)}/${1 + salt(project.ticker + 'bag2', 4)}`;
+            const bundled = bundlePct(project);
+            const showCto = isDevSoldAll(project);
+            const venueLogo = venueLogoSrc(project);
             return (
               <li key={project.ticker}>
                 <div className="flex gap-2.5 border-b border-white/[0.06] px-3 py-2.5 active:bg-white/[0.03]">
@@ -339,8 +399,15 @@ export function TrenchesFeed({
                     onClick={() => onOpenCoin(project.ticker)}
                     className="relative shrink-0"
                     aria-label={`Open $${project.ticker}`}
+                    title={`Bundlers ${bundled}% · ${project.sourceVenue}${
+                      showCto ? ' · CTO (dev sold)' : ''
+                    }`}
                   >
-                    <span className="block h-[52px] w-[52px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ring-1 ring-white/10">
+                    <span
+                      className={`block h-[52px] w-[52px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ${bundleRingClass(
+                        bundled,
+                      )}`}
+                    >
                       <img
                         src={project.logo}
                         alt=""
@@ -348,8 +415,25 @@ export function TrenchesFeed({
                         loading="lazy"
                       />
                     </span>
-                    <span className="absolute -bottom-0.5 -right-0.5 rounded-full bg-emerald-500 px-1 py-px text-[8px] font-bold leading-none text-black ring-2 ring-black">
-                      ●
+                    {showCto ? (
+                      <span
+                        className="absolute -left-1 -top-1 rounded-[4px] bg-[#c8ff3d] px-1 py-px text-[8px] font-black uppercase leading-none tracking-wide text-[#090b14] ring-2 ring-black"
+                        title="CTO — original dev sold all holdings"
+                      >
+                        CTO
+                      </span>
+                    ) : null}
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 grid h-[18px] w-[18px] place-items-center overflow-hidden rounded-full bg-black ring-2 ring-black"
+                      title={project.sourceVenue}
+                      aria-label={project.sourceVenue}
+                    >
+                      <img
+                        src={venueLogo}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
                     </span>
                   </button>
 
@@ -364,6 +448,14 @@ export function TrenchesFeed({
                           <p className="truncate text-[14px] font-bold leading-none text-white">
                             {project.ticker}{' '}
                             <span className="font-medium text-white/40">{project.name}</span>
+                            {showCto ? (
+                              <span
+                                className="ml-1.5 inline-flex translate-y-[-1px] items-center rounded-[3px] bg-[#c8ff3d]/15 px-1 py-px text-[9px] font-black uppercase tracking-wide text-[#d5ff69] ring-1 ring-[#c8ff3d]/35"
+                                title="CTO — original dev sold all holdings"
+                              >
+                                CTO
+                              </span>
+                            ) : null}
                           </p>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                             <span className="text-[11px] font-semibold tabular-nums text-emerald-400">
