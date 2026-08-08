@@ -11,11 +11,13 @@ import {
   Wallet,
 } from 'lucide-react';
 import { PolessiaLogo } from './PolessiaLogo';
+import { CloneProgressBar } from './CloneProgressBar';
 import {
   PostLaunchSocialsTab,
   type DashWebsiteKind,
 } from './PostLaunchSocialsTab';
 import { PostLaunchAffiliateTab } from './PostLaunchAffiliateTab';
+import { useCloneWebsiteJob } from '../utils/useCloneWebsiteJob';
 import {
   POLESSIA_DEFAULT_SELECTED,
   POLESSIA_DEFAULT_SELECTED_DEX_PACKS,
@@ -137,6 +139,7 @@ export function PostLaunchDashboard({
   showReadyCarousel = true,
   onAttachMarketingWallet,
 }: PostLaunchDashboardProps) {
+  const cloneJob = useCloneWebsiteJob();
   const tabs = mode === 'add' ? LIST_TABS : LAUNCH_TABS;
   const [tab, setTab] = useState<DashTab>(initialTab);
   const [roadmapMode, setRoadmapMode] = useState<'polessia' | 'manual'>('polessia');
@@ -707,6 +710,15 @@ export function PostLaunchDashboard({
               </span>
               <span className="shrink-0 text-[11px] font-bold text-[#c8ff3d]">Sign up →</span>
             </button>
+          ) : null}
+
+          {cloneJob && (cloneJob.status === 'cloning' || cloneJob.status === 'ready') ? (
+            <section>
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-white/40">
+                Website clone
+              </p>
+              <CloneProgressBar job={cloneJob} />
+            </section>
           ) : null}
 
           <section className="overflow-hidden rounded-xl border border-white/[0.08] bg-white/[0.02]">

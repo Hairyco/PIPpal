@@ -117,6 +117,8 @@ export type CtoProject = {
   promoted?: boolean;
   /** Discord invite URL. Omit for auto demo; set '' to hide. */
   discordUrl?: string;
+  /** Public project website — used as a clone source when set. */
+  websiteUrl?: string;
 };
 
 export const ORIGIN_META: Record<
@@ -204,6 +206,33 @@ export function matchesSourceVenue(
 ): boolean {
   if (venue === 'all') return true;
   return project.sourceVenue === venue;
+}
+
+/** Demo / catalog websites available as clone sources. */
+const WEBSITE_BY_TICKER: Partial<Record<string, string>> = {
+  MPEG: 'https://moonpigeon.fun',
+  TFROG: 'https://terminalfrog.xyz',
+  LMARS: 'https://lunarmars.io',
+  CALL: 'https://callthebottom.com',
+  GOB: 'https://pixelgoblin.fun',
+  EXIT: 'https://exitliquidity.fun',
+  NITE: 'https://nightshift.sol',
+  DUMP: 'https://dumpdaily.fun',
+  GHOST: 'https://ghostfounder.xyz',
+  CABAL: 'https://cabalcoin.fun',
+  AAI: 'https://agentai.fun',
+  CBACK: 'https://cashbackcat.xyz',
+  RRBT: 'https://raidrabbit.fun',
+};
+
+export function websiteForProject(project: CtoProject): string | undefined {
+  const explicit = project.websiteUrl?.trim();
+  if (explicit) return explicit;
+  return WEBSITE_BY_TICKER[project.ticker];
+}
+
+export function projectsWithWebsites(): CtoProject[] {
+  return ctoProjects.filter((p) => Boolean(websiteForProject(p)));
 }
 
 /** Day-one hybrid catalog — fills the board with native + tracked external CTOs. */

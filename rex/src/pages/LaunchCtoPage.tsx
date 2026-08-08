@@ -26,6 +26,7 @@ import {
 import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
+import { CloneProgressBar } from '../components/CloneProgressBar';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { PostSuccessCommunitySetup } from '../components/PostSuccessCommunitySetup';
@@ -34,6 +35,10 @@ import { useConnectedWallet, ConnectWalletButton } from '../components/ConnectWa
 import { WebsitePreview, WebsitePreviewOverlay } from '../components/WebsitePreview';
 import { CLAIM_FEE, MARKETING_WALLET_ATTACH_FEE_USD, CLONE_HOSTING_FEE_SOL } from '../data/claimPricing';
 import { loadUserCtoLaunch, saveUserCtoLaunch } from '../utils/userCtoLaunch';
+import {
+  startCloneWebsiteJob,
+} from '../utils/cloneWebsiteJob';
+import { useCloneWebsiteJob } from '../utils/useCloneWebsiteJob';
 import {
   CREATOR_FEE_BPS,
   CREATOR_FEE_MODES,
@@ -60,7 +65,11 @@ import {
   readImageFile,
 } from '../utils/ctoCollateralGenerate';
 import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
-import { demoMarketingWalletAddress } from '../data/ctoProjects';
+import {
+  demoMarketingWalletAddress,
+  projectsWithWebsites,
+  websiteForProject,
+} from '../data/ctoProjects';
 
 /** create = new mint (no CA); cto = takeover from existing CA; add = list existing. */
 type LaunchMode = 'create' | 'cto' | 'add';
@@ -117,6 +126,8 @@ export function LaunchCtoPage() {
   const [mode, setMode] = useState<LaunchMode>('create');
   const [step, setStep] = useState<FlowStep>('coin');
   const [listNotice, setListNotice] = useState<string | null>(null);
+  const cloneJob = useCloneWebsiteJob();
+  const [clonePickerTicker, setClonePickerTicker] = useState<string | null>(null);
   const [cloneProgress, setCloneProgress] = useState(0);
   const [cloneStatusLabel, setCloneStatusLabel] = useState('');
   const [marketingAttached, setMarketingAttached] = useState(false);
@@ -834,33 +845,50 @@ export function LaunchCtoPage() {
     setEditSite(true);
   };
 
-  /** Builds a clone preview and opens the full-page viewer. */
-  const generateWebsite = async () => {
+  /** Builds a clone preview — runs in the background so dashboard can show progress. */
+  const generateWebsite = async (overrideUrl?: string) => {
     if (websiteKind !== 'clone') return;
-    if (!cloneUrl.trim() && !website.trim()) return;
+    const url = (overrideUrl ?? cloneUrl.trim() ?? website.trim()).trim();
+    if (!url) return;
+    setWebsiteKind('clone');
+    setCloneUrl(url);
+    setSiteGenerated(false);
     setGeneratingSite(true);
     setCloneProgress(0);
-    setCloneStatusLabel('Fetching page…');
-    try {
-      if (!cloneUrl.trim() && website.trim()) setCloneUrl(website.trim());
-      const stages = [
-        { pct: 22, label: 'Fetching page…' },
-        { pct: 48, label: 'Cloning layout…' },
-        { pct: 72, label: 'Applying brand…' },
-        { pct: 90, label: 'Building preview…' },
-        { pct: 100, label: 'Clone ready' },
-      ] as const;
-      for (const stage of stages) {
-        setCloneStatusLabel(stage.label);
-        setCloneProgress(stage.pct);
-        await new Promise((r) => window.setTimeout(r, 380));
-      }
-      setSiteGenerated(true);
-      setPreviewOpen(true);
-    } finally {
-      setGeneratingSite(false);
-    }
+    setCloneStatusLabel('Starting clone…');
+    setClonePickerTicker(null);
+
+    const source = projectsWithWebsites().find(
+      (p) => websiteForProject(p)?.toLowerCase() === url.toLowerCase(),
+    );
+
+    startCloneWebsiteJob({
+      sourceUrl: url,
+      sourceTicker: source?.ticker,
+      sourceName: source?.name,
+      sourceLogo: source?.logo,
+    });
   };
+
+  useEffect(() => {
+    if (!cloneJob) return;
+    setCloneProgress(cloneJob.progress);
+    setCloneStatusLabel(cloneJob.statusLabel);
+    if (cloneJob.sourceUrl && cloneJob.sourceUrl !== cloneUrl) {
+      setCloneUrl(cloneJob.sourceUrl);
+    }
+    if (cloneJob.status === 'cloning') {
+      setWebsiteKind('clone');
+      setGeneratingSite(true);
+      setSiteGenerated(false);
+    } else if (cloneJob.status === 'ready') {
+      setWebsiteKind('clone');
+      setGeneratingSite(false);
+      setSiteGenerated(true);
+      if (step === 'website') setPreviewOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cloneJob?.status, cloneJob?.progress, cloneJob?.statusLabel, cloneJob?.sourceUrl]);
 
   useEffect(() => {
     if (step !== 'website') return;
@@ -934,6 +962,14 @@ export function LaunchCtoPage() {
               <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-white/45">
                 Create a new mint, launch a CTO from an existing CA, or list a coin for CTOgo tools.
               </p>
+              {cloneJob && (cloneJob.status === 'cloning' || cloneJob.status === 'ready') ? (
+                <div className="mt-6 w-full max-w-sm text-left">
+                  <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wide text-white/40">
+                    Website clone
+                  </p>
+                  <CloneProgressBar job={cloneJob} />
+                </div>
+              ) : null}
               <div className="mt-8 flex w-full max-w-xs flex-col gap-2.5">
                 <Link
                   to="/launch?mode=create"
@@ -1961,7 +1997,7 @@ export function LaunchCtoPage() {
                   }`}
                 >
                   <p className="text-[11px] font-bold text-white">Clone</p>
-                  <p className="mt-0.5 text-[9px] text-white/40">Old site URL</p>
+                  <p className="mt-0.5 text-[9px] text-white/40">From coin websites</p>
                 </button>
               </div>
 
@@ -1970,9 +2006,96 @@ export function LaunchCtoPage() {
                   You’ll list with the CTOgo coin page only. Add a cloned site anytime after listing.
                 </div>
               ) : websiteKind === 'clone' ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-[11px] font-semibold text-white/45">
+                      Coins with websites
+                    </p>
+                    <p className="mt-0.5 text-[11px] leading-relaxed text-white/35">
+                      Pick a site to clone · {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet
+                    </p>
+                  </div>
+
+                  <ul className="max-h-[min(52vh,22rem)] space-y-1.5 overflow-y-auto overscroll-contain pr-0.5">
+                    {projectsWithWebsites().map((project) => {
+                      const url = websiteForProject(project) ?? '';
+                      const open = clonePickerTicker === project.ticker;
+                      const selected =
+                        cloneUrl.trim().toLowerCase() === url.toLowerCase() && Boolean(url);
+                      return (
+                        <li key={project.ticker} className="relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setClonePickerTicker((prev) =>
+                                prev === project.ticker ? null : project.ticker,
+                              )
+                            }
+                            className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition ${
+                              open || selected
+                                ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
+                                : 'border-white/[0.08] bg-[#121214] hover:border-white/20'
+                            }`}
+                          >
+                            <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-[#1c1c1e] ring-1 ring-white/10">
+                              <img
+                                src={project.logo}
+                                alt=""
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="flex items-center gap-1.5">
+                                <span className="truncate text-[13px] font-semibold text-white">
+                                  {project.name}
+                                </span>
+                                <span className="shrink-0 rounded bg-white/[0.06] px-1.5 py-0.5 text-[10px] font-semibold text-white/50">
+                                  ${project.ticker}
+                                </span>
+                              </span>
+                              <span className="mt-0.5 block truncate text-[10px] text-white/35">
+                                {url}
+                              </span>
+                            </span>
+                            <Globe className="h-3.5 w-3.5 shrink-0 text-white/30" />
+                          </button>
+
+                          {open ? (
+                            <div className="absolute left-2 right-2 top-full z-30 mt-1.5 rounded-xl border border-white/[0.12] bg-[#1a1a1c] p-3 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-[#c8ff3d]/15">
+                              <p className="text-[11px] font-semibold text-white/50">Clone from</p>
+                              <p className="mt-1 truncate font-mono text-[11px] text-[#d5ff69]">
+                                {url}
+                              </p>
+                              <button
+                                type="button"
+                                disabled={generatingSite}
+                                onClick={() => void generateWebsite(url)}
+                                className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#c8ff3d] text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-40"
+                              >
+                                {generatingSite && selected ? (
+                                  <>
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    Cloning…
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    Clone
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+
                   <label className="block">
-                    <span className="text-[11px] font-semibold text-white/45">Old website URL</span>
+                    <span className="text-[11px] font-semibold text-white/45">
+                      Or paste any website URL
+                    </span>
                     <input
                       value={cloneUrl}
                       onChange={(event) => {
@@ -1980,18 +2103,18 @@ export function LaunchCtoPage() {
                         setSiteGenerated(false);
                         setCloneProgress(0);
                         setCloneStatusLabel('');
+                        setClonePickerTicker(null);
                       }}
                       placeholder="https://…"
                       className={fieldClass}
                     />
                   </label>
-                  <p className="text-[11px] leading-relaxed text-white/40">
-                    {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet · clone + hosting
-                  </p>
                 </div>
               ) : null}
 
-              {websiteKind === 'clone' && (generatingSite || siteGenerated) ? (
+              {websiteKind === 'clone' && cloneJob && cloneJob.status !== 'idle' ? (
+                <CloneProgressBar job={cloneJob} showDashboardLink />
+              ) : websiteKind === 'clone' && (generatingSite || siteGenerated) ? (
                 <div className="space-y-2 rounded-2xl border border-white/[0.08] bg-[#121214] px-3.5 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-[12px] font-semibold text-white">
@@ -2012,24 +2135,17 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              {!siteGenerated && websiteKind !== 'none' ? (
+              {!siteGenerated && websiteKind !== 'none' && !generatingSite ? (
                 <button
                   type="button"
                   onClick={() => void generateWebsite()}
                   disabled={!canGenerateSite || generatingSite}
                   className={primaryBtnClass}
                 >
-                  {generatingSite ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Cloning…
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Generate clone preview
-                    </>
-                  )}
+                  <>
+                    <Sparkles className="h-4 w-4" />
+                    Generate clone preview
+                  </>
                 </button>
               ) : siteGenerated && websiteKind !== 'none' ? (
                 <>
