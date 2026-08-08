@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowDownUp,
@@ -23,7 +24,6 @@ import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { NotificationsButton } from '../components/NotificationsButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
-import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -32,6 +32,12 @@ import {
 import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue, type SourceVenueFilter } from '../data/ctoProjects';
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
+
+const GROWTH_TIP_MAX_WIDTH = 280;
+const GROWTH_TIP_MARGIN = 12;
+const GROWTH_TIP_GAP = 8;
+const GROWTH_STATUS_TIP =
+  'Each coin sits on a marketing stage. Trade fees fill the marketing wallet; Polessia spends in order — Telegram, X, DexScreener, DexTools, then broader ads. Tap a logo to filter.';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
@@ -334,7 +340,10 @@ export function DiscoverDeckPage() {
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
   const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
-  const [growthExplainerOpen, setGrowthExplainerOpen] = useState(false);
+  const [growthTipOpen, setGrowthTipOpen] = useState(false);
+  const growthStatusRef = useRef<HTMLButtonElement>(null);
+  const growthTipId = useId();
+  const [growthTipStyle, setGrowthTipStyle] = useState<CSSProperties>({});
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
@@ -447,8 +456,54 @@ export function DiscoverDeckPage() {
     } else if (topTab === 'prelaunch') {
       setTopTab('trending');
     }
-    if (tab !== 'growth') setGrowthStageFilter('all');
+    if (tab !== 'growth') {
+      setGrowthStageFilter('all');
+      setGrowthTipOpen(false);
+    }
   };
+
+  useEffect(() => {
+    if (!growthTipOpen) return;
+
+    const updatePosition = () => {
+      const button = growthStatusRef.current;
+      if (!button) return;
+      const rect = button.getBoundingClientRect();
+      const width = Math.min(GROWTH_TIP_MAX_WIDTH, window.innerWidth - GROWTH_TIP_MARGIN * 2);
+      const half = width / 2;
+      let left = rect.left + rect.width / 2;
+      left = Math.max(
+        GROWTH_TIP_MARGIN + half,
+        Math.min(left, window.innerWidth - GROWTH_TIP_MARGIN - half),
+      );
+      let top = rect.bottom + GROWTH_TIP_GAP;
+      const estimatedHeight = 120;
+      if (top + estimatedHeight > window.innerHeight - GROWTH_TIP_MARGIN) {
+        top = Math.max(GROWTH_TIP_MARGIN, rect.top - GROWTH_TIP_GAP - estimatedHeight);
+      }
+      setGrowthTipStyle({
+        position: 'fixed',
+        top,
+        left,
+        width,
+        transform: 'translateX(-50%)',
+        zIndex: 70,
+      });
+    };
+
+    updatePosition();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setGrowthTipOpen(false);
+    };
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [growthTipOpen]);
 
   const goBuy = () => {
     setBottomTab('discover');
@@ -728,80 +783,101 @@ export function DiscoverDeckPage() {
               Token sort
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
             </button>
-            <div className="ml-auto flex flex-col items-end gap-0.5">
-              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
+            <button
+              ref={growthStatusRef}
+              type="button"
+              onClick={() => setGrowthTipOpen((v) => !v)}
+              className="ml-auto flex flex-col items-end gap-0.5 rounded-md px-1 py-0.5 text-right transition hover:bg-white/[0.04]"
+              aria-expanded={growthTipOpen}
+              aria-describedby={growthTipOpen ? growthTipId : undefined}
+              aria-label="Marketing stage — tap for explanation"
+            >
+              <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/45 underline decoration-white/25 underline-offset-2">
                 Marketing stage
               </p>
               <PolessiaLogo variant="powered" size="xs" />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 py-1.5">
-            <div className="min-w-0 flex-1 overflow-x-auto overflow-y-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max items-center gap-2 pr-1">
-                <button
-                  type="button"
-                  onClick={() => setGrowthStageFilter('all')}
-                  className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition ${
-                    growthStageFilter === 'all'
-                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
-                      : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
-                  }`}
-                  aria-pressed={growthStageFilter === 'all'}
-                >
-                  All
-                  <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
-                    {growthStageCounts.total}
-                  </span>
-                </button>
-                {GROWTH_STAGES.map((stage) => {
-                  const active = growthStageFilter === stage.id;
-                  const count = growthStageCounts.counts[stage.id];
-                  return (
-                    <button
-                      key={stage.id}
-                      type="button"
-                      title={`${stage.label} · ${count} coin${count === 1 ? '' : 's'}`}
-                      onClick={() =>
-                        setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
-                      }
-                      className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
-                        active
-                          ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
-                          : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
-                      }`}
-                      aria-pressed={active}
-                      aria-label={`${stage.label}: ${count} coins`}
-                    >
-                      <img
-                        src={stage.logo}
-                        alt=""
-                        className="h-5 w-5 object-contain"
-                        loading="lazy"
-                      />
-                      <span
-                        className={`absolute -bottom-0.5 -right-0.5 z-[1] grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[8px] font-bold tabular-nums ring-1 ${
-                          count > 0
-                            ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/35'
-                            : 'bg-[#0c0c0e] text-white/55 ring-white/10'
-                        }`}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setGrowthExplainerOpen(true)}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-[16px] font-bold leading-none text-[#d5ff69] ring-1 ring-[#c8ff3d]/40 transition hover:bg-[#c8ff3d]/15 hover:ring-[#c8ff3d]/70"
-              aria-label="How Growth works"
-              title="How Growth works"
-            >
-              ?
             </button>
           </div>
+          <div className="overflow-x-auto overflow-y-visible py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-max items-center gap-2 pr-1">
+              <button
+                type="button"
+                onClick={() => setGrowthStageFilter('all')}
+                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition ${
+                  growthStageFilter === 'all'
+                    ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+                    : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
+                }`}
+                aria-pressed={growthStageFilter === 'all'}
+              >
+                All
+                <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
+                  {growthStageCounts.total}
+                </span>
+              </button>
+              {GROWTH_STAGES.map((stage) => {
+                const active = growthStageFilter === stage.id;
+                const count = growthStageCounts.counts[stage.id];
+                return (
+                  <button
+                    key={stage.id}
+                    type="button"
+                    title={`${stage.label} · ${count} coin${count === 1 ? '' : 's'}`}
+                    onClick={() =>
+                      setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
+                    }
+                    className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+                      active
+                        ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
+                        : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
+                    }`}
+                    aria-pressed={active}
+                    aria-label={`${stage.label}: ${count} coins`}
+                  >
+                    <img
+                      src={stage.logo}
+                      alt=""
+                      className="h-5 w-5 object-contain"
+                      loading="lazy"
+                    />
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 z-[1] grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[8px] font-bold tabular-nums ring-1 ${
+                        count > 0
+                          ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/35'
+                          : 'bg-[#0c0c0e] text-white/55 ring-white/10'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {growthTipOpen && typeof document !== 'undefined'
+            ? createPortal(
+                <>
+                  <button
+                    type="button"
+                    aria-label="Close marketing stage tip"
+                    className="fixed inset-0 z-[60] cursor-default bg-transparent"
+                    onClick={() => setGrowthTipOpen(false)}
+                  />
+                  <div
+                    id={growthTipId}
+                    role="tooltip"
+                    style={growthTipStyle}
+                    className="rounded-lg border border-white/12 bg-[#0c1018] px-3 py-2.5 text-left shadow-xl shadow-black/50"
+                  >
+                    <p className="text-[11px] font-semibold text-white">Marketing stage</p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-white/55">
+                      {GROWTH_STATUS_TIP}
+                    </p>
+                  </div>
+                </>,
+                document.body,
+              )
+            : null}
         </div>
       ) : (
         <>
@@ -1384,11 +1460,6 @@ export function DiscoverDeckPage() {
           })}
         </div>
       </nav>
-
-      <MarketingWalletExplainerModal
-        open={growthExplainerOpen}
-        onClose={() => setGrowthExplainerOpen(false)}
-      />
     </div>
     </AppSidebarProvider>
   );
