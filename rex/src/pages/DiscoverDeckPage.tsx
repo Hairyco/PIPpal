@@ -868,11 +868,22 @@ export function DiscoverDeckPage() {
                     role="tooltip"
                     style={growthTipStyle}
                     className="rounded-lg border border-white/12 bg-[#0c1018] px-3 py-2.5 text-left shadow-xl shadow-black/50"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <p className="text-[11px] font-semibold text-white">Marketing stage</p>
                     <p className="mt-1 text-[11px] leading-relaxed text-white/55">
                       {GROWTH_STATUS_TIP}
                     </p>
+                    <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-white/[0.08] pt-2">
+                      <PolessiaLogo variant="powered" size="xs" />
+                      <Link
+                        to="/marketing-wallet"
+                        onClick={() => setGrowthTipOpen(false)}
+                        className="shrink-0 text-[11px] font-semibold text-[#c8ff3d]/90 hover:text-[#d5ff69]"
+                      >
+                        How it works
+                      </Link>
+                    </div>
                   </div>
                 </>,
                 document.body,
