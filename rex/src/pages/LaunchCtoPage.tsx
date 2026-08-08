@@ -27,6 +27,7 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AuthButton } from '../components/AuthButton';
 import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
 import { CloneProgressBar } from '../components/CloneProgressBar';
+import { CloneSourceViewer } from '../components/CloneSourceViewer';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { PostLaunchDashboard } from '../components/PostLaunchDashboard';
 import { PostSuccessCommunitySetup } from '../components/PostSuccessCommunitySetup';
@@ -2012,27 +2013,27 @@ export function LaunchCtoPage() {
                       Coins with websites
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-white/35">
-                      Pick a site to clone · {CLONE_HOSTING_FEE_SOL} SOL from marketing wallet
+                      Tap a coin to preview its site · {CLONE_HOSTING_FEE_SOL} SOL to clone
                     </p>
                   </div>
 
                   <ul className="max-h-[min(52vh,22rem)] space-y-1.5 overflow-y-auto overscroll-contain pr-0.5">
                     {projectsWithWebsites().map((project) => {
                       const url = websiteForProject(project) ?? '';
-                      const open = clonePickerTicker === project.ticker;
                       const selected =
-                        cloneUrl.trim().toLowerCase() === url.toLowerCase() && Boolean(url);
+                        clonePickerTicker === project.ticker ||
+                        (cloneUrl.trim().toLowerCase() === url.toLowerCase() && Boolean(url));
                       return (
-                        <li key={project.ticker} className="relative">
+                        <li key={project.ticker}>
                           <button
                             type="button"
-                            onClick={() =>
-                              setClonePickerTicker((prev) =>
-                                prev === project.ticker ? null : project.ticker,
-                              )
-                            }
+                            onClick={() => {
+                              setClonePickerTicker(project.ticker);
+                              setCloneUrl(url);
+                              setSiteGenerated(false);
+                            }}
                             className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition ${
-                              open || selected
+                              selected
                                 ? 'border-[#c8ff3d]/45 bg-[#c8ff3d]/10'
                                 : 'border-white/[0.08] bg-[#121214] hover:border-white/20'
                             }`}
@@ -2060,33 +2061,6 @@ export function LaunchCtoPage() {
                             </span>
                             <Globe className="h-3.5 w-3.5 shrink-0 text-white/30" />
                           </button>
-
-                          {open ? (
-                            <div className="absolute left-2 right-2 top-full z-30 mt-1.5 rounded-xl border border-white/[0.12] bg-[#1a1a1c] p-3 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-[#c8ff3d]/15">
-                              <p className="text-[11px] font-semibold text-white/50">Clone from</p>
-                              <p className="mt-1 truncate font-mono text-[11px] text-[#d5ff69]">
-                                {url}
-                              </p>
-                              <button
-                                type="button"
-                                disabled={generatingSite}
-                                onClick={() => void generateWebsite(url)}
-                                className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#c8ff3d] text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69] disabled:opacity-40"
-                              >
-                                {generatingSite && selected ? (
-                                  <>
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                    Cloning…
-                                  </>
-                                ) : (
-                                  <>
-                                    <Sparkles className="h-3.5 w-3.5" />
-                                    Clone
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          ) : null}
                         </li>
                       );
                     })}
@@ -2135,7 +2109,7 @@ export function LaunchCtoPage() {
                 </div>
               ) : null}
 
-              {!siteGenerated && websiteKind !== 'none' && !generatingSite ? (
+              {!siteGenerated && websiteKind !== 'none' && !generatingSite && cloneUrl.trim() && !clonePickerTicker ? (
                 <button
                   type="button"
                   onClick={() => void generateWebsite()}
@@ -2144,7 +2118,7 @@ export function LaunchCtoPage() {
                 >
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Generate clone preview
+                    Clone pasted URL
                   </>
                 </button>
               ) : siteGenerated && websiteKind !== 'none' ? (
@@ -2426,6 +2400,29 @@ export function LaunchCtoPage() {
         cloneUrl={cloneUrl || website}
         tokenSupply={tokenSupply}
       />
+
+      {(() => {
+        const viewing = clonePickerTicker
+          ? projectsWithWebsites().find((p) => p.ticker === clonePickerTicker)
+          : null;
+        const viewUrl = viewing ? websiteForProject(viewing) ?? '' : '';
+        if (!viewing || !viewUrl || step !== 'website' || websiteKind !== 'clone') return null;
+        return (
+          <CloneSourceViewer
+            open
+            name={viewing.name}
+            ticker={viewing.ticker}
+            logo={viewing.logo}
+            url={viewUrl}
+            cloning={generatingSite}
+            onClose={() => setClonePickerTicker(null)}
+            onClone={() => {
+              void generateWebsite(viewUrl);
+              setClonePickerTicker(null);
+            }}
+          />
+        );
+      })()}
     </div>
     </AppSidebarProvider>
   );
