@@ -870,7 +870,7 @@ function buildChartMarkers(
         kind: 'supplier',
         label: meta.label,
         logoSrc: meta.logoSrc,
-        title: `${tx.label} · ${tx.when} · $${Math.round(tx.amountUsd)}`,
+        title: `${tx.label} · ${tx.when}`,
         ring: meta.ring,
       });
     }
