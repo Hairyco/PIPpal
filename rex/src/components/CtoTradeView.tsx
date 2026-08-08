@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { MigrateToV2Banner } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
+import { SolanaLogo } from './SolanaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
@@ -322,21 +323,152 @@ const TRACKER_TIP_MAX_WIDTH = 260;
 const TRACKER_TIP_GAP = 8;
 const TRACKER_TIP_MARGIN = 12;
 
+function bundlerDetailStats(ticker: string, holdLabel: string) {
+  const seed = hashSeed(ticker);
+  const holdPct = Number.parseFloat(holdLabel.replace('%', '')) || seed % 15;
+  const athHold = Math.min(99, Math.round(holdPct + 35 + (seed % 25)));
+  const totalBundlers = 60 + (seed % 360);
+  const bundledSol = (40 + (seed % 380) + holdPct * 3.1).toFixed(2);
+  const bundledToken = (holdPct * 3.8 + 90 + (seed % 80)).toFixed(2);
+  return {
+    holdPct: holdPct.toFixed(holdPct % 1 === 0 ? 0 : 2),
+    athHold,
+    totalBundlers,
+    bundledSol,
+    bundledToken,
+  };
+}
+
+function BundlerDetailSheet({
+  ticker,
+  holdLabel,
+  onClose,
+}: {
+  ticker: string;
+  holdLabel: string;
+  onClose: () => void;
+}) {
+  const stats = useMemo(() => bundlerDetailStats(ticker, holdLabel), [ticker, holdLabel]);
+  const titleId = useId();
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose]);
+
+  const rows: Array<{ label: string; value: ReactNode }> = [
+    {
+      label: 'Bundlers hold',
+      value: <span className="tabular-nums text-rose-400">{stats.holdPct}%</span>,
+    },
+    {
+      label: 'ATH hold',
+      value: <span className="tabular-nums text-white">{stats.athHold}%</span>,
+    },
+    {
+      label: 'Total bundlers',
+      value: <span className="tabular-nums text-white">{stats.totalBundlers}</span>,
+    },
+    {
+      label: 'Bundled total',
+      value: (
+        <span className="inline-flex items-center gap-1 tabular-nums text-white">
+          <SolanaLogo className="h-3.5 w-3.5" />
+          {stats.bundledSol}
+        </span>
+      ),
+    },
+    {
+      label: 'Bundled token',
+      value: <span className="tabular-nums text-white">{stats.bundledToken}%</span>,
+    },
+  ];
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center"
+      role="dialog"
+      aria-modal
+      aria-labelledby={titleId}
+    >
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
+        aria-label="Close bundler details"
+        onClick={onClose}
+      />
+      <div className="relative z-[1] w-full max-w-md animate-[slideUpSheet_0.32s_ease-out] rounded-t-2xl border border-white/[0.1] border-b-0 bg-[#12141a] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2.5 shadow-[0_-16px_48px_rgba(0,0,0,0.55)] sm:rounded-2xl sm:border-b sm:pb-4">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-white/20 sm:hidden" aria-hidden />
+        <p id={titleId} className="text-[17px] font-semibold tracking-tight text-white">
+          Bundler
+        </p>
+
+        <div className="mt-4 space-y-0">
+          {rows.map((row) => (
+            <div
+              key={row.label}
+              className="flex items-center justify-between gap-3 border-b border-white/[0.06] py-3.5 last:border-b-0"
+            >
+              <span className="text-[13px] text-white/45">{row.label}</span>
+              <span className="text-[13px] font-medium text-white">{row.value}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between gap-3 py-3.5">
+            <span className="text-[13px] text-white/45">Bubble</span>
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/[0.06] px-2.5 py-1.5 text-[12px] font-medium text-white/80">
+              <span className="grid h-4 w-4 place-items-center rounded-full bg-white/10 text-[9px]" aria-hidden>
+                ●●
+              </span>
+              View Info
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-2 flex h-12 w-full items-center justify-center rounded-full bg-white text-[15px] font-semibold text-[#090b14] transition hover:bg-white/90"
+        >
+          Got It
+        </button>
+        <style>{`
+          @keyframes slideUpSheet {
+            from { transform: translateY(110%); opacity: 0.6; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+        `}</style>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function CoinTrackerItem({
   metric,
+  ticker,
   open,
   onToggle,
 }: {
   metric: CoinTrackerMetric;
+  ticker: string;
   open: boolean;
   onToggle: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const tooltipId = useId();
   const [tipStyle, setTipStyle] = useState<CSSProperties>({});
+  const isBundlerSheet = metric.id === 'bundlers';
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || isBundlerSheet) return;
 
     const updatePosition = () => {
       const button = buttonRef.current;
@@ -371,19 +503,20 @@ function CoinTrackerItem({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [open]);
+  }, [open, isBundlerSheet]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || isBundlerSheet) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onToggle();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onToggle]);
+  }, [open, onToggle, isBundlerSheet]);
 
   const tip =
     open &&
+    !isBundlerSheet &&
     typeof document !== 'undefined' &&
     createPortal(
       <>
@@ -416,7 +549,7 @@ function CoinTrackerItem({
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        aria-describedby={open ? tooltipId : undefined}
+        aria-describedby={open && !isBundlerSheet ? tooltipId : undefined}
         title={metric.detail}
         className="flex min-w-[4.75rem] flex-col gap-1 border-r border-white/[0.08] px-3 py-0.5 text-left transition hover:bg-white/[0.03] first:pl-1 last:border-r-0"
       >
@@ -430,6 +563,9 @@ function CoinTrackerItem({
         </span>
       </button>
       {tip}
+      {open && isBundlerSheet ? (
+        <BundlerDetailSheet ticker={ticker} holdLabel={metric.value} onClose={onToggle} />
+      ) : null}
     </div>
   );
 }
@@ -465,6 +601,7 @@ function CoinTrackerRow({
         <CoinTrackerItem
           key={t.id}
           metric={t}
+          ticker={project.ticker}
           open={openId === t.id}
           onToggle={() => setOpenId((cur) => (cur === t.id ? null : t.id))}
         />
