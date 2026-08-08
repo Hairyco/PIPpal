@@ -942,6 +942,9 @@ export function CtoTradeView({
                       </div>
                     </div>
                     <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                      <span className="shrink-0 text-sm font-medium tabular-nums text-white/45">
+                        {formatCoinPageAge(project.launchInHours, project.ticker)}
+                      </span>
                       <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
                       <button
                         type="button"
