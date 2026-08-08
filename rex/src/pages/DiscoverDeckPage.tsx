@@ -39,7 +39,6 @@ const GROWTH_TIP_MARGIN = 12;
 const GROWTH_TIP_GAP = 8;
 const GROWTH_STATUS_TIP =
   'Trading volume funds each coin’s marketing wallet. Every project sets its own roadmap — tap a logo to filter by stage.';
-const GROWTH_SNEAK_KEY = 'ctogo-growth-roadmap-sneak';
 const GROWTH_ROW_MIN_W = 'min-w-[34.5rem]';
 const GROWTH_ROW_COLS =
   'grid-cols-[42px_minmax(7.5rem,1fr)_44px_4.25rem_4.5rem_7.25rem]';
@@ -549,7 +548,6 @@ export function DiscoverDeckPage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const growthStatusRef = useRef<HTMLButtonElement>(null);
-  const growthHScrollRef = useRef<HTMLDivElement>(null);
   const growthTipId = useId();
   const [growthTipStyle, setGrowthTipStyle] = useState<CSSProperties>({});
   const isPrelaunchView = bottomTab === 'prelaunch';
@@ -761,58 +759,6 @@ export function DiscoverDeckPage() {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [growthTipOpen]);
-
-  useEffect(() => {
-    if (!isGrowthView || growthRows.length === 0) return;
-    try {
-      if (localStorage.getItem(GROWTH_SNEAK_KEY) === '1') return;
-    } catch {
-      return;
-    }
-    const reduceMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduceMotion) {
-      try {
-        localStorage.setItem(GROWTH_SNEAK_KEY, '1');
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-
-    let startTimer = 0;
-    let backTimer = 0;
-    let doneTimer = 0;
-    startTimer = window.setTimeout(() => {
-      const el = growthHScrollRef.current;
-      if (!el || el.scrollWidth <= el.clientWidth + 8) {
-        try {
-          localStorage.setItem(GROWTH_SNEAK_KEY, '1');
-        } catch {
-          /* ignore */
-        }
-        return;
-      }
-      el.scrollTo({ left: Math.min(88, el.scrollWidth - el.clientWidth), behavior: 'smooth' });
-      backTimer = window.setTimeout(() => {
-        el.scrollTo({ left: 0, behavior: 'smooth' });
-        doneTimer = window.setTimeout(() => {
-          try {
-            localStorage.setItem(GROWTH_SNEAK_KEY, '1');
-          } catch {
-            /* ignore */
-          }
-        }, 500);
-      }, 850);
-    }, 550);
-
-    return () => {
-      window.clearTimeout(startTimer);
-      window.clearTimeout(backTimer);
-      window.clearTimeout(doneTimer);
-    };
-  }, [isGrowthView, growthRows.length]);
 
   const goBuy = () => {
     setBottomTab('discover');
@@ -1525,7 +1471,6 @@ export function DiscoverDeckPage() {
           </div>
         ) : (
           <div
-            ref={isGrowthView ? growthHScrollRef : undefined}
             className={
               isGrowthView
                 ? 'overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'

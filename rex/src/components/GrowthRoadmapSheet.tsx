@@ -411,10 +411,6 @@ export function GrowthRoadmapSheet({
           </div>
         </div>
 
-        <p className="mt-4 text-[11px] leading-relaxed text-white/40">
-          Actioned steps show the partner logo. Reused spends show a count — tap for history.
-        </p>
-
         <button
           type="button"
           onClick={onClose}
