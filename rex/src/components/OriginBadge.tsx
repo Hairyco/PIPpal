@@ -18,7 +18,7 @@ function readHiddenRaidEarnTickers(): Record<string, true> {
   }
 }
 
-function isRaidEarnHidden(ticker: string): boolean {
+export function isRaidEarnHidden(ticker: string): boolean {
   const key = ticker.trim().toUpperCase();
   if (!key) return false;
   const hidden = readHiddenRaidEarnTickers();
@@ -26,12 +26,25 @@ function isRaidEarnHidden(ticker: string): boolean {
   return Object.prototype.hasOwnProperty.call(hidden, key) && hidden[key] === true;
 }
 
-function hideRaidEarnForTicker(ticker: string) {
+export function hideRaidEarnForTicker(ticker: string) {
   const key = ticker.trim().toUpperCase();
   if (!key) return;
   try {
     const next = { ...readHiddenRaidEarnTickers(), [key]: true as const };
     // Drop accidental empty keys from older builds
+    delete (next as Record<string, true | undefined>)[''];
+    localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+}
+
+export function clearRaidEarnHiddenForTicker(ticker: string) {
+  const key = ticker.trim().toUpperCase();
+  if (!key) return;
+  try {
+    const next = { ...readHiddenRaidEarnTickers() };
+    delete next[key];
     delete (next as Record<string, true | undefined>)[''];
     localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
   } catch {
@@ -61,20 +74,31 @@ export function OriginBadge({
 /** Raid earn CTA — formerly “Launch {ticker} CTO”. */
 export function MigrateToV2Banner({
   ticker,
+  placement = 'top',
+  dismissed,
+  onDismissedChange,
 }: {
   ticker: string;
   sourceVenue?: string;
   devDumpedPct?: number;
   href?: string;
+  /** `top` = primary (hideable). `footer` = only when top was hidden. */
+  placement?: 'top' | 'footer';
+  /** Controlled dismiss state from parent (keeps top + footer in sync). */
+  dismissed?: boolean;
+  onDismissedChange?: (hidden: boolean) => void;
 }) {
   const { address, connected, connect, busy } = useConnectedWallet();
   const [copied, setCopied] = useState(false);
-  const [hidden, setHidden] = useState(() => isRaidEarnHidden(ticker));
+  const [localHidden, setLocalHidden] = useState(() => isRaidEarnHidden(ticker));
+  const hidden = dismissed ?? localHidden;
 
   useEffect(() => {
-    setHidden(isRaidEarnHidden(ticker));
+    const next = isRaidEarnHidden(ticker);
+    setLocalHidden(next);
     setCopied(false);
-  }, [ticker]);
+    if (dismissed === undefined) onDismissedChange?.(next);
+  }, [ticker]); // eslint-disable-line react-hooks/exhaustive-deps -- sync on ticker only
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
   const scoutLink = address ? buildScoutLink(origin, ticker, address) : null;
@@ -93,38 +117,67 @@ export function MigrateToV2Banner({
 
   const hide = () => {
     hideRaidEarnForTicker(ticker);
-    setHidden(true);
+    setLocalHidden(true);
+    onDismissedChange?.(true);
   };
 
-  if (hidden) return null;
+  const restoreToTop = () => {
+    clearRaidEarnHiddenForTicker(ticker);
+    setLocalHidden(false);
+    onDismissedChange?.(false);
+  };
+
+  if (placement === 'top' && hidden) return null;
+  if (placement === 'footer' && !hidden) return null;
+
+  const compact = placement === 'footer';
 
   return (
-    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0c12]">
+    <div
+      className={`relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0c12] ${
+        compact ? 'border-dashed' : ''
+      }`}
+    >
       <div
         className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-[#c8ff3d]"
         aria-hidden
       />
-      <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#c8ff3d]/[0.07] blur-2xl" aria-hidden />
+      {!compact ? (
+        <div
+          className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#c8ff3d]/[0.07] blur-2xl"
+          aria-hidden
+        />
+      ) : null}
 
-      <div className="relative flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5">
+      <div
+        className={`relative flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
+          compact ? 'py-3' : 'py-3.5'
+        }`}
+      >
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
                 Growth
               </p>
-              <p className="mt-0.5 text-[15px] font-semibold tracking-tight text-white">
+              <p
+                className={`mt-0.5 font-semibold tracking-tight text-white ${
+                  compact ? 'text-[14px]' : 'text-[15px]'
+                }`}
+              >
                 Get paid instantly
               </p>
             </div>
-            <button
-              type="button"
-              onClick={hide}
-              className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-medium text-white/35 transition hover:bg-white/[0.05] hover:text-white/70 sm:hidden"
-              aria-label={`Hide raid earn for $${ticker}`}
-            >
-              Hide
-            </button>
+            {placement === 'top' ? (
+              <button
+                type="button"
+                onClick={hide}
+                className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-medium text-white/35 transition hover:bg-white/[0.05] hover:text-white/70 sm:hidden"
+                aria-label={`Hide raid earn for $${ticker}`}
+              >
+                Hide
+              </button>
+            ) : null}
           </div>
           <p className="mt-1.5 max-w-md text-[12px] leading-relaxed text-white/45">
             Earn{' '}
@@ -133,7 +186,7 @@ export function MigrateToV2Banner({
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           {!connected || !scoutLink ? (
             <button
               type="button"
@@ -154,14 +207,24 @@ export function MigrateToV2Banner({
               {copied ? 'Copied' : `Copy $${ticker} link`}
             </button>
           )}
-          <button
-            type="button"
-            onClick={hide}
-            className="hidden h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/40 transition hover:border-white/15 hover:text-white/70 sm:inline-flex"
-            aria-label={`Hide raid earn for $${ticker}`}
-          >
-            Hide
-          </button>
+          {placement === 'top' ? (
+            <button
+              type="button"
+              onClick={hide}
+              className="hidden h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/40 transition hover:border-white/15 hover:text-white/70 sm:inline-flex"
+              aria-label={`Hide raid earn for $${ticker}`}
+            >
+              Hide
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={restoreToTop}
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/45 transition hover:border-white/15 hover:text-white/70"
+            >
+              Pin to top
+            </button>
+          )}
         </div>
       </div>
     </div>

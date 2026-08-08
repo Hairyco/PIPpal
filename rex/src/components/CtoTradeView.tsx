@@ -15,7 +15,7 @@ import {
   X,
   Pin,
 } from 'lucide-react';
-import { MigrateToV2Banner } from './OriginBadge';
+import { MigrateToV2Banner, isRaidEarnHidden } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
 import { SolanaLogo } from './SolanaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
@@ -1405,6 +1405,7 @@ export function CtoTradeView({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
+  const [raidEarnHidden, setRaidEarnHidden] = useState(() => isRaidEarnHidden(project.ticker));
   const tradePanelRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -1446,6 +1447,7 @@ export function CtoTradeView({
   useEffect(() => {
     setChartVersion('v2');
     setStickyChartPinned(true);
+    setRaidEarnHidden(isRaidEarnHidden(project.ticker));
   }, [project.ticker]);
 
   const scrollToTop = () => {
@@ -1665,6 +1667,9 @@ export function CtoTradeView({
           sourceVenue={project.sourceVenue}
           devDumpedPct={project.devDumpedPct}
           href={launchHref}
+          placement="top"
+          dismissed={raidEarnHidden}
+          onDismissedChange={setRaidEarnHidden}
         />
       </div>
 
@@ -2196,6 +2201,19 @@ export function CtoTradeView({
       </div>
 
       <div className="mx-auto max-w-7xl px-3 pb-4 sm:px-5">
+        {raidEarnHidden ? (
+          <div className="mb-4">
+            <MigrateToV2Banner
+              ticker={project.ticker}
+              sourceVenue={project.sourceVenue}
+              devDumpedPct={project.devDumpedPct}
+              href={launchHref}
+              placement="footer"
+              dismissed={raidEarnHidden}
+              onDismissedChange={setRaidEarnHidden}
+            />
+          </div>
+        ) : null}
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/30">
           Switch coin
         </p>
