@@ -1850,9 +1850,9 @@ export function DiscoverDeckPage() {
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
               { id: 'trenches' as const, label: 'Trenches', kind: 'trenches' as const },
               { id: 'growth' as const, label: 'Growth', kind: 'growth' as const },
-              { id: 'bot' as const, label: 'Bot', kind: 'bot' as const },
               { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
               { id: 'portfolio' as const, label: 'Portfolio', kind: 'lucide' as const, Lucide: Briefcase },
+              { id: 'bot' as const, label: 'Bot', kind: 'bot' as const },
             ] as const
           ).map((item) => {
             const active = bottomTab === item.id;
@@ -1872,7 +1872,9 @@ export function DiscoverDeckPage() {
                   ) : item.kind === 'growth' ? (
                     <GrowthIcon className="h-[18px] w-[18px]" />
                   ) : item.kind === 'bot' ? (
-                    <BotIcon className="h-[18px] w-[18px]" />
+                    <span className="text-[18px] leading-none" aria-hidden>
+                      🤖
+                    </span>
                   ) : (
                     <TrenchesHelmetIcon className="h-[18px] w-[18px]" />
                   )}
