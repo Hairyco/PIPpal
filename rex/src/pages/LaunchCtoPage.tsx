@@ -945,7 +945,7 @@ export function LaunchCtoPage() {
                         {
                           icon: Zap,
                           title: 'Raid Rewards',
-                          detail: `Raiders earn ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)} instant SOL on buys through their raid link. No link → CTOgo keeps the ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)}.`,
+                          detail: `Raiders earn ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)} instant SOL on buys through their raid link.`,
                         },
                         {
                           icon: ShieldCheck,
