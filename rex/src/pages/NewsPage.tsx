@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Flame, Newspaper } from 'lucide-react';
 import { CtoGoLogo } from '../components/CtoGoLogo';
-import { AppSidebar, AppSidebarMenuButton, AppSidebarProvider } from '../components/AppSidebar';
+import { AppSidebar, AppSidebarProvider } from '../components/AppSidebar';
 import { TrendingNewsBar } from '../components/TrendingNewsBar';
 import {
   newsTagById,
@@ -24,7 +24,6 @@ export function NewsPage() {
       <AppSidebar />
       <div className="mx-auto flex min-h-[100dvh] w-full max-w-lg flex-col bg-black text-white">
         <header className="flex shrink-0 items-center gap-2 px-3 pb-1 pt-[max(0.75rem,env(safe-area-inset-top))]">
-          <AppSidebarMenuButton />
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
               <Flame className="h-3 w-3" fill="currentColor" strokeWidth={0} />
