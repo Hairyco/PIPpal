@@ -10,6 +10,7 @@ import {
   Eye,
   Filter,
   Globe,
+  HelpCircle,
   Layers,
   Pin,
   Rocket,
@@ -23,6 +24,7 @@ import { Sparkline } from '../components/Sparkline';
 import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWalletButton';
 import { NotificationsButton } from '../components/NotificationsButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
+import { MarketingWalletExplainerModal } from '../components/MarketingWalletExplainer';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -333,6 +335,7 @@ export function DiscoverDeckPage() {
   const [peakTickers, setPeakTickers] = useState<string[]>([]);
   const [prelaunchFilter, setPrelaunchFilter] = useState<PrelaunchFilter>('all');
   const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
+  const [growthExplainerOpen, setGrowthExplainerOpen] = useState(false);
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
@@ -725,6 +728,15 @@ export function DiscoverDeckPage() {
               <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
               Token sort
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setGrowthExplainerOpen(true)}
+              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85 ring-1 ring-white/[0.06] transition hover:bg-[#252528] hover:text-white"
+              aria-label="How Growth works"
+            >
+              <HelpCircle className="h-3.5 w-3.5 text-[#c8ff3d]" />
+              Explain
             </button>
             <div className="ml-auto flex flex-col items-end gap-0.5">
               <p className="text-[10px] font-medium uppercase tracking-[0.12em] text-white/30">
@@ -1371,6 +1383,11 @@ export function DiscoverDeckPage() {
           })}
         </div>
       </nav>
+
+      <MarketingWalletExplainerModal
+        open={growthExplainerOpen}
+        onClose={() => setGrowthExplainerOpen(false)}
+      />
     </div>
     </AppSidebarProvider>
   );
