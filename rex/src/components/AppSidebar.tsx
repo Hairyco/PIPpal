@@ -30,7 +30,7 @@ const NAV = [
   { to: '/fees', label: 'Fees', icon: Percent, end: false },
   { to: '/marketing-wallet', label: 'Marketing wallet', icon: Wallet, end: false },
   { to: '/advertise', label: 'Advertise', icon: Zap, end: false },
-  { to: '/launch', label: 'Launch', icon: Rocket, end: false },
+  { to: '/launch?mode=create', label: 'Create', icon: Rocket, end: false },
   { to: '/home', label: 'Classic', icon: Home, end: false },
   { to: '/faq', label: 'FAQ', icon: HelpCircle, end: false },
   { to: '/contact', label: 'Contact', icon: Mail, end: false },
@@ -40,7 +40,7 @@ function navItemActive(to: string, pathname: string, search: string, end?: boole
   if (to.startsWith('/launch?dashboard')) {
     return pathname === '/launch' && new URLSearchParams(search).get('dashboard') === '1';
   }
-  if (to === '/launch') {
+  if (to.startsWith('/launch')) {
     return pathname === '/launch' && new URLSearchParams(search).get('dashboard') !== '1';
   }
   if (end) return pathname === to;

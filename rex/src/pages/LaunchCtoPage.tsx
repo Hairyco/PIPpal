@@ -62,8 +62,25 @@ import {
 import { formatMintPreview, LAUNCH_DEMO_MINT, resolveLaunchCoin } from '../utils/resolveLaunchCoin';
 import { demoMarketingWalletAddress } from '../data/ctoProjects';
 
-type LaunchMode = 'launch' | 'add';
+/** create = new mint (no CA); cto = takeover from existing CA; add = list existing. */
+type LaunchMode = 'create' | 'cto' | 'add';
 type FlowStep = 'coin' | 'fees' | 'website' | 'burn' | 'summary' | 'community' | 'done';
+
+function persistMode(mode: LaunchMode): 'launch' | 'add' {
+  return mode === 'add' ? 'add' : 'launch';
+}
+
+function isWizardMode(mode: LaunchMode): boolean {
+  return mode === 'create' || mode === 'cto';
+}
+
+/** Demo mint for Create flow until on-chain deploy is wired. */
+function generateCreateMint(ticker: string): string {
+  const t = ticker.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'CTO';
+  const salt = Date.now().toString(36).toUpperCase();
+  const body = `CtoGo${t}${salt}MintNewXXXXXXXXXXXXXXXXXXXXXXXX`;
+  return body.slice(0, 44);
+}
 type WebsiteKind = 'none' | 'clone';
 type DashEntryTab = 'overview' | 'wallet' | 'socials';
 
@@ -97,7 +114,7 @@ export function LaunchCtoPage() {
   const [searchParams] = useSearchParams();
   const { signedIn, requireAuth, busy: authBusy } = useAuth();
   const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
-  const [mode, setMode] = useState<LaunchMode>('launch');
+  const [mode, setMode] = useState<LaunchMode>('create');
   const [step, setStep] = useState<FlowStep>('coin');
   const [listNotice, setListNotice] = useState<string | null>(null);
   const [cloneProgress, setCloneProgress] = useState(0);
@@ -169,6 +186,10 @@ export function LaunchCtoPage() {
     const qMode = searchParams.get('mode')?.trim().toLowerCase();
     if (qMode === 'add' || qMode === 'list') {
       setMode('add');
+    } else if (qMode === 'cto' || qMode === 'launch') {
+      setMode('cto');
+    } else if (qMode === 'create' || qMode === 'mint') {
+      setMode('create');
     }
   }, [searchParams]);
 
@@ -192,7 +213,7 @@ export function LaunchCtoPage() {
       return;
     }
     setDashboardEmpty(false);
-    setMode(saved.mode);
+    setMode(saved.mode === 'add' ? 'add' : 'create');
     setStep('done');
     setName(saved.name);
     setTicker(saved.ticker);
@@ -230,7 +251,7 @@ export function LaunchCtoPage() {
     if (qName) setName(qName);
     if (qTicker) setTicker(qTicker.replace(/^\$/, ''));
     if (qCa) setContract(qCa);
-    setMode('launch');
+    setMode(qCa ? 'cto' : 'create');
     setStep('coin');
     setFromCoinPage(true);
     if (qCa) {
@@ -311,15 +332,22 @@ export function LaunchCtoPage() {
   };
 
   const steps =
-    mode === 'launch'
+    mode === 'create'
       ? [
           { id: 'coin' as const, label: 'Coin' },
           { id: 'fees' as const, label: 'Fees' },
           { id: 'website' as const, label: 'Website' },
-          { id: 'burn' as const, label: 'Burn' },
           { id: 'summary' as const, label: 'Pay' },
         ]
-      : [];
+      : mode === 'cto'
+        ? [
+            { id: 'coin' as const, label: 'Coin' },
+            { id: 'fees' as const, label: 'Fees' },
+            { id: 'website' as const, label: 'Website' },
+            { id: 'burn' as const, label: 'Burn' },
+            { id: 'summary' as const, label: 'Pay' },
+          ]
+        : [];
   const stepIndex = Math.max(
     0,
     steps.findIndex((s) => s.id === step),
@@ -329,7 +357,10 @@ export function LaunchCtoPage() {
     Boolean(buyAtLaunchSol.trim()) &&
     Number.isFinite(buyAtLaunchSolNum) &&
     buyAtLaunchSolNum > 0;
-  const canContinueCoin = coinReady && Boolean(name.trim() && ticker.trim());
+  const canContinueCoin =
+    mode === 'create'
+      ? Boolean(name.trim() && ticker.trim())
+      : coinReady && Boolean(name.trim() && ticker.trim());
   const artBill = collateralBillSummary({
     extraLogos: extraLogoGens,
     extraBanners: extraBannerGens,
@@ -470,7 +501,7 @@ export function LaunchCtoPage() {
   const openPublishedDashboard = async (withMarketing?: boolean) => {
     if (withMarketing !== undefined) setMarketingAttached(withMarketing);
     const attached =
-      withMarketing !== undefined ? withMarketing : marketingAttached || mode === 'launch';
+      withMarketing !== undefined ? withMarketing : marketingAttached || isWizardMode(mode);
     const invite = `https://t.me/ctogo_${coinSlug}`;
     setTelegramInvite(invite);
     setListingConfirmed(false);
@@ -479,7 +510,7 @@ export function LaunchCtoPage() {
       name: name.trim() || 'CTOgo Coin',
       ticker: (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO',
       contract: contract.trim(),
-      mode,
+      mode: persistMode(mode),
       logoUrl: logoPreview,
       marketingAttached: attached,
       websiteUrl:
@@ -509,9 +540,9 @@ export function LaunchCtoPage() {
       name: name.trim() || 'CTOgo Coin',
       ticker: (ticker.trim() || coinSlug || 'CTO').toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CTO',
       contract: contract.trim(),
-      mode,
+      mode: persistMode(mode),
       logoUrl: logoPreview,
-      marketingAttached: marketingAttached || mode === 'launch',
+      marketingAttached: marketingAttached || isWizardMode(mode),
       websiteUrl: details.website,
       twitter: details.twitter,
       telegramInvite: details.telegram || null,
@@ -578,6 +609,22 @@ export function LaunchCtoPage() {
       await finishList(false);
       return;
     }
+
+    if (mode === 'create') {
+      const mint = contract.trim().length >= 32 ? contract.trim() : generateCreateMint(ticker);
+      setContract(mint);
+      setVenueLabel('CTOgo');
+      setCoinReady(true);
+      if (!logoPreview) {
+        setLogoPreview(
+          generateCtoLogoDataUrl({
+            projectName: name.trim() || 'CTOgo Coin',
+            ticker: ticker.trim().toUpperCase() || 'CTO',
+          }),
+        );
+      }
+    }
+
     setStep('fees');
   };
 
@@ -589,7 +636,7 @@ export function LaunchCtoPage() {
   const onWebsiteContinue = (event: FormEvent) => {
     event.preventDefault();
     if (websiteKind !== 'none' && !siteGenerated) return;
-    setStep('burn');
+    setStep(mode === 'create' ? 'summary' : 'burn');
   };
 
   /** Burn step: choose amount only — fee + gas both charge on Summary Pay. */
@@ -885,13 +932,27 @@ export function LaunchCtoPage() {
                 Your dashboard is empty
               </h1>
               <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-white/45">
-                Launch or list a CTO to unlock raid links, marketing wallet, and creator tools.
+                Create a new mint, launch a CTO from an existing CA, or list a coin for CTOgo tools.
               </p>
               <div className="mt-8 flex w-full max-w-xs flex-col gap-2.5">
                 <Link
-                  to="/launch"
-                  onClick={() => setDashboardEmpty(false)}
+                  to="/launch?mode=create"
+                  onClick={() => {
+                    setDashboardEmpty(false);
+                    setMode('create');
+                  }}
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Create a coin
+                </Link>
+                <Link
+                  to="/launch?mode=cto"
+                  onClick={() => {
+                    setDashboardEmpty(false);
+                    setMode('cto');
+                  }}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition hover:bg-[#2a2a2c] hover:text-white"
                 >
                   <Rocket className="h-4 w-4" />
                   Launch a CTO
@@ -914,7 +975,7 @@ export function LaunchCtoPage() {
           {!dashboardEmpty && step !== 'done' && step !== 'community' ? (
             <>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                {mode === 'add' ? 'List for exposure' : 'Launch'}
+                {mode === 'add' ? 'List for exposure' : mode === 'create' ? 'New mint' : 'Community takeover'}
               </p>
               <h1 className="mt-1 text-2xl font-bold tracking-tight">
                 {mode === 'add'
@@ -927,7 +988,9 @@ export function LaunchCtoPage() {
                         ? 'Website'
                         : step === 'summary'
                           ? 'Summary'
-                          : 'Launch a CTO'}
+                          : mode === 'create'
+                            ? 'Create a coin'
+                            : 'Launch a CTO'}
               </h1>
               {mode === 'add' ? (
                 <div className="mt-4 rounded-2xl border border-white/[0.08] bg-[#121214] p-4">
@@ -970,7 +1033,9 @@ export function LaunchCtoPage() {
                 </div>
               ) : step === 'coin' ? (
                 <p className="mt-1.5 text-sm text-white/45">
-                  Set the name, ticker, and mint for your CTO.
+                  {mode === 'create'
+                    ? 'Name your coin — we’ll mint a new contract at launch. It’ll show in Trenches as New.'
+                    : 'Paste the existing mint to take over as a CTO.'}
                 </p>
               ) : step === 'fees' ? (
                 <p className="mt-1.5 text-sm text-white/45">
@@ -1007,7 +1072,7 @@ export function LaunchCtoPage() {
             </>
           ) : null}
 
-          {!dashboardEmpty && step !== 'done' && step !== 'community' && mode === 'launch' ? (
+          {!dashboardEmpty && step !== 'done' && step !== 'community' && isWizardMode(mode) ? (
             <nav aria-label="Launch steps" className="mt-5">
               <div className="relative">
                 <span
@@ -1078,25 +1143,40 @@ export function LaunchCtoPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => switchMode('launch')}
+                  onClick={() => switchMode('create')}
                   className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                    mode === 'launch'
+                    mode === 'create'
                       ? 'bg-[#c8ff3d] text-[#090b14]'
                       : 'text-white/50 hover:text-white'
                   }`}
                 >
-                  Launch
+                  Create
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('cto')}
+                  className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+                    mode === 'cto'
+                      ? 'bg-[#c8ff3d] text-[#090b14]'
+                      : 'text-white/50 hover:text-white'
+                  }`}
+                >
+                  Launch CTO
                 </button>
               </div>
 
-              {mode === 'launch' ? (
+              {isWizardMode(mode) ? (
                 <div className="rounded-2xl border border-[#c8ff3d]/25 bg-[#121214] p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c8ff3d]/80">
-                        Included with launch
+                        {mode === 'create' ? 'Included with create' : 'Included with launch'}
                       </p>
-                      <p className="mt-1 text-sm font-semibold text-white">Everything you need to go live</p>
+                      <p className="mt-1 text-sm font-semibold text-white">
+                        {mode === 'create'
+                          ? 'New mint + Trenches listing'
+                          : 'Everything you need to go live'}
+                      </p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="text-3xl font-bold leading-none text-[#d5ff69]">
@@ -1146,83 +1226,15 @@ export function LaunchCtoPage() {
                 </p>
               ) : null}
 
-              <label className="block">
-                <span className="text-[11px] font-semibold text-white/45">Contract address</span>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <input
-                    value={contract}
-                    onChange={(event) => {
-                      setContract(event.target.value);
-                      setCoinReady(false);
-                      setLookupError(null);
-                    }}
-                    placeholder="Contract address"
-                    className="h-11 w-full rounded-2xl border border-white/[0.08] bg-[#1c1c1e] px-3 font-mono text-[12px] text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => void findContract()}
-                    disabled={lookupBusy}
-                    className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-bold text-[#d5ff69] disabled:opacity-40"
-                  >
-                    {lookupBusy ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Search className="h-3.5 w-3.5" />
-                    )}
-                    Find
-                  </button>
-                </div>
-              </label>
-
-              {lookupError ? (
-                <p className="text-[12px] text-rose-300">{lookupError}</p>
-              ) : null}
-
-              {lookupBusy ? (
-                <div className="rounded-2xl border border-white/[0.08] bg-[#121214] px-4 py-6 text-center text-[12px] text-white/45">
-                  <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-[#c8ff3d]" />
-                  Looking up coin…
-                </div>
-              ) : null}
-
-              {coinReady && !lookupBusy ? (
-                <div className="rounded-2xl border border-[#c8ff3d]/25 bg-[#1c1c1e] p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-white/10 to-white/5 ring-1 ring-white/10">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="grid h-full w-full place-items-center text-[10px] text-white/30">
-                          Logo
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="truncate text-lg font-bold text-white">
-                          {name || 'Unknown'}
-                        </p>
-                        <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#d5ff69]">
-                          {venueLabel}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold text-[#c8ff3d]">
-                        {ticker ? `$${ticker}` : '—'}
-                      </p>
-                      <p className="mt-0.5 font-mono text-[10px] text-white/35">
-                        {formatMintPreview(contract)}
-                      </p>
-                    </div>
-                    <Check className="h-5 w-5 shrink-0 text-[#c8ff3d]" />
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+              {mode === 'create' ? (
+                <div className="space-y-3 rounded-2xl border border-[#c8ff3d]/25 bg-[#1c1c1e] p-4">
+                  <div className="grid grid-cols-2 gap-2">
                     <label className="block">
                       <span className="text-[10px] font-semibold text-white/40">Name</span>
                       <input
                         value={name}
                         onChange={(event) => setName(event.target.value)}
+                        placeholder="Coin name"
                         className={`${fieldClass} mt-1 h-9 text-sm`}
                       />
                     </label>
@@ -1232,35 +1244,148 @@ export function LaunchCtoPage() {
                         value={ticker}
                         onChange={(event) => setTicker(event.target.value.toUpperCase())}
                         maxLength={12}
+                        placeholder="TICKER"
                         className={`${fieldClass} mt-1 h-9 text-sm`}
                       />
                     </label>
                   </div>
-                  {mode === 'launch' ? (
-                    <label className="mt-3 block">
-                      <span className="text-[10px] font-semibold text-white/40">
-                        Total token supply
-                      </span>
-                      <select
-                        value={tokenSupply}
-                        onChange={(event) =>
-                          setTokenSupply(event.target.value as TokenSupplyValue)
-                        }
-                        className={`${fieldClass} mt-1 h-10 cursor-pointer text-sm`}
-                      >
-                        {TOKEN_SUPPLY_OPTIONS.map((option) => (
-                          <option key={option.value} value={option.value} className="bg-[#090b14]">
-                            {option.label} ({option.shortLabel})
-                          </option>
-                        ))}
-                      </select>
-                      <span className="mt-1 block text-[10px] leading-relaxed text-white/30">
-                        Fixed at launch. It changes the number of tokens, not the project’s value.
-                      </span>
-                    </label>
-                  ) : null}
+                  <label className="block">
+                    <span className="text-[10px] font-semibold text-white/40">Total token supply</span>
+                    <select
+                      value={tokenSupply}
+                      onChange={(event) => setTokenSupply(event.target.value as TokenSupplyValue)}
+                      className={`${fieldClass} mt-1 h-10 cursor-pointer text-sm`}
+                    >
+                      {TOKEN_SUPPLY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value} className="bg-[#090b14]">
+                          {option.label} ({option.shortLabel})
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-1 block text-[10px] leading-relaxed text-white/30">
+                      Mint is created at publish — no CA needed. Shows in Trenches as New.
+                    </span>
+                  </label>
                 </div>
-              ) : null}
+              ) : (
+                <>
+                  <label className="block">
+                    <span className="text-[11px] font-semibold text-white/45">Contract address</span>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <input
+                        value={contract}
+                        onChange={(event) => {
+                          setContract(event.target.value);
+                          setCoinReady(false);
+                          setLookupError(null);
+                        }}
+                        placeholder="Contract address"
+                        className="h-11 w-full rounded-2xl border border-white/[0.08] bg-[#1c1c1e] px-3 font-mono text-[12px] text-white outline-none transition placeholder:text-white/25 focus:border-[#c8ff3d]/40"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void findContract()}
+                        disabled={lookupBusy}
+                        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-[#c8ff3d]/30 bg-[#c8ff3d]/10 px-3 text-xs font-bold text-[#d5ff69] disabled:opacity-40"
+                      >
+                        {lookupBusy ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Search className="h-3.5 w-3.5" />
+                        )}
+                        Find
+                      </button>
+                    </div>
+                  </label>
+
+                  {lookupError ? (
+                    <p className="text-[12px] text-rose-300">{lookupError}</p>
+                  ) : null}
+
+                  {lookupBusy ? (
+                    <div className="rounded-2xl border border-white/[0.08] bg-[#121214] px-4 py-6 text-center text-[12px] text-white/45">
+                      <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-[#c8ff3d]" />
+                      Looking up coin…
+                    </div>
+                  ) : null}
+
+                  {coinReady && !lookupBusy ? (
+                    <div className="rounded-2xl border border-[#c8ff3d]/25 bg-[#1c1c1e] p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-white/10 to-white/5 ring-1 ring-white/10">
+                          {logoPreview ? (
+                            <img src={logoPreview} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="grid h-full w-full place-items-center text-[10px] text-white/30">
+                              Logo
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-lg font-bold text-white">
+                              {name || 'Unknown'}
+                            </p>
+                            <span className="rounded bg-[#c8ff3d]/15 px-1.5 py-0.5 text-[10px] font-bold text-[#d5ff69]">
+                              {venueLabel}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-[#c8ff3d]">
+                            {ticker ? `$${ticker}` : '—'}
+                          </p>
+                          <p className="mt-0.5 font-mono text-[10px] text-white/35">
+                            {formatMintPreview(contract)}
+                          </p>
+                        </div>
+                        <Check className="h-5 w-5 shrink-0 text-[#c8ff3d]" />
+                      </div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <label className="block">
+                          <span className="text-[10px] font-semibold text-white/40">Name</span>
+                          <input
+                            value={name}
+                            onChange={(event) => setName(event.target.value)}
+                            className={`${fieldClass} mt-1 h-9 text-sm`}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-[10px] font-semibold text-white/40">Ticker</span>
+                          <input
+                            value={ticker}
+                            onChange={(event) => setTicker(event.target.value.toUpperCase())}
+                            maxLength={12}
+                            className={`${fieldClass} mt-1 h-9 text-sm`}
+                          />
+                        </label>
+                      </div>
+                      {mode === 'cto' ? (
+                        <label className="mt-3 block">
+                          <span className="text-[10px] font-semibold text-white/40">
+                            Total token supply
+                          </span>
+                          <select
+                            value={tokenSupply}
+                            onChange={(event) =>
+                              setTokenSupply(event.target.value as TokenSupplyValue)
+                            }
+                            className={`${fieldClass} mt-1 h-10 cursor-pointer text-sm`}
+                          >
+                            {TOKEN_SUPPLY_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value} className="bg-[#090b14]">
+                                {option.label} ({option.shortLabel})
+                              </option>
+                            ))}
+                          </select>
+                          <span className="mt-1 block text-[10px] leading-relaxed text-white/30">
+                            Fixed at launch. It changes the number of tokens, not the project’s value.
+                          </span>
+                        </label>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </>
+              )}
 
               {mode === 'add' ? (
                 <label
@@ -2098,7 +2223,7 @@ export function LaunchCtoPage() {
 
           {!dashboardEmpty && step === 'community' ? (
             <PostSuccessCommunitySetup
-              mode={mode}
+              mode={persistMode(mode)}
               symbol={displaySymbol}
               logoUrl={dashboardLogoUrl}
               initialWebsite={
@@ -2115,17 +2240,17 @@ export function LaunchCtoPage() {
           {!dashboardEmpty && step === 'done' ? (
             <PostLaunchDashboard
               symbol={displaySymbol}
-              mode={mode}
+              mode={persistMode(mode)}
               listingConfirmed={listingConfirmed}
               onConfirmListing={confirmListing}
               shareLinks={shareLinks}
               copiedLink={copiedLink}
               onCopyLink={(key) => void copyShareLink(key)}
-              marketingAttached={marketingAttached || mode === 'launch'}
+              marketingAttached={marketingAttached || isWizardMode(mode)}
               marketingAddress={demoMarketingWalletAddress(ticker.trim() || coinSlug || 'CTO')}
-              vaultBalanceUsd={mode === 'launch' || marketingAttached ? 42 : 0}
+              vaultBalanceUsd={isWizardMode(mode) || marketingAttached ? 42 : 0}
               artExtrasLine={
-                mode === 'launch' && artBill.hasExtras
+                isWizardMode(mode) && artBill.hasExtras
                   ? `Creative extras · est. ${formatCollateralUsd(artBill.totalUsd)} with launch`
                   : null
               }

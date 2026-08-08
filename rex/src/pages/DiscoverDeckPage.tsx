@@ -30,6 +30,12 @@ import {
   AppSidebarMenuButton,
   AppSidebarProvider,
 } from '../components/AppSidebar';
+import {
+  TrenchesFeed,
+  TrenchesHelmetIcon,
+  filterTrenchesProjects,
+  type TrenchesTab,
+} from '../components/TrenchesFeed';
 import { ctoProjects, type CtoProject, SOURCE_VENUE_FILTERS, matchesSourceVenue, type SourceVenueFilter } from '../data/ctoProjects';
 import { pinnedByTicker } from '../data/pinnedMessages';
 import { useWatchlist } from '../hooks/useWatchlist';
@@ -45,7 +51,7 @@ const GROWTH_ROW_COLS =
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
-type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'bot';
+type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'trenches';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
 type SortDir = 'asc' | 'desc';
 type TokenSortId =
@@ -422,19 +428,6 @@ function AliveNavGlyph({
   );
 }
 
-function BotIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <rect x="5" y="8" width="14" height="11" rx="3" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M12 4.5v3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="12" cy="4.2" r="1.2" fill="currentColor" />
-      <circle cx="9.2" cy="13" r="1.15" fill="currentColor" />
-      <circle cx="14.8" cy="13" r="1.15" fill="currentColor" />
-      <path d="M9 16.2h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
 function TokenSortControl({
   options,
   value,
@@ -548,14 +541,19 @@ export function DiscoverDeckPage() {
   const [tokenSort, setTokenSort] = useState<TokenSortId>('change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [trenchesTab, setTrenchesTab] = useState<TrenchesTab>('new');
   const growthStatusRef = useRef<HTMLButtonElement>(null);
   const growthTipId = useId();
   const [growthTipStyle, setGrowthTipStyle] = useState<CSSProperties>({});
   const isPrelaunchView = bottomTab === 'prelaunch';
   const isPortfolioView = bottomTab === 'portfolio';
   const isGrowthView = bottomTab === 'growth';
+  const isTrenchesView = bottomTab === 'trenches';
   const hideDiscoverChrome =
-    bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
+    bottomTab === 'growth' ||
+    bottomTab === 'trenches' ||
+    bottomTab === 'prelaunch' ||
+    isPortfolioView;
 
   const sortOptions = isGrowthView
     ? GROWTH_SORTS
@@ -654,6 +652,20 @@ export function DiscoverDeckPage() {
     }
     return sortProjects(list, tokenSort, sortDir, timeWindow);
   }, [growthStageFilter, query, tokenSort, sortDir, timeWindow]);
+
+  const trenchesRows = useMemo(() => {
+    let list = filterTrenchesProjects(ctoProjects, trenchesTab);
+    if (chain !== 'SOL') return [];
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.ticker.toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }, [trenchesTab, chain, query]);
 
   const growthStageCounts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -900,6 +912,21 @@ export function DiscoverDeckPage() {
             </button>
           </div>
         </div>
+      ) : isTrenchesView ? (
+        <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
+          <Link
+            to="/launch?mode=create"
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-[#c8ff3d] text-[13px] font-bold text-[#090b14] transition active:brightness-95"
+          >
+            Create
+          </Link>
+          <Link
+            to="/launch?mode=cto"
+            className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
+          >
+            Launch CTO
+          </Link>
+        </div>
       ) : (
         <div className="flex shrink-0 gap-2 px-3 pb-1 pt-2.5">
           <Link
@@ -909,16 +936,16 @@ export function DiscoverDeckPage() {
             List CTO
           </Link>
           <Link
-            to="/launch"
+            to="/launch?mode=create"
             className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/85 transition active:bg-[#2a2a2c]"
           >
-            Launch CTO
+            Create
           </Link>
         </div>
       )}
 
       {/* Chain chips + sources */}
-      {!isPortfolioView && bottomTab !== 'bot' ? (
+      {!isPortfolioView && !isTrenchesView ? (
       <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-2">
         <div className="flex shrink-0 gap-2">
           {CHAINS.map((c) => {
@@ -980,7 +1007,7 @@ export function DiscoverDeckPage() {
       ) : null}
 
       {/* Filter row */}
-      {bottomTab === 'bot' ? null : isPortfolioView ? (
+      {isTrenchesView ? null : isPortfolioView ? (
         <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-1">
           <TokenSortControl
             options={sortOptions}
@@ -1208,9 +1235,7 @@ export function DiscoverDeckPage() {
       )}
 
       {/* Column headers */}
-      {bottomTab === 'bot' ? (
-        <div className="px-3 pb-1 text-[10px] font-medium text-white/35">CTOgo Bot</div>
-      ) : isPortfolioView ? (
+      {isTrenchesView ? null : isPortfolioView ? (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
           <div className="col-span-2">Holding / Qty</div>
           <div className="text-center">Chart</div>
@@ -1241,23 +1266,14 @@ export function DiscoverDeckPage() {
         onScroll={onScroll}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[5.5rem]"
       >
-        {bottomTab === 'bot' ? (
-          <div className="px-5 py-12 text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-white/[0.06] text-white/80 ring-1 ring-white/10">
-              <BotIcon className="h-7 w-7" />
-            </span>
-            <p className="mt-4 text-[17px] font-bold text-white">CTOgo Bot</p>
-            <p className="mx-auto mt-2 max-w-xs text-[13px] leading-relaxed text-white/45">
-              Auto-buy, alerts, and raid helpers for CTOgo coins. Connect a wallet when the bot goes
-              live — this tab is the home for it.
-            </p>
-            <Link
-              to="/launch"
-              className="mt-6 inline-flex h-10 items-center justify-center rounded-full bg-[#c8ff3d] px-5 text-[13px] font-bold text-[#090b14]"
-            >
-              List or launch a CTO
-            </Link>
-          </div>
+        {isTrenchesView ? (
+          <TrenchesFeed
+            projects={trenchesRows}
+            tab={trenchesTab}
+            onTabChange={setTrenchesTab}
+            onOpenCoin={(ticker) => navigate(`/coin/${encodeURIComponent(ticker)}`)}
+            onBuy={(ticker) => navigate(`/coin/${encodeURIComponent(ticker)}`)}
+          />
         ) : isPortfolioView ? (
           !connected ? (
             <div className="px-5 py-12 text-center">
@@ -1739,10 +1755,10 @@ export function DiscoverDeckPage() {
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
-              { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
+              { id: 'trenches' as const, label: 'Trenches', kind: 'trenches' as const },
               { id: 'growth' as const, label: 'Growth', kind: 'growth' as const },
+              { id: 'prelaunch' as const, label: 'Prelaunch', kind: 'lucide' as const, Lucide: Rocket },
               { id: 'portfolio' as const, label: 'Portfolio', kind: 'lucide' as const, Lucide: Briefcase },
-              { id: 'bot' as const, label: 'Bot', kind: 'bot' as const },
             ] as const
           ).map((item) => {
             const active = bottomTab === item.id;
@@ -1762,9 +1778,7 @@ export function DiscoverDeckPage() {
                   ) : item.kind === 'growth' ? (
                     <GrowthIcon className="h-[18px] w-[18px]" />
                   ) : (
-                    <span className="text-[18px] leading-none" aria-hidden>
-                      🤖
-                    </span>
+                    <TrenchesHelmetIcon className="h-[18px] w-[18px]" />
                   )}
                 </AliveNavGlyph>
                 <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
