@@ -89,6 +89,16 @@ function StoryCard({ story }: { story: TrendingNewsStory }) {
             })}
           </div>
         ) : null}
+
+        <div className="mt-3.5 flex items-center justify-end border-t border-white/[0.06] pt-3">
+          <Link
+            to="/launch?mode=create"
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14] transition hover:bg-[#d5ff69]"
+          >
+            <Rocket className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Launch
+          </Link>
+        </div>
       </div>
     </article>
   );
