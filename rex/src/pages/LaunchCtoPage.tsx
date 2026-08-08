@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
+  ArrowLeft,
   ArrowRight,
   Check,
   ChevronDown,
@@ -106,6 +107,60 @@ const BUY_AT_LAUNCH_PRESETS = [0.1, 0.25, 0.5, 1, 2];
 const backBtnClass =
   'inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white sm:w-auto sm:px-5';
 
+type WizardStepNavProps = {
+  onBack?: () => void;
+  showBack?: boolean;
+  nextLabel: string;
+  nextDisabled?: boolean;
+  nextBusy?: boolean;
+  /** Form submit vs button next */
+  nextType?: 'submit' | 'button';
+  onNext?: () => void;
+};
+
+function WizardStepNav({
+  onBack,
+  showBack = true,
+  nextLabel,
+  nextDisabled = false,
+  nextBusy = false,
+  nextType = 'button',
+  onNext,
+}: WizardStepNavProps) {
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      {showBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] px-4 text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </button>
+      ) : null}
+      <button
+        type={nextType}
+        onClick={nextType === 'button' ? onNext : undefined}
+        disabled={nextDisabled || nextBusy}
+        className={`${primaryBtnClass} flex-1`}
+      >
+        {nextBusy ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Working…
+          </>
+        ) : (
+          <>
+            {nextLabel}
+            <ArrowRight className="h-4 w-4" />
+          </>
+        )}
+      </button>
+    </div>
+  );
+}
+
 /** Vesting: Day 1-5 = 10% each, then Day 6 = 25% and Day 7 = 25%. */
 const VESTING_SCHEDULE = [
   { label: 'Day 1', amount: '10%' },
@@ -126,6 +181,7 @@ export function LaunchCtoPage() {
   const { connected, address, connect, busy: walletBusy } = useConnectedWallet();
   const [mode, setMode] = useState<LaunchMode>('create');
   const [step, setStep] = useState<FlowStep>('coin');
+  const [maxStepIndex, setMaxStepIndex] = useState(0);
   const [listNotice, setListNotice] = useState<string | null>(null);
   const cloneJob = useCloneWebsiteJob();
   const [clonePickerTicker, setClonePickerTicker] = useState<string | null>(null);
@@ -364,6 +420,12 @@ export function LaunchCtoPage() {
     0,
     steps.findIndex((s) => s.id === step),
   );
+
+  useEffect(() => {
+    if (!isWizardMode(mode) || stepIndex < 0) return;
+    setMaxStepIndex((prev) => Math.max(prev, stepIndex));
+  }, [mode, stepIndex]);
+
   const buyAtLaunchSolNum = Number(buyAtLaunchSol);
   const hasBuyAtLaunch =
     Boolean(buyAtLaunchSol.trim()) &&
@@ -380,6 +442,7 @@ export function LaunchCtoPage() {
 
   const resetFlow = () => {
     setStep('coin');
+    setMaxStepIndex(0);
     setName('');
     setTicker('');
     setContract('');
@@ -420,6 +483,7 @@ export function LaunchCtoPage() {
     setPreviewOpen(false);
     setGeneratingSite(false);
     setEditSite(false);
+    setClonePickerTicker(null);
     setFromCoinPage(false);
     setListNotice(null);
     setMarketingAttached(false);
@@ -921,6 +985,38 @@ export function LaunchCtoPage() {
   const canGenerateSite = Boolean(cloneUrl.trim() || website.trim());
   const canPublishSite = websiteKind === 'none' || siteGenerated;
 
+  const goToStep = (id: FlowStep) => {
+    const idx = steps.findIndex((s) => s.id === id);
+    if (idx < 0 || idx > maxStepIndex) return;
+    setPreviewOpen(false);
+    setClonePickerTicker(null);
+    setStep(id);
+  };
+
+  const goWizardBack = () => {
+    if (stepIndex <= 0) return;
+    goToStep(steps[stepIndex - 1].id);
+  };
+
+  const canWizardForward =
+    stepIndex >= 0 &&
+    stepIndex < steps.length - 1 &&
+    (stepIndex + 1 <= maxStepIndex ||
+      (step === 'coin' && canContinueCoin) ||
+      step === 'fees' ||
+      (step === 'website' && canPublishSite) ||
+      step === 'burn');
+
+  const goWizardForward = () => {
+    if (!canWizardForward) return;
+    const nextId = steps[stepIndex + 1].id;
+    if (stepIndex + 1 <= maxStepIndex) {
+      goToStep(nextId);
+      return;
+    }
+    setStep(nextId);
+  };
+
   return (
     <AppSidebarProvider>
     <div className="page-shell theme-dark min-h-screen bg-black text-white">
@@ -1130,6 +1226,7 @@ export function LaunchCtoPage() {
                   {steps.map((s, i) => {
                     const done = i < stepIndex;
                     const active = i === stepIndex;
+                    const reachable = i <= maxStepIndex;
                     const align =
                       i === 0
                         ? 'items-start text-left'
@@ -1138,24 +1235,40 @@ export function LaunchCtoPage() {
                           : 'items-center text-center';
                     return (
                       <li key={s.id} className={`flex flex-col gap-2 ${align}`}>
-                        <span
+                        <button
+                          type="button"
+                          disabled={!reachable}
+                          onClick={() => goToStep(s.id)}
                           className={`grid h-[22px] w-[22px] place-items-center rounded-full text-[10px] font-bold transition ${
                             active
                               ? 'bg-[#c8ff3d] text-[#090b14] ring-4 ring-[#c8ff3d]/15'
                               : done
-                                ? 'bg-[#c8ff3d]/20 text-[#d5ff69]'
-                                : 'border border-white/15 bg-[#090b14] text-white/35'
+                                ? 'bg-[#c8ff3d]/20 text-[#d5ff69] hover:bg-[#c8ff3d]/35'
+                                : reachable
+                                  ? 'border border-white/25 bg-[#090b14] text-white/55 hover:border-white/40'
+                                  : 'cursor-not-allowed border border-white/15 bg-[#090b14] text-white/35'
                           }`}
+                          aria-label={`Go to ${s.label}`}
+                          aria-current={active ? 'step' : undefined}
                         >
                           {done ? <Check className="h-3 w-3" strokeWidth={2.5} /> : i + 1}
-                        </span>
-                        <span
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!reachable}
+                          onClick={() => goToStep(s.id)}
                           className={`text-[11px] font-semibold tracking-tight ${
-                            active ? 'text-[#d5ff69]' : done ? 'text-white/55' : 'text-white/30'
+                            active
+                              ? 'text-[#d5ff69]'
+                              : done
+                                ? 'text-white/55 hover:text-white/75'
+                                : reachable
+                                  ? 'text-white/45 hover:text-white/65'
+                                  : 'cursor-not-allowed text-white/30'
                           }`}
                         >
                           {s.label}
-                        </span>
+                        </button>
                       </li>
                     );
                   })}
@@ -1468,16 +1581,15 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={
-                  !canContinueCoin ||
-                  (mode === 'add' && (walletBusy || marketingAttachBusy || authBusy))
-                }
-                className={primaryBtnClass}
-              >
-                {mode === 'add' ? (
-                  marketingAttachBusy || walletBusy || authBusy ? (
+              {mode === 'add' ? (
+                <button
+                  type="submit"
+                  disabled={
+                    !canContinueCoin || walletBusy || marketingAttachBusy || authBusy
+                  }
+                  className={primaryBtnClass}
+                >
+                  {marketingAttachBusy || walletBusy || authBusy ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
                       {authBusy
@@ -1491,14 +1603,19 @@ export function LaunchCtoPage() {
                       List
                       <Check className="h-4 w-4" />
                     </>
-                  )
-                ) : (
-                  <>
-                    Looks good
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
+                  )}
+                </button>
+              ) : (
+                <WizardStepNav
+                  showBack={false}
+                  nextType={maxStepIndex > stepIndex ? 'button' : 'submit'}
+                  onNext={goWizardForward}
+                  nextLabel={maxStepIndex > stepIndex ? 'Next' : 'Looks good'}
+                  nextDisabled={
+                    maxStepIndex > stepIndex ? !canWizardForward : !canContinueCoin
+                  }
+                />
+              )}
             </form>
           ) : null}
 
@@ -1625,10 +1742,12 @@ export function LaunchCtoPage() {
                 )}
               </div>
 
-              <button type="submit" className={primaryBtnClass}>
-                Looks good
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <WizardStepNav
+                onBack={goWizardBack}
+                nextType={maxStepIndex > stepIndex ? 'button' : 'submit'}
+                onNext={goWizardForward}
+                nextLabel={maxStepIndex > stepIndex ? 'Next' : 'Looks good'}
+              />
             </form>
           ) : null}
 
@@ -1666,6 +1785,14 @@ export function LaunchCtoPage() {
                     className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
                   >
                     Skip
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goWizardBack}
+                    className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-transparent text-[13px] font-semibold text-white/55 transition hover:text-white"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
                   </button>
                 </div>
               ) : (
@@ -1797,38 +1924,35 @@ export function LaunchCtoPage() {
                   ) : null}
 
                   <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={() => void continueFromBurn()}
-                      disabled={
-                        burnConfirmBusy ||
-                        !(
-                          burnAmount.trim() &&
-                          Number.isFinite(Number(burnAmount)) &&
-                          Number(burnAmount) > 0
-                        )
+                    <WizardStepNav
+                      onBack={goWizardBack}
+                      nextType="button"
+                      onNext={() => {
+                        if (maxStepIndex > stepIndex) {
+                          goWizardForward();
+                          return;
+                        }
+                        void continueFromBurn();
+                      }}
+                      nextLabel={maxStepIndex > stepIndex ? 'Next' : 'Continue'}
+                      nextBusy={burnConfirmBusy}
+                      nextDisabled={
+                        maxStepIndex > stepIndex
+                          ? false
+                          : !(
+                              burnAmount.trim() &&
+                              Number.isFinite(Number(burnAmount)) &&
+                              Number(burnAmount) > 0
+                            )
                       }
-                      className={primaryBtnClass}
-                    >
-                      {burnConfirmBusy ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Continuing…
-                        </>
-                      ) : (
-                        <>
-                          Continue
-                          <ArrowRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </button>
+                    />
                     <button
                       type="button"
                       disabled={burnConfirmBusy}
                       onClick={() => void continueFromBurn({ skip: true })}
                       className="inline-flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
                     >
-                      Skip
+                      Skip burn
                     </button>
                   </div>
                 </>
@@ -1940,29 +2064,39 @@ export function LaunchCtoPage() {
                 <p className="text-[12px] font-medium text-amber-300">{listNotice}</p>
               ) : null}
 
-              <button
-                type="button"
-                onClick={() => void payAndLaunch()}
-                disabled={burnConfirmBusy || walletBusy}
-                className={primaryBtnClass}
-              >
-                {burnConfirmBusy || walletBusy ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {walletBusy ? 'Connecting…' : 'Paying…'}
-                  </>
-                ) : connected ? (
-                  <>
-                    Pay &amp; launch
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    <Wallet className="h-4 w-4" />
-                    Connect wallet &amp; pay
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={goWizardBack}
+                  className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full border border-white/[0.12] bg-[#1c1c1e] px-4 text-[13px] font-semibold text-white/70 transition hover:bg-[#2a2a2c] hover:text-white"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void payAndLaunch()}
+                  disabled={burnConfirmBusy || walletBusy}
+                  className={`${primaryBtnClass} flex-1`}
+                >
+                  {burnConfirmBusy || walletBusy ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {walletBusy ? 'Connecting…' : 'Paying…'}
+                    </>
+                  ) : connected ? (
+                    <>
+                      Pay &amp; launch
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      <Wallet className="h-4 w-4" />
+                      Connect wallet &amp; pay
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           ) : null}
 
@@ -2301,14 +2435,13 @@ export function LaunchCtoPage() {
                 </p>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={!canPublishSite}
-                className={primaryBtnClass}
-              >
-                Continue
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <WizardStepNav
+                onBack={goWizardBack}
+                nextType={maxStepIndex > stepIndex ? 'button' : 'submit'}
+                onNext={goWizardForward}
+                nextLabel={maxStepIndex > stepIndex ? 'Next' : 'Continue'}
+                nextDisabled={!canPublishSite && maxStepIndex <= stepIndex}
+              />
             </form>
           ) : null}
 
