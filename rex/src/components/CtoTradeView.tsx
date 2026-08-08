@@ -209,10 +209,20 @@ type CoinTrackerMetric = {
 
 type TrackerProject = Pick<
   TradeViewProject,
-  'ticker' | 'holders' | 'origin' | 'sourceVenue' | 'v1Mint' | 'v1Liquidity' | 'volume24h' | 'launchInHours'
+  | 'ticker'
+  | 'holders'
+  | 'origin'
+  | 'sourceVenue'
+  | 'v1Mint'
+  | 'v1Liquidity'
+  | 'volume24h'
+  | 'launchInHours'
+  | 'devDumpedPct'
 >;
 
-/** Still on bonding curve vs graduated to AMM liquidity. */
+type MintChartView = 'ctogo' | 'old';
+
+/** Still on bonding curve vs graduated to AMM liquidity (CTOgo mint view). */
 function isOnBondingCurve(project: TrackerProject): boolean {
   if (project.sourceVenue === 'Pump.fun') return true;
   if (project.sourceVenue === 'Raydium' || project.sourceVenue === 'PumpSwap') return false;
@@ -223,9 +233,17 @@ function isOnBondingCurve(project: TrackerProject): boolean {
   return true;
 }
 
-function bondingProgressPct(project: TrackerProject): number {
-  const seed = hashSeed(project.ticker);
-  // Younger coins start lower on the curve; seed keeps demos stable per ticker
+/** Old CA curve vs pool — demo until live V1 indexer. */
+function isOldCaOnBondingCurve(project: TrackerProject): boolean {
+  if (project.sourceVenue === 'Pump.fun') return true;
+  if (project.sourceVenue === 'Raydium' || project.sourceVenue === 'PumpSwap') return false;
+  // Linked upgrade: previous mint often still quoted with v1Liquidity after migrate
+  if (project.v1Liquidity) return false;
+  return true;
+}
+
+function bondingProgressPct(project: TrackerProject, seedKey: string): number {
+  const seed = hashSeed(seedKey);
   const ageBias =
     project.launchInHours == null
       ? 90
@@ -233,83 +251,112 @@ function bondingProgressPct(project: TrackerProject): number {
   return Math.max(1, Math.min(99, Math.round(ageBias * 0.55 + (seed % 40))));
 }
 
-function formatLiquidityLabel(project: TrackerProject): string {
+function formatLiquidityLabel(project: TrackerProject, mintView: MintChartView): string {
+  if (mintView === 'old') {
+    const raw = project.v1Liquidity || resolveV1Liquidity(project);
+    if (raw === 'Burned') {
+      const seed = hashSeed(`${project.ticker}-old-liq`);
+      return `$${12 + (seed % 90)}K`;
+    }
+    return raw.startsWith('$') ? raw : `$${raw}`;
+  }
   const raw = resolveV1Liquidity(project);
-  if (raw === 'Burned') {
-    // Graduated CTOgo — demo pool depth from volume
-    const seed = hashSeed(project.ticker);
+  if (raw === 'Burned' || mintView === 'ctogo') {
+    const seed = hashSeed(`${project.ticker}-cto-liq`);
     const k = 20 + (seed % 180);
     return `$${k}K`;
   }
   return raw.startsWith('$') ? raw : `$${raw}`;
 }
 
-/** GMGN-style risk/holder chips — demo values until live indexer. */
-function coinTrackerMetrics(project: TrackerProject): CoinTrackerMetric[] {
-  const seed = hashSeed(project.ticker);
+function formatHoldersLabel(
+  project: TrackerProject,
+  seed: number,
+  mintView: MintChartView,
+): string {
+  if (mintView === 'old') {
+    const n = 35 + (seed % 420);
+    return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
+  }
   const holdersRaw = String(project.holders || '').replace(/,/g, '');
   const holdersNum = Number(holdersRaw);
-  const holdersLabel =
-    Number.isFinite(holdersNum) && holdersNum > 0
-      ? holdersNum >= 1000
-        ? `${(holdersNum / 1000).toFixed(holdersNum >= 10_000 ? 0 : 1)}K`
-        : String(Math.round(holdersNum))
-      : project.holders && project.holders !== '—'
-        ? project.holders
-        : String(80 + (seed % 420));
+  if (Number.isFinite(holdersNum) && holdersNum > 0) {
+    return holdersNum >= 1000
+      ? `${(holdersNum / 1000).toFixed(holdersNum >= 10_000 ? 0 : 1)}K`
+      : String(Math.round(holdersNum));
+  }
+  if (project.holders && project.holders !== '—') return project.holders;
+  return String(80 + (seed % 420));
+}
 
-  const onCurve = isOnBondingCurve(project);
-  const progressPct = bondingProgressPct(project);
+/** GMGN-style chips — values follow CTOgo vs Old CA chart toggle. */
+function coinTrackerMetrics(
+  project: TrackerProject,
+  mintView: MintChartView,
+): CoinTrackerMetric[] {
+  const seedKey = mintView === 'old' ? `${project.ticker}-oldca` : project.ticker;
+  const seed = hashSeed(seedKey);
+  const scope = mintView === 'old' ? 'Old CA' : 'CTOgo';
+  const holdersLabel = formatHoldersLabel(project, seed, mintView);
+
+  const onCurve =
+    mintView === 'old' ? isOldCaOnBondingCurve(project) : isOnBondingCurve(project);
+  const progressPct = bondingProgressPct(project, seedKey);
   const progressOrLiquidity: CoinTrackerMetric = onCurve
     ? {
         id: 'progress',
         label: 'Progress',
-        value: `${progressPct}%`,
+        value: `${mintView === 'old' ? Math.min(99, progressPct + 8) : progressPct}%`,
         tone: progressPct >= 70 ? 'good' : 'default',
-        detail:
-          'Bonding-curve fill toward graduation. At 100% the coin migrates and this switches to pool liquidity.',
+        detail: `Bonding-curve fill on the ${scope} mint toward graduation.`,
       }
     : {
         id: 'liquidity',
         label: 'Liquidity',
-        value: formatLiquidityLabel(project),
+        value: formatLiquidityLabel(project, mintView),
         tone: 'default',
-        detail:
-          'Locked / pool liquidity after bonding-curve migration. Depth available for buys and sells on the AMM.',
+        detail: `Pool liquidity for the ${scope} mint after bonding-curve migration.`,
       };
+
+  const oldDevRemaining =
+    typeof project.devDumpedPct === 'number'
+      ? Math.max(0, Math.min(40, 100 - Math.round(project.devDumpedPct)))
+      : 4 + (seed % 22);
+
+  const devHoldings =
+    mintView === 'old' ? oldDevRemaining : seed % 8;
+  const top10 = mintView === 'old' ? 28 + (seed % 42) : 12 + (seed % 38);
+  const bundlers = mintView === 'old' ? 8 + (seed % 28) : seed % 15;
 
   return [
     {
       id: 'dev-holdings',
       label: 'Dev holdings',
-      value: `${seed % 8}%`,
-      tone: 'default',
-      detail:
-        'Share of supply still held by the deployer / creator wallet. Higher can mean more dump risk if they sell.',
+      value: `${devHoldings}%`,
+      tone: mintView === 'old' && devHoldings > 15 ? 'bad' : 'default',
+      detail: `Share of ${scope} supply still held by the deployer / creator wallet.`,
     },
     progressOrLiquidity,
     {
       id: 'top-10',
       label: 'Top 10',
-      value: `${12 + (seed % 38)}%`,
-      tone: 'good',
-      detail:
-        'Combined % of supply held by the top 10 wallets (ex-pool where known). Lower concentration is generally healthier.',
+      value: `${top10}%`,
+      tone: top10 <= 40 ? 'good' : 'default',
+      detail: `Combined % of ${scope} supply held by the top 10 wallets (ex-pool where known).`,
     },
     {
       id: 'bundlers',
       label: 'Bundlers',
-      value: `${seed % 15}%`,
+      value: `${bundlers}%`,
       tone: 'bad',
-      detail:
-        'Estimated % of supply bought in coordinated / bundled sniper wallets at launch. Higher can mean tighter float and dump risk.',
+      detail: `Estimated % of ${scope} supply bought in coordinated / bundled sniper wallets at launch.`,
     },
     {
       id: 'holders',
       label: 'Holders',
       value: holdersLabel,
       tone: 'default',
-      detail: 'Unique wallets holding this token. Growing holders usually track broader distribution.',
+      detail: `Unique wallets holding the ${scope} mint.`,
     },
   ];
 }
@@ -564,12 +611,14 @@ function CoinTrackerItem({
 
 function CoinTrackerRow({
   project,
+  mintView = 'ctogo',
 }: {
   project: TrackerProject;
+  mintView?: MintChartView;
 }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const trackers = useMemo(
-    () => coinTrackerMetrics(project),
+    () => coinTrackerMetrics(project, mintView),
     [
       project.ticker,
       project.holders,
@@ -579,21 +628,29 @@ function CoinTrackerRow({
       project.v1Liquidity,
       project.volume24h,
       project.launchInHours,
+      project.devDumpedPct,
+      mintView,
     ],
   );
+
+  useEffect(() => {
+    setOpenId(null);
+  }, [mintView, project.ticker]);
+
+  const seedTicker = mintView === 'old' ? `${project.ticker}-oldca` : project.ticker;
 
   return (
     <div
       className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x border-t border-white/[0.08] pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ WebkitOverflowScrolling: 'touch' }}
       role="list"
-      aria-label="Token trackers"
+      aria-label={mintView === 'old' ? 'Old CA token trackers' : 'CTOgo token trackers'}
     >
       {trackers.map((t) => (
         <CoinTrackerItem
-          key={t.id}
+          key={`${mintView}-${t.id}`}
           metric={t}
-          ticker={project.ticker}
+          ticker={seedTicker}
           open={openId === t.id}
           onToggle={() => setOpenId((cur) => (cur === t.id ? null : t.id))}
         />
@@ -1595,7 +1652,10 @@ export function CtoTradeView({
             change24h={change ?? project.change24h}
             ticker={project.ticker}
           />
-          <CoinTrackerRow project={project} />
+          <CoinTrackerRow
+            project={project}
+            mintView={chartOnV1 ? 'old' : 'ctogo'}
+          />
         </div>
       </div>
 
