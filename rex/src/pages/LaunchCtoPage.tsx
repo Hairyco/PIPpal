@@ -1285,7 +1285,7 @@ export function LaunchCtoPage() {
                       </span>
                     </span>
                     <span className="mt-1 block text-[11px] leading-relaxed text-white/45">
-                      Thinks, builds and markets your coin autonomously.
+                      Markets your coin autonomously.
                     </span>
                     <span className="mt-2 flex flex-wrap items-center gap-3">
                       <Link
@@ -1691,7 +1691,7 @@ export function LaunchCtoPage() {
                         Marketing wallet
                       </span>
                       <span className="mt-0.5 block text-[11px] leading-relaxed text-white/45">
-                        Thinks, builds and markets your coin autonomously ·{' '}
+                        Markets your coin autonomously ·{' '}
                         {mode === 'add'
                           ? `${formatBpsPercent(LIST_FEE_ENGINE.marketingBps)} List cut`
                           : `${formatBpsPercent(LAUNCH_FEE_ENGINE.marketingBps)} Launch cut`}{' '}

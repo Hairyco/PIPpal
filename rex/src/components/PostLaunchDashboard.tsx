@@ -852,7 +852,7 @@ export function PostLaunchDashboard({
                 <div className="min-w-0">
                   <p className="text-[13px] font-semibold text-[#d5ff69]">Add marketing wallet</p>
                   <p className="mt-1 text-[12px] leading-relaxed text-white/50">
-                    Thinks, builds and markets your coin autonomously. Connect wallet and pay $1 once
+                    Markets your coin autonomously. Connect wallet and pay $1 once
                     to unlock Auto Marketing Wallet + Raid programme.
                   </p>
                 </div>

@@ -50,7 +50,7 @@ export function MarketingWalletPage() {
                     One-click marketing
                   </h1>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
-                    Thinks, builds and markets your coin autonomously.
+                    Markets your coin autonomously.
                   </p>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-white/55">
                     Every trade on CTOgo puts {MARKETING_FILL_SHORT} into your coin’s marketing
