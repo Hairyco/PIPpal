@@ -97,7 +97,7 @@ export function NewsStoryCoinsPage() {
             className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[#c8ff3d] px-3 text-[11px] font-bold text-[#090b14]"
           >
             <Rocket className="h-3.5 w-3.5" strokeWidth={2.5} />
-            Launch
+            Create
           </Link>
         </div>
 
