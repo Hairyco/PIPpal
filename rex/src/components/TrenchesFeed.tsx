@@ -1,4 +1,18 @@
-import { Eye, Globe, Search, Trophy, Users, Zap } from 'lucide-react';
+import {
+  ArrowDown,
+  ChevronDown,
+  Crosshair,
+  Eye,
+  Filter,
+  Ghost,
+  Globe,
+  LayoutGrid,
+  Pause,
+  Search,
+  Trophy,
+  Users,
+  Zap,
+} from 'lucide-react';
 import type { CtoProject } from '../data/ctoProjects';
 
 export type TrenchesTab = 'new' | 'almost' | 'migrated';
@@ -16,6 +30,11 @@ const TABS: { id: TrenchesTab; label: string }[] = [
   { id: 'almost', label: 'Almost bonded' },
   { id: 'migrated', label: 'Migrated' },
 ];
+
+const toolBtn =
+  'inline-flex h-8 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-white/55 ring-1 ring-white/10';
+const toolPill =
+  'inline-flex h-8 shrink-0 items-center rounded-full bg-[#1c1c1e] text-white/55 ring-1 ring-white/10';
 
 function salt(str: string, mod = 1000): number {
   let s = 0;
@@ -124,30 +143,133 @@ function XLogo({ className = '' }: { className?: string }) {
 }
 
 function MetricPills({ project }: { project: CtoProject }) {
-  const a = 4 + salt(project.ticker + 'a', 20);
-  const b = salt(project.ticker + 'b', 12);
-  const c = salt(project.ticker + 'c', 18);
-  const d = 2 + salt(project.ticker + 'd', 9);
-  const e = 3 + salt(project.ticker + 'e', 14);
+  const top10 = 4 + salt(project.ticker + 'a', 20);
+  const devHold = salt(project.ticker + 'b', 12);
+  const insider = salt(project.ticker + 'c', 18);
+  const buyPct = 2 + salt(project.ticker + 'd', 9);
+  const sellPct = 3 + salt(project.ticker + 'e', 14);
+  const pill =
+    'inline-flex items-center gap-0.5 rounded-[4px] px-1 py-px text-[9px] font-bold tabular-nums leading-none';
   return (
     <div className="mt-1.5 flex flex-wrap items-center gap-1">
-      <span className="rounded-[4px] bg-emerald-500/20 px-1 py-px text-[9px] font-bold tabular-nums text-emerald-400">
-        {a}%
+      <span
+        className={`${pill} bg-emerald-500/20 text-emerald-400`}
+        title="Top 10 holders"
+      >
+        <Users className="h-2.5 w-2.5 shrink-0" strokeWidth={2.5} />
+        {top10}%
       </span>
-      <span className="rounded-[4px] bg-sky-500/25 px-1 py-px text-[9px] font-bold text-sky-300">
+      <span className={`${pill} bg-sky-500/25 text-sky-300`} title="DexScreener">
+        <img
+          src="/images/partners/dexscreener.ico"
+          alt=""
+          className="h-2.5 w-2.5 shrink-0 rounded-[2px] object-contain"
+        />
         DS
       </span>
-      <span className="rounded-[4px] bg-rose-500/20 px-1 py-px text-[9px] font-bold tabular-nums text-rose-400">
-        {b}%
+      <span className="relative inline-flex">
+        <span
+          className="absolute left-1/2 top-[-3px] h-1 w-1 -translate-x-1/2 rounded-full bg-rose-500"
+          aria-hidden
+        />
+        <span className={`${pill} bg-rose-500/20 text-rose-400`} title="Dev holding">
+          <Ghost className="h-2.5 w-2.5 shrink-0" strokeWidth={2.5} />
+          {devHold}%
+        </span>
       </span>
-      <span className="rounded-[4px] bg-white/[0.06] px-1 py-px text-[9px] font-bold tabular-nums text-white/45">
-        {c}%
+      <span
+        className={`${pill} bg-white/[0.06] text-white/55`}
+        title="Insiders"
+      >
+        <Crosshair className="h-2.5 w-2.5 shrink-0" strokeWidth={2.5} />
+        {insider}%
       </span>
-      <span className="rounded-[4px] bg-white/[0.06] px-1 py-px text-[9px] font-bold tabular-nums text-white/55">
-        <span className="text-emerald-400">{d}%</span>
+      <span
+        className={`${pill} bg-white/[0.06] text-white/55`}
+        title="Buy / Sell"
+      >
+        <span className="text-emerald-400">{buyPct}%</span>
         <span className="text-white/30">/</span>
-        <span className="text-rose-400">{e}%</span>
+        <span className="text-rose-400">{sellPct}%</span>
       </span>
+    </div>
+  );
+}
+
+function HexNutIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M12 3.2 19.2 7.4v9.2L12 20.8 4.8 16.6V7.4L12 3.2Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function StackBarsIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M5 8.5h14M5 12h14M5 15.5h14"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function TrenchesToolbar() {
+  return (
+    <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <button type="button" className={`${toolBtn} w-8`} aria-label="Layout">
+        <LayoutGrid className="h-3.5 w-3.5" strokeWidth={2} />
+      </button>
+
+      <div className={`${toolPill} divide-x divide-white/10`}>
+        <button type="button" className="grid h-8 w-8 place-items-center" aria-label="Fast mode">
+          <Zap className="h-3.5 w-3.5" strokeWidth={2} />
+        </button>
+        <button type="button" className="grid h-8 w-8 place-items-center" aria-label="Feed mode">
+          <StackBarsIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <div className={`${toolPill} divide-x divide-white/10`}>
+        <button
+          type="button"
+          className="inline-flex h-8 items-center gap-0.5 px-2.5 text-[12px] font-semibold text-white/70"
+          aria-label="Preset P1"
+        >
+          P1
+          <ChevronDown className="h-3 w-3 opacity-70" strokeWidth={2.5} />
+        </button>
+        <button type="button" className="grid h-8 w-8 place-items-center" aria-label="Settings">
+          <HexNutIcon className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      <button type="button" className={`${toolBtn} w-8`} aria-label="Pause live feed">
+        <Pause className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
+      </button>
+
+      <button
+        type="button"
+        className={`${toolPill} gap-0.5 px-2.5 text-[12px] font-semibold text-white/70`}
+        aria-label="Sort by percent"
+      >
+        <ArrowDown className="h-3 w-3" strokeWidth={2.5} />
+        %
+        <ChevronDown className="h-3 w-3 opacity-70" strokeWidth={2.5} />
+      </button>
+
+      <button type="button" className={`${toolBtn} w-8`} aria-label="Filters">
+        <Filter className="h-3.5 w-3.5" strokeWidth={2} />
+      </button>
     </div>
   );
 }
@@ -193,18 +315,7 @@ export function TrenchesFeed({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-1.5 overflow-x-auto px-3 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {['P1', '%', 'Filter'].map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="inline-flex h-7 shrink-0 items-center rounded-md bg-[#1c1c1e] px-2 text-[11px] font-semibold text-white/55 ring-1 ring-white/10"
-          >
-            {label}
-          </button>
-        ))}
-        <span className="ml-auto text-[10px] font-medium text-white/30">Live</span>
-      </div>
+      <TrenchesToolbar />
 
       {projects.length === 0 ? (
         <div className="px-6 py-16 text-center">

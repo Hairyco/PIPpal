@@ -856,40 +856,42 @@ export function DiscoverDeckPage() {
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex shrink-0 items-end gap-5 border-b border-white/[0.08] px-4">
-        {(
-          [
-            { id: 'watchlist' as const, label: 'Watchlist' },
-            { id: 'volume' as const, label: 'Volume' },
-            { id: 'trending' as const, label: 'Trending' },
-          ] as const
-        ).map((tab) => {
-          const active = topTab === tab.id && !hideDiscoverChrome;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                setTopTab(tab.id);
-                setBottomTab('discover');
-                setShowPinned(false);
-              }}
-              className={`relative pb-2.5 text-[15px] font-semibold transition ${
-                active ? 'text-white' : 'text-white/40'
-              }`}
-            >
-              {tab.label}
-              {tab.id === 'watchlist' && watchCount > 0 ? (
-                <span className="ml-1 text-[11px] font-bold text-[#c8ff3d]">{watchCount}</span>
-              ) : null}
-              {active ? (
-                <span className="absolute inset-x-0 -bottom-px mx-auto h-[2.5px] w-8 rounded-full bg-white" />
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs — Discover only (hidden on Trenches / Growth / Prelaunch / Portfolio) */}
+      {!hideDiscoverChrome ? (
+        <div className="flex shrink-0 items-end gap-5 border-b border-white/[0.08] px-4">
+          {(
+            [
+              { id: 'watchlist' as const, label: 'Watchlist' },
+              { id: 'volume' as const, label: 'Volume' },
+              { id: 'trending' as const, label: 'Trending' },
+            ] as const
+          ).map((tab) => {
+            const active = topTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => {
+                  setTopTab(tab.id);
+                  setBottomTab('discover');
+                  setShowPinned(false);
+                }}
+                className={`relative pb-2.5 text-[15px] font-semibold transition ${
+                  active ? 'text-white' : 'text-white/40'
+                }`}
+              >
+                {tab.label}
+                {tab.id === 'watchlist' && watchCount > 0 ? (
+                  <span className="ml-1 text-[11px] font-bold text-[#c8ff3d]">{watchCount}</span>
+                ) : null}
+                {active ? (
+                  <span className="absolute inset-x-0 -bottom-px mx-auto h-[2.5px] w-8 rounded-full bg-white" />
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {/* List / Launch — or Portfolio Buy */}
       {isPortfolioView ? (
