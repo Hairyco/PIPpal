@@ -25,6 +25,7 @@ import { ConnectWalletButton, useConnectedWallet } from '../components/ConnectWa
 import { NotificationsButton } from '../components/NotificationsButton';
 import { PolessiaLogo } from '../components/PolessiaLogo';
 import { GrowthRoadmapSheet } from '../components/GrowthRoadmapSheet';
+import { TrendingNewsBar } from '../components/TrendingNewsBar';
 import {
   AppSidebar,
   AppSidebarMenuButton,
@@ -973,6 +974,8 @@ export function DiscoverDeckPage() {
           </Link>
         </div>
       )}
+
+      {!hideDiscoverChrome && topTab === 'trending' ? <TrendingNewsBar /> : null}
 
       {/* Chain chips + sources */}
       {!isPortfolioView && !isTrenchesView ? (
