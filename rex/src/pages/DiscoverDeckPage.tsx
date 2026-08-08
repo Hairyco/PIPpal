@@ -48,6 +48,44 @@ type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
 type BottomTab = 'discover' | 'prelaunch' | 'growth' | 'portfolio' | 'bot';
 type PrelaunchFilter = 'all' | 'live_soon' | 'with_vault';
+type SortDir = 'asc' | 'desc';
+type TokenSortId =
+  | 'change'
+  | 'volume'
+  | 'mcap'
+  | 'holders'
+  | 'age'
+  | 'name'
+  | 'mw'
+  | 'fill'
+  | 'roadmap'
+  | 'value'
+  | 'pnl';
+
+type TokenSortOption = { id: TokenSortId; label: string };
+
+const DISCOVER_SORTS: TokenSortOption[] = [
+  { id: 'change', label: 'Change %' },
+  { id: 'volume', label: 'Volume' },
+  { id: 'mcap', label: 'Market cap' },
+  { id: 'holders', label: 'Holders' },
+  { id: 'age', label: 'Age' },
+  { id: 'name', label: 'Name' },
+];
+
+const GROWTH_SORTS: TokenSortOption[] = [
+  { id: 'mw', label: 'MW balance' },
+  { id: 'fill', label: 'Fill %' },
+  { id: 'roadmap', label: 'Roadmap' },
+  { id: 'volume', label: 'Volume' },
+  { id: 'name', label: 'Name' },
+];
+
+const PORTFOLIO_SORTS: TokenSortOption[] = [
+  { id: 'value', label: 'Value' },
+  { id: 'pnl', label: 'PnL %' },
+  { id: 'name', label: 'Name' },
+];
 type GrowthStageId =
   | 'telegram'
   | 'x'
@@ -121,6 +159,74 @@ function volumeUsd(project: CtoProject): number {
   if (project.volume24h.includes('M')) return n * 1_000_000;
   if (project.volume24h.includes('K')) return n * 1_000;
   return n;
+}
+
+function marketCapUsd(project: CtoProject): number {
+  const raw = project.marketCap.replace(/[^0-9.]/g, '');
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 0;
+  if (project.marketCap.includes('M')) return n * 1_000_000;
+  if (project.marketCap.includes('K')) return n * 1_000;
+  return n;
+}
+
+function holdersCount(project: CtoProject): number {
+  const raw = project.holders.replace(/[^0-9.]/g, '');
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return 0;
+  if (project.holders.includes('K')) return n * 1000;
+  return n;
+}
+
+function ageHours(project: CtoProject): number {
+  return project.launchInHours != null ? project.launchInHours : 72 + salt(project.ticker, 200);
+}
+
+function sortProjects(
+  list: CtoProject[],
+  sortId: TokenSortId,
+  dir: SortDir,
+  timeWindow: TimeWindow,
+): CtoProject[] {
+  const mul = dir === 'asc' ? 1 : -1;
+  return [...list].sort((a, b) => {
+    let cmp = 0;
+    switch (sortId) {
+      case 'change':
+        cmp = changeForWindow(a, timeWindow) - changeForWindow(b, timeWindow);
+        break;
+      case 'volume':
+        cmp = volumeUsd(a) - volumeUsd(b);
+        break;
+      case 'mcap':
+        cmp = marketCapUsd(a) - marketCapUsd(b);
+        break;
+      case 'holders':
+        cmp = holdersCount(a) - holdersCount(b);
+        break;
+      case 'age':
+        cmp = ageHours(a) - ageHours(b);
+        break;
+      case 'name':
+        cmp = a.name.localeCompare(b.name);
+        break;
+      case 'mw':
+        cmp = marketingBalanceUsd(a) - marketingBalanceUsd(b);
+        break;
+      case 'fill':
+        cmp = mwProgress(a).pct - mwProgress(b).pct;
+        break;
+      case 'roadmap':
+        cmp =
+          a.roadmapDone / Math.max(1, a.roadmapTotal) -
+          b.roadmapDone / Math.max(1, b.roadmapTotal);
+        break;
+      default:
+        cmp = 0;
+    }
+    if (cmp === 0) cmp = a.ticker.localeCompare(b.ticker);
+    return cmp * mul;
+  });
 }
 
 function marketingBalanceUsd(project: CtoProject): number {
@@ -329,6 +435,98 @@ function BotIcon({ className = '' }: { className?: string }) {
   );
 }
 
+function TokenSortControl({
+  options,
+  value,
+  dir,
+  open,
+  onOpenChange,
+  onSelect,
+  onToggleDir,
+}: {
+  options: TokenSortOption[];
+  value: TokenSortId;
+  dir: SortDir;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (id: TokenSortId) => void;
+  onToggleDir: () => void;
+}) {
+  const active = options.find((o) => o.id === value) ?? options[0];
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => onOpenChange(!open)}
+        className={`inline-flex h-8 items-center gap-1 rounded-full px-3 text-[13px] font-semibold ${
+          open
+            ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/40'
+            : 'bg-[#1c1c1e] text-white/85'
+        }`}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+      >
+        <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
+        {active?.label ?? 'Sort'}
+        <span className="text-[10px] font-bold uppercase tracking-wide text-white/40">
+          {dir === 'desc' ? '↓' : '↑'}
+        </span>
+        <ChevronDown className="h-3.5 w-3.5 text-white/45" />
+      </button>
+      {open ? (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-20 cursor-default bg-transparent"
+            aria-label="Close sort menu"
+            onClick={() => onOpenChange(false)}
+          />
+          <div
+            role="listbox"
+            aria-label="Sort tokens"
+            className="absolute left-0 top-[calc(100%+6px)] z-30 min-w-[10.5rem] overflow-hidden rounded-xl border border-white/10 bg-[#121214] py-1 shadow-xl shadow-black/50"
+          >
+            {options.map((opt) => {
+              const selected = opt.id === value;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => onSelect(opt.id)}
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-[13px] font-medium transition ${
+                    selected
+                      ? 'bg-[#c8ff3d]/12 text-[#d5ff69]'
+                      : 'text-white/75 hover:bg-white/[0.05] hover:text-white'
+                  }`}
+                >
+                  {opt.label}
+                  {selected ? (
+                    <span className="text-[10px] font-bold uppercase text-white/45">
+                      {dir === 'desc' ? 'High' : 'Low'}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+            <div className="my-1 border-t border-white/[0.08]" />
+            <button
+              type="button"
+              onClick={onToggleDir}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-semibold text-white/55 hover:bg-white/[0.05] hover:text-white"
+            >
+              <ArrowDownUp className="h-3.5 w-3.5" />
+              {dir === 'desc' ? 'High → low' : 'Low → high'}
+            </button>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export function DiscoverDeckPage() {
   const navigate = useNavigate();
   const { address, connected, connect, busy: walletBusy } = useConnectedWallet();
@@ -347,6 +545,9 @@ export function DiscoverDeckPage() {
   const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
   const [growthTipOpen, setGrowthTipOpen] = useState(false);
   const [roadmapTicker, setRoadmapTicker] = useState<string | null>(null);
+  const [tokenSort, setTokenSort] = useState<TokenSortId>('change');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
   const growthStatusRef = useRef<HTMLButtonElement>(null);
   const growthHScrollRef = useRef<HTMLDivElement>(null);
   const growthTipId = useId();
@@ -357,12 +558,43 @@ export function DiscoverDeckPage() {
   const hideDiscoverChrome =
     bottomTab === 'growth' || bottomTab === 'bot' || bottomTab === 'prelaunch' || isPortfolioView;
 
+  const sortOptions = isGrowthView
+    ? GROWTH_SORTS
+    : isPortfolioView
+      ? PORTFOLIO_SORTS
+      : DISCOVER_SORTS;
+
+  useEffect(() => {
+    setSortMenuOpen(false);
+    if (isGrowthView) {
+      setTokenSort('mw');
+      setSortDir('desc');
+    } else if (isPortfolioView) {
+      setTokenSort('value');
+      setSortDir('desc');
+    } else if (topTab === 'volume') {
+      setTokenSort('volume');
+      setSortDir('desc');
+    } else {
+      setTokenSort('change');
+      setSortDir('desc');
+    }
+  }, [bottomTab, isGrowthView, isPortfolioView, topTab]);
+
+  const selectTokenSort = (id: TokenSortId) => {
+    if (id === tokenSort) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setTokenSort(id);
+      setSortDir(id === 'name' || id === 'age' ? 'asc' : 'desc');
+    }
+    setSortMenuOpen(false);
+  };
+
   const rows = useMemo(() => {
     let list = [...ctoProjects];
     if (topTab === 'watchlist') {
       list = list.filter((p) => starred[p.ticker]);
-    } else if (topTab === 'volume') {
-      list = [...list].sort((a, b) => volumeUsd(b) - volumeUsd(a));
     } else if (topTab === 'prelaunch' || bottomTab === 'prelaunch') {
       list = list
         .filter((p) => p.stage !== 'Live' && p.launchInHours != null)
@@ -380,8 +612,6 @@ export function DiscoverDeckPage() {
             (a.launchInHours ?? Number.POSITIVE_INFINITY) -
             (b.launchInHours ?? Number.POSITIVE_INFINITY),
         );
-    } else {
-      list = [...list].sort((a, b) => changeForWindow(b, timeWindow) - changeForWindow(a, timeWindow));
     }
     if (source !== 'all') {
       list = list.filter((p) => matchesSourceVenue(p, source));
@@ -394,15 +624,24 @@ export function DiscoverDeckPage() {
           p.ticker.toLowerCase().includes(q),
       );
     }
-    // SOL-only product — other chains show empty for now
     if (chain !== 'SOL') return [];
-    return list;
-  }, [topTab, bottomTab, starred, timeWindow, query, chain, source, prelaunchFilter]);
+    if (topTab === 'prelaunch' || bottomTab === 'prelaunch') return list;
+    return sortProjects(list, tokenSort, sortDir, timeWindow);
+  }, [
+    topTab,
+    bottomTab,
+    starred,
+    timeWindow,
+    query,
+    chain,
+    source,
+    prelaunchFilter,
+    tokenSort,
+    sortDir,
+  ]);
 
   const growthRows = useMemo(() => {
-    let list = [...ctoProjects]
-      .filter((p) => Boolean(p.marketingBalance || p.marketingWallet))
-      .sort((a, b) => marketingBalanceUsd(b) - marketingBalanceUsd(a));
+    let list = [...ctoProjects].filter((p) => Boolean(p.marketingBalance || p.marketingWallet));
     if (growthStageFilter !== 'all') {
       list = list.filter((p) => growthStageFor(p) === growthStageFilter);
     }
@@ -414,8 +653,8 @@ export function DiscoverDeckPage() {
           p.ticker.toLowerCase().includes(q),
       );
     }
-    return list;
-  }, [growthStageFilter, query]);
+    return sortProjects(list, tokenSort, sortDir, timeWindow);
+  }, [growthStageFilter, query, tokenSort, sortDir, timeWindow]);
 
   const growthStageCounts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -440,15 +679,25 @@ export function DiscoverDeckPage() {
   }, [query]);
 
   const portfolioHoldings = useMemo(() => {
-    const holdings = demoHoldingsForWallet(address);
+    let holdings = demoHoldingsForWallet(address);
     const q = query.trim().toLowerCase();
-    if (!q) return holdings;
-    return holdings.filter(
-      (h) =>
-        h.project.name.toLowerCase().includes(q) ||
-        h.project.ticker.toLowerCase().includes(q),
-    );
-  }, [address, query]);
+    if (q) {
+      holdings = holdings.filter(
+        (h) =>
+          h.project.name.toLowerCase().includes(q) ||
+          h.project.ticker.toLowerCase().includes(q),
+      );
+    }
+    const mul = sortDir === 'asc' ? 1 : -1;
+    return [...holdings].sort((a, b) => {
+      let cmp = 0;
+      if (tokenSort === 'pnl') cmp = a.pnlPct - b.pnlPct;
+      else if (tokenSort === 'name') cmp = a.project.name.localeCompare(b.project.name);
+      else cmp = a.valueUsd - b.valueUsd;
+      if (cmp === 0) cmp = a.project.ticker.localeCompare(b.project.ticker);
+      return cmp * mul;
+    });
+  }, [address, query, tokenSort, sortDir]);
 
   const portfolioTotalUsd = useMemo(
     () => portfolioHoldings.reduce((sum, h) => sum + h.valueUsd, 0),
@@ -784,7 +1033,19 @@ export function DiscoverDeckPage() {
       ) : null}
 
       {/* Filter row */}
-      {isPortfolioView || bottomTab === 'bot' ? null : isPrelaunchView ? (
+      {bottomTab === 'bot' ? null : isPortfolioView ? (
+        <div className="flex shrink-0 items-center gap-2 px-3 pb-2 pt-1">
+          <TokenSortControl
+            options={sortOptions}
+            value={tokenSort}
+            dir={sortDir}
+            open={sortMenuOpen}
+            onOpenChange={setSortMenuOpen}
+            onSelect={selectTokenSort}
+            onToggleDir={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
+          />
+        </div>
+      ) : isPrelaunchView ? (
         <div className="shrink-0 px-3 pb-2.5 pt-0.5">
           <div
             className="flex items-center gap-1 rounded-2xl border border-white/[0.08] bg-[#0c0c0e]/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
@@ -835,14 +1096,15 @@ export function DiscoverDeckPage() {
               {timeWindow}
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
             </button>
-            <button
-              type="button"
-              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
-            >
-              <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
-              Token sort
-              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
-            </button>
+            <TokenSortControl
+              options={sortOptions}
+              value={tokenSort}
+              dir={sortDir}
+              open={sortMenuOpen}
+              onOpenChange={setSortMenuOpen}
+              onSelect={selectTokenSort}
+              onToggleDir={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
+            />
             <button
               ref={growthStatusRef}
               type="button"
@@ -965,14 +1227,15 @@ export function DiscoverDeckPage() {
               {timeWindow}
               <ChevronDown className="h-3.5 w-3.5 text-white/45" />
             </button>
-            <button
-              type="button"
-              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#1c1c1e] px-3 text-[13px] font-semibold text-white/85"
-            >
-              <ArrowDownUp className="h-3.5 w-3.5 text-white/55" />
-              Token sort
-              <ChevronDown className="h-3.5 w-3.5 text-white/45" />
-            </button>
+            <TokenSortControl
+              options={sortOptions}
+              value={tokenSort}
+              dir={sortDir}
+              open={sortMenuOpen}
+              onOpenChange={setSortMenuOpen}
+              onSelect={selectTokenSort}
+              onToggleDir={() => setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))}
+            />
             <button
               type="button"
               onClick={() => setShowPinned((v) => !v)}
