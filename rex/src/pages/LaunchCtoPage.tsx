@@ -944,7 +944,7 @@ export function LaunchCtoPage() {
                         },
                         {
                           icon: Zap,
-                          title: 'Raid Rewards',
+                          title: 'Shill and Raid Rewards',
                           detail: `Raiders earn ${formatBpsPercent(LIST_FEE_ENGINE.raidBps)} instant SOL on buys through their raid link.`,
                         },
                         {
