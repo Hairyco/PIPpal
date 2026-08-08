@@ -21,7 +21,7 @@ import { SolanaLogo } from './SolanaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
-import { demoMarketingWalletActivity } from '../data/marketingWalletActivity';
+import { demoMarketingWalletActivity, solscanTxUrl } from '../data/marketingWalletActivity';
 import {
   hasLinkedV1,
   launchCtoHref,
@@ -1235,7 +1235,20 @@ type DemoTrade = {
   usd: string;
   ago: string;
   wallet: string;
+  signature: string;
 };
+
+function demoTradeSignature(ticker: string, index: number): string {
+  const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  let n =
+    ticker.split('').reduce((a, c) => a + c.charCodeAt(0), 0) * 9973 + 424242 + index * 9176;
+  let out = '';
+  for (let i = 0; i < 64; i += 1) {
+    n = (n * 1103515245 + 12345) >>> 0;
+    out += alphabet[n % alphabet.length];
+  }
+  return out;
+}
 
 function demoTradesForTicker(ticker: string): DemoTrade[] {
   const seed = ticker.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
@@ -1255,6 +1268,7 @@ function demoTradesForTicker(ticker: string): DemoTrade[] {
       usd: `$${usd.toLocaleString()}`,
       ago: agos[i],
       wallet,
+      signature: demoTradeSignature(ticker, i),
     };
   });
 }
@@ -2073,6 +2087,16 @@ export function CtoTradeView({
                     <p className="text-[10px] tabular-nums text-white/35">
                       {trade.usd} · {trade.ago}
                     </p>
+                    <a
+                      href={solscanTxUrl(trade.signature)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-0.5 text-[10px] font-semibold text-white/40 transition hover:text-[#d5ff69]"
+                      title="View transaction on Solscan"
+                    >
+                      Tx
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
                   </div>
                 </li>
               ))}
