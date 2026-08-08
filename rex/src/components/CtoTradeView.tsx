@@ -411,7 +411,7 @@ function CoinTrackerRow({
 
   return (
     <div
-      className="hide-scrollbar mt-2 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x rounded-lg border border-white/[0.1] py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ WebkitOverflowScrolling: 'touch' }}
       role="list"
       aria-label="Token trackers"
@@ -530,7 +530,7 @@ function MarketCapPeakRow({
   }, [metrics.athPct, change24h]);
 
   return (
-    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 rounded-lg border border-white/[0.1] px-3 py-2.5">
+    <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1">
       <p className="flex h-5 items-center text-[11px] font-medium text-white/45">Market Cap</p>
       <div className="flex h-5 items-center justify-end gap-1">
         <p className="text-[11px] font-medium text-white/45">{mode === 'peak' ? 'Peak' : 'ATH'}</p>
@@ -888,8 +888,8 @@ export function CtoTradeView({
 
   return (
     <div ref={topRef} id="cto-trade-top" className="relative w-full min-w-0 scroll-mt-2">
-      <div className="border-t border-white/[0.08] bg-[#05070d]">
-        <div className="mx-auto w-full max-w-7xl min-w-0 px-3 pb-2 pt-3 sm:px-5">
+      <div className="border-y border-white/[0.08] bg-[#05070d]">
+        <div className="mx-auto w-full max-w-7xl min-w-0 px-3 py-3 sm:px-5">
           <div className="flex min-w-0 items-start gap-3">
             <div
               className={`h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${project.colors} ring-1 ring-white/10`}
@@ -942,7 +942,7 @@ export function CtoTradeView({
                       </div>
                     </div>
                     <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
-                      <span className="shrink-0 text-sm font-medium tabular-nums text-white/45">
+                      <span className="shrink-0 text-sm font-semibold tabular-nums text-[#c8ff3d]">
                         {formatCoinPageAge(project.launchInHours, project.ticker)}
                       </span>
                       <p className="min-w-0 truncate text-sm text-white/50">{project.name}</p>
@@ -1007,7 +1007,7 @@ export function CtoTradeView({
       <div className="mx-auto flex w-full min-w-0 max-w-7xl flex-col gap-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,300px)] lg:gap-3 lg:px-5 lg:pb-3 lg:pt-0">
         <div
           ref={chartRef}
-          className="relative z-20 min-w-0 overflow-hidden border-b border-t border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border"
+          className="relative z-20 min-w-0 overflow-hidden border-b border-white/[0.1] bg-[#05070d] lg:rounded-xl lg:border"
         >
             <div className="flex min-w-0 items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
               <div className="hide-scrollbar flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto">
