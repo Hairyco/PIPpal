@@ -330,18 +330,18 @@ export function TrenchesFeed({
                         className="h-full w-full object-cover"
                         loading="lazy"
                       />
-                      <span
-                        className="absolute bottom-0 left-0 grid h-[22px] w-[22px] place-items-center overflow-hidden rounded-[5px] bg-black/90 ring-1 ring-white/35"
-                        title={project.sourceVenue}
-                        aria-label={project.sourceVenue}
-                      >
-                        <img
-                          src={venueLogo}
-                          alt=""
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
-                      </span>
+                    </span>
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 grid h-[18px] w-[18px] place-items-center overflow-hidden rounded-full bg-black ring-[1.5px] ring-white/90"
+                      title={project.sourceVenue}
+                      aria-label={project.sourceVenue}
+                    >
+                      <img
+                        src={venueLogo}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
                     </span>
                   </button>
 
