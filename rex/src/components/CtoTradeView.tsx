@@ -1622,7 +1622,7 @@ export function CtoTradeView({
                         key={ver}
                         type="button"
                         onClick={() => setChartVersion(ver)}
-                        className={`rounded px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                        className={`rounded px-2 py-1 text-[10px] font-bold tracking-wide ${
                           chartVersion === ver
                             ? ver === 'v2'
                               ? 'bg-[#c8ff3d] text-[#090b14]'
@@ -1632,10 +1632,10 @@ export function CtoTradeView({
                         title={
                           ver === 'v2'
                             ? 'CTOgo mint chart'
-                            : 'Previous mint chart (trade stays on V2)'
+                            : 'Old CA chart (trades still use CTOgo)'
                         }
                       >
-                        {ver === 'v2' ? 'V2' : 'V1'}
+                        {ver === 'v2' ? 'CTOgo' : 'Old CA'}
                       </button>
                     ))}
                   </div>
@@ -1656,14 +1656,13 @@ export function CtoTradeView({
                 ))}
               </div>
               {chartOnV1 ? (
-                <p className="shrink-0 text-[10px] text-white/30">Previous mint</p>
+                <p className="shrink-0 text-[10px] text-white/30">Old CA</p>
               ) : null}
             </div>
             {chartOnV1 ? (
               <div className="border-b border-amber-400/15 bg-amber-400/[0.06] px-3 py-1.5">
                 <p className="text-[11px] text-amber-100/80">
-                  Viewing previous mint ({shortMint(v1Mint)}). Buys &amp; sells still use the CTOgo
-                  CA.
+                  Viewing Old CA ({shortMint(v1Mint)}). Buys &amp; sells still use the CTOgo mint.
                 </p>
               </div>
             ) : null}
