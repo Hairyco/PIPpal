@@ -94,6 +94,16 @@ export function demoMarketingWalletActivity(ticker: string): MarketingWalletTx[]
       minutesAgo: 1440,
     },
     {
+      kind: 'supplier_payout',
+      label: 'DexTools Boost',
+      counterparty: 'DexTools',
+      note: 'Supplier payout · DexTools',
+      amountUsd: 199,
+      amountSol: 1.36,
+      when: '18h ago',
+      minutesAgo: 1080,
+    },
+    {
       kind: 'investor_in',
       label: 'Investor pay-in',
       counterparty: '9pQw…kR8s',

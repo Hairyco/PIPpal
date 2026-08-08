@@ -21,6 +21,7 @@ import { SolanaLogo } from './SolanaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
 import { useConnectedWallet } from './ConnectWalletButton';
 import { formatSolAmount, useSolBalance } from '../hooks/useSolBalance';
+import { demoMarketingWalletActivity } from '../data/marketingWalletActivity';
 import {
   hasLinkedV1,
   launchCtoHref,
@@ -747,12 +748,140 @@ function MarketCapPeakRow({
   );
 }
 
+type ChartMarker = {
+  id: string;
+  /** 0 = oldest candle (left), higher = newer (right). */
+  candleIndex: number;
+  kind: 'migrate' | 'supplier';
+  /** Short badge when no logo (M / DS / DB). */
+  label: string;
+  title: string;
+  logoSrc?: string;
+  ring: string;
+};
+
+const SUPPLIER_CHART_META: Record<
+  string,
+  { label: string; logoSrc: string; ring: string }
+> = {
+  dexscreener: {
+    label: 'DS',
+    logoSrc: '/images/partners/dexscreener.ico',
+    ring: '#f472b6',
+  },
+  dextools: {
+    label: 'DB',
+    logoSrc: '/images/partners/dextools.svg',
+    ring: '#34d399',
+  },
+  telegram: {
+    label: 'TG',
+    logoSrc: '/images/partners/telegram.svg',
+    ring: '#38bdf8',
+  },
+  coinzilla: {
+    label: 'CZ',
+    logoSrc: '/images/partners/coinzilla.svg',
+    ring: '#fbbf24',
+  },
+  coingecko: {
+    label: 'CG',
+    logoSrc: '/images/partners/coingecko.svg',
+    ring: '#a3e635',
+  },
+  coinmarketcap: {
+    label: 'CMC',
+    logoSrc: '/images/partners/coinmarketcap.svg',
+    ring: '#60a5fa',
+  },
+};
+
+function resolveSupplierChartMeta(counterparty: string, label: string) {
+  const hay = `${counterparty} ${label}`.toLowerCase();
+  if (hay.includes('dexscreener') || hay.includes('dex screener')) {
+    return SUPPLIER_CHART_META.dexscreener;
+  }
+  if (hay.includes('dextools') || hay.includes('dex tools')) {
+    return SUPPLIER_CHART_META.dextools;
+  }
+  if (hay.includes('telegram')) return SUPPLIER_CHART_META.telegram;
+  if (hay.includes('coinzilla')) return SUPPLIER_CHART_META.coinzilla;
+  if (hay.includes('coingecko')) return SUPPLIER_CHART_META.coingecko;
+  if (hay.includes('coinmarketcap') || hay.includes('cmc')) {
+    return SUPPLIER_CHART_META.coinmarketcap;
+  }
+  return {
+    label: counterparty.slice(0, 2).toUpperCase() || 'AD',
+    logoSrc: undefined as string | undefined,
+    ring: '#c8ff3d',
+  };
+}
+
+function minutesAgoToCandleIndex(minutesAgo: number, candleCount: number, spanMinutes: number) {
+  const t = Math.min(1, Math.max(0, minutesAgo / Math.max(spanMinutes, 1)));
+  // Older events → left; recent → right
+  return Math.round((1 - t) * (candleCount - 1));
+}
+
+/** Demo chart pins: migration + marketing-wallet supplier spends. */
+function buildChartMarkers(
+  project: TrackerProject & Pick<TradeViewProject, 'marketingWallet' | 'marketingWalletAddress'>,
+  candleCount: number,
+): ChartMarker[] {
+  const markers: ChartMarker[] = [];
+  const seed = hashSeed(project.ticker);
+
+  if (!isOnBondingCurve(project)) {
+    // Migration sits mid-left on the map (after early curve action)
+    const migrateIdx = Math.min(candleCount - 2, Math.max(4, Math.round(candleCount * 0.22) + (seed % 5)));
+    markers.push({
+      id: `${project.ticker}-migrate`,
+      candleIndex: migrateIdx,
+      kind: 'migrate',
+      label: 'M',
+      title: 'Migrated off bonding curve',
+      ring: '#3b82f6',
+    });
+  }
+
+  const hasMkt = Boolean(project.marketingWallet || project.marketingWalletAddress);
+  if (hasMkt) {
+    const spends = demoMarketingWalletActivity(project.ticker).filter(
+      (tx) => tx.kind === 'supplier_payout',
+    );
+    const span = Math.max(...spends.map((s) => s.minutesAgo), 60 * 24 * 3);
+    const used = new Set<number>();
+    for (const tx of spends) {
+      const meta = resolveSupplierChartMeta(tx.counterparty, tx.label);
+      let idx = minutesAgoToCandleIndex(tx.minutesAgo, candleCount, span);
+      // Nudge if two pins share a candle
+      while (used.has(idx) && idx < candleCount - 1) idx += 1;
+      used.add(idx);
+      markers.push({
+        id: tx.id,
+        candleIndex: idx,
+        kind: 'supplier',
+        label: meta.label,
+        logoSrc: meta.logoSrc,
+        title: `${tx.label} · ${tx.when} · $${Math.round(tx.amountUsd)}`,
+        ring: meta.ring,
+      });
+    }
+  }
+
+  return markers.sort((a, b) => a.candleIndex - b.candleIndex);
+}
+
 function CandleChart({
   positive,
   variant = 'v2',
+  markers = [],
+  compact = false,
 }: {
   positive: boolean;
   variant?: 'v1' | 'v2';
+  markers?: ChartMarker[];
+  compact?: boolean;
 }) {
   const uid = useId().replace(/:/g, '');
   const gradientId = `ctoChartFade-${uid}`;
@@ -783,51 +912,103 @@ function CandleChart({
 
   const y = (v: number) => pad + ((max - v) / span) * (h - pad * 2);
 
+  const markerSize = compact ? 16 : 20;
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full" aria-hidden>
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {[0.25, 0.5, 0.75].map((t) => (
-        <line
-          key={t}
-          x1={pad}
-          x2={w - pad}
-          y1={pad + t * (h - pad * 2)}
-          y2={pad + t * (h - pad * 2)}
-          stroke="rgba(255,255,255,0.06)"
+    <div className="relative h-full w-full">
+      <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full" aria-hidden>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0.18" />
+            <stop offset="100%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map((t) => (
+          <line
+            key={t}
+            x1={pad}
+            x2={w - pad}
+            y1={pad + t * (h - pad * 2)}
+            y2={pad + t * (h - pad * 2)}
+            stroke="rgba(255,255,255,0.06)"
+          />
+        ))}
+        <path
+          d={[
+            `M ${pad + slot / 2} ${y(candles[0].c)}`,
+            ...candles.map((c, i) => `L ${pad + i * slot + slot / 2} ${y(c.c)}`),
+            `L ${pad + (candles.length - 1) * slot + slot / 2} ${h - pad}`,
+            `L ${pad + slot / 2} ${h - pad} Z`,
+          ].join(' ')}
+          fill={`url(#${gradientId})`}
         />
-      ))}
-      <path
-        d={[
-          `M ${pad + slot / 2} ${y(candles[0].c)}`,
-          ...candles.map((c, i) => `L ${pad + i * slot + slot / 2} ${y(c.c)}`),
-          `L ${pad + (candles.length - 1) * slot + slot / 2} ${h - pad}`,
-          `L ${pad + slot / 2} ${h - pad} Z`,
-        ].join(' ')}
-        fill={`url(#${gradientId})`}
-      />
-      {candles.map((c, i) => {
-        const cx = pad + i * slot + slot / 2;
-        const color = c.up ? '#34d399' : '#fb7185';
-        return (
-          <g key={i}>
-            <line x1={cx} x2={cx} y1={y(c.h)} y2={y(c.l)} stroke={color} strokeWidth="1.2" />
-            <rect
-              x={cx - Math.max(slot * 0.28, 1.5)}
-              y={Math.min(y(c.o), y(c.c))}
-              width={Math.max(slot * 0.56, 3)}
-              height={Math.max(Math.abs(y(c.o) - y(c.c)), 1.5)}
-              fill={color}
-              rx="0.5"
-            />
-          </g>
-        );
-      })}
-    </svg>
+        {candles.map((c, i) => {
+          const cx = pad + i * slot + slot / 2;
+          const color = c.up ? '#34d399' : '#fb7185';
+          return (
+            <g key={i}>
+              <line x1={cx} x2={cx} y1={y(c.h)} y2={y(c.l)} stroke={color} strokeWidth="1.2" />
+              <rect
+                x={cx - Math.max(slot * 0.28, 1.5)}
+                y={Math.min(y(c.o), y(c.c))}
+                width={Math.max(slot * 0.56, 3)}
+                height={Math.max(Math.abs(y(c.o) - y(c.c)), 1.5)}
+                fill={color}
+                rx="0.5"
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="pointer-events-none absolute inset-0" aria-hidden={!markers.length}>
+        {markers.map((m) => {
+          const candle = candles[Math.min(candles.length - 1, Math.max(0, m.candleIndex))];
+          const cx = pad + m.candleIndex * slot + slot / 2;
+          const cy = Math.max(markerSize / 2 + 2, y(candle.h) - (compact ? 6 : 10));
+          const leftPct = (cx / w) * 100;
+          const topPct = (cy / h) * 100;
+          return (
+            <div
+              key={m.id}
+              className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${leftPct}%`, top: `${topPct}%` }}
+              title={m.title}
+            >
+              <span
+                className="grid place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12] shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
+                style={{
+                  width: markerSize,
+                  height: markerSize,
+                  borderColor: m.ring,
+                }}
+              >
+                {m.logoSrc ? (
+                  <img
+                    src={m.logoSrc}
+                    alt=""
+                    className="h-[70%] w-[70%] object-contain"
+                    draggable={false}
+                  />
+                ) : (
+                  <span
+                    className="text-[9px] font-bold leading-none"
+                    style={{ color: m.ring, fontSize: compact ? 8 : 9 }}
+                  >
+                    {m.label}
+                  </span>
+                )}
+              </span>
+              {!compact && m.kind === 'migrate' ? (
+                <span className="mt-0.5 block text-center text-[8px] font-semibold uppercase tracking-wide text-sky-300/90">
+                  Migrate
+                </span>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -932,6 +1113,15 @@ export function CtoTradeView({
   const positive = (change ?? project.change24h) >= 0;
 
   const demoTrades = useMemo(() => demoTradesForTicker(project.ticker), [project.ticker]);
+  const chartMarkers = useMemo(() => buildChartMarkers(project, 48), [
+    project.ticker,
+    project.origin,
+    project.sourceVenue,
+    project.v1Mint,
+    project.launchInHours,
+    project.marketingWallet,
+    project.marketingWalletAddress,
+  ]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -1237,7 +1427,11 @@ export function CtoTradeView({
               </div>
             ) : null}
             <div className="h-[220px] px-1 py-2 sm:h-[300px] lg:h-[380px]">
-              <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
+              <CandleChart
+                positive={positive}
+                variant={chartOnV1 ? 'v1' : 'v2'}
+                markers={chartMarkers}
+              />
             </div>
         </div>
 
@@ -1772,7 +1966,12 @@ export function CtoTradeView({
             className="block h-[88px] w-full px-1 py-1"
             aria-label="Open full price chart"
           >
-            <CandleChart positive={positive} variant={chartOnV1 ? 'v1' : 'v2'} />
+            <CandleChart
+              positive={positive}
+              variant={chartOnV1 ? 'v1' : 'v2'}
+              markers={chartMarkers}
+              compact
+            />
           </button>
         </div>
       ) : null}
