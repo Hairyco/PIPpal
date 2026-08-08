@@ -38,6 +38,10 @@ const GROWTH_TIP_MARGIN = 12;
 const GROWTH_TIP_GAP = 8;
 const GROWTH_STATUS_TIP =
   'Trading volume funds each coin’s marketing wallet. Every project sets its own roadmap — tap a logo to filter by stage.';
+const GROWTH_SNEAK_KEY = 'ctogo-growth-roadmap-sneak';
+const GROWTH_ROW_MIN_W = 'min-w-[34.5rem]';
+const GROWTH_ROW_COLS =
+  'grid-cols-[42px_minmax(7.5rem,1fr)_44px_4.25rem_4.5rem_7.25rem]';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
@@ -342,6 +346,7 @@ export function DiscoverDeckPage() {
   const [growthStageFilter, setGrowthStageFilter] = useState<GrowthStageId | 'all'>('all');
   const [growthTipOpen, setGrowthTipOpen] = useState(false);
   const growthStatusRef = useRef<HTMLButtonElement>(null);
+  const growthHScrollRef = useRef<HTMLDivElement>(null);
   const growthTipId = useId();
   const [growthTipStyle, setGrowthTipStyle] = useState<CSSProperties>({});
   const isPrelaunchView = bottomTab === 'prelaunch';
@@ -504,6 +509,58 @@ export function DiscoverDeckPage() {
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [growthTipOpen]);
+
+  useEffect(() => {
+    if (!isGrowthView || growthRows.length === 0) return;
+    try {
+      if (localStorage.getItem(GROWTH_SNEAK_KEY) === '1') return;
+    } catch {
+      return;
+    }
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      try {
+        localStorage.setItem(GROWTH_SNEAK_KEY, '1');
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+
+    let startTimer = 0;
+    let backTimer = 0;
+    let doneTimer = 0;
+    startTimer = window.setTimeout(() => {
+      const el = growthHScrollRef.current;
+      if (!el || el.scrollWidth <= el.clientWidth + 8) {
+        try {
+          localStorage.setItem(GROWTH_SNEAK_KEY, '1');
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+      el.scrollTo({ left: Math.min(88, el.scrollWidth - el.clientWidth), behavior: 'smooth' });
+      backTimer = window.setTimeout(() => {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+        doneTimer = window.setTimeout(() => {
+          try {
+            localStorage.setItem(GROWTH_SNEAK_KEY, '1');
+          } catch {
+            /* ignore */
+          }
+        }, 500);
+      }, 850);
+    }, 550);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      window.clearTimeout(backTimer);
+      window.clearTimeout(doneTimer);
+    };
+  }, [isGrowthView, growthRows.length]);
 
   const goBuy = () => {
     setBottomTab('discover');
@@ -956,21 +1013,12 @@ export function DiscoverDeckPage() {
           <div className="col-span-2">Age / Holders / Viewing</div>
           <div className="text-right">X · TG · Web</div>
         </div>
-      ) : (
+      ) : isGrowthView ? null : (
         <div className="grid shrink-0 grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem] items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35">
           <div className="col-span-2">Age / Holders / Viewing</div>
           <div className="text-center">Chart</div>
-          {bottomTab === 'growth' ? (
-            <>
-              <div className="text-right">MW / Next</div>
-              <div className="text-right">Fill</div>
-            </>
-          ) : (
-            <>
-              <div className="text-right">Vol / TXs</div>
-              <div className="text-right">MC / {timeWindow}%</div>
-            </>
-          )}
+          <div className="text-right">Vol / TXs</div>
+          <div className="text-right">MC / {timeWindow}%</div>
         </div>
       )}
 
@@ -1210,8 +1258,28 @@ export function DiscoverDeckPage() {
             ) : null}
           </div>
         ) : (
-          <ul>
-            {(bottomTab === 'growth' ? growthRows : rows).map((project) => {
+          <div
+            ref={isGrowthView ? growthHScrollRef : undefined}
+            className={
+              isGrowthView
+                ? 'overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+                : undefined
+            }
+          >
+            <div className={isGrowthView ? GROWTH_ROW_MIN_W : undefined}>
+              {isGrowthView ? (
+                <div
+                  className={`grid ${GROWTH_ROW_COLS} items-center gap-x-1.5 px-3 pb-1 text-[10px] font-medium text-white/35`}
+                >
+                  <div className="col-span-2">Age / Holders / Viewing</div>
+                  <div className="text-center">Chart</div>
+                  <div className="text-right">MW / Next</div>
+                  <div className="text-right">Fill</div>
+                  <div className="text-right">Roadmap</div>
+                </div>
+              ) : null}
+              <ul>
+                {(bottomTab === 'growth' ? growthRows : rows).map((project) => {
               const pct = changeForWindow(project, timeWindow);
               const up = pct >= 0;
               const showPeak = peakTickers.includes(project.ticker);
@@ -1225,7 +1293,9 @@ export function DiscoverDeckPage() {
                     className={`grid w-full items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px] text-left active:bg-white/[0.03] ${
                       isPrelaunchView
                         ? 'grid-cols-[42px_minmax(0,1fr)_minmax(6.5rem,8rem)]'
-                        : 'grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem]'
+                        : isGrowthView
+                          ? GROWTH_ROW_COLS
+                          : 'grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_4.5rem]'
                     }`}
                   >
                     <div className="relative shrink-0">
@@ -1323,6 +1393,14 @@ export function DiscoverDeckPage() {
                             {fill.pct}%
                           </p>
                         </div>
+                        <div className="min-w-0 text-right">
+                          <p className="truncate text-[12px] font-semibold tabular-nums leading-none text-white">
+                            {project.roadmapDone}/{project.roadmapTotal}
+                          </p>
+                          <p className="mt-1 truncate text-[10px] font-medium leading-none text-white/40">
+                            {project.roadmapMilestone}
+                          </p>
+                        </div>
                       </>
                     ) : isPrelaunchView ? (
                       <div className="flex items-center justify-end gap-1.5">
@@ -1413,7 +1491,9 @@ export function DiscoverDeckPage() {
                 </li>
               );
             })}
-          </ul>
+              </ul>
+            </div>
+          </div>
         )}
       </div>
 
