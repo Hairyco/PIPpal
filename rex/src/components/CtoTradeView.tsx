@@ -760,6 +760,13 @@ type ChartMarker = {
   ring: string;
 };
 
+/**
+ * TODO(marketing-chart-tags): Cross-reference every marketing option in
+ * `dexProductCatalog` / `adPlatforms` / roadmap packs with chart marker tags.
+ * Pins must show the correct advert type (e.g. DexScreener Trending Bar vs Boost
+ * vs Token Ad vs ETI; DexTools boost packs; Telegram pin) — not only the supplier
+ * logo. Wire live supplier_payout notes/product ids into marker titles + badges.
+ */
 const SUPPLIER_CHART_META: Record<
   string,
   { label: string; logoSrc: string; ring: string }

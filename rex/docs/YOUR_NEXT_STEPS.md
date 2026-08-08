@@ -179,3 +179,15 @@ If a coin’s marketing wallet sits idle for **180 days**, leftover SOL can swee
 When Step 1–3 are done, tell me and I can help check the APIs are answering correctly.
 
 Full technical notes: [MARKETING_WALLET_PRODUCTION.md](./MARKETING_WALLET_PRODUCTION.md).
+
+---
+
+## Reminder — chart marketing tags (do next)
+
+Cross-reference **all** marketing options (`dexProductCatalog`, Dex Ads packs, `adPlatforms`, roadmap Approve items) against coin-chart markers so each pin shows the **correct advert type**, not just the supplier:
+
+- DexScreener: Boost vs Token Ad vs Trending Bar vs ETI vs Update socials
+- DexTools (and others): matching product / boost pack names
+- Telegram / X / other suppliers: correct spend label on the tip
+
+Today markers use demo `supplier_payout` rows + supplier logos. Before go-live, map live payout product ids → tags/titles and verify every option. Code TODO: `SUPPLIER_CHART_META` in `CtoTradeView.tsx`.
