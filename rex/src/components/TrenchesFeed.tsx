@@ -319,29 +319,31 @@ export function TrenchesFeed({
                       showCto ? ' · CTO (dev sold)' : ''
                     }`}
                   >
-                    <span
-                      className={`relative block h-[52px] w-[52px] overflow-hidden rounded-[12px] bg-[#1c1c1e] ${bundleRingClass(
-                        bundled,
-                      )}`}
-                    >
-                      <img
-                        src={project.logo}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    </span>
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 grid h-[18px] w-[18px] place-items-center overflow-hidden rounded-full bg-black ring-[1.5px] ring-white/90"
-                      title={project.sourceVenue}
-                      aria-label={project.sourceVenue}
-                    >
-                      <img
-                        src={venueLogo}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
+                    <span className="relative block h-[52px] w-[52px]">
+                      <span
+                        className={`absolute inset-0 overflow-hidden rounded-[12px] bg-[#1c1c1e] ${bundleRingClass(
+                          bundled,
+                        )}`}
+                      >
+                        <img
+                          src={project.logo}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </span>
+                      <span
+                        className="absolute bottom-0 right-0 z-10 grid h-[18px] w-[18px] place-items-center overflow-hidden rounded-full bg-black ring-[1.5px] ring-white"
+                        title={project.sourceVenue}
+                        aria-label={project.sourceVenue}
+                      >
+                        <img
+                          src={venueLogo}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </span>
                     </span>
                   </button>
 
