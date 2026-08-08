@@ -5,6 +5,7 @@ import { CtoGoLogo } from '../components/CtoGoLogo';
 import { AppSidebar, AppSidebarProvider } from '../components/AppSidebar';
 import { Sparkline } from '../components/Sparkline';
 import { TrenchesToolbar } from '../components/TrenchesToolbar';
+import { trenchesAgeLabel } from '../components/TrenchesFeed';
 import { ctoProjects, type CtoProject } from '../data/ctoProjects';
 import {
   newsTagLabel,
@@ -117,6 +118,7 @@ export function NewsStoryCoinsPage() {
             <ul>
               {projects.map((project) => {
                 const up = project.change24h >= 0;
+                const age = trenchesAgeLabel(project);
                 return (
                   <li key={project.ticker}>
                     <div className="grid w-full grid-cols-[42px_minmax(0,1fr)_44px_4.25rem_3.75rem] items-center gap-x-1.5 border-b border-white/[0.06] px-3 py-[9px]">
@@ -147,6 +149,12 @@ export function NewsStoryCoinsPage() {
                           </p>
                           <span className="shrink-0 rounded-[4px] bg-[#2a2a2c] px-1.5 py-[2px] text-[10px] font-semibold leading-none text-white/55">
                             ${project.ticker}
+                          </span>
+                          <span
+                            className="shrink-0 text-[11px] font-semibold tabular-nums text-emerald-400"
+                            title="Age"
+                          >
+                            {age}
                           </span>
                         </div>
                         <p className="mt-1 text-[11px] font-medium tabular-nums leading-none text-white/40">
