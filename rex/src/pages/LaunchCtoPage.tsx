@@ -2013,7 +2013,8 @@ export function LaunchCtoPage() {
                       Coins with websites
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-white/35">
-                      Tap a coin to preview its site · {CLONE_HOSTING_FEE_SOL} SOL to clone
+                      Tap a coin to preview its site · {CLONE_HOSTING_FEE_SOL} SOL to clone from
+                      marketing wallet
                     </p>
                   </div>
 
