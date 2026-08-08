@@ -411,7 +411,7 @@ function CoinTrackerRow({
 
   return (
     <div
-      className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="hide-scrollbar mt-3 -mx-1 flex gap-0 overflow-x-auto overscroll-x-contain touch-pan-x border-t border-white/[0.08] pt-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ WebkitOverflowScrolling: 'touch' }}
       role="list"
       aria-label="Token trackers"
@@ -888,7 +888,7 @@ export function CtoTradeView({
 
   return (
     <div ref={topRef} id="cto-trade-top" className="relative w-full min-w-0 scroll-mt-2">
-      <div className="border-y border-white/[0.08] bg-[#05070d]">
+      <div className="border-t border-white/[0.08] bg-[#05070d]">
         <div className="mx-auto w-full max-w-7xl min-w-0 px-3 py-3 sm:px-5">
           <div className="flex min-w-0 items-start gap-3">
             <div
