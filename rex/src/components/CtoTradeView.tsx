@@ -1058,6 +1058,8 @@ function CandleChart({
 }) {
   const uid = useId().replace(/:/g, '');
   const gradientId = `ctoChartFade-${uid}`;
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ width: 0, height: 0 });
   const [openMarkerId, setOpenMarkerId] = useState<string | null>(null);
   const candles = useMemo(() => {
     const out: { x: number; o: number; h: number; l: number; c: number; up: boolean }[] = [];
@@ -1080,6 +1082,19 @@ function CandleChart({
     setOpenMarkerId(null);
   }, [markers, variant]);
 
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      setBox({ width: rect.width, height: rect.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const min = Math.min(...candles.map((c) => c.l));
   const max = Math.max(...candles.map((c) => c.h));
   const span = Math.max(max - min, 1);
@@ -1090,11 +1105,30 @@ function CandleChart({
 
   const y = (v: number) => pad + ((max - v) / span) * (h - pad * 2);
 
-  const markerSize = compact ? 16 : 22;
+  /** Map SVG viewBox coords → % of the letterboxed rendered chart (meet). */
+  const svgPointToPct = (sx: number, sy: number) => {
+    if (!box.width || !box.height) return { leftPct: (sx / w) * 100, topPct: (sy / h) * 100 };
+    const scale = Math.min(box.width / w, box.height / h);
+    const renderedW = w * scale;
+    const renderedH = h * scale;
+    const offsetX = (box.width - renderedW) / 2;
+    const offsetY = (box.height - renderedH) / 2;
+    return {
+      leftPct: ((offsetX + sx * scale) / box.width) * 100,
+      topPct: ((offsetY + sy * scale) / box.height) * 100,
+    };
+  };
+
+  const markerRadiusSvg = compact ? 7 : 10;
 
   return (
-    <div className="relative h-full w-full">
-      <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full" aria-hidden>
+    <div ref={wrapRef} className="relative h-full w-full overflow-hidden">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="h-full w-full"
+        aria-hidden
+      >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={positive ? '#34d399' : '#fb7185'} stopOpacity="0.18" />
@@ -1139,13 +1173,20 @@ function CandleChart({
         })}
       </svg>
 
-      <div className={`absolute inset-0 ${compact ? 'pointer-events-none' : 'pointer-events-none'}`}>
+      <div className="pointer-events-none absolute inset-0">
         {markers.map((m) => {
-          const candle = candles[Math.min(candles.length - 1, Math.max(0, m.candleIndex))];
-          const cx = pad + m.candleIndex * slot + slot / 2;
-          const cy = Math.max(markerSize / 2 + 2, y(candle.h) - (compact ? 6 : 10));
-          const leftPct = (cx / w) * 100;
-          const topPct = (cy / h) * 100;
+          const idx = Math.min(candles.length - 1, Math.max(0, m.candleIndex));
+          const candle = candles[idx];
+          const cx = pad + idx * slot + slot / 2;
+          const rawCy = y(candle.h) - (compact ? 8 : 12);
+          const cy = Math.min(
+            h - pad - markerRadiusSvg,
+            Math.max(pad + markerRadiusSvg, rawCy),
+          );
+          const { leftPct, topPct } = svgPointToPct(cx, cy);
+          const pixelSize = compact
+            ? Math.max(12, Math.round(markerRadiusSvg * 2 * Math.min(box.width / w, box.height / h || 1)))
+            : 22;
 
           if (compact) {
             return (
@@ -1158,8 +1199,8 @@ function CandleChart({
                 <span
                   className="grid place-items-center overflow-hidden rounded-full border-2 bg-[#0a0c12] shadow-[0_2px_8px_rgba(0,0,0,0.55)]"
                   style={{
-                    width: markerSize,
-                    height: markerSize,
+                    width: pixelSize,
+                    height: pixelSize,
                     borderColor: m.ring,
                   }}
                 >
@@ -1171,10 +1212,7 @@ function CandleChart({
                       draggable={false}
                     />
                   ) : (
-                    <span
-                      className="font-bold leading-none"
-                      style={{ color: m.ring, fontSize: 8 }}
-                    >
+                    <span className="font-bold leading-none" style={{ color: m.ring, fontSize: 7 }}>
                       {m.label}
                     </span>
                   )}
@@ -1189,7 +1227,7 @@ function CandleChart({
               marker={m}
               leftPct={leftPct}
               topPct={topPct}
-              size={markerSize}
+              size={pixelSize}
               showMigrateCaption={m.kind === 'migrate'}
               open={openMarkerId === m.id}
               onToggle={() => setOpenMarkerId((cur) => (cur === m.id ? null : m.id))}
