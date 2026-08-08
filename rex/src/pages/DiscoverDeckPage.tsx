@@ -39,9 +39,9 @@ const GROWTH_TIP_MARGIN = 12;
 const GROWTH_TIP_GAP = 8;
 const GROWTH_STATUS_TIP =
   'Trading volume funds each coin’s marketing wallet. Every project sets its own roadmap — tap a logo to filter by stage.';
-const GROWTH_ROW_MIN_W = 'min-w-[34.5rem]';
+const GROWTH_ROW_MIN_W = 'min-w-[calc(100%+7.25rem)]';
 const GROWTH_ROW_COLS =
-  'grid-cols-[42px_minmax(7.5rem,1fr)_44px_4.25rem_4.5rem_7.25rem]';
+  'grid-cols-[42px_minmax(0,1fr)_40px_3.75rem_3.5rem_7.25rem]';
 
 type TopTab = 'watchlist' | 'volume' | 'trending' | 'prelaunch';
 type TimeWindow = '5m' | '1h' | '6h' | '24h';
@@ -1592,9 +1592,9 @@ export function DiscoverDeckPage() {
                             <span className="truncate">${fill.target}</span>
                           </p>
                         </div>
-                        <div className="min-w-0">
+                        <div className="min-w-0 pr-1">
                           <div
-                            className="h-[3px] overflow-hidden rounded-full bg-white/[0.08]"
+                            className="h-[3px] w-full overflow-hidden rounded-full bg-white/[0.08]"
                             role="progressbar"
                             aria-valuenow={fill.pct}
                             aria-valuemin={0}
