@@ -475,26 +475,18 @@ export function TrenchesFeed({
   );
 }
 
-/** Combat helmet — GMGN-style Trenches glyph */
+/** Combat helmet — clean filled silhouette for bottom nav */
 export function TrenchesHelmetIcon({ className = '' }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
+      {/* Dome */}
+      <path d="M4.2 13.2C4.2 8.05 7.75 4.4 12 4.4c4.25 0 7.8 3.65 7.8 8.8v.35H4.2v-.35Z" />
+      {/* Visor / brim */}
+      <path d="M3 14.15h18c.45 0 .78.4.68.84l-.55 2.35a1.1 1.1 0 0 1-1.07.86H4.94a1.1 1.1 0 0 1-1.07-.86L3.32 15c-.1-.44.23-.85.68-.85Z" />
+      {/* Center ridge */}
       <path
-        d="M4.5 14.5c0-4.8 3.2-8.5 7.5-8.5s7.5 3.7 7.5 8.5"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-      />
-      <path
-        d="M3.5 15.2h17c.4 0 .7.4.6.8l-.5 2.2c-.1.5-.6.8-1.1.8H5.5c-.5 0-1-.3-1.1-.8l-.5-2.2c-.1-.4.2-.8.6-.8Z"
-        fill="currentColor"
-      />
-      <path
-        d="M9 11.2h6"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.55"
+        d="M11.25 5.1h1.5v8.4h-1.5V5.1Z"
+        opacity="0.35"
       />
     </svg>
   );
