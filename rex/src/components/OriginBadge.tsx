@@ -1,55 +1,62 @@
-import { Check, Copy, Wallet } from 'lucide-react';
+import { Check, Copy, Share2, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ORIGIN_META, type ProjectOrigin } from '../data/ctoProjects';
 import { bumpScoutClickDemo, buildScoutLink } from '../utils/scoutReferral';
 import { useConnectedWallet } from './ConnectWalletButton';
 
 const HIDE_RAID_EARN_KEY = 'ctogo-hide-raid-earn';
+export const RAID_EARN_HIDDEN_EVENT = 'ctogo-raid-earn-hidden-changed';
 
-function readHiddenRaidEarnTickers(): Record<string, true> {
+function notifyRaidEarnHiddenChanged() {
+  try {
+    window.dispatchEvent(new Event(RAID_EARN_HIDDEN_EVENT));
+  } catch {
+    // ignore
+  }
+}
+
+/** Migrate legacy per-ticker map → global flag. */
+function readRaidEarnHiddenFlag(): boolean {
   try {
     const raw = localStorage.getItem(HIDE_RAID_EARN_KEY);
-    if (!raw) return {};
+    if (!raw) return false;
+    if (raw === '1' || raw === 'true') return true;
+    if (raw === '0' || raw === 'false') return false;
     const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
-    return parsed as Record<string, true>;
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const anyHidden = Object.values(parsed as Record<string, unknown>).some((v) => v === true);
+      if (anyHidden) {
+        localStorage.setItem(HIDE_RAID_EARN_KEY, '1');
+        return true;
+      }
+    }
+    return false;
   } catch {
-    return {};
+    return false;
   }
 }
 
-export function isRaidEarnHidden(ticker: string): boolean {
-  const key = ticker.trim().toUpperCase();
-  if (!key) return false;
-  const hidden = readHiddenRaidEarnTickers();
-  // Only per-ticker hide — never treat a blank/global key as hidden for all pages
-  return Object.prototype.hasOwnProperty.call(hidden, key) && hidden[key] === true;
+/** Global — hide once on any coin, stays hidden on every coin page. */
+export function isRaidEarnHidden(): boolean {
+  return readRaidEarnHiddenFlag();
 }
 
-export function hideRaidEarnForTicker(ticker: string) {
-  const key = ticker.trim().toUpperCase();
-  if (!key) return;
+export function hideRaidEarn() {
   try {
-    const next = { ...readHiddenRaidEarnTickers(), [key]: true as const };
-    // Drop accidental empty keys from older builds
-    delete (next as Record<string, true | undefined>)[''];
-    localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
+    localStorage.setItem(HIDE_RAID_EARN_KEY, '1');
   } catch {
     // ignore
   }
+  notifyRaidEarnHiddenChanged();
 }
 
-export function clearRaidEarnHiddenForTicker(ticker: string) {
-  const key = ticker.trim().toUpperCase();
-  if (!key) return;
+export function clearRaidEarnHidden() {
   try {
-    const next = { ...readHiddenRaidEarnTickers() };
-    delete next[key];
-    delete (next as Record<string, true | undefined>)[''];
-    localStorage.setItem(HIDE_RAID_EARN_KEY, JSON.stringify(next));
+    localStorage.removeItem(HIDE_RAID_EARN_KEY);
   } catch {
     // ignore
   }
+  notifyRaidEarnHiddenChanged();
 }
 
 export function OriginBadge({
@@ -71,10 +78,66 @@ export function OriginBadge({
   );
 }
 
+/**
+ * Compact share control next to Copy CA — shown after “Get paid instantly” is hidden.
+ * Soft lime glow so it stays noticeable across coin pages.
+ */
+export function RaidShareCaButton({ ticker }: { ticker: string }) {
+  const { address, connected, connect, busy } = useConnectedWallet();
+  const [copied, setCopied] = useState(false);
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
+  const scoutLink = address ? buildScoutLink(origin, ticker, address) : null;
+
+  const onClick = async () => {
+    if (!connected || !address || !scoutLink) {
+      void connect();
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(scoutLink);
+      bumpScoutClickDemo(address);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1600);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={() => void onClick()}
+      disabled={busy}
+      className="raid-share-ca relative grid h-6 w-6 shrink-0 place-items-center rounded-md text-[#c8ff3d] transition hover:bg-[#c8ff3d]/10 disabled:opacity-60"
+      aria-label={
+        connected
+          ? copied
+            ? 'Raid link copied'
+            : `Share $${ticker} raid link`
+          : 'Connect wallet to share raid link'
+      }
+      title={
+        connected
+          ? copied
+            ? 'Copied earn link'
+            : `Share $${ticker} · earn on trades`
+          : 'Connect to share earn link'
+      }
+    >
+      <span className="raid-share-ca-glow pointer-events-none absolute inset-0 rounded-md" aria-hidden />
+      {copied ? (
+        <Check className="relative z-[1] h-3 w-3 text-[#d5ff69]" />
+      ) : (
+        <Share2 className="relative z-[1] h-3 w-3" />
+      )}
+    </button>
+  );
+}
+
 /** Raid earn CTA — formerly “Launch {ticker} CTO”. */
 export function MigrateToV2Banner({
   ticker,
-  placement = 'top',
   dismissed,
   onDismissedChange,
 }: {
@@ -82,23 +145,32 @@ export function MigrateToV2Banner({
   sourceVenue?: string;
   devDumpedPct?: number;
   href?: string;
-  /** `top` = primary (hideable). `footer` = only when top was hidden. */
-  placement?: 'top' | 'footer';
-  /** Controlled dismiss state from parent (keeps top + footer in sync). */
   dismissed?: boolean;
   onDismissedChange?: (hidden: boolean) => void;
 }) {
   const { address, connected, connect, busy } = useConnectedWallet();
   const [copied, setCopied] = useState(false);
-  const [localHidden, setLocalHidden] = useState(() => isRaidEarnHidden(ticker));
+  const [localHidden, setLocalHidden] = useState(() => isRaidEarnHidden());
   const hidden = dismissed ?? localHidden;
 
   useEffect(() => {
-    const next = isRaidEarnHidden(ticker);
-    setLocalHidden(next);
+    const sync = () => {
+      const next = isRaidEarnHidden();
+      setLocalHidden(next);
+      onDismissedChange?.(next);
+    };
+    sync();
+    window.addEventListener(RAID_EARN_HIDDEN_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(RAID_EARN_HIDDEN_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, [onDismissedChange]);
+
+  useEffect(() => {
     setCopied(false);
-    if (dismissed === undefined) onDismissedChange?.(next);
-  }, [ticker]); // eslint-disable-line react-hooks/exhaustive-deps -- sync on ticker only
+  }, [ticker]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://ctogo.vercel.app';
   const scoutLink = address ? buildScoutLink(origin, ticker, address) : null;
@@ -116,68 +188,43 @@ export function MigrateToV2Banner({
   };
 
   const hide = () => {
-    hideRaidEarnForTicker(ticker);
+    hideRaidEarn();
     setLocalHidden(true);
     onDismissedChange?.(true);
   };
 
-  const restoreToTop = () => {
-    clearRaidEarnHiddenForTicker(ticker);
-    setLocalHidden(false);
-    onDismissedChange?.(false);
-  };
-
-  if (placement === 'top' && hidden) return null;
-  if (placement === 'footer' && !hidden) return null;
-
-  const compact = placement === 'footer';
+  if (hidden) return null;
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0c12] ${
-        compact ? 'border-dashed' : ''
-      }`}
-    >
+    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#0a0c12]">
       <div
         className="pointer-events-none absolute inset-y-0 left-0 w-[3px] bg-[#c8ff3d]"
         aria-hidden
       />
-      {!compact ? (
-        <div
-          className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#c8ff3d]/[0.07] blur-2xl"
-          aria-hidden
-        />
-      ) : null}
-
       <div
-        className={`relative flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5 ${
-          compact ? 'py-3' : 'py-3.5'
-        }`}
-      >
+        className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#c8ff3d]/[0.07] blur-2xl"
+        aria-hidden
+      />
+
+      <div className="relative flex flex-col gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-5">
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#c8ff3d]/80">
                 Growth
               </p>
-              <p
-                className={`mt-0.5 font-semibold tracking-tight text-white ${
-                  compact ? 'text-[14px]' : 'text-[15px]'
-                }`}
-              >
+              <p className="mt-0.5 text-[15px] font-semibold tracking-tight text-white">
                 Get paid instantly
               </p>
             </div>
-            {placement === 'top' ? (
-              <button
-                type="button"
-                onClick={hide}
-                className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-medium text-white/35 transition hover:bg-white/[0.05] hover:text-white/70 sm:hidden"
-                aria-label={`Hide raid earn for $${ticker}`}
-              >
-                Hide
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={hide}
+              className="inline-flex h-7 shrink-0 items-center justify-center rounded-md px-2 text-[11px] font-medium text-white/35 transition hover:bg-white/[0.05] hover:text-white/70 sm:hidden"
+              aria-label="Hide get paid instantly on all coins"
+            >
+              Hide
+            </button>
           </div>
           <p className="mt-1.5 max-w-md text-[12px] leading-relaxed text-white/45">
             Earn{' '}
@@ -207,24 +254,14 @@ export function MigrateToV2Banner({
               {copied ? 'Copied' : `Copy $${ticker} link`}
             </button>
           )}
-          {placement === 'top' ? (
-            <button
-              type="button"
-              onClick={hide}
-              className="hidden h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/40 transition hover:border-white/15 hover:text-white/70 sm:inline-flex"
-              aria-label={`Hide raid earn for $${ticker}`}
-            >
-              Hide
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={restoreToTop}
-              className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/45 transition hover:border-white/15 hover:text-white/70"
-            >
-              Pin to top
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={hide}
+            className="hidden h-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] px-2.5 text-[11px] font-medium text-white/40 transition hover:border-white/15 hover:text-white/70 sm:inline-flex"
+            aria-label="Hide get paid instantly on all coins"
+          >
+            Hide
+          </button>
         </div>
       </div>
     </div>

@@ -14,7 +14,7 @@ import {
   X,
   Pin,
 } from 'lucide-react';
-import { MigrateToV2Banner, isRaidEarnHidden } from './OriginBadge';
+import { MigrateToV2Banner, RaidShareCaButton, isRaidEarnHidden, RAID_EARN_HIDDEN_EVENT } from './OriginBadge';
 import { PolessiaLogo } from './PolessiaLogo';
 import { SolanaLogo } from './SolanaLogo';
 import { MarketingWalletActivity } from './MarketingWalletActivity';
@@ -1389,7 +1389,7 @@ export function CtoTradeView({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [slippage, setSlippage] = useState(String(DEFAULT_SLIPPAGE));
   const [priorityFee, setPriorityFee] = useState(DEFAULT_PRIORITY_FEE);
-  const [raidEarnHidden, setRaidEarnHidden] = useState(() => isRaidEarnHidden(project.ticker));
+  const [raidEarnHidden, setRaidEarnHidden] = useState(() => isRaidEarnHidden());
   const tradePanelRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
@@ -1431,8 +1431,18 @@ export function CtoTradeView({
   useEffect(() => {
     setChartVersion('v2');
     setStickyChartPinned(true);
-    setRaidEarnHidden(isRaidEarnHidden(project.ticker));
   }, [project.ticker]);
+
+  useEffect(() => {
+    const sync = () => setRaidEarnHidden(isRaidEarnHidden());
+    sync();
+    window.addEventListener(RAID_EARN_HIDDEN_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener(RAID_EARN_HIDDEN_EVENT, sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1606,6 +1616,7 @@ export function CtoTradeView({
                           <Copy className="h-3 w-3" />
                         )}
                       </button>
+                      {raidEarnHidden ? <RaidShareCaButton ticker={project.ticker} /> : null}
                     </div>
                   </div>
                 </div>
@@ -1651,7 +1662,6 @@ export function CtoTradeView({
           sourceVenue={project.sourceVenue}
           devDumpedPct={project.devDumpedPct}
           href={launchHref}
-          placement="top"
           dismissed={raidEarnHidden}
           onDismissedChange={setRaidEarnHidden}
         />
@@ -2185,19 +2195,6 @@ export function CtoTradeView({
       </div>
 
       <div className="mx-auto max-w-7xl px-3 pb-4 sm:px-5">
-        {raidEarnHidden ? (
-          <div className="mb-4">
-            <MigrateToV2Banner
-              ticker={project.ticker}
-              sourceVenue={project.sourceVenue}
-              devDumpedPct={project.devDumpedPct}
-              href={launchHref}
-              placement="footer"
-              dismissed={raidEarnHidden}
-              onDismissedChange={setRaidEarnHidden}
-            />
-          </div>
-        ) : null}
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-white/30">
           Switch coin
         </p>
