@@ -569,9 +569,9 @@ button:hover .growth-spark {
 }
 
 .raid-share-ca-glow {
-  animation: raid-share-glow 1.8s ease-in-out infinite;
+  animation: raid-share-glow 4.2s ease-in-out infinite;
 }
 
 .raid-share-ca:hover .raid-share-ca-glow {
-  animation-duration: 0.9s;
+  animation-duration: 2.6s;
 }

@@ -735,70 +735,72 @@ export function DiscoverDeckPage() {
               <PolessiaLogo variant="powered" size="xs" />
             </div>
           </div>
-          <div className="overflow-x-auto overflow-y-visible py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex w-max items-center gap-2 pr-1">
-              <button
-                type="button"
-                onClick={() => setGrowthStageFilter('all')}
-                className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition ${
-                  growthStageFilter === 'all'
-                    ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
-                    : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
-                }`}
-                aria-pressed={growthStageFilter === 'all'}
-              >
-                All
-                <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
-                  {growthStageCounts.total}
-                </span>
-              </button>
-              {GROWTH_STAGES.map((stage) => {
-                const active = growthStageFilter === stage.id;
-                const count = growthStageCounts.counts[stage.id];
-                return (
-                  <button
-                    key={stage.id}
-                    type="button"
-                    title={`${stage.label} · ${count} coin${count === 1 ? '' : 's'}`}
-                    onClick={() =>
-                      setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
-                    }
-                    className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
-                      active
-                        ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
-                        : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
-                    }`}
-                    aria-pressed={active}
-                    aria-label={`${stage.label}: ${count} coins`}
-                  >
-                    <img
-                      src={stage.logo}
-                      alt=""
-                      className="h-5 w-5 object-contain"
-                      loading="lazy"
-                    />
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 z-[1] grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[8px] font-bold tabular-nums ring-1 ${
-                        count > 0
-                          ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/35'
-                          : 'bg-[#0c0c0e] text-white/55 ring-white/10'
+          <div className="flex items-center gap-2 py-1.5">
+            <div className="min-w-0 flex-1 overflow-x-auto overflow-y-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex w-max items-center gap-2 pr-1">
+                <button
+                  type="button"
+                  onClick={() => setGrowthStageFilter('all')}
+                  className={`inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-[11px] font-semibold transition ${
+                    growthStageFilter === 'all'
+                      ? 'bg-[#c8ff3d]/15 text-[#d5ff69] ring-1 ring-[#c8ff3d]/45'
+                      : 'bg-[#1c1c1e] text-white/45 ring-1 ring-white/[0.06] hover:text-white/75'
+                  }`}
+                  aria-pressed={growthStageFilter === 'all'}
+                >
+                  All
+                  <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-white/70">
+                    {growthStageCounts.total}
+                  </span>
+                </button>
+                {GROWTH_STAGES.map((stage) => {
+                  const active = growthStageFilter === stage.id;
+                  const count = growthStageCounts.counts[stage.id];
+                  return (
+                    <button
+                      key={stage.id}
+                      type="button"
+                      title={`${stage.label} · ${count} coin${count === 1 ? '' : 's'}`}
+                      onClick={() =>
+                        setGrowthStageFilter((prev) => (prev === stage.id ? 'all' : stage.id))
+                      }
+                      className={`relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+                        active
+                          ? 'bg-[#c8ff3d]/15 ring-2 ring-[#c8ff3d]/70'
+                          : 'bg-[#1c1c1e] ring-1 ring-white/[0.08] hover:ring-white/20'
                       }`}
+                      aria-pressed={active}
+                      aria-label={`${stage.label}: ${count} coins`}
                     >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-              <button
-                type="button"
-                onClick={() => setGrowthExplainerOpen(true)}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-[15px] font-semibold leading-none text-white/45 ring-1 ring-white/[0.08] transition hover:text-[#d5ff69] hover:ring-[#c8ff3d]/35"
-                aria-label="How Growth works"
-                title="How Growth works"
-              >
-                ?
-              </button>
+                      <img
+                        src={stage.logo}
+                        alt=""
+                        className="h-5 w-5 object-contain"
+                        loading="lazy"
+                      />
+                      <span
+                        className={`absolute -bottom-0.5 -right-0.5 z-[1] grid h-3.5 min-w-3.5 place-items-center rounded-full px-0.5 text-[8px] font-bold tabular-nums ring-1 ${
+                          count > 0
+                            ? 'bg-[#c8ff3d] text-[#090b14] ring-[#c8ff3d]/35'
+                            : 'bg-[#0c0c0e] text-white/55 ring-white/10'
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setGrowthExplainerOpen(true)}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1c1c1e] text-[16px] font-bold leading-none text-[#d5ff69] ring-1 ring-[#c8ff3d]/40 transition hover:bg-[#c8ff3d]/15 hover:ring-[#c8ff3d]/70"
+              aria-label="How Growth works"
+              title="How Growth works"
+            >
+              ?
+            </button>
           </div>
         </div>
       ) : (
