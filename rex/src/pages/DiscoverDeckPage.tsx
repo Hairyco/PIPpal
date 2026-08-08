@@ -423,7 +423,7 @@ function AliveNavGlyph({
 }) {
   return (
     <span
-      className={`relative grid h-9 w-9 place-items-center ${
+      className={`relative grid h-10 w-10 shrink-0 place-items-center ${
         alive ? 'growth-nav-alive text-[#c8ff3d]' : ''
       }`}
     >
@@ -436,7 +436,9 @@ function AliveNavGlyph({
           <span className="growth-spark growth-spark-d" aria-hidden />
         </>
       ) : null}
-      <span className="relative z-[1] grid place-items-center">{children}</span>
+      <span className="relative z-[1] grid h-[22px] w-[22px] place-items-center [&_svg]:h-[22px] [&_svg]:w-[22px]">
+        {children}
+      </span>
     </span>
   );
 }
@@ -1842,9 +1844,9 @@ export function DiscoverDeckPage() {
         </button>
       ) : null}
 
-      {/* Bottom nav — Growth centered */}
+      {/* Bottom nav */}
       <nav className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="pointer-events-auto flex w-full max-w-[28rem] items-end justify-between rounded-[22px] bg-[#1c1c1e]/92 px-1.5 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
+        <div className="pointer-events-auto flex w-full max-w-[28rem] items-center justify-between rounded-[22px] bg-[#1c1c1e]/92 px-1 py-1 shadow-[0_12px_40px_rgba(0,0,0,0.55)] ring-1 ring-white/10 backdrop-blur-md">
           {(
             [
               { id: 'discover' as const, label: 'Discover', kind: 'lucide' as const, Lucide: Compass },
@@ -1861,25 +1863,32 @@ export function DiscoverDeckPage() {
                 key={item.id}
                 type="button"
                 onClick={() => selectBottom(item.id)}
-                className={`flex w-[16%] flex-col items-center gap-0.5 transition ${
+                className={`flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 transition ${
                   active ? 'text-[#c8ff3d]' : 'text-white/45'
                 }`}
                 aria-current={active ? 'page' : undefined}
               >
                 <AliveNavGlyph alive={active}>
                   {item.kind === 'lucide' ? (
-                    <item.Lucide className="h-[18px] w-[18px]" strokeWidth={2} />
+                    <item.Lucide strokeWidth={2} />
                   ) : item.kind === 'growth' ? (
-                    <GrowthIcon className="h-[18px] w-[18px]" />
+                    <GrowthIcon />
                   ) : item.kind === 'bot' ? (
-                    <span className="text-[18px] leading-none" aria-hidden>
+                    <span
+                      className="flex h-[22px] w-[22px] items-center justify-center text-[20px] leading-none"
+                      aria-hidden
+                    >
                       🤖
                     </span>
                   ) : (
-                    <TrenchesHelmetIcon className="h-[18px] w-[18px]" />
+                    <TrenchesHelmetIcon />
                   )}
                 </AliveNavGlyph>
-                <span className={`text-[10px] leading-none ${active ? 'font-semibold' : 'font-medium'}`}>
+                <span
+                  className={`max-w-full truncate text-center text-[10px] leading-none ${
+                    active ? 'font-semibold' : 'font-medium'
+                  }`}
+                >
                   {item.label}
                 </span>
               </button>
