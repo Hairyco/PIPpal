@@ -117,16 +117,17 @@ function StoryCard({ story }: { story: TrendingNewsStory }) {
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
             </Link>
-            {allTickers.length > 0 ? (
-              <span className="ml-2 truncate text-[11px] font-medium tabular-nums text-white/40">
-                {allTickers.length} coin{allTickers.length === 1 ? '' : 's'}
-              </span>
-            ) : null}
+            <Link
+              to={coinsHref}
+              className="ml-2 truncate text-[11px] font-semibold text-white/45 transition hover:text-[#d5ff69]"
+            >
+              View
+            </Link>
           </div>
 
           <Link
             to={launchHref}
-            className="news-launch-fade inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14]"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#c8ff3d] px-4 text-[12px] font-bold text-[#090b14]"
           >
             <Rocket className="h-3.5 w-3.5" strokeWidth={2.5} />
             Launch
